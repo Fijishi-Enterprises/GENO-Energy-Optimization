@@ -8,7 +8,7 @@ An application combining multiple energy system simulation models.
 
 import sys
 import logging
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 from ui_main import TitanUI
 
 
@@ -18,7 +18,7 @@ def main(argv):
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     #  GUI
-    app = QtGui.QApplication(argv)
+    app = QtWidgets.QApplication(argv)
     window = TitanUI()
     window.show()
     sys.exit(app.exec_())

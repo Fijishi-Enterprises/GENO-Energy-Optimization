@@ -6,11 +6,11 @@ Module for main GUI functions.
 """
 
 import locale
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 from ui.main import Ui_MainWindow
 
 
-class TitanUI(QtGui.QMainWindow):
+class TitanUI(QtWidgets.QMainWindow):
     """Class for application main GUI functions."""
 
     def __init__(self):
