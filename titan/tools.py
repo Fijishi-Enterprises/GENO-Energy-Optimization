@@ -22,10 +22,30 @@ def run(command):
     logging.debug("Starting sub-process: '{}'.".format(command))
     return subprocess.call(command)
 
-def copy_files(src_dir, dst_dir, extension = '*'):
-    """Method for copying files
-    """
-    src_files = os.path.join(src_dir, '*.{}'.format(extension.lower()))
-    for file in glob.iglob(src_files):
-        shutil.copy(file, dst_dir)
 
+def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):
+    """Method for copying files
+
+    Args:
+        src_dir (str): Source directory
+        dst_dir (str): Destination directory
+        extensions (str)
+
+    Returns:
+        count (int): Number of files copied
+    """
+    src_files = []
+    for pattern in includes:
+        src_files += glob.glob(os.path.join(src_dir, pattern))
+
+    exclude_files = []
+    for pattern in excludes:
+        exclude_files += glob.glob(os.path.join(src_dir, pattern))
+
+    count = 0
+    for filename in src_files:
+        if filename not in exclude_files:
+            shutil.copy(filename, dst_dir)
+            count += 1
+
+    return count
