@@ -49,3 +49,21 @@ def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):
             count += 1
 
     return count
+
+
+def run2(command):
+    """ Run a sub-process. Same as in Sceleton.
+
+    Args:
+        command (str): Sub-process command as string.
+
+    Returns:
+        Normal and possible error output of the sub-process.
+    """
+    logging.debug('Starting sub-process: <%s>.' % command)
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE,
+                            stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                            shell=True)
+    out = proc.communicate()
+    return out
+

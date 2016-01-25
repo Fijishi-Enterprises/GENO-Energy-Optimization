@@ -5,7 +5,6 @@ File defines Model class and related classes
 :date:   26/10/2015
 """
 
-
 import os
 import shutil
 import glob
@@ -13,31 +12,24 @@ import logging
 from collections import OrderedDict
 import json
 
-import pandas as pd
-
-from .tools import run, copy_files
-
-# Constants
-INPUT_DIR_BASE = 'input'
-OUTPUT_DIR_BASE = 'output'
+from tools import run, copy_files
+from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR
 
 
 class MetaObject(object):
 
-    def __init__(self, name, descrption):
+    def __init__(self, name, description):
         self.name = name
         self.short_name = name.lower().replace(' ', '_')
-        self.descrption = descrption
+        self.description = description
 
 
 class Model(MetaObject):
-    """Abstract class for models
-
-    """
+    """Abstract class for models."""
 
     def __init__(self, name, description, command,
                  input_dir='', output_dir=''):
-        """
+        """Model constructor.
         Args:
             name (str): Name of the model
             description (str): Short description of the model
@@ -47,7 +39,7 @@ class Model(MetaObject):
         """
         super().__init__(name, description)
         if not os.path.exists(command):
-            pass #TODO: Do something here
+            pass  # TODO: Do something here
         self.command = command
         self.logfile = ''
         self.basedir = os.path.split(command)[0]
@@ -63,7 +55,7 @@ class Model(MetaObject):
         self.logfile = logfile
 
     def add_input(self, parameter):
-        """Add input parameter for the model
+        """Add input parameter for model.
 
         Args:
             parameter (DataParameter): Data parameter object
@@ -71,7 +63,7 @@ class Model(MetaObject):
         self.inputs.append(parameter)
 
     def add_output(self, parameter):
-        """Add output parameter for the model
+        """Add output parameter for model.
 
         Args:
             parameter (DataParameter): Data parameter object
@@ -110,7 +102,7 @@ class Model(MetaObject):
         self.return_codes[code] = description
 
     def copy_input(self, src_dir):
-        """Copy input of the model from somewhere
+        """Copy input of the model from somewhere.
 
         Args:
             src_dir (str): Source directory
@@ -124,7 +116,7 @@ class Model(MetaObject):
                                 in self.get_input_file_extensions()]) > 0
 
     def copy_output(self, dst_dir):
-        """Copy output of the model to somewhere
+        """Copy output of the model to somewhere.
 
         Args:
             dst_dir (str): Destination directory
@@ -157,28 +149,24 @@ class Setup(MetaObject):
     """
 
     def __init__(self, name, description, parent=None):
-        """
+        """Setup constructor.
+
         Args:
             name (str): Name of model setup
             description (str): Description
-            model (Model): The model this setup applies to.
             parent (ModelSetup): Parent setup of this setup
 
         """
         super().__init__(name, description)
-
         self.parent = parent
-
         self.models = OrderedDict()
-
         self.is_ready = False
 
         # Create input and output directories
-        self.input_dir = os.path.join(INPUT_DIR_BASE, self.short_name)
+        self.input_dir = os.path.join(INPUT_STORAGE_DIR, self.short_name)
         os.makedirs(self.input_dir, exist_ok=True)
-        self.output_dir = os.path.join(OUTPUT_DIR_BASE, self.short_name)
+        self.output_dir = os.path.join(OUTPUT_STORAGE_DIR, self.short_name)
         os.makedirs(self.output_dir, exist_ok=True)
-
 
     def create_input(self):
         """Create input files for this model setup
@@ -204,10 +192,10 @@ class Setup(MetaObject):
         os.makedirs(self.output_dir, exist_ok=True)
 
     def get_input_files(self, model, file_fmt):
-        """Get paths of text input (non-binary) files for model in this setup
+        """Get paths of input files of given format for model in this setup
 
         Args:
-            model (Models): The model
+            model (Model): The model
             file_fmt (DataFormat): Collect only binary files
         """
 
@@ -230,7 +218,7 @@ class Setup(MetaObject):
             the_dict['models'] = [mdl.short_name for mdl in self.models.keys()]
         the_dict['is_ready'] = self.is_ready
 
-        jsonfile = os.path.join(INPUT_DIR_BASE,
+        jsonfile = os.path.join(INPUT_STORAGE_DIR,
                                 '{}.json'.format(self.short_name))
         with open(jsonfile, 'w') as fp:
             json.dump(the_dict, fp, indent=4)
@@ -290,8 +278,7 @@ class Setup(MetaObject):
 
 
 class Dimension(MetaObject):
-    """Data dimension
-    """
+    """Data dimension."""
 
     def __init__(self, name, description):
         """
@@ -306,8 +293,7 @@ class Dimension(MetaObject):
 
 
 class DataFormat(object):
-    """Class for defining data storage formats
-    """
+    """Class for defining data storage formats."""
 
     def __init__(self, name, extension, binary=False):
         """
@@ -324,7 +310,7 @@ class DataParameter(MetaObject):
     """Class for data parameters
     """
 
-    def __init__(self, name, description, units, indices = []):
+    def __init__(self, name, description, units, indices=[]):
         """
         Args:
             name (str): Name of parameter
@@ -336,12 +322,5 @@ class DataParameter(MetaObject):
         self.units = units
         self.indices = indices
 
-        self.data = pd.Series(dtype=float)
-
-
     def get_dimension(self):
         return len(self.indices)
-
-
-
-

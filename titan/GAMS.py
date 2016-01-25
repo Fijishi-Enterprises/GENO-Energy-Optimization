@@ -8,10 +8,8 @@ Created on Thu Jan 21 13:27:34 2016
 import os.path
 import shutil
 
-from .model import Model, DataFormat
-
-# Constants
-GAMS_EXECUTABLE = 'gams'
+from model import Model, DataFormat
+from config import GAMS_EXECUTABLE
 
 
 class GAMSModel(Model):
