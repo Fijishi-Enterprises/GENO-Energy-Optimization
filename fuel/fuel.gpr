@@ -1,0 +1,131 @@
+[PROJECT]
+
+[GDXDISP: cost Var 0]
+PlaneDim=0
+RowDim=0
+Squeeze=1
+Order=1
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: costfn Equ 0]
+PlaneDim=0
+RowDim=0
+Squeeze=1
+Order=1
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: demcons Equ 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: floweq Equ 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: lowoil Equ 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: initlev Par 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: ts_fluctuation Par 3]
+PlaneDim=1
+RowDim=1
+Squeeze=1
+Order=2,1,3
+Decim=7
+PlaneRownr=-1
+
+[OPENWINDOW_1]
+MAXIM=0
+TOP=74
+LEFT=54
+HEIGHT=619
+WIDTH=1438
+
+[RP:FUEL]
+1=
+
+[GDXDISP: volume Var 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: maxoil Equ 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: oil Var 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: oileq Equ 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: others Var 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: poil Var 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: status Var 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[MRUFILES]
+1=C:\data\GIT\TITAN\fuel\output\fuel_output.gdx
+2=C:\data\GIT\TITAN\configs\output\fuel_scheduling\config_a\fuel_output.gdx
+3=C:\data\GIT\TITAN\fuel\fuel.gms
+4=C:\Data\GIT\Titan\fuel\fuel.lst
+5=C:\Users\ererkka\Documents\Python\Sceleton\output\fuel_scheduling\test\fuel_output.gdx
+6=C:\Users\ererkka\Documents\Python\Sceleton\output\fuel_scheduling\config_a\fuel_input.gdx

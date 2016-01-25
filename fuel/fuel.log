@@ -1,0 +1,315 @@
+--- Job fuel.gms Start 01/22/16 15:59:18 WEX-WEI 24.0.2 x86_64/MS Windows     
+***
+*** Issued ViewClose request on fuel.lst
+***
+GAMS Rev 240  Copyright (C) 1987-2013 GAMS Development. All rights reserved
+Licensee: Energy Systems                                 W120511:1343CP-WIN
+          VTT Energy                                                 DC1884
+--- Starting compilation
+--- fuel.gms(26) 2 Mb
+--- GDXin=C:\Data\GIT\Titan\fuel\input/fuel_input.gdx
+--- fuel.gms(86) 3 Mb
+--- Starting execution: elapsed 0:00:00.715
+--- fuel.gms(69) 4 Mb
+--- Generating MINLP model ucom
+--- fuel.gms(71) 6 Mb
+---   16 rows  16 columns  39 non-zeroes
+---   42 nl-code  6 nl-non-zeroes
+---   3 discrete-columns
+--- fuel.gms(71) 4 Mb
+--- Executing DICOPT: elapsed 0:00:00.868
+
+Dicopt           Feb 14, 2013 24.0.2 WEX 38380.38394 WEI x86_64/MS Windows    
+
+--- DICOPT: Starting major iteration 1
+--- DICOPT: Setting up first (relaxed) NLP.
+CONOPT 3         Feb 14, 2013 24.0.2 WEX 38380.38394 WEI x86_64/MS Windows    
+ 
+ 
+    C O N O P T 3   version 3.15I
+    Copyright (C)   ARKI Consulting and Development A/S
+                    Bagsvaerdvej 246 A
+                    DK-2880 Bagsvaerd, Denmark
+ 
+ 
+   Iter Phase Ninf   Infeasibility   RGmax    NSB   Step InItr MX OK
+      0   0        9.6187500000E+03 (Input point)
+                                Pre-triangular equations:        0
+                                Post-triangular equations:       1
+      1   0        7.0500000000E+03 (After pre-processing)
+      2   0        1.3818359375E+01 (After scaling)
+     10   0     8  6.9887284493E+00               1.0E+00      F  T
+     20   0     8  6.9824280225E+00               1.0E+00      F  T
+ 
+ ** Feasible solution. Value of objective =    13775.0000000
+ 
+   Iter Phase Ninf     Objective     RGmax    NSB   Step InItr MX OK
+     26   3        9.8773725932E+03 4.9E+03     5 6.4E-01    3 T  T
+     31   3        8.6310102473E+03 2.4E+03     3 2.9E-05      F  T
+     36   4        8.4576876104E+03 3.4E-01     2 1.0E+00    2 F  T
+     39   4        8.4576877890E+03 4.2E-10     2
+ 
+ ** Optimal solution. Reduced gradient less than tolerance.
+ 
+--- DICOPT: Setting up first MIP
+
+IBM ILOG CPLEX   Feb 14, 2013 24.0.2 WEX 38380.38394 WEI x86_64/MS Windows    
+Cplex 12.5.0.0
+
+Reading data...
+Starting Cplex...
+Unable to load names.
+Tried aggregator 2 times.
+MIP Presolve eliminated 3 rows and 7 columns.
+Aggregator did 2 substitutions.
+Reduced MIP has 12 rows, 16 columns, and 32 nonzeros.
+Reduced MIP has 3 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.03 ticks)
+Found incumbent of value 8955656.906162 after 0.00 sec. (0.05 ticks)
+Probing time = 0.00 sec. (0.00 ticks)
+Tried aggregator 1 time.
+MIP Presolve eliminated 3 rows and 3 columns.
+MIP Presolve modified 2 coefficients.
+Reduced MIP has 9 rows, 13 columns, and 25 nonzeros.
+Reduced MIP has 2 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.02 ticks)
+Probing time = 0.00 sec. (0.00 ticks)
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: none, using 1 thread.
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 1 columns.
+Reduced LP has 8 rows, 12 columns, and 23 nonzeros.
+Presolve time = 0.00 sec. (0.01 ticks)
+Initializing dual steep norms . . .
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1            5151.102933                     x6               c7 slack
+     2            5151.102933                     x8                     x7
+     3            5151.102933                     x2               c8 slack
+     4            5151.102933                     x7                     x2
+     5            8559.623657                     x5               c6 slack
+Initializing dual steep norms . . .
+Root relaxation solution time = 0.00 sec. (0.02 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                      8955656.9062     5151.1029        5   99.94%
+Found incumbent of value 8955656.906162 after 0.00 sec. (0.09 ticks)
+*     0     0      integral     0     8559.6237     8559.6237        5    0.00%
+Elapsed time = 0.00 sec. (0.10 ticks, tree = 0.00 MB, solutions = 1)
+Found incumbent of value 8559.623657 after 0.00 sec. (0.10 ticks)
+
+Root node processing (before b&c):
+  Real time             =    0.00 sec. (0.03 ticks)
+Sequential b&c:
+  Real time             =    0.00 sec. (0.00 ticks)
+                          ------------
+Total (root+branch&cut) =    0.00 sec. (0.03 ticks)
+MIP status(101): integer optimal solution
+Cplex Time: 0.00sec (det. 0.10 ticks)
+Fixing integer variables, and solving final LP...
+Tried aggregator 1 time.
+LP Presolve eliminated 9 rows and 11 columns.
+Aggregator did 3 substitutions.
+Reduced LP has 5 rows, 11 columns, and 15 nonzeros.
+Presolve time = 0.00 sec. (0.01 ticks)
+Initializing dual steep norms . . .
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1            5151.102933                     x7               c5 slack
+     2            5151.102933                     x5               c4 slack
+     3            6731.376982                     x2                     x7
+     4            6731.376982                     x1               c2 slack
+     5            8557.896473                     x7               c3 slack
+     6            8559.623657                     x3                     x2
+Fixed MIP status(1): optimal
+Cplex Time: 0.00sec (det. 0.03 ticks)
+
+Proven optimal solution.
+
+MIP Solution:         8559.623657    (5 iterations, 0 nodes)
+Final Solve:          8559.623657    (6 iterations)
+
+Best possible:        8559.623657
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+--- DICOPT: Starting major iteration 2
+--- DICOPT: Setting up next NLP
+CONOPT 3         Feb 14, 2013 24.0.2 WEX 38380.38394 WEI x86_64/MS Windows    
+ 
+ 
+    C O N O P T 3   version 3.15I
+    Copyright (C)   ARKI Consulting and Development A/S
+                    Bagsvaerdvej 246 A
+                    DK-2880 Bagsvaerd, Denmark
+ 
+ 
+   Iter Phase Ninf   Infeasibility   RGmax    NSB   Step InItr MX OK
+      0   0        3.1153920324E+02 (Input point)
+                                Pre-triangular equations:        0
+                                Post-triangular equations:       1
+      1   0        2.0769280216E+02 (After pre-processing)
+      2   0        3.2811318365E-01 (After scaling)
+ 
+ ** Feasible solution. Value of objective =    8994.78320414
+ 
+   Iter Phase Ninf     Objective     RGmax    NSB   Step InItr MX OK
+     11   3        8.7422707697E+03 6.8E+02     1 2.0E-01    1 F  T
+     16   4        8.5665001428E+03 7.8E+02     2 1.0E+00    2 F  T
+     21   4        8.5661189617E+03 1.5E-09     2
+ 
+ ** Optimal solution. Reduced gradient less than tolerance.
+ 
+--- DICOPT: Checking convergence
+--- DICOPT: Setting up next MIP
+--- GMO Resort Time 0ms
+--- DICOPT: Log File:
+ Major Major     Objective    CPU time  Itera- Evaluation Solver
+ Step  Iter       Function     (Sec)    tions   Errors
+  NLP    1      8457.68779      0.00       39      0      conopt
+  MIP    1      8559.62366      0.00       11      0      cplex
+  NLP    2      8566.11896<     0.00       21      0      conopt
+
+IBM ILOG CPLEX   Feb 14, 2013 24.0.2 WEX 38380.38394 WEI x86_64/MS Windows    
+Cplex 12.5.0.0
+
+Reading data...
+Starting Cplex...
+Unable to load names.
+Tried aggregator 2 times.
+MIP Presolve eliminated 2 rows and 9 columns.
+Aggregator did 2 substitutions.
+Reduced MIP has 18 rows, 22 columns, and 57 nonzeros.
+Reduced MIP has 3 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.04 ticks)
+Found incumbent of value 1.8196890e+007 after 0.00 sec. (0.07 ticks)
+Probing time = 0.00 sec. (0.00 ticks)
+Tried aggregator 2 times.
+MIP Presolve eliminated 1 rows and 1 columns.
+MIP Presolve modified 4 coefficients.
+Aggregator did 2 substitutions.
+Reduced MIP has 15 rows, 19 columns, and 48 nonzeros.
+Reduced MIP has 2 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.04 ticks)
+Probing time = 0.00 sec. (0.00 ticks)
+Clique table members: 1.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: none, using 1 thread.
+Tried aggregator 1 time.
+LP Presolve eliminated 0 rows and 2 columns.
+Aggregator did 1 substitutions.
+Reduced LP has 14 rows, 16 columns, and 44 nonzeros.
+Presolve time = 0.00 sec. (0.01 ticks)
+Initializing dual steep norms . . .
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1 sI            8.000000                     x4               c1 slack
+     2 sI            6.730960                    x10                     x4
+     3 sI            0.000000                     x3    goes to upper bound
+     4            5151.102933                     x7               c8 slack
+     5            5151.102933                     x1               c7 slack
+     6            5151.102933                     x6              c14 slack
+     7            9075.086285                     x4               c9 slack
+     8            9078.049499                     x5              c12 slack
+     9            9087.945842                     x3               c4 slack
+    10            9088.167368               c1 slack              c10 slack
+Initializing dual steep norms . . .
+Root relaxation solution time = 0.00 sec. (0.04 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                      1.81969e+007                     10     --- 
+Found incumbent of value 1.8196890e+007 after 0.00 sec. (0.17 ticks)
+*     0     0      integral     0     9088.1674     9088.1674       10    0.00%
+Elapsed time = 0.00 sec. (0.17 ticks, tree = 0.00 MB, solutions = 1)
+Found incumbent of value 9088.167368 after 0.00 sec. (0.17 ticks)
+
+Root node processing (before b&c):
+  Real time             =    0.00 sec. (0.06 ticks)
+Sequential b&c:
+  Real time             =    0.00 sec. (0.00 ticks)
+                          ------------
+Total (root+branch&cut) =    0.00 sec. (0.06 ticks)
+MIP status(101): integer optimal solution
+Cplex Time: 0.00sec (det. 0.18 ticks)
+Fixing integer variables, and solving final LP...
+Tried aggregator 1 time.
+LP Presolve eliminated 12 rows and 21 columns.
+Aggregator did 3 substitutions.
+Reduced LP has 7 rows, 9 columns, and 20 nonzeros.
+Presolve time = 0.00 sec. (0.02 ticks)
+Initializing dual steep norms . . .
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1  I            0.000000                     x5               c1 slack
+     2            7506.939309                     x4               c4 slack
+     3            9087.213359                     x1               c3 slack
+     4            9087.945842                     x2               c6 slack
+     5            9088.167368               c1 slack               c5 slack
+Fixed MIP status(1): optimal
+Cplex Time: 0.00sec (det. 0.04 ticks)
+
+Proven optimal solution.
+
+MIP Solution:         9088.167368    (10 iterations, 0 nodes)
+Final Solve:          9088.167368    (5 iterations)
+
+Best possible:        9088.167368
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+--- DICOPT: Starting major iteration 3
+--- DICOPT: Setting up next NLP
+CONOPT 3         Feb 14, 2013 24.0.2 WEX 38380.38394 WEI x86_64/MS Windows    
+ 
+ 
+    C O N O P T 3   version 3.15I
+    Copyright (C)   ARKI Consulting and Development A/S
+                    Bagsvaerdvej 246 A
+                    DK-2880 Bagsvaerd, Denmark
+ 
+ 
+   Iter Phase Ninf   Infeasibility   RGmax    NSB   Step InItr MX OK
+      0   0        3.0694592860E+02 (Input point)
+                                Pre-triangular equations:        0
+                                Post-triangular equations:       1
+      1   0        9.7414316820E+01 (After pre-processing)
+      2   0        4.7587354290E-02 (After scaling)
+ 
+ ** Feasible solution. Value of objective =    9489.09830618
+ 
+   Iter Phase Ninf     Objective     RGmax    NSB   Step InItr MX OK
+     11   3        9.3381041294E+03 1.8E+01     1 2.7E-04      F  T
+     16   4        9.3381019792E+03 1.5E-05     1 1.0E+00    1 F  T
+     17   4        9.3381019792E+03 4.5E-13     1
+ 
+ ** Optimal solution. Reduced gradient less than tolerance.
+ 
+--- DICOPT: Checking convergence
+--- DICOPT: Search stopped on worsening of NLP subproblems
+--- DICOPT: Log File:
+ Major Major     Objective    CPU time  Itera- Evaluation Solver
+ Step  Iter       Function     (Sec)    tions   Errors
+  NLP    1      8457.68779      0.00       39      0      conopt
+  MIP    1      8559.62366      0.00       11      0      cplex
+  NLP    2      8566.11896<     0.00       21      0      conopt
+  MIP    2      9088.16737      0.00       15      0      cplex
+  NLP    3      9338.10198      0.00       17      0      conopt
+--- DICOPT: Terminating...
+--- DICOPT: Stopped on NLP worsening
+
+      The search was stopped because the objective function
+      of the NLP subproblems started to deteriorate.
+
+--- DICOPT: Best integer solution found: 8566.118962
+--- Restarting execution
+--- fuel.gms(71) 2 Mb
+--- Reading solution for model ucom
+--- fuel.gms(73) 3 Mb
+*** Status: Normal completion
+--- Job fuel.gms Stop 01/22/16 15:59:19 elapsed 0:00:01.248

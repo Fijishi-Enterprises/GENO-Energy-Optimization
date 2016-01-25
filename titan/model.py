@@ -5,34 +5,28 @@ File defines Model class and related classes
 :date:   26/10/2015
 """
 
-
 import os
 import shutil
+from tools import run, run2, copy_files
+from config import GAMS_EXECUTABLE, CONFIG_INPUT_DIR_BASE, CONFIG_OUTPUT_DIR_BASE
 
-from .tools import run, copy_files
-
-GAMS_EXECUTABLE = 'gams'
-INPUT_DIR_BASE = 'input'
-OUTPUT_DIR_BASE = 'output'
 
 class MetaObject(object):
 
-    def __init__(self, name, descrption):
+    def __init__(self, name, description):
         self.name = name
-        self.descrption = descrption
+        self.description = description
 
     def get_short_name(self):
         return self.name.lower().replace(' ', '_')
 
 
 class Model(MetaObject):
-    """Abstract class for models
-
-    """
+    """Abstract class for models."""
 
     def __init__(self, name, description, command,
                  input_dir='', output_dir=''):
-        """
+        """Model constructor.
         Args:
             name (str): Name of the model
             description (str): Short description of the model
@@ -58,7 +52,7 @@ class Model(MetaObject):
         self.logfile = logfile
 
     def add_input(self, parameter):
-        """Add output parameter for model
+        """Add input parameter for model.
 
         Args:
             parameter (DataParameter): Data parameter object
@@ -66,7 +60,7 @@ class Model(MetaObject):
         self.inputs.append(parameter)
 
     def add_output(self, parameter):
-        """Add output parameter for model
+        """Add output parameter for model.
 
         Args:
             parameter (DataParameter): Data parameter object
@@ -82,7 +76,7 @@ class Model(MetaObject):
         self.return_codes[code] = description
 
     def copy_input(self, src_dir):
-        """Copy output of model somewhere
+        """Copy output of model somewhere.
 
         Args:
             src_dir (str): Source directory
@@ -90,7 +84,7 @@ class Model(MetaObject):
         copy_files(src_dir, self.input_dir, self.output_format.extension)
 
     def copy_output(self, dst_dir):
-        """Copy output of model somewhere
+        """Copy output of model somewhere.
 
         Args:
             dst_dir (str): Destination directory
@@ -108,13 +102,12 @@ class ModelConfig(MetaObject):
     """
 
     def __init__(self, name, description, model):
-        """
+        """ModelConfig constructor.
 
         Args:
             name (str): Name of model configuration
             description (str): Description
             model (Model): The model this config applies to.
-
         """
         super().__init__(name, description)
 
@@ -122,23 +115,21 @@ class ModelConfig(MetaObject):
 
         self.cmd_line_arguments = ''
 
-        self.input_dir = os.path.join(INPUT_DIR_BASE,
+        self.input_dir = os.path.join(CONFIG_INPUT_DIR_BASE,
                                       self.model.get_short_name(),
                                       self.get_short_name())
         os.makedirs(self.input_dir, exist_ok=True)
-        self.output_dir = os.path.join(OUTPUT_DIR_BASE,
-                                      self.model.get_short_name(),
-                                      self.get_short_name())
+        self.output_dir = os.path.join(CONFIG_OUTPUT_DIR_BASE,
+                                       self.model.get_short_name(),
+                                       self.get_short_name())
         os.makedirs(self.output_dir, exist_ok=True)
 
     def create_input(self):
-        """Create input files for this model configuration
-        """
+        """Create input files for this model configuration."""
         pass
 
     def run(self):
-        """Execute this model configuratios
-        """
+        """Execute this model configuration."""
 
         self.model.copy_input(self.input_dir)
 
@@ -157,8 +148,7 @@ class ModelConfig(MetaObject):
 
 
 class Dimension(MetaObject):
-    """Data dimension
-    """
+    """Data dimension."""
 
     def __init__(self, name, description):
         """
@@ -171,8 +161,7 @@ class Dimension(MetaObject):
 
 
 class DataFormat(object):
-    """Class for defining data storage formats
-    """
+    """Class for defining data storage formats."""
 
     def __init__(self, name, extension):
         """
@@ -188,7 +177,7 @@ class DataParameter(MetaObject):
     """Class for data parameters
     """
 
-    def __init__(self, name, description, units, indices = []):
+    def __init__(self, name, description, units, indices=[]):
         """
         Args:
             name (str): Name of parameter
@@ -205,20 +194,30 @@ class DataParameter(MetaObject):
 
 
 class GAMSModel(Model):
-    """Class for GAMS models
-    """
+    """Class for GAMS models."""
 
     def __init__(self, name, description, gamsfile,
                  input_dir='', output_dir=''):
-        """
-        """
+        """GAMS Model Constructor.
 
+        Args:
+            name (str): Name of the model
+            description (str): Short description of the model
+            gamsfile: GAMS exe file path
+            input_dir (str): Input file directory (absolute or relative to command)
+            output_dir (str): Output file directory (absolute or relative to command)
+        """
         self.gamsfile = gamsfile
         basedir = os.path.split(gamsfile)[0]
-        GAMS_parameters = "Logoption=2"
+        gams_parameters = "Logoption=3"
+        # Logoption parameter options
+        # 0	suppress LOG output
+        # 1	LOG output to screen (default)
+        # 2	send LOG output to file
+        # 3	writes LOG output to standard output
         command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE,
-                                               self.gamsfile, basedir,
-                                               GAMS_parameters)
+                                                  self.gamsfile, basedir,
+                                                  gams_parameters)
         input_dir = os.path.join(basedir, input_dir)
         output_dir = os.path.join(basedir, output_dir)
         super().__init__(name, description, command, input_dir, output_dir)
@@ -226,27 +225,6 @@ class GAMSModel(Model):
         self.logfile = os.path.splitext(gamsfile)[0] + '.log'
         self.lstfile = os.path.splitext(gamsfile)[0] + '.lst'
 
-        self.return_codes = {
-            0: "normal return",
-            1: "solver is to be called the system should never return this number",
-            2: "there was a compilation error",
-            3: "there was an execution error",
-            4: "system limits were reached",
-            5:  "there was a file error",
-            6:  "there was a parameter error",
-            7:  "there was a licensing error",
-            8:  "there was a GAMS system error",
-            9:  "GAMS could not be started",
-            10: "out of memory",
-            11: "out of disk"
-        }
-
     def copy_output(self, dst_dir):
         super().copy_output(dst_dir)
         shutil.copy(self.lstfile, dst_dir)
-
-
-
-
-
-

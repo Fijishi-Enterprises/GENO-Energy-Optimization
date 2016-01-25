@@ -13,8 +13,8 @@ from ui_main import TitanUI
 
 
 def main(argv):
-    """ Launch application. """
-    logging.basicConfig(stream=sys.stderr, level=logging.ERROR,
+    """Launch application."""
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     #  GUI

@@ -1,0 +1,31 @@
+B 2 C o m p i l a t i o n
+B 89 Include File Summary
+B 102 Equation Listing    SOLVE ucom Using MINLP From line 71
+D 103 costfn
+D 113 lowoil
+D 122 maxoil
+D 137 floweq
+D 150 demcons
+D 165 oileq
+B 179 Column Listing      SOLVE ucom Using MINLP From line 71
+E 180 status
+E 202 poil
+E 226 others
+E 247 oil
+E 265 volume
+E 283 cost
+B 292 Model Statistics    SOLVE ucom Using MINLP From line 71
+B 310 Solution Report     SOLVE ucom Using MINLP From line 71
+F 453 costfn
+F 461 lowoil
+F 469 maxoil
+F 477 floweq
+F 485 demcons
+F 493 oileq
+G 496 status
+G 504 poil
+G 512 others
+G 520 oil
+G 528 volume
+G 536 cost
+B 550 E x e c u t i o n
