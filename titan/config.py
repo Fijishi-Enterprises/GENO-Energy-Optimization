@@ -21,12 +21,11 @@ if getattr(sys, 'frozen', False):
 else:
     APPLICATION_PATH = os.path.dirname(__file__)
 
-# Model path
-MAGIC_MODEL_PATH = os.path.join(APPLICATION_PATH, '..', 'magic', 'magic.gms')
-# r"C:\Data\GIT\Titan\fuel\fuel.gms",
 # Model input/output directories
 INPUT_STORAGE_DIR = os.path.join(APPLICATION_PATH, '..', 'input')
 OUTPUT_STORAGE_DIR = os.path.join(APPLICATION_PATH, '..', 'output')
+# Model path
+MAGIC_MODEL_PATH = os.path.join(APPLICATION_PATH, '../models', 'magic')
 
 # GAMS
 GAMS_EXECUTABLE ='gams'
