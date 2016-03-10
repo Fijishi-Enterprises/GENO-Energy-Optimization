@@ -26,7 +26,7 @@ class TitanUI(QtWidgets.QMainWindow):
     def __init__(self):
         """ Initialize GUI """
         super().__init__()
-        # Set locale to use ',' as '.' in scalar number strings
+        # Set number formatting to use user's default settings
         locale.setlocale(locale.LC_NUMERIC, '')
         # Setup the user interface from Qt Creator files
         self.ui = Ui_MainWindow()
