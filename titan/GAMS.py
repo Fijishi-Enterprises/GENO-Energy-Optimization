@@ -8,34 +8,32 @@ Created on Thu Jan 21 13:27:34 2016
 import os.path
 import shutil
 
-from model import Model, DataFormat
+from tool import Tool, ToolInstance, DataFormat
 from config import GAMS_EXECUTABLE
 
 
-class GAMSModel(Model):
+class GAMSModel(Tool):
     """Class for GAMS models
     """
 
-    def __init__(self, name, description, gamsfile,
+    def __init__(self, name, description, path, gamsfile,
                  input_dir='', output_dir=''):
         """
         Args:
             name (str): Model name
             description (str): Model description
-            gamsfile (str): Path to GAMS program
+            path (str): Path to model or Git repository
+            gamsfile (str): Path to main GAMS program (relative to `path`)
         """
 
         self.gamsfile = gamsfile
-        basedir = os.path.split(gamsfile)[0]
-        GAMS_parameters = "Logoption=2"  # send LOG output to file
-        command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE, gamsfile,
-                                                  basedir, GAMS_parameters)
-        input_dir = os.path.join(basedir, input_dir)
-        output_dir = os.path.join(basedir, output_dir)
-        super().__init__(name, description, command, input_dir, output_dir)
-        self.basedir = basedir  # Replace basedir
-        self.logfile = os.path.splitext(gamsfile)[0] + '.log'
-        self.lstfile = os.path.splitext(gamsfile)[0] + '.lst'
+        self.GAMS_parameters = "Logoption=3"  # send LOG output to STDOUT
+
+        super().__init__(name, description, path, gamsfile,
+                         input_dir, output_dir)
+        # Add .log and .lst files to list of outputs
+        self.outfiles.append(os.path.splitext(gamsfile)[0] + '.log')
+        self.outfiles.append(os.path.splitext(gamsfile)[0] + '.lst')
 
         self.return_codes = {
             0: "normal return",
@@ -52,16 +50,26 @@ class GAMSModel(Model):
             11: "out of disk"
         }
 
-    def copy_output(self, dst_dir):
-        ret = super().copy_output(dst_dir)
-        try:
-            shutil.copy(self.lstfile, dst_dir)
-        except:
-            ret = False
-        return ret
+    def create_instance(self, cmdline_args=None):
+        """Create an instance of the GAMS model
+
+        Args:
+            basedir (str): Where to put that instance
+            cmdline_args (str): Extra command line arguments
+        """
+
+        instance = ToolInstance(self)
+        # Tamper the command to call GAMS
+        command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE, self.gamsfile,
+                                                  instance.basedir,
+                                                  self.GAMS_parameters)
+        if cmdline_args is not None:
+            command += ' ' + cmdline_args
+        instance.command = command
+        return instance
 
 
-GDX_DATA_FMT = DataFormat('GDX', 'gdx', binary=True)
+GDX_DATA_FMT = DataFormat('GDX', 'gdx', is_binary=True)
 GAMS_INC_FILE = DataFormat('GAMS inc file', 'inc')
 
 

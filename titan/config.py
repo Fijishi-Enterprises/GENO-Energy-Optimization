@@ -21,11 +21,19 @@ if getattr(sys, 'frozen', False):
 else:
     APPLICATION_PATH = os.path.dirname(__file__)
 
+PROJECT_DIR = os.path.join(APPLICATION_PATH, '../projects', 'p1')
+if not os.path.exists(PROJECT_DIR):
+    os.makedirs(PROJECT_DIR)
 # Model input/output directories
-INPUT_STORAGE_DIR = os.path.join(APPLICATION_PATH, '..', 'input')
-OUTPUT_STORAGE_DIR = os.path.join(APPLICATION_PATH, '..', 'output')
+INPUT_STORAGE_DIR = os.path.join(PROJECT_DIR, 'input')
+OUTPUT_STORAGE_DIR = os.path.join(PROJECT_DIR, 'output')
+WORK_DIR = os.path.join(APPLICATION_PATH, '../work')
+
+
 # Model path
 MAGIC_MODEL_PATH = os.path.join(APPLICATION_PATH, '../models', 'magic')
 
 # GAMS
 GAMS_EXECUTABLE ='gams'
+
+IGNORE_PATTERNS = ('.git', '.gitignore')
