@@ -1,0 +1,575 @@
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                         03/09/16 17:35:41 Page 1
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+C o m p i l a t i o n
+
+
+   2   
+       
+      A number of power stations are committed to meet demand for a particular
+      day. three types of generators having different operating characteristics
+      are available.  Generating units can be shut down or operate between
+      minimum and maximum output levels.  Units can be started up or closed down
+      in every demand block.
+       
+       
+      Garver, L L, Power Scheduling by Integer Programming,
+      Tariff-Rates-Power-Generation-Problem, IEEE Trans. Power Apparatus
+      and Systems, 81, 730-735, 1963
+       
+      Day, R E, and Williams, H P, MAGIC: The design and use of an interactive
+      modeling language for mathematical programming. Tech. rep., Department
+      Business Studies, University of Edinburgh, 1982.
+       
+      Williams, H P, Model Building in Mathematical Programming. John Wiley
+      and Sons, 1978.
+       
+  24   
+  27   
+  28   
+  29   Sets  t  demand blocks / 12pm-6am, 6am-9am, 9am-3pm, 3pm-6pm, 6pm-12pm /
+  30         g  generators    / type-1, type-2, type-3 /
+  31   
+  32   Parameters dem(t)  demand (1000MW)   / 12pm-6am  15, 6am-9am   30, 9am-3pm   25, 3pm-6pm  40, 6pm-12pm   27 /
+  33              dur(t)  duration (hours)  / 12pm-6am   6, 6am-9am    3, 9am-3pm    6, 3pm-6pm    3, 6pm-12pm   6 /
+  34   
+  35   Set param / min-pow  '(1000MW)'
+  36               max-pow  '(1000MW)'
+  37               cost-min '(¤/h)'
+  38               cost-inc '(¤/h/MW)'
+  39               start    '(¤)'
+  40               number   '(units)'
+  41            /
+  42   
+  43   Parameter data(g, param)  generation data ;
+  44   
+GDXIN   C:\data\GIT\TITAN\magic\input/data.gdx
+--- LOAD  data = 1:data
+  48   
+INCLUDE    C:\data\GIT\TITAN\magic\input/changes.inc
+  50  * Choose CPLEX as solver
+  51  Option MIP=CPLEX;
+  52   
+  53  * Lower type-1 max power
+  54  data('type-1', 'max-pow') = 1;
+  55   
+  56   
+  57   Parameters peak     peak power (1000MW)
+  58              ener(t)  energy demand in load block (1000MWh)
+  59              tener    total energy demanded (1000MWh)
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                         03/09/16 17:35:41 Page 2
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+C o m p i l a t i o n
+
+
+  60              lf       load factor ;
+  61   
+  62   
+  63   
+  64    peak = smax(t, dem(t));  ener(t) = dur(t)*dem(t);  tener = sum(t, ener(t));  lf = tener/(peak*24);
+  65    display peak, tener, lf, ener;
+  66   
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                         03/09/16 17:35:41 Page 3
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+C o m p i l a t i o n
+
+
+  68   Variables  x(g,t)  generator output (1000MW)
+  69              n(g,t)  number of generators in use
+  70              s(g,t)  number of generators started up
+  71              cost    total operating cost (¤)
+  72   
+  73   Integer Variables n; Positive Variable s;
+  74   
+  75   Equations pow(t)    demand for power (1000MW)
+  76             res(t)    spinning reserve requirements (1000MW)
+  77             st(g,t)   start-up definition
+  78             minu(g,t) minimum generation level (1000MW)
+  79             maxu(g,t) maximum generation level (1000MW)
+  80             cdef      cost definition (¤);
+  81   
+  82   pow(t)..  sum(g, x(g,t)) =g= dem(t);
+  83   
+  84   res(t)..  sum(g, data(g,"max-pow")*n(g,t)) =g= 1.15*dem(t);
+  85   
+  86   st(g,t).. s(g,t) =g= n(g,t) - n(g,t--1);
+  87   
+  88   minu(g,t)..  x(g,t) =g= data(g,"min-pow")*n(g,t);
+  89   
+  90   maxu(g,t)..  x(g,t) =l= data(g,"max-pow")*n(g,t);
+  91   
+  92   cdef.. cost =e= sum((g,t), dur(t)*data(g,"cost-min")*n(g,t) + data(g,"start")*s(g,t)
+  93                 + 1000*dur(t)*data(g,"cost-inc")*(x(g,t)-data(g,"min-pow")*n(g,t)) );
+  94   
+  95    n.up(g,t) = data(g,"number");
+  96   
+  97   Model william / all /; william.optcr = 0;
+  98   
+  99   Solve william minimizing cost using mip;
+ 100   
+ 101   Parameter rep  summary report;
+ 102   
+ 103      rep(t,"demand")    =  dem(t);
+ 104      rep(t,"spinning")  =  sum(g, data(g,"max-pow")*n.l(g,t));
+ 105      rep(t,"start-ups") =  sum(g, s.l(g,t));
+ 106      rep(t,"m-cost")    = -pow.m(t)/dur(t)/1000;
+ 107   
+ 108   Display rep;
+ 109   
+ 110   execute_unload 'output/report.gdx', rep;
+ 111   
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                         03/09/16 17:35:41 Page 4
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  C:\data\GIT\TITAN\magic\magic.gms
+     2       45 GDXIN          1      46  C:\data\GIT\TITAN\magic\input/data.gdx
+     3       49 INCLUDE        1      50  .C:\data\GIT\TITAN\magic\input/changes.inc
+
+
+COMPILATION TIME     =        0.047 SECONDS      3 Mb  WEX240-240 Feb 14, 2013
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                         03/09/16 17:35:41 Page 5
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+E x e c u t i o n
+
+
+----     65 PARAMETER peak                 =       40.000  peak power (1000MW)
+            PARAMETER tener                =      612.000  total energy demanded (1000MWh)
+            PARAMETER lf                   =        0.637  load factor
+
+----     65 PARAMETER ener  energy demand in load block (1000MWh)
+
+12pm-6am  90.000,    6am-9am   90.000,    9am-3pm  150.000,    3pm-6pm  120.000,    6pm-12pm 162.000
+
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                         03/09/16 17:35:41 Page 6
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+Equation Listing    SOLVE william Using MIP From line 99
+
+
+---- pow  =G=  demand for power (1000MW)
+
+pow(12pm-6am)..  x(type-1,12pm-6am) + x(type-2,12pm-6am) + x(type-3,12pm-6am) =G= 15 ; (LHS = 0, INFES = 15 ****)
+     
+pow(6am-9am)..  x(type-1,6am-9am) + x(type-2,6am-9am) + x(type-3,6am-9am) =G= 30 ; (LHS = 0, INFES = 30 ****)
+     
+pow(9am-3pm)..  x(type-1,9am-3pm) + x(type-2,9am-3pm) + x(type-3,9am-3pm) =G= 25 ; (LHS = 0, INFES = 25 ****)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- res  =G=  spinning reserve requirements (1000MW)
+
+res(12pm-6am)..  n(type-1,12pm-6am) + 1.75*n(type-2,12pm-6am) + 4*n(type-3,12pm-6am) =G= 17.25 ; (LHS = 0, INFES = 17.25 ****)
+     
+res(6am-9am)..  n(type-1,6am-9am) + 1.75*n(type-2,6am-9am) + 4*n(type-3,6am-9am) =G= 34.5 ; (LHS = 0, INFES = 34.5 ****)
+     
+res(9am-3pm)..  n(type-1,9am-3pm) + 1.75*n(type-2,9am-3pm) + 4*n(type-3,9am-3pm) =G= 28.75 ; (LHS = 0, INFES = 28.75 ****)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- st  =G=  start-up definition
+
+st(type-1,12pm-6am)..  - n(type-1,12pm-6am) + n(type-1,6pm-12pm) + s(type-1,12pm-6am) =G= 0 ; (LHS = 0)
+     
+st(type-1,6am-9am)..  n(type-1,12pm-6am) - n(type-1,6am-9am) + s(type-1,6am-9am) =G= 0 ; (LHS = 0)
+     
+st(type-1,9am-3pm)..  n(type-1,6am-9am) - n(type-1,9am-3pm) + s(type-1,9am-3pm) =G= 0 ; (LHS = 0)
+     
+REMAINING 12 ENTRIES SKIPPED
+
+
+---- minu  =G=  minimum generation level (1000MW)
+
+minu(type-1,12pm-6am)..  x(type-1,12pm-6am) - 0.85*n(type-1,12pm-6am) =G= 0 ; (LHS = 0)
+     
+minu(type-1,6am-9am)..  x(type-1,6am-9am) - 0.85*n(type-1,6am-9am) =G= 0 ; (LHS = 0)
+     
+minu(type-1,9am-3pm)..  x(type-1,9am-3pm) - 0.85*n(type-1,9am-3pm) =G= 0 ; (LHS = 0)
+     
+REMAINING 12 ENTRIES SKIPPED
+
+
+---- maxu  =L=  maximum generation level (1000MW)
+
+maxu(type-1,12pm-6am)..  x(type-1,12pm-6am) - n(type-1,12pm-6am) =L= 0 ; (LHS = 0)
+     
+maxu(type-1,6am-9am)..  x(type-1,6am-9am) - n(type-1,6am-9am) =L= 0 ; (LHS = 0)
+     
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                         03/09/16 17:35:41 Page 7
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+Equation Listing    SOLVE william Using MIP From line 99
+
+
+     maxu  =L=  maximum generation level (1000MW)
+
+maxu(type-1,9am-3pm)..  x(type-1,9am-3pm) - n(type-1,9am-3pm) =L= 0 ; (LHS = 0)
+     
+REMAINING 12 ENTRIES SKIPPED
+
+
+---- cdef  =E=  cost definition (¤)
+
+cdef..  - 12000*x(type-1,12pm-6am) - 6000*x(type-1,6am-9am) - 12000*x(type-1,9am-3pm) - 6000*x(type-1,3pm-6pm) - 12000*x(type-1,6pm-12pm) - 7800*x(type-2,12pm-6am) - 3900*x(type-2,6am-9am) - 7800*x(type-2,9am-3pm) - 3900*x(type-2,3pm-6pm)
+     
+      - 7800*x(type-2,6pm-12pm) - 18000*x(type-3,12pm-6am) - 9000*x(type-3,6am-9am) - 18000*x(type-3,9am-3pm) - 9000*x(type-3,3pm-6pm) - 18000*x(type-3,6pm-12pm) + 4200*n(type-1,12pm-6am) + 2100*n(type-1,6am-9am) + 4200*n(type-1,9am-3pm)
+     
+      + 2100*n(type-1,3pm-6pm) + 4200*n(type-1,6pm-12pm) - 5850*n(type-2,12pm-6am) - 2925*n(type-2,6am-9am) - 5850*n(type-2,9am-3pm) - 2925*n(type-2,3pm-6pm) - 5850*n(type-2,6pm-12pm) + 9000*n(type-3,12pm-6am) + 4500*n(type-3,6am-9am)
+     
+      + 9000*n(type-3,9am-3pm) + 4500*n(type-3,3pm-6pm) + 9000*n(type-3,6pm-12pm) - 2000*s(type-1,12pm-6am) - 2000*s(type-1,6am-9am) - 2000*s(type-1,9am-3pm) - 2000*s(type-1,3pm-6pm) - 2000*s(type-1,6pm-12pm) - 1000*s(type-2,12pm-6am)
+     
+      - 1000*s(type-2,6am-9am) - 1000*s(type-2,9am-3pm) - 1000*s(type-2,3pm-6pm) - 1000*s(type-2,6pm-12pm) - 500*s(type-3,12pm-6am) - 500*s(type-3,6am-9am) - 500*s(type-3,9am-3pm) - 500*s(type-3,3pm-6pm) - 500*s(type-3,6pm-12pm) + cost =E= 0 ; (LHS = 0)
+     
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                         03/09/16 17:35:41 Page 8
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+Column Listing      SOLVE william Using MIP From line 99
+
+
+---- x  generator output (1000MW)
+
+x(type-1,12pm-6am)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pow(12pm-6am)
+        1       minu(type-1,12pm-6am)
+        1       maxu(type-1,12pm-6am)
+   -12000       cdef
+
+x(type-1,6am-9am)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pow(6am-9am)
+        1       minu(type-1,6am-9am)
+        1       maxu(type-1,6am-9am)
+    -6000       cdef
+
+x(type-1,9am-3pm)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pow(9am-3pm)
+        1       minu(type-1,9am-3pm)
+        1       maxu(type-1,9am-3pm)
+   -12000       cdef
+
+REMAINING 12 ENTRIES SKIPPED
+
+---- n  number of generators in use
+
+n(type-1,12pm-6am)
+                (.LO, .L, .UP, .M = 0, 0, 12, 0)
+        1       res(12pm-6am)
+       -1       st(type-1,12pm-6am)
+        1       st(type-1,6am-9am)
+       -0.85    minu(type-1,12pm-6am)
+       -1       maxu(type-1,12pm-6am)
+     4200       cdef
+
+n(type-1,6am-9am)
+                (.LO, .L, .UP, .M = 0, 0, 12, 0)
+        1       res(6am-9am)
+       -1       st(type-1,6am-9am)
+        1       st(type-1,9am-3pm)
+       -0.85    minu(type-1,6am-9am)
+       -1       maxu(type-1,6am-9am)
+     2100       cdef
+
+n(type-1,9am-3pm)
+                (.LO, .L, .UP, .M = 0, 0, 12, 0)
+        1       res(9am-3pm)
+       -1       st(type-1,9am-3pm)
+        1       st(type-1,3pm-6pm)
+       -0.85    minu(type-1,9am-3pm)
+       -1       maxu(type-1,9am-3pm)
+     4200       cdef
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                         03/09/16 17:35:41 Page 9
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+Column Listing      SOLVE william Using MIP From line 99
+
+
+     n  number of generators in use
+
+
+REMAINING 12 ENTRIES SKIPPED
+
+---- s  number of generators started up
+
+s(type-1,12pm-6am)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       st(type-1,12pm-6am)
+    -2000       cdef
+
+s(type-1,6am-9am)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       st(type-1,6am-9am)
+    -2000       cdef
+
+s(type-1,9am-3pm)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       st(type-1,9am-3pm)
+    -2000       cdef
+
+REMAINING 12 ENTRIES SKIPPED
+
+---- cost  total operating cost (¤)
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       cdef
+
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                        03/09/16 17:35:41 Page 10
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+Model Statistics    SOLVE william Using MIP From line 99
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           56
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           46
+NON ZERO ELEMENTS           181     DISCRETE VARIABLES         15
+
+
+GENERATION TIME      =        0.062 SECONDS      4 Mb  WEX240-240 Feb 14, 2013
+
+
+EXECUTION TIME       =        0.062 SECONDS      4 Mb  WEX240-240 Feb 14, 2013
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                        03/09/16 17:35:41 Page 11
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+Solution Report     SOLVE william Using MIP From line 99
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   william             OBJECTIVE  cost
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  99
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE          1004870.0000
+
+ RESOURCE USAGE, LIMIT          0.016      1000.000
+ ITERATION COUNT, LIMIT        66    2000000000
+
+IBM ILOG CPLEX   Feb 14, 2013 24.0.2 WEX 38380.38394 WEI x86_64/MS Windows    
+Cplex 12.5.0.0
+
+MIP status(101): integer optimal solution
+Cplex Time: 0.02sec (det. 1.28 ticks)
+Fixing integer variables, and solving final LP...
+Fixed MIP status(1): optimal
+Cplex Time: 0.00sec (det. 0.04 ticks)
+Proven optimal solution.
+
+MIP Solution:      1004870.000000    (62 iterations, 7 nodes)
+Final Solve:       1004870.000000    (4 iterations)
+
+Best possible:     1004870.000000
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+
+---- EQU pow  demand for power (1000MW)
+
+                LOWER          LEVEL          UPPER         MARGINAL
+
+12pm-6am        15.0000        15.0000        +INF         7800.0000      
+6am-9am         30.0000        30.0000        +INF         6000.0000      
+9am-3pm         25.0000        25.0000        +INF         7800.0000      
+3pm-6pm         40.0000        40.0000        +INF         9000.0000      
+6pm-12pm        27.0000        27.0000        +INF         7800.0000      
+
+---- EQU res  spinning reserve requirements (1000MW)
+
+                LOWER          LEVEL          UPPER         MARGINAL
+
+12pm-6am        17.2500        17.2500        +INF             .          
+6am-9am         34.5000        35.7500        +INF             .          
+9am-3pm         28.7500        30.0000        +INF             .          
+3pm-6pm         46.0000        49.5000        +INF             .          
+6pm-12pm        31.0500        31.7500        +INF             .          
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                        03/09/16 17:35:41 Page 12
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+Solution Report     SOLVE william Using MIP From line 99
+
+
+---- EQU st  start-up definition
+
+                       LOWER          LEVEL          UPPER         MARGINAL
+
+type-1.12pm-6am          .              .            +INF             .          
+type-1.6am-9am           .              .            +INF             .          
+type-1.9am-3pm           .              .            +INF             .          
+type-1.3pm-6pm           .              .            +INF             .          
+type-1.6pm-12pm          .              .            +INF             .          
+type-2.12pm-6am          .             6.0000        +INF             .          
+type-2.6am-9am           .              .            +INF         1000.0000      
+type-2.9am-3pm           .             1.0000        +INF             .          
+type-2.3pm-6pm           .              .            +INF         1000.0000      
+type-2.6pm-12pm          .             1.0000        +INF             .          
+type-3.12pm-6am          .             1.0000        +INF             .          
+type-3.6am-9am           .              .            +INF          500.0000      
+type-3.9am-3pm           .             1.0000        +INF             .          
+type-3.3pm-6pm           .              .            +INF          500.0000      
+type-3.6pm-12pm          .             4.0000        +INF             .          
+
+---- EQU minu  minimum generation level (1000MW)
+
+                       LOWER          LEVEL          UPPER         MARGINAL
+
+type-1.12pm-6am          .              .            +INF         4200.0000      
+type-1.6am-9am           .             1.0500        +INF             .          
+type-1.9am-3pm           .              .            +INF         4200.0000      
+type-1.3pm-6pm           .             1.8000        +INF             .          
+type-1.6pm-12pm          .              .            +INF         4200.0000      
+type-2.12pm-6am          .             1.0500        +INF             .          
+type-2.6am-9am           .             4.5000        +INF             .          
+type-2.9am-3pm           .             3.3000        +INF             .          
+type-2.3pm-6pm           .             5.0000        +INF             .          
+type-2.6pm-12pm          .             4.0500        +INF             .          
+type-3.12pm-6am          .              .            +INF        10200.0000      
+type-3.6am-9am           .              .            +INF         3000.0000      
+type-3.9am-3pm           .              .            +INF        10200.0000      
+type-3.3pm-6pm           .             3.0000        +INF             .          
+type-3.6pm-12pm          .              .            +INF        10200.0000      
+
+---- EQU maxu  maximum generation level (1000MW)
+
+                       LOWER          LEVEL          UPPER         MARGINAL
+
+type-1.12pm-6am        -INF           -1.8000          .              .          
+type-1.6am-9am         -INF           -0.7500          .              .          
+type-1.9am-3pm         -INF           -1.8000          .              .          
+type-1.3pm-6pm         -INF             .              .         -3000.0000      
+type-1.6pm-12pm        -INF           -1.8000          .              .          
+type-2.12pm-6am        -INF           -0.4500          .              .          
+type-2.6am-9am         -INF             .              .         -2100.0000      
+type-2.9am-3pm         -INF           -0.7000          .              .          
+type-2.3pm-6pm         -INF             .              .         -5100.0000      
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                        03/09/16 17:35:41 Page 13
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+Solution Report     SOLVE william Using MIP From line 99
+
+
+     EQU maxu  maximum generation level (1000MW)
+
+                       LOWER          LEVEL          UPPER         MARGINAL
+
+type-2.6pm-12pm        -INF           -0.4500          .              .          
+type-3.12pm-6am        -INF             .              .              .          
+type-3.6am-9am         -INF           -5.0000          .              .          
+type-3.9am-3pm         -INF           -2.5000          .              .          
+type-3.3pm-6pm         -INF           -9.5000          .              .          
+type-3.6pm-12pm        -INF           -2.5000          .              .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU cdef                .              .              .             1.0000      
+
+  cdef  cost definition (¤)
+
+---- VAR x  generator output (1000MW)
+
+                       LOWER          LEVEL          UPPER         MARGINAL
+
+type-1.12pm-6am        -INF           10.2000        +INF             .          
+type-1.6am-9am         -INF           11.2500        +INF             .          
+type-1.9am-3pm         -INF           10.2000        +INF             .          
+type-1.3pm-6pm         -INF           12.0000        +INF             .          
+type-1.6pm-12pm        -INF           10.2000        +INF             .          
+type-2.12pm-6am        -INF            4.8000        +INF             .          
+type-2.6am-9am         -INF           15.7500        +INF             .          
+type-2.9am-3pm         -INF           13.3000        +INF             .          
+type-2.3pm-6pm         -INF           17.5000        +INF             .          
+type-2.6pm-12pm        -INF           15.3000        +INF             .          
+type-3.12pm-6am        -INF             .            +INF             .          
+type-3.6am-9am         -INF            3.0000        +INF             .          
+type-3.9am-3pm         -INF            1.5000        +INF             .          
+type-3.3pm-6pm         -INF           10.5000        +INF             .          
+type-3.6pm-12pm        -INF            1.5000        +INF             .          
+
+---- VAR n  number of generators in use
+
+                       LOWER          LEVEL          UPPER         MARGINAL
+
+type-1.12pm-6am          .            12.0000        12.0000      -630.0000      
+type-1.6am-9am           .            12.0000        12.0000     -2100.0000      
+type-1.9am-3pm           .            12.0000        12.0000      -630.0000      
+type-1.3pm-6pm           .            12.0000        12.0000     -5100.0000      
+type-1.6pm-12pm          .            12.0000        12.0000      -630.0000      
+type-2.12pm-6am          .             3.0000        10.0000      4850.0000      
+type-2.6am-9am           .             9.0000        10.0000       250.0000      
+type-2.9am-3pm           .             8.0000        10.0000      4850.0000      
+type-2.3pm-6pm           .            10.0000        10.0000     -5000.0000      
+type-2.6pm-12pm          .             9.0000        10.0000      5850.0000      
+type-3.12pm-6am          .              .             5.0000      5800.0000      
+type-3.6am-9am           .             2.0000         5.0000       500.0000      
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                        03/09/16 17:35:41 Page 14
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+Solution Report     SOLVE william Using MIP From line 99
+
+
+     VAR n  number of generators in use
+
+                       LOWER          LEVEL          UPPER         MARGINAL
+
+type-3.9am-3pm           .             1.0000         5.0000      5800.0000      
+type-3.3pm-6pm           .             5.0000         5.0000     -4000.0000      
+type-3.6pm-12pm          .             1.0000         5.0000      6300.0000      
+
+---- VAR s  number of generators started up
+
+                       LOWER          LEVEL          UPPER         MARGINAL
+
+type-1.12pm-6am          .              .            +INF         2000.0000      
+type-1.6am-9am           .              .            +INF         2000.0000      
+type-1.9am-3pm           .              .            +INF         2000.0000      
+type-1.3pm-6pm           .              .            +INF         2000.0000      
+type-1.6pm-12pm          .              .            +INF         2000.0000      
+type-2.12pm-6am          .              .            +INF         1000.0000      
+type-2.6am-9am           .             6.0000        +INF             .          
+type-2.9am-3pm           .              .            +INF         1000.0000      
+type-2.3pm-6pm           .             2.0000        +INF             .          
+type-2.6pm-12pm          .              .            +INF         1000.0000      
+type-3.12pm-6am          .              .            +INF          500.0000      
+type-3.6am-9am           .             2.0000        +INF             .          
+type-3.9am-3pm           .              .            +INF          500.0000      
+type-3.3pm-6pm           .             4.0000        +INF             .          
+type-3.6pm-12pm          .              .            +INF          500.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR cost              -INF      1004870.0000        +INF             .          
+
+  cost  total operating cost (¤)
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS Rev 240  WEX-WEI 24.0.2 x86_64/MS Windows                                                                                                                                                                                        03/09/16 17:35:41 Page 15
+M A G I C   Power Scheduling Problem   (MAGIC,SEQ=12)
+E x e c u t i o n
+
+
+----    108 PARAMETER rep  summary report
+
+              demand    spinning   start-ups      m-cost
+
+12pm-6am      15.000      17.250                  -1.300
+6am-9am       30.000      35.750       8.000      -2.000
+9am-3pm       25.000      30.000                  -1.300
+3pm-6pm       40.000      49.500       6.000      -3.000
+6pm-12pm      27.000      31.750                  -1.300
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 Mb  WEX240-240 Feb 14, 2013
+
+
+USER: Energy Systems                                 W120511:1343CP-WIN
+      VTT Energy                                                 DC1884
+
+
+**** FILE SUMMARY
+
+Input      C:\data\GIT\TITAN\magic\magic.gms
+Output     C:\data\GIT\TITAN\magic\magic.lst

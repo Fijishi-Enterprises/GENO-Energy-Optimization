@@ -1,0 +1,135 @@
+--- Job magic.gms Start 01/27/16 15:37:17 WEX-WEI 24.0.2 x86_64/MS Windows     
+GAMS Rev 240  Copyright (C) 1987-2013 GAMS Development. All rights reserved
+Licensee: Energy Systems                                 W120511:1343CP-WIN
+          VTT Energy                                                 DC1884
+--- Starting compilation
+--- magic.gms(46) 3 Mb
+--- GDXin=C:\data\GIT\TITAN\magic\input/data.gdx
+--- magic.gms(50) 3 Mb
+--- .input/changes.inc(6) 3 Mb
+--- magic.gms(106) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- magic.gms(97) 4 Mb
+--- Generating MIP model william
+--- magic.gms(99) 4 Mb
+---   56 rows  46 columns  181 non-zeroes
+---   15 discrete-columns
+--- Executing CPLEX: elapsed 0:00:00.009
+
+IBM ILOG CPLEX   Feb 14, 2013 24.0.2 WEX 38380.38394 WEI x86_64/MS Windows    
+Cplex 12.5.0.0
+
+Reading data...
+Starting Cplex...
+Tried aggregator 1 time.
+MIP Presolve eliminated 5 rows and 4 columns.
+MIP Presolve modified 6 coefficients.
+Reduced MIP has 51 rows, 42 columns, and 124 nonzeros.
+Reduced MIP has 0 binaries, 14 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.05 ticks)
+Found incumbent of value 2414400.000000 after 0.00 sec. (0.10 ticks)
+Probing time = 0.00 sec. (0.00 ticks)
+Tried aggregator 3 times.
+MIP Presolve eliminated 3 rows and 0 columns.
+MIP Presolve modified 6 coefficients.
+Aggregator did 2 substitutions.
+Reduced MIP has 46 rows, 40 columns, and 114 nonzeros.
+Reduced MIP has 0 binaries, 27 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.08 ticks)
+Probing time = 0.00 sec. (0.00 ticks)
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: none, using 1 thread.
+Tried aggregator 1 time.
+No LP presolve or aggregator reductions.
+Presolve time = 0.00 sec. (0.02 ticks)
+Initializing dual steep norms . . .
+
+Iteration log . . .
+Iteration:     1   Dual objective     =        178650.000000
+Root relaxation solution time = 0.00 sec. (0.08 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                      2414400.0000   -53850.0000       23  102.23%
+Found incumbent of value 2414400.000000 after 0.00 sec. (0.28 ticks)
+      0     0  1000005.7143     9  2414400.0000  1000005.7143       23   58.58%
+*     0+    0                      1004870.0000  1000005.7143       23    0.48%
+Found incumbent of value 1004870.000000 after 0.00 sec. (0.34 ticks)
+      0     0  1003947.7752     5  1004870.0000      Cuts: 14       30    0.09%
+
+Repeating presolve.
+Tried aggregator 2 times.
+MIP Presolve eliminated 15 rows and 15 columns.
+MIP Presolve modified 2 coefficients.
+Aggregator did 1 substitutions.
+Reduced MIP has 30 rows, 24 columns, and 68 nonzeros.
+Reduced MIP has 2 binaries, 10 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.07 ticks)
+Probing time = 0.00 sec. (0.00 ticks)
+Tried aggregator 1 time.
+Reduced MIP has 30 rows, 24 columns, and 68 nonzeros.
+Reduced MIP has 2 binaries, 10 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.03 ticks)
+Represolve time = 0.00 sec. (0.11 ticks)
+Probing time = 0.00 sec. (0.00 ticks)
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: none, using 1 thread.
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 0 columns.
+Reduced LP has 41 rows, 24 columns, and 104 nonzeros.
+Presolve time = 0.00 sec. (0.02 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =        518254.883491
+Initializing dual steep norms . . .
+Root relaxation solution time = 0.00 sec. (0.12 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                      1004870.0000  1003947.7752       57    0.09%
+Found incumbent of value 1004870.000000 after 0.00 sec. (0.92 ticks)
+      0     0  1003947.7752     4  1004870.0000  1003947.7752       57    0.09%
+      0     2  1003947.7752     4  1004870.0000  1003996.8661       57    0.09%
+Elapsed time = 0.00 sec. (1.20 ticks, tree = 0.00 MB, solutions = 1)
+
+Mixed integer rounding cuts applied:  7
+Gomory fractional cuts applied:  5
+
+Root node processing (before b&c):
+  Real time             =    0.00 sec. (1.02 ticks)
+Sequential b&c:
+  Real time             =    0.00 sec. (0.07 ticks)
+                          ------------
+Total (root+branch&cut) =    0.00 sec. (1.09 ticks)
+MIP status(101): integer optimal solution
+Cplex Time: 0.00sec (det. 1.28 ticks)
+Fixing integer variables, and solving final LP...
+Tried aggregator 1 time.
+LP Presolve eliminated 52 rows and 35 columns.
+Reduced LP has 4 rows, 11 columns, and 11 nonzeros.
+Presolve time = 0.00 sec. (0.02 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =        939350.000000
+Fixed MIP status(1): optimal
+Cplex Time: 0.00sec (det. 0.04 ticks)
+
+Proven optimal solution.
+
+MIP Solution:      1004870.000000    (62 iterations, 7 nodes)
+Final Solve:       1004870.000000    (4 iterations)
+
+Best possible:     1004870.000000
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+--- Restarting execution
+--- magic.gms(99) 2 Mb
+--- Reading solution for model william
+--- magic.gms(110) 3 Mb
+*** Status: Normal completion
+--- Job magic.gms Stop 01/27/16 15:37:17 elapsed 0:00:00.223
