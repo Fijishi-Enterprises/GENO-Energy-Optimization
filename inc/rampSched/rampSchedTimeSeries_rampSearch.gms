@@ -1,0 +1,209 @@
+* rampSchedTimeSeries_rampSearch segments netLoad of each bus based on ramps
+* It tries to find the least square error for a certain number of segments.
+* It cannot use all possible combinations, as it would take too much time to iterate
+* all possible combinations of ramps.
+* Therefore an algorithm first tries to find candidates for 'notches' in the netLoad
+* Please note, that if you change the algorithms, make sure that it runs the code (it will not, if data or parameters haven't changed)
+
+$include 'inc/rampSched/sets_rampSched.gms'
+$include 'inc/rampSched/parameters_rampSched.gms'
+$include 'inc/rampSched/variables_rampSched.gms'
+$include 'inc/rampSched/equations_rampSched.gms'
+
+execute_load 'ts_netload.gdx', ts_netLoad;
+
+
+* Check if there is a change in netLoad
+s_netLoadChanged = 0;
+loop(bus,
+        loop(t$(ord(t) = 1),
+            if (ts_netLoad(bus, t) <>
+                // Calculates a moving window for net load using linearly increasing/decreasing weighting
+                sum((fRealization(f), t_)$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12),
+                    (ts_energyDemand('elec', bus, f, t_) -
+                        sum(unit_flow(flow, unitVG)$gu(unitVG, bus),
+                          ts_cf(flow, bus, f, t) *
+                          p_data2d('elec', unitVG, 'max_cap') *
+                          p_data(unitVG, 'availability')
+                        )
+                    ) * (13 - abs(ord(t) - ord(t_)))  // Weighting
+                )  /
+                sum(t_$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12), (13 - abs(ord(t) - ord(t_))) ) ,
+                put log;
+                put 'Net load changed in bus: ' bus.tl;
+                putclose;
+                s_netLoadChanged = 1;
+            )
+        )
+);
+
+
+* If net load has changed, then recalculate
+if (s_netLoadChanged = 1,
+    put log;
+    put 'Calculating smoothed net load...';
+    ts_netLoad(bus, t) =
+        sum((fRealization(f), t_)$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12),
+            (ts_energyDemand('elec', bus, f, t_) -
+                sum(unit_flow(flow, unitVG)$gu(unitVG, bus),
+                   ts_cf(flow, bus, f, t) *
+                   p_data2d('elec', unitVG, 'max_cap') *
+                   p_data(unitVG, 'availability')
+                )
+            ) * (13 - abs(ord(t) - ord(t_)))
+        )  /
+        sum(t_$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12), (13 - abs(ord(t) - ord(t_))) );
+    put ' ...done'/;
+
+    put 'Calculating net load ramps...';
+    ts_netLoadRamp(bus, t)$(ord(t) > 1) = ts_netLoad(bus, t) - ts_netload(bus, t-1);
+    ts_netLoadRampWindow(bus, t)$(ord(t) > 1) =
+        sum(t_$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12),
+            ts_netLoadRamp(bus, t) * (13 - abs(ord(t) - ord(t_)))
+        )  /
+        sum(t_$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12), (13 - abs(ord(t) - ord(t_))) );
+    ts_netLoad2ndDer(bus, t)$(ord(t) > 2) = ts_netLoadRampWindow(bus, t) - ts_netloadRampWindow(bus, t-1);
+    put ' ...done';
+    putclose;
+    execute_unload 'ts_netload.gdx', ts_netLoad, ts_netLoadRamp, ts_netLoad2ndDer;
+else
+    execute_load 'ts_netload.gdx', ts_netLoadRamp, ts_netLoad2ndDer;
+);
+
+
+execute_load 'ts_rampResults.gdx', s_maxSegmentLengthWithoutNotchPrev, s_rampSegmentsPrev, s_rampWindowPrev, s_rampExcludeFromSearchLengthPrev;
+
+// Set solve options for the searchRamp
+options
+    sparseopt = fast
+;
+searchRamp.optca = 0;
+searchRamp.optcr = 0;
+searchRamp.reslim = 10000;
+searchRamp.threads = 0;
+searchRamp.optfile = 1;
+
+    loop(bus$(ord(bus) = 1),
+        if (s_netLoadChanged or (s_maxSegmentLengthWithoutNotch <> s_maxSegmentLengthWithoutNotchPrev) or (s_rampWindow <> s_rampWindowPrev) or (s_rampExcludeFromSearchLength <> s_rampExcludeFromSearchLengthPrev),
+            put log;
+            ts_netLoadCur(t) = ts_netLoad2ndDer(bus, t);
+            rampNotchTime(t) = no;
+            rampSearchTime(t) = yes;
+            s_segmentLengthFound = s_rampWindow;
+            // find largest changes in the netLoad and make these candidate notches
+            while (s_segmentLengthFound > s_maxSegmentLengthWithoutNotch,
+                s_currentMax = 0;
+                // find the largest remaining change
+                loop(t$(rampSearchTime(t) and ord(t) <= s_rampWindow),
+                    if(abs(ts_netLoadCur(t)) > s_currentMax,
+                        s_currentMax = abs(ts_netLoadCur(t));
+                        s_currentMaxPos = ord(t);
+                    )
+                );
+                // mark the largest remaining change as a candidate notch
+                rampNotchTime(t)$(ord(t) = s_currentMaxPos) = yes;
+
+                // don't search those hours any longer that are close to the notch that was just found
+                loop(t$(ord(t) >= s_currentMaxPos - s_rampExcludeFromSearchLength and ord(t) <= s_currentMaxPos + s_rampExcludeFromSearchLength ),
+                    rampSearchTime(t) = no;
+                );
+
+                // Rest of the while loop will calculate the longest stretch where there are no notches and check if while can be terminated
+                s_previousHourOrd = 0;
+                s_segmentLengthFound = 0;
+                s_segmentLengthCurrent = 1;
+                // loop through hours that are not candidate notches
+                loop(t$(not rampNotchTime(t) and ord(t) <= s_rampWindow),
+                    // check if the hour is adjacent with the previous hour
+                    if(ord(t) = s_previousHourOrd + 1,   // if yes, then increment counter
+                        s_segmentLengthCurrent = s_segmentLengthCurrent + 1;
+                    else    // if not, then check if the segment was longer than longest so far
+                        if (s_segmentLengthCurrent > s_segmentLengthFound,
+                            // updating new longest segment
+                            s_segmentLengthFound = s_segmentLengthCurrent;
+                        );
+                        s_segmentLengthCurrent = 1; // start segment length counter from one
+                    );
+                    s_previousHourOrd = ord(t)  // update the position of the previous hour for the next loop
+                );
+
+                put 's_segmentLengthFound = ' s_segmentLengthFound;
+                put '  s_CurrentMaxPos = ' s_CurrentMaxPos;
+                put /;
+            );
+            // Mark notch positions also to a time series (helps with checking the results)
+            s_notchCount = 1;
+            ts_notchPos(notch)$(ord(notch) = s_notchCount) = 1;
+            loop(t$(rampNotchTime(t) and ord(t) <= s_rampWindow ),
+                s_notchCount = s_notchCount + 1;
+                ts_notchPos(notch)$(ord(notch) = s_notchCount ) = ord(t);
+            );
+            s_notchCount = s_notchCount + 1;
+            ts_notchPos(notch)$(ord(notch) = s_notchCount) = s_rampWindow;
+            put 'Number of segments: ' s_notchCount;
+            putclose;
+
+            loop(notch$(ord(notch) <= s_notchCount ),
+                // Calculate the average ramp rate for the segments (only those segments that are relevant)
+                ts_netLoadRampAve(notch, notch_)$(ord(notch_) > ord(notch) and ord(notch_) <= s_notchCount and ord(notch_) <= ord(notch) + (s_notchCount - s_rampSegments) ) =
+                    sum(t$(ord(t) > 1 and ord(t) >= ts_notchPos(notch) and ord(t) <= ts_notchPos(notch_) ), ts_netLoadRamp(bus, t) ) /
+                    sum(t$(ord(t) > 1 and ord(t) >= ts_notchPos(notch) and ord(t) <= ts_notchPos(notch_) ), 1 );
+
+                // Calculate the squared error penalty for using a particular segment
+                s_netLoadAtNotch = sum(t_$(ord(t_) = ts_notchPos(notch) ), ts_netLoad(bus, t_) );
+                ts_segmentErrorSquared(notch, notch_)$(ord(notch_) > ord(notch) and ord(notch_) <= s_notchCount and ord(notch_) <= ord(notch) + (s_notchCount - s_rampSegments) ) =
+                    sum(t$(ord(t) > ts_notchPos(notch) and ord(t) < ts_notchPos(notch_) ),
+                        // Squared difference between actual netLoad and netLoad calculated from average ramp over the segment
+                        (ts_netLoad(bus, t) -
+                            (s_netLoadAtNotch + (ord(t) - ts_notchPos(notch) ) * ts_netLoadRampAve(notch, notch_) ) ) *
+                        (ts_netLoad(bus, t) -
+                            (s_netLoadAtNotch + (ord(t) - ts_notchPos(notch) ) * ts_netLoadRampAve(notch, notch_) ) )
+                    );
+                if (ord(notch) < s_notchCount,
+                    put log;
+                    put 'segment: ' ord(notch);
+                    putclose;
+                );
+            );
+            // prevent from going backwards
+            v_rampNotch.fx(notch, notch_)$(ord(notch) <= s_notchCount and ord(notch_) <= ord(notch) and ord(notch_) <= s_notchCount ) = 0;
+            // preclude an area, which cannot be reached
+            v_rampNotch.fx(notch, notch_)$(ord(notch_) > ord(notch) + (s_notchCount - s_rampSegments) ) = 0;
+        else
+            execute_load 'ts_rampResults.gdx', ts_segmentErrorSquared, ts_notchPos;
+        );
+
+        // If parameters or data have changed, resolve notches and segments
+        if ((s_rampWindow <> s_rampWindowPrev) or s_netLoadChanged or (s_maxSegmentLengthWithoutNotch <> s_maxSegmentLengthWithoutNotchPrev) or (s_rampWindow <> s_rampWindowPrev) or (s_rampExcludeFromSearchLength <> s_rampExcludeFromSearchLengthPrev),
+
+            solve searchRamp using MIP minimizing v_searchRampObj;
+
+            s_notchCount = 2;
+            // Mark all empty (using EPS, zero will not provide full time series)
+            ts_netLoadRampResult(bus, t) = EPS;
+            ts_netLoadRampNotches(bus, t) = EPS;
+            loop(t$(rampNotchTime(t) and ord(t) <= s_rampWindow ),
+                ts_netLoadRampNotches(bus, t) = ts_netLoad(bus, t);
+                loop(notch_$(ord(notch_) = s_notchCount),
+                    if (sum(notch, v_rampNotch.l(notch, notch_) = 1 ),
+                        ts_netLoadRampResult(bus, t) = ts_netLoad(bus, t);
+                    );
+                );
+                s_notchCount = s_notchCount + 1;
+            );
+            s_rampWindowPrev = s_rampWindow;
+            s_rampSegmentsPrev = s_rampSegments;
+            s_maxSegmentLengthWithoutNotchPrev = s_maxSegmentLengthWithoutNotch;
+            s_rampExcludeFromSearchLengthPrev = s_rampExcludeFromSearchLength;
+
+            execute_unload 'ts_rampResults.gdx', ts_netLoadRampAve, ts_netLoadRampResult, ts_segmentErrorSquared, ts_netLoadRampNotches, ts_notchPos,
+                v_rampNotch, v_rampSegment, v_searchRampObj, rampNotchTime, rampSearchTime,
+                s_maxSegmentLengthWithoutNotchPrev, s_rampSegmentsPrev, s_rampWindowPrev, s_rampExcludeFromSearchLengthPrev;
+        else
+            execute_load 'ts_rampResults.gdx', ts_netLoadRampResult, ts_netLoadRampNotches,
+                v_rampNotch, v_rampSegment, v_searchRampObj;
+        );
+    );
+
+
+$include 'inc/rampSched/killStuff.gms'
