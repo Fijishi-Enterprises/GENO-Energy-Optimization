@@ -10,11 +10,11 @@ import os
 import sys
 import shutil
 import logging as log
-from model import Setup, Dimension, DataParameter
-import model
+from tool import NewSetup, Dimension, DataParameter, Model
+import tool
 import ui_main
-from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
-from config import APPLICATION_PATH
+from GAMS import OldGAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
+from config import APPLICATION_PATH, PROJECT_DIR
 from tools import copy_files
 
 
@@ -30,13 +30,13 @@ class TestSetup(TestCase):
         log.disable(level=log.ERROR)
         self.magic_model_file = os.path.join(APPLICATION_PATH, 'test', 'resources', 'test_model', 'magic.gms')
         self.magic_model_path = os.path.split(self.magic_model_file)[0]
-        self.base_setup = Setup('Test base', 'Base Setup for testing')
-        self.child_dummy_a = Setup('Setup Dummy A', 'Setup with parent Base', self.base_setup)
+        self.base_setup = NewSetup('Test base', 'Base Setup for testing')
+        self.child_dummy_a = NewSetup('Setup Dummy A', 'Setup with parent Base', self.base_setup)
         self.child_dummy_b = None  # Placeholder for a third setup
-        self.model = GAMSModel(self, 'Test GAMS Magic Model', 'Model for testing.', self.magic_model_file,
-                               'input', 'output')
-        self.model_two = GAMSModel(self, 'Another Test GAMS Magic Model', 'Second model for testing.',
-                                   self.magic_model_file, 'input', 'output')
+        self.model = OldGAMSModel(self, 'Test GAMS Magic Model', 'Model for testing.', self.magic_model_path,
+                                  self.magic_model_file, 'input', 'output')
+        self.model_two = OldGAMSModel(self, 'Another Test GAMS Magic Model', 'Second model for testing.',
+                                      self.magic_model_path, self.magic_model_file, 'input', 'output')
         log.disable(level=log.NOTSET)
 
     def tearDown(self):
@@ -187,7 +187,7 @@ class TestSetup(TestCase):
         self.child_dummy_a.save()
         base_json_filename = self.base_setup.short_name + '.json'
         child_json_filename = self.child_dummy_a.short_name + '.json'
-        json_save_path = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'input'))
+        json_save_path = os.path.abspath(os.path.join(PROJECT_DIR, 'input'))
         base_json_path = os.path.join(json_save_path, base_json_filename)
         child_json_path = os.path.join(json_save_path, child_json_filename)
         self.assertTrue(os.path.exists(base_json_path))
@@ -200,7 +200,7 @@ class TestSetup(TestCase):
         # Pop next model into model.running_model
         self.child_dummy_a.pop_model()
         retval = False
-        if self.child_dummy_a.running_model.__class__.__name__ == 'GAMSModel':
+        if self.child_dummy_a.running_model.__class__.__name__ == 'OldGAMSModel':
             retval = True
         self.assertTrue(retval)
 
@@ -243,14 +243,14 @@ class TestSetup(TestCase):
             gams_ret_val = 0
             log.debug("Calling %s(%d) for '%s'" % (effect.__name__, gams_ret_val, effect.__self__.name))
             effect(gams_ret_val)  # Calls popped method with argument
-            #effect(*args, **kwargs)  # Calls the method
+            # effect(*args, **kwargs)  # Calls the method
 
         # THIS WORKS!!!!!
-        with mock.patch('model.qsubprocess.QSubProcess.start_process',
+        with mock.patch('tool.qsubprocess.QSubProcess.start_process',
                         side_effect=side_effect) as mock_start_process:
             self.child_dummy_a.execute()
             # log.debug("Mock calls: %s" % mock_start_process.mock_calls)
-            assert mock_start_process is model.qsubprocess.QSubProcess.start_process
+            assert mock_start_process is tool.qsubprocess.QSubProcess.start_process
         log.debug("EXECUTE FINISHED")
         # Assert that Base and Setup is_ready is True
         self.assertTrue(self.base_setup.is_ready)
@@ -284,9 +284,9 @@ class TestSetup(TestCase):
             log.debug("Calling %s(%d) for '%s'" % (effect.__name__, gams_ret_val, effect.__self__.name))
             effect(gams_ret_val)  # Calls popped method with argument
 
-        with mock.patch('model.qsubprocess.QSubProcess.start_process', side_effect=side_effect) as mock_start_process:
+        with mock.patch('tool.qsubprocess.QSubProcess.start_process', side_effect=side_effect) as mock_start_process:
             self.child_dummy_a.execute()
-            assert mock_start_process is model.qsubprocess.QSubProcess.start_process
+            assert mock_start_process is tool.qsubprocess.QSubProcess.start_process
         self.assertTrue(self.base_setup.is_ready)
         self.assertTrue(self.child_dummy_a.is_ready)
 
@@ -303,11 +303,10 @@ class TestSetup(TestCase):
     def test_execute_with_three_setups_and_two_models(self):
         """Test execute with three setups: base -> setup_dummy_a -> setup_dummy_b.
         setup_dummy_a and setup_dummy_b have a GAMS model."""
-        # TODO: Bug in execute()
         log.debug("Testing execute() with three setups and two models")
         log.disable(level=log.ERROR)
         self.child_dummy_a.add_model(self.model, 'MIP=CPLEX')
-        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
+        self.child_dummy_b = NewSetup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
         self.child_dummy_b.add_model(self.model_two)
         log.disable(level=log.NOTSET)
         effects = [self.child_dummy_a.model_finished, self.child_dummy_b.model_finished, Exception("No effects left")]
@@ -320,18 +319,18 @@ class TestSetup(TestCase):
             log.debug("Calling %s(%d) for '%s'" % (effect.__name__, gams_ret_val, effect.__self__.name))
             effect(gams_ret_val)  # Calls popped method with argument
 
-        with mock.patch('model.qsubprocess.QSubProcess.start_process', side_effect=side_effect) as mock_start_process:
+        with mock.patch('tool.qsubprocess.QSubProcess.start_process', side_effect=side_effect) as mock_start_process:
             self.child_dummy_b.execute()
-            assert mock_start_process is model.qsubprocess.QSubProcess.start_process
+            assert mock_start_process is tool.qsubprocess.QSubProcess.start_process
         self.assertTrue(self.base_setup.is_ready)
         self.assertTrue(self.child_dummy_a.is_ready)
-        self.assertTrue(self.child_dummy_b.is_ready)
+        self.assertTrue(self.child_dummy_b.is_ready)  # TODO: Fails because of bug in execute()
 
     def test_execute_with_three_setups_and_one_model(self):
         """Test execute with three setups: base -> setup_dummy_a -> setup_dummy_b.
         setup_dummy_b has a GAMS model."""
         log.debug("Testing execute() with three setups and one model")
-        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
+        self.child_dummy_b = NewSetup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
         log.disable(level=log.ERROR)
         self.child_dummy_b.add_model(self.model_two)
         log.disable(level=log.NOTSET)
@@ -344,10 +343,10 @@ class TestSetup(TestCase):
             gams_ret_val = 0
             log.debug("Calling %s(%d) for '%s'" % (effect.__name__, gams_ret_val, effect.__self__.name))
             effect(gams_ret_val)  # Calls popped method with argument
-        with mock.patch('model.qsubprocess.QSubProcess.start_process',
+        with mock.patch('tool.qsubprocess.QSubProcess.start_process',
                         side_effect=side_effect) as mock_start_process:
             self.child_dummy_b.execute()
-            assert mock_start_process is model.qsubprocess.QSubProcess.start_process
+            assert mock_start_process is tool.qsubprocess.QSubProcess.start_process
         self.assertTrue(self.base_setup.is_ready)
         self.assertTrue(self.child_dummy_a.is_ready)
         self.assertTrue(self.child_dummy_b.is_ready)
@@ -355,7 +354,7 @@ class TestSetup(TestCase):
     def test_execute_with_three_setups(self):
         """Test execute with three setups: base -> setup_dummy_a -> setup_dummy_b."""
         log.debug("Testing execute() with three setups")
-        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
+        self.child_dummy_b = NewSetup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
         self.child_dummy_b.execute()
         # with mock.patch('model.qsubprocess.QSubProcess.start_process',
         #                 side_effect=self.side_effect) as mock_start_process:
@@ -424,10 +423,10 @@ class TestSetup(TestCase):
             mock_qprocess_class: mocked QProcess class
         """
         log.debug("Testing QProcess mocking")
-        model.qsubprocess.QProcess()
+        tool.qsubprocess.QProcess()
         # log.debug("model.qsubprocess.Qprocess class dir:%s" % dir(model.qsubprocess.QProcess))
         # log.debug("MockQProcessClass class dir:%s" % dir(mock_qprocess_class))
-        assert mock_qprocess_class is model.qsubprocess.QProcess
+        assert mock_qprocess_class is tool.qsubprocess.QProcess
         assert mock_qprocess_class.called
 
     @mock.patch('ui_main.TitanUI', autospec=True)
@@ -455,6 +454,7 @@ class TestSetup(TestCase):
         # log.debug("After call to gui.test_button()")
         self.assertTrue(True)
 
+    # noinspection PyArgumentList
     def side_effect_base(self, *args, **kwargs):
         """Side effect for mock start_process method. Instead of running
         start_process() jumps straight to model_finished() with the
@@ -470,6 +470,7 @@ class TestSetup(TestCase):
         ret = 0
         self.base_setup.model_finished(ret)
 
+    # noinspection PyArgumentList
     def side_effect_a(self, *args, **kwargs):
         """Side effect for mock start_process method when
         child_a.start_process() is called.
@@ -481,6 +482,7 @@ class TestSetup(TestCase):
         ret = 0
         self.child_dummy_a.model_finished(ret)
 
+    # noinspection PyArgumentList
     def side_effect_b(self, *args, **kwargs):
         """Side effect for mock start_process method when
         child_dummy_b.start_process() is called.

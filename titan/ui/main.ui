@@ -20,17 +20,17 @@
    <string>Sceleton Titan</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="pushButton_start">
+   <widget class="QPushButton" name="pushButton_create_models">
     <property name="geometry">
      <rect>
-      <x>300</x>
+      <x>510</x>
       <y>60</y>
       <width>75</width>
       <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>Start</string>
+     <string>Create Model</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="checkBox_debug">
@@ -52,7 +52,7 @@
    <widget class="QPushButton" name="pushButton_test">
     <property name="geometry">
      <rect>
-      <x>470</x>
+      <x>640</x>
       <y>60</y>
       <width>75</width>
       <height>23</height>
@@ -99,6 +99,32 @@
       <widget class="QTextBrowser" name="textBrowser_process_output"/>
      </item>
     </layout>
+   </widget>
+   <widget class="QPushButton" name="pushButton_run_setup1">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>60</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Run Setup 1</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_run_setup2">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>60</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Run Setup 2</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

@@ -21,16 +21,16 @@ if getattr(sys, 'frozen', False):
 else:
     APPLICATION_PATH = os.path.realpath(os.path.dirname(__file__))
 
-PROJECT_DIR = os.path.join(APPLICATION_PATH, '../projects', 'p1')
+PROJECT_DIR = os.path.join(APPLICATION_PATH, os.path.pardir, 'projects', 'p1')
 if not os.path.exists(PROJECT_DIR):
     os.makedirs(PROJECT_DIR)
 # Model input/output directories
 INPUT_STORAGE_DIR = os.path.join(PROJECT_DIR, 'input')
 OUTPUT_STORAGE_DIR = os.path.join(PROJECT_DIR, 'output')
-WORK_DIR = os.path.join(APPLICATION_PATH, '../work')
+WORK_DIR = os.path.join(APPLICATION_PATH, os.path.pardir, 'work')
 
 # Model path
-MAGIC_MODEL_PATH = os.path.join(APPLICATION_PATH, '../models', 'magic')
+MAGIC_MODEL_PATH = os.path.join(APPLICATION_PATH, os.path.pardir, 'models', 'magic')
 # Model path
 # MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, '..', 'magic', 'magic.gms'))
 # Model input/output directories

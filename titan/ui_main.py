@@ -10,8 +10,8 @@ import logging
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QProcess
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from ui.main import Ui_MainWindow
-from tool import Dimension, DataParameter, Setup
-from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
+from tool import Dimension, DataParameter, Setup, NewSetup
+from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE, OldGAMSModel
 from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH
 
 
@@ -61,22 +61,23 @@ class TitanUI(QMainWindow):
         # Menu actions
         self.ui.action_quit.triggered.connect(self.closeEvent)
         # Widgets
-        self.ui.pushButton_start.clicked.connect(self.model_run)
-        # self.ui.pushButton_start.clicked.connect(self.run_setup)
+        self.ui.pushButton_run_setup1.clicked.connect(self.run_setup)
+        self.ui.pushButton_run_setup2.clicked.connect(self.model_run)
+        self.ui.pushButton_create_models.clicked.connect(self.create_model)
         self.ui.pushButton_test.clicked.connect(self.test_button)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
 
     def run_setup(self):
         """Create models and setup."""
         # Create model
-        self._models['magic'] = GAMSModel(self, 'M A G I C   Power Scheduling Problem',
+        self._models['magic'] = OldGAMSModel(self, 'M A G I C   Power Scheduling Problem',
                                           """A number of power stations are committed to meet demand
                                           for a particular day. Three types of generators having
                                           different operating characteristics are available. Generating
                                           units can be shut down or operate between minimum and maximum
                                           output levels. Units can be started up or closed down in
                                           every demand block.""",
-                                          MAGIC_MODEL_PATH, input_dir='input', output_dir='output')
+                                          MAGIC_MODEL_PATH, 'magic.gms', input_dir='input', output_dir='output')
         # Add input&output formats for model
         self._models['magic'].add_input_format(GDX_DATA_FMT)
         self._models['magic'].add_input_format(GAMS_INC_FILE)
@@ -88,9 +89,9 @@ class TitanUI(QMainWindow):
         # Add input data parameter for model
         self._models['magic'].add_input(data)
         # Create Base Setup
-        self._setups['base'] = Setup('base', 'The base setup')
+        self._setups['base'] = NewSetup('base', 'The base setup')
         # Create Setup A, with Base setup as parent
-        self._setups['setup A'] = Setup('setup A', 'test setup A', parent=self._setups['base'])
+        self._setups['setup A'] = NewSetup('setup A', 'test setup A', parent=self._setups['base'])
         # Add model 'magic' to setup 'Setup A'
         if not self._setups['setup A'].add_model(self._models['magic'], 'MIP=CPLEX'):
             self.add_err_msg_signal.emit("Adding a model to 'setup A' failed\n")
@@ -150,7 +151,7 @@ class TitanUI(QMainWindow):
     def create_model(self):
         """Create and set up configuration for the model."""
 
-        self._tools['magic'] = GAMSModel('MAGIC',
+        self._tools['magic'] = GAMSModel(self, 'MAGIC',
                      """M A G I C   Power Scheduling Problem
 A number of power stations are committed to meet demand for a particular
 day. three types of generators having different operating characteristics
@@ -246,7 +247,6 @@ in every demand block.""",
         # Remove working files
         for _, setup in self._setups.items():
             setup.cleanup()
-
         logging.debug("Thank you for choosing Titan. Bye bye.")
         # noinspection PyArgumentList
         QApplication.quit()

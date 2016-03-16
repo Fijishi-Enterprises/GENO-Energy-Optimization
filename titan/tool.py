@@ -423,28 +423,30 @@ class DataParameter(MetaObject):
 class Model(MetaObject):
     """Abstract class for models."""
 
-    def __init__(self, parent, name, description, command,
+    def __init__(self, parent, name, description, modelpath, gamsfile, command,
                  input_dir='', output_dir=''):
         """Model constructor.
         Args:
             parent: Parent model
             name (str): Name of the model
             description (str): Short description of the model
+            modelpath (str): Absolute path to model folder
+            gamsfile (str): Model file (e.g. magic.gms)
             command (str): Command executable
             input_dir (str): Input file directory (absolute or relative to command)
             output_dir (str): Output file directory (absolute or relative to command)
         """
         super().__init__(name, description)
-        if not os.path.exists(command):
+        if not os.path.exists(modelpath):
             # TODO: Do something here. Does not work. command is not a path.
             # logging.error("Path <{}> does not exist".format(command))
             pass
         self.parent = parent
         self.command = command
+        self.outfiles = [os.path.join(output_dir, '*')]
         self.logfile = ''
-        self.basedir = os.path.split(command)[0]  # TODO: Probably does not work
-        self.input_dir = os.path.join(self.basedir, input_dir)
-        self.output_dir = os.path.join(self.basedir, output_dir)
+        self.input_dir = os.path.join(modelpath, input_dir)
+        self.output_dir = os.path.join(modelpath, output_dir)
         self.inputs = []
         self.input_formats = set()
         self.outputs = []
@@ -513,31 +515,39 @@ class Model(MetaObject):
         return copy_files(src_dir, self.input_dir,
                           includes=['*.{}'.format(ext) for ext in self.get_input_file_extensions()]) > 0
 
-    def copy_output(self, dst_dir):
+    def copy_output(self, target_dir):
         """Copy output of the model to somewhere.
 
         Args:
-            dst_dir (str): Destination directory
+            target_dir (str): Destination directory
 
         Returns:
             ret (bool): Operation success
         """
-        if not os.path.exists(self.output_dir):
-            logging.error("Model '{0}' output directory missing <{1}>".format(self.name, self.output_dir))
-            return False
-        ret = False
-        ret = copy_files(self.output_dir, dst_dir,
-                         includes=['*.{}'.format(ext)
-                                   for ext
-                                   in self.get_output_file_extensions()]) > 0
+        count = 0
+        for pattern in self.outfiles:
+            for fname in glob.glob(pattern):
+                shutil.copy(fname, target_dir)
+                count += 1
 
-        if self.logfile is not None:
-            try:
-                shutil.copy(self.logfile, dst_dir)
-                ret = True
-            except OSError:
-                ret = False
-        return ret
+        return True if count > 0 else False
+
+        # if not os.path.exists(self.output_dir):
+        #     logging.error("Model '{0}' output directory missing <{1}>".format(self.name, self.output_dir))
+        #     return False
+        # ret = False
+        # ret = copy_files(self.output_dir, dst_dir,
+        #                  includes=['*.{}'.format(ext)
+        #                            for ext
+        #                            in self.get_output_file_extensions()]) > 0
+        #
+        # if self.logfile is not None:
+        #     try:
+        #         shutil.copy(self.logfile, dst_dir)
+        #         ret = True
+        #     except OSError:
+        #         ret = False
+        # return ret
 
 
 # TODO:
@@ -552,7 +562,7 @@ class NewSetup(MetaObject):
         Args:
             name (str): Name of model setup
             description (str): Description
-            parent (Setup): Parent setup of this setup
+            parent (NewSetup): Parent setup of this setup
         """
         super().__init__(name, description)
         self.parent = parent
@@ -664,7 +674,7 @@ class NewSetup(MetaObject):
         for fmt in self.running_model.input_formats:
             filenames = self.get_input_files(self.running_model, fmt)
             # Just copy binary files
-            if fmt.binary:
+            if fmt.is_binary:
                 for fname in filenames:
                     shutil.copy(fname, self.running_model.input_dir)
             # Concatenate other files
