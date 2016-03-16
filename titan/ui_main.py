@@ -7,21 +7,22 @@ Module for main application GUI functions.
 
 import locale
 import logging
-from PyQt5 import QtGui, QtCore, QtWidgets
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QProcess
+from PyQt5.QtWidgets import QMainWindow, QApplication
 from ui.main import Ui_MainWindow
 from tool import Dimension, DataParameter, Setup
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH
 
 
-class TitanUI(QtWidgets.QMainWindow):
+class TitanUI(QMainWindow):
     """Class for application main GUI functions."""
 
     # Custom PyQt signals
-    add_msg_signal = QtCore.pyqtSignal(str)
-    add_err_msg_signal = QtCore.pyqtSignal(str)
-    add_proc_msg_signal = QtCore.pyqtSignal(str)
-    add_proc_err_msg_signal = QtCore.pyqtSignal(str)
+    add_msg_signal = pyqtSignal(str)
+    add_err_msg_signal = pyqtSignal(str)
+    add_proc_msg_signal = pyqtSignal(str)
+    add_proc_err_msg_signal = pyqtSignal(str)
 
     def __init__(self):
         """ Initialize GUI """
@@ -36,12 +37,13 @@ class TitanUI(QtWidgets.QMainWindow):
         self.processes = dict()
         self.running_process = ''
         self._tools = dict()
+        self._models = dict()
         self._setups = dict()
         # Setup general stuff
         self.create_model()
         self.connect_signals()
 
-    @QtCore.pyqtSlot()
+    @pyqtSlot()
     def set_debug_level(self):
         """Control application debug messages."""
         if self.sender().checkState():
@@ -60,10 +62,45 @@ class TitanUI(QtWidgets.QMainWindow):
         self.ui.action_quit.triggered.connect(self.closeEvent)
         # Widgets
         self.ui.pushButton_start.clicked.connect(self.model_run)
+        # self.ui.pushButton_start.clicked.connect(self.run_setup)
         self.ui.pushButton_test.clicked.connect(self.test_button)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
 
-    @QtCore.pyqtSlot(str)
+    def run_setup(self):
+        """Create models and setup."""
+        # Create model
+        self._models['magic'] = GAMSModel(self, 'M A G I C   Power Scheduling Problem',
+                                          """A number of power stations are committed to meet demand
+                                          for a particular day. Three types of generators having
+                                          different operating characteristics are available. Generating
+                                          units can be shut down or operate between minimum and maximum
+                                          output levels. Units can be started up or closed down in
+                                          every demand block.""",
+                                          MAGIC_MODEL_PATH, input_dir='input', output_dir='output')
+        # Add input&output formats for model
+        self._models['magic'].add_input_format(GDX_DATA_FMT)
+        self._models['magic'].add_input_format(GAMS_INC_FILE)
+        self._models['magic'].add_output_format(GDX_DATA_FMT)
+        # Create data parameters
+        g = Dimension('g', 'generators')
+        param = Dimension('param', 'parameters')
+        data = DataParameter('data', 'generation data', '?', [g, param])
+        # Add input data parameter for model
+        self._models['magic'].add_input(data)
+        # Create Base Setup
+        self._setups['base'] = Setup('base', 'The base setup')
+        # Create Setup A, with Base setup as parent
+        self._setups['setup A'] = Setup('setup A', 'test setup A', parent=self._setups['base'])
+        # Add model 'magic' to setup 'Setup A'
+        if not self._setups['setup A'].add_model(self._models['magic'], 'MIP=CPLEX'):
+            self.add_err_msg_signal.emit("Adding a model to 'setup A' failed\n")
+            logging.error("Adding a model to Setup failed")
+            return
+        # Execute Setup.
+        self.add_msg_signal.emit("Starting setup A")
+        self._setups['setup A'].execute()
+
+    @pyqtSlot(str)
     def add_msg(self, msg):
         """Writes given message to main textBrowser.
 
@@ -71,11 +108,12 @@ class TitanUI(QtWidgets.QMainWindow):
             msg (str): String written to TextBrowser
         """
         self.ui.textBrowser_main.append(msg)
-        QtWidgets.QApplication.processEvents()
+        # noinspection PyArgumentList
+        QApplication.processEvents()
 
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def add_err_msg(self, message):
-        """ Writes given error message to main textBrowser with error text color.
+        """Writes given error message to main textBrowser with error text color.
 
         Args:
             message: The error message to be written.
@@ -84,9 +122,10 @@ class TitanUI(QtWidgets.QMainWindow):
         self.ui.textBrowser_main.setTextColor(ERROR_TEXT_COLOR)
         self.ui.textBrowser_main.append(message)
         self.ui.textBrowser_main.setTextColor(old_color)
-        QtWidgets.QApplication.processEvents()
+        # noinspection PyArgumentList
+        QApplication.processEvents()
 
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def add_proc_msg(self, msg):
         """Writes given message to process output textBrowser.
 
@@ -94,9 +133,10 @@ class TitanUI(QtWidgets.QMainWindow):
             msg (str): String written to TextBrowser
         """
         self.ui.textBrowser_process_output.append(msg)
-        QtWidgets.QApplication.processEvents()
+        # noinspection PyArgumentList
+        QApplication.processEvents()
 
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def add_proc_err_msg(self, msg):
         """Writes given message to main textBrowser.
 
@@ -104,7 +144,8 @@ class TitanUI(QtWidgets.QMainWindow):
             msg (str): String written to TextBrowser
         """
         self.ui.textBrowser_main.append(msg)
-        QtWidgets.QApplication.processEvents()
+        # noinspection PyArgumentList
+        QApplication.processEvents()
 
     def create_model(self):
         """Create and set up configuration for the model."""
@@ -151,7 +192,7 @@ in every demand block.""",
         self.add_msg_signal.emit("Running setup 'MIP'")
         self.running_process = 'MIP'
 
-        self.processes['MIP'] = QtCore.QProcess()
+        self.processes['MIP'] = QProcess()
         self.processes['MIP'].started.connect(self.magic_started)
         self.processes['MIP'].readyReadStandardOutput.connect(self.on_ready_stdout)
         self.processes['MIP'].readyReadStandardError.connect(self.on_ready_stderr)
@@ -186,17 +227,20 @@ in every demand block.""",
         #    gams_return_msg = GAMS_RETURN_CODES[gams_exit_code]
         #except KeyError:
         #    gams_return_msg = "Unknown return message from GAMS"
-        self.add_msg_signal.emit("GAMS exit code:%s (%s)" % (gams_exit_code, gams_return_msg))
+        #self.add_msg_signal.emit("GAMS exit code:%s (%s)" % (gams_exit_code, gams_return_msg))
+        # noinspection PyArgumentList
+        QApplication.processEvents()
 
     def test_button(self):
         logging.debug("test")
         self.add_msg_signal.emit("teste")
+        logging.debug("test2")
 
     def closeEvent(self, event=None):
         """Method for handling application exit.
 
         Args:
-             event: PyQt event
+             event (QEvent): PyQt event
         """
 
         # Remove working files
@@ -204,14 +248,5 @@ in every demand block.""",
             setup.cleanup()
 
         logging.debug("Thank you for choosing Titan. Bye bye.")
-        QtWidgets.QApplication.quit()
-
-    def on_ready_stdout(self):
-        """ Prints sub-process' stdout. """
-        out = str(self.processes[self.running_process].readAllStandardOutput(), 'utf-8')
-        self.add_proc_msg_signal.emit(out.strip())
-
-    def on_ready_stderr(self):
-        """ Prints sub-process' stderr """
-        out = str(self.processes[self.running_process].readAllStandardError(), 'utf-8')
-        self.add_proc_err_msg_signal.emit(out.strip())
+        # noinspection PyArgumentList
+        QApplication.quit()

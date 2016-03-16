@@ -13,27 +13,37 @@ from config import GAMS_EXECUTABLE
 
 
 class GAMSModel(Tool):
-    """Class for GAMS models
-    """
+    """Class for GAMS models."""
 
-    def __init__(self, name, description, path, gamsfile,
+    def __init__(self, parent, name, description, gamsfile,
                  input_dir='', output_dir=''):
-        """
+        """Class constructor.
+
         Args:
+            parent: Parent class
             name (str): Model name
             description (str): Model description
-            path (str): Path to model or Git repository
             gamsfile (str): Path to main GAMS program (relative to `path`)
+            input_dir: Input directory path
+            output_dir: Output directory path
         """
-
         self.gamsfile = gamsfile
-        self.GAMS_parameters = "Logoption=3"  # send LOG output to STDOUT
-
-        super().__init__(name, description, path, gamsfile,
+        basedir = os.path.split(gamsfile)[0]
+        input_dir = os.path.join(basedir, input_dir)
+        output_dir = os.path.join(basedir, output_dir)
+        super().__init__(parent, name, description, basedir, gamsfile,
                          input_dir, output_dir)
+        self.GAMS_parameters = "Logoption=3"  # send LOG output to STDOUT
+        command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE, gamsfile, basedir, self.GAMS_parameters)
         # Add .log and .lst files to list of outputs
         self.outfiles.append(os.path.splitext(gamsfile)[0] + '.log')
         self.outfiles.append(os.path.splitext(gamsfile)[0] + '.lst')
+        # Logoption options
+        # 0 suppress LOG output
+        # 1 LOG output to screen (default)
+        # 2 send LOG output to file
+        # 3 writes LOG output to standard output
+        # 4 writes LOG output to a file and standard output  # Not supported
 
         self.return_codes = {
             0: "normal return",
@@ -67,6 +77,14 @@ class GAMSModel(Tool):
             command += ' ' + cmdline_args
         instance.command = command
         return instance
+
+    def copy_output(self, dst_dir):
+        ret = super().copy_output(dst_dir)
+        try:
+            shutil.copy(self.lstfile, dst_dir)
+        except OSError:
+            ret = False
+        return ret
 
 
 GDX_DATA_FMT = DataFormat('GDX', 'gdx', is_binary=True)

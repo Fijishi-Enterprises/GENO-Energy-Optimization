@@ -24,12 +24,13 @@ def run(command):
 
 
 def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):
-    """Method for copying files
+    """Method for copying files.
 
     Args:
         src_dir (str): Source directory
         dst_dir (str): Destination directory
-        extensions (str)
+        includes (reg. exp): Included files
+        excludes (reg. exp): Excluded files
 
     Returns:
         count (int): Number of files copied
