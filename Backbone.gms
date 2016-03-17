@@ -1,7 +1,7 @@
 $title Backbone
 $ontext
 Backbone - chronological energy systems model
-===================================
+===============================================================================
 Created by:
     Juha Kiviluoma <juha.kiviluoma@vtt.fi>
     Erkka Rinne <erkka.rinne@vtt.fi>
@@ -12,7 +12,7 @@ Can handle multiple stochastic parameters.
 
 
 GAMS command line arguments
----------------------------
+¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
 --debug=[yes|no]
     Switch on/off debugging mode. In debug mode, writes ‘debug.gdx’
     with all symbols as well as a gdx file for each solution containing
@@ -64,8 +64,10 @@ $include 'inc/results.gms'
 
 Scalars
     errorcount /0/
-    elapsed "Model time elapsed since simulation start (t)" /0/
-    t_solveOrd "ord of t_solve"
+    tElapsed "Model time elapsed since simulation start (t)" /0/
+    tLast "How many time periods to the end of the current solve (t)" /0/
+    tSolveOrd "ord of tSolve"
+    tCounter "counter for t" /0/
 ;
 
 * Debug arrays
@@ -84,6 +86,8 @@ $ifi not '%debug%' == 'yes'
     solprint = Silent
 ;
 
+
+* === Load data ===============================================================
 * Load updates made for BackBone
 $gdxin  'input/inputData.gdx'
 $loadm  param
@@ -151,7 +155,7 @@ resCapable(resType, resDirection, geo, unit)$uReserveData(geo, unit, resType, re
 $include 'inc/variables.gms'
 
 
-* === equations ===============================================================
+* === Equations ===============================================================
 $include 'inc/equations.gms'
 
 
@@ -164,7 +168,7 @@ $endif
 $gdxin
 
 
-* --- Data corrections etc. ---------------------------------------------------
+* ¨¨¨ Data corrections etc. ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
 $if exist 'extra_data.gms' $include 'extra_data.gms'
 
 
@@ -183,7 +187,7 @@ loop(egs(etype, geo, storage) $(usData(etype, geo, storage, 'max_content') > 0
                                  / sum(unit_storage(unit, storage),
                                        uData('elec', geo, unit, 'max_cap')
                                        + uData('heat', geo, unit, 'max_cap'))
-                                > 0.5 * modelSolveRules('schedule', 't_horizon') );
+                                > 0.5 * mSettings('schedule', 't_horizon') );
 );
 
 
@@ -217,13 +221,13 @@ ts_energyDemand(etype, geo, f, t)$ts_energyDemand(etype, geo, f, t)
 *$include 'inc/rampSched/killStuff.gms'
 
 
-* --- Use input data to select which samples are included in the model run
+* ¨¨¨ Use input data to select which samples are included in the model run
 *$include 'input/samples_in_model.inc';
 
-* --- Calculate trees ---------------------------------------------------------
+* ¨¨¨ Calculate trees
 *$include 'inc/treeCalc.inc'
 
-* --- Extra calculations ------------------------------------------------------
+* ¨¨¨ Extra calculations
 $if exist 'extra_calculations.gms' $include 'extra_calculations.gms'
 
 
@@ -233,107 +237,145 @@ file f_info /'output/info.txt'/;
 
 * === Simulation ==============================================================
 
-* --- Generate model rules ----------------------------------------------------
+* ¨¨¨ Generate model rules ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
 
 * Check the modelSolves for preset patterns for model solve timings
-* If not found, then use modelSolveRules to set the model solve timings
-loop(modelType,
-    if(sum(t$modelSolves(modelType, t), 1) = 0,
+* If not found, then use mSettings to set the model solve timings
+loop(mType,
+    if(sum(t$modelSolves(mType, t), 1) = 0,
         t_skip_counter = 0;
-        loop(t$( ord(t) = modelSolveRules(modelType, 't_start') + modelSolveRules(modelType, 't_jump') * t_skip_counter and ord(t) <= modelSolveRules(modelType, 't_end') ),
-            modelSolves(modelType, t)=yes;
+        loop(t$( ord(t) = mSettings(mType, 't_start') + mSettings(mType, 't_jump') * t_skip_counter and ord(t) <= mSettings(mType, 't_end') ),
+            modelSolves(mType, t)=yes;
             t_skip_counter = t_skip_counter + 1;
         );
     );
 );
 
-* Select models to be used
-m(modelType)=no;
-loop(modelType,
-    // If there are solves for a model, then the model is turned on
-    if(sum(t$modelSolves(modelType, t), 1) > 0,
-        m(modelType) = yes;
-    );
-);
-
 * Select samples for the model
 loop(m,
-    // Set scenarios in use for the models, if they haven't been provided in the data
-    if (not sum(s, ms(m, s)),
-        ms(m, s)$(ord(s) <= modelSolveRules(m, 'samples')) = yes;
-        // Use all scenarios if modelSolveRules/scenarios is 0
-        if (modelSolveRules(m, 'samples') = 0,
+    // Set scenarios in use for the models
+    if (not sum(s, ms(m, s)),  // unless they have been provided as input
+        ms(m, s)$(ord(s) <= mSettings(m, 'samples')) = yes;
+        if (mSettings(m, 'samples') = 0,     // Use all scenarios if mSettings/scenarios is 0
             ms(m, s) = yes;
         );
     );
-);
-
-// If the model does not have preset step lengths...
-loop(m,
-    if(sum[(ms(m,s), f, t)$fRealization(f), p_stepLength(m, f, t)] = 0,
-        // ...and if there is a t_interval for the model, then use it to set constant step lengths
-        if(modelSolveRules(m, 't_interval'),
-            p_stepLength(mf(m, f), t) = modelSolveRules(m, 't_interval');
-        );
+    // Set forecasts in use for the models
+    if (not sum(f, mf(m, f)),  // unless they have been provided as input
+        mf(m, f)$(ord(f) <= 1 + mSettings(m, 'forecasts')) = yes;  // realization needs one f, therefore 1 + number of forecasts
     );
 );
 
 
+loop(modelSolves(mSolve, tSolve),
+    tSolveOrd = ord(tSolve);
+    tElapsed = tSolveOrd - mSettings(mSolve, 't_start');
+    tLast = tElapsed + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));
 
-loop(modelSolves(m_solve, t_solve),
-    t_solveOrd = ord(t_solve);
-    elapsed = t_solveOrd - modelSolveRules(m_solve, 't_start');
+    // If the model does not have preset step lengths...
+           //    if(sum[(msft(mSolve,s,f,t)$fRealization(f), p_stepLength(mSolve, f, t)] = 0,
+    // Set intervals, if there is interval data for the model
+    if(sum(counter, mInterval(mSolve, 'intervalLength', counter)),
+        tCounter = 0;
+        loop(counter$mInterval(mSolve, 'intervalLength', counter),
+            loop(t$[ord(t) >= tElapsed + tCounter and ord(t) <= min(tElapsed + mInterval(mSolve, 'intervalEnd', counter), tLast)],
+                if (not mod(tCounter-1, mInterval(mSolve, 'intervalLength', counter)),
+                    p_stepLength(mSolve, f, t)$mf(mSolve, f) = mInterval(mSolve, 'intervalLength', counter);
+                    if (mInterval(mSolve, 'intervalLength', counter) > 1,
+                        ts_energyDemand_(eg(etype, geo), f, t)$mf(mSolve,f) = ts_energyDemand(etype, geo, f, t);
+                        ts_energyDemand(eg(etype, geo), f, t)$mf(mSolve,f) =
+                            sum{t_$[ ord(t_) >= tElapsed + tCounter
+                                     and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
+                                   ], ts_energyDemand(etype, geo, f, t_)} / p_stepLength(mSolve, f, t);
+                        ts_inflow_(unitHydro, f, t)$mf(mSolve,f) = ts_inflow(unitHydro, f, t);
+                        ts_inflow(unitHydro, f, t)$mf(mSolve,f) =
+                            sum{t_$[ ord(t_) >= tElapsed + tCounter
+                                     and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
+                                   ], ts_inflow(unitHydro, f, t_)} / p_stepLength(mSolve, f, t);
+                        ts_inflow_(storageHydro, f, t)$mf(mSolve,f) = ts_inflow(storageHydro, f, t);
+                        ts_inflow(storageHydro, f, t)$mf(mSolve,f) =
+                            sum{t_$[ ord(t_) >= tElapsed + tCounter
+                                     and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
+                                   ], ts_inflow(storageHydro, f, t_)} / p_stepLength(mSolve, f, t);
+                        ts_import_(eg(etype, geo), t) = ts_import(etype, geo, t);
+                        ts_import(eg(etype, geo), t) =
+                            sum{t_$[ ord(t_) >= tElapsed + tCounter
+                                     and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
+                                   ], ts_import(etype, geo, t_)} / sum(f$fRealization(f), p_stepLength(mSolve, f, t));
+                        ts_cf_(flow, geo, f, t)$mf(mSolve,f) = ts_cf(flow, geo, f, t);
+                        ts_cf(flow, geo, f, t)$mf(mSolve,f) =
+                            sum{t_$[ ord(t_) >= tElapsed + tCounter
+                                     and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
+                                   ], ts_cf(flow, geo, f, t_)} / p_stepLength(mSolve, f, t);
+                    );
+                    if ( mInterval(mSolve, 'intervalEnd', counter) <= mSettings(mSolve, 't_forecastLength'),
+                        mftLastForecast(mSolve,f,t_) = no;
+                        mftLastForecast(mSolve,f,t)$[mf(mSolve,f) and ord(t) = tElapsed + tCounter] = yes;
+                    );
+                    if ( mInterval(mSolve, 'intervalEnd', counter) <= tLast,
+                        mftLastSteps(mSolve,f,t_) = no;
+                        mftLastSteps(mSolve,f,t)$[mf(mSolve,f) and ord(t) = tElapsed + tCounter] = yes;
+                    );
+                    pt(t + mInterval(mSolve, 'intervalLength', counter)) = -mInterval(mSolve, 'intervalLength', counter);
+                );
+                tCounter = tCounter + 1;
+            )
+        )
+    else
+    // ...otherwise use all time periods with equal weight
+        p_stepLength(mSolve, f, t)$(ord(t) >= tElapsed and ord(t) < tLast and fRealization(f)) = 1;
+    );
 
     // Set mft for the modelling period and model forecasts
-    mft(m_solve,f,t) = no;
-    mft(m_solve, f, t)${ [ord(t) >= ord(t_solve)]
-                         and [ord(t) <= ord(t_solve) + modelSolveRules(m_solve, 't_forecastLength')]
-                         and mf(m_solve, f)
-                       } = yes;
-    mftStart(m_solve,f,t) = no;
-    mftStart(m_solve,fRealization,t)$[ord(t) = ord(t_solve)] = yes;
-    mftLastForecast(m_solve,f,t) = no;
-    mftLastForecast(m_solve,f,t)$[ord(f)-1 <= modelSolveRules(m_solve, 'forecasts') and ord(t) = ord(t_solve) + modelSolveRules(m_solve, 't_forecastLength')] = yes;
-    mftLastSteps(m_solve,f,t) = no;
-    mftLastSteps(m_solve,f,t)$[ord(f)-1 <= modelSolveRules(m_solve, 'forecasts') and ord(t) = ord(t_solve) + max(modelSolveRules(m_solve, 't_forecastLength'), modelSolveRules(m_solve, 't_horizon'))] = yes;
-    mftBind(m_solve,f,t) = no;
-    mft_bind(m_solve,f,t) = no;
-    mt_bind(m_solve,t) = no;
-*    mftBind(mft(m_solve,f,t))$[ord(t) = ord(t_solve) + modelSolveRules(m_solve, 't_forecastLength')] = yes;
-*    mft_bind(mft(m_solve,f,t))$[ord(t) = ord(t_solve) + modelSolveRules(m_solve, 't_forecastLength')] = 1 - ord(f);
-*    mt_bind(m_solve,t)$[ord(t) = ord(t_solve) + modelSolveRules(m_solve, 't_forecastLength')] = -1;
-    msft(m_solve, s, f, t) = no;
-    msft(m_solve, 's000', f, t) = mft(m_solve,f,t);
-    msft(m_solve, 's000', fRealization(f), t)${ [ord(t) >= ord(t_solve) + modelSolveRules(m_solve, 't_forecastLength')]
-                             and [ord(t) <= ord(t_solve) + modelSolveRules(m_solve, 't_horizon')]
-                             and mf(m_solve, f)
+    mft(mSolve,f,t) = no;
+    mft(mSolve, f, t)$( p_stepLength(mSolve, f, t) and ord(t) < tElapsed + mSettings(mSolve, 't_forecastLength' ) ) = yes;
+*    mft(mSolve, f, t)${ [ord(t) >= ord(tSolve)]
+*                         $$ifi     '%rampSched%' == 'yes' and [ord(t) <=
+*                         $$ifi not '%rampSched%' == 'yes' and [ord(t) <
+*                            ord(tSolve) + mSettings(mSolve, 't_forecastLength')]
+*                         and mf(mSolve, f)
+*                       } = yes;
+    mftStart(mSolve,f,t) = no;
+    mftStart(mSolve,fRealization,t)$[ord(t) = ord(tSolve)] = yes;
+    mftBind(mSolve,f,t) = no;
+    mft_bind(mSolve,f,t) = no;
+    mt_bind(mSolve,t) = no;
+*    mftBind(mft(mSolve,f,t))$[ord(t) = ord(tSolve) + mSettings(mSolve, 't_forecastLength')] = yes;
+*    mft_bind(mft(mSolve,f,t))$[ord(t) = ord(tSolve) + mSettings(mSolve, 't_forecastLength')] = 1 - ord(f);
+*    mt_bind(mSolve,t)$[ord(t) = ord(tSolve) + mSettings(mSolve, 't_forecastLength')] = -1;
+    msft(mSolve, s, f, t) = no;
+    msft(mSolve, 's000', f, t) = mft(mSolve,f,t);
+    msft(mSolve, 's000', fRealization(f), t)${ [ord(t) >= ord(tSolve) + mSettings(mSolve, 't_forecastLength')]
+                             $$ifi     '%rampSched%' == 'yes' and [ord(t) <=
+                             $$ifi not '%rampSched%' == 'yes' and [ord(t) <
+                                ord(tSolve) + mSettings(mSolve, 't_horizon')]
+                             and mf(mSolve, f)
                            } = yes;
     ft(f,t) = no;
-    ft(f,t) = mft(m_solve, f, t);
+    ft(f,t) = mft(mSolve, f, t);
     ft_realized(f,t) = no;
-    ft_realized(f,t)$[fRealization(f) and ord(t) = ord(t_solve)] = yes;
-    pf(ft(f,t))$(ord(t) eq ord(t_solve) + 1) = 1 - ord(f);
-    pt(t)$[ ord(t) > ord(t_solve) and ord(t) <= ord(t_solve) + modelSolveRules(m_solve, 't_horizon') ] = -1;
+    ft_realized(f,t)$[fRealization(f) and ord(t) = ord(tSolve)] = yes;
+    pf(ft(f,t))$(ord(t) eq ord(tSolve) + 1) = 1 - ord(f);
 
     // Arbitrary value for energy in storage
     p_storageValue(egs(etype, geo, storage), t)$sum(fRealization(f), ft(f,t)) = 50;
     // PSEUDO DATA
     ts_reserveDemand(resType, resDirection, bus, fRealization(f), t) = 50;
 
-* --- Set variable limits (.lo and .up) ---------------------------------------
+* ¨¨¨ Set variable limits (.lo and .up) ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
     $$include 'inc/set_variable_limits.gms'
 
-* --- Solve Model -------------------------------------------------------------
-    if (m_solve('schedule'),
+* === Solve Model =============================================================
+    if (mSolve('schedule'),
         solve schedule using lp minimizing v_obj;
     );
 
-* --- Output debugging inetypeation --------------------------------------------
+* ¨¨¨ Output debugging information ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
     $$ifi '%debug%' == 'yes'
     execute_unload 'output/debug.gdx';
 
 
-*--- Store results ------------------------------------------------------------
+* ¨¨¨ Store results ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
     // Deterministic stage
     loop(ft(fRealization(f), t),
 *        p_stoContent(f, t)$(p_data(storage, 'max_content') > 0)
@@ -382,7 +424,7 @@ $offtext
 $iftheni.debug '%debug%' == 'yes'
 
 *    putclose gdx;
-*    put_utility 'gdxout' / 'output\'m_solve.tl:0, '-', t_solve.tl:0, '.gdx';
+*    put_utility 'gdxout' / 'output\'mSolve.tl:0, '-', tSolve.tl:0, '.gdx';
 *    execute_unload
 *    $$include inc/debug_symbols.inc
 *    ;
@@ -414,34 +456,34 @@ $include 'stosschver'
 if(errorcount > 0, metadata('FAILED') = yes);
 
 put f_info
-put "***********************************************************************"/;
-put "* MODEL RUN DETAILS                                                   *"/;
-put "***********************************************************************"/;
+put "¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤"/;
+put "¤ MODEL RUN DETAILS                                                   ¤"/;
+put "¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤"/;
 loop(metadata,
     put metadata.tl:20, metadata.te(metadata) /;
 );
 put /;
 put "time (s)":> 21 /;
-put "---------------------"/;
+put "¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨"/;
 put "Compilation", system.tcomp:> 10 /;
 put "Execution  ", system.texec:> 10 /;
 put "Total      ", system.elapsed:> 10 /;
 put /;
-put "***********************************************************************"/;
-put "* MODEL FEATURES                                                      *"/;
-put "***********************************************************************"/;
+put "¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤"/;
+put "¤ MODEL FEATURES                                                      ¤"/;
+put "¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤"/;
 loop(feature $active(feature),
     put feature.tl:20, feature.te(feature):0 /;
 );
 put /;
 f_info.nd = 0; // Set number of decimals to zero
-put "Start time:                 ", modelSolveRules('schedule', 't_start')/;
-put "Length of forecasts:        ", modelSolveRules('schedule', 't_forecastLength')/;
-put "Model horizon:              ", modelSolveRules('schedule', 't_horizon')/;
-put "Model jumps after solve:    ", modelSolveRules('schedule', 't_jump')/;
-put "Last time period to solve:  ", modelSolveRules('schedule', 't_end')/;
-put "Length of each time period: ", modelSolveRules('schedule', 't_interval')/;
-put "Number of samples:          ", modelSolveRules('schedule', 'samples')/;
+put "Start time:                 ", mSettings('schedule', 't_start')/;
+put "Length of forecasts:        ", mSettings('schedule', 't_forecastLength')/;
+put "Model horizon:              ", mSettings('schedule', 't_horizon')/;
+put "Model jumps after solve:    ", mSettings('schedule', 't_jump')/;
+put "Last time period to solve:  ", mSettings('schedule', 't_end')/;
+*put "Length of each time period: ", mSettings('schedule', 'intervalLength')/;
+put "Number of samples:          ", mSettings('schedule', 'samples')/;
 
 putclose;
 * -----------------------------------------------------------------------------

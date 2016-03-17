@@ -133,36 +133,36 @@ Sets
 * Sets to define time, forecasts and samples
 Sets
     $$include 'input/timeAndSamples.inc'
-    m(modelType) "model(s) in use"
+    m(mType) "model(s) in use"
     tt(t) "Time steps in the current model"
-    mf(modelType, f) "Forecasts present in the models"
-    ms(modelType, s) "Samples present in the models"
-    mstStart(modelType, s, t) "Start point of samples"
+    mf(mType, f) "Forecasts present in the models"
+    ms(mType, s) "Samples present in the models"
+    mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
     ft_realized(f, t) "Last realized ft"
-    mft(modelType, f, t) "Combination of forecasts and time periods in the models"
-    mft_(modelType, f, t) "Combination of forecasts and time periods in the models"
-    msft(modelType, s, f, t) "Combination of samples, forecasts and time periods in the models"
+    mft(mType, f, t) "Combination of forecasts and time periods in the models"
+    mft_(mType, f, t) "Combination of forecasts and time periods in the models"
+    msft(mType, s, f, t) "Combination of samples, forecasts and time periods in the models"
     sft(s, f, t) "Combination of samples, forecasts and time periods in the current model"
-    mftStart(modelType, f, t) "Start point of simulation"
-    mftBind(modelType, f, t) "Time periods/slices where forecasts/samples are coupled, note: t couples samples"
+    mftStart(mType, f, t) "Start point of simulation"
+    mftBind(mType, f, t) "Time periods/slices where forecasts/samples are coupled, note: t couples samples"
     fRealization(f) "fRealization of the forecasts"
     fCentral(f) "Forecast that continues as sample(s) after the forecast horizon ends"
     sInitial(s) "Sample that presents the realized/forecasted period"
     sCentral(s) "Sample that continues the central forecast after the forecast horizon ends"
-    mftLastForecast(modelType, f, t) "Last time period where the forecast extends"
-    mftLastSteps(modelType, f, t) "Last time periods of the model (can be end of forecasts or end of samples)"
-    modelSolves(modelType, t) "when different models are to be solved"
+    mftLastForecast(mType, f, t) "Last time period where the forecast extends"
+    mftLastSteps(mType, f, t) "Last time periods of the model (can be end of forecasts or end of samples)"
+    modelSolves(mType, t) "when different models are to be solved"
 ;
 
 
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 fRealization('f00') = yes;
-ms(modelType, s) = no;
-modelSolves(modelType, t) = no;
+ms(mType, s) = no;
+modelSolves(mType, t) = no;
 
-alias(m, m_solve);
-alias(t, t_, t__, t_solve, t_fuel);
+alias(m, mSolve);
+alias(t, t_, t__, tSolve, tFuel);
 alias(f, f_, f__);
 alias(s, s_, s__);
 

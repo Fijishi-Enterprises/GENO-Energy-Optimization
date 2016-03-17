@@ -1,22 +1,22 @@
 * --- Variable limits ---------------------------------------------------------
 * Fix storage contents for the beginning
-loop(ft_realized(f, t_solve),
+loop(ft_realized(f, tSolve),
 $iftheni '%mode%' == 'findStorageStart'
-        v_stoContent.lo(etype, geo, storage, f, t_solve)
+        v_stoContent.lo(etype, geo, storage, f, tSolve)
            = usData(etype, geo, storage, 'min_content') * usData(etype, geo, storage, 'max_content');
-        v_stoContent.up(etype, geo, storage, f, t_solve) = usData(etype, geo, storage, 'max_content');
+        v_stoContent.up(etype, geo, storage, f, tSolve) = usData(etype, geo, storage, 'max_content');
 $else
-        v_stoContent.fx(etype, geo, storage, f, t_solve)$(ord(t_solve) = modelSolveRules('schedule', 't_start'))
-            = ts_stoContent(storage, f, t_solve) * usData(etype, geo, storage, 'max_content');
-        v_stoContent.fx(etype, geo, storage, f, t_solve)$(not ord(t_solve) = modelSolveRules('schedule', 't_start'))
-            = v_stoContent.l(etype, geo, storage, f, t_solve);
+        v_stoContent.fx(etype, geo, storage, f, tSolve)$(ord(tSolve) = mSettings('schedule', 't_start'))
+            = ts_stoContent(storage, f, tSolve) * usData(etype, geo, storage, 'max_content');
+        v_stoContent.fx(etype, geo, storage, f, tSolve)$(not ord(tSolve) = mSettings('schedule', 't_start'))
+            = v_stoContent.l(etype, geo, storage, f, tSolve);
 $endif
     // Free online capacity for the first loop
-    if(elapsed = 0 and not active('addOn'),
-        v_online.up(gu(geo, unitOnline), f, t_solve) = 1;
+    if(tElapsed = 0 and not active('addOn'),
+        v_online.up(gu(geo, unitOnline), f, tSolve) = 1;
     // Fix online capacity for later solutions
     else
-        v_online.fx(gu(geo, unitOnline), f, t_solve) = v_online.l(geo, unitOnline, f, t_solve);
+        v_online.fx(gu(geo, unitOnline), f, tSolve) = v_online.l(geo, unitOnline, f, tSolve);
     );
 
 );
@@ -53,9 +53,9 @@ loop(ft(f, t),
 *    );
     // Max. & min. spilling
     v_spill.lo(egs(etype, geo, storage), f, t)
-        = usData(etype, geo, storage, 'min_spill') * p_stepLength(m_solve, f, t);
+        = usData(etype, geo, storage, 'min_spill') * p_stepLength(mSolve, f, t);
     v_spill.up(egs(etype, geo, storage), f, t)
-        = usData(etype, geo, storage, 'max_spill') * p_stepLength(m_solve, f, t);
+        = usData(etype, geo, storage, 'max_spill') * p_stepLength(mSolve, f, t);
     v_transfer.up(eg2g(etype, from_geo, to_geo), f, t)
         = p_transferCap(etype, from_geo, to_geo);
     v_resTransCapacity.up('tertiary', 'resUp', from_bus, to_bus, f, t)

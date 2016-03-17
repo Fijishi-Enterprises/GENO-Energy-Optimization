@@ -8,3 +8,5 @@ equations.lxi
 input/
 output/
 225a/
+*.~in
+stosschver

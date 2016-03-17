@@ -1,14 +1,22 @@
-if (modelType('schedule'),
+if (mType('schedule'),
     m('schedule') = yes;
-    modelSolveRules('schedule', 't_start') = 1;
-    modelSolveRules('schedule', 't_horizon') = 168;
-    modelSolveRules('schedule', 't_jump') = 24;
-    modelSolveRules('schedule', 't_forecastLength') = 168;
-    modelSolveRules('schedule', 't_interval') = 1;
-    modelSolveRules('schedule', 't_end') = 20;
-    modelSolveRules('schedule', 'samples') = 1;
-    modelSolveRules('schedule', 'forecasts') = 0;
-    mf('schedule', f)$[ord(f)-1 <= modelSolveRules('schedule', 'forecasts')] = yes;
+    mSettings('schedule', 't_start') = 1;
+    mSettings('schedule', 't_horizon') = 168;
+    mSettings('schedule', 't_jump') = 24;
+    mSettings('schedule', 't_forecastLength') = 168;
+    mSettings('schedule', 't_end') = 50;
+    mSettings('schedule', 'samples') = 1;
+    mSettings('schedule', 'forecasts') = 0;
+    mf('schedule', f)$[ord(f)-1 <= mSettings('schedule', 'forecasts')] = yes;
+    mInterval('schedule', 'intervalLength', 'c000') = 1;
+    mInterval('schedule', 'intervalEnd', 'c000') = 24;
+    mInterval('schedule', 'intervalLength', 'c001') = 3;
+    mInterval('schedule', 'intervalEnd', 'c001') = 48;
+    mInterval('schedule', 'intervalLength', 'c002') = 6;
+    mInterval('schedule', 'intervalEnd', 'c002') = 168;
+    mInterval('schedule', 'intervalLength', 'c003') = 24;
+    mInterval('schedule', 'intervalEnd', 'c003') = 26*168;
+    mInterval('schedule', 'intervalLength', 'c004') = 168;
     active('storageValue') = yes;
 
     fRealization(f) = no;

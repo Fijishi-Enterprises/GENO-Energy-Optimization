@@ -6,9 +6,9 @@ equations
     q_maxUpward(etype, geo, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
     q_storageControl(etype, geo, storage, f, t) "Storage energy control"
     q_storageDynamics(etype, geo, storage, f, t) "Dynamic equation for storages"
-    q_bindStorage(etype, geo, storage, modelType, f, t) "Couple storage contents for joining forecasts or for joining sample time periods"
+    q_bindStorage(etype, geo, storage, mType, f, t) "Couple storage contents for joining forecasts or for joining sample time periods"
     q_startup(geo, unit, f, t) "Capacity started up is greater than the difference of online cap. now and in previous time step"
-    q_bindOnline(geo, unit, modelType, f, t) "Couple online variable for joining forecasts or for joining sample time periods"
+    q_bindOnline(geo, unit, mType, f, t) "Couple online variable for joining forecasts or for joining sample time periods"
     q_fuelUse(geo, unit, fuel, f, t) "Use of fuels in units equals generation and losses"
 *    q_storageEnd(geo, storage, f, t) "Expected storage end content minus procured reserve energy is greater than start content"
     q_conversion(geo, unit, f, t) "Conversion of energy between etypes of energy presented in the model, e.g. electricity consumption equals unitHeat generation times efficiency"
@@ -46,15 +46,13 @@ q_obj ..
                 uData(etype, geo, unit, 'OaM_costs') *
                 $$ifi not '%rampSched%' == 'yes' p_stepLength(m, f, t) *
                 $$ifi '%rampSched%' == 'yes' (p_stepLength(m, f, t) + p_stepLength(m, f, t+1))/2 *
-                (
                      v_gen(etype, geo, unit, f, t)
-                )
            )
            // Fuel and emission costs
          + sum((geo, unitFuel, fuel)$(gu(geo, unitFuel) and unit_fuel(unitFuel, fuel, 'main')),
                 v_fuelUse(geo, unitFuel, fuel, f, t)
-              * (   sum{t_fuel$[ord(t_fuel) <= ord(t)],
-                        ts_fuelPriceChangeGeo(fuel, geo, t_fuel) }  // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
+              * (   sum{tFuel$[ord(tFuel) <= ord(t)],
+                        ts_fuelPriceChangeGeo(fuel, geo, tFuel) }  // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
                   + sum(emission,         // Emission taxes
                         p_data2d(fuel, emission, 'emission_intensity') / 1e3
                           * p_data2d(emission, geo, 'emission_tax')
@@ -77,8 +75,8 @@ q_obj ..
                      + uData(etype, geo, unitOnline, 'max_cap')
                      * uData(etype, geo, unitOnline, 'startup_fuelcons')
                            // Fuel costs for start-up fuel use
-                     * ( + sum{t_fuel$[ord(t_fuel) <= ord(t)],
-                               ts_fuelPriceChangeGeo(fuel, geo, t_fuel) }
+                     * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
+                               ts_fuelPriceChangeGeo(fuel, geo, tFuel) }
                            // Emission taxes of startup fuel use
                          + sum(emission,
                                p_data2d(emission, fuel, 'emission_intensity') / 1e3
@@ -91,7 +89,7 @@ q_obj ..
         )  // p_sProbability(s) & p_fProbability(f)
     ) // msft(m, s, f, t)
     // Value of energy storage change
-    - sum((mftLastForecast(m, f, t), mftStart(m, f_, t_)) $(active('storageValue')),
+    - sum((mftLastSteps(m, f, t), mftStart(m, f_, t_)) $(active('storageValue')),
           p_fProbability(f) *
             sum(egs(etype, geo, storage),
                 p_storageValue(etype, geo, storage, t) *
@@ -114,8 +112,8 @@ q_obj ..
             ) * PENALTY
         )
       )
-
 ;
+
 * -----------------------------------------------------------------------------
 q_balance(eg(etype, geo), ft(f, t)) ..
   + sum(unit$egu(etype, geo, unit),

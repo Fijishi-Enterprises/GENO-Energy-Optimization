@@ -1,13 +1,15 @@
 * --- Model parameters, features and switches ---------------------------------
 
 Sets  // Model related selections
-    modelType "model types in the Backbone" /invest, storage, schedule, realtime/
-    modelRuleType "rule categories for setting model solves" /t_start, t_jump, t_horizon, t_forecastLength, t_interval, t_end, samples, forecasts/
+    mType "model types in the Backbone" /invest, storage, schedule, realtime/
+    mSetting "setting categories for models" /t_start, t_jump, t_horizon, t_forecastLength, t_end, samples, forecasts, intervalEnd, intervalLength/
+    counter "general counter set" /c000*c999/;
 ;
 
 * Numeric parameters
 Parameter
-    modelSolveRules(modelType, modelRuleType)
+    mSettings(mType, mSetting)
+    mInterval(mType, mSetting, counter)
     t_skip_counter
 ;
 

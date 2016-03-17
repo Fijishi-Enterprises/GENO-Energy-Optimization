@@ -23,41 +23,30 @@ Parameters
     pf(f, t) "Displacement needed to reach the previous forecast (in forecasts)"
     t_bind(t) "Displacement to reach the binding time period in the parent sample (in time periods). Can skip with aggregated steps as well as when connecting samples."
     ft_bind(f, t) "Displacement to reach the binding forecast (in forecasts) in the current model"
-    mt_bind(modelType, t) "Displacement to reach the binding time period in the parent sample (in time periods) in the models"
-    mft_bind(modelType, f, t) "Displacement to reach the binding forecast (in forecasts) in the models"
+    mt_bind(mType, t) "Displacement to reach the binding time period in the parent sample (in time periods) in the models"
+    mft_bind(mType, f, t) "Displacement to reach the binding forecast (in forecasts) in the models"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------
 Parameters
     ts_energyDemand(etype, geo, f, t) "Fixed energy demand of a time period/slice divided by average demand"
+    ts_energyDemand_(etype, geo, f, t)
     ts_inflow(*, f, t) "External energy inflow during a time period (MWh)"
+    ts_inflow_(*, f, t)
     ts_cf(flow, geo, f, t) "Available capacity factor time series (per unit)"
-
+    ts_cf_(flow, geo, f, t)
     ts_import(etype, geo, t) "Energy import from locations outside the model scope (MW)"
+    ts_import_(etype, geo, t)
+
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (€/MWh)"
     ts_fuelPriceChangeGeo(fuel, geo, t) "Initial fuel price and consequent changes in fuel price in model geographies (€/MWh)"
     ts_stoContent(storage, f, t) "Storage content at the start of the time period (ratio of max)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time period/slice (p.u.)"
     ts_reserveDemand(resType, resDirection, geo, f, t) "Reserve demand in region in the time period/slice (MW)"
-
-    ts_netLoad(geo, t) "net load time series"
-    ts_netLoadRamp(geo, t) "net load ramp time series"
-    ts_netLoadRampAve(notch, notch) "net load ramp averages"
-    ts_netLoadCur(t) "net load time series for current bus/year"
-    ts_netLoadRampWindow(geo, t) "averaging window for net load ramp"
-    ts_netLoad2ndDer(geo, t) "net load 2nd derivative time series"
-    ts_netLoadRampNotches(geo, t) "possible notches"
-    ts_netLoadRampResult(geo, t) "net load ramps with reduced time series"
-    ts_notchPos(notch) "position of the possible notches"
-    ts_segmentErrorSquared(notch, notch_) "precalculated error penalties for selectable ramp segments"
-    ts_sortIndex(geo, t) "sort rank for time series"
-    ts_sortedNetLoad(geo, t) "sorted net load time series"
 ;
 
 * --- Other time dependent parameters -----------------------------------------
 Parameters
     p_storageValue(etype, geo, storage, t) "Value of storage at the end of a time step"
-    p_stepLength(modelType, f, t) "Length of a time step (t)"
+    p_stepLength(mType, f, t) "Length of a time step (t)"
 ;
-
-$include 'inc/rampSched/parameters_rampSched.gms'

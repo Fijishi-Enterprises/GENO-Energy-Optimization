@@ -12,4 +12,4 @@ r_demand
 *r_elecPrice
 r_totalCost
 metadata
-modelSolveRules
+mSettings
