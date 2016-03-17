@@ -40,7 +40,7 @@ class TitanUI(QMainWindow):
         self._models = dict()
         self._setups = dict()
         # Setup general stuff
-        self.create_model()
+        #self.create_model()
         self.connect_signals()
 
     @pyqtSlot()
@@ -190,6 +190,9 @@ in every demand block.""",
 
     def model_run(self):
         """Start running test model."""
+        if not self._setups:
+            self.add_msg_signal.emit("No setups to run.")
+            return
         self.add_msg_signal.emit("Running setup 'MIP'")
         self.running_process = 'MIP'
 
@@ -250,3 +253,13 @@ in every demand block.""",
         logging.debug("Thank you for choosing Titan. Bye bye.")
         # noinspection PyArgumentList
         QApplication.quit()
+
+    def on_ready_stdout(self):
+        """ Prints sub-process' stdout. """
+        out = str(self.processes['MIP'].readAllStandardOutput(), 'utf-8')
+        self.add_proc_msg_signal.emit(out.strip())
+
+    def on_ready_stderr(self):
+        """ Prints sub-process' stderr """
+        out = str(self.processes['MIP'].readAllStandardError(), 'utf-8')
+        self.add_proc_err_msg_signal.emit(out.strip())

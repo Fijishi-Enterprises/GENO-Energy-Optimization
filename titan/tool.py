@@ -157,6 +157,7 @@ class ToolInstance(object):
             basedir (str): Path to tool instance base directory
         """
         # Make a copy of the tool and execute
+        # TODO: Run this in QProcess
         ret = run(self.command)
 
         try:
@@ -256,7 +257,9 @@ class Setup(MetaObject):
             tool (Tool): The tool
             file_fmt (DataFormat): File format
         """
-
+        # TODO: Get input for this tool from own input folder and parents.
+        # If parent has a tool -> get output files
+        # If parent has no tool -> get input files
         filenames = glob.glob(os.path.join(self.input_dir,
                                            tool.short_name,
                                            '*.{}'.format(file_fmt.extension)))
@@ -311,6 +314,7 @@ class Setup(MetaObject):
         else:
             return True
 
+        # TODO: Just one Tool allowed per Setup
         for tool, cmdline_args in self.tools.items():
             instance = tool.create_instance(cmdline_args)
             self.tool_instances.append(instance)
@@ -437,16 +441,17 @@ class Model(MetaObject):
             output_dir (str): Output file directory (absolute or relative to command)
         """
         super().__init__(name, description)
+        self.parent = parent
         if not os.path.exists(modelpath):
             # TODO: Do something here. Does not work. command is not a path.
             # logging.error("Path <{}> does not exist".format(command))
             pass
-        self.parent = parent
+        self.gamsfile = gamsfile
         self.command = command
-        self.outfiles = [os.path.join(output_dir, '*')]
-        self.logfile = ''
         self.input_dir = os.path.join(modelpath, input_dir)
         self.output_dir = os.path.join(modelpath, output_dir)
+        self.outfiles = [os.path.join(output_dir, '*')]
+        self.logfile = ''
         self.inputs = []
         self.input_formats = set()
         self.outputs = []
