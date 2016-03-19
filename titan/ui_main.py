@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 from ui.main import Ui_MainWindow
 from tool import Dimension, DataParameter, Setup, NewSetup
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE, OldGAMSModel
-from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH
+from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH
 
 
 class TitanUI(QMainWindow):
@@ -37,7 +37,6 @@ class TitanUI(QMainWindow):
         self.processes = dict()
         self.running_process = ''
         self._tools = dict()
-        self._models = dict()
         self._setups = dict()
         # Setup general stuff
         #self.create_model()
@@ -66,40 +65,6 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_create_models.clicked.connect(self.create_model)
         self.ui.pushButton_test.clicked.connect(self.test_button)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
-
-    def run_setup(self):
-        """Create models and setup."""
-        # Create model
-        self._models['magic'] = OldGAMSModel(self, 'M A G I C   Power Scheduling Problem',
-                                          """A number of power stations are committed to meet demand
-                                          for a particular day. Three types of generators having
-                                          different operating characteristics are available. Generating
-                                          units can be shut down or operate between minimum and maximum
-                                          output levels. Units can be started up or closed down in
-                                          every demand block.""",
-                                          MAGIC_MODEL_PATH, 'magic.gms', input_dir='input', output_dir='output')
-        # Add input&output formats for model
-        self._models['magic'].add_input_format(GDX_DATA_FMT)
-        self._models['magic'].add_input_format(GAMS_INC_FILE)
-        self._models['magic'].add_output_format(GDX_DATA_FMT)
-        # Create data parameters
-        g = Dimension('g', 'generators')
-        param = Dimension('param', 'parameters')
-        data = DataParameter('data', 'generation data', '?', [g, param])
-        # Add input data parameter for model
-        self._models['magic'].add_input(data)
-        # Create Base Setup
-        self._setups['base'] = NewSetup('base', 'The base setup')
-        # Create Setup A, with Base setup as parent
-        self._setups['setup A'] = NewSetup('setup A', 'test setup A', parent=self._setups['base'])
-        # Add model 'magic' to setup 'Setup A'
-        if not self._setups['setup A'].add_model(self._models['magic'], 'MIP=CPLEX'):
-            self.add_err_msg_signal.emit("Adding a model to 'setup A' failed\n")
-            logging.error("Adding a model to Setup failed")
-            return
-        # Execute Setup.
-        self.add_msg_signal.emit("Starting setup A")
-        self._setups['setup A'].execute()
 
     @pyqtSlot(str)
     def add_msg(self, msg):
@@ -148,18 +113,60 @@ class TitanUI(QMainWindow):
         # noinspection PyArgumentList
         QApplication.processEvents()
 
+    def run_setup(self):
+        """Create models and setup."""
+        # Create model
+        self._tools['magic'] = OldGAMSModel(self, 'OLD MAGIC',
+                                            """A number of power stations are committed to meet demand
+                                            for a particular day. Three types of generators having
+                                            different operating characteristics are available. Generating
+                                            units can be shut down or operate between minimum and maximum
+                                            output levels. Units can be started up or closed down in
+                                            every demand block.""",
+                                            OLD_MAGIC_MODEL_PATH, 'magic.gms', input_dir='input', output_dir='output')
+        # Add input&output formats for model
+        self._tools['magic'].add_input_format(GDX_DATA_FMT)
+        self._tools['magic'].add_input_format(GAMS_INC_FILE)
+        self._tools['magic'].add_output_format(GDX_DATA_FMT)
+        # Create data parameters
+        g = Dimension('g', 'generators')
+        param = Dimension('param', 'parameters')
+        data = DataParameter('data', 'generation data', '?', [g, param])
+        # Add input data parameter for model
+        self._tools['magic'].add_input(data)
+        # Create Base Setup
+        self._setups['base'] = NewSetup('base', 'The base setup')
+        # Create Setup A, with Base setup as parent
+        self._setups['setup A'] = NewSetup('setup A', 'test setup A', parent=self._setups['base'])
+        # Add model 'magic' to setup 'Setup A'
+        if not self._setups['setup A'].add_model(self._tools['magic'], 'MIP=CPLEX'):
+            self.add_err_msg_signal.emit("Adding a model to 'setup A' failed\n")
+            logging.error("Adding a model to Setup failed")
+            return
+        # Execute Setup.
+        self.add_msg_signal.emit("Starting setup A")
+        self._setups['setup A'].execute()
+        # Return initial state
+        self.cleanup()
+
+    def cleanup(self):
+        self._tools = None
+        self._setups = None
+
     def create_model(self):
         """Create and set up configuration for the model."""
 
         self._tools['magic'] = GAMSModel(self, 'MAGIC',
-                     """M A G I C   Power Scheduling Problem
-A number of power stations are committed to meet demand for a particular
-day. three types of generators having different operating characteristics
-are available.  Generating units can be shut down or operate between
-minimum and maximum output levels.  Units can be started up or closed down
-in every demand block.""",
-                    MAGIC_MODEL_PATH, 'magic.gms',
-                    input_dir='input', output_dir='output')
+                                         """M A G I C   Power Scheduling Problem
+                                         A number of power stations are committed
+                                         to meet demand for a particular day. three
+                                         types of generators having different
+                                         operating characteristics are available.
+                                         Generating units can be shut down or operate
+                                         between minimum and maximum output levels.
+                                         Units can be started up or closed down in
+                                         every demand block.""",
+                                         MAGIC_MODEL_PATH, 'magic.gms', input_dir='input', output_dir='output')
 
         self._tools['magic'].add_input_format(GDX_DATA_FMT)
         self._tools['magic'].add_input_format(GAMS_INC_FILE)
@@ -194,19 +201,21 @@ in every demand block.""",
             self.add_msg_signal.emit("No setups to run.")
             return
         self.add_msg_signal.emit("Running setup 'MIP'")
-        self.running_process = 'MIP'
-
-        self.processes['MIP'] = QProcess()
-        self.processes['MIP'].started.connect(self.magic_started)
-        self.processes['MIP'].readyReadStandardOutput.connect(self.on_ready_stdout)
-        self.processes['MIP'].readyReadStandardError.connect(self.on_ready_stderr)
-        self.processes['MIP'].finished.connect(self.magic_finished)
         self._setups['MIP'].execute()
-        if not self.processes['MIP'].waitForStarted(msecs=10000):
-            self._simulation_failed = True
-            self.add_err_msg_signal.emit(
-                '*** Launching model failed. ***\nCheck that gams is '
-                'included in the PATH variable.')
+        # Restore initial state
+        self.cleanup()
+
+        # self.running_process = 'MIP'
+        # self.processes['MIP'] = QProcess()
+        # self.processes['MIP'].started.connect(self.magic_started)
+        # self.processes['MIP'].readyReadStandardOutput.connect(self.on_ready_stdout)
+        # self.processes['MIP'].readyReadStandardError.connect(self.on_ready_stderr)
+        # self.processes['MIP'].finished.connect(self.magic_finished)
+        # if not self.processes['MIP'].waitForStarted(msecs=10000):
+        #     self._simulation_failed = True
+        #     self.add_err_msg_signal.emit(
+        #         '*** Launching model failed. ***\nCheck that gams is '
+        #         'included in the PATH variable.')
 
     def magic_started(self):
         """ Run when sub-process is started. """
@@ -225,7 +234,7 @@ in every demand block.""",
         # Delete GAMS QProcess
         self.processes['MIP'].deleteLater()
         self.processes['MIP'] = None
-        self.running_process = ''
+        # self.running_process = ''
         self.add_msg_signal.emit("GAMS exit status:%s" % gams_exit_status)
         #try:
         #    gams_return_msg = GAMS_RETURN_CODES[gams_exit_code]

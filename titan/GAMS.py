@@ -37,8 +37,8 @@ class GAMSModel(Tool):
         self.GAMS_parameters = "Logoption=3"  # send LOG output to STDOUT
         command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE, gamsfile, self.model_path, self.GAMS_parameters)
         # Add .log and .lst files to list of outputs
-        self.outfiles.append(os.path.splitext(gamsfile)[0] + '.log')
-        self.outfiles.append(os.path.splitext(gamsfile)[0] + '.lst')
+        self.outfiles.append(os.path.join(path, os.path.splitext(gamsfile)[0] + '.log'))
+        self.outfiles.append(os.path.join(path, os.path.splitext(gamsfile)[0] + '.lst'))
         # Logoption options
         # 0 suppress LOG output
         # 1 LOG output to screen (default)
@@ -105,8 +105,9 @@ class OldGAMSModel(Model):
         super().__init__(parent, name, description, self.model_path, gamsfile, command,
                          input_dir, output_dir)
         # Add .log and .lst files to list of outputs
-        self.outfiles.append(os.path.splitext(gamsfile)[0] + '.log')
-        self.outfiles.append(os.path.splitext(gamsfile)[0] + '.lst')
+        # TODO: FIX this. Should be os.path.join(model output folder + log file+ list file
+        self.outfiles.append(os.path.join(path, os.path.splitext(gamsfile)[0] + '.log'))
+        self.outfiles.append(os.path.join(path, os.path.splitext(gamsfile)[0] + '.lst'))
 
         self.return_codes = {
             0: "normal return",

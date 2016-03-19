@@ -1,5 +1,5 @@
 """
-File defines Tool class and related classes
+File defines Tool class and related classes.
 
 :author: Erkka Rinne <erkka.rinne@vtt.fi>
 :date:   26/10/2015
@@ -9,10 +9,10 @@ import os
 import shutil
 import glob
 import logging
-from copy import copy
+# from copy import copy
 from collections import OrderedDict
 import json
-from collections import namedtuple
+# from collections import namedtuple
 import tempfile
 from tools import run, copy_files
 from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR, WORK_DIR, IGNORE_PATTERNS
@@ -20,7 +20,7 @@ import qsubprocess
 
 
 class MetaObject(object):
-    """Class for an object which has a name and some description
+    """Class for an object which has a name and some description.
 
     Attributes:
         name (str): The name of the object
@@ -85,7 +85,7 @@ class Tool(MetaObject):
         self.outputs.add(parameter)
 
     def add_input_format(self, format_type):
-        """Add input data format to the tool
+        """Add input data format to the tool.
 
         Args:
             format_type (DataFormat): Data format
@@ -93,7 +93,7 @@ class Tool(MetaObject):
         self.input_formats.add(format_type)
 
     def add_output_format(self, format_type):
-        """Add output data format to the tool
+        """Add output data format to the tool.
 
         Args:
             format_type (DataFormat): Data format
@@ -107,7 +107,7 @@ class Tool(MetaObject):
         return [fmt.extension for fmt in self.output_formats]
 
     def set_return_code(self, code, description):
-        """Set a return code and associated text description for the tool
+        """Set a return code and associated text description for the tool.
 
         Args:
             code (int): Return code
@@ -174,15 +174,14 @@ class ToolInstance(object):
             return False
 
     def remove(self):
-        """Remove the tool instance files
-        """
+        """Remove the tool instance files."""
         shutil.rmtree(self.basedir, ignore_errors=True)
 
     def copy_output(self, target_dir):
             """Save output of a tool instance
 
             Args:
-                tool_instance (ToolInstance):
+                target_dir (str): Copy destination
 
             Returns:
                 ret (bool): Operation success
@@ -192,7 +191,6 @@ class ToolInstance(object):
                 for fname in glob.glob(pattern):
                     shutil.copy(fname, target_dir)
                     count += 1
-
             return True if count > 0 else False
 
 
@@ -223,9 +221,8 @@ class Setup(MetaObject):
         self.output_dir = os.path.join(OUTPUT_STORAGE_DIR, self.short_name)
 
     def create_input(self):
-        """Create input files for this tool setup
-        """
-        pass
+        """Create input files for this tool setup."""
+        raise NotImplementedError
 
     def add_input(self, tool):
         """Add inputs for a tool in this setup
@@ -270,7 +267,7 @@ class Setup(MetaObject):
         return filenames
 
     def get_output_files(self, tool, file_fmt):
-        """Get paths of output files of given format for tool in this setup
+        """Get paths of output files of given format for tool in this setup.
 
         Args:
             tool (Tool): The tool
@@ -286,8 +283,7 @@ class Setup(MetaObject):
         return filenames
 
     def save(self):
-        """Save setup object to disk
-        """
+        """Save setup object to disk."""
 
         the_dict = {}
         if self.parent is not None:
@@ -302,8 +298,7 @@ class Setup(MetaObject):
             json.dump(the_dict, fp, indent=4)
 
     def execute(self):
-        """Execute this tool setup
-        """
+        """Execute this tool setup."""
 
         if self.parent is not None:
             if not self.parent.execute():
@@ -326,7 +321,7 @@ class Setup(MetaObject):
         return True
 
     def copy_input(self, tool, tool_instance):
-        """Copy input of a tool in this setup to a tool instance
+        """Copy input of a tool in this setup to a tool instance.
 
         Args:
             tool (Tool): The tool
@@ -365,30 +360,26 @@ class Setup(MetaObject):
         return True
 
     def cleanup(self):
-        """Remove temporary files of the setup
-        """
+        """Remove temporary files of the setup."""
         for t in self.tool_instances:
             t.remove()
 
 
 class Dimension(MetaObject):
     """Data dimension."""
-
     def __init__(self, name, description):
-        """
+        """Constructor.
 
-        :param name:
-        :param description:
-        :return:
+        Args:
+            name: Dimension name.
+            description: Dimension description.
         """
         super().__init__(name, description)
-
         self.data = []
 
 
 class DataFormat(object):
     """Class for defining data storage formats."""
-
     def __init__(self, name, extension, is_binary=False):
         """
         Args:
@@ -401,9 +392,7 @@ class DataFormat(object):
 
 
 class DataParameter(MetaObject):
-    """Class for data parameters
-    """
-
+    """Class for data parameters."""
     def __init__(self, name, description, units, indices=[]):
         """
         Args:
@@ -532,28 +521,12 @@ class Model(MetaObject):
         count = 0
         for pattern in self.outfiles:
             for fname in glob.glob(pattern):
-                shutil.copy(fname, target_dir)
-                count += 1
-
+                try:
+                    shutil.copy(fname, target_dir)
+                    count += 1
+                except OSError:
+                    logging.error("Failed to copy output file:{0}\nto target {1}".format(fname, target_dir))
         return True if count > 0 else False
-
-        # if not os.path.exists(self.output_dir):
-        #     logging.error("Model '{0}' output directory missing <{1}>".format(self.name, self.output_dir))
-        #     return False
-        # ret = False
-        # ret = copy_files(self.output_dir, dst_dir,
-        #                  includes=['*.{}'.format(ext)
-        #                            for ext
-        #                            in self.get_output_file_extensions()]) > 0
-        #
-        # if self.logfile is not None:
-        #     try:
-        #         shutil.copy(self.logfile, dst_dir)
-        #         ret = True
-        #     except OSError:
-        #         ret = False
-        # return ret
-
 
 # TODO:
 # TODO: Merge this Setup class with the other Setup class
