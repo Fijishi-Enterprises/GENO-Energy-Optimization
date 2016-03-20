@@ -9,17 +9,15 @@ import os
 import shutil
 import glob
 import logging
-# from copy import copy
 from collections import OrderedDict
 import json
-# from collections import namedtuple
 import tempfile
-from tools import run, copy_files
 from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR, WORK_DIR, IGNORE_PATTERNS
 import qsubprocess
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 
-class MetaObject(object):
+class MetaObject(QObject):
     """Class for an object which has a name and some description.
 
     Attributes:
@@ -29,6 +27,7 @@ class MetaObject(object):
     """
 
     def __init__(self, name, description):
+        super().__init__()
         self.name = name
         self.short_name = name.lower().replace(' ', '_')
         self.description = description
@@ -115,30 +114,37 @@ class Tool(MetaObject):
         """
         self.return_codes[code] = description
 
-    def create_instance(self, cmdline_args=None):
+    def create_instance(self, cmdline_args=None, tool_output_dir=''):
         """Create an instance of the tool.
 
         Args:
             cmdline_args (str): Extra command line arguments
+            tool_output_dir (str): Output directory for tool
         """
-        return ToolInstance(self, cmdline_args)
+        return ToolInstance(self, cmdline_args, tool_output_dir)
 
 
-class ToolInstance(object):
+class ToolInstance(QObject):
+
+    tool_instance_finished_signal = pyqtSignal(int)
+
     """Class for Tool instances."""
-
-    def __init__(self, tool, cmdline_args=None):
+    def __init__(self, tool, cmdline_args=None, tool_output_dir=''):
         """
         Args:
             tool (Tool): Which tool this instance implements
             cmdline_args (str, optional): Extra command line arguments
+            tool_output_dir (str): Tool output directory
         """
+        super().__init__()
         self.tool = tool
+        self.tool_process = None
         self.basedir = self._checkout()
         self.command = os.path.join(self.basedir, tool.main_prgm)
         if cmdline_args is not None:
             self.command += ' ' + cmdline_args
         self.input_dir = os.path.join(self.basedir, tool.input_dir)
+        self.tool_output_dir = tool_output_dir
         self.outfiles = [os.path.join(self.basedir, f) for f in tool.outfiles]
 
     def _checkout(self):
@@ -147,31 +153,37 @@ class ToolInstance(object):
             self.tool.short_name, next(tempfile._get_candidate_names())))
         return shutil.copytree(self.tool.path, basedir, ignore=shutil.ignore_patterns(*IGNORE_PATTERNS))
 
-    def execute(self, target_dir):
-        """Create a copy of the tool somewhere
+    def execute(self):
+        """Start executing tool instance in QProcess."""
+        # Make a copy of the tool and execute
+        # Start running model in sub-process
+        self.tool_process = qsubprocess.QSubProcess(self.tool.parent, self.tool)
+        self.tool_process.subprocess_finished_signal.connect(self.tool_finished)
+        logging.debug("Starting model: '%s'" % self.tool.name)
+        self.tool_process.start_process(self.command)
+
+    @pyqtSlot(int)
+    def tool_finished(self, ret):
+        """Run when tool has finished processing. Copies output of tool
+        to project output directory.
 
         Args:
-            target_dir (str): Target directory for output
-
-        Returns:
-            basedir (str): Path to tool instance base directory
+            ret (int): Return code given by tool
         """
-        # Make a copy of the tool and execute
-        # TODO: Run this in QProcess
-        ret = run(self.command)
-
         try:
-            out = self.tool.return_codes[ret]
+            return_msg = self.tool.return_codes[ret]
+            logging.debug("GAMS Return code:%d. Message: %s" % (ret, return_msg))
         except KeyError:
-            out = ''
+            logging.debug("Unknown return code")
         finally:
-            logging.info("{} status: {}".format(self.tool.name, out))
-
-        if ret == 0:
-            self.copy_output(os.path.join(target_dir, self.tool.short_name))
-            return True
-        else:
-            return False
+            logging.debug("Tool '%s' finished." % self.tool.name)
+            dst_folder = os.path.join(self.tool_output_dir, self.tool.short_name)
+            if not self.copy_output(dst_folder):
+                logging.error("Copying output files to folder '{0}' failed".format(dst_folder))
+            else:
+                logging.debug("Output files copied to <%s>" % dst_folder)
+            # Emit signal to Setup that tool instance has finished with GAMS return code
+            self.tool_instance_finished_signal.emit(ret)
 
     def remove(self):
         """Remove the tool instance files."""
@@ -196,7 +208,6 @@ class ToolInstance(object):
 
 class Setup(MetaObject):
     """Class for setup."""
-
     def __init__(self, name, description, parent=None):
         """Setup constructor.
 
@@ -212,40 +223,67 @@ class Setup(MetaObject):
         self.tools = OrderedDict()
         self.tool_instances = []
         self.is_ready = False
-
-        # Create input directory
+        self._setup_process = None
+        self._running_tool = None
+        # Create Setup input & output directory names
         self.input_dir = os.path.join(INPUT_STORAGE_DIR, self.short_name)
-        os.makedirs(self.input_dir, exist_ok=True)
-
-        # Create output directory name
         self.output_dir = os.path.join(OUTPUT_STORAGE_DIR, self.short_name)
+        # Create Setup input & output directories
+        self.create_dir(self.input_dir)
+        self.create_dir(self.output_dir)
+
+    def create_dir(self, base_path, folder=''):
+        # TODO: This method should maybe go into tools.py
+        """ Create (input/output) directories for Setup recursively.
+
+        Args:
+            base_path (str): Absolute path to wanted dir. Usually setup storage dir.
+            folder (str): (Optional) Folder name. Usually short name of Setup.
+
+        Returns:
+            Absolute path to the created directory or None if operation failed.
+        """
+        directory = os.path.join(base_path, folder)
+        try:
+            os.makedirs(directory, exist_ok=True)
+        except OSError as e:
+            logging.error("Could not create directory: %s\nReason: %s" % (directory, e))
+            return None
+        logging.debug("Created directory: %s" % directory)
+        return directory
 
     def create_input(self):
         """Create input files for this tool setup."""
         raise NotImplementedError
 
     def add_input(self, tool):
-        """Add inputs for a tool in this setup
+        """Add inputs for a tool in this setup.
 
         Args:
             tool (Tool): The tool
         """
         self.inputs.add(tool)
         input_dir = os.path.join(self.input_dir, tool.short_name)
-        os.makedirs(input_dir, exist_ok=True)
+        if not os.path.exists(input_dir):
+            self.create_dir(input_dir)
 
     def add_tool(self, tool, cmdline_args=None):
-        """Add a tool to this setup
+        """Add a tool to this setup.
 
         Args:
             tool (Tool): The tool to be used in this process
             cmdline_args (str, optional): Extra command line arguments for this tool
         """
-
+        # TODO: When adding a model to a Setup, all its parents (at least Base) must have an input
+        # TODO: folder with model name. e.g /input/base/magic
         # Create input and output directories
         self.tools.update({tool: cmdline_args})
-        os.makedirs(os.path.join(self.output_dir, tool.short_name),
-                    exist_ok=True)
+        # Create model input and output directories for the Setup
+        input_dir = self.create_dir(self.input_dir, tool.short_name)
+        output_dir = self.create_dir(self.output_dir, tool.short_name)
+        if (input_dir is None) or (output_dir is None):
+            return False
+        return True
 
     def get_input_files(self, tool, file_fmt):
         """Get paths of input files of given format for tool in this setup
@@ -263,7 +301,6 @@ class Setup(MetaObject):
         if self.parent is not None:
             filenames += self.parent.get_input_files(tool, file_fmt)
             filenames += self.parent.get_output_files(tool, file_fmt)
-
         return filenames
 
     def get_output_files(self, tool, file_fmt):
@@ -279,7 +316,6 @@ class Setup(MetaObject):
                                            '*.{}'.format(file_fmt.extension)))
         if self.parent is not None:
             filenames += self.parent.get_output_files(tool, file_fmt)
-
         return filenames
 
     def save(self):
@@ -299,7 +335,7 @@ class Setup(MetaObject):
 
     def execute(self):
         """Execute this tool setup."""
-
+        # TODO: Maybe all setups should be put into a list and then popped when the previous setup has finished.
         if self.parent is not None:
             if not self.parent.execute():
                 return False
@@ -309,37 +345,56 @@ class Setup(MetaObject):
         else:
             return True
 
-        # TODO: Just one Tool allowed per Setup
-        for tool, cmdline_args in self.tools.items():
-            instance = tool.create_instance(cmdline_args)
-            self.tool_instances.append(instance)
-            self.copy_input(tool, instance)
-            if not instance.execute(self.output_dir):
-                return False
+        tools_list = list(self.tools.items())
+        if not tools_list:  # No tool in setup
+            self.is_ready = True
+            return True
+        logging.debug("tools_list:%s" % tools_list)
+        tool = tools_list[0][0]
+        cmdline_args = tools_list[0][1]
+        instance = tool.create_instance(cmdline_args, self.output_dir)
+        # Connect tool instance finished signal to setup_finished
+        instance.tool_instance_finished_signal.connect(self.setup_finished)
+        self.tool_instances.append(instance)
+        self.copy_input(tool, instance)
+        instance.execute()
 
-        self.is_ready = True
-        return True
+    @pyqtSlot(int)
+    def setup_finished(self, ret):
+        if ret == 0:
+            logging.debug("Setup <%s> finished successfully.\nSetting is_ready to True" % self.name)
+            self.is_ready = True
+        else:
+            logging.debug("Setup <%s> failed.\nis_ready is False" % self.name)
+            self.is_ready = False
+        # TODO: Start running remaining setups. Does not work with the current execute().
+        self.execute()
 
-    def copy_input(self, tool, tool_instance):
+    def copy_input(self, tool, tool_instance=None):
         """Copy input of a tool in this setup to a tool instance.
 
         Args:
             tool (Tool): The tool
-            tool_instance (ToolInstance): Destination directory (input dir of tool instance)
+            tool_instance (ToolInstance): Tool instance. If none execution is done in tool directory.
 
         Returns:
             ret (bool): Operation success
         """
 
+        if not tool_instance:
+            dst_dir = tool.input_dir  # Run tool in /models/ directory
+        else:
+            dst_dir = tool_instance.input_dir  # Run tool in work directory
         for fmt in tool.input_formats:
             filenames = self.get_input_files(tool, fmt)
             # Just copy binary files
             if fmt.is_binary:
                 for fname in filenames:
-                    shutil.copy(fname, tool_instance.input_dir)
+                    shutil.copy(fname, dst_dir)
+                    logging.debug("Copied file '%s' to: <%s>" % (fname, dst_dir))
             # Concatenate other files
             else:
-                outfilename = os.path.join(tool_instance.input_dir,
+                outfilename = os.path.join(dst_dir,
                                            'changes.{}'.format(fmt.extension))
                 # If setup has no parent, then create a new file
                 if self.parent is None:
@@ -353,6 +408,7 @@ class Setup(MetaObject):
                             shutil.copyfileobj(readfile, outfile)
                     # Separate with a blank line
                     outfile.write('\n')
+                    logging.debug("Created file '%s' to: <%s>" % (outfilename, dst_dir))
 
         logging.debug(("Copied input files for tool '{}'"
                        .format(tool.name)))
@@ -407,306 +463,3 @@ class DataParameter(MetaObject):
 
     def get_dimension(self):
         return len(self.indices)
-
-
-# TODO:From model.py
-# TODO: Merge Model class with Tool class.
-
-
-class Model(MetaObject):
-    """Abstract class for models."""
-
-    def __init__(self, parent, name, description, modelpath, gamsfile, command,
-                 input_dir='', output_dir=''):
-        """Model constructor.
-        Args:
-            parent: Parent model
-            name (str): Name of the model
-            description (str): Short description of the model
-            modelpath (str): Absolute path to model folder
-            gamsfile (str): Model file (e.g. magic.gms)
-            command (str): Command executable
-            input_dir (str): Input file directory (absolute or relative to command)
-            output_dir (str): Output file directory (absolute or relative to command)
-        """
-        super().__init__(name, description)
-        self.parent = parent
-        if not os.path.exists(modelpath):
-            # TODO: Do something here. Does not work. command is not a path.
-            # logging.error("Path <{}> does not exist".format(command))
-            pass
-        self.gamsfile = gamsfile
-        self.command = command
-        self.input_dir = os.path.join(modelpath, input_dir)
-        self.output_dir = os.path.join(modelpath, output_dir)
-        self.outfiles = [os.path.join(output_dir, '*')]
-        self.logfile = ''
-        self.inputs = []
-        self.input_formats = set()
-        self.outputs = []
-        self.output_formats = set()
-        self.return_codes = {}
-
-    def set_logfile(self, logfile):
-        self.logfile = logfile
-
-    def add_input(self, parameter):
-        """Add input parameter for model.
-
-        Args:
-            parameter (DataParameter): Data parameter object
-        """
-        self.inputs.append(parameter)
-
-    def add_output(self, parameter):
-        """Add output parameter for model.
-
-        Args:
-            parameter (DataParameter): Data parameter object
-        """
-        self.outputs.append(parameter)
-
-    def add_input_format(self, format_type):
-        """Add input data format to the model
-
-        Args:
-            format_type (DataFormat): Data format
-        """
-        self.input_formats.add(format_type)
-
-    def add_output_format(self, format_type):
-        """Add output data format to the model
-
-        Args:
-            format_type (DataFormat): Data format
-        """
-        self.output_formats.add(format_type)
-
-    def get_input_file_extensions(self):
-        return [fmt.extension for fmt in self.input_formats]
-
-    def get_output_file_extensions(self):
-        return [fmt.extension for fmt in self.output_formats]
-
-    def set_return_code(self, code, description):
-        """Set a return code and associated text description for the model
-
-        Args:
-            code (int): Return code
-            description (str): Description
-        """
-        self.return_codes[code] = description
-
-    def copy_input(self, src_dir):
-        """Copy input of the model from somewhere.
-
-        Args:
-            src_dir (str): Source directory
-
-        Returns:
-            ret (bool): Operation success
-        """
-        return copy_files(src_dir, self.input_dir,
-                          includes=['*.{}'.format(ext) for ext in self.get_input_file_extensions()]) > 0
-
-    def copy_output(self, target_dir):
-        """Copy output of the model to somewhere.
-
-        Args:
-            target_dir (str): Destination directory
-
-        Returns:
-            ret (bool): Operation success
-        """
-        count = 0
-        for pattern in self.outfiles:
-            for fname in glob.glob(pattern):
-                try:
-                    shutil.copy(fname, target_dir)
-                    count += 1
-                except OSError:
-                    logging.error("Failed to copy output file:{0}\nto target {1}".format(fname, target_dir))
-        return True if count > 0 else False
-
-# TODO:
-# TODO: Merge this Setup class with the other Setup class
-
-
-class NewSetup(MetaObject):
-    """Class for setup."""
-    def __init__(self, name, description, parent=None):
-        """Setup constructor.
-
-        Args:
-            name (str): Name of model setup
-            description (str): Description
-            parent (NewSetup): Parent setup of this setup
-        """
-        super().__init__(name, description)
-        self.parent = parent
-        self.models = OrderedDict()
-        self.is_ready = False
-        self.model_process = None
-        self.running_model = None
-        self.running_model_cmd_line_args = None
-        logging.debug("Creating input & output directories for Setup:%s" % self.short_name)
-        self.input_dir = self.create_dir(INPUT_STORAGE_DIR, self.short_name)
-        self.output_dir = self.create_dir(OUTPUT_STORAGE_DIR, self.short_name)
-        if (self.input_dir is None) or (self.output_dir is None):
-            logging.error("Setup initialization failed")
-
-    def create_dir(self, base_path, folder=''):
-        """ Create (input/output) directories for Setup recursively.
-
-        Args:
-            base_path (str): Absolute path to wanted dir. Usually setup storage dir.
-            folder (str): (Optional) Folder name. Usually short name of Setup.
-
-        Returns:
-            Absolute path to the created directory or None if operation failed.
-        """
-        directory = os.path.join(base_path, folder)
-        try:
-            os.makedirs(directory, exist_ok=True)
-        except OSError as e:
-            logging.error("Could not create directory: %s\nReason: %s" % (directory, e))
-            return None
-        logging.debug("Created directory: %s" % directory)
-        return directory
-
-    def create_input(self):
-        """Create input files for this model setup."""
-        raise NotImplementedError
-
-    def add_model(self, model, cmd_line_arguments=''):
-        """Add model to this setup.
-
-        Args:
-            model (Model): The model to be used in this setup.
-            cmd_line_arguments (str, optional): Extra command line arguments for the model.
-
-        Returns:
-            Boolean value depending on operation success.
-        """
-        # TODO: When adding a model to a Setup, all its parents (at least Base) must have an input
-        # TODO: folder with model name. e.g /input/base/magic
-        # Add model to Setup.
-        self.models.update({model: cmd_line_arguments})
-        # Create model input and output directories for the Setup
-        input_dir = self.create_dir(self.input_dir, model.short_name)
-        output_dir = self.create_dir(self.output_dir, model.short_name)
-        if (input_dir is None) or (output_dir is None):
-            return False
-        return True
-
-    def save(self):
-        """Save setup object to disk."""
-        the_dict = {}
-        if self.parent:
-            the_dict['parent'] = self.parent.short_name
-        if len(self.models) > 0:
-            the_dict['models'] = [mdl.short_name for mdl in self.models.keys()]
-        the_dict['is_ready'] = self.is_ready
-
-        jsonfile = os.path.join(INPUT_STORAGE_DIR,
-                                '{}.json'.format(self.short_name))
-        with open(jsonfile, 'w') as fp:
-            json.dump(the_dict, fp, indent=4)
-
-    def pop_model(self):
-        """Pop next model from this setup."""
-        try:
-            current_model = self.models.popitem()
-            self.running_model = current_model[0]  # Key: Model object
-            self.running_model_cmd_line_args = current_model[1]  # Value:cmd_line_arguments
-            return True
-        except KeyError:
-            # logging.debug("Model list empty")
-            return False
-
-    def get_input_files(self, model, file_fmt):
-        """Get paths of input files of given format for model in this setup
-        and it's parent setups.
-
-        Args:
-            model (Model): The model
-            file_fmt (DataFormat): Collect only binary files
-
-        Returns:
-            List of paths to input files for the model in the Setup.
-        """
-        filenames = glob.glob(os.path.abspath(os.path.join(self.input_dir,
-                                                           model.short_name,
-                                                           '*.{}'.format(file_fmt.extension))))
-        if self.parent:
-            filenames += self.parent.get_input_files(model, file_fmt)
-
-        return filenames
-
-    def collect_input_files(self):
-        """Collect input files of this Setup and it's parents into model input directory.
-        Binary files are copied and other files are concatenated."""
-        if not os.path.exists(self.running_model.input_dir):
-            logging.error("Model input folder missing <{}>".format(self.running_model.input_dir))
-            return False
-        for fmt in self.running_model.input_formats:
-            filenames = self.get_input_files(self.running_model, fmt)
-            # Just copy binary files
-            if fmt.is_binary:
-                for fname in filenames:
-                    shutil.copy(fname, self.running_model.input_dir)
-            # Concatenate other files
-            else:
-                outfilename = os.path.join(self.running_model.input_dir,
-                                           'changes.{}'.format(fmt.extension))
-                with open(outfilename, 'w') as outfile:
-                    for fname in reversed(filenames):
-                        with open(fname, 'r') as readfile:
-                            shutil.copyfileobj(readfile, outfile)
-                    # Separate with a blank line
-                    outfile.write('\n')
-        return True
-
-    def execute(self):
-        """Execute Setup."""
-        if self.parent:
-            if not self.parent.execute():
-                return False
-        logging.info("Executing setup '{}'".format(self.name))
-        # Pop the first model for execution. This is the last added model to this Setup (LIFO).
-        if not self.pop_model():
-            logging.debug("No models to run in Setup <%s>" % self.name)
-            self.is_ready = True
-            return True
-        # Collect input files for model from this setup and its parents
-        if not self.collect_input_files():
-            logging.error("Collecting input files failed")
-            return False
-        logging.debug("Input files copied succssfully")
-        # Start running model in sub-process
-        command = '{} {}'.format(self.running_model.command, self.running_model_cmd_line_args)
-        self.model_process = qsubprocess.QSubProcess(self.running_model.parent, self)
-        logging.debug("Starting model: '%s'" % self.running_model.name)
-        self.model_process.start_process(command)
-
-    def model_finished(self, ret):
-        try:
-            return_msg = self.running_model.return_codes[ret]
-            logging.debug("GAMS Return code:%d. Message: %s" % (ret, return_msg))
-        except KeyError:
-            logging.debug("Unknown return code")
-        finally:
-            logging.debug("Model '%s' of Setup '%s' finished." % (self.running_model.name, self.name))
-            dst_folder = os.path.join(self.output_dir, self.running_model.short_name)
-            if not self.running_model.copy_output(dst_folder):
-                logging.error("Copying output files to folder '{0}' failed".format(dst_folder))
-                return
-            if not self.pop_model():
-                logging.debug("All models in Setup <%s> ready" % self.name)
-                self.is_ready = True
-                return
-            # Execute next model
-            command = '{} {}'.format(self.running_model.command, self.running_model_cmd_line_args)
-            self.model_process = qsubprocess.QSubProcess(self.running_model.parent, self)
-            logging.debug("Starting model: '%s'" % self.running_model.name)
-            self.model_process.start_process(command)

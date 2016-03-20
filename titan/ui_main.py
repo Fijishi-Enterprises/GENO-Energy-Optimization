@@ -7,11 +7,11 @@ Module for main application GUI functions.
 
 import locale
 import logging
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QProcess
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from ui.main import Ui_MainWindow
-from tool import Dimension, DataParameter, Setup, NewSetup
-from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE, OldGAMSModel
+from tool import Dimension, DataParameter, Setup
+from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH
 
 
@@ -38,8 +38,7 @@ class TitanUI(QMainWindow):
         self.running_process = ''
         self._tools = dict()
         self._setups = dict()
-        # Setup general stuff
-        #self.create_model()
+        # Initialize general things
         self.connect_signals()
 
     @pyqtSlot()
@@ -60,9 +59,9 @@ class TitanUI(QMainWindow):
         # Menu actions
         self.ui.action_quit.triggered.connect(self.closeEvent)
         # Widgets
-        self.ui.pushButton_run_setup1.clicked.connect(self.run_setup)
-        self.ui.pushButton_run_setup2.clicked.connect(self.model_run)
-        self.ui.pushButton_create_models.clicked.connect(self.create_model)
+        self.ui.pushButton_run_setup1.clicked.connect(self.run_setups_with_old_magic_tool)
+        self.ui.pushButton_run_setup2.clicked.connect(self.run_setups_invest_mip_lp)
+        self.ui.pushButton_create_models.clicked.connect(self.create_setups_for_invest_mip_lp)
         self.ui.pushButton_test.clicked.connect(self.test_button)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
 
@@ -113,17 +112,18 @@ class TitanUI(QMainWindow):
         # noinspection PyArgumentList
         QApplication.processEvents()
 
-    def run_setup(self):
+    def run_setups_with_old_magic_tool(self):
         """Create models and setup."""
         # Create model
-        self._tools['magic'] = OldGAMSModel(self, 'OLD MAGIC',
-                                            """A number of power stations are committed to meet demand
-                                            for a particular day. Three types of generators having
-                                            different operating characteristics are available. Generating
-                                            units can be shut down or operate between minimum and maximum
-                                            output levels. Units can be started up or closed down in
-                                            every demand block.""",
-                                            OLD_MAGIC_MODEL_PATH, 'magic.gms', input_dir='input', output_dir='output')
+        self._tools['magic'] = GAMSModel(self, 'OLD MAGIC',
+                                         """A number of power stations are committed to meet demand
+                                         for a particular day. Three types of generators having
+                                         different operating characteristics are available. Generating
+                                         units can be shut down or operate between minimum and maximum
+                                         output levels. Units can be started up or closed down in
+                                         every demand block.""",
+                                         OLD_MAGIC_MODEL_PATH, 'magic.gms',
+                                         input_dir='input', output_dir='output')
         # Add input&output formats for model
         self._tools['magic'].add_input_format(GDX_DATA_FMT)
         self._tools['magic'].add_input_format(GAMS_INC_FILE)
@@ -135,27 +135,24 @@ class TitanUI(QMainWindow):
         # Add input data parameter for model
         self._tools['magic'].add_input(data)
         # Create Base Setup
-        self._setups['base'] = NewSetup('base', 'The base setup')
+        self._setups['base'] = Setup('base', 'The base setup')
         # Create Setup A, with Base setup as parent
-        self._setups['setup A'] = NewSetup('setup A', 'test setup A', parent=self._setups['base'])
+        self._setups['setup A'] = Setup('setup A', 'test setup A', parent=self._setups['base'])
         # Add model 'magic' to setup 'Setup A'
-        if not self._setups['setup A'].add_model(self._tools['magic'], 'MIP=CPLEX'):
-            self.add_err_msg_signal.emit("Adding a model to 'setup A' failed\n")
+        if not self._setups['setup A'].add_tool(self._tools['magic'], 'MIP=CPLEX'):
+            self.add_err_msg_signal.emit("Adding a tool to 'setup A' failed\n")
             logging.error("Adding a model to Setup failed")
             return
         # Execute Setup.
         self.add_msg_signal.emit("Starting setup A")
         self._setups['setup A'].execute()
-        # Return initial state
-        self.cleanup()
 
     def cleanup(self):
         self._tools = None
         self._setups = None
 
-    def create_model(self):
-        """Create and set up configuration for the model."""
-
+    def create_setups_for_invest_mip_lp(self):
+        """Create tool and invest, MIP and LP setups."""
         self._tools['magic'] = GAMSModel(self, 'MAGIC',
                                          """M A G I C   Power Scheduling Problem
                                          A number of power stations are committed
@@ -166,7 +163,8 @@ class TitanUI(QMainWindow):
                                          between minimum and maximum output levels.
                                          Units can be started up or closed down in
                                          every demand block.""",
-                                         MAGIC_MODEL_PATH, 'magic.gms', input_dir='input', output_dir='output')
+                                         MAGIC_MODEL_PATH, 'magic.gms', input_dir='input',
+                                         output_dir='output')
 
         self._tools['magic'].add_input_format(GDX_DATA_FMT)
         self._tools['magic'].add_input_format(GAMS_INC_FILE)
@@ -179,7 +177,7 @@ class TitanUI(QMainWindow):
         self._tools['magic'].add_input(data)
         self._tools['magic'].add_output(data)
 
-        self._setups['invest'] = Setup('invest', 'Do investements')
+        self._setups['invest'] = Setup('invest', 'Do investments')
         self._setups['invest'].add_input(self._tools['magic'])
         self._setups['invest'].add_tool(self._tools['magic'],
                                         cmdline_args='--INVEST=yes --USE_MIP=yes')
@@ -188,61 +186,25 @@ class TitanUI(QMainWindow):
                                     parent=self._setups['invest'])
         self._setups['MIP'].add_input(self._tools['magic'])
         self._setups['MIP'].add_tool(self._tools['magic'],
-                                      cmdline_args='--USE_MIP=yes')
+                                     cmdline_args='--USE_MIP=yes')
 
         self._setups['LP'] = Setup('MIP', 'Operation with LP model ',
-                                    parent=self._setups['invest'])
+                                   parent=self._setups['invest'])
+        # self._setups['LP'] = Setup('LP', 'Operation with LP model ',
+        #                            parent=self._setups['invest'])
         self._setups['LP'].add_tool(self._tools['magic'],
-                                      cmdline_args='--USE_MIP=no')
+                                    cmdline_args='--USE_MIP=no')
 
-    def model_run(self):
-        """Start running test model."""
+    def run_setups_invest_mip_lp(self):
+        """Start running setups invest, MIP and LP."""
         if not self._setups:
             self.add_msg_signal.emit("No setups to run.")
             return
-        self.add_msg_signal.emit("Running setup 'MIP'")
+        self.add_msg_signal.emit("Running Setups 'invest', 'MIP', and 'LP'")
         self._setups['MIP'].execute()
         # Restore initial state
-        self.cleanup()
-
-        # self.running_process = 'MIP'
-        # self.processes['MIP'] = QProcess()
-        # self.processes['MIP'].started.connect(self.magic_started)
-        # self.processes['MIP'].readyReadStandardOutput.connect(self.on_ready_stdout)
-        # self.processes['MIP'].readyReadStandardError.connect(self.on_ready_stderr)
-        # self.processes['MIP'].finished.connect(self.magic_finished)
-        # if not self.processes['MIP'].waitForStarted(msecs=10000):
-        #     self._simulation_failed = True
-        #     self.add_err_msg_signal.emit(
-        #         '*** Launching model failed. ***\nCheck that gams is '
-        #         'included in the PATH variable.')
-
-    def magic_started(self):
-        """ Run when sub-process is started. """
-        self.add_msg_signal.emit('*** Model sub-process started ***')
-        self.add_msg_signal.emit('Process pid: %d' % self.processes['MIP'].pid())
-
-    def magic_finished(self):
-        """ Run when sub-process is finished. """
-        out = str(self.processes['MIP'].readAllStandardOutput(), 'utf-8')
-        if out is not None:
-            self.add_proc_msg_signal.emit(out.strip())
-        # Get GAMS exit status (Normal or crash)
-        gams_exit_status = self.processes['MIP'].exitStatus()
-        # Get GAMS exit code (return code)
-        gams_exit_code = self.processes['MIP'].exitCode()
-        # Delete GAMS QProcess
-        self.processes['MIP'].deleteLater()
-        self.processes['MIP'] = None
-        # self.running_process = ''
-        self.add_msg_signal.emit("GAMS exit status:%s" % gams_exit_status)
-        #try:
-        #    gams_return_msg = GAMS_RETURN_CODES[gams_exit_code]
-        #except KeyError:
-        #    gams_return_msg = "Unknown return message from GAMS"
-        #self.add_msg_signal.emit("GAMS exit code:%s (%s)" % (gams_exit_code, gams_return_msg))
-        # noinspection PyArgumentList
-        QApplication.processEvents()
+        # TODO: Clean up models and setups after execute somehow.
+        # self.cleanup()
 
     def test_button(self):
         logging.debug("test")
@@ -262,13 +224,3 @@ class TitanUI(QMainWindow):
         logging.debug("Thank you for choosing Titan. Bye bye.")
         # noinspection PyArgumentList
         QApplication.quit()
-
-    def on_ready_stdout(self):
-        """ Prints sub-process' stdout. """
-        out = str(self.processes['MIP'].readAllStandardOutput(), 'utf-8')
-        self.add_proc_msg_signal.emit(out.strip())
-
-    def on_ready_stderr(self):
-        """ Prints sub-process' stderr """
-        out = str(self.processes['MIP'].readAllStandardError(), 'utf-8')
-        self.add_proc_err_msg_signal.emit(out.strip())

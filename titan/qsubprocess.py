@@ -1,31 +1,35 @@
 """
-Module to handle running setups in a QProcess.
+Module to handle running tools in a QProcess.
 
 :author: Pekka Savolainen <pekka.t.savolainen@vtt.fi>
 :date:   27.1.2016
 """
 
-from PyQt5.QtCore import QProcess
+from PyQt5.QtCore import QObject, QProcess, pyqtSlot, pyqtSignal
 import logging
 
 
-class QSubProcess:
+class QSubProcess(QObject):
     """Class to handle starting, running, and ending PyQt QProcess."""
-    def __init__(self, parent, setup):
+
+    subprocess_finished_signal = pyqtSignal(int)
+
+    def __init__(self, parent, tool_instance):
         """Class constructor.
 
         Args:
             parent (TitanUI): Instance of Main UI class.
-            setup (Setup): running setup.
+            tool_instance (ToolInstance): Running tool instance
         """
+        super().__init__()
         self._parent = parent
-        self._running_setup = setup
+        self._running_tool = tool_instance
         self._process_failed = False
         self._process = QProcess()
 
     # noinspection PyUnresolvedReferences, PyArgumentList
     def start_process(self, command):
-        """Start the execution of a model in a QProcess.
+        """Start the execution of a tool in a QProcess.
         
         Args:
             command: Run command
@@ -35,18 +39,22 @@ class QSubProcess:
         self._process.readyReadStandardOutput.connect(self.on_ready_stdout)
         self._process.readyReadStandardError.connect(self.on_ready_stderr)
         self._process.finished.connect(self.process_finished)
+        self._process.error.connect(self.on_process_error)
         self._process.start(command)
         if not self._process.waitForStarted(msecs=10000):
             self._process_failed = True
             self._parent.add_err_msg_signal.emit('*** Launching sub-process failed. ***')
 
+    @pyqtSlot()
     def process_started(self):
         """ Run when sub-process is started. """
-        self._parent.add_msg_signal.emit('*** Running setup <%s> in sub-process started ***' % self._running_setup.name)
-        self._parent.add_msg_signal.emit('Process pid: %d' % self._process.processId())
+        self._parent.add_msg_signal.emit('*** Running tool instance <%s> in sub-process started ***' % self._running_tool)
+        self._parent.add_msg_signal.emit('Process pid: %d ' % self._process.processId())
 
+    @pyqtSlot()
     def process_finished(self):
         """ Run when sub-process is finished. """
+        logging.debug("Sub-process finished.")
         self._parent.add_msg_signal.emit('*** Setup process finished ***')
         out = str(self._process.readAllStandardOutput(), 'utf-8')
         if out is not None:
@@ -59,19 +67,22 @@ class QSubProcess:
         self._process.deleteLater()
         self._process = None
         self._parent.add_msg_signal.emit("GAMS exit status:%s" % gams_exit_status)
-        return_codes = self._running_setup.running_model.return_codes
-        try:
-            gams_return_msg = return_codes[gams_exit_code]
-        except KeyError:
-            gams_return_msg = "Unknown return message from GAMS"
-        self._parent.add_msg_signal.emit("GAMS exit code:%s (%s)" % (gams_exit_code, gams_return_msg))
-        self._running_setup.model_finished(gams_exit_code)
+        self._parent.add_msg_signal.emit("GAMS exit code:{0}".format(gams_exit_code))
+        self.subprocess_finished_signal.emit(gams_exit_code)
 
+    @pyqtSlot(int)
+    def on_process_error(self, process_error):
+        logging.error("Error in QProcess: %s" % process_error)
+        self._parent.add_err_msg_signal.emit('Process State: %d' % self._process.state())
+        self._parent.add_err_msg_signal.emit('Process Error: %d' % self._process.error())
+
+    @pyqtSlot()
     def on_ready_stdout(self):
         """ Prints sub-process' stdout. """
         out = str(self._process.readAllStandardOutput(), 'utf-8')
         self._parent.add_proc_msg_signal.emit(out.strip())
 
+    @pyqtSlot()
     def on_ready_stderr(self):
         """ Prints sub-process' stderr """
         out = str(self._process.readAllStandardError(), 'utf-8')

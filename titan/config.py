@@ -27,7 +27,7 @@ if not os.path.exists(PROJECT_DIR):
 # Model input/output directories
 INPUT_STORAGE_DIR = os.path.join(PROJECT_DIR, 'input')
 OUTPUT_STORAGE_DIR = os.path.join(PROJECT_DIR, 'output')
-WORK_DIR = os.path.join(APPLICATION_PATH, os.path.pardir, 'work')
+WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
 
 # Model path
 MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'models', 'magic'))
