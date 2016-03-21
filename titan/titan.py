@@ -17,7 +17,7 @@ def main(argv):
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-    #  GUI
+    # GUI
     app = QtWidgets.QApplication(argv)
     window = TitanUI()
     window.show()

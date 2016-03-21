@@ -10,7 +10,7 @@ import logging
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from ui.main import Ui_MainWindow
-from tool import Dimension, DataParameter, Setup
+from tool import Dimension, DataParameter, Setup, SetupTree
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH
 
@@ -38,6 +38,7 @@ class TitanUI(QMainWindow):
         self.running_process = ''
         self._tools = dict()
         self._setups = dict()
+        self.setup_tree = None
         # Initialize general things
         self.connect_signals()
 
@@ -143,9 +144,25 @@ class TitanUI(QMainWindow):
             self.add_err_msg_signal.emit("Adding a tool to 'setup A' failed\n")
             logging.error("Adding a model to Setup failed")
             return
-        # Execute Setup.
-        self.add_msg_signal.emit("Starting setup A")
-        self._setups['setup A'].execute()
+        # Create a SetupTree for this run
+        self.setup_tree = SetupTree('Setup Tree', 'SetupTree to run Setup A and base setups', self._setups['setup A'])
+        # Execute SetupTree
+        self.add_msg_signal.emit("Executing Setup Tree\n{0}".format(self.setup_tree.setup_dict))
+        self.add_msg_signal.emit("setup A object:%s" % self._setups['setup A'])
+        self.add_msg_signal.emit("base setup object:%s" % self._setups['base'])
+        # Connect signal between Setup and SetupTree classes
+        self._setups['setup A'].setup_finished_signal.connect(self.setup_tree.execute_next)
+        self._setups['base'].setup_finished_signal.connect(self.setup_tree.execute_next)
+        self.setup_tree.execute_next()
+
+        # Get first executed setup
+        # setup_to_execute = self.setup_tree.get_next_setup()
+        # while setup_to_execute is not None:
+        #     setup_to_execute.execute()
+        #     setup_to_execute = self.setup_tree.get_next_setup()
+
+        # Execute setup
+        # self._setups['setup A'].execute()
 
     def cleanup(self):
         self._tools = None
@@ -188,7 +205,7 @@ class TitanUI(QMainWindow):
         self._setups['MIP'].add_tool(self._tools['magic'],
                                      cmdline_args='--USE_MIP=yes')
 
-        self._setups['LP'] = Setup('MIP', 'Operation with LP model ',
+        self._setups['LP'] = Setup('LP', 'Operation with LP model ',
                                    parent=self._setups['invest'])
         # self._setups['LP'] = Setup('LP', 'Operation with LP model ',
         #                            parent=self._setups['invest'])
@@ -201,7 +218,21 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("No setups to run.")
             return
         self.add_msg_signal.emit("Running Setups 'invest', 'MIP', and 'LP'")
-        self._setups['MIP'].execute()
+        # self._setups['MIP'].execute()
+        # self._setups['LP'].execute()
+
+        # Create a SetupTree for this run
+        self.setup_tree = SetupTree('Setup Tree', "SetupTree to run 'invest' and 'MIP' setups", self._setups['MIP'])
+        # Execute SetupTree
+        self.add_msg_signal.emit("Executing Setup Tree\n{0}".format(self.setup_tree.setup_dict))
+        self.add_msg_signal.emit("invest setup object:%s" % self._setups['invest'])
+        self.add_msg_signal.emit("MIP setup object:%s" % self._setups['MIP'])
+        # Connect signal between Setup and SetupTree classes
+        self._setups['invest'].setup_finished_signal.connect(self.setup_tree.execute_next)
+        self._setups['MIP'].setup_finished_signal.connect(self.setup_tree.execute_next)
+        # Get first executed setup
+        self.setup_tree.execute_next()
+
         # Restore initial state
         # TODO: Clean up models and setups after execute somehow.
         # self.cleanup()
