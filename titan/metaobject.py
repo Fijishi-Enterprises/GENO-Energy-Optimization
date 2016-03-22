@@ -12,10 +12,14 @@ class MetaObject(QObject):
         name (str): The name of the object
         short_name (str): Short name that can be used in file names etc.
         description (str): Description of the object
+        short_name (str, optional): Short name
     """
 
-    def __init__(self, name, description):
+    def __init__(self, name, description, short_name=None):
         super().__init__()
         self.name = name
-        self.short_name = name.lower().replace(' ', '_')
+        if short_name is not None:
+            self.short_name = short_name
+        else:
+            self.short_name = name.lower().replace(' ', '_')
         self.description = description

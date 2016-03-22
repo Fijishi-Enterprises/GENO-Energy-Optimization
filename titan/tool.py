@@ -12,18 +12,31 @@ import logging
 from collections import OrderedDict
 import json
 import tempfile
+from copy import copy
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 import qsubprocess
 from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR, WORK_DIR, IGNORE_PATTERNS
 from metaobject import MetaObject
-from tools import run, copy_files
+from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR, WORK_DIR, \
+                   IGNORE_PATTERNS
+                   
+class MyEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, set):
+            return list(o)
+        try:
+            return o.__dict__
+        except AttributeError:
+            pass
+
 
 class Tool(MetaObject):
     """Class for defining a tool"""
 
     def __init__(self, parent, name, description, path, main_prgm,
+                 short_name=None,
                  input_dir='', output_dir='', logfile=None):
         """Tool constructor.
 
@@ -33,11 +46,12 @@ class Tool(MetaObject):
             description (str): Short description of the tool
             path (str): Path to tool or Git repository
             main_prgm (str): Main program file (relative to `path`)
+            short_name (str, optional): Short name for the tool
             input_dir (str, optional): Input file directory (relative to `path`)
             output_dir (str, optional): Output file directory (relative to `path`)
             logfile (str, optional): Log file name (relative to `path`)
         """
-        super().__init__(name, description)
+        super().__init__(name, description, short_name)
         if not os.path.exists(path):
             pass  # TODO: Do something here
         else:
@@ -45,9 +59,11 @@ class Tool(MetaObject):
         self.parent = parent
         self.main_prgm = main_prgm
         self.input_dir = input_dir
+        self.output_dir = input_dir
         self.outfiles = [os.path.join(output_dir, '*')]
         if logfile is not None:
             self.outfiles.append(logfile)
+        self.dimensions = set()
         self.inputs = set()
         self.input_formats = set()
         self.outputs = set()
@@ -109,11 +125,21 @@ class Tool(MetaObject):
             tool_output_dir (str): Output directory for tool
         """
         return ToolInstance(self, cmdline_args, tool_output_dir)
+        
+    def save(self):
+        """Save tool object to disk
+        """
+        
+        the_dict = copy(self.__dict__)
+        the_dict.pop('parent', None)
 
+        jsonfile = os.path.join(self.path,
+                                '{}.json'.format(self.short_name))
+        with open(jsonfile, 'w') as fp:
+            json.dump(the_dict, fp, indent=4, cls=MyEncoder)
 
 class ToolInstance(QObject):
     """Class for Tool instances."""
-
     instance_finished_signal = pyqtSignal(int)
 
     def __init__(self, tool, cmdline_args=None, tool_output_dir=''):
@@ -478,7 +504,7 @@ class Setup(MetaObject):
             t.remove()
 
 
-class Dimension(MetaObject):
+class Dimension(object):
     """Data dimension."""
     def __init__(self, name, description):
         """Constructor.
@@ -488,9 +514,13 @@ class Dimension(MetaObject):
             description: Dimension description.
 
         """
-        super().__init__(name, description)
+        self.name = name
+        self.description = description
         self.data = []
-
+        
+    def __repr__(self):        
+        return "Dimension('{}', '{}')".format(self.name, self.description)
+        
 
 class DataFormat(object):
     """Class for defining data storage formats."""
@@ -503,10 +533,15 @@ class DataFormat(object):
         self.name = name
         self.extension = extension
         self.is_binary = is_binary
+        
+    def __repr__(self):
+        return ("DataFormat('{}', '{}', is_binary={})"
+                .format(self.name, self.extension, self.is_binary))
 
 
-class DataParameter(MetaObject):
-    """Class for data parameters."""
+class DataParameter(object):
+    """Class for data parameters
+    """
     def __init__(self, name, description, units, indices=[]):
         """
         Args:
@@ -515,9 +550,15 @@ class DataParameter(MetaObject):
             units (str): Units of measure
             indices (list): List of indices (Dimension objects)
         """
-        super().__init__(name, description)
+        self.name = name
+        self.description = description
         self.units = units
         self.indices = indices
+        
+    def __repr__(self):        
+        return ("DataParameter('{}', '{}', '{}', '{}')"
+                .format(self.name, self.description,
+                        self.units, self.indices))
 
     def get_dimension(self):
         return len(self.indices)
