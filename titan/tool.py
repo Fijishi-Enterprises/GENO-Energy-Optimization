@@ -125,12 +125,13 @@ class Tool(MetaObject):
 
 
 class ToolInstance(QObject):
+    """Class for Tool instances."""
 
     instance_finished_signal = pyqtSignal(int)
 
-    """Class for Tool instances."""
     def __init__(self, tool, cmdline_args=None, tool_output_dir=''):
-        """
+        """Tool instance constructor.
+
         Args:
             tool (Tool): Which tool this instance implements
             cmdline_args (str, optional): Extra command line arguments
@@ -155,11 +156,10 @@ class ToolInstance(QObject):
 
     def execute(self):
         """Start executing tool instance in QProcess."""
-        # Make a copy of the tool and execute
-        # Start running model in sub-process
         self.tool_process = qsubprocess.QSubProcess(self.tool.parent, self.tool)
         self.tool_process.subprocess_finished_signal.connect(self.tool_finished)
         logging.debug("Starting model: '%s'" % self.tool.name)
+        # Start running model in sub-process
         self.tool_process.start_process(self.command)
 
     @pyqtSlot(int)
@@ -178,6 +178,7 @@ class ToolInstance(QObject):
         finally:
             logging.debug("Tool '%s' finished." % self.tool.name)
             dst_folder = os.path.join(self.tool_output_dir, self.tool.short_name)
+            # TODO: Check that copy_output works. invest and MIP output folders are now the same.
             if not self.copy_output(dst_folder):
                 logging.error("Copying output files to folder '{0}' failed".format(dst_folder))
             else:
@@ -208,15 +209,28 @@ class ToolInstance(QObject):
 
 class SetupTree(MetaObject):
     """Class to store Setups for a single simulation run."""
-    def __init__(self, name, description, setup):
+
+    run_finished_signal = pyqtSignal()
+
+    def __init__(self, name, description, setup, last=True):
+        """SetupTree constructor.
+
+        Args:
+            name (str): Name of SetupTree
+            description (str): Description of SetupTree
+            setup (Setup): Setup from which the SetupTree is built toward the root
+            last (boolean): Parameter to set SetupTree popping order. if True, SetupTree
+                is LIFO, if False, SetupTree is FIFO.
+        """
         super().__init__(name, description)
         self.setup = setup
+        self.last = last  # True -> LIFO, False -> FIFO
         self.setup_dict = OrderedDict()
         self.n = 0  # Number of Setups in Setup tree
-        self.create_tree()
+        self.build_tree()
 
-    def create_tree(self):
-        """Append a Setup and all it's parent setups into an ordered dictionary.
+    def build_tree(self):
+        """Add Setup and all it's parent Setups into an ordered dictionary.
 
         Returns:
             (boolean): True if successful, False otherwise.
@@ -235,8 +249,8 @@ class SetupTree(MetaObject):
             Next Setup object or None if dictionary empty
         """
         try:
-            # Pop the last added Setup
-            item = self.setup_dict.popitem()  # item is (key, value) tuple
+            # Pop the last added Setup (LIFO). Note: To get FIFO, set popitem kwarg last=False.
+            item = self.setup_dict.popitem(last=self.last)  # item is (key, value) tuple
             setup = item[1]
             self.n -= 1
         except KeyError:
@@ -245,18 +259,22 @@ class SetupTree(MetaObject):
             setup = None
         return setup
 
-    @pyqtSlot(int)
-    def execute_next(self, return_value=69):
-        logging.debug("Popping next Setup from SetupTree (%d)" % return_value)
+    @pyqtSlot()
+    def run(self):
+        """Start running Setups in SetupTree."""
+        logging.debug("Popping next Setup from SetupTree")
         setup = self.get_next_setup()
         if setup is not None:
             setup.execute()
+        else:
+            logging.debug("Run finished")
+            self.run_finished_signal.emit()
 
 
 class Setup(MetaObject):
     """Class for setup."""
 
-    setup_finished_signal = pyqtSignal(int)
+    setup_finished_signal = pyqtSignal()
 
     def __init__(self, name, description, parent=None):
         """Setup constructor.
@@ -385,43 +403,37 @@ class Setup(MetaObject):
 
     def execute(self):
         """Execute this tool setup."""
-        # TODO: Maybe all setups should be put into a list and then popped when the previous setup has finished.
-        # if self.parent is not None:
-        #     if not self.parent.execute():
-        #         return False
-
-        if not self.is_ready:
-            logging.info("Executing setup '{}'".format(self.name))
-        else:
-            return True
-
+        if self.is_ready:
+            logging.debug("Setup '{}' ready. Quitting execute...".format(self.name))
+            return
+        logging.info("Executing setup '{}'".format(self.name))
+        # Get Setup tool and command line arguments
+        # TODO: No need for self.tools dictionary because Setup can only have one Tool
         tools_list = list(self.tools.items())
         if not tools_list:  # No tool in setup
             self.setup_finished(0)
             return
-            # self.is_ready = True
-            # return True
         # logging.debug("tools_list:%s" % tools_list)
         tool = tools_list[0][0]
         cmdline_args = tools_list[0][1]
         instance = tool.create_instance(cmdline_args, self.output_dir)
-        # Connect instance finished signal to setup_finished() method
+        # Connect instance_finished_signal to setup_finished() method
         instance.instance_finished_signal.connect(self.setup_finished)
         self.tool_instances.append(instance)
         self.copy_input(tool, instance)
         instance.execute()
-        # Wait for instance finished signal to start setup_finished()
+        # Wait for instance_finished_signal to start setup_finished()
 
     @pyqtSlot(int)
     def setup_finished(self, ret):
         if ret == 0:
-            logging.debug("Setup <%s> finished successfully.\nSetting is_ready to True" % self.name)
+            logging.debug("Setup <%s> finished successfully. Setting is_ready to True" % self.name)
             self.is_ready = True
         else:
-            logging.debug("Setup <%s> failed.\nis_ready is False" % self.name)
+            logging.debug("Setup <%s> failed. is_ready is False" % self.name)
             self.is_ready = False
-        # TODO: Start running remaining setups. Does not work with the current execute().
-        self.setup_finished_signal.emit(99)
+        # Run next Setup from SetupTree
+        self.setup_finished_signal.emit()
 
     def copy_input(self, tool, tool_instance=None):
         """Copy input of a tool in this setup to a tool instance.

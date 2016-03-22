@@ -38,7 +38,7 @@ class TitanUI(QMainWindow):
         self.running_process = ''
         self._tools = dict()
         self._setups = dict()
-        self.setup_tree = None
+        self._setup_tree = None
         # Initialize general things
         self.connect_signals()
 
@@ -144,29 +144,26 @@ class TitanUI(QMainWindow):
             self.add_err_msg_signal.emit("Adding a tool to 'setup A' failed\n")
             logging.error("Adding a model to Setup failed")
             return
+        self.add_msg_signal.emit("Building SetupTree")
         # Create a SetupTree for this run
-        self.setup_tree = SetupTree('Setup Tree', 'SetupTree to run Setup A and base setups', self._setups['setup A'])
+        self._setup_tree = SetupTree('Setup Tree', 'SetupTree to run Setup A and base setups', self._setups['setup A'])
+        # Connect finished signal between Setup and SetupTree classes
+        self._setups['setup A'].setup_finished_signal.connect(self._setup_tree.run)
+        self._setups['base'].setup_finished_signal.connect(self._setup_tree.run)
+        # Connect run finished signal between SetupTree and Titan_UI
+        self._setup_tree.run_finished_signal.connect(self.run_finished)
+        self.add_msg_signal.emit("Run contains {} Setups".format(self._setup_tree.n))
         # Execute SetupTree
-        self.add_msg_signal.emit("Executing Setup Tree\n{0}".format(self.setup_tree.setup_dict))
-        self.add_msg_signal.emit("setup A object:%s" % self._setups['setup A'])
-        self.add_msg_signal.emit("base setup object:%s" % self._setups['base'])
-        # Connect signal between Setup and SetupTree classes
-        self._setups['setup A'].setup_finished_signal.connect(self.setup_tree.execute_next)
-        self._setups['base'].setup_finished_signal.connect(self.setup_tree.execute_next)
-        self.setup_tree.execute_next()
-
-        # Get first executed setup
-        # setup_to_execute = self.setup_tree.get_next_setup()
-        # while setup_to_execute is not None:
-        #     setup_to_execute.execute()
-        #     setup_to_execute = self.setup_tree.get_next_setup()
-
+        self._setup_tree.run()
         # Execute setup
         # self._setups['setup A'].execute()
 
-    def cleanup(self):
-        self._tools = None
-        self._setups = None
+    @pyqtSlot()
+    def run_finished(self):
+        self.add_msg_signal.emit("Executing SetupTree finished. Cleaning up.")
+        self._tools.clear()
+        self._setups.clear()
+        self._setup_tree = None
 
     def create_setups_for_invest_mip_lp(self):
         """Create tool and invest, MIP and LP setups."""
@@ -220,22 +217,17 @@ class TitanUI(QMainWindow):
         self.add_msg_signal.emit("Running Setups 'invest', 'MIP', and 'LP'")
         # self._setups['MIP'].execute()
         # self._setups['LP'].execute()
-
+        self.add_msg_signal.emit("Building SetupTree")
         # Create a SetupTree for this run
-        self.setup_tree = SetupTree('Setup Tree', "SetupTree to run 'invest' and 'MIP' setups", self._setups['MIP'])
-        # Execute SetupTree
-        self.add_msg_signal.emit("Executing Setup Tree\n{0}".format(self.setup_tree.setup_dict))
-        self.add_msg_signal.emit("invest setup object:%s" % self._setups['invest'])
-        self.add_msg_signal.emit("MIP setup object:%s" % self._setups['MIP'])
+        self._setup_tree = SetupTree('Setup Tree', "SetupTree to run 'invest' and 'MIP' setups", self._setups['MIP'])
         # Connect signal between Setup and SetupTree classes
-        self._setups['invest'].setup_finished_signal.connect(self.setup_tree.execute_next)
-        self._setups['MIP'].setup_finished_signal.connect(self.setup_tree.execute_next)
-        # Get first executed setup
-        self.setup_tree.execute_next()
-
-        # Restore initial state
-        # TODO: Clean up models and setups after execute somehow.
-        # self.cleanup()
+        self._setups['invest'].setup_finished_signal.connect(self._setup_tree.run)
+        self._setups['MIP'].setup_finished_signal.connect(self._setup_tree.run)
+        # Connect run finished signal between SetupTree and Titan_UI
+        self._setup_tree.run_finished_signal.connect(self.run_finished)
+        self.add_msg_signal.emit("Run contains {} Setups".format(self._setup_tree.n))
+        # Execute SetupTree
+        self._setup_tree.run()
 
     def test_button(self):
         logging.debug("test")

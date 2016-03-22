@@ -25,6 +25,7 @@ class GAMSModel(Tool):
             input_dir: Input directory path
             output_dir: Output directory path
         """
+        # TODO: Clean up constructor.
         self.parent = parent
         self.gamsfile = gamsfile
         # basedir = os.path.split(gamsfile)[0]
