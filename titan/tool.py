@@ -150,8 +150,7 @@ class ToolInstance(QObject):
 
     def _checkout(self):
         """Copy tool to a temporary directory."""
-        basedir = os.path.join(WORK_DIR, '{}__{}'.format(
-            self.tool.short_name, next(tempfile._get_candidate_names())))
+        basedir = os.path.join(WORK_DIR, '{}__{}'.format(self.tool.short_name, next(tempfile._get_candidate_names())))
         return shutil.copytree(self.tool.path, basedir, ignore=shutil.ignore_patterns(*IGNORE_PATTERNS))
 
     def execute(self):
@@ -209,8 +208,9 @@ class ToolInstance(QObject):
 
 class SetupTree(MetaObject):
     """Class to store Setups for a single simulation run."""
+    # TODO: Rename this class to SetupBranch
 
-    run_finished_signal = pyqtSignal()
+    setuptree_finished_signal = pyqtSignal()
 
     def __init__(self, name, description, setup, last=True):
         """SetupTree constructor.
@@ -226,7 +226,7 @@ class SetupTree(MetaObject):
         self.setup = setup
         self.last = last  # True -> LIFO, False -> FIFO
         self.setup_dict = OrderedDict()
-        self.n = 0  # Number of Setups in Setup tree
+        self.n = 0  # Number of Setups in SetupTree
         self.build_tree()
 
     def build_tree(self):
@@ -243,7 +243,7 @@ class SetupTree(MetaObject):
             item = item.parent
 
     def get_next_setup(self):
-        """Get the next setup to execute.
+        """Get the next Setup to execute.
 
         Returns:
             Next Setup object or None if dictionary empty
@@ -254,7 +254,7 @@ class SetupTree(MetaObject):
             setup = item[1]
             self.n -= 1
         except KeyError:
-            logging.debug("SetupTree empty")
+            logging.debug("SetupTree <{0}> empty".format(self.name))
             self.n = 0
             setup = None
         return setup
@@ -262,13 +262,30 @@ class SetupTree(MetaObject):
     @pyqtSlot()
     def run(self):
         """Start running Setups in SetupTree."""
-        logging.debug("Popping next Setup from SetupTree")
-        setup = self.get_next_setup()
-        if setup is not None:
-            setup.execute()
+        logging.debug("Popping next Setup from SetupTree <{}>".format(self.name))
+        self.setup = self.get_next_setup()
+        if self.setup is not None:
+            try:
+                # Disconnect setup_finished_signal to prevent it from
+                # being connected to multiple SetupTree instances.
+                # NOTE: This is required when Setup is part of multiple
+                # SetupTrees.
+                self.setup.setup_finished_signal.disconnect()
+            except TypeError:
+                # logging.warning("setup_finished_signal not connected")
+                pass
+            try:
+                # Connect setup_finished_signal to run()
+                self.setup.setup_finished_signal.connect(self.run)
+            except Exception as e:
+                logging.exception("Could not connect setup_finished_signal: Reason:{}".format(e.args[0]))
+                return  # No reason to continue if signal could not be connected
+            # Execute Setup
+            self.setup.execute()
         else:
-            logging.debug("Run finished")
-            self.run_finished_signal.emit()
+            # All Setups in SetupTree finished
+            self.setuptree_finished_signal.emit()
+        return
 
 
 class Setup(MetaObject):
@@ -403,10 +420,11 @@ class Setup(MetaObject):
 
     def execute(self):
         """Execute this tool setup."""
+        logging.info("Executing Setup '{}'".format(self.name))
         if self.is_ready:
-            logging.debug("Setup '{}' ready. Quitting execute...".format(self.name))
+            logging.debug("Setup '{}' ready. Starting next Setup in SetupTree".format(self.name))
+            self.setup_finished_signal.emit()
             return
-        logging.info("Executing setup '{}'".format(self.name))
         # Get Setup tool and command line arguments
         # TODO: No need for self.tools dictionary because Setup can only have one Tool
         tools_list = list(self.tools.items())

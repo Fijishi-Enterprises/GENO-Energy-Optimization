@@ -14,16 +14,16 @@ class QSubProcess(QObject):
 
     subprocess_finished_signal = pyqtSignal(int)
 
-    def __init__(self, parent, tool_instance):
+    def __init__(self, parent, tool):
         """Class constructor.
 
         Args:
             parent (TitanUI): Instance of Main UI class.
-            tool_instance (ToolInstance): Running tool instance
+            tool (Tool): Tool to run in sub-process.
         """
         super().__init__()
         self._parent = parent
-        self._running_tool = tool_instance
+        self._running_tool = tool
         self._process_failed = False
         self._process = QProcess()
 
@@ -48,14 +48,14 @@ class QSubProcess(QObject):
     @pyqtSlot()
     def process_started(self):
         """ Run when sub-process is started. """
-        self._parent.add_msg_signal.emit('*** Running tool instance <%s> in sub-process started ***' % self._running_tool)
+        self._parent.add_msg_signal.emit('*** Sub-process for tool <%s> started ***'
+                                         % self._running_tool.name)
         self._parent.add_msg_signal.emit('Process pid: %d ' % self._process.processId())
 
     @pyqtSlot()
     def process_finished(self):
         """ Run when sub-process is finished. """
-        logging.debug("Sub-process finished.")
-        self._parent.add_msg_signal.emit('*** Setup process finished ***')
+        self._parent.add_msg_signal.emit('*** Sub-process finished ***')
         out = str(self._process.readAllStandardOutput(), 'utf-8')
         if out is not None:
             self._parent.add_proc_msg_signal.emit(out.strip())
@@ -66,8 +66,8 @@ class QSubProcess(QObject):
         # Delete GAMS QProcess
         self._process.deleteLater()
         self._process = None
-        self._parent.add_msg_signal.emit("GAMS exit status:%s" % gams_exit_status)
-        self._parent.add_msg_signal.emit("GAMS exit code:{0}".format(gams_exit_code))
+        self._parent.add_msg_signal.emit("GAMS return code:{0} & Sub-process exit status:{1}"
+                                         .format(gams_exit_code, gams_exit_status))
         self.subprocess_finished_signal.emit(gams_exit_code)
 
     @pyqtSlot(int)

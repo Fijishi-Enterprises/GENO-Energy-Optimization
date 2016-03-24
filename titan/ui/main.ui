@@ -20,19 +20,6 @@
    <string>Sceleton Titan</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="pushButton_create_models">
-    <property name="geometry">
-     <rect>
-      <x>510</x>
-      <y>60</y>
-      <width>75</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Create Model</string>
-    </property>
-   </widget>
    <widget class="QCheckBox" name="checkBox_debug">
     <property name="geometry">
      <rect>
@@ -49,17 +36,17 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_test">
+   <widget class="QPushButton" name="pushButton_execute">
     <property name="geometry">
      <rect>
-      <x>640</x>
-      <y>60</y>
-      <width>75</width>
+      <x>390</x>
+      <y>90</y>
+      <width>100</width>
       <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>Test</string>
+     <string>Execute</string>
     </property>
    </widget>
    <widget class="QWidget" name="verticalLayoutWidget">
@@ -100,30 +87,60 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="pushButton_run_setup1">
+   <widget class="QPushButton" name="pushButton_create_setuptree_1">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>60</y>
-      <width>75</width>
-      <height>23</height>
+      <x>180</x>
+      <y>20</y>
+      <width>120</width>
+      <height>61</height>
      </rect>
     </property>
     <property name="text">
-     <string>Run Setup 1</string>
+     <string>Create SetupTree for
+ 'base' -&gt; 'setup A'</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_run_setup2">
+   <widget class="QPushButton" name="pushButton_dummy1">
     <property name="geometry">
      <rect>
-      <x>300</x>
-      <y>60</y>
+      <x>40</x>
+      <y>40</y>
       <width>75</width>
       <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>Run Setup 2</string>
+     <string>Dummy 1</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_create_setuptree_2">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>20</y>
+      <width>120</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Create SetupTree 
+for 'invest -&gt; 'MIP'</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_create_setuptree_3">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>20</y>
+      <width>120</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Create 2 SetupTrees
+'invest' -&gt; 'MIP' and
+'invest' -&gt; 'LP'</string>
     </property>
    </widget>
   </widget>
