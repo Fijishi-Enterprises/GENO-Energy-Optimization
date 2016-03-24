@@ -10,6 +10,7 @@ import logging
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from ui.main import Ui_MainWindow
+from project import SceletonProject
 from tool import Dimension, DataParameter, Setup, SetupTree
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH
@@ -37,6 +38,7 @@ class TitanUI(QMainWindow):
         self.processes = dict()
         self.running_process = ''
         self._tools = dict()
+        self._project = SceletonProject('project 1', 'a test project')
         self._setups = dict()
         self._setuptree = None
         self._running_setuptree = None
@@ -92,9 +94,12 @@ class TitanUI(QMainWindow):
         # Add input data parameter for model
         self._tools['magic'].add_input(data)
         # Create Base Setup
-        self._setups['base'] = Setup('base', 'The base setup')
+        self._setups['base'] = Setup('base', 'The base setup', 
+                                     project=self._project)
         # Create Setup A, with Base setup as parent
-        self._setups['setup A'] = Setup('setup A', 'test setup A', parent=self._setups['base'])
+        self._setups['setup A'] = Setup('setup A', 'test setup A', 
+                                        project=self._project,                                        
+                                        parent=self._setups['base'])
         # Add model 'magic' to setup 'Setup A'
         if not self._setups['setup A'].add_tool(self._tools['magic'], 'MIP=CPLEX'):
             self.add_err_msg_signal.emit("Adding a tool to 'setup A' failed\n")
@@ -131,19 +136,17 @@ class TitanUI(QMainWindow):
         self._tools['magic'].add_input(data)
         self._tools['magic'].add_output(data)
 
-        self._setups['invest'] = Setup('invest', 'Do investments')
+        self._setups['invest'] = Setup('invest', 'Do investments', 
+                                       project=self._project)
         self._setups['invest'].add_input(self._tools['magic'])
         self._setups['invest'].add_tool(self._tools['magic'],
                                         cmdline_args='--INVEST=yes --USE_MIP=yes')
         self._setups['MIP'] = Setup('MIP', 'Operation with MIP model',
+                                    project=self._project,
                                     parent=self._setups['invest'])
         self._setups['MIP'].add_input(self._tools['magic'])
         self._setups['MIP'].add_tool(self._tools['magic'],
                                      cmdline_args='--USE_MIP=yes')
-        self._setups['LP'] = Setup('LP', 'Operation with LP model',
-                                   parent=self._setups['invest'])
-        self._setups['LP'].add_tool(self._tools['magic'],
-                                    cmdline_args='--USE_MIP=no')
         # Create a SetupTree for this run
         self._setuptree = SetupTree('Setup Tree MIP', "SetupTree to run 'invest' and 'MIP' setups", self._setups['MIP'])
         self._setuptree_list.append(self._setuptree)
@@ -175,16 +178,19 @@ class TitanUI(QMainWindow):
         self._tools['magic'].add_input(data)
         self._tools['magic'].add_output(data)
 
-        self._setups['invest'] = Setup('invest', 'Do investments')
+        self._setups['invest'] = Setup('invest', 'Do investments',
+                                       project=self._project)
         self._setups['invest'].add_input(self._tools['magic'])
         self._setups['invest'].add_tool(self._tools['magic'],
                                         cmdline_args='--INVEST=yes --USE_MIP=yes')
         self._setups['MIP'] = Setup('MIP', 'Operation with MIP model',
+                                    project=self._project,
                                     parent=self._setups['invest'])
         self._setups['MIP'].add_input(self._tools['magic'])
         self._setups['MIP'].add_tool(self._tools['magic'],
                                      cmdline_args='--USE_MIP=yes')
-        self._setups['LP'] = Setup('LP', 'Operation with LP model',
+        self._setups['LP'] = Setup('LP', 'Operation with LP model ',
+                                   project=self._project,
                                    parent=self._setups['invest'])
         self._setups['LP'].add_tool(self._tools['magic'],
                                     cmdline_args='--USE_MIP=no')

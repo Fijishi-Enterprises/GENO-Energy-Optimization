@@ -6,7 +6,9 @@ Created on Thu Jan 21 13:27:34 2016
 """
 
 import os.path
-from tool import Tool, ToolInstance, DataFormat
+import json
+
+from tool import Tool, ToolInstance, DataFormat, DataParameter
 from config import GAMS_EXECUTABLE
 
 
@@ -14,6 +16,7 @@ class GAMSModel(Tool):
     """Class for GAMS models."""
 
     def __init__(self, parent, name, description, path, gamsfile,
+                 short_name=None,
                  input_dir='', output_dir=''):
         """Class constructor.
 
@@ -22,18 +25,16 @@ class GAMSModel(Tool):
             name (str): Model name
             description (str): Model description
             gamsfile (str): Path to main GAMS program (relative to `path`)
+            short_name (str, optional): Short name for the model
             input_dir: Input directory path
             output_dir: Output directory path
         """
         # TODO: Clean up constructor.
         self.parent = parent
         self.gamsfile = gamsfile
-        # basedir = os.path.split(gamsfile)[0]
         self.model_path = path
-        input_dir = os.path.join(self.model_path, input_dir)
-        output_dir = os.path.join(self.model_path, output_dir)
         super().__init__(parent, name, description, self.model_path, gamsfile,
-                         input_dir, output_dir)
+                         short_name, input_dir, output_dir)
         self.GAMS_parameters = "Logoption=3"  # send LOG output to STDOUT
         # Add .log and .lst files to list of outputs
         self.outfiles.append(os.path.join(path, os.path.splitext(gamsfile)[0] + '.log'))
@@ -59,6 +60,9 @@ class GAMSModel(Tool):
             10: "out of memory",
             11: "out of disk"
         }
+        
+    def __repr__(self):
+        return "GAMSModel('{}')".format(self.name)
 
     def create_instance(self, cmdline_args=None, tool_output_dir=''):
         """Create an instance of the GAMS model
@@ -76,6 +80,23 @@ class GAMSModel(Tool):
             command += ' ' + cmdline_args
         instance.command = command
         return instance
+           
+    @staticmethod
+    def load(jsonfile):
+        """Load a tool description from a file"""
+        with open(jsonfile, 'r') as fp:
+            data = json.load(fp)
+            gm = GAMSModel(data['name'], data['description'],
+                           data['path'], data['gamsfile'],
+                           data['short_name'], 
+                           data['input_dir'], data['output_dir'])
+            gm.inputs = set([DataParameter(obj['name'], obj['description'],
+                                           obj['units'], obj['indices']) 
+                             for obj in data['inputs']])
+                
+            return gm
+            
+            
 
 
 GDX_DATA_FMT = DataFormat('GDX', 'gdx', is_binary=True)
