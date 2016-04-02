@@ -13,14 +13,11 @@ from collections import OrderedDict
 import json
 import tempfile
 from copy import copy
-
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
-
 import qsubprocess
 from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR, WORK_DIR, IGNORE_PATTERNS
 from metaobject import MetaObject
-from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR, WORK_DIR, \
-                   IGNORE_PATTERNS
+
                    
 class MyEncoder(json.JSONEncoder):
     def default(self, o):
@@ -138,6 +135,7 @@ class Tool(MetaObject):
         with open(jsonfile, 'w') as fp:
             json.dump(the_dict, fp, indent=4, cls=MyEncoder)
 
+
 class ToolInstance(QObject):
     """Class for Tool instances."""
     instance_finished_signal = pyqtSignal(int)
@@ -253,7 +251,7 @@ class SetupTree(MetaObject):
         while item is not None:
             self.n += 1
             self.setup_dict.update({self.n: item})
-            item = item.parent
+            item = item.parent()
 
     def get_next_setup(self):
         """Get the next Setup to execute.
@@ -317,7 +315,11 @@ class Setup(MetaObject):
 
         """
         super().__init__(name, description)
-        self.parent = parent
+        self._parent = parent
+        self._children = list()
+        self.is_root = False
+        if name == 'root':
+            self.is_root = True
         self.project = project
         self.inputs = set()
         self.tools = OrderedDict()
@@ -325,15 +327,73 @@ class Setup(MetaObject):
         self.is_ready = False
         self._setup_process = None
         self._running_tool = None
-        # Create Setup input & output directory names
+        # Create paths to Setup input & output directories
         self.input_dir = os.path.join(project.project_dir, INPUT_STORAGE_DIR,
                                       self.short_name)
-        
         self.output_dir = os.path.join(project.project_dir, OUTPUT_STORAGE_DIR,
                                        self.short_name)
-        # Create Setup input & output directories
-        self.create_dir(self.input_dir)
-        self.create_dir(self.output_dir)
+        # Do not create directories for root Setup
+        if not self.is_root:
+            self.create_dir(self.input_dir)
+            self.create_dir(self.output_dir)
+        # If not root, add self to parent's children
+        if parent is not None:
+            parent._add_child(self)
+
+    def _add_child(self, child):
+        """Add children to Setup. Do not use outside this class!
+
+        Args:
+            child (Setup): Child Setup to add.
+        """
+        self._children.append(child)
+
+    def insert_child(self, position, child):
+        """Used to add children for Setup if it was created without parent.
+
+        Args:
+            position (int): Position to insert child Setup
+            child (Setup): Setup to insert
+
+        Returns:
+            Boolean variable depending on operation's success
+        """
+        if position < 0 or position > len(self._children):
+            logging.debug("Invalid position")
+            return False
+        self._children.insert(position, child)
+        child._parent = self
+        return True
+
+    def child(self, row):
+        """Returns child Setup on given row."""
+        return self._children[row]
+
+    def child_count(self):
+        """Returns number of children."""
+        return len(self._children)
+
+    def parent(self):
+        """Returns the parent of this Setup."""
+        return self._parent
+
+    def row(self):
+        if self._parent is not None:
+            return self._parent._children.index(self)
+        return 0
+
+    def log(self, tab_level=-1):
+        """Returns Setup tree representation as string."""
+        output = ""
+        tab_level += 1
+        for i in range(tab_level):
+            output += "\t"
+        output += "|------" + self.short_name + "\n"
+        for child in self._children:
+            output += child.log(tab_level)
+        tab_level -= 1
+        output += "\n"
+        return output
 
     def create_dir(self, base_path, folder=''):
         # TODO: This method should maybe go into tools.py
@@ -398,12 +458,20 @@ class Setup(MetaObject):
         # TODO: Get input for this tool from own input folder and parents.
         # If parent has a tool -> get output files
         # If parent has no tool -> get input files
-        filenames = glob.glob(os.path.join(self.input_dir,
-                                           tool.short_name,
-                                           '*.{}'.format(file_fmt.extension)))
-        if self.parent is not None:
-            filenames += self.parent.get_input_files(tool, file_fmt)
-            filenames += self.parent.get_output_files(tool, file_fmt)
+        try:
+            filenames = glob.glob(os.path.join(self.input_dir,
+                                               tool.short_name,
+                                               '*.{}'.format(file_fmt.extension)))
+        except OSError:
+            logging.error("OSError")
+            if self.input_dir:
+                logging.error("Setup <{0}> input dir:'{1}'".format(self.name, self.input_dir))
+            return list()
+        if self._parent is not None:
+            if self.is_root:
+                return filenames
+            filenames += self._parent.get_input_files(tool, file_fmt)
+            filenames += self._parent.get_output_files(tool, file_fmt)
         return filenames
 
     def get_output_files(self, tool, file_fmt):
@@ -417,16 +485,16 @@ class Setup(MetaObject):
         filenames = glob.glob(os.path.join(self.output_dir,
                                            tool.short_name,
                                            '*.{}'.format(file_fmt.extension)))
-        if self.parent is not None:
-            filenames += self.parent.get_output_files(tool, file_fmt)
+        if self._parent is not None:
+            filenames += self._parent.get_output_files(tool, file_fmt)
         return filenames
 
     def save(self):
         """Save setup object to disk."""
 
         the_dict = {}
-        if self.parent is not None:
-            the_dict['parent'] = self.parent.short_name
+        if self._parent is not None:
+            the_dict['parent'] = self._parent.short_name
         if len(self.tools) > 0:
             the_dict['processes'] = [p.tool.short_name for p in self.tools]
         the_dict['is_ready'] = self.is_ready
@@ -498,7 +566,7 @@ class Setup(MetaObject):
                 outfilename = os.path.join(dst_dir,
                                            'changes.{}'.format(fmt.extension))
                 # If setup has no parent, then create a new file
-                if self.parent is None:
+                if self._parent is None:
                     mode = 'w'
                 # otherwise, append to previous file
                 else:
