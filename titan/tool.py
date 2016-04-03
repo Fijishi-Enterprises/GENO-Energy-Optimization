@@ -9,7 +9,6 @@ import os
 import shutil
 import glob
 import logging
-from collections import OrderedDict
 import json
 import tempfile
 from copy import copy
@@ -217,88 +216,6 @@ class ToolInstance(QObject):
             return True if count > 0 else False
 
 
-class SetupTree(MetaObject):
-    """Class to store Setups for a single simulation run."""
-    # TODO: Rename this class to SetupBranch
-
-    setuptree_finished_signal = pyqtSignal()
-
-    def __init__(self, name, description, setup, last=True):
-        """SetupTree constructor.
-
-        Args:
-            name (str): Name of SetupTree
-            description (str): Description of SetupTree
-            setup (Setup): Setup from which the SetupTree is built toward the root
-            last (boolean): Parameter to set SetupTree popping order. if True, SetupTree
-                is LIFO, if False, SetupTree is FIFO.
-        """
-        super().__init__(name, description)
-        self.setup = setup
-        self.last = last  # True -> LIFO, False -> FIFO
-        self.setup_dict = OrderedDict()
-        self.n = 0  # Number of Setups in SetupTree
-        self.build_tree()
-
-    def build_tree(self):
-        """Add Setup and all it's parent Setups into an ordered dictionary.
-
-        Returns:
-            (boolean): True if successful, False otherwise.
-        """
-        # Setups are added from the leaf toward the root. E.g. last added item is base.
-        item = self.setup
-        while item is not None:
-            self.n += 1
-            self.setup_dict.update({self.n: item})
-            item = item.parent()
-
-    def get_next_setup(self):
-        """Get the next Setup to execute.
-
-        Returns:
-            Next Setup object or None if dictionary empty
-        """
-        try:
-            # Pop the last added Setup (LIFO). Note: To get FIFO, set popitem kwarg last=False.
-            item = self.setup_dict.popitem(last=self.last)  # item is (key, value) tuple
-            setup = item[1]
-            self.n -= 1
-        except KeyError:
-            logging.debug("SetupTree <{0}> empty".format(self.name))
-            self.n = 0
-            setup = None
-        return setup
-
-    @pyqtSlot()
-    def run(self):
-        """Start running Setups in SetupTree."""
-        logging.debug("Popping next Setup from SetupTree <{}>".format(self.name))
-        self.setup = self.get_next_setup()
-        if self.setup is not None:
-            try:
-                # Disconnect setup_finished_signal to prevent it from
-                # being connected to multiple SetupTree instances.
-                # NOTE: This is required when Setup is part of multiple
-                # SetupTrees.
-                self.setup.setup_finished_signal.disconnect()
-            except TypeError:
-                # logging.warning("setup_finished_signal not connected")
-                pass
-            try:
-                # Connect setup_finished_signal to run()
-                self.setup.setup_finished_signal.connect(self.run)
-            except Exception as e:
-                logging.exception("Could not connect setup_finished_signal: Reason:{}".format(e.args[0]))
-                return  # No reason to continue if signal could not be connected
-            # Execute Setup
-            self.setup.execute()
-        else:
-            # All Setups in SetupTree finished
-            self.setuptree_finished_signal.emit()
-        return
-
-
 class Setup(MetaObject):
     """Class for setup."""
 
@@ -322,7 +239,9 @@ class Setup(MetaObject):
             self.is_root = True
         self.project = project
         self.inputs = set()
-        self.tools = OrderedDict()
+        # self.tools = OrderedDict()
+        self.tool = None
+        self.cmdline_args = ""
         self.tool_instances = []
         self.is_ready = False
         self._setup_process = None
@@ -366,7 +285,11 @@ class Setup(MetaObject):
         return True
 
     def child(self, row):
-        """Returns child Setup on given row."""
+        """Returns child Setup on given row.
+
+        Args:
+            row (int): Row number
+        """
         return self._children[row]
 
     def child_count(self):
@@ -383,7 +306,7 @@ class Setup(MetaObject):
         return 0
 
     def log(self, tab_level=-1):
-        """Returns Setup tree representation as string."""
+        """Returns Setup representation as string."""
         output = ""
         tab_level += 1
         for i in range(tab_level):
@@ -430,7 +353,7 @@ class Setup(MetaObject):
         if not os.path.exists(input_dir):
             self.create_dir(input_dir)
 
-    def add_tool(self, tool, cmdline_args=None):
+    def add_tool(self, tool, cmdline_args=""):
         """Add a tool to this setup.
 
         Args:
@@ -439,13 +362,20 @@ class Setup(MetaObject):
         """
         # TODO: When adding a model to a Setup, all its parents (at least Base) must have an input
         # TODO: folder with model name. e.g /input/base/magic
-        # Create input and output directories
-        self.tools.update({tool: cmdline_args})
+        # Add tool to Setup. If Setup already had a tool, it is replaced with the new one.
+        # self.tools.update({tool: cmdline_args})
+        if self.tool is not None:
+            logging.warning("Replacing tool '{0}' with tool '{1}' in Setup '{2}'"
+                            .format(self.tool.name, tool.name, self.name))
+        self.tool = tool
+        self.cmdline_args = cmdline_args
         # Create model input and output directories for the Setup
         input_dir = self.create_dir(self.input_dir, tool.short_name)
         output_dir = self.create_dir(self.output_dir, tool.short_name)
         if (input_dir is None) or (output_dir is None):
             return False
+        logging.debug("Tool '{0}' with cmdline args '{1}' added to Setup '{2}'"
+                      .format(self.tool.name, self.cmdline_args, self.name))
         return True
 
     def get_input_files(self, tool, file_fmt):
@@ -495,8 +425,10 @@ class Setup(MetaObject):
         the_dict = {}
         if self._parent is not None:
             the_dict['parent'] = self._parent.short_name
-        if len(self.tools) > 0:
-            the_dict['processes'] = [p.tool.short_name for p in self.tools]
+        # if len(self.tools) > 0:
+        #     the_dict['processes'] = [p.tool.short_name for p in self.tools]
+        if self.tool:
+            the_dict['processes'] = [self.tool.short_name]
         the_dict['is_ready'] = self.is_ready
 
         jsonfile = os.path.join(INPUT_STORAGE_DIR,
@@ -512,24 +444,27 @@ class Setup(MetaObject):
             self.setup_finished_signal.emit()
             return
         # Get Setup tool and command line arguments
-        # TODO: No need for self.tools dictionary because Setup can only have one Tool
-        tools_list = list(self.tools.items())
-        if not tools_list:  # No tool in setup
+        if not self.tool:  # No tool in setup
             self.setup_finished(0)
             return
-        # logging.debug("tools_list:%s" % tools_list)
-        tool = tools_list[0][0]
-        cmdline_args = tools_list[0][1]
-        instance = tool.create_instance(cmdline_args, self.output_dir)
+        instance = self.tool.create_instance(self.cmdline_args, self.output_dir)
         # Connect instance_finished_signal to setup_finished() method
         instance.instance_finished_signal.connect(self.setup_finished)
         self.tool_instances.append(instance)
-        self.copy_input(tool, instance)
+        self.copy_input(self.tool, instance)
         instance.execute()
         # Wait for instance_finished_signal to start setup_finished()
 
     @pyqtSlot(int)
     def setup_finished(self, ret):
+        """Executed when tool has finished processing.
+
+        Args:
+            ret (int): Return code from sub-process
+
+        Returns:
+            True if tool was executed successfully, False otherwise
+        """
         if ret == 0:
             logging.debug("Setup <%s> finished successfully. Setting is_ready to True" % self.name)
             self.is_ready = True
@@ -544,12 +479,11 @@ class Setup(MetaObject):
 
         Args:
             tool (Tool): The tool
-            tool_instance (ToolInstance): Tool instance. If none execution is done in tool directory.
+            tool_instance (ToolInstance): Tool instance. If none, execution is done in tool directory.
 
         Returns:
             ret (bool): Operation success
         """
-
         if not tool_instance:
             dst_dir = tool.input_dir  # Run tool in /models/ directory
         else:

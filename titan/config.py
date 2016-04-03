@@ -21,7 +21,7 @@ if getattr(sys, 'frozen', False):
 else:
     APPLICATION_PATH = os.path.realpath(os.path.dirname(__file__))
 
-PROJECT_DIR = os.path.join(APPLICATION_PATH, os.path.pardir, 'projects')
+PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'projects'))
 # Model input/output directories
 INPUT_STORAGE_DIR = 'input'
 OUTPUT_STORAGE_DIR = 'output'
@@ -32,6 +32,6 @@ MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir
 OLD_MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'models', 'old_magic'))
 
 # GAMS
-GAMS_EXECUTABLE ='gams'
+GAMS_EXECUTABLE = 'gams'
 
 IGNORE_PATTERNS = ('.git', '.gitignore')

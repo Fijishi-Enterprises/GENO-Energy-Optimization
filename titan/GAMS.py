@@ -96,8 +96,6 @@ class GAMSModel(Tool):
                 
             return gm
             
-            
-
 
 GDX_DATA_FMT = DataFormat('GDX', 'gdx', is_binary=True)
 GAMS_INC_FILE = DataFormat('GAMS inc file', 'inc')

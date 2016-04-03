@@ -11,8 +11,9 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from ui.main import Ui_MainWindow
 from project import SceletonProject
-from models import SetupModel, ToolProxyModel, SetupTreeListModel
-from tool import Dimension, DataParameter, Setup, SetupTree
+from models import SetupModel, ToolProxyModel
+from tool import Dimension, DataParameter, Setup
+from tools import SetupTree
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH
 
@@ -27,7 +28,7 @@ class TitanUI(QMainWindow):
     add_proc_err_msg_signal = pyqtSignal(str)
 
     def __init__(self):
-        """ Initialize GUI """
+        """ Initialize GUI."""
         super().__init__()
         # Set number formatting to use user's default settings
         locale.setlocale(locale.LC_NUMERIC, '')
@@ -35,23 +36,23 @@ class TitanUI(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         # Class variables
-        self._simulation_failed = False
-        self.processes = dict()
-        self.running_process = ''
-        self._tools = dict()
         self._project = SceletonProject('project 1', 'a test project')
-        self._setups = dict()
-        self._setuptree = None
-        self._running_setuptree = None
         self._running_setup = None
-        self._setuptree_list = list()  # Used to store multiple SetupTrees (branches)
         self._root = None  # Root node for SetupModel
-        # self.model_listview = None
-        self.setuptree_model = None
-        self.setup_list_model = None
-        self.tool_list_model = None
-        self.setupmodel = None
+        self.setup_model = None
         self.tool_proxy_model = None
+        # Obsolete variables
+        # self._simulation_failed = False  # Obsolete
+        # self.processes = dict()  # Obsolete
+        # self.running_process = ''  # Obsolete
+        # self._tools = dict()  # Obsolete
+        # self._setups = dict()  # Obsolete
+        # self._setuptree = None  # Obsolete
+        # self._running_setuptree = None  # Obsolete
+        # self._setuptree_list = list()  # Used to store multiple SetupTrees (branches) (Obsolete)
+        # self.setuptree_model = None  # Obsolete
+        # self.setup_list_model = None  # Obsolete
+        # self.tool_list_model = None  # Obsolete
         # Initialize general things
         self.connect_signals()
         self.init_views()
@@ -74,34 +75,36 @@ class TitanUI(QMainWindow):
         # Menu actions
         self.ui.action_quit.triggered.connect(self.closeEvent)
         # Widgets
-        self.ui.pushButton_create_setuptree_1.clicked.connect(self.create_setuptree_for_base_setup_a)
-        self.ui.pushButton_create_setuptree_2.clicked.connect(self.create_setuptree_for_invest_mip)
-        self.ui.pushButton_create_setuptree_3.clicked.connect(self.create_two_setuptrees)
-        self.ui.pushButton_execute.clicked.connect(self.run_selected_setup)
-        self.ui.pushButton_dummy1.clicked.connect(self.test_setupmodel)
-        self.ui.pushButton_add.clicked.connect(self.get_selected_setup)
-        self.ui.pushButton_clear_listview.clicked.connect(self.remove_selected_setup)
+        self.ui.pushButton_create_setups_1.clicked.connect(self.create_setups_1)
+        self.ui.pushButton_create_setups_2.clicked.connect(self.create_setups_2)
+        self.ui.pushButton_create_setups_3.clicked.connect(self.create_setups_3)
+        self.ui.pushButton_create_test_setups.clicked.connect(self.create_test_setups)
+        self.ui.pushButton_execute.clicked.connect(self.execute_setup)
+        self.ui.pushButton_test.clicked.connect(self.get_selected_setup)
+        self.ui.pushButton_clear.clicked.connect(self.remove_selected_setup)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
-        self.ui.listView_setuptrees.pressed.connect(self.dummy1_button)
         self.ui.treeView_setups.pressed.connect(self.update_tool_view)
 
     def init_views(self):
         """Create data models for GUI views."""
-        self.setuptree_model = SetupTreeListModel()
-        self.setup_list_model = SetupTreeListModel()
-        self.tool_list_model = SetupTreeListModel()
         # Make root for SetupModel
         self._root = Setup('root', 'root node for Setups,', self._project)
-        self.setupmodel = SetupModel(self._root)
+        self.setup_model = SetupModel(self._root)
         # Set model into QTreeView
-        self.ui.treeView_setups.setModel(self.setupmodel)
-        self.ui.listView_setuptrees.setModel(self.setuptree_model)
-        self.ui.listView_setups.setModel(self.setup_list_model)
+        self.ui.treeView_setups.setModel(self.setup_model)
         # Make Proxymodel to show tool associated with the selected Setup
         self.tool_proxy_model = ToolProxyModel(self.ui)
-        self.tool_proxy_model.setSourceModel(self.setupmodel)
+        self.tool_proxy_model.setSourceModel(self.setup_model)
         self.ui.listView_tools.setModel(self.tool_proxy_model)
-        # self.model_listview = QStandardItemModel(self.ui.listView_setuptreelist)
+        # TODO: Proxy model for input formats
+        # TODO: Proxy model for output formats
+        # TODO: Show input files of Setup directory
+        # Obsolete models & views
+        # self.setuptree_model = SetupTreeListModel()
+        # self.setup_list_model = SetupTreeListModel()
+        # self.tool_list_model = SetupTreeListModel()
+        # self.ui.listVView_setuptrees.setModel(self.setuptree_model)
+        # self.ui.listView_setups.setModel(self.setup_list_model)
 
     def remove_selected_setup(self):
         """Removes selected Setup (and all of it's children) from SetupModel."""
@@ -112,114 +115,7 @@ class TitanUI(QMainWindow):
         self.add_msg_signal.emit("Removing Setup '%s' (NA)" % setup.name)
         # TODO: Implement removeRows() in SetupModel
 
-    def create_setuptree_for_base_setup_a(self):
-        """Create two Setups ('base' and 'setup a') and associate tool Magic with Setup A."""
-        # Create tool
-        self._tools['magic'] = GAMSModel(self, 'OLD MAGIC',
-                                         """A number of power stations are committed to meet demand
-                                         for a particular day. Three types of generators having
-                                         different operating characteristics are available. Generating
-                                         units can be shut down or operate between minimum and maximum
-                                         output levels. Units can be started up or closed down in
-                                         every demand block.""",
-                                         OLD_MAGIC_MODEL_PATH, 'magic.gms',
-                                         input_dir='input', output_dir='output')
-        # Add input&output formats for tool
-        self._tools['magic'].add_input_format(GDX_DATA_FMT)
-        self._tools['magic'].add_input_format(GAMS_INC_FILE)
-        self._tools['magic'].add_output_format(GDX_DATA_FMT)
-        # Create data parameters
-        g = Dimension('g', 'generators')
-        param = Dimension('param', 'parameters')
-        data = DataParameter('data', 'generation data', '?', [g, param])
-        # Add input data parameter for tool
-        self._tools['magic'].add_input(data)
-        # Create Base Setup
-        self._setups['base'] = Setup('base', 'The base setup', 
-                                     project=self._project, parent=self._root)
-        # Create Setup A, with Base setup as parent
-        self._setups['setup A'] = Setup('setup A', 'test setup A',
-                                        project=self._project,
-                                        parent=self._setups['base'])
-        self._setups['setup B'] = Setup('setup B', 'test setup B',
-                                        project=self._project,
-                                        parent=self._setups['base'])
-        self._setups['setup C'] = Setup('setup C', 'test setup C',
-                                        project=self._project,
-                                        parent=self._setups['setup A'])
-        # Add tool 'magic' to setup 'Setup A'
-        if not self._setups['setup A'].add_tool(self._tools['magic'], 'MIP=CPLEX'):
-            self.add_err_msg_signal.emit("Adding a tool to 'setup A' failed\n")
-            logging.error("Adding a model to Setup failed")
-            return
-        self.add_msg_signal.emit("Building SetupTree A")
-        # Create a SetupTree starting from Setup A
-        self._setuptree = SetupTree('Setup Tree A', 'SetupTree to run Setup A and base setups', self._setups['setup A'])
-        self._setuptree_list.append(self._setuptree)
-        # Add data into PyQt models
-        self.setup_list_model.add_data(self._setups['base'])
-        self.setup_list_model.add_data(self._setups['setup A'])
-        self.tool_list_model.add_data(self._tools['magic'])
-        self.setuptree_model.add_data(self._setuptree)
-        root_print = self._root.log()
-        logging.debug("root print:\n%s" % root_print)
-
-    def test_setupmodel(self):
-        # Create tool
-        self._tools['magic'] = GAMSModel(self, 'OLD MAGIC',
-                                         """A number of power stations are committed to meet demand
-                                         for a particular day. Three types of generators having
-                                         different operating characteristics are available. Generating
-                                         units can be shut down or operate between minimum and maximum
-                                         output levels. Units can be started up or closed down in
-                                         every demand block.""",
-                                         OLD_MAGIC_MODEL_PATH, 'magic.gms',
-                                         input_dir='input', output_dir='output')
-        # Add input&output formats for tool
-        self._tools['magic'].add_input_format(GDX_DATA_FMT)
-        self._tools['magic'].add_input_format(GAMS_INC_FILE)
-        self._tools['magic'].add_output_format(GDX_DATA_FMT)
-        # Create data parameters
-        g = Dimension('g', 'generators')
-        param = Dimension('param', 'parameters')
-        data = DataParameter('data', 'generation data', '?', [g, param])
-        # Add input data parameter for tool
-        self._tools['magic'].add_input(data)
-        # ----------------- Adding a Setup to data model -------------------:
-        # Option 1: Create Setup with the wanted parent
-        # Option 2: Create Setup with no parent and use insert_child() to associate Setup to model
-        # Add Base Setup
-        if not self.setupmodel.insert_setup('BASE', 'The base setup', self._project, 0):
-            logging.error("Adding Base to model failed")
-            return
-        # Add A
-        base_index = self.setupmodel.index(0, 0, QModelIndex())
-        if not self.setupmodel.insert_setup('A', 'Setup A', self._project, 0, base_index):
-            logging.error("Adding A to model failed")
-            return
-        # Add B
-        base_index = self.setupmodel.index(0, 0, QModelIndex())
-        if not self.setupmodel.insert_setup('B', 'Setup B', self._project, 0, base_index):
-            logging.error("Adding B to model failed")
-            return
-        # Add C
-        a_index = self.setupmodel.index(1, 0, base_index)  # A is on second row because B is now on first row
-        if not self.setupmodel.insert_setup('C', 'Setup C', self._project, 0, a_index):
-            logging.error("Adding C to model failed")
-            return
-        # Add another Base
-        if not self.setupmodel.insert_setup('BASE 2', 'Another base setup', self._project, 0):
-            logging.error("Adding Base to model failed")
-            return
-        # Add tool 'magic' to setup 'A'
-        a_ind = self.setupmodel.index(1, 0, base_index)
-        a = self.setupmodel.get_setup(a_ind)
-        if not a.add_tool(self._tools['magic'], 'MIP=CPLEX'):
-            self.add_err_msg_signal.emit("Adding 'magic' tool to 'A' failed\n")
-            logging.error("Adding a model to Setup failed")
-            return
-
-    def run_selected_setup(self):
+    def execute_setup(self):
         """Start executing selected Setup and all it's parents."""
         # Get selected Setup from QTreeView
         self._running_setup = self.get_selected_setup()
@@ -227,18 +123,18 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("Select a Setup and try again.\n")
             return
         # Connect setup_finished_signal to some slot in this class
-        self._running_setup.setup_finished_signal.connect(self.setup_finished)
+        self._running_setup.setup_finished_signal.connect(self.setup_done)
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
         self.add_msg_signal.emit("\nStarting Setup '%s'" % self._running_setup.name)
         self._running_setup.execute()
 
     @pyqtSlot()
-    def setup_finished(self):
+    def setup_done(self):
         """Start executing finished Setup's parent or end run if all Setup are ready."""
         logging.debug("Setup <{0}> ready".format(self._running_setup.name))
         self.add_msg_signal.emit("Setup '%s' ready" % self._running_setup.name)
         # Emit dataChanged signal to QtreeView because is_ready is now updated.
-        self.setupmodel.emit_data_changed()
+        self.setup_model.emit_data_changed()
         # Disconnect signal to make sure it is not connected to multiple Setups
         try:
             self._running_setup.setup_finished_signal.disconnect()
@@ -254,7 +150,7 @@ class TitanUI(QMainWindow):
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
         self.add_msg_signal.emit("Starting Setup '%s'" % self._running_setup.name)
         # Connect setup_finished_signal to this same slot
-        self._running_setup.setup_finished_signal.connect(self.setup_finished)
+        self._running_setup.setup_finished_signal.connect(self.setup_done)
         self._running_setup.execute()
 
     @pyqtSlot()
@@ -277,137 +173,196 @@ class TitanUI(QMainWindow):
         self.add_msg_signal.emit("Pressed item row:%s column:%s setup name:%s" % (row, column, setup.name))
         return setup
 
-    def create_setuptree_for_invest_mip(self):
-        """Create 'invest' and 'MIP' setups."""
-        self._tools['magic'] = GAMSModel(self, 'MAGIC',
-                                         """M A G I C   Power Scheduling Problem
-                                         A number of power stations are committed
-                                         to meet demand for a particular day. three
-                                         types of generators having different
-                                         operating characteristics are available.
-                                         Generating units can be shut down or operate
-                                         between minimum and maximum output levels.
-                                         Units can be started up or closed down in
-                                         every demand block.""",
-                                         MAGIC_MODEL_PATH, 'magic.gms', input_dir='input',
-                                         output_dir='output')
+    def create_setups_1(self):
+        """Create two Setups ('base' and 'setup a') and associate tool Magic with Setup A."""
+        # Create tool
+        tool = GAMSModel(self, 'OLD MAGIC',
+                         """A number of power stations are committed to meet demand
+                         for a particular day. Three types of generators having
+                         different operating characteristics are available. Generating
+                         units can be shut down or operate between minimum and maximum
+                         output levels. Units can be started up or closed down in
+                         every demand block.""",
+                         OLD_MAGIC_MODEL_PATH, 'magic.gms',
+                         input_dir='input', output_dir='output')
+        # Add input&output formats for tool
+        tool.add_input_format(GDX_DATA_FMT)
+        tool.add_input_format(GAMS_INC_FILE)
+        tool.add_output_format(GDX_DATA_FMT)
+        # Create data parameters
+        g = Dimension('g', 'generators')
+        param = Dimension('param', 'parameters')
+        data = DataParameter('data', 'generation data', '?', [g, param])
+        # Add input data parameter for tool
+        tool.add_input(data)
+        # Add Base Setup
+        if not self.setup_model.insert_setup('base', 'The base setup', self._project, 0):
+            logging.error("Adding 'base' to model failed")
+            return
+        # Add A
+        base_index = self.setup_model.index(0, 0, QModelIndex())
+        if not self.setup_model.insert_setup('setup A', 'test setup A', self._project, 0, base_index):
+            logging.error("Adding 'setup A' to model failed")
+            return
+        # Add tool 'magic' to setup 'Setup A'
+        a_ind = self.setup_model.index(0, 0, base_index)
+        setup_a = self.setup_model.get_setup(a_ind)
+        if not setup_a.add_tool(tool, 'MIP=CPLEX'):
+            self.add_err_msg_signal.emit("Adding a tool to 'setup A' failed\n")
+            logging.error("Adding a tool to Setup setup 'A' failed")
+            return
+        root_print = self._root.log()
+        logging.debug("root print:\n%s" % root_print)
 
-        self._tools['magic'].add_input_format(GDX_DATA_FMT)
-        self._tools['magic'].add_input_format(GAMS_INC_FILE)
-        self._tools['magic'].add_output_format(GDX_DATA_FMT)
+    def create_setups_2(self):
+        """Create 'invest' and 'MIP' setups."""
+        tool = GAMSModel(self, 'MAGIC',
+                         """M A G I C   Power Scheduling Problem
+                         A number of power stations are committed
+                         to meet demand for a particular day. three
+                         types of generators having different
+                         operating characteristics are available.
+                         Generating units can be shut down or operate
+                         between minimum and maximum output levels.
+                         Units can be started up or closed down in
+                         every demand block.""",
+                         MAGIC_MODEL_PATH, 'magic.gms', input_dir='input',
+                         output_dir='output')
+
+        tool.add_input_format(GDX_DATA_FMT)
+        tool.add_input_format(GAMS_INC_FILE)
+        tool.add_output_format(GDX_DATA_FMT)
 
         g = Dimension('g', 'generators')
         param = Dimension('param', 'parameters')
         data = DataParameter('data', 'generation data', '?', [g, param])
 
-        self._tools['magic'].add_input(data)
-        self._tools['magic'].add_output(data)
+        tool.add_input(data)
+        tool.add_output(data)
+        # Add Invest Setup
+        if not self.setup_model.insert_setup('invest', 'Do investments', self._project, 0):
+            logging.error("Adding 'invest' to model failed")
+            return
+        invest_ind = self.setup_model.index(0, 0, QModelIndex())
+        invest = self.setup_model.get_setup(invest_ind)
+        invest.add_input(tool)
+        invest.add_tool(tool, cmdline_args='--INVEST=yes --USE_MIP=yes')
+        # Add MIP
+        if not self.setup_model.insert_setup('MIP', 'Operation with MIP model', self._project, 0, invest_ind):
+            logging.error("Adding 'MIP' to model failed")
+            return
+        mip_index = self.setup_model.index(0, 0, invest_ind)
+        mip = self.setup_model.get_setup(mip_index)
+        mip.add_input(tool)
+        mip.add_tool(tool, cmdline_args='--USE_MIP=yes')
 
-        self._setups['invest'] = Setup('invest', 'Do investments', 
-                                       project=self._project, parent=self._root)
-        self._setups['invest'].add_input(self._tools['magic'])
-        self._setups['invest'].add_tool(self._tools['magic'],
-                                        cmdline_args='--INVEST=yes --USE_MIP=yes')
-        self._setups['MIP'] = Setup('MIP', 'Operation with MIP model',
-                                    project=self._project,
-                                    parent=self._setups['invest'])
-        self._setups['MIP'].add_input(self._tools['magic'])
-        self._setups['MIP'].add_tool(self._tools['magic'],
-                                     cmdline_args='--USE_MIP=yes')
-        # Create a SetupTree for this run
-        self.add_msg_signal.emit("Building SetupTree MIP")
-        self._setuptree = SetupTree('Setup Tree MIP', "SetupTree to run 'invest' and 'MIP' setups", self._setups['MIP'])
-        self.setuptree_model.add_data(self._setuptree)
-        self._setuptree_list.append(self._setuptree)
-
-    def create_two_setuptrees(self):
+    def create_setups_3(self):
         """Creates 'invest' -> 'LP' branch and 'invest' -> MIP branches
          and puts them into a SetupTree List."""
-        self._tools['magic'] = GAMSModel(self, 'MAGIC',
-                                         """M A G I C   Power Scheduling Problem
-                                         A number of power stations are committed
-                                         to meet demand for a particular day. three
-                                         types of generators having different
-                                         operating characteristics are available.
-                                         Generating units can be shut down or operate
-                                         between minimum and maximum output levels.
-                                         Units can be started up or closed down in
-                                         every demand block.""",
-                                         MAGIC_MODEL_PATH, 'magic.gms', input_dir='input',
-                                         output_dir='output')
-
-        self._tools['magic'].add_input_format(GDX_DATA_FMT)
-        self._tools['magic'].add_input_format(GAMS_INC_FILE)
-        self._tools['magic'].add_output_format(GDX_DATA_FMT)
-
+        tool = GAMSModel(self, 'MAGIC',
+                         """M A G I C   Power Scheduling Problem
+                         A number of power stations are committed
+                         to meet demand for a particular day. three
+                         types of generators having different
+                         operating characteristics are available.
+                         Generating units can be shut down or operate
+                         between minimum and maximum output levels.
+                         Units can be started up or closed down in
+                         every demand block.""",
+                         MAGIC_MODEL_PATH, 'magic.gms', input_dir='input',
+                         output_dir='output')
+        tool.add_input_format(GDX_DATA_FMT)
+        tool.add_input_format(GAMS_INC_FILE)
+        tool.add_output_format(GDX_DATA_FMT)
         g = Dimension('g', 'generators')
         param = Dimension('param', 'parameters')
         data = DataParameter('data', 'generation data', '?', [g, param])
 
-        self._tools['magic'].add_input(data)
-        self._tools['magic'].add_output(data)
+        tool.add_input(data)
+        tool.add_output(data)
 
-        self._setups['invest'] = Setup('invest', 'Do investments',
-                                       project=self._project, parent=self._root)
-        self._setups['invest'].add_input(self._tools['magic'])
-        self._setups['invest'].add_tool(self._tools['magic'],
-                                        cmdline_args='--INVEST=yes --USE_MIP=yes')
-        self._setups['MIP'] = Setup('MIP', 'Operation with MIP model',
-                                    project=self._project,
-                                    parent=self._setups['invest'])
-        self._setups['MIP'].add_input(self._tools['magic'])
-        self._setups['MIP'].add_tool(self._tools['magic'],
-                                     cmdline_args='--USE_MIP=yes')
-        self._setups['LP'] = Setup('LP', 'Operation with LP model ',
-                                   project=self._project,
-                                   parent=self._setups['invest'])
-        self._setups['LP'].add_tool(self._tools['magic'],
-                                    cmdline_args='--USE_MIP=no')
-        # Create a SetupTree for this run
-        self.add_msg_signal.emit("Building SetupTree LP")
-        setuptree_lp = SetupTree('Setup Tree LP', "SetupTree to run 'invest' and 'LP' setups", self._setups['LP'])
-        self.add_msg_signal.emit("Building SetupTree MIP")
-        setuptree_mip = SetupTree('Setup Tree MIP', "SetupTree to run 'invest' and 'LP' setups", self._setups['MIP'])
-        self.setuptree_model.add_data(setuptree_lp)
-        self.setuptree_model.add_data(setuptree_mip)
-        self._setuptree_list.append(setuptree_lp)
-        self._setuptree_list.append(setuptree_mip)
-
-    def execute_all(self):
-        """Run all SetupTrees in setuptree_list."""
-        if not self._setuptree_list:
-            self.add_msg_signal.emit("No SetupTree List available")
+        # Add Invest Setup
+        if not self.setup_model.insert_setup('invest', 'Do investments', self._project, 0):
+            logging.error("Adding 'invest' to model failed")
             return
-        self.add_msg_signal.emit("*** Starting simulation with {0} SetupTree(s) ***".format(len(self._setuptree_list)))
-        # Get the first SetupTree from list and start it.
-        # Note: Pop() without index returns the last item in the list.
-        self._running_setuptree = self._setuptree_list.pop()
-        self.add_msg_signal.emit("*** Executing SetupTree <{0}> with {1} Setups ***"
-                                 .format(self._running_setuptree.name, self._running_setuptree.n))
-        # Connect run finished signal between SetupTree and Titan_UI
-        self._running_setuptree.setuptree_finished_signal.connect(self.execute_finished)
-        self._running_setuptree.run()
-
-    @pyqtSlot()
-    def execute_finished(self):
-        """Clean up after a SetupTree has finished."""
-        logging.debug("SetupTree <{}> finished".format(self._running_setuptree.name))
-        self._running_setuptree = None
-        try:
-            # Run the next SetupTree
-            self._running_setuptree = self._setuptree_list.pop()
-        except IndexError:
-            self.add_msg_signal.emit("\n*** All SetupTrees finished. Cleaning up. ***\n")
-            self._tools.clear()
-            self._setups.clear()
-            self._setuptree = None
-            self._setuptree_list.clear()
+        invest_ind = self.setup_model.index(0, 0, QModelIndex())
+        invest = self.setup_model.get_setup(invest_ind)
+        invest.add_input(tool)
+        invest.add_tool(tool, cmdline_args='--INVEST=yes --USE_MIP=yes')
+        # Add MIP as child of invest
+        if not self.setup_model.insert_setup('MIP', 'Operation with MIP model', self._project, 0, invest_ind):
+            logging.error("Adding 'MIP' to model failed")
             return
-        logging.debug("Executing SetupTree <{}>".format(self._running_setuptree.name))
-        self.add_msg_signal.emit("\n*** Executing SetupTree <{0}> with {1} Setups ***"
-                                 .format(self._running_setuptree.name, self._running_setuptree.n))
-        self._running_setuptree.setuptree_finished_signal.connect(self.execute_finished)
-        self._running_setuptree.run()
+        mip_index = self.setup_model.index(0, 0, invest_ind)
+        mip = self.setup_model.get_setup(mip_index)
+        mip.add_input(tool)
+        mip.add_tool(tool, cmdline_args='--USE_MIP=yes')
+
+        # Add LP as child of invest
+        if not self.setup_model.insert_setup('LP', 'Operation with LP model', self._project, 0, invest_ind):
+            logging.error("Adding 'LP' to model failed")
+            return
+        lp_index = self.setup_model.index(0, 0, invest_ind)
+        lp = self.setup_model.get_setup(lp_index)
+        lp.add_tool(tool, cmdline_args='--USE_MIP=no')
+
+    def create_test_setups(self):
+        # Create tool
+        tool = GAMSModel(self, 'OLD MAGIC',
+                         """A number of power stations are committed to meet demand
+                         for a particular day. Three types of generators having
+                         different operating characteristics are available. Generating
+                         units can be shut down or operate between minimum and maximum
+                         output levels. Units can be started up or closed down in
+                         every demand block.""",
+                         OLD_MAGIC_MODEL_PATH, 'magic.gms',
+                         input_dir='input', output_dir='output')
+        # Add input&output formats for tool
+        tool.add_input_format(GDX_DATA_FMT)
+        tool.add_input_format(GAMS_INC_FILE)
+        tool.add_output_format(GDX_DATA_FMT)
+        # Create data parameters
+        g = Dimension('g', 'generators')
+        param = Dimension('param', 'parameters')
+        data = DataParameter('data', 'generation data', '?', [g, param])
+        # Add input data parameter for tool
+        tool.add_input(data)
+
+        # TODO: Handle case where user tries to add a setup with a name that is already taken.
+
+        # ----------------- Adding a Setup to data model -------------------:
+        # Option 1: Create Setup with the wanted parent
+        # Option 2: Create Setup with no parent and use insert_child() to associate Setup to model
+        # Add Base Setup
+        if not self.setup_model.insert_setup('BASE', 'The base setup', self._project, 0):
+            logging.error("Adding Base to model failed")
+            return
+        # Add A
+        base_index = self.setup_model.index(0, 0, QModelIndex())
+        if not self.setup_model.insert_setup('A', 'Setup A', self._project, 0, base_index):
+            logging.error("Adding A to model failed")
+            return
+        # Add B
+        base_index = self.setup_model.index(0, 0, QModelIndex())
+        if not self.setup_model.insert_setup('B', 'Setup B', self._project, 0, base_index):
+            logging.error("Adding B to model failed")
+            return
+        # Add C
+        a_index = self.setup_model.index(1, 0, base_index)  # A is on second row because B is now on first row
+        if not self.setup_model.insert_setup('C', 'Setup C', self._project, 0, a_index):
+            logging.error("Adding C to model failed")
+            return
+        # Add another Base
+        if not self.setup_model.insert_setup('BASE 2', 'Another base setup', self._project, 0):
+            logging.error("Adding Base to model failed")
+            return
+        # Add tool 'magic' to setup 'A'
+        a_ind = self.setup_model.index(1, 0, base_index)
+        a = self.setup_model.get_setup(a_ind)
+        if not a.add_tool(tool, 'MIP=CPLEX'):
+            self.add_err_msg_signal.emit("Adding 'magic' tool to 'A' failed\n")
+            logging.error("Adding a model to Setup failed")
+            return
 
     @pyqtSlot(str)
     def add_msg(self, msg):
@@ -476,8 +431,8 @@ class TitanUI(QMainWindow):
         # Adding a Setup to model:
         # Option 1: Create Setup with the wanted parent
         # Option 2: Create Setup with no parent and use insert_child() to associate Setup to model
-        setup_a_index = self.setupmodel.index(0, 0, QModelIndex())
-        retval = self.setupmodel.insert_setup('setup D', 'test setup D', self._project, 0, setup_a_index)
+        setup_a_index = self.setup_model.index(0, 0, QModelIndex())
+        retval = self.setup_model.insert_setup('setup D', 'test setup D', self._project, 0, setup_a_index)
         if not retval:
             logging.error("Adding Setup to model failed")
             return
@@ -493,6 +448,106 @@ class TitanUI(QMainWindow):
         if not index.isValid():
             return
         self.tool_proxy_model.emit_data_changed()
+
+    def example_on_how_to_create_setuptree(self):
+        """Create two Setups ('base' and 'setup a') and associate tool Magic with Setup A.
+
+        NOTE: Obsolete!
+
+         """
+        # Create tool
+        self._tools['magic'] = GAMSModel(self, 'OLD MAGIC',
+                                         """A number of power stations are committed to meet demand
+                                         for a particular day. Three types of generators having
+                                         different operating characteristics are available. Generating
+                                         units can be shut down or operate between minimum and maximum
+                                         output levels. Units can be started up or closed down in
+                                         every demand block.""",
+                                         OLD_MAGIC_MODEL_PATH, 'magic.gms',
+                                         input_dir='input', output_dir='output')
+        # Add input&output formats for tool
+        self._tools['magic'].add_input_format(GDX_DATA_FMT)
+        self._tools['magic'].add_input_format(GAMS_INC_FILE)
+        self._tools['magic'].add_output_format(GDX_DATA_FMT)
+        # Create data parameters
+        g = Dimension('g', 'generators')
+        param = Dimension('param', 'parameters')
+        data = DataParameter('data', 'generation data', '?', [g, param])
+        # Add input data parameter for tool
+        self._tools['magic'].add_input(data)
+        # Create Base Setup
+        self._setups['base'] = Setup('base', 'The base setup',
+                                     project=self._project, parent=self._root)
+        # Create Setup A, with Base setup as parent
+        self._setups['setup A'] = Setup('setup A', 'test setup A',
+                                        project=self._project,
+                                        parent=self._setups['base'])
+        self._setups['setup B'] = Setup('setup B', 'test setup B',
+                                        project=self._project,
+                                        parent=self._setups['base'])
+        self._setups['setup C'] = Setup('setup C', 'test setup C',
+                                        project=self._project,
+                                        parent=self._setups['setup A'])
+        # Add tool 'magic' to setup 'Setup A'
+        if not self._setups['setup A'].add_tool(self._tools['magic'], 'MIP=CPLEX'):
+            self.add_err_msg_signal.emit("Adding a tool to 'setup A' failed\n")
+            logging.error("Adding a model to Setup failed")
+            return
+        self.add_msg_signal.emit("Building SetupTree A")
+        # Create a SetupTree starting from Setup A
+        self._setuptree = SetupTree('Setup Tree A', 'SetupTree to run Setup A and base setups', self._setups['setup A'])
+        self._setuptree_list.append(self._setuptree)
+        # Add data into PyQt models
+        self.setup_list_model.add_data(self._setups['base'])
+        self.setup_list_model.add_data(self._setups['setup A'])
+        self.tool_list_model.add_data(self._tools['magic'])
+        self.setuptree_model.add_data(self._setuptree)
+        root_print = self._root.log()
+        logging.debug("root print:\n%s" % root_print)
+
+    def execute_all(self):
+        """Run all SetupTrees in setuptree_list.
+
+        NOTE: Obsolete!
+
+        """
+        if not self._setuptree_list:
+            self.add_msg_signal.emit("No SetupTree List available")
+            return
+        self.add_msg_signal.emit("*** Starting simulation with {0} SetupTree(s) ***".format(len(self._setuptree_list)))
+        # Get the first SetupTree from list and start it.
+        # Note: Pop() without index returns the last item in the list.
+        self._running_setuptree = self._setuptree_list.pop()
+        self.add_msg_signal.emit("*** Executing SetupTree <{0}> with {1} Setups ***"
+                                 .format(self._running_setuptree.name, self._running_setuptree.n))
+        # Connect run finished signal between SetupTree and Titan_UI
+        self._running_setuptree.setuptree_finished_signal.connect(self.execute_finished)
+        self._running_setuptree.run()
+
+    @pyqtSlot()
+    def execute_finished(self):
+        """Clean up after a SetupTree has finished.
+
+        NOTE: Obsolete!
+
+        """
+        logging.debug("SetupTree <{}> finished".format(self._running_setuptree.name))
+        self._running_setuptree = None
+        try:
+            # Run the next SetupTree
+            self._running_setuptree = self._setuptree_list.pop()
+        except IndexError:
+            self.add_msg_signal.emit("\n*** All SetupTrees finished. Cleaning up. ***\n")
+            self._tools.clear()
+            self._setups.clear()
+            self._setuptree = None
+            self._setuptree_list.clear()
+            return
+        logging.debug("Executing SetupTree <{}>".format(self._running_setuptree.name))
+        self.add_msg_signal.emit("\n*** Executing SetupTree <{0}> with {1} Setups ***"
+                                 .format(self._running_setuptree.name, self._running_setuptree.n))
+        self._running_setuptree.setuptree_finished_signal.connect(self.execute_finished)
+        self._running_setuptree.run()
 
     def closeEvent(self, event=None):
         """Method for handling application exit.

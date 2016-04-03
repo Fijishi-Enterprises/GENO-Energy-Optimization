@@ -231,8 +231,7 @@ class ToolProxyModel(QSortFilterProxyModel):
             except IndexError:
                 return 0
             setup = index.internalPointer()
-            tools_list = list(setup.tools.items())
-            if not tools_list:  # No tool in setup
+            if not setup.tool:  # No tool in setup
                 return 0
             return 1
         else:
@@ -253,23 +252,23 @@ class ToolProxyModel(QSortFilterProxyModel):
             Tool name if available
         """
         if not index.isValid():
-            logging.error("index not valid %s" % index)
+            logging.debug("index not valid %s" % index)
             return
         if role == Qt.DisplayRole:
             try:
                 index = self._ui.treeView_setups.selectedIndexes()[0]
             except IndexError:
-                logging.error("ToolProxyModel: Nothing selected")
+                logging.debug("ToolProxyModel: Nothing selected")
                 return ""
 
             setup = index.internalPointer()
-            # Get tool name associated with Setup
-            tools_list = list(setup.tools.items())
-            if not tools_list:  # No tool in setup
-                logging.error("No tool in selected Setup")
+            # Get tool name and command line args associated with Setup
+            if not setup.tool:  # No tool in setup
+                logging.debug("No tool in selected Setup")
                 return ""
-            tool = tools_list[0][0]
-            return tool.name
+            tool_name = setup.tool.name
+            cmd = setup.cmdline_args
+            return tool_name + "   ['" + cmd + "']"
 
 
 class SetupTreeListModel(QAbstractListModel):
