@@ -11,7 +11,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from ui.main import Ui_MainWindow
 from project import SceletonProject
-from models import SetupModel, SetupTreeListModel
+from models import SetupModel, ToolProxyModel, SetupTreeListModel
 from tool import Dimension, DataParameter, Setup, SetupTree
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH
@@ -45,12 +45,13 @@ class TitanUI(QMainWindow):
         self._running_setuptree = None
         self._running_setup = None
         self._setuptree_list = list()  # Used to store multiple SetupTrees (branches)
-        self._root = None  # Root node for Setup Graph Model
+        self._root = None  # Root node for SetupModel
         # self.model_listview = None
         self.setuptree_model = None
-        self.setup_model = None
-        self.tool_model = None
+        self.setup_list_model = None
+        self.tool_list_model = None
         self.setupmodel = None
+        self.tool_proxy_model = None
         # Initialize general things
         self.connect_signals()
         self.init_views()
@@ -82,21 +83,24 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_clear_listview.clicked.connect(self.remove_selected_setup)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
         self.ui.listView_setuptrees.pressed.connect(self.dummy1_button)
-        self.ui.treeView_setups.pressed.connect(self.get_clicked_setup)
+        self.ui.treeView_setups.pressed.connect(self.update_tool_view)
 
     def init_views(self):
         """Create data models for GUI views."""
         self.setuptree_model = SetupTreeListModel()
-        self.setup_model = SetupTreeListModel()
-        self.tool_model = SetupTreeListModel()
+        self.setup_list_model = SetupTreeListModel()
+        self.tool_list_model = SetupTreeListModel()
         # Make root for SetupModel
         self._root = Setup('root', 'root node for Setups,', self._project)
         self.setupmodel = SetupModel(self._root)
-        # Set model into treeView
+        # Set model into QTreeView
         self.ui.treeView_setups.setModel(self.setupmodel)
         self.ui.listView_setuptrees.setModel(self.setuptree_model)
-        self.ui.listView_setups.setModel(self.setup_model)
-        self.ui.listView_tools.setModel(self.tool_model)
+        self.ui.listView_setups.setModel(self.setup_list_model)
+        # Make Proxymodel to show tool associated with the selected Setup
+        self.tool_proxy_model = ToolProxyModel(self.ui)
+        self.tool_proxy_model.setSourceModel(self.setupmodel)
+        self.ui.listView_tools.setModel(self.tool_proxy_model)
         # self.model_listview = QStandardItemModel(self.ui.listView_setuptreelist)
 
     def remove_selected_setup(self):
@@ -153,9 +157,9 @@ class TitanUI(QMainWindow):
         self._setuptree = SetupTree('Setup Tree A', 'SetupTree to run Setup A and base setups', self._setups['setup A'])
         self._setuptree_list.append(self._setuptree)
         # Add data into PyQt models
-        self.setup_model.add_data(self._setups['base'])
-        self.setup_model.add_data(self._setups['setup A'])
-        self.tool_model.add_data(self._tools['magic'])
+        self.setup_list_model.add_data(self._setups['base'])
+        self.setup_list_model.add_data(self._setups['setup A'])
+        self.tool_list_model.add_data(self._tools['magic'])
         self.setuptree_model.add_data(self._setuptree)
         root_print = self._root.log()
         logging.debug("root print:\n%s" % root_print)
@@ -421,7 +425,7 @@ class TitanUI(QMainWindow):
         """Writes given error message to main textBrowser with error text color.
 
         Args:
-            message: The error message to be written.
+            message (str): The error message to be written.
         """
         old_color = self.ui.textBrowser_main.textColor()
         self.ui.textBrowser_main.setTextColor(ERROR_TEXT_COLOR)
@@ -469,7 +473,6 @@ class TitanUI(QMainWindow):
         logging.debug("test2")
 
     def add_item(self):
-
         # Adding a Setup to model:
         # Option 1: Create Setup with the wanted parent
         # Option 2: Create Setup with no parent and use insert_child() to associate Setup to model
@@ -481,22 +484,15 @@ class TitanUI(QMainWindow):
         logging.debug("Setup added successfully")
 
     @pyqtSlot("QModelIndex")
-    def get_clicked_setup(self, index):
-        """Test method.
+    def update_tool_view(self, index):
+        """Update tool name of selected Setup to tool QListView.
 
         Args:
-            index (QModelIndex): Index of the selected item.
-
-        Returns:
-            Nothing.
+            index (QModelIndex): Index of selected item.
         """
         if not index.isValid():
             return
-        row = index.row()
-        column = index.column()
-        setup = index.internalPointer()
-        # self.add_msg_signal.emit("Pressed item row:%s column:%s setup name:%s" % (row, column, setup.name))
-        logging.debug("Pressed item row:%s column:%s setup name:%s" % (row, column, setup.name))
+        self.tool_proxy_model.emit_data_changed()
 
     def closeEvent(self, event=None):
         """Method for handling application exit.

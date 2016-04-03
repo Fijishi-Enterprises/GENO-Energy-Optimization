@@ -6,7 +6,9 @@ Note: These models have nothing to do with Balmorel, WILMAR or PSS-E.
 :date:   2.4.2016
 """
 
-from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, QAbstractListModel, QModelIndex
+import logging
+from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, \
+    QAbstractListModel, QModelIndex, QSortFilterProxyModel
 from tool import Setup
 
 
@@ -203,6 +205,71 @@ class SetupModel(QAbstractItemModel):
     #     # self._root_setup = d
     #     self.endInsertRows()
     #     return retval
+
+
+class ToolProxyModel(QSortFilterProxyModel):
+    """Proxy model for SetupModels to show only the tool associated with a selected Setup.
+
+    Attributes:
+        ui (TitanUI): Needed to get selected item from QTreeView
+    """
+    def __init__(self, ui):
+        """Class constructor."""
+        super().__init__()
+        self._ui = ui
+
+    def rowCount(self, parent=None, *args, **kwargs):
+        """Return number of rows depending on if the selected Setup has a tool.
+
+        Args:
+            parent (QModelIndex): Index of parent. Not needed in a QListView.
+        """
+        n = len(self._ui.treeView_setups.selectedIndexes())
+        if n == 1:
+            try:
+                index = self._ui.treeView_setups.selectedIndexes()[0]
+            except IndexError:
+                return 0
+            setup = index.internalPointer()
+            tools_list = list(setup.tools.items())
+            if not tools_list:  # No tool in setup
+                return 0
+            return 1
+        else:
+            return 0
+
+    def emit_data_changed(self):
+        """Updates the view."""
+        # noinspection PyUnresolvedReferences
+        self.dataChanged.emit(QModelIndex(), QModelIndex())
+
+    def data(self, index, role=None):
+        """Return tool name if Setup has one.
+        Args:
+            index (QModelIndex): Index in tool view
+            role (int): Role to edit
+
+        Returns:
+            Tool name if available
+        """
+        if not index.isValid():
+            logging.error("index not valid %s" % index)
+            return
+        if role == Qt.DisplayRole:
+            try:
+                index = self._ui.treeView_setups.selectedIndexes()[0]
+            except IndexError:
+                logging.error("ToolProxyModel: Nothing selected")
+                return ""
+
+            setup = index.internalPointer()
+            # Get tool name associated with Setup
+            tools_list = list(setup.tools.items())
+            if not tools_list:  # No tool in setup
+                logging.error("No tool in selected Setup")
+                return ""
+            tool = tools_list[0][0]
+            return tool.name
 
 
 class SetupTreeListModel(QAbstractListModel):
