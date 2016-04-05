@@ -31,13 +31,13 @@ class MyEncoder(json.JSONEncoder):
 class Tool(MetaObject):
     """Class for defining a tool"""
 
-    def __init__(self, parent, name, description, path, main_prgm,
+    def __init__(self, name, description, path, main_prgm,
                  short_name=None,
-                 input_dir='', output_dir='', logfile=None):
+                 input_dir='.', output_dir='.', logfile=None,
+                 cmdline_args=None):
         """Tool constructor.
 
         Args:
-            parent: Parent tool
             name (str): Name of the tool
             description (str): Short description of the tool
             path (str): Path to tool or Git repository
@@ -46,16 +46,17 @@ class Tool(MetaObject):
             input_dir (str, optional): Input file directory (relative to `path`)
             output_dir (str, optional): Output file directory (relative to `path`)
             logfile (str, optional): Log file name (relative to `path`)
+            cmdline_args (str, optional): Command line arguments
         """
         super().__init__(name, description, short_name)
         if not os.path.exists(path):
             pass  # TODO: Do something here
         else:
             self.path = path
-        self.parent = parent
         self.main_prgm = main_prgm
+        self.cmdline_args = cmdline_args
         self.input_dir = input_dir
-        self.output_dir = input_dir
+        self.output_dir = output_dir
         self.outfiles = [os.path.join(output_dir, '*')]
         if logfile is not None:
             self.outfiles.append(logfile)
@@ -120,6 +121,12 @@ class Tool(MetaObject):
             cmdline_args (str): Extra command line arguments
             tool_output_dir (str): Output directory for tool
         """
+        if cmdline_args is not None:
+            if self.cmdline_args is not None:
+                cmdline_args += ' ' + self.cmdline_args
+        else:
+            cmdline_args = self.cmdline_args
+
         return ToolInstance(self, cmdline_args, tool_output_dir)
         
     def save(self):
@@ -163,9 +170,13 @@ class ToolInstance(QObject):
         basedir = os.path.join(WORK_DIR, '{}__{}'.format(self.tool.short_name, next(tempfile._get_candidate_names())))
         return shutil.copytree(self.tool.path, basedir, ignore=shutil.ignore_patterns(*IGNORE_PATTERNS))
 
-    def execute(self):
-        """Start executing tool instance in QProcess."""
-        self.tool_process = qsubprocess.QSubProcess(self.tool.parent, self.tool)
+    def execute(self, ui):
+        """Start executing tool instance in QProcess.
+
+        Args:
+            ui (QMainWindow): User interface
+        """
+        self.tool_process = qsubprocess.QSubProcess(ui, self.tool)
         self.tool_process.subprocess_finished_signal.connect(self.tool_finished)
         logging.debug("Starting model: '%s'" % self.tool.name)
         # Start running model in sub-process
@@ -436,8 +447,12 @@ class Setup(MetaObject):
         with open(jsonfile, 'w') as fp:
             json.dump(the_dict, fp, indent=4)
 
-    def execute(self):
-        """Execute this tool setup."""
+    def execute(self, ui):
+        """Execute this tool setup.
+
+        Args:
+            ui (QMainWindow): User interface
+        """
         logging.info("Executing Setup '{}'".format(self.name))
         if self.is_ready:
             logging.debug("Setup '{}' ready. Starting next Setup in SetupTree".format(self.name))
@@ -452,7 +467,7 @@ class Setup(MetaObject):
         instance.instance_finished_signal.connect(self.setup_finished)
         self.tool_instances.append(instance)
         self.copy_input(self.tool, instance)
-        instance.execute()
+        instance.execute(ui)
         # Wait for instance_finished_signal to start setup_finished()
 
     @pyqtSlot(int)

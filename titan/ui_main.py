@@ -126,7 +126,7 @@ class TitanUI(QMainWindow):
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
         self.add_msg_signal.emit("\nStarting Setup '%s'" % self._running_setup.name)
-        self._running_setup.execute()
+        self._running_setup.execute(self)
 
     @pyqtSlot()
     def setup_done(self):
@@ -151,7 +151,7 @@ class TitanUI(QMainWindow):
         self.add_msg_signal.emit("Starting Setup '%s'" % self._running_setup.name)
         # Connect setup_finished_signal to this same slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
-        self._running_setup.execute()
+        self._running_setup.execute(self)
 
     @pyqtSlot()
     def get_selected_setup(self):
@@ -176,7 +176,7 @@ class TitanUI(QMainWindow):
     def create_setups_1(self):
         """Create two Setups ('base' and 'setup a') and associate tool Magic with Setup A."""
         # Create tool
-        tool = GAMSModel(self, 'OLD MAGIC',
+        tool = GAMSModel('OLD MAGIC',
                          """A number of power stations are committed to meet demand
                          for a particular day. Three types of generators having
                          different operating characteristics are available. Generating
@@ -216,7 +216,7 @@ class TitanUI(QMainWindow):
 
     def create_setups_2(self):
         """Create 'invest' and 'MIP' setups."""
-        tool = GAMSModel(self, 'MAGIC',
+        tool = GAMSModel('MAGIC',
                          """M A G I C   Power Scheduling Problem
                          A number of power stations are committed
                          to meet demand for a particular day. three
@@ -259,7 +259,7 @@ class TitanUI(QMainWindow):
     def create_setups_3(self):
         """Creates 'invest' -> 'LP' branch and 'invest' -> MIP branches
          and puts them into a SetupTree List."""
-        tool = GAMSModel(self, 'MAGIC',
+        tool = GAMSModel('MAGIC',
                          """M A G I C   Power Scheduling Problem
                          A number of power stations are committed
                          to meet demand for a particular day. three
@@ -308,7 +308,7 @@ class TitanUI(QMainWindow):
 
     def create_test_setups(self):
         # Create tool
-        tool = GAMSModel(self, 'OLD MAGIC',
+        tool = GAMSModel('OLD MAGIC',
                          """A number of power stations are committed to meet demand
                          for a particular day. Three types of generators having
                          different operating characteristics are available. Generating
@@ -456,7 +456,7 @@ class TitanUI(QMainWindow):
 
          """
         # Create tool
-        self._tools['magic'] = GAMSModel(self, 'OLD MAGIC',
+        self._tools['magic'] = GAMSModel('OLD MAGIC',
                                          """A number of power stations are committed to meet demand
                                          for a particular day. Three types of generators having
                                          different operating characteristics are available. Generating
@@ -556,8 +556,9 @@ class TitanUI(QMainWindow):
              event (QEvent): PyQt event
         """
         # Remove working files
-        for _, setup in self._setups.items():
-            setup.cleanup()
+        #TODO: Fix this
+        #for _, setup in self._setups.items():
+        #    setup.cleanup()
         logging.debug("Thank you for choosing Titan. Bye bye.")
         # noinspection PyArgumentList
         QApplication.quit()

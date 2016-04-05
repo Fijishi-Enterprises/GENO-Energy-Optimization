@@ -15,26 +15,25 @@ from config import GAMS_EXECUTABLE
 class GAMSModel(Tool):
     """Class for GAMS models."""
 
-    def __init__(self, parent, name, description, path, gamsfile,
+    def __init__(self, name, description, path, gamsfile,
                  short_name=None,
-                 input_dir='', output_dir=''):
+                 input_dir='.', output_dir='.',
+                 cmdline_args=None):
         """Class constructor.
 
         Args:
-            parent: Parent class
             name (str): Model name
             description (str): Model description
             gamsfile (str): Path to main GAMS program (relative to `path`)
             short_name (str, optional): Short name for the model
             input_dir: Input directory path
             output_dir: Output directory path
+            cmdline_args (str, optional): GAMS command line arguments
         """
         # TODO: Clean up constructor.
-        self.parent = parent
-        self.gamsfile = gamsfile
-        self.model_path = path
-        super().__init__(parent, name, description, self.model_path, gamsfile,
-                         short_name, input_dir, output_dir)
+        super().__init__(name, description, path, gamsfile,
+                         short_name, input_dir, output_dir,
+                         cmdline_args=cmdline_args)
         self.GAMS_parameters = "Logoption=3"  # send LOG output to STDOUT
         # Add .log and .lst files to list of outputs
         self.outfiles.append(os.path.join(path, os.path.splitext(gamsfile)[0] + '.log'))
@@ -73,11 +72,18 @@ class GAMSModel(Tool):
         """
         instance = ToolInstance(self, cmdline_args, tool_output_dir)
         # Tamper the command to call GAMS
-        command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE, self.gamsfile,
+        command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE, self.main_prgm,
                                                   instance.basedir,
                                                   self.GAMS_parameters)
         if cmdline_args is not None:
-            command += ' ' + cmdline_args
+            if self.cmdline_args is not None:
+                command += ' ' + self.cmdline_args + ' ' + cmdline_args
+            else:
+                command += ' ' + cmdline_args
+        else:
+            if self.cmdline_args is not None:
+                command += self.cmdline_args
+
         instance.command = command
         return instance
            
@@ -87,9 +93,11 @@ class GAMSModel(Tool):
         with open(jsonfile, 'r') as fp:
             data = json.load(fp)
             gm = GAMSModel(data['name'], data['description'],
-                           data['path'], data['gamsfile'],
+                           os.path.dirname(jsonfile),
+                           data['main_prgm'],
                            data['short_name'], 
-                           data['input_dir'], data['output_dir'])
+                           data['input_dir'], data['output_dir'],
+                           cmdline_args=data['cmdline_args'])
             gm.inputs = set([DataParameter(obj['name'], obj['description'],
                                            obj['units'], obj['indices']) 
                              for obj in data['inputs']])
