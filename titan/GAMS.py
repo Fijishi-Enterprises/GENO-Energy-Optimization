@@ -8,14 +8,14 @@ Created on Thu Jan 21 13:27:34 2016
 import os.path
 import json
 
-from tool import Tool, ToolInstance, DataFormat, DataParameter
+from tool import Tool, ToolInstance, DataFormat, Dimension, DataParameter
 from config import GAMS_EXECUTABLE
 
 
 class GAMSModel(Tool):
     """Class for GAMS models."""
 
-    def __init__(self, name, description, path, gamsfile,
+    def __init__(self, name, description, path, main_prgm,
                  short_name=None,
                  input_dir='.', output_dir='.',
                  cmdline_args=None):
@@ -31,13 +31,13 @@ class GAMSModel(Tool):
             cmdline_args (str, optional): GAMS command line arguments
         """
         # TODO: Clean up constructor.
-        super().__init__(name, description, path, gamsfile,
+        super().__init__(name, description, path, main_prgm,
                          short_name, input_dir, output_dir,
                          cmdline_args=cmdline_args)
         self.GAMS_parameters = "Logoption=3"  # send LOG output to STDOUT
         # Add .log and .lst files to list of outputs
-        self.outfiles.append(os.path.join(path, os.path.splitext(gamsfile)[0] + '.log'))
-        self.outfiles.append(os.path.join(path, os.path.splitext(gamsfile)[0] + '.lst'))
+        self.outfiles.append(os.path.join(path, os.path.splitext(main_prgm)[0] + '.log'))
+        self.outfiles.append(os.path.join(path, os.path.splitext(main_prgm)[0] + '.lst'))
         # Logoption options
         # 0 suppress LOG output
         # 1 LOG output to screen (default)
@@ -91,18 +91,54 @@ class GAMSModel(Tool):
     def load(jsonfile):
         """Load a tool description from a file"""
         with open(jsonfile, 'r') as fp:
-            data = json.load(fp)
-            gm = GAMSModel(data['name'], data['description'],
-                           os.path.dirname(jsonfile),
-                           data['main_prgm'],
-                           data['short_name'], 
-                           data['input_dir'], data['output_dir'],
-                           cmdline_args=data['cmdline_args'])
-            gm.inputs = set([DataParameter(obj['name'], obj['description'],
-                                           obj['units'], obj['indices']) 
-                             for obj in data['inputs']])
-                
-            return gm
+            json_data = json.load(fp)
+
+        # Find required and optional arguments
+        required = ['name', 'description', 'main_prgm']
+        optional = ['short_name', 'input_dir', 'output_dir', 'cmdline_args']
+
+        # Construct keyword arguments
+        kwargs = {}
+        for p in required + optional:
+            try:
+                kwargs[p] = json_data[p]
+            except KeyError:
+                if p in required:
+                    # TODO: Do something smart
+                    raise
+                else:
+                    pass
+
+        kwargs['path'] = os.path.dirname(jsonfile)  # Infer path form JSON file
+
+        # Create a GAMSModel instance
+        model = GAMSModel(**kwargs)
+
+        # Define other attributes
+        try:
+            model.dimensions = json_data['dimensions']
+        except KeyError:
+            pass
+
+        for p in ['inputs', 'outputs']:
+            try:
+                data = json_data[p]
+            except KeyError:
+                pass
+            else:
+                setattr(model, p, set([DataParameter(p['name'], p['description'],
+                                                     p['units'], p['indices'])
+                                       for p in data]))
+
+        for p in ['input_formats', 'output_formats']:
+            try:
+                formats = json_data[p]
+            except KeyError:
+                pass
+            else:
+                setattr(model, p, set([eval(fmt) for fmt in formats]))
+
+        return model
             
 
 GDX_DATA_FMT = DataFormat('GDX', 'gdx', is_binary=True)

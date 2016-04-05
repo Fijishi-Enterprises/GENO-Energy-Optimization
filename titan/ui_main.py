@@ -7,15 +7,19 @@ Module for main application GUI functions.
 
 import locale
 import logging
+import os.path
+
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex
 from PyQt5.QtWidgets import QMainWindow, QApplication
+
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolProxyModel
 from tool import Dimension, DataParameter, Setup
 from tools import SetupTree
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
-from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH
+from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH,\
+                   MAGIC_INVESTMENTS_JSON, MAGIC_OPERATION_JSON
 
 
 class TitanUI(QMainWindow):
@@ -216,70 +220,35 @@ class TitanUI(QMainWindow):
 
     def create_setups_2(self):
         """Create 'invest' and 'MIP' setups."""
-        tool = GAMSModel('MAGIC',
-                         """M A G I C   Power Scheduling Problem
-                         A number of power stations are committed
-                         to meet demand for a particular day. three
-                         types of generators having different
-                         operating characteristics are available.
-                         Generating units can be shut down or operate
-                         between minimum and maximum output levels.
-                         Units can be started up or closed down in
-                         every demand block.""",
-                         MAGIC_MODEL_PATH, 'magic.gms', input_dir='input',
-                         output_dir='output')
 
-        tool.add_input_format(GDX_DATA_FMT)
-        tool.add_input_format(GAMS_INC_FILE)
-        tool.add_output_format(GDX_DATA_FMT)
+        # Load model definitions
+        magic_invest = GAMSModel.load(MAGIC_INVESTMENTS_JSON)
+        magic_operation = GAMSModel.load(MAGIC_OPERATION_JSON)
 
-        g = Dimension('g', 'generators')
-        param = Dimension('param', 'parameters')
-        data = DataParameter('data', 'generation data', '?', [g, param])
-
-        tool.add_input(data)
-        tool.add_output(data)
         # Add Invest Setup
         if not self.setup_model.insert_setup('invest', 'Do investments', self._project, 0):
             logging.error("Adding 'invest' to model failed")
             return
         invest_ind = self.setup_model.index(0, 0, QModelIndex())
         invest = self.setup_model.get_setup(invest_ind)
-        invest.add_input(tool)
-        invest.add_tool(tool, cmdline_args='--INVEST=yes --USE_MIP=yes')
+        invest.add_input(magic_invest)
+        invest.add_tool(magic_invest, "--USE_MIP=yes")
         # Add MIP
         if not self.setup_model.insert_setup('MIP', 'Operation with MIP model', self._project, 0, invest_ind):
             logging.error("Adding 'MIP' to model failed")
             return
         mip_index = self.setup_model.index(0, 0, invest_ind)
         mip = self.setup_model.get_setup(mip_index)
-        mip.add_input(tool)
-        mip.add_tool(tool, cmdline_args='--USE_MIP=yes')
+        mip.add_input(magic_operation)
+        mip.add_tool(magic_operation, cmdline_args="--USE_MIP=yes")
 
     def create_setups_3(self):
         """Creates 'invest' -> 'LP' branch and 'invest' -> MIP branches
          and puts them into a SetupTree List."""
-        tool = GAMSModel('MAGIC',
-                         """M A G I C   Power Scheduling Problem
-                         A number of power stations are committed
-                         to meet demand for a particular day. three
-                         types of generators having different
-                         operating characteristics are available.
-                         Generating units can be shut down or operate
-                         between minimum and maximum output levels.
-                         Units can be started up or closed down in
-                         every demand block.""",
-                         MAGIC_MODEL_PATH, 'magic.gms', input_dir='input',
-                         output_dir='output')
-        tool.add_input_format(GDX_DATA_FMT)
-        tool.add_input_format(GAMS_INC_FILE)
-        tool.add_output_format(GDX_DATA_FMT)
-        g = Dimension('g', 'generators')
-        param = Dimension('param', 'parameters')
-        data = DataParameter('data', 'generation data', '?', [g, param])
 
-        tool.add_input(data)
-        tool.add_output(data)
+        # Load model definitions
+        magic_invest = GAMSModel.load(MAGIC_INVESTMENTS_JSON)
+        magic_operation = GAMSModel.load(MAGIC_OPERATION_JSON)
 
         # Add Invest Setup
         if not self.setup_model.insert_setup('invest', 'Do investments', self._project, 0):
@@ -287,16 +256,16 @@ class TitanUI(QMainWindow):
             return
         invest_ind = self.setup_model.index(0, 0, QModelIndex())
         invest = self.setup_model.get_setup(invest_ind)
-        invest.add_input(tool)
-        invest.add_tool(tool, cmdline_args='--INVEST=yes --USE_MIP=yes')
+        invest.add_input(magic_invest)
+        invest.add_tool(magic_invest, cmdline_args="--USE_MIP=yes")
         # Add MIP as child of invest
         if not self.setup_model.insert_setup('MIP', 'Operation with MIP model', self._project, 0, invest_ind):
             logging.error("Adding 'MIP' to model failed")
             return
         mip_index = self.setup_model.index(0, 0, invest_ind)
         mip = self.setup_model.get_setup(mip_index)
-        mip.add_input(tool)
-        mip.add_tool(tool, cmdline_args='--USE_MIP=yes')
+        mip.add_input(magic_operation)
+        mip.add_tool(magic_operation, cmdline_args='--USE_MIP=yes')
 
         # Add LP as child of invest
         if not self.setup_model.insert_setup('LP', 'Operation with LP model', self._project, 0, invest_ind):
@@ -304,7 +273,7 @@ class TitanUI(QMainWindow):
             return
         lp_index = self.setup_model.index(0, 0, invest_ind)
         lp = self.setup_model.get_setup(lp_index)
-        lp.add_tool(tool, cmdline_args='--USE_MIP=no')
+        lp.add_tool(magic_operation, cmdline_args='--USE_MIP=no')
 
     def create_test_setups(self):
         # Create tool

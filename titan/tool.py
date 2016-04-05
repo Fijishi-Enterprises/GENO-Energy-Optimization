@@ -60,7 +60,7 @@ class Tool(MetaObject):
         self.outfiles = [os.path.join(output_dir, '*')]
         if logfile is not None:
             self.outfiles.append(logfile)
-        self.dimensions = set()
+        self.dimensions = {}
         self.inputs = set()
         self.input_formats = set()
         self.outputs = set()
@@ -134,7 +134,6 @@ class Tool(MetaObject):
         """
         
         the_dict = copy(self.__dict__)
-        the_dict.pop('parent', None)
 
         jsonfile = os.path.join(self.path,
                                 '{}.json'.format(self.short_name))
@@ -591,7 +590,7 @@ class DataParameter(object):
         self.indices = indices
         
     def __repr__(self):        
-        return ("DataParameter('{}', '{}', '{}', '{}')"
+        return ("DataParameter('{}', '{}', '{}', {})"
                 .format(self.name, self.description,
                         self.units, self.indices))
 
