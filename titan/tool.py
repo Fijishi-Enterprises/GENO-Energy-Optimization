@@ -571,6 +571,8 @@ class DataFormat(object):
     def __repr__(self):
         return ("DataFormat('{}', '{}', is_binary={})"
                 .format(self.name, self.extension, self.is_binary))
+        
+CSV_DATA_FMT = DataFormat('Comma separated values', 'csv')
 
 
 class DataParameter(object):

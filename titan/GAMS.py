@@ -8,7 +8,8 @@ Created on Thu Jan 21 13:27:34 2016
 import os.path
 import json
 
-from tool import Tool, ToolInstance, DataFormat, Dimension, DataParameter
+from tool import Tool, ToolInstance, DataFormat, Dimension, DataParameter,\
+                 CSV_DATA_FMT
 from config import GAMS_EXECUTABLE
 
 
