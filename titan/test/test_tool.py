@@ -1,10 +1,14 @@
+"""
+Unit tests for Tool class.
+
+@author: Pekka Savolainen <pekka.t.savolainen@vtt.fi>
+@date: 7.4.2016
+"""
+
 from unittest import TestCase
 
 
-class TestModel(TestCase):
-    def test_set_logfile(self):
-        self.fail()
-
+class TestTool(TestCase):
     def test_add_input(self):
         self.fail()
 

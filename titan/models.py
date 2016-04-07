@@ -23,6 +23,21 @@ class SetupModel(QAbstractItemModel):
         """SetupModel constructor."""
         super().__init__(parent)
         self._root_setup = root
+        self._base_index = None  # Used in tree traversal algorithms
+
+    def set_base(self, ind):
+        """Set Base index for this tree. Used in where the tree traversal algorithms start.
+        If the whole project should be executed. This should be set to Root.
+
+        Args:
+            ind (QModelIndex): Index of Base Setup.
+        """
+        # TODO: Test with root setup if the whole project is executed
+        self._base_index = ind
+
+    def get_base(self):
+        """Returns the Base Setup index set for this model."""
+        return self._base_index
 
     def rowCount(self, parent=None, *args, **kwargs):
         """Returns row count of the model for the view.
@@ -129,21 +144,6 @@ class SetupModel(QAbstractItemModel):
         else:
             return QModelIndex()
 
-    def get_setup(self, index):
-        """Get setup with the given index.
-
-        Args:
-            index (QModelIndex): Index of Setup
-
-        Returns:
-            Setup at given index or Root Setup if index is not valid
-        """
-        if index.isValid():
-            setup = index.internalPointer()
-            if setup:
-                return setup
-        return self._root_setup
-
     def insert_setup(self, name, description, project, row, parent=QModelIndex()):
         """Add new Setup to model.
 
@@ -164,6 +164,148 @@ class SetupModel(QAbstractItemModel):
         retval = parent_setup.insert_child(position=row, child=new_setup)
         self.endInsertRows()
         return retval
+
+    def get_setup(self, index):
+        """Get setup with the given index.
+
+        Args:
+            index (QModelIndex): Index of Setup
+
+        Returns:
+            Setup at given index or Root Setup if index is not valid
+        """
+        if index.isValid():
+            setup = index.internalPointer()
+            if setup:
+                return setup
+        return self._root_setup
+
+    def get_siblings(self, index):
+        """Return Setup indices on the same row as the given index (siblings).
+
+        Args:
+            index (QModelIndex): Index of a Setup which siblings are needed
+
+        Returns:
+            List of indices pointing to Setups on the same row.
+            Includes also the given index. Returns empty list if
+            index is not valid.
+        """
+        # Number of siblings on given row
+        rows = self.rowCount(index.parent())
+        if rows == 0:
+            return list()
+        sibling_list = list()
+        for i in range(rows):
+            sib = self.index(i, 0, index.parent())
+            sibling_list.append(sib)
+        return sibling_list
+
+    def get_next_setup(self, breadth_first=True):
+        """Get next Setup depending on the tree traversal algorithm in use.
+
+        Args:
+            breadth_first (boolean): Tree traversal algorithm. True: breadth_first, False: depth_first
+
+        Returns:
+            Index of the first encountered not ready Setup
+        """
+        # If base has no children, return None
+        n_children = self._base_index.internalPointer().child_count()
+        # Stop execution if Base has no children
+        if n_children == 0:
+            return None
+        # First child index
+        child_index = self._base_index.child(0, 0)
+        # Siblings of first child
+        siblings = self.get_siblings(child_index)
+        if breadth_first:
+            next_setup = self.breadth_first(siblings)
+        else:
+            next_setup = self.depth_first(siblings)
+        if not next_setup:
+            return None
+        return next_setup
+
+    def breadth_first(self, siblings):
+        """Traverse Setup tree by levels (breadth-first traversal algorithm).
+        Visit every node on a level before going to a lower level.
+
+        Args:
+            siblings (list): List of sibling indices
+
+        Returns:
+            First encountered Setup, which is not ready
+        """
+        # Make sure that siblings are in a list, even if only one sibling present
+        if not siblings.__class__ == list:
+            siblings = list([siblings])
+        children_found = False
+        index_has_children = None
+        for sib in siblings:
+            if sib.internalPointer().child_count() is not 0:
+                children_found = True
+                index_has_children = sib
+            if not sib.internalPointer().is_ready:
+                return sib
+        # First level ready. Get next generation.
+        if not children_found:
+            logging.debug("Next generation not found")
+            return None
+        else:
+            parent = index_has_children
+            next_gen = self.get_next_generation(parent)
+            return self.breadth_first(next_gen)
+
+    def depth_first(self, siblings):
+        """Traverse Setup tree by levels by pre-order breadth-first algorithm.
+
+        Args:
+            siblings (list): List of sibling indices
+
+        Returns:
+            First encountered Setup, which is not ready
+        """
+        # TODO: Fix this algorithm
+        # Make sure that siblings are in a list, even if only one sibling present
+        if not siblings.__class__ == list:
+            siblings = list([siblings])
+        for sib in siblings:
+            if not sib.internalPointer().is_ready:
+                return sib
+            else:
+                # Check if sib has children
+                n_sib_children = sib.internalPointer().child_count()
+                if n_sib_children == 0:
+                    # Get next sib from siblings
+                    continue
+                else:
+                    # sib has children. Get siblings of the next level
+                    child_of_sib = sib.child(0, 0)
+                    siblings_of_sib = self.get_siblings(child_of_sib)
+                    return self.depth_first(siblings_of_sib)
+
+    def get_next_generation(self, index):
+        """Given an index, returns indices of all children on the next level (generation).
+
+        Args:
+            index (QModelIndex): index of one parent
+
+        Returns:
+            Indices of the next generation (list) or an empty list if none found
+        """
+        next_gen = list()
+        siblings = self.get_siblings(index)
+        for sib in siblings:
+            n = sib.internalPointer().child_count()
+            if n == 0:
+                continue
+            else:
+                first_child = sib.child(0, 0)
+                child_siblings = self.get_siblings(first_child)
+                for child in child_siblings:
+                    next_gen.append(child)
+        return next_gen
 
     def emit_data_changed(self):
         """Updates the view. Can be used when data (Setup) changes."""
@@ -335,5 +477,3 @@ class SetupTreeListModel(QAbstractListModel):
     # def removeRow(self, position, parent=None, *args, **kwargs):
     #     self.beginRemoveRows()
     #     self.endRemoveRows()
-
-

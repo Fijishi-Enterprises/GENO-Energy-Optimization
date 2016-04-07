@@ -300,7 +300,11 @@ class Setup(MetaObject):
         Args:
             row (int): Row number
         """
-        return self._children[row]
+        try:
+            ch = self._children[row]
+        except IndexError:
+            ch = None
+        return ch
 
     def child_count(self):
         """Returns number of children."""
@@ -485,7 +489,7 @@ class Setup(MetaObject):
         else:
             logging.debug("Setup <%s> failed. is_ready is False" % self.name)
             self.is_ready = False
-        # Run next Setup from SetupTree
+        # Run next Setup
         self.setup_finished_signal.emit()
 
     def copy_input(self, tool, tool_instance=None):

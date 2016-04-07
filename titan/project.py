@@ -9,17 +9,17 @@ from metaobject import MetaObject
 from tool import Setup
 from config import PROJECT_DIR
 
+
 class SceletonProject(MetaObject):
-    """Class for Sceleton projects
-    """
+    """Class for Sceleton projects."""
 
     def __init__(self, name, description):
-        """
-        Args:
-             name (str)
-             description (str)
-        """
+        """Class constructor.
 
+        Args:
+             name (str): Project name
+             description (str): Project description
+        """
         super().__init__(name, description)
         self.project_dir = os.path.join(PROJECT_DIR, self.short_name)
         if not os.path.exists(PROJECT_DIR):

@@ -10,10 +10,10 @@ import os
 import sys
 import shutil
 import logging as log
-from tool import NewSetup, Dimension, DataParameter, Model
+from tool import Setup, Dimension, DataParameter
 import tool
 import ui_main
-from GAMS import OldGAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
+from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import APPLICATION_PATH, PROJECT_DIR
 from tools import copy_files
 
@@ -30,13 +30,13 @@ class TestSetup(TestCase):
         log.disable(level=log.ERROR)
         self.magic_model_file = os.path.join(APPLICATION_PATH, 'test', 'resources', 'test_model', 'magic.gms')
         self.magic_model_path = os.path.split(self.magic_model_file)[0]
-        self.base_setup = NewSetup('Test base', 'Base Setup for testing')
-        self.child_dummy_a = NewSetup('Setup Dummy A', 'Setup with parent Base', self.base_setup)
+        self.base_setup = Setup('Test base', 'Base Setup for testing')
+        self.child_dummy_a = Setup('Setup Dummy A', 'Setup with parent Base', self.base_setup)
         self.child_dummy_b = None  # Placeholder for a third setup
-        self.model = OldGAMSModel(self, 'Test GAMS Magic Model', 'Model for testing.', self.magic_model_path,
-                                  self.magic_model_file, 'input', 'output')
-        self.model_two = OldGAMSModel(self, 'Another Test GAMS Magic Model', 'Second model for testing.',
-                                      self.magic_model_path, self.magic_model_file, 'input', 'output')
+        self.model = GAMSModel('Test GAMS Magic Tool', 'Tool for testing.', self.magic_model_path,
+                               self.magic_model_file, 'input', 'output')
+        self.model_two = GAMSModel('Another Test GAMS Magic Tool', 'Second model for testing.',
+                                   self.magic_model_path, self.magic_model_file, 'input', 'output')
         log.disable(level=log.NOTSET)
 
     def tearDown(self):
@@ -98,10 +98,10 @@ class TestSetup(TestCase):
         dir_path = self.child_dummy_a.create_dir(base_path=basepath, folder=folder)
         self.assertTrue(os.path.exists(dir_path))
 
-    def test_add_model(self):
-        log.info("Testing add_model()")
-        # Test adding model to Setup
-        retval = self.child_dummy_a.add_model(self.model)
+    def test_add_tool(self):
+        log.info("Testing add_tool()")
+        # Test adding tool to Setup
+        retval = self.child_dummy_a.add_tool(self.tool)
         self.assertTrue(retval)
 
     def test_collect_input_files(self):
@@ -200,7 +200,7 @@ class TestSetup(TestCase):
         # Pop next model into model.running_model
         self.child_dummy_a.pop_model()
         retval = False
-        if self.child_dummy_a.running_model.__class__.__name__ == 'OldGAMSModel':
+        if self.child_dummy_a.running_model.__class__.__name__ == 'GAMSModel':
             retval = True
         self.assertTrue(retval)
 
@@ -306,7 +306,7 @@ class TestSetup(TestCase):
         log.debug("Testing execute() with three setups and two models")
         log.disable(level=log.ERROR)
         self.child_dummy_a.add_model(self.model, 'MIP=CPLEX')
-        self.child_dummy_b = NewSetup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
+        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
         self.child_dummy_b.add_model(self.model_two)
         log.disable(level=log.NOTSET)
         effects = [self.child_dummy_a.model_finished, self.child_dummy_b.model_finished, Exception("No effects left")]
@@ -330,7 +330,7 @@ class TestSetup(TestCase):
         """Test execute with three setups: base -> setup_dummy_a -> setup_dummy_b.
         setup_dummy_b has a GAMS model."""
         log.debug("Testing execute() with three setups and one model")
-        self.child_dummy_b = NewSetup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
+        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
         log.disable(level=log.ERROR)
         self.child_dummy_b.add_model(self.model_two)
         log.disable(level=log.NOTSET)
@@ -354,7 +354,7 @@ class TestSetup(TestCase):
     def test_execute_with_three_setups(self):
         """Test execute with three setups: base -> setup_dummy_a -> setup_dummy_b."""
         log.debug("Testing execute() with three setups")
-        self.child_dummy_b = NewSetup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
+        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
         self.child_dummy_b.execute()
         # with mock.patch('model.qsubprocess.QSubProcess.start_process',
         #                 side_effect=self.side_effect) as mock_start_process:
