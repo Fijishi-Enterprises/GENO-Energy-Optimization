@@ -43,23 +43,10 @@ class TitanUI(QMainWindow):
         self._project = SceletonProject('project 1', 'a test project')
         self._running_setup = None
         self._root = None  # Root node for SetupModel
-        # self._base_index = None  # For Setup search algorithms. Moved to SetupModel class
         self.setup_model = None
         self.tool_proxy_model = None
-        # Ref. for widgets
+        # References for widgets
         self.setup_popup = None
-        # Obsolete variables
-        # self._simulation_failed = False  # Obsolete
-        # self.processes = dict()  # Obsolete
-        # self.running_process = ''  # Obsolete
-        # self._tools = dict()  # Obsolete
-        # self._setups = dict()  # Obsolete
-        # self._setuptree = None  # Obsolete
-        # self._running_setuptree = None  # Obsolete
-        # self._setuptree_list = list()  # Used to store multiple SetupTrees (branches) (Obsolete)
-        # self.setuptree_model = None  # Obsolete
-        # self.setup_list_model = None  # Obsolete
-        # self.tool_list_model = None  # Obsolete
         # Initialize general things
         self.connect_signals()
         self.init_views()
@@ -94,38 +81,6 @@ class TitanUI(QMainWindow):
         self.ui.treeView_setups.pressed.connect(self.update_tool_view)
         self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
 
-    def context_menu_configs(self, pos):
-        """ Context menu for the configuration tree.
-
-        Args:
-            pos: it is received from the customContextMenuRequested signal and
-             it includes the mouse position.
-        """
-        global_pos = self.ui.treeView_setups.mapToGlobal(pos)
-        if len(self.ui.treeView_setups.selectedIndexes()) == 0:
-            ind = None
-        else:
-            ind = self.ui.treeView_setups.selectedIndexes()[0]
-        menu = ContextMenuWidget(global_pos, ind)
-        # option = ContextMenuWidget(global_pos).get_action()
-        option = menu.get_action()
-        logging.debug("%s" % option)
-        if option == "Add Child":
-            logging.debug("adding child")
-            self.open_setup_popup(ind)
-        elif option == "Add New Base":
-            self.open_setup_popup()
-        elif option == "Edit":
-            logging.debug("Edit selected")
-        elif option == "Execute":
-            if ind is None:
-                logging.debug("No Setup selected")
-            else:
-                logging.debug("Selected setup:%s" % ind.internalPointer().name)
-                self.execute_setup()
-        else:
-            logging.debug("No selection made")
-
     def init_views(self):
         """Create data models for GUI views."""
         # Make root for SetupModel
@@ -137,30 +92,45 @@ class TitanUI(QMainWindow):
         self.tool_proxy_model = ToolProxyModel(self.ui)
         self.tool_proxy_model.setSourceModel(self.setup_model)
         self.ui.listView_tools.setModel(self.tool_proxy_model)
-        # TODO: Proxy model for input formats
-        # TODO: Proxy model for output formats
         # TODO: Show input files of Setup directory
-        # Obsolete models & views
-        # self.setuptree_model = SetupTreeListModel()
-        # self.setup_list_model = SetupTreeListModel()
-        # self.tool_list_model = SetupTreeListModel()
-        # self.ui.listVView_setuptrees.setModel(self.setuptree_model)
-        # self.ui.listView_setups.setModel(self.setup_list_model)
+
+    def context_menu_configs(self, pos):
+        """ Context menu for the configuration tree.
+
+        Args:
+            pos: it is received from the customContextMenuRequested signal and
+             it includes the mouse position.
+        """
+        ind = self.ui.treeView_setups.indexAt(pos)
+        global_pos = self.ui.treeView_setups.mapToGlobal(pos)
+        option = ContextMenuWidget(global_pos, ind).get_action()
+        if option == "Add Child":
+            logging.debug("adding child")
+            self.open_setup_popup(ind)
+        elif option == "Add New Base":
+            self.open_setup_popup()
+        elif option == "Edit":
+            logging.debug("Edit selected")
+        elif option == "Execute":
+            logging.debug("Selected setup:%s" % ind.internalPointer().name)
+            self.execute_setup()
+        else:
+            # No option selected
+            pass
 
     def open_setup_popup_from_button(self):
-        """Show Setup creation popup
-        Args:
-            index (QModelIndex): Parent index of the new Setup
-        """
+        """Show Setup creation popup."""
         # Show Setup creation wizard
-        index = None
-        self.setup_popup = SetupPopupWidget(self, index)
+        # TODO: Handle case where user tries to add a setup with a name that is already taken.
+        ind = None
+        self.setup_popup = SetupPopupWidget(self, ind)
         self.setup_popup.create_base_signal.connect(self.add_base)
         self.setup_popup.create_child_signal.connect(self.add_child)
         self.setup_popup.show()
 
     def open_setup_popup(self, index=None):
-        """Show Setup creation popup
+        """Show Setup creation popup. Used by the context menu.
+
         Args:
             index (QModelIndex): Parent index of the new Setup
         """
@@ -447,9 +417,6 @@ class TitanUI(QMainWindow):
         data = DataParameter('data', 'generation data', '?', [g, param])
         # Add input data parameter for tool
         tool.add_input(data)
-
-        # TODO: Handle case where user tries to add a setup with a name that is already taken.
-
         # ----------------- Adding a Setup to data model -------------------:
         # Option 1: Create Setup with the wanted parent
         # Option 2: Create Setup with no parent and use insert_child() to associate Setup to model
@@ -547,17 +514,6 @@ class TitanUI(QMainWindow):
         #     self.add_msg_signal.emit("teste: %s." % e.args[0])
         logging.debug("test2")
 
-    def add_item(self):
-        # Adding a Setup to model:
-        # Option 1: Create Setup with the wanted parent
-        # Option 2: Create Setup with no parent and use insert_child() to associate Setup to model
-        setup_a_index = self.setup_model.index(0, 0, QModelIndex())
-        retval = self.setup_model.insert_setup('setup D', 'test setup D', self._project, 0, setup_a_index)
-        if not retval:
-            logging.error("Adding Setup to model failed")
-            return
-        logging.debug("Setup added successfully")
-
     @pyqtSlot("QModelIndex")
     def update_tool_view(self, index):
         """Update tool name of selected Setup to tool QListView.
@@ -568,106 +524,6 @@ class TitanUI(QMainWindow):
         if not index.isValid():
             return
         self.tool_proxy_model.emit_data_changed()
-
-    def example_on_how_to_create_setuptree(self):
-        """Create two Setups ('base' and 'setup a') and associate tool Magic with Setup A.
-
-        NOTE: Obsolete!
-
-         """
-        # Create tool
-        self._tools['magic'] = GAMSModel('OLD MAGIC',
-                                         """A number of power stations are committed to meet demand
-                                         for a particular day. Three types of generators having
-                                         different operating characteristics are available. Generating
-                                         units can be shut down or operate between minimum and maximum
-                                         output levels. Units can be started up or closed down in
-                                         every demand block.""",
-                                         OLD_MAGIC_MODEL_PATH, 'magic.gms',
-                                         input_dir='input', output_dir='output')
-        # Add input&output formats for tool
-        self._tools['magic'].add_input_format(GDX_DATA_FMT)
-        self._tools['magic'].add_input_format(GAMS_INC_FILE)
-        self._tools['magic'].add_output_format(GDX_DATA_FMT)
-        # Create data parameters
-        g = Dimension('g', 'generators')
-        param = Dimension('param', 'parameters')
-        data = DataParameter('data', 'generation data', '?', [g, param])
-        # Add input data parameter for tool
-        self._tools['magic'].add_input(data)
-        # Create Base Setup
-        self._setups['base'] = Setup('base', 'The base setup',
-                                     project=self._project, parent=self._root)
-        # Create Setup A, with Base setup as parent
-        self._setups['setup A'] = Setup('setup A', 'test setup A',
-                                        project=self._project,
-                                        parent=self._setups['base'])
-        self._setups['setup B'] = Setup('setup B', 'test setup B',
-                                        project=self._project,
-                                        parent=self._setups['base'])
-        self._setups['setup C'] = Setup('setup C', 'test setup C',
-                                        project=self._project,
-                                        parent=self._setups['setup A'])
-        # Add tool 'magic' to setup 'Setup A'
-        if not self._setups['setup A'].add_tool(self._tools['magic'], 'MIP=CPLEX'):
-            self.add_err_msg_signal.emit("Adding a tool to 'setup A' failed\n")
-            logging.error("Adding a model to Setup failed")
-            return
-        self.add_msg_signal.emit("Building SetupTree A")
-        # Create a SetupTree starting from Setup A
-        self._setuptree = SetupTree('Setup Tree A', 'SetupTree to run Setup A and base setups', self._setups['setup A'])
-        self._setuptree_list.append(self._setuptree)
-        # Add data into PyQt models
-        self.setup_list_model.add_data(self._setups['base'])
-        self.setup_list_model.add_data(self._setups['setup A'])
-        self.tool_list_model.add_data(self._tools['magic'])
-        self.setuptree_model.add_data(self._setuptree)
-        root_print = self._root.log()
-        logging.debug("root print:\n%s" % root_print)
-
-    def execute_all(self):
-        """Run all SetupTrees in setuptree_list.
-
-        NOTE: Obsolete!
-
-        """
-        if not self._setuptree_list:
-            self.add_msg_signal.emit("No SetupTree List available")
-            return
-        self.add_msg_signal.emit("*** Starting simulation with {0} SetupTree(s) ***".format(len(self._setuptree_list)))
-        # Get the first SetupTree from list and start it.
-        # Note: Pop() without index returns the last item in the list.
-        self._running_setuptree = self._setuptree_list.pop()
-        self.add_msg_signal.emit("*** Executing SetupTree <{0}> with {1} Setups ***"
-                                 .format(self._running_setuptree.name, self._running_setuptree.n))
-        # Connect run finished signal between SetupTree and Titan_UI
-        self._running_setuptree.setuptree_finished_signal.connect(self.execute_finished)
-        self._running_setuptree.run()
-
-    @pyqtSlot()
-    def execute_finished(self):
-        """Clean up after a SetupTree has finished.
-
-        NOTE: Obsolete!
-
-        """
-        logging.debug("SetupTree <{}> finished".format(self._running_setuptree.name))
-        self._running_setuptree = None
-        try:
-            # Run the next SetupTree
-            self._running_setuptree = self._setuptree_list.pop()
-        except IndexError:
-            self.add_msg_signal.emit("\n*** All SetupTrees finished. Cleaning up. ***\n")
-            self._tools.clear()
-            self._setups.clear()
-            self._setuptree = None
-            self._setuptree_list.clear()
-            return
-        logging.debug("Executing SetupTree <{}>".format(self._running_setuptree.name))
-        self.add_msg_signal.emit("\n*** Executing SetupTree <{0}> with {1} Setups ***"
-                                 .format(self._running_setuptree.name, self._running_setuptree.n))
-        self._running_setuptree.setuptree_finished_signal.connect(self.execute_finished)
-        self._running_setuptree.run()
 
     def closeEvent(self, event=None):
         """Method for handling application exit.
@@ -680,5 +536,7 @@ class TitanUI(QMainWindow):
         # for _, setup in self._setups.items():
         #    setup.cleanup()
         logging.debug("Thank you for choosing Titan. Bye bye.")
-        # noinspection PyArgumentList
-        QApplication.quit()
+        # Beware. This causes -1073741819 (0xc0000005) status_access_violation on PyCharm
+        # QApplication.quit()
+        # This works
+        self.deleteLater()

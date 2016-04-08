@@ -15,12 +15,14 @@ class ContextMenuWidget(QMenu):
         super().__init__()
         self.ind = ind
         self.option = "None"
-        if ind:
+        if not ind.isValid():
+            self.add_action("Add New Base")
+        else:
+            self.add_action("Add New Base")
             self.add_action("Add Child")
-        self.add_action("Add New Base")
-        self.add_action("Edit")
-        self.add_action("Execute")
-        self.exec(position)
+            self.add_action("Edit")
+            self.add_action("Execute")
+        self.exec_(position)
 
     def add_action(self, text):
         """ Adds an action to the context menu.
