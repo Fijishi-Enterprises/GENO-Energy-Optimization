@@ -8,12 +8,11 @@ Module for main application GUI functions.
 import locale
 import logging
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
-from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolProxyModel
 from tool import Dimension, DataParameter, Setup
-from tools import SetupTree
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import ERROR_TEXT_COLOR, MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH,\
                    MAGIC_INVESTMENTS_JSON, MAGIC_OPERATION_JSON
@@ -73,8 +72,8 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_create_setups_3.clicked.connect(self.create_setups_3)
         self.ui.pushButton_create_test_setups.clicked.connect(self.create_test_setups)
         self.ui.pushButton_execute.clicked.connect(self.execute_setup)
-        self.ui.pushButton_test.clicked.connect(self.test_match)
-        self.ui.pushButton_clear.clicked.connect(self.get_selected_setup_base_index)
+        self.ui.pushButton_test.clicked.connect(self.print_root)
+        self.ui.pushButton_remove.clicked.connect(self.remove_selected_setup)
         self.ui.pushButton_add_base.clicked.connect(self.open_setup_popup_from_button)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
         self.ui.treeView_setups.pressed.connect(self.update_tool_view)
@@ -302,12 +301,30 @@ class TitanUI(QMainWindow):
 
     def remove_selected_setup(self):
         """Removes selected Setup (and all of it's children) from SetupModel."""
-        setup = self.get_selected_setup()
-        if not setup:
-            self.add_msg_signal.emit("No Setup selected")
+        try:
+            index = self.ui.treeView_setups.selectedIndexes()[0]
+        except IndexError:
+            # Nothing selected
             return
-        self.add_msg_signal.emit("Removing Setup '%s' (NA)" % setup.name)
-        # TODO: Implement removeRows() in SetupModel
+        if not index.isValid():
+            return
+        row = index.row()
+        parent = self.setup_model.parent(index)
+        name = index.internalPointer().name
+        msg = "You are about to remove Setup '%s' AND all of its children.\nContinue?" % name
+        # noinspection PyCallByClass, PyTypeChecker
+        answer = QMessageBox.question(self, 'Removing Setup', msg, QMessageBox.Yes, QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.add_msg_signal.emit("Removing Setup '%s'" % name)
+            self.setup_model.remove_setup(row, parent)
+            return
+        else:
+            logging.debug("Removal canceled")
+            return
+
+    def print_root(self):
+        root_print = self.setup_model.get_root().log()
+        logging.debug("root print:\n%s" % root_print)
 
     def create_setups_1(self):
         """Create two Setups ('base' and 'setup a') and associate tool Magic with Setup A."""

@@ -5,6 +5,7 @@
 
 from PyQt5.QtCore import QObject
 
+
 class MetaObject(QObject):
     """Class for an object which has a name and some description.
 

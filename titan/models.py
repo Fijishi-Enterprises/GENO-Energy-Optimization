@@ -168,6 +168,22 @@ class SetupModel(QAbstractItemModel):
         self.endInsertRows()
         return retval
 
+    def remove_setup(self, row, parent=QModelIndex()):
+        """Remove Setup with given parent and row.
+
+        Args:
+            row (int): Row of the removed Setup
+            parent (QModelIndex): Index of parent. Invalid if parent is root.
+
+        Returns:
+            True if successful, False otherwise
+        """
+        parent_setup = self.get_setup(parent)
+        self.beginRemoveRows(parent, row, row)
+        retval = parent_setup.remove_child(row)
+        self.endRemoveRows()
+        return retval
+
     def get_setup(self, index):
         """Get setup with the given index.
 

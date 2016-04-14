@@ -249,7 +249,6 @@ class Setup(MetaObject):
             self.is_root = True
         self.project = project
         self.inputs = set()
-        # self.tools = OrderedDict()
         self.tool = None
         self.cmdline_args = ""
         self.tool_instances = []
@@ -288,10 +287,17 @@ class Setup(MetaObject):
             Boolean variable depending on operation's success
         """
         if position < 0 or position > len(self._children):
-            logging.debug("Invalid position")
+            logging.error("Invalid position")
             return False
         self._children.insert(position, child)
         child._parent = self
+        return True
+
+    def remove_child(self, position):
+        if position < 0 or position > len(self._children):
+            return False
+        child = self._children.pop(position)
+        child._parent = None
         return True
 
     def child(self, row):

@@ -144,9 +144,9 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QPushButton" name="pushButton_clear">
+         <widget class="QPushButton" name="pushButton_remove">
           <property name="text">
-           <string>Clear</string>
+           <string>Remove</string>
           </property>
          </widget>
         </item>

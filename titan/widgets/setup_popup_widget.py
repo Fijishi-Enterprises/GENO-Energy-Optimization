@@ -12,7 +12,7 @@ import logging
 
 
 class SetupPopupWidget(QWidget):
-    """ A widget class to query user's preferences for created Setup(s)
+    """ A widget to query user's preferences for created Setup
 
     Attributes:
         parent: PyQt parent widget.
@@ -49,38 +49,62 @@ class SetupPopupWidget(QWidget):
 
     @QtCore.pyqtSlot()
     def ok_clicked(self):
-        logging.debug("OK clicked")
+        """Check that Setup name is valid and create Setup."""
         name = self.ui.lineEdit_name.text()
         description = self.ui.lineEdit_description.text()
-        if not self.setup_exists(name):
+        # Check for invalid characters for a folder name
+        invalid_chars = ["<", ">", ":", "\"", "/", "\\", "|", "?", "*", "."]
+        # "." is actually valid in a folder name but
+        # this is to prevent creating folders like "...."
+        if any((True for x in name if x in invalid_chars)):
+            self.statusbar.showMessage("Name not valid for a folder name", 3000)
+            return
+        # Check that Setup name is not 'root'
+        if name.lower() == 'root':
+            msg = "'root' is reserved. Use another name for Setup"
+            self.statusbar.showMessage(msg, 3000)
+            return
+        model = self._parent.setup_model
+        start_index = model.index(0, 0, QtCore.QModelIndex())
+        # Check start index
+        if not start_index.isValid():
+            logging.debug("No Setups in model")
+            self.create_base_signal.emit(name, description)
+            return
+        matching_index = model.match(
+            start_index, QtCore.Qt.DisplayRole, name, 1, QtCore.Qt.MatchFixedString | QtCore.Qt.MatchRecursive)
+        # Match found
+        if len(matching_index) > 0:
+            msg = "Setup '%s' already exists" % name
+            self.statusbar.showMessage(msg, 3000)
+            return
+        # Check that existing Setups' short names doesn't match the new Setup's short name
+        # This is to prevent two Setups of using the same folder
+        all_setups = model.match(
+            start_index, QtCore.Qt.DisplayRole, '.*', -1, QtCore.Qt.MatchRegExp | QtCore.Qt.MatchRecursive)
+        logging.debug("Found %d" % len(all_setups))
+        new_setup_short_name = name.lower().replace(' ', '_')
+        for setup in all_setups:
+            # logging.debug("'%s' found. Short name:%s"
+            #  % (setup.internalPointer().name, setup.internalPointer().short_name))
+            setup_short_name = setup.internalPointer().short_name
+            if setup_short_name == new_setup_short_name:
+                msg = "Setup with short name '%s' already exists" % setup_short_name
+                self.statusbar.showMessage(msg, 3000)
+                return
+        # Create new Setup
+        else:
             if self._create_base:
                 self.create_base_signal.emit(name, description)
             else:
                 self.create_child_signal.emit(name, description, self._index)
             return
         # ui_main closes widget when Ok button is pressed
-        else:
-            msg = "Setup '%s' already exists" % name
-            self.statusbar.showMessage(msg, 3000)
-        return
-
-    def setup_exists(self, name):
-        model = self._parent.setup_model
-        start_index = model.index(0, 0, QtCore.QModelIndex())
-        if not start_index.isValid():
-            logging.debug("No items in QTreeView")
-            return False
-        ret_index_list = model.match(
-            start_index, QtCore.Qt.DisplayRole, name, 1, QtCore.Qt.MatchFixedString | QtCore.Qt.MatchRecursive)
-        if len(ret_index_list) > 0:
-            for ind in ret_index_list:
-                logging.debug("Setup '%s' already present" % name)
-            return True
-        else:
-            logging.debug("'%s' not found" % name)
-            return False
 
     def closeEvent(self, event):
-        """ Handle close window. """
-        logging.debug("Closing Setup popup")
+        """Handle close window.
+
+        Args:
+            event (QEvent): Closing event if 'X' is clicked.
+        """
         self.close()
