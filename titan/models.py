@@ -25,6 +25,9 @@ class SetupModel(QAbstractItemModel):
         self._root_setup = root
         self._base_index = None  # Used in tree traversal algorithms
 
+    def get_root(self):
+        return self._root_setup
+
     def set_base(self, ind):
         """Set Base index for this tree. Used in where the tree traversal algorithms start.
         If the whole project should be executed. This should be set to Root.

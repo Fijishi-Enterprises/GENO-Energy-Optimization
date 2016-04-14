@@ -24,4 +24,5 @@ def main(argv):
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    #sys.exit(main(sys.argv))
+    main(sys.argv)

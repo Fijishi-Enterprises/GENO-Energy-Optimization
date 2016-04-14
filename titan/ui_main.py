@@ -38,7 +38,6 @@ class TitanUI(QMainWindow):
         # Setup the user interface from Qt Creator files
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.ui.treeView_setups.setContextMenuPolicy(Qt.CustomContextMenu)
         # Class variables
         self._project = SceletonProject('project 1', 'a test project')
         self._running_setup = None
@@ -74,7 +73,7 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_create_setups_3.clicked.connect(self.create_setups_3)
         self.ui.pushButton_create_test_setups.clicked.connect(self.create_test_setups)
         self.ui.pushButton_execute.clicked.connect(self.execute_setup)
-        self.ui.pushButton_test.clicked.connect(self.print_next_generation)
+        self.ui.pushButton_test.clicked.connect(self.test_match)
         self.ui.pushButton_clear.clicked.connect(self.get_selected_setup_base_index)
         self.ui.pushButton_add_base.clicked.connect(self.open_setup_popup_from_button)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
@@ -93,6 +92,21 @@ class TitanUI(QMainWindow):
         self.tool_proxy_model.setSourceModel(self.setup_model)
         self.ui.listView_tools.setModel(self.tool_proxy_model)
         # TODO: Show input files of Setup directory
+
+    def test_match(self):
+        """Test method for finding an item based on a string."""
+        value = 'base'
+        start_index = self.setup_model.index(0, 0, QModelIndex())
+        if not start_index.isValid():
+            self.add_msg_signal.emit("No items in QTreeView")
+            return
+        ret_index_list = self.setup_model.match(
+            start_index, Qt.DisplayRole, value, 1, Qt.MatchFixedString | Qt.MatchRecursive)
+        if len(ret_index_list) > 0:
+            for ind in ret_index_list:
+                self.add_msg_signal.emit("Found '%s' in %s" % (value, ind.internalPointer().name))
+        else:
+            self.add_msg_signal.emit("'%s' not found" % value)
 
     def context_menu_configs(self, pos):
         """ Context menu for the configuration tree.
@@ -120,8 +134,6 @@ class TitanUI(QMainWindow):
 
     def open_setup_popup_from_button(self):
         """Show Setup creation popup."""
-        # Show Setup creation wizard
-        # TODO: Handle case where user tries to add a setup with a name that is already taken.
         ind = None
         self.setup_popup = SetupPopupWidget(self, ind)
         self.setup_popup.create_base_signal.connect(self.add_base)
@@ -129,12 +141,11 @@ class TitanUI(QMainWindow):
         self.setup_popup.show()
 
     def open_setup_popup(self, index=None):
-        """Show Setup creation popup. Used by the context menu.
+        """Show Setup creation popup. Started from the context menu.
 
         Args:
             index (QModelIndex): Parent index of the new Setup
         """
-        # Show Setup creation wizard
         self.setup_popup = SetupPopupWidget(self, index)
         self.setup_popup.create_base_signal.connect(self.add_base)
         self.setup_popup.create_child_signal.connect(self.add_child)
@@ -154,7 +165,7 @@ class TitanUI(QMainWindow):
             return
         else:
             if not self.setup_model.insert_setup(name, description, self._project, 0):
-                logging.error("Adding Base to model failed")
+                logging.error("Adding base Setup failed")
                 return
 
     @pyqtSlot(str, str, "QModelIndex")
@@ -171,7 +182,7 @@ class TitanUI(QMainWindow):
             return
         else:
             if not self.setup_model.insert_setup(name, description, self._project, 0, index):
-                logging.error("Adding Base to model failed")
+                logging.error("Adding child Setup failed")
                 return
 
     def execute_setup(self):
@@ -322,12 +333,12 @@ class TitanUI(QMainWindow):
         tool.add_input(data)
         # Add Base Setup
         if not self.setup_model.insert_setup('base', 'The base setup', self._project, 0):
-            logging.error("Adding 'base' to model failed")
+            logging.error("Adding 'base' Setup to model failed")
             return
         # Add A
         base_index = self.setup_model.index(0, 0, QModelIndex())
         if not self.setup_model.insert_setup('setup A', 'test setup A', self._project, 0, base_index):
-            logging.error("Adding 'setup A' to model failed")
+            logging.error("Adding 'setup A' Setup to model failed")
             return
         # Add tool 'magic' to setup 'Setup A'
         a_ind = self.setup_model.index(0, 0, base_index)
@@ -421,35 +432,35 @@ class TitanUI(QMainWindow):
         # Option 1: Create Setup with the wanted parent
         # Option 2: Create Setup with no parent and use insert_child() to associate Setup to model
         # Add Base Setup
-        if not self.setup_model.insert_setup('BASE', 'The base setup', self._project, 0):
-            logging.error("Adding Base to model failed")
+        if not self.setup_model.insert_setup('A', 'Base setup', self._project, 0):
+            logging.error("Adding Base Setup 'A' failed")
             return
-        # Add A
-        base_index = self.setup_model.index(0, 0, QModelIndex())
-        if not self.setup_model.insert_setup('A', 'Setup A', self._project, 0, base_index):
-            logging.error("Adding A to model failed")
-            return
-        # Add B
-        base_index = self.setup_model.index(0, 0, QModelIndex())
-        if not self.setup_model.insert_setup('B', 'Setup B', self._project, 0, base_index):
-            logging.error("Adding B to model failed")
-            return
-        # Add C
-        a_index = self.setup_model.index(1, 0, base_index)  # A is on second row because B is now on first row
+        # Add C as child of A
+        a_index = self.setup_model.index(0, 0, QModelIndex())
+        # b_index = self.setup_model.index(0, 0, QModelIndex())
         if not self.setup_model.insert_setup('C', 'Setup C', self._project, 0, a_index):
             logging.error("Adding C to model failed")
             return
+        # Add B as child of A
+        if not self.setup_model.insert_setup('B', 'Setup B', self._project, 0, a_index):
+            logging.error("Adding B to model failed")
+            return
+        # Add D as child of C
+        c_index = self.setup_model.index(1, 0, a_index)  # C is on second row now
+        if not self.setup_model.insert_setup('D', 'Setup D', self._project, 0, c_index):
+            logging.error("Adding D to model failed")
+            return
         # Add another Base
-        if not self.setup_model.insert_setup('BASE 2', 'Another base setup', self._project, 0):
-            logging.error("Adding Base to model failed")
+        if not self.setup_model.insert_setup('E', 'Another base setup', self._project, 0):
+            logging.error("Adding Base Setup 'E' failed")
             return
-        # Add tool 'magic' to setup 'A'
-        a_ind = self.setup_model.index(1, 0, base_index)
-        a = self.setup_model.get_setup(a_ind)
-        if not a.add_tool(tool, 'MIP=CPLEX'):
-            self.add_err_msg_signal.emit("Adding 'magic' tool to 'A' failed\n")
-            logging.error("Adding a model to Setup failed")
-            return
+        # Add tool 'magic' to setup 'C'
+        # c_index = self.setup_model.index(1, 0, a_index)
+        # c = self.setup_model.get_setup(c_index)
+        # if not c.add_tool(tool, 'MIP=CPLEX'):
+        #     self.add_err_msg_signal.emit("Adding 'magic' tool to 'C' failed\n")
+        #     logging.error("Adding a model to Setup failed")
+        #     return
 
     @pyqtSlot(str)
     def add_msg(self, msg):
@@ -500,18 +511,16 @@ class TitanUI(QMainWindow):
 
     @pyqtSlot("QModelIndex")
     def dummy1_button(self, index):
+        """PyQtSlot for testing.
+
+        Args:
+            index (QModelIndex): Index
+        """
         if not index.isValid():
             return
         row = index.row()
         self.add_msg_signal.emit("Selected item row %s" % row)
         logging.debug("clicked index:%s" % index)
-        # item = self.ui.listView_setuptreelist.model().itemFromIndex(index)
-        # d = item.data(Qt.UserRole)
-        # logging.debug("item data:%s" % d)
-        # try:
-        #     data = self.ui.listView_setuptreelist.model().itemData(index)
-        # except Exception as e:
-        #     self.add_msg_signal.emit("teste: %s." % e.args[0])
         logging.debug("test2")
 
     @pyqtSlot("QModelIndex")
@@ -536,7 +545,6 @@ class TitanUI(QMainWindow):
         # for _, setup in self._setups.items():
         #    setup.cleanup()
         logging.debug("Thank you for choosing Titan. Bye bye.")
-        # Beware. This causes -1073741819 (0xc0000005) status_access_violation on PyCharm
-        # QApplication.quit()
-        # This works
-        self.deleteLater()
+        # QApplication.quit()  # This causes -1073741819 (0xc0000005) status_access_violation on PyCharm
+        # event.accept()  # This too
+        self.deleteLater()  # This exits cleanly

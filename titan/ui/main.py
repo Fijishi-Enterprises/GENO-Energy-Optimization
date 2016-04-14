@@ -63,6 +63,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.treeView_setups = QtWidgets.QTreeView(self.centralwidget)
+        self.treeView_setups.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.treeView_setups.setObjectName("treeView_setups")
         self.horizontalLayout.addWidget(self.treeView_setups)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
