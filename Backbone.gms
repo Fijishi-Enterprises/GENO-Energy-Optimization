@@ -101,15 +101,19 @@ $loaddc storage
 *$loaddc unitVG
 $loaddc hydroBus
 *$loaddc gu
-$loaddc egu
+*$loaddc egu
+$loaddc eguData
+$loaddc guData
+$loaddc guDataReserves
+$loaddc egsData
 $loaddc egu_input
 $loaddc ggu
-$loaddc egs
+*$loaddc egs
 $loaddc flow_unit
 $loaddc unit_fuel
 $loaddc unit_storage
-$loaddc gu_fixed_output_ratio
-$loaddc gu_constrained_output_ratio
+$loaddc eeguFixedOutputRatio
+$loaddc eeguConstrainedOutputRatio
 *$loaddc resCapable
 $loaddc emission
 $loaddc ts_energyDemand
@@ -119,37 +123,38 @@ $loaddc ts_cf
 $loaddc ts_stoContent
 $loaddc ts_fuelPriceChange
 $loaddc ts_inflow
-$loaddc p_data2d
-$loaddc uData
-$loaddc usData
-$loaddc uReserveData
 $loaddc p_transferCap
 $loaddc p_transferLoss
+$loaddc p_data2d
 *$loaddc etype_storage
 $gdxin
 
 * Generate sets based on parameter data
+egu(etype, geo, unit)$eguData(etype, geo, unit, 'maxCap') = yes;
 eg(etype, geo)$sum(unit, egu(etype, geo, unit)) = yes;
 gu(geo, unit)$sum(etype, egu(etype, geo, unit)) = yes;
-*egu(etype,geo,unit)$(gu(geo,unit) and eg(etype,geo)) = YES;
+gu(geo, unit)$sum((etype, etype_), eeguConstrainedOutputRatio(etype, etype_, geo, unit)) = no;
+gu(geo, unit)$sum((etype, etype_), eeguFixedOutputRatio(etype, etype_, geo, unit)) = no;
+egs(etype, geo, storage)$egsData(etype, geo, storage, 'maxContent') = yes;
 ggu(geo, geo_, unit)$(gu(geo, unit) and ord(geo) = ord(geo_)) = yes;
 eg2g(etype, from_geo, to_geo)$p_transferCap(etype, from_geo, to_geo) = yes;
 bus_to_bus(from_geo, to_geo)$p_transferCap('elec', from_geo, to_geo) = yes;
 
 ts_fuelPriceChangeGeo(fuel, geo, t) = ts_fuelPriceChange(fuel, t);
 
-unitOnline(unit)$[ sum(egu(etype, geo, unit), udata(etype, geo, unit, 'startup_cost') or udata(etype, geo, unit, 'startup_fuelcons') or udata(etype, geo, unit, 'leadtime') ) ] = yes;
+unitOnline(unit)$[ sum(egu(etype, geo, unit), guData(geo, unit, 'startupCost') or guData(geo, unit, 'startupFuelCons') or guData(geo, unit, 'coldStart') ) ] = yes;
 unitVG(unit)$sum(flow, flow_unit(flow, unit)) = yes;
 *unitConversion(unit)$sum(eg(etype, geo), egu_input(etype, geo, unit)) = yes;
-unitElec(unit)$sum(egu(etype, geo, unit), udata('elec', geo, unit, 'max_cap')) = yes;
-unitHeat(unit)$sum(egu(etype, geo, unit), udata('heat', geo, unit, 'max_cap')) = yes;
+unitElec(unit)$sum(egu(etype, geo, unit), eguData('elec', geo, unit, 'maxCap')) = yes;
+unitHeat(unit)$sum(egu(etype, geo, unit), eguData('heat', geo, unit, 'maxCap')) = yes;
 unitFuel(unit)$sum[ (fuel, geo)$sum(t, ts_fuelPriceChangeGeo(fuel, geo, t)), unit_fuel(unit, fuel, 'main') ] = yes;
 unitVG(unit)$sum(flow, flow_unit(flow, unit)) = yes;
-unitMinload(unit)$sum(egu(etype, geo, unit), p_data2d(etype, unit, 'min_load')) = yes;
+unitWithCV(unit)$(sum(egu(etype, geo, unit), 1) > 1) = yes;
+unitMinload(unit)$sum(egu(etype, geo, unit), guData(geo, unit, 'minLoad')) = yes;
 unitHydro(unit)$sum(unit_fuel(unit,'WATER','main'), 1) = yes;
 unitHydro(unit)$sum(unit_fuel(unit,'WATER_RES','main'), 1) = yes;
 storageHydro(storage)$sum(unitHydro, unit_storage(unitHydro, storage)) = yes;
-resCapable(resType, resDirection, geo, unit)$uReserveData(geo, unit, resType, resDirection) = yes;
+resCapable(resType, resDirection, geo, unit)$guDataReserves(geo, unit, resType, resDirection) = yes;
 
 * === Variables ===============================================================
 $include 'inc/variables.gms'
@@ -179,14 +184,14 @@ $include 'inc/schedule.gms'
 * === Calculations ============================================================
 
 * Define long-term storages
-loop(egs(etype, geo, storage) $(usData(etype, geo, storage, 'max_content') > 0
+loop(egs(etype, geo, storage) $(egsData(etype, geo, storage, 'maxContent') > 0
                and sum(unit_storage(unit, storage),
-                       uData('elec', geo, unit, 'max_cap')
-                       + uData('heat', geo, unit, 'max_cap')) > 0),
-    storageLong(storage) = yes$(usData(etype, geo, storage, 'max_content')
+                       eguData('elec', geo, unit, 'maxCap')
+                       + eguData('heat', geo, unit, 'maxCap')) > 0),
+    storageLong(storage) = yes$(egsData(etype, geo, storage, 'maxContent')
                                  / sum(unit_storage(unit, storage),
-                                       uData('elec', geo, unit, 'max_cap')
-                                       + uData('heat', geo, unit, 'max_cap'))
+                                       eguData('elec', geo, unit, 'maxCap')
+                                       + eguData('heat', geo, unit, 'maxCap'))
                                 > 0.5 * mSettings('schedule', 't_horizon') );
 );
 
@@ -195,7 +200,7 @@ loop(egs(etype, geo, storage) $(usData(etype, geo, storage, 'max_content') > 0
 $iftheni '%genTypes%' == 'yes'
 loop(gu_fuel(geo, unit, fuel, 'main'),
     genType_g('pumped storage', unit) = yes$(sameas(fuel, 'water')
-                                          and p_data(unit, 'max_loading') > 0);
+                                          and guData(geo, unit, 'maxCharging') > 0);
     genType_g('hydropower', unit) = yes$(sameas(fuel, 'water')
                                       and not genType_g('pumped storage', unit));
     genType_g('nuclear', unit) = yes$sameas(fuel, 'nuclear');
@@ -205,7 +210,6 @@ loop(gu_fuel(geo, unit, fuel, 'main'),
                                 and not genType_g('OCGT', unit));
     genType_g('solar', unit) = yes$sameas(fuel, 'solar');
     genType_g('wind', unit) = yes$sameas(fuel, 'wind');
-    genType_g('imports', unit) = yes$(not sameas(area, 'SA'));
     genType_g('dummy', unit) = yes$sameas(unit, 'dummy');
 );
 $endif
@@ -253,10 +257,10 @@ loop(mType,
 
 * Select samples for the model
 loop(m,
-    // Set scenarios in use for the models
+    // Set samples in use for the models
     if (not sum(s, ms(m, s)),  // unless they have been provided as input
         ms(m, s)$(ord(s) <= mSettings(m, 'samples')) = yes;
-        if (mSettings(m, 'samples') = 0,     // Use all scenarios if mSettings/scenarios is 0
+        if (mSettings(m, 'samples') = 0,     // Use all samples if mSettings/samples is 0
             ms(m, s) = yes;
         );
     );
@@ -378,8 +382,8 @@ loop(modelSolves(mSolve, tSolve),
 * иии Store results иииииииииииииииииииииииииииииииииииииииииииииииииииииииииии
     // Deterministic stage
     loop(ft(fRealization(f), t),
-*        p_stoContent(f, t)$(p_data(storage, 'max_content') > 0)
-*            = v_stoContent(storage, f, t) / p_data(f, 'max_content');
+*        p_stoContent(f, t)$(p_data(storage, 'maxContent') > 0)
+*            = v_stoContent(storage, f, t) / p_data(f, 'maxContent');
             r_gen(etype, unit, t) = sum(geo$egu(etype, geo, unit), v_gen.l(etype, geo, unit, f, t));
 $iftheni.genTypes '%genTypes%' == 'yes'
             r_elec_type(genType, t) = sum(g $genType_g(genType, unit),
@@ -403,14 +407,14 @@ $ontext
             r_onlineCap(h, unitVG(elec))
                = v_elec.l(unitVG, t);
         loop(step_hour(h, t),
-           r_stoContent(h, f)$p_data(f, 'max_content')
+           r_stoContent(h, f)$p_data(f, 'maxContent')
               = r_stoContent(h - 1, f)
                 + (r_storageControl(h, f)
                    + ts_inflow(h, f)
                    + sum(unit_storage(unitVG, f),
                          ts_inflow(h, unitVG)
                      )
-                  ) / p_data(f, 'max_content');
+                  ) / p_data(f, 'maxContent');
            r_storageValue(h, f) = p_storageValue(f, t);
            r_elecLoad(h, bus)
                = sum(load_in_hub(load, bus), ts_elecLoad(h, load));

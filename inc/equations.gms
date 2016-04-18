@@ -13,7 +13,7 @@ equations
 *    q_storageEnd(geo, storage, f, t) "Expected storage end content minus procured reserve energy is greater than start content"
     q_conversion(geo, unit, f, t) "Conversion of energy between etypes of energy presented in the model, e.g. electricity consumption equals unitHeat generation times efficiency"
     q_outputRatioFixed(etype, etype, geo, unit, f, t) "Fixed ratio between two etypes of energy output"
-    q_outputRatioConstrained(etype, etype, geo, unit, f, t) "Constrained ratio between two etypes of energy output; e.g. electricity generation is greater than c_V times unitHeat generation in extraction plants"
+    q_outputRatioConstrained(etype, etype, geo, unit, f, t) "Constrained ratio between two etypes of energy output; e.g. electricity generation is greater than cV times unitHeat generation in extraction plants"
     q_stoMinContent(etype, geo, storage, f, t) "Storage should have enough content at end of time step to deliver committed upward reserves"
     q_stoMaxContent(etype, geo, storage, f, t) "Storage should have enough room to fit committed downward reserves"
     q_maxHydropower(etype, geo, storage, f, t) "Sum of unitHydro generation in storage is limited by total installed capacity"
@@ -43,7 +43,7 @@ q_obj ..
         (
            // Variable O&M costs
            sum(egu(etype, geo, unit),
-                uData(etype, geo, unit, 'OaM_costs') *
+                guData(geo, unit, 'omCosts') *
                 $$ifi not '%rampSched%' == 'yes' p_stepLength(m, f, t) *
                 $$ifi '%rampSched%' == 'yes' (p_stepLength(m, f, t) + p_stepLength(m, f, t+1))/2 *
                      v_gen(etype, geo, unit, f, t)
@@ -54,13 +54,13 @@ q_obj ..
               * (   sum{tFuel$[ord(tFuel) <= ord(t)],
                         ts_fuelPriceChangeGeo(fuel, geo, tFuel) }  // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
                   + sum(emission,         // Emission taxes
-                        p_data2d(fuel, emission, 'emission_intensity') / 1e3
-                          * p_data2d(emission, geo, 'emission_tax')
+                        p_data2d(fuel, emission, 'emissionIntensity') / 1e3
+                          * p_data2d(emission, geo, 'emissionTax')
                     )
                  )
             )
            // Start-up costs
-         + sum(egu(etype, geo, unitOnline),
+         + sum(egu(etype, geo, unitOnline)$gu(geo, unitOnline),
              + {
                  + v_startup(geo, unitOnline, f, t)                                       // Cost of starting up
                  - sum(t_$mftStart(m, f, t_), 0.5 * v_online(geo, unitOnline, f, t_))     // minus value of avoiding startup costs before
@@ -68,19 +68,19 @@ q_obj ..
                }
              * {
                   // Startup variable costs
-                 + uData(etype, geo, unitOnline, 'startup_cost')
-                 * uData(etype, geo, unitOnline, 'max_cap')
+                 + guData(geo, unitOnline, 'startupCost')
+                 * eguData(etype, geo, unitOnline, 'maxCap')
                   // Start-up fuel and emission costs
                  + sum(unit_fuel(unitFuel, fuel, 'startup'),
-                     + uData(etype, geo, unitOnline, 'max_cap')
-                     * uData(etype, geo, unitOnline, 'startup_fuelcons')
+                     + eguData(etype, geo, unitOnline, 'maxCap')
+                     * guData(geo, unitOnline, 'startupFuelCons')
                            // Fuel costs for start-up fuel use
                      * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
                                ts_fuelPriceChangeGeo(fuel, geo, tFuel) }
                            // Emission taxes of startup fuel use
                          + sum(emission,
-                               p_data2d(emission, fuel, 'emission_intensity') / 1e3
-                                 * p_data2d(emission, geo, 'emission_tax')
+                               p_data2d(emission, fuel, 'emissionIntensity') / 1e3
+                                 * p_data2d(emission, geo, 'emissionTax')
                            )
                        )
                    )
@@ -146,40 +146,38 @@ q_resDemand(resType, resDirection, bus, ft(f, t))$ts_reserveDemand(resType, resD
     )
 ;
 * -----------------------------------------------------------------------------
-q_maxDownward(egu(etype, geo, unit), ft(f, t))${
-                                                      [unitMinLoad(unit) and uData(etype, geo, unit, 'max_cap')]  // generators with min_load
-                                                   or sum(resType, resCapable(resType, 'resDown', geo, unit))         // all units with downward reserve provision
-                                                   or [udata(etype, geo, unit, 'max_loading') and unitOnline(unit)]     // consuming units with an online variable
-                                                 }..
+q_maxDownward(egu(etype, geo, unit), ft(f, t))${     [unitMinLoad(unit) and eguData(etype, geo, unit, 'maxCap')]  // generators with min_load
+                                                  or sum(resType, resCapable(resType, 'resDown', geo, unit))         // all units with downward reserve provision
+                                                  or [eguData(etype, geo, unit, 'maxCharging') and unitOnline(unit)]     // consuming units with an online variable
+                                                }..
   + v_gen(etype, geo, unit, f, t)                                                  // energy generation/consumption
-  + sum( etype_output$gu_constrained_output_ratio(etype, etype_output, geo, unit),
-        uData(etype_output, geo, unit, 'c_V') * v_gen(etype_output, geo, unit, f, t) )       // considering output constraints (e.g. cV line)
+  + sum( eeguConstrainedOutputRatio(etype, etype_output, geo_, unit),
+        eguData(etype_output, geo_, unit, 'cV') * v_gen(etype_output, geo_, unit, f, t) )       // considering output constraints (e.g. cV line)
   - sum(resCapable(resType, 'resDown', geo, unit)$unitElec(unit),                     // minus downward reserve participation
         v_reserve(resType, 'resDown', geo, unit, f, t)  // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
   =G=                                                                        // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
-  + v_online(geo, unit, f, t) * uData(etype, geo, unit, 'min_load') * uData(etype, geo, unit, 'max_cap')$[unitMinLoad(unit) and uData(etype, geo, unit, 'max_cap')]
-  + v_gen.lo(etype, geo, unit, f, t) * [ v_online(geo, unit, f, t)$unitOnline(unit) + 1$(not unitOnline(unit)) ]         // notice: v_gen.lo for consuming units is negative
+  + v_online(geo, unit, f, t) * guData(geo, unit, 'minLoad') * eguData(etype, geo, unit, 'maxCap')$[guData(geo, unit, 'minLoad') and eguData(etype, geo, unit, 'maxCap')]
+  + v_gen.lo(etype, geo, unit, f, t) * [ v_online(geo, unit, f, t)$guData(geo, unit, 'minLoad') + 1$(not guData(geo, unit, 'minLoad')) ]         // notice: v_gen.lo for consuming units is negative
 ;
 * -----------------------------------------------------------------------------
-q_maxUpward(egu(etype, geo, unit), ft(f, t))${
-                                                     [unitMinLoad(unit) and uData(etype, geo, unit, 'max_loading')]  // consuming units with min_load
-                                                   or sum(resType, resCapable(resType, 'resUp', geo, unit))              // all units with upward reserve provision
-                                                   or [udata(etype, geo, unit, 'max_cap') and unitOnline(unit)]            // generators with an online variable
+q_maxUpward(egu(etype, geo, unit), ft(f, t))${      [unitMinLoad(unit) and eguData(etype, geo, unit, 'maxCharging')]  // consuming units with min_load
+                                                 or sum(resType, resCapable(resType, 'resUp', geo, unit))              // all units with upward reserve provision
+                                                 or [eguData(etype, geo, unit, 'maxCap') and unitOnline(unit)]            // generators with an online variable
                                                }..
   + v_gen(etype, geo, unit, f, t)                                                   // energy generation/consumption
-  + sum( etype_output$gu_constrained_output_ratio(etype, etype_output, geo, unit),
-         uData(etype_output, geo, unit, 'c_V') * v_gen(etype_output, geo, unit, f, t) )        // considering output constraints (e.g. cV line)
+  + sum( eeguConstrainedOutputRatio(etype, etype_output, geo_, unit),
+         eguData(etype_output, geo_, unit, 'cV') * v_gen(etype_output, geo_, unit, f, t) )        // considering output constraints (e.g. cV line)
   + sum(resCapable(resType, 'resUp', geo, unit)$unitElec(unit),                        // plus upward reserve participation
         v_reserve(resType, 'resUp', geo, unit, f, t)  // (v_reserve can be used only if the unit can provide a particular reserve)
     )
   =L=                                                                         // must be less than available/online capacity
-  - v_online(geo, unit, f, t) * uData(etype, geo, unit, 'min_load')$[unitMinLoad(unit) and uData(etype, geo, unit, 'max_loading')]
-  + v_gen.up(etype, geo, unit, f, t) * [ v_online(geo, unit, f, t)$unitOnline(unit) + 1$(not unitOnline(unit)) ]
+  - v_online(geo, unit, f, t) * guData(geo, unit, 'minLoad')$[guData(geo, unit, 'minLoad') and eguData(etype, geo, unit, 'maxCharging')]
+  + v_gen.up(etype, geo, unit, f, t) * [ v_online(geo, unit, f, t)$guData(geo, unit, 'minLoad') + 1$(not guData(geo, unit, 'minLoad')) ]
 ;
 * -----------------------------------------------------------------------------
 q_storageControl(egs(etype, geo, storage), ft(f, t)) ..
-  + sum(unit$unit_storage(unit, storage),
+  + sum(egu(etype, geo, unit)$unit_storage(unit, storage),
        + v_gen(etype, geo, unit, f, t)
     )
   =E=
@@ -194,11 +192,11 @@ q_storageDynamics(egs(etype, geo, storage), ft(f, t)) ..
   + ts_inflow(storage, f+pf(f,t), t+pt(t))
   + vq_stoCharge(etype, geo, storage, f+pf(f,t), t+pt(t))
   + sum(m, p_stepLength(m, f+pf(f,t), t+pt(t))) *
-     ( (+ v_stoCharge(etype, geo, storage, f+pf(f,t), t+pt(t)) * usData(etype, geo, storage, 'charging_eff')
+     ( (+ v_stoCharge(etype, geo, storage, f+pf(f,t), t+pt(t)) * egsData(etype, geo, storage, 'chargingEff')
         - v_stoDischarge(etype, geo, storage, f+pf(f,t), t+pt(t))
         - v_spill(etype, geo, storage, f+pf(f,t), t+pt(t))
        )
-       $$ifi '%rampSched%' == 'yes'   + (+ v_stoCharge(etype, geo, storage, f, t) * usData(etype, geo, storage, 'charging_eff')
+       $$ifi '%rampSched%' == 'yes'   + (+ v_stoCharge(etype, geo, storage, f, t) * egsData(etype, geo, storage, 'chargingEff')
        $$ifi '%rampSched%' == 'yes'      - v_stoDischarge(etype, geo, storage, f, t)
        $$ifi '%rampSched%' == 'yes'      - v_spill(etype, geo, storage, f, t)
        $$ifi '%rampSched%' == 'yes'     )
@@ -249,63 +247,65 @@ q_fuelUse(gu(geo, unitFuel), fuel, ft(f, t))$unit_fuel(unitFuel, fuel, 'main') .
     $$ifi not '%rampSched%' == 'yes' sum(m, p_stepLength(m, f, t)) *
     $$ifi     '%rampSched%' == 'yes' sum(m, p_stepLength(m, f, t)) / 2 *
     (
-      $$ifi '%rampSched%' == 'yes' + sum[ etype, v_gen( etype, geo, unitFuel, f+pf(f,t), t+pt(t) )]
-      $$ifi '%rampSched%' == 'yes' + sum[ etype_output$egu(etype_output, geo, unitFuel),
-      $$ifi '%rampSched%' == 'yes'        v_gen(etype_output, geo, unitFuel, f+pf(f,t), t+pt(t) ) * uData(etype_output, geo, unitFuel, 'c_V') ]
-      + sum[ etype$egu(etype, geo, unitFuel), v_gen(etype, geo, unitFuel, f, t) * uData(etype, geo, unitFuel, 'avg_fuel_eff') ]
-*      + sum{ etype_output$[egu(etype_output, unitFuel)],
-*             v_gen(etype_output, unitFuel, f, t) * uData(etype, geo, unitFuel, 'c_V') }
-*        } * uData(etype, geo, unitFuel, 'avg_fuel_eff')
-      + sum[ unitOnline$( unitFuel(unitOnline) and unitMinLoad(unitOnline) ),
-            $$ifi not '%rampSched%' == 'yes' v_online(geo, unitOnline, f, t)
-            $$ifi     '%rampSched%' == 'yes' [v_online(geo, unitOnline, f+pf(f,t), t+pt(t)) + v_online(geo, unitOnline, f, t)]
-            * uData('elec', geo, unitOnline, 'min_load_eff')  // 'elec' has to be changed to etype, but the whole fuel use needs some thought...
+      + sum{ egu(etype, geo_, unitFuel)$guData(geo_, unitFuel, 'slope'),
+             [
+               + v_gen(etype, geo_, unitFuel, f, t)
+               $$ifi '%rampSched%' == 'yes'     + v_gen(etype, geo_, unitFuel, f+pf(f,t), t+pt(t))
+             ] * guData(geo_, unitFuel, 'slope')
+               * [ + 1$(not unitWithCV(unitFuel) or gu(geo_,unitFuel))   // not a backpressure or extraction unit, expect for the primary etype (where cV has to be 1)
+                   + eguData(etype, geo_, unitFuel, 'cV')$(unitWithCV(unitFuel) and not gu(geo_, unitFuel)) // for secondary outputs with cV
+                 ]
+           }
+      + sum[ egu(etype, geo_, unitFuel)$( unitOnline(unitFuel) and guData(geo_, unitFuel, 'section') ),
+              (                              + v_online(geo_, unitFuel, f, t)
+                $$ifi '%rampSched%' == 'yes' + v_online(geo_, unitFuel, f+pf(f,t), t+pt(t))
+              ) * guData(geo_, unitFuel, 'section') * eguData(etype, geo, unitFuel, 'maxCap')  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
            ]
     )
 ;
 
 q_conversion(gu(geo, unit), ft(f, t))$[sum(etype, egu_input(etype, geo, unit)) and sum(etype, egu(etype, geo, unit))] ..
-  - sum( etype$egu_input(etype, geo, unit), v_gen(etype, geo, unit, f, t) * udata(etype, geo, unit, 'avg_fuel_eff') )
+  - sum( etype$egu_input(etype, geo, unit), v_gen(etype, geo, unit, f, t) * guData(geo, unit, 'slope') )
   =E=
   + sum( etype_$egu(etype_, geo, unit), v_gen(etype_, geo, unit, f, t) )
-* udata(etype_, geo, unit, 'conversion_from_eff') )
+* guData(etype_, geo, unit, 'eff_from') )
 ;
 
-q_outputRatioFixed(gu_fixed_output_ratio(etype, etype_output, geo, unit), ft(f, t)) ..
-  + v_gen(etype, geo, unit, f, t)
+q_outputRatioFixed(eeguFixedOutputRatio(etype, etype_output, geo, unit), ft(f, t)) ..
+  + sum(geo_input$egu(etype, geo_input, unit), v_gen(etype, geo_input, unit, f, t))
   =E=
-  + udata(etype_output, geo, unit, 'c_B') * v_gen(etype_output, geo, unit, f, t)
+  + eguData(etype_output, geo, unit, 'cB') * v_gen(etype_output, geo, unit, f, t)
 ;
 
-q_outputRatioConstrained(gu_constrained_output_ratio(etype, etype_output, geo, unit), ft(f, t)) ..
-  + v_gen(etype, geo, unit, f, t)
+q_outputRatioConstrained(eeguConstrainedOutputRatio(etype, etype_output, geo, unit), ft(f, t)) ..
+  + sum(geo_input$egu(etype, geo_input, unit), v_gen(etype, geo_input, unit, f, t))
   =G=
-  + udata(etype_output, geo, unit, 'c_B') * v_gen(etype_output, geo, unit, f, t)
+  + eguData(etype_output, geo, unit, 'cB') * v_gen(etype_output, geo, unit, f, t)
 ;
 
 q_stoMinContent(egs(etype, geo, storage), ft(f, t)) ..
   + v_stoContent(etype, geo, storage, f, t)
   - sum( (resType, resDirection, unitElec)$(resCapable(resType, 'resUp', geo, unitElec) and unit_storage(unitElec, storage)), v_reserve(resType, resDirection, geo, unitElec, f, t) )
   =G=
-  + usData(etype, geo, storage, 'min_content') * usData(etype, geo, storage, 'max_content')
+  + egsData(etype, geo, storage, 'minContent') * egsData(etype, geo, storage, 'maxContent')
 ;
 
 q_stoMaxContent(egs(etype, geo, storage), ft(f, t)) ..
   + v_stoContent(etype, geo, storage, f, t)
   + sum( (resType, resDirection, unitElec)$(resCapable(resType, 'resUp', geo, unitElec) and unit_storage(unitElec, storage)), v_reserve(resType, resDirection, geo, unitElec, f, t) )
   =L=
-  + usData(etype, geo, storage, 'max_content')
+  + egsData(etype, geo, storage, 'maxContent')
 ;
 
 q_maxHydropower(egs(etype, geo, storageHydro), ft(f, t)) ..
-  + sum(unitHydro$unit_storage(unitHydro, storageHydro),
+  + sum(egu(etype, geo, unitHydro)$unit_storage(unitHydro, storageHydro),
       + v_gen(etype, geo, unitHydro, f, t)
       + sum(resTypeAndDir(resType, resDirection)$resDirection('resUp'),
             v_reserve(resType, resDirection, geo, unitHydro, f, t)
         )
     )
   =L=
-  + sum{unitHydro$[unit_storage(unitHydro, storageHydro) and unit_fuel(unitHydro, 'water_res', 'main')], uData('elec', geo, unitHydro, 'max_cap')}
+  + sum{unitHydro$[unit_storage(unitHydro, storageHydro) and unit_fuel(unitHydro, 'water_res', 'main')], eguData('elec', geo, unitHydro, 'maxCap')}
 *  + v_spill(storageHydro, f, t) / sum(m, p_stepLength(m, f, t))
 ;
 

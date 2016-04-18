@@ -1,8 +1,9 @@
 * --- Power plant and fuel data -----------------------------------------------
 Parameters
-    uData(etype, geo, unit, param) "Unit data"
-    usData(etype, geo, storage, param) "Storage unit data"
-    uReserveData(geo, unit, resType, *) "Reserve provision data for units"
+    eguData(etype, geo, unit, param_egu) "Unit data where energy type matters"
+    guData(geo, unit, param_gu) "Unit data where energy type does not matter"
+    egsData(etype, geo, storage, param_egs) "Storage unit data"
+    guDataReserves(geo, unit, resType, *) "Reserve provision data for units"
     p_data2d(*, *, param) "2-dimensional data parameters of objects"
     p_transferCap(etype, geo, geo) "Transfer capacity limits"
     p_transferLoss(etype, geo, geo) "Transfer losses"

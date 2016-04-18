@@ -23,7 +23,7 @@ loop(bus,
                     (ts_energyDemand('elec', bus, f, t_) -
                         sum(unit_flow(flow, unitVG)$gu(unitVG, bus),
                           ts_cf(flow, bus, f, t) *
-                          p_data2d('elec', unitVG, 'max_cap') *
+                          p_data2d('elec', unitVG, 'maxCap') *
                           p_data(unitVG, 'availability')
                         )
                     ) * (13 - abs(ord(t) - ord(t_)))  // Weighting
@@ -47,7 +47,7 @@ if (s_netLoadChanged = 1,
             (ts_energyDemand('elec', bus, f, t_) -
                 sum(unit_flow(flow, unitVG)$gu(unitVG, bus),
                    ts_cf(flow, bus, f, t) *
-                   p_data2d('elec', unitVG, 'max_cap') *
+                   p_data2d('elec', unitVG, 'maxCap') *
                    p_data(unitVG, 'availability')
                 )
             ) * (13 - abs(ord(t) - ord(t_)))
