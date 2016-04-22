@@ -4,9 +4,7 @@
 """
 
 import os.path
-
 from metaobject import MetaObject
-from tool import Setup
 from config import PROJECT_DIR
 
 
@@ -22,19 +20,24 @@ class SceletonProject(MetaObject):
         """
         super().__init__(name, description)
         self.project_dir = os.path.join(PROJECT_DIR, self.short_name)
+        self.dirty = False  # Indicates if the project has changed since loading
         if not os.path.exists(PROJECT_DIR):
             os.makedirs(PROJECT_DIR, exist_ok=True)
         else:
             # TODO: Notice that project already exists...
             pass
 
-        self._setups = dict()
+    def save(self):
+        pass
 
-    def add_setup(self, name, description, parent=None):
+    def load(self):
+        pass
 
-        self._setups[name] = Setup(name, description, self, parent)
-
-    def execute(self):
-        """Execute all setups in this project
-        """
+    # def add_setup(self, name, description, parent=None):
+    #
+    #     self._setups[name] = Setup(name, description, self, parent)
+    #
+    # def execute(self):
+    #     """Execute all setups in this project
+    #     """
 

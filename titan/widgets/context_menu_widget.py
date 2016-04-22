@@ -11,8 +11,9 @@ from PyQt5.QtWidgets import QMenu
 class ContextMenuWidget(QMenu):
     """ Main class for a context menu."""
 
-    def __init__(self, position, ind):
+    def __init__(self, parent, position, ind):
         super().__init__()
+        self._parent = parent
         self.ind = ind
         self.option = "None"
         if not ind.isValid():

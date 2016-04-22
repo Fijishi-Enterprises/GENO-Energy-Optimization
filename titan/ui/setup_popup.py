@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '../titan/ui/setup_popup.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.4.1
 #
 # WARNING! All changes made in this file will be lost!
 

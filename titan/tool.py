@@ -320,6 +320,9 @@ class Setup(MetaObject):
         """Returns the parent of this Setup."""
         return self._parent
 
+    def children(self):
+        return self._children
+
     def row(self):
         if self._parent is not None:
             return self._parent._children.index(self)
@@ -439,9 +442,15 @@ class Setup(MetaObject):
             filenames += self._parent.get_output_files(tool, file_fmt)
         return filenames
 
-    def save(self):
-        """Save setup object to disk."""
+    def save(self, path=''):
+        """Save setup object to disk.
 
+        Args:
+            path (str): File save path (project dir)
+        """
+        if path == '':
+            logging.error("No path given")
+            return
         the_dict = {}
         if self._parent is not None:
             the_dict['parent'] = self._parent.short_name
@@ -451,7 +460,7 @@ class Setup(MetaObject):
             the_dict['processes'] = [self.tool.short_name]
         the_dict['is_ready'] = self.is_ready
 
-        jsonfile = os.path.join(INPUT_STORAGE_DIR,
+        jsonfile = os.path.join(path,
                                 '{}.json'.format(self.short_name))
         with open(jsonfile, 'w') as fp:
             json.dump(the_dict, fp, indent=4)
