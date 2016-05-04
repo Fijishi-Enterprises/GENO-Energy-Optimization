@@ -1,3 +1,12 @@
+* --- Internal counters -------------------------------------------------------
+Scalars
+    errorcount /0/
+    tElapsed "Model time elapsed since simulation start (t)" /0/
+    tLast "How many time periods to the end of the current solve (t)" /0/
+    tSolveOrd "ord of tSolve"
+    tCounter "counter for t" /0/
+;
+
 * --- Power plant and fuel data -----------------------------------------------
 Parameters
     eguData(etype, geo, unit, param_egu) "Unit data where energy type matters"

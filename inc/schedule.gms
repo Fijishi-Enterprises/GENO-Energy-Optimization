@@ -4,7 +4,7 @@ if (mType('schedule'),
     mSettings('schedule', 't_horizon') = 168;
     mSettings('schedule', 't_jump') = 24;
     mSettings('schedule', 't_forecastLength') = 168;
-    mSettings('schedule', 't_end') = 50;
+    mSettings('schedule', 't_end') = 54;
     mSettings('schedule', 'samples') = 1;
     mSettings('schedule', 'forecasts') = 0;
     mf('schedule', f)$[ord(f)-1 <= mSettings('schedule', 'forecasts')] = yes;

@@ -92,7 +92,6 @@ Sets
     flow_unit(flow, unit) "Units linked to a certain energy flow time series"
     unit_fuel(unit, fuel, param) "Fuel(s) used by the unit"
     unit_storage(unit, storage) "Units attached to storages"
-    storageLong(storage) "Long-term energy storages"
     storageHydro(storage)    "Hydropower reservoirs"
 ;
 

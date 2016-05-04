@@ -6,9 +6,12 @@ Created by:
     Juha Kiviluoma <juha.kiviluoma@vtt.fi>
     Erkka Rinne <erkka.rinne@vtt.fi>
 
-Based on Stochastic Model Predictive Control method [1]. Improved by
-generalising the idea of storages and adding the ability to load storages.
-Can handle multiple stochastic parameters.
+- Based on Stochastic Model Predictive Control method [1].
+- Enables multiple different models (m) to be implemented by changing the temporal
+  structure of the model.
+- Time steps (t) can vary in length.
+- Short term forecast stochasticity (f) and longer term statistical uncertainty (s).
+- Can handle ramp based dispatch in addition to energy blocks.
 
 
 GAMS command line arguments
@@ -23,11 +26,11 @@ GAMS command line arguments
     For testing purposes.
 
 --<name of model parameter>=<value>
-    Set model parameter value. See file ‘settings.inc’ for available
+    Set model parameter value. See file ‘inc/setting_sets.gms’ for available
     parameters.
 
 --<name of model feature>=[yes|no]
-    Switch model features on/off. See file ‘settings.inc’ for available
+    Switch model features on/off. See file ‘inc/setting_sets.gms’ for available
     features.
 
 
@@ -39,142 +42,39 @@ References
 
 $offtext
 
-* === Settings ================================================================
+
 * Activate end of line comments and set comment character to '//'
 $oneolcom
 $eolcom //
 
-* Set log file (output to IDE process window)
+* Write log also to a file (output from the IDE process window)
 file log /''/;
 
 * Allow empty data definitions
 $onempty
-option profile = 3;
-
-* Load model settings
-$include 'settings.inc'
-
-* === Sets ====================================================================
-$include 'inc/sets.gms'
-
-* === Parameters ==============================================================
-$include 'inc/parameters.gms'
-$include 'inc/results.gms'
-
-
-Scalars
-    errorcount /0/
-    tElapsed "Model time elapsed since simulation start (t)" /0/
-    tLast "How many time periods to the end of the current solve (t)" /0/
-    tSolveOrd "ord of tSolve"
-    tCounter "counter for t" /0/
-;
-
-* Debug arrays
-Parameters
-    x_stoContent(storage, f, t) "Storage content at the end of the time period in a sample (ratio of max)"
-    x_storageControl(storage, f, t) "Storage control value during a time period in a sample (MWh)"
-;
-
-* === Macros ==================================================================
-$include 'inc/macros.gms'
-
 
 options
+    profile = 3
     solvelink = %Solvelink.Loadlibrary%
 $ifi not '%debug%' == 'yes'
     solprint = Silent
 ;
 
 
+* === Definitions, sets and parameters ========================================
+$include 'inc/definitions.gms'   // Definitions for possible model settings
+$include 'inc/sets.gms'          // Set definitions used by the models
+$include 'inc/parameters.gms'    // Parameter definitions used by the models
+$include 'inc/results.gms'       // Parameter definitions for model results
+
 * === Load data ===============================================================
-* Load updates made for BackBone
-$gdxin  'input/inputData.gdx'
-$loadm  param
-$loaddc geo
-$loaddc flow
-$loaddc bus
-$loaddc unit
-$loaddc fuel
-$loaddc storage
-*$loaddc eg
-*$loaddc unitVG
-$loaddc hydroBus
-*$loaddc gu
-*$loaddc egu
-$loaddc eguData
-$loaddc guData
-$loaddc guDataReserves
-$loaddc egsData
-$loaddc egu_input
-$loaddc ggu
-*$loaddc egs
-$loaddc flow_unit
-$loaddc unit_fuel
-$loaddc unit_storage
-$loaddc eeguFixedOutputRatio
-$loaddc eeguConstrainedOutputRatio
-*$loaddc resCapable
-$loaddc emission
-$loaddc ts_energyDemand
-$loaddc ts_import
-*$load   ts_reserveDemand
-$loaddc ts_cf
-$loaddc ts_stoContent
-$loaddc ts_fuelPriceChange
-$loaddc ts_inflow
-$loaddc p_transferCap
-$loaddc p_transferLoss
-$loaddc p_data2d
-*$loaddc etype_storage
-$gdxin
+$include 'inc/inputs.gms'
 
-* Generate sets based on parameter data
-egu(etype, geo, unit)$eguData(etype, geo, unit, 'maxCap') = yes;
-eg(etype, geo)$sum(unit, egu(etype, geo, unit)) = yes;
-gu(geo, unit)$sum(etype, egu(etype, geo, unit)) = yes;
-gu(geo, unit)$sum((etype, etype_), eeguConstrainedOutputRatio(etype, etype_, geo, unit)) = no;
-gu(geo, unit)$sum((etype, etype_), eeguFixedOutputRatio(etype, etype_, geo, unit)) = no;
-egs(etype, geo, storage)$egsData(etype, geo, storage, 'maxContent') = yes;
-ggu(geo, geo_, unit)$(gu(geo, unit) and ord(geo) = ord(geo_)) = yes;
-eg2g(etype, from_geo, to_geo)$p_transferCap(etype, from_geo, to_geo) = yes;
-bus_to_bus(from_geo, to_geo)$p_transferCap('elec', from_geo, to_geo) = yes;
-
-ts_fuelPriceChangeGeo(fuel, geo, t) = ts_fuelPriceChange(fuel, t);
-
-unitOnline(unit)$[ sum(egu(etype, geo, unit), guData(geo, unit, 'startupCost') or guData(geo, unit, 'startupFuelCons') or guData(geo, unit, 'coldStart') ) ] = yes;
-unitVG(unit)$sum(flow, flow_unit(flow, unit)) = yes;
-*unitConversion(unit)$sum(eg(etype, geo), egu_input(etype, geo, unit)) = yes;
-unitElec(unit)$sum(egu(etype, geo, unit), eguData('elec', geo, unit, 'maxCap')) = yes;
-unitHeat(unit)$sum(egu(etype, geo, unit), eguData('heat', geo, unit, 'maxCap')) = yes;
-unitFuel(unit)$sum[ (fuel, geo)$sum(t, ts_fuelPriceChangeGeo(fuel, geo, t)), unit_fuel(unit, fuel, 'main') ] = yes;
-unitVG(unit)$sum(flow, flow_unit(flow, unit)) = yes;
-unitWithCV(unit)$(sum(egu(etype, geo, unit), 1) > 1) = yes;
-unitMinload(unit)$sum(egu(etype, geo, unit), guData(geo, unit, 'minLoad')) = yes;
-unitHydro(unit)$sum(unit_fuel(unit,'WATER','main'), 1) = yes;
-unitHydro(unit)$sum(unit_fuel(unit,'WATER_RES','main'), 1) = yes;
-storageHydro(storage)$sum(unitHydro, unit_storage(unitHydro, storage)) = yes;
-resCapable(resType, resDirection, geo, unit)$guDataReserves(geo, unit, resType, resDirection) = yes;
-
-* === Variables ===============================================================
+* === Variables and equations =================================================
 $include 'inc/variables.gms'
-
-
-* === Equations ===============================================================
 $include 'inc/equations.gms'
 
 
-* Load stochastic scenarios
-$batinclude 'inc/gdxload_fluctuation.inc' wind
-$batinclude 'inc/gdxload_fluctuation.inc' solar
-$ifthen exist 'input/scenarios_hydro.gdx'
-    $$gdxin 'input/scenarios_hydro.gdx'
-$endif
-$gdxin
-
-
-* ¨¨¨ Data corrections etc. ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
-$if exist 'extra_data.gms' $include 'extra_data.gms'
 
 
 $include 'inc/schedule.gms'
@@ -183,40 +83,6 @@ $include 'inc/schedule.gms'
 
 * === Calculations ============================================================
 
-* Define long-term storages
-loop(egs(etype, geo, storage) $(egsData(etype, geo, storage, 'maxContent') > 0
-               and sum(unit_storage(unit, storage),
-                       eguData('elec', geo, unit, 'maxCap')
-                       + eguData('heat', geo, unit, 'maxCap')) > 0),
-    storageLong(storage) = yes$(egsData(etype, geo, storage, 'maxContent')
-                                 / sum(unit_storage(unit, storage),
-                                       eguData('elec', geo, unit, 'maxCap')
-                                       + eguData('heat', geo, unit, 'maxCap'))
-                                > 0.5 * mSettings('schedule', 't_horizon') );
-);
-
-
-* Link units to genTypes
-$iftheni '%genTypes%' == 'yes'
-loop(gu_fuel(geo, unit, fuel, 'main'),
-    genType_g('pumped storage', unit) = yes$(sameas(fuel, 'water')
-                                          and guData(geo, unit, 'maxCharging') > 0);
-    genType_g('hydropower', unit) = yes$(sameas(fuel, 'water')
-                                      and not genType_g('pumped storage', unit));
-    genType_g('nuclear', unit) = yes$sameas(fuel, 'nuclear');
-    genType_g('coal', unit) = yes$sameas(fuel, 'coal');
-    genType_g('OCGT', unit) = yes$(sameas(g, 'OCGT') or sameas(unit, 'DoE_Peaker'));
-    genType_g('CCGT', unit) = yes$(sameas(fuel, 'nat_gas')
-                                and not genType_g('OCGT', unit));
-    genType_g('solar', unit) = yes$sameas(fuel, 'solar');
-    genType_g('wind', unit) = yes$sameas(fuel, 'wind');
-    genType_g('dummy', unit) = yes$sameas(unit, 'dummy');
-);
-$endif
-
-* Calculate average hourly loads from demand
-ts_energyDemand(etype, geo, f, t)$ts_energyDemand(etype, geo, f, t)
-    = ts_energyDemand(etype, geo, f, t) * p_data2d(etype, geo, 'annualDemand') / 1;
 
 * Calculate power based time series for ramp scheduling
 *if(active('rampSched'),
@@ -225,18 +91,9 @@ ts_energyDemand(etype, geo, f, t)$ts_energyDemand(etype, geo, f, t)
 *$include 'inc/rampSched/killStuff.gms'
 
 
-* ¨¨¨ Use input data to select which samples are included in the model run
-*$include 'input/samples_in_model.inc';
-
-* ¨¨¨ Calculate trees
-*$include 'inc/treeCalc.inc'
-
-* ¨¨¨ Extra calculations
-$if exist 'extra_calculations.gms' $include 'extra_calculations.gms'
-
 
 * === Files ===================================================================
-files gdx, cmd;
+files gdx;
 file f_info /'output/info.txt'/;
 
 * === Simulation ==============================================================
@@ -275,6 +132,7 @@ loop(modelSolves(mSolve, tSolve),
     tSolveOrd = ord(tSolve);
     tElapsed = tSolveOrd - mSettings(mSolve, 't_start');
     tLast = tElapsed + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));
+    p_stepLength(mSolve, f, t) = no;
 
     // If the model does not have preset step lengths...
            //    if(sum[(msft(mSolve,s,f,t)$fRealization(f), p_stepLength(mSolve, f, t)] = 0,
