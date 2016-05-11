@@ -20,6 +20,7 @@ from config import MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH,\
                    MAGIC_INVESTMENTS_JSON, MAGIC_OPERATION_JSON,\
                    ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR
 from widgets.setup_popup_widget import SetupPopupWidget
+from widgets.project_form_widget import ProjectFormWidget
 from widgets.context_menu_widget import ContextMenuWidget
 from modeltest.modeltest import ModelTest
 
@@ -50,6 +51,7 @@ class TitanUI(QMainWindow):
         self.setup_dict = dict()
         # References for widgets
         self.setup_popup = None
+        self.project_form = None
         self.context_menu = None
         # Load project
         self._project = self.init_project('project_1')
@@ -101,26 +103,56 @@ class TitanUI(QMainWindow):
         # self.modeltest = ModelTest(self.setup_model, self._root)
         # Set model into QTreeView
         self.ui.treeView_setups.setModel(self.setup_model)
-        # Make Proxymodel to show tool associated with the selected Setup
+        # Make a ProxyModel to show the tool associated with the selected Setup
         self.tool_proxy_model = ToolProxyModel(self.ui)
         self.tool_proxy_model.setSourceModel(self.setup_model)
         self.ui.listView_tools.setModel(self.tool_proxy_model)
         # TODO: Show input files of Setup directory
 
     def init_project(self, project_name):
-        """Initialize project when Sceleton is started."""
+        """Initialize project when Sceleton is started.
+
+        Args:
+            project_name (str): Project name
+        """
+        # TODO: This method is not needed when loading works
         project_desc = 'a test project'
         project = SceletonProject(project_name, project_desc)
         self.setWindowTitle("Sceleton Titan    -- {} --".format(project.name))
         return project
 
+    def clear_ui(self):
+        """Clear UI when starting a new project or loading a project."""
+        # Clear Setup Model
+        self.delete_all_no_confirmation()
+        self._root = None
+        self.setup_model = None
+        self.tool_proxy_model = None
+        # Set project to None
+        self._project = None
+        # Clear text browsers
+        self.ui.textBrowser_main.clear()
+        self.ui.textBrowser_process_output.clear()
+
     def new_project(self):
-        # TODO: Add dialog to query project name and description
-        proj_desc = 'a new test project'
-        proj_name = 'new project'
-        self._project = SceletonProject(proj_name, proj_desc)
+        """Show 'New Project' form to user to query project details."""
+        self.project_form = ProjectFormWidget(self)
+        self.project_form.show()
+
+    def create_project(self, name, description):
+        """Create new project and set it active.
+
+        Args:
+            name (str): Project name
+            description (str): Project description
+        """
+        self.clear_ui()
+        self._project = SceletonProject(name, description)
+        self.init_views()
         self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
-        self.add_msg_signal.emit("Current project is now '{0}'".format(self._project.name), 0)
+        self.add_msg_signal.emit("Started project '{0}'".format(self._project.name), 0)
+        # Create and save project file to disk
+        self.save_project()
 
     def save_project_as(self):
         """Save Setups in project to disk. Ask file name from user."""
@@ -128,29 +160,36 @@ class TitanUI(QMainWindow):
             self.ui.statusbar.showMessage("No Setups to Save", 5000)
             return
         # Open file dialog to query save file name
-        dir_path = QFileDialog.getSaveFileName(self, 'Save project to file',
+        # noinspection PyCallByClass, PyTypeChecker
+        dir_path = QFileDialog.getSaveFileName(self, 'Save project',
                                                      PROJECT_DIR,
                                                      'JSON (*.json)')
-        file_name = dir_path[0]
-        if file_name == '':  # Cancel button clicked
-            self.add_msg_signal.emit("Save Project Canceled", 0)
+        file_path = dir_path[0]
+        if file_path == '':  # Cancel button clicked
+            self.add_msg_signal.emit("Saving project Canceled", 0)
             logging.debug("Saving canceled")
             return
-        self.add_msg_signal.emit("Saving Project '{0}' to file:{1}".format(self._project.name, file_name), 0)
-        self.save(file_name)
+        # Create new project
+        file_name = os.path.split(file_path)[-1]
+        proj_name = os.path.splitext(file_name)[0]
+        proj_desc = ''
+        self._project = SceletonProject(proj_name, proj_desc)
+        self.add_msg_signal.emit("Saving project '{0}' to file: <{1}>".format(self._project.name, file_name), 0)
+        self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
+        self.save(file_path)
 
     def save_project(self):
         """Save Setups in project to disk. Use project name as file name."""
-        if self._root.child_count() == 0:
-            self.ui.statusbar.showMessage("No Setups to Save", 5000)
-            return
+        # if self._root.child_count() == 0:
+        #     self.ui.statusbar.showMessage("No Setups to Save", 5000)
+        #     return
         # Use project name as file name
         file_name = os.path.join(PROJECT_DIR, '{}.json'.format(self._project.short_name))
-        self.add_msg_signal.emit("Saving to current project file:{0}".format(file_name), 0)
+        self.add_msg_signal.emit("Saving project -> {0}".format(file_name), 0)
         self.save(file_name)
 
     def save(self, fname):
-        """Project information and Setups are collected to their individual dictionaries.
+        """Project information and Setups are collected to their own dictionaries.
         These dictionaries are then saved into another dictionary, which is saved to a
         JSON file.
 
@@ -187,9 +226,14 @@ class TitanUI(QMainWindow):
             json.dump(project_dict, fp, indent=4)
         msg = "Project '%s' saved to file'%s'" % (self._project.name, fname)
         self.ui.statusbar.showMessage(msg, 5000)
+        self.add_msg_signal.emit("Done", 1)
 
     def update_json_dict(self, setup):
-        """Update tree dictionary with Setup dictionary."""
+        """Update tree dictionary with Setup dictionary.
+
+        Args:
+            setup (Setup): Setup object to save
+        """
         # TODO: Add all necessary attributes from Setup object to here (e.g. cmdline_args)
         the_dict = dict()
         the_dict['name'] = setup.name
@@ -210,12 +254,13 @@ class TitanUI(QMainWindow):
 
     def load_project(self):
         """Load project from file."""
-        answer = QFileDialog.getOpenFileName(self, 'Load project from file', PROJECT_DIR, 'JSON (*.json)')
+        # noinspection PyCallByClass, PyTypeChecker
+        answer = QFileDialog.getOpenFileName(self, 'Load project', PROJECT_DIR, 'JSON (*.json)')
         load_path = answer[0]
         if load_path == '':  # Cancel button clicked
             self.add_msg_signal.emit("Loading canceled", 0)
             return
-        self.add_msg_signal.emit("Loading project from file:'{0}'".format(load_path), 0)
+        self.add_msg_signal.emit("Loading project from file: <{0}>".format(load_path), 0)
         if not os.path.isfile(load_path):
             self.add_msg_signal.emit("File not found '%s'" % load_path, 2)
             return
@@ -226,26 +271,25 @@ class TitanUI(QMainWindow):
         except OSError:
             self.add_msg_signal.emit("OSError: Could not load file '{}'".format(load_path), 2)
             return
-        # Delete all Setups from model
-        self.delete_all_no_confirmation()
-
+        # Initialize UI
+        self.clear_ui()
         # Parse project info
         project_dict = dicts['project']
         proj_name = project_dict['name']
         proj_desc = project_dict['desc']
         # Create project
         self._project = SceletonProject(proj_name, proj_desc)
+        # Setup views
+        self.init_views()
         self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
-        self.add_msg_signal.emit("Current project is now '{0}'".format(self._project.name), 0)
 
         # Parse Setups
         setup_dict = dicts['setups']
         if len(setup_dict) == 0:
-            self.add_msg_signal.emit("No Setups found in file '{}'".format(load_path), 2)
+            self.add_msg_signal.emit("No Setups found in project file '{}'".format(load_path), 0)
             return
         self.add_msg_signal.emit("Loading %d Setups" % len(setup_dict), 0)
-        # TODO: Parse children of Base Setups as well
-        # TODO: Parse other attributes too
+        self.add_msg_signal.emit("Current project is now '{0}'".format(self._project.name), 0)
         for dic in setup_dict:
             logging.debug("Setup short name: %s" % dic)
             # logging.debug("values: %s" % dicts[dic])
@@ -255,6 +299,19 @@ class TitanUI(QMainWindow):
                 desc = ''
                 index = QModelIndex()
                 self.add_setup(name, desc, index)
+                # TODO: Parse other attributes too
+                # Check if this base setup has children
+                if setup_dict[dic]['n_child'] > 0:
+                    # Find all children of this base Setup and add them to model
+                    for dictio in setup_dict:
+                        if setup_dict[dictio]['parent'] == name:
+                            kid_name = setup_dict[dictio]['name']
+                            kid_desc = ''
+                            # TODO: This index might not work in all cases
+                            parent_index = self.setup_model.index(0, 0, QModelIndex())  # Get the index of parent
+                            self.add_setup(kid_name, kid_desc, parent_index)
+                            # TODO: Parse other attributes too
+                            # TODO: Check if this kid has children and add them (recursively)
             for key in setup_dict[dic]:
                 logging.debug("%s: %s" % (key, setup_dict[dic][key]))
         msg = "Project '%s' loaded" % self._project.name
@@ -748,7 +805,7 @@ class TitanUI(QMainWindow):
         # TODO: Fix this
         # for _, setup in self._setups.items():
         #    setup.cleanup()
-        logging.debug("Thank you for choosing Titan. Bye bye.")
+        logging.debug("See you later.")
         # if self.setup_popup:
         #     self.setup_popup = None
         # noinspection PyArgumentList

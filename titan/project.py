@@ -3,7 +3,8 @@
 :date:   16/03/2016
 """
 
-import os.path
+import os
+import logging
 from metaobject import MetaObject
 from config import PROJECT_DIR
 
@@ -21,8 +22,11 @@ class SceletonProject(MetaObject):
         super().__init__(name, description)
         self.project_dir = os.path.join(PROJECT_DIR, self.short_name)
         self.dirty = False  # Indicates if the project has changed since loading
-        if not os.path.exists(PROJECT_DIR):
-            os.makedirs(PROJECT_DIR, exist_ok=True)
+        if not os.path.exists(self.project_dir):
+            try:
+                os.makedirs(self.project_dir, exist_ok=True)
+            except OSError:
+                logging.exception("Could not create new project")
         else:
             # TODO: Notice that project already exists...
             pass
@@ -33,10 +37,6 @@ class SceletonProject(MetaObject):
     def load(self):
         pass
 
-    # def add_setup(self, name, description, parent=None):
-    #
-    #     self._setups[name] = Setup(name, description, self, parent)
-    #
     # def execute(self):
     #     """Execute all setups in this project
     #     """

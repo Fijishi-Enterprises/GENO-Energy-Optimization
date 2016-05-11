@@ -36,15 +36,29 @@ class SetupPopupWidget(QWidget):
         self.setupname = ''
         self.setupdescription = ''
         self.connect_signals()
-        self.ui.pushButton_ok.setDefault(True)
+        # self.ui.pushButton_ok.setDefault(True)
+        self.ui.lineEdit_name.setFocus()
         # Ensure this window gets garbage-collected when closed
         self.setAttribute(Qt.WA_DeleteOnClose)
 
     def connect_signals(self):
         """ Connect PyQt signals. """
+        # Setup name -> folder name connection
+        self.ui.lineEdit_name.textChanged.connect(self.name_changed)
         # Button clicked handlers
         self.ui.pushButton_ok.clicked.connect(self.ok_clicked)
         self.ui.pushButton_cancel.clicked.connect(self.close)
+
+    def name_changed(self):
+        """Update label to show upcoming folder name."""
+        setup_name = self.ui.lineEdit_name.text()
+        default = "Folder name:"
+        if setup_name == '':
+            self.ui.label_setup_folder.setText(default)
+        else:
+            folder_name = setup_name.lower().replace(' ', '_')
+            msg = default + " " + folder_name
+            self.ui.label_setup_folder.setText(msg)
 
     @pyqtSlot()
     def ok_clicked(self):

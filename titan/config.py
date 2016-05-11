@@ -21,10 +21,12 @@ if getattr(sys, 'frozen', False):
 else:
     APPLICATION_PATH = os.path.realpath(os.path.dirname(__file__))
 
+# Directory for projects
 PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'projects'))
 # Project input/output directories
 INPUT_STORAGE_DIR = 'input'
 OUTPUT_STORAGE_DIR = 'output'
+# Work directory
 WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
 
 # Tool model path
