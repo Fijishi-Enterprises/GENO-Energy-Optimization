@@ -1,10 +1,10 @@
 if (mType('schedule'),
     m('schedule') = yes;
     mSettings('schedule', 't_start') = 1;
-    mSettings('schedule', 't_horizon') = 168;
+    mSettings('schedule', 't_horizon') = 8760;
     mSettings('schedule', 't_jump') = 24;
-    mSettings('schedule', 't_forecastLength') = 168;
-    mSettings('schedule', 't_end') = 54;
+    mSettings('schedule', 't_forecastLength') = 8760;
+    mSettings('schedule', 't_end') = 8760;
     mSettings('schedule', 'samples') = 1;
     mSettings('schedule', 'forecasts') = 0;
     mf('schedule', f)$[ord(f)-1 <= mSettings('schedule', 'forecasts')] = yes;
