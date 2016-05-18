@@ -80,13 +80,13 @@ loop(modelSolves(mSolve, tSolve),
     $$include 'inc\3d_solve.gms'                // Solve model(s)
 
     $$include 'inc\4a_outputVariant.gms'  // Store results from the loop
-    $$ifi '%debug%' == 'yes' execute_unload 'output/debug.gdx';   // Output debugging information
+    $$ifi '%debug%' == 'yes' execute_unload 'output\debug.gdx';   // Output debugging information
 // Debugging results
     $$iftheni.debug '%debug%' == 'yes'
 *        putclose gdx;
 *        put_utility 'gdxout' / 'output\'mSolve.tl:0, '-', tSolve.tl:0, '.gdx';
 *            execute_unload
-*            $$include defOutput/debugSymbols.inc
+*            $$include defOutput\debugSymbols.inc
 *        ;
     $$endif.debug
 );
@@ -101,13 +101,13 @@ $include 'inc\4b_outputInvariant.gms'
 $include 'inc\4c_outputQuickFile.gms'
 
 * Post-process results
-$if exist 'inc\4d_postProcess.gms' $include 'defOutput/4d_postProcess.gms'
+$if exist 'inc\4d_postProcess.gms' $include 'defOutput\4d_postProcess.gms'
 
 execute_unload 'output\results.gdx',
     $$include 'defOutput\resultSymbols.inc'
 ;
 
-$ifi '%debug%' == 'yes' execute_unload 'output/debug.gdx';
+$ifi '%debug%' == 'yes' execute_unload 'output\debug.gdx';
 
 if(errorcount > 0, abort errorcount);
 * === THE END =================================================================
