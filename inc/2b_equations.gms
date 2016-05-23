@@ -4,7 +4,6 @@ equations
     q_resDemand(resType, resDirection, geo, f, t) "Demand for each reserve type is greater than demand"
     q_maxDownward(etype, geo, unit, f, t) "Downward commitments will not undercut minimum load or maximum elec. consumption"
     q_maxUpward(etype, geo, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
-    q_storageControl(etype, geo, storage, f, t) "Storage energy control"
     q_storageDynamics(etype, geo, storage, f, t) "Dynamic equation for storages"
     q_bindStorage(etype, geo, storage, mType, f, t) "Couple storage contents for joining forecasts or for joining sample time periods"
     q_startup(geo, unit, f, t) "Capacity started up is greater than the difference of online cap. now and in previous time step"
@@ -115,19 +114,28 @@ q_obj ..
 ;
 
 * -----------------------------------------------------------------------------
-q_balance(eg(etype, geo), ft(f, t)) ..
+q_balance(eg(etype, geo), ft(f, t)) ..         // state variables with implicit method
+  + v_state(etype, geo, f+pf(f,t), t+pt(t))$(stateGeo(geo))
   + sum(unit$egu(etype, geo, unit),
-        v_gen(etype, geo, unit, f, t)
+        v_gen(etype, geo, unit, f+pf(f,t), t+pt(t))
+    )
+  + sum(storage$egu(etype, geo, storage),
+      - v_stoCharge(etype, geo, storage, f+pf(f,t), t+pt(t))
+      + v_stoDischarge(etype, geo, storage, f+pf(f,t), t+pt(t))
     )
   + sum(from_geo$(eg2g(etype, from_geo, geo)),
         (1 - p_transferLoss(etype, from_geo, geo))
-            * v_transfer(etype, from_geo, geo, f, t))
-  + ts_import(etype, geo, t)
-  + vq_gen('increase', etype, geo, f, t)
-  - vq_gen('decrease', etype, geo, f, t)
+            * v_transfer(etype, from_geo, geo, f+pf(f,t), t+pt(t))
+    )
+  + ts_import(etype, geo, t+pt(t))
+  + vq_gen('increase', etype, geo, f+pf(f,t), t+pt(t))
+  - vq_gen('decrease', etype, geo, f+pf(f,t), t+pt(t))
   =E=
-  + ts_energyDemand(etype, geo, f, t)
-  + sum(to_geo$(eg2g(etype, geo, to_geo)), v_transfer(etype, geo, to_geo, f, t))
+  + sum(geo_$(stageGeo(geo) and naapuri_geo(geo,geo_)),
+        kerroin(etype, geo, geo_, f, t) * v_state(etype, geo_, f, t)
+    )
+  + ts_energyDemand(etype, geo, f+pf(f,t), t+pt(t))
+  + sum(to_geo$(eg2g(etype, geo, to_geo)), v_transfer(etype, geo, to_geo, f+pf(f,t), t+pt(t)))
 ;
 * -----------------------------------------------------------------------------
 q_resDemand(resType, resDirection, bus, ft(f, t))$ts_reserveDemand(resType, resDirection, bus, f, t) ..
@@ -174,15 +182,6 @@ q_maxUpward(egu(etype, geo, unit), ft(f, t))${      [unitMinLoad(unit) and eguDa
   =L=                                                                         // must be less than available/online capacity
   - v_online(geo, unit, f, t) * guData(geo, unit, 'minLoad')$[guData(geo, unit, 'minLoad') and eguData(etype, geo, unit, 'maxCharging')]
   + v_gen.up(etype, geo, unit, f, t) * [ v_online(geo, unit, f, t)$guData(geo, unit, 'minLoad') + 1$(not guData(geo, unit, 'minLoad')) ]
-;
-* -----------------------------------------------------------------------------
-q_storageControl(egs(etype, geo, storage), ft(f, t)) ..
-  + sum(egu(etype, geo, unit)$unit_storage(unit, storage),
-       + v_gen(etype, geo, unit, f, t)
-    )
-  =E=
-  - v_stoCharge(etype, geo, storage, f, t)
-  + v_stoDischarge(etype, geo, storage, f, t)
 ;
 * -----------------------------------------------------------------------------
 q_storageDynamics(egs(etype, geo, storage), ft(f, t)) ..
