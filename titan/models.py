@@ -214,6 +214,30 @@ class SetupModel(QAbstractItemModel):
                 return setup
         return self._root_setup
 
+    def find_index(self, setup_name):
+        """Finds the QModelIndex of a Setup with the given name.
+
+        Args:
+            setup_name (str): The searched Setup
+
+        Returns:
+            QModelIndex of a Setup with the given name or None if not found
+        """
+        # model = self.setup_model
+        start_index = self.index(0, 0, QModelIndex())
+        if start_index.isValid():
+            matching_index = self.match(
+                start_index, Qt.DisplayRole, setup_name, 1, Qt.MatchFixedString | Qt.MatchRecursive)
+            if len(matching_index) == 0:
+                # Match not found
+                return None
+            elif len(matching_index) == 1:
+                # Match found
+                return matching_index[0]
+            else:
+                logging.error("Found multiple matching indices with name '%s'). Fix this." % setup_name)
+                return matching_index[0]
+
     def get_siblings(self, index):
         """Return Setup indices on the same row as the given index (siblings).
 

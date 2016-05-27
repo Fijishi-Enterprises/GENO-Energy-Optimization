@@ -196,7 +196,6 @@ class TitanUI(QMainWindow):
         Args:
             fname (str): Path to the save file.
         """
-        # TODO: Plan (for now) is to save all project stuff into one JSON file.
         # Clear Setup dictionary
         self.setup_dict.clear()
         project_dict = dict()  # This is written to JSON file
@@ -205,9 +204,9 @@ class TitanUI(QMainWindow):
         dic['desc'] = self._project.description
         # Save project stuff
         project_dict['project'] = dic
-        # TODO: Add children into the dictionary of the parent in JSON (If Setups are easier to load that way)
 
         def traverse(item):
+            # Helper function to traverse tree
             logging.debug("\t" * traverse.level + item.name)
             if not item.name == 'root':
                 self.update_json_dict(item)
@@ -229,28 +228,60 @@ class TitanUI(QMainWindow):
         self.add_msg_signal.emit("Done", 1)
 
     def update_json_dict(self, setup):
-        """Update tree dictionary with Setup dictionary.
+        """Update tree dictionary with Setup dictionary. Setups will be written as a nested dictionary.
+        I.e. child dictionaries are inserted into the parent Setups dictionary with key 'children'.
 
         Args:
             setup (Setup): Setup object to save
         """
         # TODO: Add all necessary attributes from Setup object to here (e.g. cmdline_args)
+        setup_name = setup.name
+        setup_short_name = setup.short_name
+        parent_name = setup.parent().name
+        parent_short_name = setup.parent().short_name
         the_dict = dict()
-        the_dict['name'] = setup.name
-        if setup.parent() is not None:
-            the_dict['parent'] = setup.parent().short_name
-        else:
-            the_dict['parent'] = None
+        the_dict['name'] = setup_name
         if setup.tool:
             the_dict['tool'] = setup.tool.short_name
         else:
             the_dict['tool'] = None
         the_dict['is_ready'] = setup.is_ready
         the_dict['n_child'] = setup.child_count()
-        # if setup.child_count() > 0:
-        #     the_dict['children'] = self.update_json_dict()
-        name = setup.short_name
-        self.setup_dict[name] = the_dict
+        if setup.parent() is not None:
+            the_dict['parent'] = parent_short_name
+        else:
+            logging.debug("Setup '%s' parent is None" % setup_name)
+            the_dict['parent'] = None
+        the_dict['children'] = dict()
+        # Add this Setup under the appropriate Setups children
+        if parent_name == 'root':
+            self.setup_dict[setup_short_name] = the_dict
+        else:
+            # Find the parent dictionary where this setup should be inserted
+            diction = self._finditem(self.setup_dict, parent_short_name)
+            try:
+                diction['children'][setup_short_name] = the_dict
+            except KeyError:
+                logging.error("_finditem() error while saving. Parent setup dictionary not found")
+        return
+
+    def _finditem(self, obj, key):
+        """Finds a key recursively from a nested dictionary.
+
+        Args:
+            obj: Dictionary to search
+            key: Key to find
+
+        Returns:
+            Dictionary with the given key.
+        """
+        if key in obj:
+            return obj[key]
+        for k, v in obj.items():
+            if isinstance(v, dict):
+                item = self._finditem(v, key)
+                if item is not None:
+                    return item
 
     def load_project(self):
         """Load project from file."""
@@ -282,40 +313,48 @@ class TitanUI(QMainWindow):
         # Setup views
         self.init_views()
         self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
-
         # Parse Setups
         setup_dict = dicts['setups']
         if len(setup_dict) == 0:
             self.add_msg_signal.emit("No Setups found in project file '{}'".format(load_path), 0)
             return
-        self.add_msg_signal.emit("Loading %d Setups" % len(setup_dict), 0)
-        self.add_msg_signal.emit("Current project is now '{0}'".format(self._project.name), 0)
-        for dic in setup_dict:
-            logging.debug("Setup short name: %s" % dic)
-            # logging.debug("values: %s" % dicts[dic])
-            # Add base Setups first
-            if setup_dict[dic]['parent'] == 'root':
-                name = setup_dict[dic]['name']
-                desc = ''
-                index = QModelIndex()
-                self.add_setup(name, desc, index)
-                # TODO: Parse other attributes too
-                # Check if this base setup has children
-                if setup_dict[dic]['n_child'] > 0:
-                    # Find all children of this base Setup and add them to model
-                    for dictio in setup_dict:
-                        if setup_dict[dictio]['parent'] == name:
-                            kid_name = setup_dict[dictio]['name']
-                            kid_desc = ''
-                            # TODO: This index might not work in all cases
-                            parent_index = self.setup_model.index(0, 0, QModelIndex())  # Get the index of parent
-                            self.add_setup(kid_name, kid_desc, parent_index)
-                            # TODO: Parse other attributes too
-                            # TODO: Check if this kid has children and add them (recursively)
-            for key in setup_dict[dic]:
-                logging.debug("%s: %s" % (key, setup_dict[dic][key]))
+        self.add_msg_signal.emit("Switching to project '{0}'".format(self._project.name), 0)
+        self.parse_setups(setup_dict)
         msg = "Project '%s' loaded" % self._project.name
         self.ui.statusbar.showMessage(msg, 5000)
+
+    def parse_setups(self, setup_dict):
+        """Parse all found Setups from Setup dictionary loaded from JSON file
+        and add them to the SetupModel. Recursive method.
+
+        Args:
+            setup_dict (dict): Dictionary of Setups. Loaded from JSON project file
+        """
+        for k, v in setup_dict.items():
+            if isinstance(v, dict):
+                if k == 'children':
+                    # FIXME: This might cause a problem if Setup name is 'children'
+                    # logging.debug("Children dictionary. v is:\n%s" % v)
+                    pass
+                else:
+                    # Add Setup
+                    logging.debug("Loading Setup: %s" % k)  # k is Setup short name and name of the dictionary
+                    # logging.debug("Setup %s has %s children" % (k, v['n_child']))
+                    # TODO: Parse other attributes too
+                    name = v['name']  # Setup name
+                    desc = ''
+                    parent_name = v['parent']
+                    # logging.debug("Name:%s" % name)
+                    # logging.debug("Parent:%s" % parent_name)
+                    if parent_name == 'root':
+                        if not self.setup_model.insert_setup(name, desc, self._project, 0):
+                            logging.error("Inserting base Setup %s failed" % name)
+                    else:
+                        parent_index = self.setup_model.find_index(parent_name)
+                        parent_row = parent_index.row()
+                        if not self.setup_model.insert_setup(name, desc, self._project, parent_row, parent_index):
+                            logging.error("Inserting child Setup %s failed" % name)
+                self.parse_setups(v)
 
     def context_menu_configs(self, pos):
         """Context menu for the configuration tree.
