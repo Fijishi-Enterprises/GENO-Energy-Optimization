@@ -16,6 +16,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 import qsubprocess
 from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR, WORK_DIR, IGNORE_PATTERNS
 from metaobject import MetaObject
+from tools import create_dir
 
                    
 class MyEncoder(json.JSONEncoder):
@@ -262,8 +263,8 @@ class Setup(MetaObject):
                                        self.short_name)
         # Do not create directories for root Setup
         if not self.is_root:
-            self.create_dir(self.input_dir)
-            self.create_dir(self.output_dir)
+            create_dir(self.input_dir)
+            create_dir(self.output_dir)
         # If not root, add self to parent's children
         if parent is not None:
             parent._add_child(self)
@@ -341,26 +342,6 @@ class Setup(MetaObject):
         output += "\n"
         return output
 
-    def create_dir(self, base_path, folder=''):
-        # TODO: This method should maybe go into tools.py
-        """ Create (input/output) directories for Setup recursively.
-
-        Args:
-            base_path (str): Absolute path to wanted dir. Usually setup storage dir.
-            folder (str): (Optional) Folder name. Usually short name of Setup.
-
-        Returns:
-            Absolute path to the created directory or None if operation failed.
-        """
-        directory = os.path.join(base_path, folder)
-        try:
-            os.makedirs(directory, exist_ok=True)
-        except OSError as e:
-            logging.error("Could not create directory: %s\nReason: %s" % (directory, e))
-            return None
-        logging.debug("Created directory: %s" % directory)
-        return directory
-
     def create_input(self):
         """Create input files for this tool setup."""
         raise NotImplementedError
@@ -374,7 +355,7 @@ class Setup(MetaObject):
         self.inputs.add(tool)
         input_dir = os.path.join(self.input_dir, tool.short_name)
         if not os.path.exists(input_dir):
-            self.create_dir(input_dir)
+            create_dir(input_dir)
 
     def add_tool(self, tool, cmdline_args=""):
         """Add a tool to this setup.
@@ -393,8 +374,8 @@ class Setup(MetaObject):
         self.tool = tool
         self.cmdline_args = cmdline_args
         # Create model input and output directories for the Setup
-        input_dir = self.create_dir(self.input_dir, tool.short_name)
-        output_dir = self.create_dir(self.output_dir, tool.short_name)
+        input_dir = create_dir(self.input_dir, tool.short_name)
+        output_dir = create_dir(self.output_dir, tool.short_name)
         if (input_dir is None) or (output_dir is None):
             return False
         logging.debug("Tool '{0}' with cmdline args '{1}' added to Setup '{2}'"

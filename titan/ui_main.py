@@ -19,7 +19,7 @@ from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH,\
                    MAGIC_INVESTMENTS_JSON, MAGIC_OPERATION_JSON,\
                    ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR
-from widgets.setup_popup_widget import SetupPopupWidget
+from widgets.setup_form_widget import SetupFormWidget
 from widgets.project_form_widget import ProjectFormWidget
 from widgets.context_menu_widget import ContextMenuWidget
 from modeltest.modeltest import ModelTest
@@ -50,7 +50,7 @@ class TitanUI(QMainWindow):
         self.tool_proxy_model = None
         self.setup_dict = dict()
         # References for widgets
-        self.setup_popup = None
+        self.setup_form = None
         self.project_form = None
         self.context_menu = None
         # Load project
@@ -88,7 +88,7 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_execute.clicked.connect(self.execute_setup)
         self.ui.pushButton_test.clicked.connect(self.traverse_model)
         self.ui.pushButton_delete_setup.clicked.connect(self.delete_selected_setup)
-        self.ui.pushButton_add_base.clicked.connect(self.open_setup_popup)
+        self.ui.pushButton_add_base.clicked.connect(self.open_setup_form)
         self.ui.pushButton_delete_all.clicked.connect(self.delete_all)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
         self.ui.treeView_setups.pressed.connect(self.update_tool_view)
@@ -370,10 +370,10 @@ class TitanUI(QMainWindow):
         # option = ContextMenuWidget(self, global_pos, ind).get_action()
         if option == "Add Child":
             logging.debug("adding child")
-            self.open_setup_popup(ind)
+            self.open_setup_form(ind)
             return
         elif option == "Add New Base":
-            self.open_setup_popup()
+            self.open_setup_form()
             return
         elif option == "Edit":
             logging.debug("Edit selected")
@@ -389,7 +389,7 @@ class TitanUI(QMainWindow):
         self.context_menu = None
 
     @pyqtSlot("QModelIndex")
-    def open_setup_popup(self, index=QModelIndex()):
+    def open_setup_form(self, index=QModelIndex()):
         """Show Setup creation popup.
 
         Args:
@@ -397,8 +397,8 @@ class TitanUI(QMainWindow):
         """
         if index is False:  # Happens when 'Add Base' button is pressed
             index = QModelIndex()
-        self.setup_popup = SetupPopupWidget(self, index)
-        self.setup_popup.show()
+        self.setup_form = SetupFormWidget(self, index)
+        self.setup_form.show()
 
     def add_setup(self, name, description, parent=QModelIndex()):
         """Insert new Setup into SetupModel.
@@ -845,7 +845,7 @@ class TitanUI(QMainWindow):
         # for _, setup in self._setups.items():
         #    setup.cleanup()
         logging.debug("See you later.")
-        # if self.setup_popup:
-        #     self.setup_popup = None
+        # if self.setup_form:
+        #     self.setup_form = None
         # noinspection PyArgumentList
         QApplication.quit()

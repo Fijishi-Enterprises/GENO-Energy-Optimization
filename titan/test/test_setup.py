@@ -15,10 +15,15 @@ import tool
 import ui_main
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import APPLICATION_PATH, PROJECT_DIR
-from tools import copy_files
+from tools import copy_files, create_dir
+from project import SceletonProject
 
 
 class TestSetup(TestCase):
+    # TODO: Create Setups into SetupModel
+    # TODO: Move test input files into appropriate folder
+    # TODO: Mock create_dir so that directories are not actually created
+    # TODO: Fix or move execution tests
 
     # add_msg_signal = mock.Mock()  # If a mock signal is needed
 
@@ -28,14 +33,15 @@ class TestSetup(TestCase):
                         datefmt='%Y-%m-%d %H:%M:%S')
         # log.info("Setting up")
         log.disable(level=log.ERROR)
+        self.project = SceletonProject('Unit Test Project', ' ')
         self.magic_model_file = os.path.join(APPLICATION_PATH, 'test', 'resources', 'test_model', 'magic.gms')
         self.magic_model_path = os.path.split(self.magic_model_file)[0]
-        self.base_setup = Setup('Test base', 'Base Setup for testing')
-        self.child_dummy_a = Setup('Setup Dummy A', 'Setup with parent Base', self.base_setup)
+        self.base_setup = Setup('Test base', 'Base Setup for testing', self.project)
+        self.child_dummy_a = Setup('Setup Dummy A', 'Setup with parent Base', self.project, self.base_setup)
         self.child_dummy_b = None  # Placeholder for a third setup
-        self.model = GAMSModel('Test GAMS Magic Tool', 'Tool for testing.', self.magic_model_path,
+        self.tool = GAMSModel('Test GAMS Magic Tool', 'Tool for testing.', self.magic_model_path,
                                self.magic_model_file, 'input', 'output')
-        self.model_two = GAMSModel('Another Test GAMS Magic Tool', 'Second model for testing.',
+        self.tool_two = GAMSModel('Another Test GAMS Magic Tool', 'Second model for testing.',
                                    self.magic_model_path, self.magic_model_file, 'input', 'output')
         log.disable(level=log.NOTSET)
 
@@ -50,12 +56,12 @@ class TestSetup(TestCase):
             # log.info("Removing directory: %s" % self.base_setup.output_dir)
             shutil.rmtree(self.base_setup.output_dir)
         # Remove folders created while making setup child_dummy_a
-        if os.path.exists(os.path.join(self.child_dummy_a.input_dir, self.model.short_name)):
-            # log.info("Removing directory: %s" % os.path.join(self.child_dummy_a.input_dir, self.model.short_name))
-            shutil.rmtree(os.path.join(self.child_dummy_a.input_dir, self.model.short_name))
-        if os.path.exists(os.path.join(self.child_dummy_a.output_dir, self.model.short_name)):
-            # log.info("Removing directory: %s" % os.path.join(self.child_dummy_a.output_dir, self.model.short_name))
-            shutil.rmtree(os.path.join(self.child_dummy_a.output_dir, self.model.short_name))
+        if os.path.exists(os.path.join(self.child_dummy_a.input_dir, self.tool.short_name)):
+            # log.info("Removing directory: %s" % os.path.join(self.child_dummy_a.input_dir, self.tool.short_name))
+            shutil.rmtree(os.path.join(self.child_dummy_a.input_dir, self.tool.short_name))
+        if os.path.exists(os.path.join(self.child_dummy_a.output_dir, self.tool.short_name)):
+            # log.info("Removing directory: %s" % os.path.join(self.child_dummy_a.output_dir, self.tool.short_name))
+            shutil.rmtree(os.path.join(self.child_dummy_a.output_dir, self.tool.short_name))
         if os.path.exists(self.child_dummy_a.input_dir):
             # log.info("Removing directory: %s" % self.child_dummy_a.input_dir)
             shutil.rmtree(self.child_dummy_a.input_dir)
@@ -64,27 +70,27 @@ class TestSetup(TestCase):
             shutil.rmtree(self.child_dummy_a.output_dir)
         # Remove folders created while making setup child_dummy_b
         if self.child_dummy_b:  # Remove only if child_dummy_b available
-            if os.path.exists(os.path.join(self.child_dummy_b.input_dir, self.model.short_name)):
-                shutil.rmtree(os.path.join(self.child_dummy_b.input_dir, self.model.short_name))
-            if os.path.exists(os.path.join(self.child_dummy_b.output_dir, self.model.short_name)):
-                shutil.rmtree(os.path.join(self.child_dummy_b.output_dir, self.model.short_name))
+            if os.path.exists(os.path.join(self.child_dummy_b.input_dir, self.tool.short_name)):
+                shutil.rmtree(os.path.join(self.child_dummy_b.input_dir, self.tool.short_name))
+            if os.path.exists(os.path.join(self.child_dummy_b.output_dir, self.tool.short_name)):
+                shutil.rmtree(os.path.join(self.child_dummy_b.output_dir, self.tool.short_name))
             if os.path.exists(self.child_dummy_b.input_dir):
                 shutil.rmtree(self.child_dummy_b.input_dir)
             if os.path.exists(self.child_dummy_b.output_dir):
                 shutil.rmtree(self.child_dummy_b.output_dir)
 
     def test_create_dir(self):
-        # Test create_dir() method
+        # Test create_dir() function in tools.py
         log.info("Testing create_dir()")
         basepath = os.path.abspath(os.path.join('C:\\', 'data', 'temp'))
         folder = 'test'
-        self.child_dummy_a.create_dir(basepath, folder)
+        create_dir(basepath, folder)
         self.assertTrue(os.path.exists(os.path.join(basepath, folder)))
 
     def test_create_dir_without_second_argument(self):
         log.info("Testing create_dir_without_second_argument()")
         basepath = os.path.abspath(os.path.join('C:\\', 'data', 'temp', 'test'))
-        self.child_dummy_a.create_dir(basepath)
+        create_dir(basepath)
         self.assertTrue(os.path.exists(basepath))
 
     def test_create_dir_with_pardir(self):
@@ -95,7 +101,7 @@ class TestSetup(TestCase):
         log.info("Testing create_dir_with_pardir()")
         basepath = os.path.abspath(os.path.join('C:\\', 'data', os.path.pardir, 'data', 'temp', 'test'))
         folder = os.path.join(os.path.pardir, 'test')
-        dir_path = self.child_dummy_a.create_dir(base_path=basepath, folder=folder)
+        dir_path = create_dir(base_path=basepath, folder=folder)
         self.assertTrue(os.path.exists(dir_path))
 
     def test_add_tool(self):
@@ -107,19 +113,19 @@ class TestSetup(TestCase):
     def test_collect_input_files(self):
         log.info("Testing collect_input_files()")
         # Delete files from test model input folders except .gitignore
-        self.delete_files(self.model.input_dir)
+        self.delete_files(self.tool.input_dir)
         # Add model into Setup. Creates model input directories.
-        self.child_dummy_a.add_model(self.model)
+        self.child_dummy_a.add_tool(self.tool)
         # Add input formats to model
-        self.model.add_input_format(GDX_DATA_FMT)
-        self.model.add_input_format(GAMS_INC_FILE)
+        self.tool.add_input_format(GDX_DATA_FMT)
+        self.tool.add_input_format(GAMS_INC_FILE)
         # Copy dummy test files to setup model folders
         self.prepare_test_data()
         self.child_dummy_a.pop_model()
         # DO THE ACTUAL TEST
         self.child_dummy_a.collect_input_files()
         # Check that created changes.inc is the same as reference changes.inc
-        changes_path = os.path.abspath(os.path.join(self.model.input_dir, 'changes.inc'))
+        changes_path = os.path.abspath(os.path.join(self.tool.input_dir, 'changes.inc'))
         changes_ref_path = os.path.abspath(os.path.join(APPLICATION_PATH, 'test', 'resources',
                                                         'test_input', 'changes_reference.inc'))
         # Check that both have the same number of lines
@@ -147,10 +153,10 @@ class TestSetup(TestCase):
     def test_get_input_files(self):
         log.info("Testing get_input_files()")
         # Add model into Setup. Creates model input directories.
-        self.child_dummy_a.add_model(self.model)
+        self.child_dummy_a.add_tool(self.tool)
         # Add input formats to model
-        self.model.add_input_format(GDX_DATA_FMT)
-        self.model.add_input_format(GAMS_INC_FILE)
+        self.tool.add_input_format(GDX_DATA_FMT)
+        self.tool.add_input_format(GAMS_INC_FILE)
         # Copy dummy test files to setup model folders
         self.prepare_test_data()
         # DO THE ACTUAL TEST
@@ -196,7 +202,7 @@ class TestSetup(TestCase):
 
     def test_pop_model(self):
         log.info("Testing pop_model()")
-        self.child_dummy_a.add_model(self.model)
+        self.child_dummy_a.add_tool(self.tool)
         # Pop next model into model.running_model
         self.child_dummy_a.pop_model()
         retval = False
@@ -215,18 +221,18 @@ class TestSetup(TestCase):
         """
         log.info("Testing execute() and model_finished()")
         # Add input formats to model
-        self.model.add_input_format(GDX_DATA_FMT)
-        self.model.add_input_format(GAMS_INC_FILE)
-        self.model.add_output_format(GDX_DATA_FMT)
+        self.tool.add_input_format(GDX_DATA_FMT)
+        self.tool.add_input_format(GAMS_INC_FILE)
+        self.tool.add_output_format(GDX_DATA_FMT)
         # Create data parameters
         g = Dimension('g', 'generators')
         param = Dimension('param', 'parameters')
         data = DataParameter('data', 'generation data', '?', [g, param])
         # Add input data parameters to model
-        self.model.add_input(data)
+        self.tool.add_input(data)
         log.disable(level=log.ERROR)
         # Add model into Setup. Creates model input & output directories.
-        self.child_dummy_a.add_model(self.model, 'MIP=CPLEX')
+        self.child_dummy_a.add_tool(self.tool, 'MIP=CPLEX')
         log.disable(level=log.NOTSET)
         # Copy dummy test files to setup model folders
         self.prepare_test_data()
@@ -260,19 +266,19 @@ class TestSetup(TestCase):
         """Testing execute with base setup (no model) and child setup (2 GAMS models)."""
         log.info("Testing execute() with multiple models in a setup")
         # Add input formats to model
-        self.model.add_input_format(GDX_DATA_FMT)
-        self.model.add_input_format(GAMS_INC_FILE)
-        self.model.add_output_format(GDX_DATA_FMT)
+        self.tool.add_input_format(GDX_DATA_FMT)
+        self.tool.add_input_format(GAMS_INC_FILE)
+        self.tool.add_output_format(GDX_DATA_FMT)
         # Create data parameters
         g = Dimension('g', 'generators')
         param = Dimension('param', 'parameters')
         data = DataParameter('data', 'generation data', '?', [g, param])
         # Add input data parameters to model
-        self.model.add_input(data)
+        self.tool.add_input(data)
         log.disable(level=log.ERROR)
         # Add two models into Setup child_dummy_a. Creates model input & output directories.
-        self.child_dummy_a.add_model(self.model, 'MIP=CPLEX')
-        self.child_dummy_a.add_model(self.model_two)
+        self.child_dummy_a.add_tool(self.tool, 'MIP=CPLEX')
+        self.child_dummy_a.add_tool(self.tool_two)
         log.disable(level=log.NOTSET)
         effects = [self.child_dummy_a.model_finished, self.child_dummy_a.model_finished, Exception("No effects left")]
 
@@ -305,9 +311,9 @@ class TestSetup(TestCase):
         setup_dummy_a and setup_dummy_b have a GAMS model."""
         log.debug("Testing execute() with three setups and two models")
         log.disable(level=log.ERROR)
-        self.child_dummy_a.add_model(self.model, 'MIP=CPLEX')
-        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
-        self.child_dummy_b.add_model(self.model_two)
+        self.child_dummy_a.add_tool(self.tool, 'MIP=CPLEX')
+        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.project, self.child_dummy_a)
+        self.child_dummy_b.add_tool(self.tool_two)
         log.disable(level=log.NOTSET)
         effects = [self.child_dummy_a.model_finished, self.child_dummy_b.model_finished, Exception("No effects left")]
 
@@ -330,9 +336,9 @@ class TestSetup(TestCase):
         """Test execute with three setups: base -> setup_dummy_a -> setup_dummy_b.
         setup_dummy_b has a GAMS model."""
         log.debug("Testing execute() with three setups and one model")
-        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
+        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.project, self.child_dummy_a)
         log.disable(level=log.ERROR)
-        self.child_dummy_b.add_model(self.model_two)
+        self.child_dummy_b.add_tool(self.tool_two)
         log.disable(level=log.NOTSET)
         effects = [self.child_dummy_b.model_finished, Exception("No effects left")]
 
@@ -354,7 +360,7 @@ class TestSetup(TestCase):
     def test_execute_with_three_setups(self):
         """Test execute with three setups: base -> setup_dummy_a -> setup_dummy_b."""
         log.debug("Testing execute() with three setups")
-        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.child_dummy_a)
+        self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.project, self.child_dummy_a)
         self.child_dummy_b.execute()
         # with mock.patch('model.qsubprocess.QSubProcess.start_process',
         #                 side_effect=self.side_effect) as mock_start_process:
@@ -366,29 +372,29 @@ class TestSetup(TestCase):
 
     def prepare_test_data(self):
         """Helper function to copy test input data from \test\resources\test_input
-        into appropriate test folders. NOTE: Call this function after add_model has
+        into appropriate test folders. NOTE: Call this function after add_tool has
         been called."""
         log.info("Copying test files")
         # Create path strings for easier reference
         # Path to test input
         input_f = os.path.abspath(os.path.join(APPLICATION_PATH, 'test', 'resources', 'test_input'))
         # Path to base setup input for model magic (src)
-        base_input_f = os.path.join(input_f, 'base', self.model.short_name)
+        base_input_f = os.path.join(input_f, 'base', self.tool.short_name)
         # Path to child setup input for model magic (src)
-        child_input_f = os.path.join(input_f, 'child', self.model.short_name)
+        child_input_f = os.path.join(input_f, 'child', self.tool.short_name)
         # Path to base setup input for model magic (dst). This must be made manually.
-        base_model_f = os.path.join(self.base_setup.input_dir, self.model.short_name)
+        base_model_f = os.path.join(self.base_setup.input_dir, self.tool.short_name)
         # Path to child setup input for model magic (dst)
-        child_model_f = os.path.join(self.child_dummy_a.input_dir, self.model.short_name)
+        child_model_f = os.path.join(self.child_dummy_a.input_dir, self.tool.short_name)
         # TODO: Make input folder for model in base setup as well, when a model is added to setup.
         # This is not done at the moment when a model is added to Setup
-        self.base_setup.create_dir(base_model_f)
+        create_dir(base_model_f)
         # Check that source test input folders exist
         if not os.path.exists(base_input_f):
             raise SkipTest("Test skipped. Base (src) input folder missing <{0}>\n".format(base_input_f))
         if not os.path.exists(child_input_f):
             raise SkipTest("Test skipped. Child (src) input folder missing <{0}>\n".format(child_input_f))
-        # Check that destination test input folders exist (Created by add_model())
+        # Check that destination test input folders exist (Created by add_tool())
         if not os.path.exists(base_model_f):
             raise SkipTest("Test skipped. Base (dst) input folder not found <{0}>\n".format(base_model_f))
         if not os.path.exists(child_model_f):

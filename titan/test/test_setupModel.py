@@ -32,7 +32,7 @@ class TestSetupModel(TestCase):
 
     def test_get_siblings(self):
         """Test if get_siblings returns indices a, b, c if given index a."""
-        log.info("Testing test_logging")
+        log.info("Testing get_siblings()")
         self.create_setups_1()
         expected_output = list()
         expected_output.append(self.a_ind)

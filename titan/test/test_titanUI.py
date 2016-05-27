@@ -21,22 +21,7 @@ class TestTitanUI(TestCase):
     def tearDown(self):
         log.info("Tearing down")
 
-    def test_logging(self):
-        self.fail()
-
-    def test_get_next_setup(self):
-        self.fail()
-
-    def test_depth_first(self):
-        self.fail()
-
-    def test_breadth_first(self):
-        self.fail()
-
     def test_get_selected_setup_base_index(self):
-        self.fail()
-
-    def test_get_next_generation(self):
         self.fail()
 
     def test_get_selected_setup_siblings(self):

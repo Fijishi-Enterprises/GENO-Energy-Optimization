@@ -89,7 +89,7 @@ class ProjectFormWidget(QWidget):
         self._parent.create_project(self.name, self.description)
 
     def keyPressEvent(self, e):
-        """ Close application when escape key is pressed.
+        """Close project form when escape key is pressed.
 
         Args:
             e (QKeyEvent): Received key press event.

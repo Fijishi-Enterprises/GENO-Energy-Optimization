@@ -7,11 +7,11 @@ Widget to ask the user for created Setup details.
 
 from PyQt5.QtWidgets import QWidget, QStatusBar
 from PyQt5.QtCore import pyqtSlot, QModelIndex, Qt
-import ui.setup_popup
+import ui.setup_form
 import logging
 
 
-class SetupPopupWidget(QWidget):
+class SetupFormWidget(QWidget):
     """ A widget to query user's preferences for created Setup
 
     Attributes:
@@ -22,7 +22,7 @@ class SetupPopupWidget(QWidget):
         super().__init__()
         self._parent = parent  # QWidget parent
         #  Set up the user interface from Designer.
-        self.ui = ui.setup_popup.Ui_Form()
+        self.ui = ui.setup_form.Ui_Form()
         self.ui.setupUi(self)
         # Add Status Bar to widget
         self.statusbar = QStatusBar(self)
@@ -114,7 +114,7 @@ class SetupPopupWidget(QWidget):
         self._parent.add_setup(self.setupname, self.setupdescription, self.parent_index)
 
     def keyPressEvent(self, e):
-        """ Close application when escape key is pressed.
+        """Close Setup form when escape key is pressed.
 
         Args:
             e (QKeyEvent): Received key press event.

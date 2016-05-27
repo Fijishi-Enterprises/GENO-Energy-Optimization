@@ -26,6 +26,43 @@ def run(command):
     return subprocess.call(command)
 
 
+def run2(command):
+    """ Run a sub-process. Same as in Sceleton.
+
+    Args:
+        command (str): Sub-process command as string.
+
+    Returns:
+        Normal and possible error output of the sub-process.
+    """
+    logging.debug('Starting sub-process: <%s>.' % command)
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE,
+                            stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                            shell=True)
+    out = proc.communicate()
+    return out
+
+
+def create_dir(base_path, folder=''):
+    """Create (input/output) directories for Setup recursively.
+
+    Args:
+        base_path (str): Absolute path to wanted dir. Usually setup storage dir.
+        folder (str): (Optional) Folder name. Usually short name of Setup.
+
+    Returns:
+        Absolute path to the created directory or None if operation failed.
+    """
+    directory = os.path.join(base_path, folder)
+    try:
+        os.makedirs(directory, exist_ok=True)
+    except OSError as e:
+        logging.error("Could not create directory: %s\nReason: %s" % (directory, e))
+        return None
+    logging.debug("Created directory: %s" % directory)
+    return directory
+
+
 def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):
     """Method for copying files.
 
@@ -53,23 +90,6 @@ def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):
             count += 1
 
     return count
-
-
-def run2(command):
-    """ Run a sub-process. Same as in Sceleton.
-
-    Args:
-        command (str): Sub-process command as string.
-
-    Returns:
-        Normal and possible error output of the sub-process.
-    """
-    logging.debug('Starting sub-process: <%s>.' % command)
-    proc = subprocess.Popen(command, stdout=subprocess.PIPE,
-                            stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                            shell=True)
-    out = proc.communicate()
-    return out
 
 
 class SetupTree(MetaObject):
