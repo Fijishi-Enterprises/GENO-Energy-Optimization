@@ -436,6 +436,93 @@ class ToolProxyModel(QSortFilterProxyModel):
             return tool_name + "   ['" + cmd + "']"
 
 
+class ToolModel(QAbstractListModel):
+    """Class to store available tools such as Balmorel, Wilmar, etc."""
+    def __init__(self, parent=None):
+        super().__init__()
+        self._tools = list()
+        self._tools.append('No tool')
+        self._parent = parent
+
+    def rowCount(self, parent=None, *args, **kwargs):
+        """Must be reimplemented when subclassing.
+
+        Args:
+            parent (QModelIndex): Not used (because this is a list)
+            *args:
+            **kwargs:
+
+        Returns:
+            Number of rows (available tools) in the model
+        """
+        return len(self._tools)
+
+    def data(self, index, role=None):
+        """Must be reimplemented when subclassing.
+
+        Args:
+            index (QModelIndex): Requested index
+            role (int): Data role
+
+        Returns:
+            Tool name when displayrole requested
+        """
+        if not index.isValid() or self.rowCount() == 0:
+            return QVariant()
+
+        if role == Qt.DisplayRole:
+            row = index.row()
+            if row == 0:
+                return self._tools[0]
+            else:
+                toolname = self._tools[row].name
+                return toolname
+
+    def flags(self, index):
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+
+    def insertRow(self, tool, row=0, parent=QModelIndex(), *args, **kwargs):
+        """Insert tool into model.
+
+        Args:
+            tool (Tool): Tool added to the model
+            row (str): Row to insert tool to
+            parent (QModelIndex): Parent of child (not used)
+            *args:
+            **kwargs:
+
+        Returns:
+            Boolean value depending on operation success
+        """
+        self.beginInsertRows(parent, row, row)
+        self._tools.append(tool)
+        self.endInsertRows()
+
+    def tool(self, row):
+        """Returns tool located at row
+
+        Args:
+            row (int): Row of tool
+
+        Returns:
+            Tool from tools list
+        """
+        return self._tools[row]
+
+    def find_tool(self, name):
+        """Returns tool with the given name.
+
+        Args:
+            name (str): Name of tool to be found
+        """
+        for tool in self._tools:
+            if isinstance(tool, str):
+                continue
+            else:
+                if name == tool.name:
+                    return tool
+        return False
+
 class SetupTreeListModel(QAbstractListModel):
     """Class to store SetupTree instances."""
     def __init__(self, parent=None):

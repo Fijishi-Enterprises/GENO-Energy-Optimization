@@ -12,7 +12,7 @@ class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.setWindowModality(QtCore.Qt.ApplicationModal)
-        Form.resize(320, 180)
+        Form.resize(320, 260)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -67,12 +67,20 @@ class Ui_Form(object):
         spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem2)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
-        self.gridLayout.addLayout(self.verticalLayout, 3, 0, 1, 1)
+        self.gridLayout.addLayout(self.verticalLayout, 5, 0, 1, 1)
+        self.comboBox_tool = QtWidgets.QComboBox(Form)
+        self.comboBox_tool.setObjectName("comboBox_tool")
+        self.gridLayout.addWidget(self.comboBox_tool, 3, 0, 1, 1)
+        self.lineEdit_cmdline_params = QtWidgets.QLineEdit(Form)
+        self.lineEdit_cmdline_params.setObjectName("lineEdit_cmdline_params")
+        self.gridLayout.addWidget(self.lineEdit_cmdline_params, 4, 0, 1, 1)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
         Form.setTabOrder(self.lineEdit_name, self.lineEdit_description)
-        Form.setTabOrder(self.lineEdit_description, self.pushButton_ok)
+        Form.setTabOrder(self.lineEdit_description, self.comboBox_tool)
+        Form.setTabOrder(self.comboBox_tool, self.lineEdit_cmdline_params)
+        Form.setTabOrder(self.lineEdit_cmdline_params, self.pushButton_ok)
         Form.setTabOrder(self.pushButton_ok, self.pushButton_cancel)
 
     def retranslateUi(self, Form):
@@ -86,4 +94,6 @@ class Ui_Form(object):
         self.label_setup_folder.setText(_translate("Form", "Setup folder:"))
         self.pushButton_ok.setText(_translate("Form", "Ok"))
         self.pushButton_cancel.setText(_translate("Form", "Cancel"))
+        self.comboBox_tool.setToolTip(_translate("Form", "<html><head/><body><p>Select tool</p></body></html>"))
+        self.lineEdit_cmdline_params.setPlaceholderText(_translate("Form", "Type tool command line parameters here..."))
 

@@ -13,7 +13,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog
 from ui.main import Ui_MainWindow
 from project import SceletonProject
-from models import SetupModel, ToolProxyModel
+from models import SetupModel, ToolProxyModel, ToolModel
 from tool import Dimension, DataParameter, Setup
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH,\
@@ -46,6 +46,7 @@ class TitanUI(QMainWindow):
         self._running_setup = None
         self._root = None  # Root node for SetupModel
         self.setup_model = None
+        self.tool_model = None
         self.modeltest = None
         self.tool_proxy_model = None
         self.setup_dict = dict()
@@ -57,7 +58,7 @@ class TitanUI(QMainWindow):
         self._project = self.init_project('project_1')
         # Initialize general things
         self.connect_signals()
-        self.init_views()
+        self.init_models()
 
     @pyqtSlot()
     def set_debug_level(self):
@@ -94,20 +95,31 @@ class TitanUI(QMainWindow):
         self.ui.treeView_setups.pressed.connect(self.update_tool_view)
         self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
 
-    def init_views(self):
+    def init_models(self):
         """Create data models for GUI views."""
         # Root for SetupModel
         self._root = Setup('root', 'root node for Setups,', self._project)
+        # Create model for Setups
         self.setup_model = SetupModel(self._root)
-        # Set model test in action
+        # Start model test for SetupModel
         # self.modeltest = ModelTest(self.setup_model, self._root)
-        # Set model into QTreeView
+        # Create model for tools
+        self.tool_model = ToolModel()
+        # Load tool definitions
+        magic_invest = GAMSModel.load(MAGIC_INVESTMENTS_JSON)
+        magic_operation = GAMSModel.load(MAGIC_OPERATION_JSON)
+        # Insert tools into model
+        self.tool_model.insertRow(magic_invest)
+        self.tool_model.insertRow(magic_operation)
+        # Set SetupModel to QTreeView
         self.ui.treeView_setups.setModel(self.setup_model)
         # Make a ProxyModel to show the tool associated with the selected Setup
         self.tool_proxy_model = ToolProxyModel(self.ui)
         self.tool_proxy_model.setSourceModel(self.setup_model)
         self.ui.listView_tools.setModel(self.tool_proxy_model)
         # TODO: Show input files of Setup directory
+        # TODO: Use Setup class get_input_files() Should be easy.
+
 
     def init_project(self, project_name):
         """Initialize project when Sceleton is started.
@@ -148,7 +160,7 @@ class TitanUI(QMainWindow):
         """
         self.clear_ui()
         self._project = SceletonProject(name, description)
-        self.init_views()
+        self.init_models()
         self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
         self.add_msg_signal.emit("Started project '{0}'".format(self._project.name), 0)
         # Create and save project file to disk
@@ -241,10 +253,13 @@ class TitanUI(QMainWindow):
         parent_short_name = setup.parent().short_name
         the_dict = dict()
         the_dict['name'] = setup_name
+        the_dict['desc'] = setup.description
         if setup.tool:
-            the_dict['tool'] = setup.tool.short_name
+            the_dict['tool'] = setup.tool.name
+            the_dict['cmdline_args'] = setup.cmdline_args
         else:
             the_dict['tool'] = None
+            the_dict['cmdline_args'] = ""
         the_dict['is_ready'] = setup.is_ready
         the_dict['n_child'] = setup.child_count()
         if setup.parent() is not None:
@@ -310,8 +325,8 @@ class TitanUI(QMainWindow):
         proj_desc = project_dict['desc']
         # Create project
         self._project = SceletonProject(proj_name, proj_desc)
-        # Setup views
-        self.init_views()
+        # Setup models and views
+        self.init_models()
         self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
         # Parse Setups
         setup_dict = dicts['setups']
@@ -322,6 +337,7 @@ class TitanUI(QMainWindow):
         self.parse_setups(setup_dict)
         msg = "Project '%s' loaded" % self._project.name
         self.ui.statusbar.showMessage(msg, 5000)
+        self.add_msg_signal.emit("Done".format(self._project.name), 1)
 
     def parse_setups(self, setup_dict):
         """Parse all found Setups from Setup dictionary loaded from JSON file
@@ -342,10 +358,10 @@ class TitanUI(QMainWindow):
                     # logging.debug("Setup %s has %s children" % (k, v['n_child']))
                     # TODO: Parse other attributes too
                     name = v['name']  # Setup name
-                    desc = ''
+                    desc = v['desc']
                     parent_name = v['parent']
-                    # logging.debug("Name:%s" % name)
-                    # logging.debug("Parent:%s" % parent_name)
+                    tool_name = v['tool']
+                    cmdline_args = v['cmdline_args']
                     if parent_name == 'root':
                         if not self.setup_model.insert_setup(name, desc, self._project, 0):
                             logging.error("Inserting base Setup %s failed" % name)
@@ -354,6 +370,17 @@ class TitanUI(QMainWindow):
                         parent_row = parent_index.row()
                         if not self.setup_model.insert_setup(name, desc, self._project, parent_row, parent_index):
                             logging.error("Inserting child Setup %s failed" % name)
+                            # Add tool to Setup
+                    if tool_name is not None:
+                        # Get tool from ToolModel
+                        tool = self.tool_model.find_tool(tool_name)
+                        if not tool:
+                            logging.error("Could not add Tool to Setup. Tool with name '%s' not found" % tool_name)
+                        else:
+                            setup_index = self.setup_model.find_index(name)
+                            setup = self.setup_model.get_setup(setup_index)
+                            setup.add_input(tool)
+                            setup.add_tool(tool, cmdline_args=cmdline_args)
                 self.parse_setups(v)
 
     def context_menu_configs(self, pos):
@@ -369,12 +396,12 @@ class TitanUI(QMainWindow):
         option = self.context_menu.get_action()
         # option = ContextMenuWidget(self, global_pos, ind).get_action()
         if option == "Add Child":
-            logging.debug("adding child")
             self.open_setup_form(ind)
             return
         elif option == "Add New Base":
             self.open_setup_form()
             return
+        # TODO: Add 'Add Tool' option
         elif option == "Edit":
             logging.debug("Edit selected")
             return
@@ -400,12 +427,14 @@ class TitanUI(QMainWindow):
         self.setup_form = SetupFormWidget(self, index)
         self.setup_form.show()
 
-    def add_setup(self, name, description, parent=QModelIndex()):
+    def add_setup(self, name, description, tool, cmdline_args, parent=QModelIndex()):
         """Insert new Setup into SetupModel.
 
         Args:
             name (str): Setup name
             description (str): Setup description
+            tool (Tool): Tool of Setup
+            cmdline_args (str): Command line arguments used with tool
             parent (QModelIndex): Parent Setup index
         """
         if name == '':
@@ -415,10 +444,18 @@ class TitanUI(QMainWindow):
             logging.debug("Inserting Base")
             if not self.setup_model.insert_setup(name, description, self._project, 0):
                 logging.error("Adding base Setup failed")
+                return
         else:
             logging.debug("Inserting Child")
             if not self.setup_model.insert_setup(name, description, self._project, 0, parent):
                 logging.error("Adding child Setup failed")
+                return
+        # Add tool to Setup
+        if tool is not None:
+            setup_index = self.setup_model.find_index(name)
+            setup = self.setup_model.get_setup(setup_index)
+            setup.add_input(tool)
+            setup.add_tool(tool, cmdline_args=cmdline_args)
         return
 
     def delete_all(self):
@@ -650,8 +687,7 @@ class TitanUI(QMainWindow):
         mip.add_tool(magic_operation, cmdline_args="--USE_MIP=yes")
 
     def create_setups_3(self):
-        """Creates 'invest' -> 'LP' branch and 'invest' -> MIP branches
-         and puts them into a SetupTree List."""
+        """Creates 'invest' -> 'LP' branch and 'invest' -> MIP branches."""
 
         # Load model definitions
         magic_invest = GAMSModel.load(MAGIC_INVESTMENTS_JSON)

@@ -35,8 +35,9 @@ class SetupFormWidget(QWidget):
             self.create_base = False
         self.setupname = ''
         self.setupdescription = ''
+        # Add ToolModel into ComboBox view
+        self.ui.comboBox_tool.setModel(self._parent.tool_model)
         self.connect_signals()
-        # self.ui.pushButton_ok.setDefault(True)
         self.ui.lineEdit_name.setFocus()
         # Ensure this window gets garbage-collected when closed
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -106,12 +107,30 @@ class SetupFormWidget(QWidget):
         if not start_index.isValid():
             logging.debug("Adding first Setup to model")
         self.call_add_setup()
+        self.call_add_tool()
         self.close()
 
     def call_add_setup(self):
         """Creates new Setup according to user's input."""
         logging.debug("Creating Setup")
-        self._parent.add_setup(self.setupname, self.setupdescription, self.parent_index)
+        c_index = self.ui.comboBox_tool.currentIndex()
+        if c_index == 0:
+            logging.debug("No tool selected for this Setup")
+            selected_tool = None
+        else:
+            c_text = self.ui.comboBox_tool.currentText()
+            logging.debug("Adding tool '{0}' to Setup '{1}'".format(c_text, self.setupname))
+            selected_tool = self._parent.tool_model.tool(c_index)
+        cmdline_params = self.ui.lineEdit_cmdline_params.text()
+        logging.debug("command line arguments: '%s'" % cmdline_params)
+        self._parent.add_setup(self.setupname, self.setupdescription, selected_tool, cmdline_params, self.parent_index)
+
+    def call_add_tool(self):
+        """Add tool and command line parameters to Setup
+
+        Returns:
+
+        """
 
     def keyPressEvent(self, e):
         """Close Setup form when escape key is pressed.
