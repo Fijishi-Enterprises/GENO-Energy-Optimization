@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolProxyModel, ToolModel
-from tool import Dimension, DataParameter, Setup
+from tool import Dimension, DataParameter, Setup, DataFormat
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH,\
                    MAGIC_INVESTMENTS_JSON, MAGIC_OPERATION_JSON,\
@@ -89,7 +89,6 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_execute.clicked.connect(self.execute_setup)
         self.ui.pushButton_test.clicked.connect(self.traverse_model)
         self.ui.pushButton_delete_setup.clicked.connect(self.delete_selected_setup)
-        self.ui.pushButton_add_base.clicked.connect(self.open_setup_form)
         self.ui.pushButton_delete_all.clicked.connect(self.delete_all)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
         self.ui.treeView_setups.pressed.connect(self.update_tool_view)
@@ -246,7 +245,7 @@ class TitanUI(QMainWindow):
         Args:
             setup (Setup): Setup object to save
         """
-        # TODO: Add all necessary attributes from Setup object to here (e.g. cmdline_args)
+        # TODO: Add all necessary attributes from Setup object to here
         setup_name = setup.name
         setup_short_name = setup.short_name
         parent_name = setup.parent().name
@@ -263,7 +262,7 @@ class TitanUI(QMainWindow):
         the_dict['is_ready'] = setup.is_ready
         the_dict['n_child'] = setup.child_count()
         if setup.parent() is not None:
-            the_dict['parent'] = parent_short_name
+            the_dict['parent'] = parent_name
         else:
             logging.debug("Setup '%s' parent is None" % setup_name)
             the_dict['parent'] = None
@@ -348,20 +347,18 @@ class TitanUI(QMainWindow):
         """
         for k, v in setup_dict.items():
             if isinstance(v, dict):
-                if k == 'children':
-                    # FIXME: This might cause a problem if Setup name is 'children'
-                    # logging.debug("Children dictionary. v is:\n%s" % v)
-                    pass
-                else:
+                # if not k == 'children':  # Skip children dictionary for every Setup
+                # FIXME: This causes a problem if Setup name is 'children'
+                #if not k == 'children' and isinstance(v['children'], dict)
+                if not k == 'children':
                     # Add Setup
-                    logging.debug("Loading Setup: %s" % k)  # k is Setup short name and name of the dictionary
-                    # logging.debug("Setup %s has %s children" % (k, v['n_child']))
-                    # TODO: Parse other attributes too
+                    # logging.debug("Loading Setup: %s -- k.__class__: %s -- v.__class__: %s" % (k, k.__class__, v.__class__))  # k is Setup short name and name of the dictionary
                     name = v['name']  # Setup name
                     desc = v['desc']
                     parent_name = v['parent']
                     tool_name = v['tool']
                     cmdline_args = v['cmdline_args']
+                    # logging.debug("name:%s parent:%s" % (name, parent_name))
                     if parent_name == 'root':
                         if not self.setup_model.insert_setup(name, desc, self._project, 0):
                             logging.error("Inserting base Setup %s failed" % name)
@@ -370,13 +367,13 @@ class TitanUI(QMainWindow):
                         parent_row = parent_index.row()
                         if not self.setup_model.insert_setup(name, desc, self._project, parent_row, parent_index):
                             logging.error("Inserting child Setup %s failed" % name)
-                            # Add tool to Setup
                     if tool_name is not None:
                         # Get tool from ToolModel
                         tool = self.tool_model.find_tool(tool_name)
                         if not tool:
                             logging.error("Could not add Tool to Setup. Tool with name '%s' not found" % tool_name)
                         else:
+                            # Add tool to Setup
                             setup_index = self.setup_model.find_index(name)
                             setup = self.setup_model.get_setup(setup_index)
                             setup.add_input(tool)
@@ -401,9 +398,23 @@ class TitanUI(QMainWindow):
         elif option == "Add New Base":
             self.open_setup_form()
             return
-        # TODO: Add 'Add Tool' option
-        elif option == "Edit":
-            logging.debug("Edit selected")
+        elif option == "Show Input":
+            selected_setup = ind.internalPointer()
+            setup_name = selected_setup.name
+            tool = selected_setup.tool
+            if tool:
+                gdx_input_files = selected_setup.get_input_files(tool=tool, file_fmt=GDX_DATA_FMT)
+                inc_input_files = selected_setup.get_input_files(tool=tool, file_fmt=GAMS_INC_FILE)
+                self.add_msg_signal.emit("Showing input files for Setup '%s'\nInput folder: %s"
+                                         % (setup_name, selected_setup.input_dir), 0)
+                self.add_msg_signal.emit("GDX Input files:\n{0}".format(gdx_input_files), 0)
+                self.add_msg_signal.emit("GAMS INC Input files:\n{0}".format(inc_input_files), 0)
+            else:
+                self.add_msg_signal.emit("No tool found", 0)
+            return
+        elif option == "Edit Tool":
+            # TODO: Implement Edit Tool option
+            logging.debug("Showing edit tool dialog. (Not implemented yet)")
             return
         elif option == "Execute":
             logging.debug("Selected setup:%s" % ind.internalPointer().name)
@@ -505,6 +516,7 @@ class TitanUI(QMainWindow):
         """Start executing finished Setup's parent or end run if all Setups are ready."""
         logging.debug("Setup <{0}> ready".format(self._running_setup.name))
         self.add_msg_signal.emit("Setup '%s' ready" % self._running_setup.name, 1)
+        self.add_msg_signal.emit("Results saved to: {0}".format(self._running_setup.output_dir), 0)
         # Emit dataChanged signal to QtreeView because is_ready has been updated
         self.setup_model.emit_data_changed()
         # Disconnect signal to make sure it is not connected to multiple Setups

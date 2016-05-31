@@ -532,6 +532,54 @@ class Setup(MetaObject):
 
         return True
 
+    @staticmethod
+    def create_results_dir(path, name, simulation_failed=False):
+        """ Creates a new directory for storing simulation results.
+
+        Args:
+            path (str): Path where the new directory should be created.
+            name (str): Basename for the directory.
+            simulation_failed (boolean): If True, concatenates '(Failed) ' to the result folder name.
+
+        Returns:
+            Absolute path to the new results directory or None if failed.
+
+        The new directory is named as follows: "name-time_stamp". If a folder
+        with the same name already exists an underscore and index number is
+        added at the end of folder name.
+        """
+        # TODO: Use this method to create unique result directories for every run
+        #  Check that the output directory is writable.
+        if not os.access(path, os.W_OK):
+            logging.error('Results folder missing.')
+            return None
+        #  Add timestamp to filename.
+        try:
+            stamp = datetime.datetime.fromtimestamp(time.time())
+        except OverflowError:
+            logging.error('Timestamp out of range.')
+            return None
+        dir_name = name + '-' + stamp.strftime('%Y-%m-%dT%H.%M.%S')
+        if simulation_failed:
+            dir_name = '(Failed) ' + dir_name
+        results_path = path + os.sep + dir_name
+        logging.debug('Output destination dir: %s' % results_path)
+        #  Create a new directory for storing results.
+        counter = 1
+        while True:
+            if not os.path.exists(results_path):
+                os.makedirs(results_path)
+                break
+            else:
+                results_path = (path + os.sep + dir_name + '_' +
+                                str(counter))
+                counter += 1
+                if counter >= 1000:
+                    logging.error('Unable to create results folder.')
+                    return None
+        logging.debug('Created results directory: %s' % results_path)
+        return results_path
+
     def cleanup(self):
         """Remove temporary files of the setup."""
         for t in self.tool_instances:

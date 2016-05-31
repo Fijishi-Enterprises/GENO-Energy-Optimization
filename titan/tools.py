@@ -54,13 +54,17 @@ def create_dir(base_path, folder=''):
         Absolute path to the created directory or None if operation failed.
     """
     directory = os.path.join(base_path, folder)
-    try:
-        os.makedirs(directory, exist_ok=True)
-    except OSError as e:
-        logging.error("Could not create directory: %s\nReason: %s" % (directory, e))
-        return None
-    logging.debug("Created directory: %s" % directory)
-    return directory
+    if os.path.exists(directory):
+        logging.debug("Found directory: %s" % directory)
+        return directory
+    else:
+        try:
+            os.makedirs(directory, exist_ok=True)
+        except OSError as e:
+            logging.error("Could not create directory: %s\nReason: %s" % (directory, e))
+            return None
+        logging.debug("Created directory: %s" % directory)
+        return directory
 
 
 def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):

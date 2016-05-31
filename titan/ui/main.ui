@@ -75,22 +75,6 @@
         </property>
        </spacer>
       </item>
-      <item row="0" column="8">
-       <widget class="QCheckBox" name="checkBox_debug">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Switch logging verbosity&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="layoutDirection">
-         <enum>Qt::RightToLeft</enum>
-        </property>
-        <property name="text">
-         <string>Debug</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="2">
        <widget class="QPushButton" name="pushButton_create_test_setups">
         <property name="text">
@@ -125,28 +109,7 @@
       </item>
       <item row="0" column="0" rowspan="2">
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="1">
-         <widget class="QPushButton" name="pushButton_test">
-          <property name="text">
-           <string>Test</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QPushButton" name="pushButton_execute">
-          <property name="text">
-           <string>Execute</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QPushButton" name="pushButton_add_base">
-          <property name="text">
-           <string>Add Base</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
+        <item row="2" column="2">
          <widget class="QPushButton" name="pushButton_delete_all">
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Delete all Setups in the project&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -156,7 +119,14 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="2">
+        <item row="1" column="1">
+         <widget class="QPushButton" name="pushButton_execute">
+          <property name="text">
+           <string>Execute</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
          <widget class="QPushButton" name="pushButton_delete_setup">
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Delete selected Setup and all of it's children&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -166,21 +136,54 @@
           </property>
          </widget>
         </item>
+        <item row="1" column="2">
+         <widget class="QPushButton" name="pushButton_test">
+          <property name="text">
+           <string>Test</string>
+          </property>
+         </widget>
+        </item>
        </layout>
+      </item>
+      <item row="0" column="8">
+       <widget class="QCheckBox" name="checkBox_debug">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Switch logging verbosity&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string>Debug</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
     <item row="1" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QTreeView" name="treeView_setups">
-        <property name="contextMenuPolicy">
-         <enum>Qt::CustomContextMenu</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Setups</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTreeView" name="treeView_setups">
+          <property name="contextMenuPolicy">
+           <enum>Qt::CustomContextMenu</enum>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QLabel" name="label_3">
           <property name="text">
@@ -195,44 +198,11 @@
          <widget class="QListView" name="listView_tools">
           <property name="maximumSize">
            <size>
-            <width>200</width>
-            <height>16777215</height>
+            <width>16777215</width>
+            <height>120</height>
            </size>
           </property>
          </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Input formats</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QListView" name="listView_dataformats_input">
-          <property name="maximumSize">
-           <size>
-            <width>200</width>
-            <height>16777215</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_5">
-          <property name="text">
-           <string>Output formats</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QListView" name="listView_dataformats_output"/>
         </item>
        </layout>
       </item>
@@ -254,7 +224,7 @@
        <widget class="QTextBrowser" name="textBrowser_main">
         <property name="minimumSize">
          <size>
-          <width>719</width>
+          <width>800</width>
           <height>0</height>
          </size>
         </property>
@@ -274,7 +244,7 @@
        <widget class="QTextBrowser" name="textBrowser_process_output">
         <property name="minimumSize">
          <size>
-          <width>719</width>
+          <width>800</width>
           <height>0</height>
          </size>
         </property>
@@ -348,9 +318,7 @@
     <string>New Project...</string>
    </property>
    <property name="font">
-    <font>
-     <underline>false</underline>
-    </font>
+    <font/>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -429,6 +397,21 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>pushButton_execute</tabstop>
+  <tabstop>pushButton_test</tabstop>
+  <tabstop>pushButton_delete_setup</tabstop>
+  <tabstop>pushButton_delete_all</tabstop>
+  <tabstop>pushButton_create_test_setups</tabstop>
+  <tabstop>pushButton_create_setups_1</tabstop>
+  <tabstop>pushButton_create_setups_2</tabstop>
+  <tabstop>checkBox_debug</tabstop>
+  <tabstop>pushButton_create_setups_3</tabstop>
+  <tabstop>treeView_setups</tabstop>
+  <tabstop>listView_tools</tabstop>
+  <tabstop>textBrowser_main</tabstop>
+  <tabstop>textBrowser_process_output</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -21,7 +21,8 @@ class ContextMenuWidget(QMenu):
         else:
             self.add_action("Add New Base")
             self.add_action("Add Child")
-            self.add_action("Edit")
+            self.add_action("Show Input")
+            self.add_action("Edit Tool")
             self.add_action("Execute")
         self.exec_(position)
 
