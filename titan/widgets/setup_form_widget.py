@@ -107,7 +107,6 @@ class SetupFormWidget(QWidget):
         if not start_index.isValid():
             logging.debug("Adding first Setup to model")
         self.call_add_setup()
-        self.call_add_tool()
         self.close()
 
     def call_add_setup(self):
@@ -124,13 +123,6 @@ class SetupFormWidget(QWidget):
         cmdline_params = self.ui.lineEdit_cmdline_params.text()
         logging.debug("command line arguments: '%s'" % cmdline_params)
         self._parent.add_setup(self.setupname, self.setupdescription, selected_tool, cmdline_params, self.parent_index)
-
-    def call_add_tool(self):
-        """Add tool and command line parameters to Setup
-
-        Returns:
-
-        """
 
     def keyPressEvent(self, e):
         """Close Setup form when escape key is pressed.

@@ -523,6 +523,7 @@ class ToolModel(QAbstractListModel):
                     return tool
         return False
 
+
 class SetupTreeListModel(QAbstractListModel):
     """Class to store SetupTree instances."""
     def __init__(self, parent=None):

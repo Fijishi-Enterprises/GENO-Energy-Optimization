@@ -22,6 +22,7 @@ from config import MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH,\
 from widgets.setup_form_widget import SetupFormWidget
 from widgets.project_form_widget import ProjectFormWidget
 from widgets.context_menu_widget import ContextMenuWidget
+from widgets.edit_tool_widget import EditToolWidget
 from modeltest.modeltest import ModelTest
 
 
@@ -54,6 +55,7 @@ class TitanUI(QMainWindow):
         self.setup_form = None
         self.project_form = None
         self.context_menu = None
+        self.edit_tool_form = None
         # Load project
         self._project = self.init_project('project_1')
         # Initialize general things
@@ -415,7 +417,8 @@ class TitanUI(QMainWindow):
             return
         elif option == "Edit Tool":
             # TODO: Implement Edit Tool option
-            logging.debug("Showing edit tool dialog. (Not implemented yet)")
+            logging.debug("Opening edit tool form")
+            self.open_edit_tool_form(ind)
             return
         elif option == "Execute":
             logging.debug("Selected setup:%s" % ind.internalPointer().name)
@@ -429,7 +432,7 @@ class TitanUI(QMainWindow):
 
     @pyqtSlot("QModelIndex")
     def open_setup_form(self, index=QModelIndex()):
-        """Show Setup creation popup.
+        """Show Setup creation form.
 
         Args:
             index (QModelIndex): Parent index of the new Setup
@@ -438,6 +441,41 @@ class TitanUI(QMainWindow):
             index = QModelIndex()
         self.setup_form = SetupFormWidget(self, index)
         self.setup_form.show()
+
+    @pyqtSlot("QModelIndex")
+    def open_edit_tool_form(self, index=QModelIndex()):
+        """Show Edit Tool form.
+
+        Args:
+            index (QModelIndex): Index of the edited Setup
+        """
+        self.edit_tool_form = EditToolWidget(self, index)
+        self.edit_tool_form.show()
+
+    def edit_tool(self, setup, tool, cmdline_args):
+        """Change the Tool associated with Setup.
+
+        Args:
+            setup (Setup): Setup whose Tool is edited
+            tool (Tool): Tool that replaces current one
+            cmdline_args (str): Command line arguments for the tool
+
+        Returns:
+            Boolean value depending on operation success
+        """
+        # Add tool to Setup
+        if tool is not None:
+            # setup_index = self.setup_model.find_index(name)
+            # setup = self.setup_model.get_setup(setup_index)
+            self.add_msg_signal.emit("Changing Tool '%s' for Setup '%s'" % (tool.name, setup.name), 0)
+            setup.remove_tool()
+            setup.add_input(tool)
+            setup.add_tool(tool, cmdline_args=cmdline_args)
+        else:
+            self.add_msg_signal.emit("Removing Tool from Setup '%s'" % setup.name, 0)
+            setup.remove_tool()
+        self.setup_model.emit_data_changed()
+        return True
 
     def add_setup(self, name, description, tool, cmdline_args, parent=QModelIndex()):
         """Insert new Setup into SetupModel.

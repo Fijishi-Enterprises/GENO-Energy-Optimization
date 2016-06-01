@@ -240,7 +240,6 @@ class Setup(MetaObject):
             description (str): Description
             project (SceletonProject): The project this setup belongs to
             parent (Setup): Parent setup of this setup
-
         """
         super().__init__(name, description)
         self._parent = parent
@@ -381,6 +380,14 @@ class Setup(MetaObject):
         logging.debug("Tool '{0}' with cmdline args '{1}' added to Setup '{2}'"
                       .format(self.tool.name, self.cmdline_args, self.name))
         return True
+
+    def remove_tool(self):
+        """Remove inputs, Tool and command line arguments from Setup.
+        Used when the Tool is changed."""
+        self.inputs = None
+        self.inputs = set()
+        self.tool = None
+        self.cmdline_args = ""
 
     def get_input_files(self, tool, file_fmt):
         """Get paths of input files of given format for tool in this setup
