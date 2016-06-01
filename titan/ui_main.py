@@ -116,9 +116,6 @@ class TitanUI(QMainWindow):
         self.tool_proxy_model = ToolProxyModel(self.ui)
         self.tool_proxy_model.setSourceModel(self.setup_model)
         self.ui.listView_tools.setModel(self.tool_proxy_model)
-        # TODO: Show input files of Setup directory
-        # TODO: Use Setup class get_input_files() Should be easy.
-
 
     def init_project(self, project_name):
         """Initialize project when Sceleton is started.
@@ -240,7 +237,8 @@ class TitanUI(QMainWindow):
 
     def update_json_dict(self, setup):
         """Update tree dictionary with Setup dictionary. Setups will be written as a nested dictionary.
-        I.e. child dictionaries are inserted into the parent Setups dictionary with key 'children'.
+        I.e. child dictionaries are inserted into the parent Setups dictionary with key '.kids'.
+        '.kids' was chosen because this is not allowed as a Setup name.
 
         Args:
             setup (Setup): Setup object to save
@@ -266,7 +264,7 @@ class TitanUI(QMainWindow):
         else:
             logging.debug("Setup '%s' parent is None" % setup_name)
             the_dict['parent'] = None
-        the_dict['children'] = dict()
+        the_dict['.kids'] = dict()  # Note: '.' is because it is not allowed as a Setup name
         # Add this Setup under the appropriate Setups children
         if parent_name == 'root':
             self.setup_dict[setup_short_name] = the_dict
@@ -274,7 +272,7 @@ class TitanUI(QMainWindow):
             # Find the parent dictionary where this setup should be inserted
             diction = self._finditem(self.setup_dict, parent_short_name)
             try:
-                diction['children'][setup_short_name] = the_dict
+                diction['.kids'][setup_short_name] = the_dict
             except KeyError:
                 logging.error("_finditem() error while saving. Parent setup dictionary not found")
         return
@@ -309,7 +307,7 @@ class TitanUI(QMainWindow):
         if not os.path.isfile(load_path):
             self.add_msg_signal.emit("File not found '%s'" % load_path, 2)
             return
-        dicts = dict()
+        # dicts = dict()
         try:
             with open(load_path, 'r') as fh:
                 dicts = json.load(fh)
@@ -339,39 +337,42 @@ class TitanUI(QMainWindow):
         self.add_msg_signal.emit("Done".format(self._project.name), 1)
 
     def parse_setups(self, setup_dict):
-        """Parse all found Setups from Setup dictionary loaded from JSON file
-        and add them to the SetupModel. Recursive method.
+        """Parse all found Setups recursively from Setup dictionary loaded from JSON file
+        and add them to the SetupModel.
 
         Args:
-            setup_dict (dict): Dictionary of Setups. Loaded from JSON project file
+            setup_dict (dict): Dictionary of Setups in JSON format
         """
         for k, v in setup_dict.items():
             if isinstance(v, dict):
-                # if not k == 'children':  # Skip children dictionary for every Setup
-                # FIXME: This causes a problem if Setup name is 'children'
-                #if not k == 'children' and isinstance(v['children'], dict)
-                if not k == 'children':
+                if not k == '.kids':
                     # Add Setup
-                    # logging.debug("Loading Setup: %s -- k.__class__: %s -- v.__class__: %s" % (k, k.__class__, v.__class__))  # k is Setup short name and name of the dictionary
                     name = v['name']  # Setup name
                     desc = v['desc']
                     parent_name = v['parent']
                     tool_name = v['tool']
                     cmdline_args = v['cmdline_args']
-                    # logging.debug("name:%s parent:%s" % (name, parent_name))
+                    logging.info("Loading Setup '%s'" % name)
+                    self.add_msg_signal.emit("Loading Setup '{0}'".format(name), 0)
                     if parent_name == 'root':
                         if not self.setup_model.insert_setup(name, desc, self._project, 0):
                             logging.error("Inserting base Setup %s failed" % name)
+                            self.add_msg_signal.emit("Loading Setup '%s' failed. Parent Setup: '%s'"
+                                                     % (name, parent_name), 2)
                     else:
                         parent_index = self.setup_model.find_index(parent_name)
                         parent_row = parent_index.row()
                         if not self.setup_model.insert_setup(name, desc, self._project, parent_row, parent_index):
                             logging.error("Inserting child Setup %s failed" % name)
+                            self.add_msg_signal.emit("Loading Setup '%s' failed. Parent Setup: '%s'"
+                                                     % (name, parent_name), 2)
                     if tool_name is not None:
                         # Get tool from ToolModel
                         tool = self.tool_model.find_tool(tool_name)
                         if not tool:
                             logging.error("Could not add Tool to Setup. Tool with name '%s' not found" % tool_name)
+                            self.add_msg_signal.emit("Could not add Tool to Setup '%s'. Tool '%s' not found"
+                                                     % (name, tool_name), 2)
                         else:
                             # Add tool to Setup
                             setup_index = self.setup_model.find_index(name)
