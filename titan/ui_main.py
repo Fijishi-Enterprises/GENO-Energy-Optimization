@@ -463,6 +463,7 @@ class TitanUI(QMainWindow):
         Returns:
             Boolean value depending on operation success
         """
+        # TODO: Tool view is not updated when going from 'No Tool' to some Tool
         # Add tool to Setup
         if tool is not None:
             # setup_index = self.setup_model.find_index(name)
@@ -565,6 +566,9 @@ class TitanUI(QMainWindow):
             # logging.warning("setup_finished_signal not connected")
             pass
         # Get next executed Setup
+        if not self._running_setup.is_ready:
+            self.add_msg_signal.emit("Setup failed", 2)
+            return
         next_setup = self.setup_model.get_next_setup(breadth_first=True)
         if not next_setup:
             logging.debug("All Setups ready")
