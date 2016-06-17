@@ -5,6 +5,7 @@ Scalars
     tLast "How many time periods to the end of the current solve (t)" /0/
     tSolveOrd "ord of tSolve"
     tCounter "counter for t" /0/
+    lastCounter "last member in use of the general counter"
 ;
 
 * --- Power plant and fuel data -----------------------------------------------

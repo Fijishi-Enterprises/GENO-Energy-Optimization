@@ -60,7 +60,8 @@ param_egs "Set of possible data parameters for etype, geo, storage" /
     minSpill    "Minimum spill rate from storage (MWh/h)"
     maxContent  "Maximum storage content (MWh)"
     minContent  "Minimum storage content (fraction of maximum)"
-    chargingEff "Average loading efficiency"
+    chargingEff "Average charging efficiency"
+    dischargingEff "Average discharging efficiency"
 /
 param "Set of general parameters" /
     annualDemand "Total annual energy demand (MWh)"
