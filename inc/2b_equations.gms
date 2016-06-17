@@ -138,7 +138,7 @@ q_balance(eg(etype, geo), ft(f, t)) ..         // state variables with implicit 
   + sum(to_geo$(eg2g(etype, geo, to_geo)), v_transfer(etype, geo, to_geo, f+pf(f,t), t+pt(t)))
 ;
 * -----------------------------------------------------------------------------
-q_resDemand(resType, resDirection, bus, ft(f, t))$ts_reserveDemand(resType, resDirection, bus, f, t) ..
+q_resDemand(resType, resDirection, bus, ft(f, t))$ts_reserveDemand_(resType, resDirection, bus, f, t) ..
   + sum(gu(bus, unitElec),
         v_reserve(resType, resDirection, bus, unitElec, f, t)$resCapable(resType, resDirection, bus, unitElec)
     )
@@ -147,7 +147,7 @@ q_resDemand(resType, resDirection, bus, ft(f, t))$ts_reserveDemand(resType, resD
         ) * v_resTransCapacity(resType, resDirection, from_bus, bus, f, t)
     )
   =G=
-  + ts_reserveDemand(resType, resDirection, bus, f, t)
+  + ts_reserveDemand_(resType, resDirection, bus, f, t)
   - vq_resDemand(resType, resDirection, bus, f, t)
   + sum(to_bus,
         v_resTransCapacity(resType, resDirection, bus, to_bus, f, t)
@@ -188,15 +188,15 @@ q_storageDynamics(egs(etype, geo, storage), ft(f, t)) ..
   + v_stoContent(etype, geo, storage, f, t)
   =E=
   + v_stoContent(etype, geo, storage, f+pf(f,t), t+pt(t))
-  + ts_inflow(storage, f+pf(f,t), t+pt(t))
+  + ts_inflow_(storage, f+pf(f,t), t+pt(t))
   + vq_stoCharge(etype, geo, storage, f+pf(f,t), t+pt(t))
   + sum(m, p_stepLength(m, f+pf(f,t), t+pt(t))) *
      ( (+ v_stoCharge(etype, geo, storage, f+pf(f,t), t+pt(t)) * egsData(etype, geo, storage, 'chargingEff')
-        - v_stoDischarge(etype, geo, storage, f+pf(f,t), t+pt(t))
+        - v_stoDischarge(etype, geo, storage, f+pf(f,t), t+pt(t))  / egsData(etype, geo, storage, 'dischargingEff')
         - v_spill(etype, geo, storage, f+pf(f,t), t+pt(t))
        )
        $$ifi '%rampSched%' == 'yes'   + (+ v_stoCharge(etype, geo, storage, f, t) * egsData(etype, geo, storage, 'chargingEff')
-       $$ifi '%rampSched%' == 'yes'      - v_stoDischarge(etype, geo, storage, f, t)
+       $$ifi '%rampSched%' == 'yes'      - v_stoDischarge(etype, geo, storage, f, t)  / egsData(etype, geo, storage, 'dischargingEff')
        $$ifi '%rampSched%' == 'yes'      - v_spill(etype, geo, storage, f, t)
        $$ifi '%rampSched%' == 'yes'     )
      )  // In case rampSched is used and the division by 2 on the next line is valid

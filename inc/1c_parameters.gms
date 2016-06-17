@@ -47,12 +47,13 @@ Parameters
     ts_cf_(flow, geo, f, t)
     ts_import(etype, geo, t) "Energy import from locations outside the model scope (MW)"
     ts_import_(etype, geo, t)
+    ts_reserveDemand(resType, resDirection, geo, f, t) "Reserve demand in region in the time period/slice (MW)"
+    ts_reserveDemand_(resType, resDirection, geo, f, t)
 
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (€/MWh)"
     ts_fuelPriceChangeGeo(fuel, geo, t) "Initial fuel price and consequent changes in fuel price in model geographies (€/MWh)"
     ts_stoContent(storage, f, t) "Storage content at the start of the time period (ratio of max)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time period/slice (p.u.)"
-    ts_reserveDemand(resType, resDirection, geo, f, t) "Reserve demand in region in the time period/slice (MW)"
 ;
 
 * --- Other time dependent parameters -----------------------------------------

@@ -3,38 +3,38 @@
     tLast = tElapsed + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));
     p_stepLength(mSolve, f, t) = no;
 
-    // If the model does not have preset step lengths...
-           //    if(sum[(msft(mSolve,s,f,t)$fRealization(f), p_stepLength(mSolve, f, t)] = 0,
     // Set intervals, if there is interval data for the model
     if(sum(counter, mInterval(mSolve, 'intervalLength', counter)),
-        tCounter = 0;
+        tCounter = 1;
         loop(counter$mInterval(mSolve, 'intervalLength', counter),
             loop(t$[ord(t) >= tElapsed + tCounter and ord(t) <= min(tElapsed + mInterval(mSolve, 'intervalEnd', counter), tLast)],
                 if (not mod(tCounter-1, mInterval(mSolve, 'intervalLength', counter)),
                     p_stepLength(mSolve, f, t)$mf(mSolve, f) = mInterval(mSolve, 'intervalLength', counter);
-                    if (mInterval(mSolve, 'intervalLength', counter) > 1,
+                    if (mInterval(mSolve, 'intervalLength', counter) = 1,
                         ts_energyDemand_(eg(etype, geo), f, t)$mf(mSolve,f) = ts_energyDemand(etype, geo, f, t);
-                        ts_energyDemand(eg(etype, geo), f, t)$mf(mSolve,f) =
+                        ts_inflow_(unitHydro, f, t)$mf(mSolve,f) = ts_inflow(unitHydro, f, t);
+                        ts_inflow_(storageHydro, f, t)$mf(mSolve,f) = ts_inflow(storageHydro, f, t);
+                        ts_import_(eg(etype, geo), t) = ts_import(etype, geo, t);
+                        ts_cf_(flow, geo, f, t)$mf(mSolve,f) = ts_cf(flow, geo, f, t);
+                    );
+                    if (mInterval(mSolve, 'intervalLength', counter) > 1,
+                        ts_energyDemand_(eg(etype, geo), f, t)$mf(mSolve,f) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
                                    ], ts_energyDemand(etype, geo, f, t_)} / p_stepLength(mSolve, f, t);
-                        ts_inflow_(unitHydro, f, t)$mf(mSolve,f) = ts_inflow(unitHydro, f, t);
-                        ts_inflow(unitHydro, f, t)$mf(mSolve,f) =
+                        ts_inflow_(unitHydro, f, t)$mf(mSolve,f) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
                                    ], ts_inflow(unitHydro, f, t_)} / p_stepLength(mSolve, f, t);
-                        ts_inflow_(storageHydro, f, t)$mf(mSolve,f) = ts_inflow(storageHydro, f, t);
-                        ts_inflow(storageHydro, f, t)$mf(mSolve,f) =
+                        ts_inflow_(storageHydro, f, t)$mf(mSolve,f) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
                                    ], ts_inflow(storageHydro, f, t_)} / p_stepLength(mSolve, f, t);
-                        ts_import_(eg(etype, geo), t) = ts_import(etype, geo, t);
-                        ts_import(eg(etype, geo), t) =
+                        ts_import_(eg(etype, geo), t) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
                                    ], ts_import(etype, geo, t_)} / sum(f$fRealization(f), p_stepLength(mSolve, f, t));
-                        ts_cf_(flow, geo, f, t)$mf(mSolve,f) = ts_cf(flow, geo, f, t);
-                        ts_cf(flow, geo, f, t)$mf(mSolve,f) =
+                        ts_cf_(flow, geo, f, t)$mf(mSolve,f) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
                                    ], ts_cf(flow, geo, f, t_)} / p_stepLength(mSolve, f, t);
@@ -84,6 +84,14 @@
                            } = yes;
     ft(f,t) = no;
     ft(f,t) = mft(mSolve, f, t);
+    ft_dynamic(f,t) = ft(f,t);
+    ft_dynamic(f,t)$(ord(t) = tSolveOrd) = no;
+    loop(counter$mInterval(mSolve, 'intervalLength', counter),
+        lastCounter = ord(counter);
+    );
+    loop(counter$(ord(counter) = lastCounter),
+        ft_dynamic(f,t)$(mf(mSolve, f) and ord(t) = min(tElapsed + mInterval(mSolve, 'intervalEnd', counter), tLast)) = yes;
+    );
     ft_realized(f,t) = no;
     ft_realized(f,t)$[fRealization(f) and ord(t) = ord(tSolve)] = yes;
     pf(ft(f,t))$(ord(t) eq ord(tSolve) + 1) = 1 - ord(f);
@@ -91,4 +99,4 @@
     // Arbitrary value for energy in storage
     p_storageValue(egs(etype, geo, storage), t)$sum(fRealization(f), ft(f,t)) = 50;
     // PSEUDO DATA
-    ts_reserveDemand(resType, resDirection, bus, fRealization(f), t) = 50;
+    ts_reserveDemand_(resType, resDirection, bus, fRealization(f), t) = 50;
