@@ -1,34 +1,27 @@
 * Load updates made for BackBone
 $gdxin  'input/inputData.gdx'
-$loadm  param
 $loaddc geo
-$loaddc flow
 $loaddc bus
+$loaddc flow
 $loaddc unit
 $loaddc fuel
 $loaddc storage
-*$loaddc eg
-*$loaddc unitVG
 $loaddc hydroBus
-*$loaddc gu
-*$loaddc egu
+$loaddc egData
 $loaddc eguData
 $loaddc guData
 $loaddc guDataReserves
 $loaddc egsData
 $loaddc egu_input
 $loaddc ggu
-*$loaddc egs
-$loaddc flow_unit
 $loaddc unit_fuel
+$loaddc flow_unit
 $loaddc unit_storage
 $loaddc eeguFixedOutputRatio
 $loaddc eeguConstrainedOutputRatio
-*$loaddc resCapable
 $loaddc emission
 $loaddc ts_energyDemand
 $loaddc ts_import
-*$load   ts_reserveDemand
 $loaddc ts_cf
 $loaddc ts_stoContent
 $loaddc ts_fuelPriceChange
@@ -37,7 +30,6 @@ $loaddc p_transferCap
 $loaddc p_transferLoss
 $loaddc p_ggCoEff
 $loaddc p_data2d
-*$loaddc etype_storage
 $gdxin
 
 $ontext
