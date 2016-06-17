@@ -4,7 +4,7 @@ if (mType('schedule'),
     mSettings('schedule', 't_horizon') = 8760;
     mSettings('schedule', 't_jump') = 24;
     mSettings('schedule', 't_forecastLength') = 8760;
-    mSettings('schedule', 't_end') = 8760;
+    mSettings('schedule', 't_end') = 24;
     mSettings('schedule', 'samples') = 1;
     mSettings('schedule', 'forecasts') = 0;
     mf('schedule', f)$[ord(f)-1 <= mSettings('schedule', 'forecasts')] = yes;
@@ -17,6 +17,7 @@ if (mType('schedule'),
     mInterval('schedule', 'intervalLength', 'c003') = 24;
     mInterval('schedule', 'intervalEnd', 'c003') = 26*168;
     mInterval('schedule', 'intervalLength', 'c004') = 168;
+    mInterval('schedule', 'intervalEnd', 'c004') = 8760;
     active('storageValue') = yes;
 
     fRealization(f) = no;
