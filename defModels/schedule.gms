@@ -41,7 +41,6 @@ Model schedule /
     q_resDemand
     q_maxDownward
     q_maxUpward
-    q_storageControl
     q_storageDynamics
     q_bindStorage
     q_startup

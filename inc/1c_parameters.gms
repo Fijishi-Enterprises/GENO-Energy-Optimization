@@ -9,6 +9,7 @@ Scalars
 
 * --- Power plant and fuel data -----------------------------------------------
 Parameters
+    egData(etype, geo, param_eg) "Data for energy nodes"
     eguData(etype, geo, unit, param_egu) "Unit data where energy type matters"
     guData(geo, unit, param_gu) "Unit data where energy type does not matter"
     egsData(etype, geo, storage, param_egs) "Storage unit data"
@@ -16,6 +17,7 @@ Parameters
     p_data2d(*, *, param) "2-dimensional data parameters of objects"
     p_transferCap(etype, geo, geo) "Transfer capacity limits"
     p_transferLoss(etype, geo, geo) "Transfer losses"
+    p_ggCoEff(etype, geo, geo) "Co-efficients for energy dissipation between and within nodes"
 ;
 
 * --- Probability -------------------------------------------------------------

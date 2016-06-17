@@ -35,6 +35,7 @@ $loaddc ts_fuelPriceChange
 $loaddc ts_inflow
 $loaddc p_transferCap
 $loaddc p_transferLoss
+$loaddc p_ggCoEff
 $loaddc p_data2d
 *$loaddc etype_storage
 $gdxin
@@ -50,6 +51,7 @@ $ontext
 $offtext
 
 * Generate sets based on parameter data
+geoState(etype, geo)$egData(etype, geo, 'maxState') = yes;
 egu(etype, geo, unit)$eguData(etype, geo, unit, 'maxCap') = yes;
 eg(etype, geo)$sum(unit, egu(etype, geo, unit)) = yes;
 gu(geo, unit)$sum(etype, egu(etype, geo, unit)) = yes;

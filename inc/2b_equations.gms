@@ -114,28 +114,38 @@ q_obj ..
 ;
 
 * -----------------------------------------------------------------------------
-q_balance(eg(etype, geo), ft(f, t)) ..         // state variables with implicit method
-  + v_state(etype, geo, f+pf(f,t), t+pt(t))$(stateGeo(geo))
-  + sum(unit$egu(etype, geo, unit),
-        v_gen(etype, geo, unit, f+pf(f,t), t+pt(t))
+q_balance(eg(etype, geo), ft_dynamic(f, t)) ..
+  + v_state(etype, geo, f+pf(f,t), t+pt(t))$(geoState(etype, geo))  // state variables with implicit method
+  + sum(m$mSolve(m),
+      + p_stepLength(m, f+pf(f,t), t+pt(t)) * (
+          + sum(unit$egu(etype, geo, unit),
+                v_gen(etype, geo, unit, f+pf(f,t), t+pt(t))
+            )
+          + sum(storage$egs(etype, geo, storage),
+              - v_stoCharge(etype, geo, storage, f+pf(f,t), t+pt(t))
+              + v_stoDischarge(etype, geo, storage, f+pf(f,t), t+pt(t))
+            )
+          + sum(from_geo$(eg2g(etype, from_geo, geo)),
+                (1 - p_transferLoss(etype, from_geo, geo))
+                    * v_transfer(etype, from_geo, geo, f+pf(f,t), t+pt(t))
+            )
+          + ts_import_(etype, geo, t+pt(t))
+          + vq_gen('increase', etype, geo, f+pf(f,t), t+pt(t))
+          - vq_gen('decrease', etype, geo, f+pf(f,t), t+pt(t))
+        )
     )
-  + sum(storage$egu(etype, geo, storage),
-      - v_stoCharge(etype, geo, storage, f+pf(f,t), t+pt(t))
-      + v_stoDischarge(etype, geo, storage, f+pf(f,t), t+pt(t))
-    )
-  + sum(from_geo$(eg2g(etype, from_geo, geo)),
-        (1 - p_transferLoss(etype, from_geo, geo))
-            * v_transfer(etype, from_geo, geo, f+pf(f,t), t+pt(t))
-    )
-  + ts_import(etype, geo, t+pt(t))
-  + vq_gen('increase', etype, geo, f+pf(f,t), t+pt(t))
-  - vq_gen('decrease', etype, geo, f+pf(f,t), t+pt(t))
   =E=
-  + sum(geo_$(stageGeo(geo) and naapuri_geo(geo,geo_)),
-        kerroin(etype, geo, geo_, f, t) * v_state(etype, geo_, f, t)
+  + sum(m$mSolve(m),
+      + p_stepLength(m, f, t) * (
+          + sum(from_geo$(geoState(etype, geo) and p_ggCoEff(etype, from_geo, geo)), // New state will be influenced by the previous states in linked nodes
+                p_stepLength(m, f, t) * p_ggCoEff(etype, from_geo, geo) * v_state(etype, from_geo, f, t)
+            )
+        )
+      + p_stepLength(m, f+pf(f,t), t+pt(t)) * (
+          + ts_energyDemand_(etype, geo, f+pf(f,t), t+pt(t))
+          + sum(to_geo$(eg2g(etype, geo, to_geo)), v_transfer(etype, geo, to_geo, f+pf(f,t), t+pt(t)))
+        )
     )
-  + ts_energyDemand(etype, geo, f+pf(f,t), t+pt(t))
-  + sum(to_geo$(eg2g(etype, geo, to_geo)), v_transfer(etype, geo, to_geo, f+pf(f,t), t+pt(t)))
 ;
 * -----------------------------------------------------------------------------
 q_resDemand(resType, resDirection, bus, ft(f, t))$ts_reserveDemand_(resType, resDirection, bus, f, t) ..

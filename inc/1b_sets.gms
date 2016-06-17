@@ -19,6 +19,10 @@ Sets
 
 Alias(etype, etype_, etype_output);
 
+Sets param_eg  "Set of possible data parameters for etype, geo" /
+    maxState    "Maximum energy in the node (MWh)"
+/
+
 Sets param_egu "Set of possible data parameters for etype, geo, unit" /
     maxCap      "Maximum output capacity (MW)"
     maxCharging "Maximum loading capacity (MW)"
@@ -75,6 +79,8 @@ Sets
     egu(etype, geo, unit) "Units outputting specific energy etypes in geographical locations"
     egu_input(etype, geo, unit) "Forms of energy the unit uses as endogenous inputs"
     ggu(geo, geo, unit) "Link between upper and lower geographical levels for units"
+    geoState(etype, geo) "Nodes with a state variable"
+    ggState(etype, geo, geo)
     storage "Storage"
     etype_storage(etype, storage) "The energy etype stored by the storage"
     egs(etype, geo, storage) "Storage units of certain energy type in geographic locations"
@@ -149,6 +155,7 @@ Sets
     ms(mType, s) "Samples present in the models"
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
+    ft_dynamic(f, t) "ft without first t and with tLast+1 (moved right)"
     ft_realized(f, t) "Last realized ft"
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     mft_(mType, f, t) "Combination of forecasts and time periods in the models"

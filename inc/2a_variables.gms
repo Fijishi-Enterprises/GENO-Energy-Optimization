@@ -6,6 +6,7 @@ Positive variables
     v_fuelUse(geo, unit, fuel, f, t) "Fuel use of a unit during time period (MWh_fuel)"
     v_online(geo, unit, f, t) "Capacity online for generators with unit commitment restrictions (MW)"
     v_startup(geo, unit, f, t) "Capacity started up from previous time period/slice (MW)"
+    v_state(etype, geo, f, t) "State variable for nodes that maintain a state (MWh)"
     v_stoCharge(etype, geo, storage, f, t) "Charging of storage during time period (MWh)"
     v_stoDischarge(etype, geo, storage, f, t) "Discharging of storage during time step (MWh)"
     v_stoContent(etype, geo, storage, f, t) "Content of storage at the start of time period/time slice (MWh)"
