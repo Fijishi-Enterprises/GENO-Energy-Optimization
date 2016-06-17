@@ -1,31 +1,33 @@
 * --- Geography ---------------------------------------------------------------
 Sets
-    geo "Hubs where different etypes of energy are converted"
-    bus(geo) "Electricity buses"
-    hydroBus(geo) "Buses with reservoir unitHydro connected"
-    bus_to_bus(geo,geo) "Transmission links"
+    node "Nodes where different types of energy are converted"
+    node_to_node(node,node) "Transmission links"
 ;
 
-alias(geo, from_geo, to_geo, geo_, geo_input);
-alias(bus, from_bus, to_bus);
+alias(node, from_node, to_node, node_, node_input);
+alias(node, from_node, to_node);
 
 * --- Fuels & resources -------------------------------------------------------
 Sets
-    etype "Forms of energy endogenously presented in the model" /elec, heat/
+    grid "Forms of energy endogenously presented in the model" /elec, heat/
     emission "Emissions"
     fuel "Fuels"
     flow "Flow based energy resources (time series)"
 ;
 
-Alias(etype, etype_, etype_output);
+Alias(grid, grid_, grid_output);
 
-Sets param_egu "Set of possible data parameters for etype, geo, unit" /
+Sets param_eg  "Set of possible data parameters for grid, node" /
+    maxState    "Maximum energy in the node (MWh)"
+/
+
+Sets param_egu "Set of possible data parameters for grid, node, unit" /
     maxCap      "Maximum output capacity (MW)"
     maxCharging "Maximum loading capacity (MW)"
     cB          "Ratio in energy conversion between primary output and secondary outputs, e.g. heat ratio of a CHP-plant (MWh_e/MWh_h)"
     cV          "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
 /
-param_gu "Set of possible data parameters for geo, unit" /
+param_gu "Set of possible data parameters for node, unit" /
     unitCount   "Number of units if aggregated"
     slope       "Slope of the fuel use"
     section     "Section of the fuel use at zero output"
@@ -51,12 +53,13 @@ param_gu "Set of possible data parameters for geo, unit" /
     eff_from    "Conversion efficiency from input energy to the conversion process (ratio)"
     eff_fo      "Conversion efficiency from the conversion process to the output energy (ratio)"
 /
-param_egs "Set of possible data parameters for etype, geo, storage" /
+param_egs "Set of possible data parameters for grid, node, storage" /
     maxSpill    "Maximum spill rate from storage (MWh/h)"
     minSpill    "Minimum spill rate from storage (MWh/h)"
     maxContent  "Maximum storage content (MWh)"
     minContent  "Minimum storage content (fraction of maximum)"
-    chargingEff "Average loading efficiency"
+    chargingEff "Average charging efficiency"
+    dischargingEff "Average discharging efficiency"
 /
 param "Set of general parameters" /
     annualDemand "Total annual energy demand (MWh)"
@@ -70,17 +73,19 @@ param "Set of general parameters" /
 * --- Energy generation and consumption ---------------------------------------
 Sets
     unit "Set of generators, storages and loads"
-    eg(etype,geo) "Forms of energy in specific geographical locations"
-    eg2g(etype,geo,geo) "Transfer capacity between geolocations for specific energy etypes"
-    egu(etype, geo, unit) "Units outputting specific energy etypes in geographical locations"
-    egu_input(etype, geo, unit) "Forms of energy the unit uses as endogenous inputs"
-    ggu(geo, geo, unit) "Link between upper and lower geographical levels for units"
+    gn(grid,node) "Nodes of the energy grids"
+    gn2n(grid,node,node) "Transfer capacity between nodes in specific energy grids"
+    gnu(grid, node, unit) "Units in specific nodes of particular energy grids"
+    gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
+    nnu(node, node, unit) "Link between upper and lower nodal levels for units"
+    nodeState(grid, node) "Nodes with a state variable"
+    nnState(grid, node, node)
     storage "Storage"
-    etype_storage(etype, storage) "The energy etype stored by the storage"
-    egs(etype, geo, storage) "Storage units of certain energy type in geographic locations"
-    gu(geo, unit) "Units attached to geographical locations. For units with multiple endogenous outputs only single (geo, unit) combination allowed - with the primary etype geography (affecting e.g. fuel use calculation with cV)"
-    eeguFixedOutputRatio(etype, etype, geo, unit) "Units with a fixed ratio between two different etypes of output (e.g. backpressure)"
-    eeguConstrainedOutputRatio(etype, etype, geo, unit) "Units with a constrained ratio between two different etypes of output (e.g. extraction)"
+    grid_storage(grid, storage) "The energy grid stored by the storage"
+    gns(grid, node, storage) "Storage units of certain energy type in specific nodes"
+    nu(node, unit) "Units attached to particular nodes. For units with multiple endogenous outputs only single (node, unit) combination allowed - with the primary grid node (affecting e.g. fuel use calculation with cV)"
+    ggnuFixedOutputRatio(grid, grid, node, unit) "Units with a fixed ratio between two different grids of output (e.g. backpressure)"
+    ggnuConstrainedOutputRatio(grid, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
     unitElec(unit) "Units that generate and/or consume electricity"
     unitHeat(unit) "Units that produce and/or consume unitHeat"
     unitVG(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
@@ -133,7 +138,7 @@ Sets
           tertiary.resUp
           tertiary.resDown
         /
-    resCapable(resType, resDirection, geo, unit) "Generators capable and available to provide particular reserves"
+    resCapable(resType, resDirection, node, unit) "Generators capable and available to provide particular reserves"
 ;
 
 
@@ -149,6 +154,7 @@ Sets
     ms(mType, s) "Samples present in the models"
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
+    ft_dynamic(f, t) "ft without first t and with tLast+1 (moved right)"
     ft_realized(f, t) "Last realized ft"
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     mft_(mType, f, t) "Combination of forecasts and time periods in the models"
