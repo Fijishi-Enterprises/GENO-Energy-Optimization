@@ -11,17 +11,17 @@
                 if (not mod(tCounter-1, mInterval(mSolve, 'intervalLength', counter)),
                     p_stepLength(mSolve, f, t)$mf(mSolve, f) = mInterval(mSolve, 'intervalLength', counter);
                     if (mInterval(mSolve, 'intervalLength', counter) = 1,
-                        ts_energyDemand_(eg(etype, geo), f, t)$mf(mSolve,f) = ts_energyDemand(etype, geo, f, t);
+                        ts_energyDemand_(gn(grid, node), f, t)$mf(mSolve,f) = ts_energyDemand(grid, node, f, t);
                         ts_inflow_(unitHydro, f, t)$mf(mSolve,f) = ts_inflow(unitHydro, f, t);
                         ts_inflow_(storageHydro, f, t)$mf(mSolve,f) = ts_inflow(storageHydro, f, t);
-                        ts_import_(eg(etype, geo), t) = ts_import(etype, geo, t);
-                        ts_cf_(flow, geo, f, t)$mf(mSolve,f) = ts_cf(flow, geo, f, t);
+                        ts_import_(gn(grid, node), t) = ts_import(grid, node, t);
+                        ts_cf_(flow, node, f, t)$mf(mSolve,f) = ts_cf(flow, node, f, t);
                     );
                     if (mInterval(mSolve, 'intervalLength', counter) > 1,
-                        ts_energyDemand_(eg(etype, geo), f, t)$mf(mSolve,f) =
+                        ts_energyDemand_(gn(grid, node), f, t)$mf(mSolve,f) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
-                                   ], ts_energyDemand(etype, geo, f, t_)} / p_stepLength(mSolve, f, t);
+                                   ], ts_energyDemand(grid, node, f, t_)} / p_stepLength(mSolve, f, t);
                         ts_inflow_(unitHydro, f, t)$mf(mSolve,f) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
@@ -30,14 +30,14 @@
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
                                    ], ts_inflow(storageHydro, f, t_)} / p_stepLength(mSolve, f, t);
-                        ts_import_(eg(etype, geo), t) =
+                        ts_import_(gn(grid, node), t) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
-                                   ], ts_import(etype, geo, t_)} / sum(f$fRealization(f), p_stepLength(mSolve, f, t));
-                        ts_cf_(flow, geo, f, t)$mf(mSolve,f) =
+                                   ], ts_import(grid, node, t_)} / sum(f$fRealization(f), p_stepLength(mSolve, f, t));
+                        ts_cf_(flow, node, f, t)$mf(mSolve,f) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
-                                   ], ts_cf(flow, geo, f, t_)} / p_stepLength(mSolve, f, t);
+                                   ], ts_cf(flow, node, f, t_)} / p_stepLength(mSolve, f, t);
                     );
                     if ( mInterval(mSolve, 'intervalEnd', counter) <= mSettings(mSolve, 't_forecastLength'),
                         mftLastForecast(mSolve,f,t_) = no;
@@ -97,6 +97,6 @@
     pf(ft(f,t))$(ord(t) eq ord(tSolve) + 1) = 1 - ord(f);
 
     // Arbitrary value for energy in storage
-    p_storageValue(egs(etype, geo, storage), t)$sum(fRealization(f), ft(f,t)) = 50;
+    p_storageValue(gns(grid, node, storage), t)$sum(fRealization(f), ft(f,t)) = 50;
     // PSEUDO DATA
-    ts_reserveDemand_(resType, resDirection, bus, fRealization(f), t) = 50;
+    ts_reserveDemand_(resType, resDirection, node, fRealization(f), t) = 50;

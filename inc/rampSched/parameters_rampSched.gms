@@ -22,18 +22,18 @@ Parameters
     s_rampExcludeFromSearchLengthPrev
     s_netLoadAtNotch
 
-    ts_netLoad(geo, t) "net load time series"
-    ts_netLoadRamp(geo, t) "net load ramp time series"
+    ts_netLoad(node, t) "net load time series"
+    ts_netLoadRamp(node, t) "net load ramp time series"
     ts_netLoadRampAve(notch, notch) "net load ramp averages"
-    ts_netLoadCur(t) "net load time series for current bus/year"
-    ts_netLoadRampWindow(geo, t) "averaging window for net load ramp"
-    ts_netLoad2ndDer(geo, t) "net load 2nd derivative time series"
-    ts_netLoadRampNotches(geo, t) "possible notches"
-    ts_netLoadRampResult(geo, t) "net load ramps with reduced time series"
+    ts_netLoadCur(t) "net load time series for current node/year"
+    ts_netLoadRampWindow(node, t) "averaging window for net load ramp"
+    ts_netLoad2ndDer(node, t) "net load 2nd derivative time series"
+    ts_netLoadRampNotches(node, t) "possible notches"
+    ts_netLoadRampResult(node, t) "net load ramps with reduced time series"
     ts_notchPos(notch) "position of the possible notches"
     ts_segmentErrorSquared(notch, notch_) "precalculated error penalties for selectable ramp segments"
-    ts_sortIndex(geo, t) "sort rank for time series"
-    ts_sortedNetLoad(geo, t) "sorted net load time series"
+    ts_sortIndex(node, t) "sort rank for time series"
+    ts_sortedNetLoad(node, t) "sorted net load time series"
 ;
 
 s_rampWindow = 8760;

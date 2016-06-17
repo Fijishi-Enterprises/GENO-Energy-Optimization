@@ -1,6 +1,6 @@
-ts_netLoad(bus, hour) =
-    sum(load$load_in_hub(load, bus), ts_elecLoad(load, hour)) -
-    sum(unitVG$unit_in_hub(unitVG, bus),
+ts_netLoad(node, hour) =
+    sum(load$load_in_hub(load, node), ts_elecLoad(load, hour)) -
+    sum(unitVG$unit_in_hub(unitVG, node),
         ts_fluctuation(unitVG, hour) * p_data(unitVG, 'max_power')
     );
 
@@ -10,18 +10,18 @@ for (w_sortCount = 0 to (floor(card(hour) / RAMP_LENGTH)),
 
 
 loop(rStarts$(w_rampStarts(rStarts) > 0 and ord(rStarts) < w_sortCount ),
-    ts_sortIndex(h, bus)$(simYear(year) and ord(h) >= w_rampStarts(rStarts) and ord(h) < w_rampStarts(rStarts + 1) ) =
+    ts_sortIndex(h, node)$(simYear(year) and ord(h) >= w_rampStarts(rStarts) and ord(h) < w_rampStarts(rStarts + 1) ) =
         sum(hour$(ord(hour) >= w_rampStarts(rStarts)
             and ord(hour) < w_rampStarts(rStarts + 1)
-            and ts_netLoad(bus, hour) > ts_netLoad(h, bus) )
+            and ts_netLoad(node, hour) > ts_netLoad(h, node) )
             , 1
         )
     ;
 );
 
-loop((bus, hour)$simYear(year),
-    loop(h$(ord(h) = ts_sortIndex(bus, hour) + 1 + floor((ord(hour)-1) / RAMP_LENGTH) * RAMP_LENGTH ),
-        ts_sortedNetLoad(h, bus) = ts_netLoad(bus, hour);
+loop((node, hour)$simYear(year),
+    loop(h$(ord(h) = ts_sortIndex(node, hour) + 1 + floor((ord(hour)-1) / RAMP_LENGTH) * RAMP_LENGTH ),
+        ts_sortedNetLoad(h, node) = ts_netLoad(node, hour);
     );
 );
 

@@ -10,15 +10,15 @@ Scalars
 
 * --- Power plant and fuel data -----------------------------------------------
 Parameters
-    egData(etype, geo, param_eg) "Data for energy nodes"
-    eguData(etype, geo, unit, param_egu) "Unit data where energy type matters"
-    guData(geo, unit, param_gu) "Unit data where energy type does not matter"
-    egsData(etype, geo, storage, param_egs) "Storage unit data"
-    guDataReserves(geo, unit, resType, *) "Reserve provision data for units"
+    gnData(grid, node, param_eg) "Data for energy nodes"
+    gnuData(grid, node, unit, param_egu) "Unit data where energy type matters"
+    nuData(node, unit, param_gu) "Unit data where energy type does not matter"
+    gnsData(grid, node, storage, param_egs) "Storage unit data"
+    nuDataReserves(node, unit, resType, *) "Reserve provision data for units"
     p_data2d(*, *, param) "2-dimensional data parameters of objects"
-    p_transferCap(etype, geo, geo) "Transfer capacity limits"
-    p_transferLoss(etype, geo, geo) "Transfer losses"
-    p_ggCoEff(etype, geo, geo) "Co-efficients for energy dissipation between and within nodes"
+    p_transferCap(grid, node, node) "Transfer capacity limits"
+    p_transferLoss(grid, node, node) "Transfer losses"
+    p_nnCoEff(grid, node, node) "Co-efficients for energy dissipation between and within nodes"
 ;
 
 * --- Probability -------------------------------------------------------------
@@ -42,25 +42,25 @@ Parameters
 
 * --- Stochastic data parameters ----------------------------------------------
 Parameters
-    ts_energyDemand(etype, geo, f, t) "Fixed energy demand of a time period/slice divided by average demand"
-    ts_energyDemand_(etype, geo, f, t)
+    ts_energyDemand(grid, node, f, t) "Fixed energy demand of a time period/slice divided by average demand"
+    ts_energyDemand_(grid, node, f, t)
     ts_inflow(*, f, t) "External energy inflow during a time period (MWh)"
     ts_inflow_(*, f, t)
-    ts_cf(flow, geo, f, t) "Available capacity factor time series (per unit)"
-    ts_cf_(flow, geo, f, t)
-    ts_import(etype, geo, t) "Energy import from locations outside the model scope (MW)"
-    ts_import_(etype, geo, t)
-    ts_reserveDemand(resType, resDirection, geo, f, t) "Reserve demand in region in the time period/slice (MW)"
-    ts_reserveDemand_(resType, resDirection, geo, f, t)
+    ts_cf(flow, node, f, t) "Available capacity factor time series (per unit)"
+    ts_cf_(flow, node, f, t)
+    ts_import(grid, node, t) "Energy import from locations outside the model scope (MW)"
+    ts_import_(grid, node, t)
+    ts_reserveDemand(resType, resDirection, node, f, t) "Reserve demand in region in the time period/slice (MW)"
+    ts_reserveDemand_(resType, resDirection, node, f, t)
 
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (€/MWh)"
-    ts_fuelPriceChangeGeo(fuel, geo, t) "Initial fuel price and consequent changes in fuel price in model geographies (€/MWh)"
+    ts_fuelPriceChangenode(fuel, node, t) "Initial fuel price and consequent changes in fuel price in model nodegraphies (€/MWh)"
     ts_stoContent(storage, f, t) "Storage content at the start of the time period (ratio of max)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time period/slice (p.u.)"
 ;
 
 * --- Other time dependent parameters -----------------------------------------
 Parameters
-    p_storageValue(etype, geo, storage, t) "Value of storage at the end of a time step"
+    p_storageValue(grid, node, storage, t) "Value of storage at the end of a time step"
     p_stepLength(mType, f, t) "Length of a time step (t)"
 ;

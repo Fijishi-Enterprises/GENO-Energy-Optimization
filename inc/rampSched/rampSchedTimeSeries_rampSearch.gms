@@ -1,4 +1,4 @@
-* rampSchedTimeSeries_rampSearch segments netLoad of each bus based on ramps
+* rampSchedTimeSeries_rampSearch segments netLoad of each node based on ramps
 * It tries to find the least square error for a certain number of segments.
 * It cannot use all possible combinations, as it would take too much time to iterate
 * all possible combinations of ramps.
@@ -15,14 +15,14 @@ execute_load 'ts_netload.gdx', ts_netLoad;
 
 * Check if there is a change in netLoad
 s_netLoadChanged = 0;
-loop(bus,
+loop(node,
         loop(t$(ord(t) = 1),
-            if (ts_netLoad(bus, t) <>
+            if (ts_netLoad(node, t) <>
                 // Calculates a moving window for net load using linearly increasing/decreasing weighting
                 sum((fRealization(f), t_)$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12),
-                    (ts_energyDemand('elec', bus, f, t_) -
-                        sum(unit_flow(flow, unitVG)$gu(unitVG, bus),
-                          ts_cf(flow, bus, f, t) *
+                    (ts_energyDemand('elec', node, f, t_) -
+                        sum(unit_flow(flow, unitVG)$nu(unitVG, node),
+                          ts_cf(flow, node, f, t) *
                           p_data2d('elec', unitVG, 'maxCap') *
                           p_data(unitVG, 'availability')
                         )
@@ -30,7 +30,7 @@ loop(bus,
                 )  /
                 sum(t_$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12), (13 - abs(ord(t) - ord(t_))) ) ,
                 put log;
-                put 'Net load changed in bus: ' bus.tl;
+                put 'Net load changed in node: ' node.tl;
                 putclose;
                 s_netLoadChanged = 1;
             )
@@ -42,11 +42,11 @@ loop(bus,
 if (s_netLoadChanged = 1,
     put log;
     put 'Calculating smoothed net load...';
-    ts_netLoad(bus, t) =
+    ts_netLoad(node, t) =
         sum((fRealization(f), t_)$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12),
-            (ts_energyDemand('elec', bus, f, t_) -
-                sum(unit_flow(flow, unitVG)$gu(unitVG, bus),
-                   ts_cf(flow, bus, f, t) *
+            (ts_energyDemand('elec', node, f, t_) -
+                sum(unit_flow(flow, unitVG)$nu(unitVG, node),
+                   ts_cf(flow, node, f, t) *
                    p_data2d('elec', unitVG, 'maxCap') *
                    p_data(unitVG, 'availability')
                 )
@@ -56,13 +56,13 @@ if (s_netLoadChanged = 1,
     put ' ...done'/;
 
     put 'Calculating net load ramps...';
-    ts_netLoadRamp(bus, t)$(ord(t) > 1) = ts_netLoad(bus, t) - ts_netload(bus, t-1);
-    ts_netLoadRampWindow(bus, t)$(ord(t) > 1) =
+    ts_netLoadRamp(node, t)$(ord(t) > 1) = ts_netLoad(node, t) - ts_netload(node, t-1);
+    ts_netLoadRampWindow(node, t)$(ord(t) > 1) =
         sum(t_$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12),
-            ts_netLoadRamp(bus, t) * (13 - abs(ord(t) - ord(t_)))
+            ts_netLoadRamp(node, t) * (13 - abs(ord(t) - ord(t_)))
         )  /
         sum(t_$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12), (13 - abs(ord(t) - ord(t_))) );
-    ts_netLoad2ndDer(bus, t)$(ord(t) > 2) = ts_netLoadRampWindow(bus, t) - ts_netloadRampWindow(bus, t-1);
+    ts_netLoad2ndDer(node, t)$(ord(t) > 2) = ts_netLoadRampWindow(node, t) - ts_netloadRampWindow(node, t-1);
     put ' ...done';
     putclose;
     execute_unload 'ts_netload.gdx', ts_netLoad, ts_netLoadRamp, ts_netLoad2ndDer;
@@ -83,10 +83,10 @@ searchRamp.reslim = 10000;
 searchRamp.threads = 0;
 searchRamp.optfile = 1;
 
-    loop(bus$(ord(bus) = 1),
+    loop(node$(ord(node) = 1),
         if (s_netLoadChanged or (s_maxSegmentLengthWithoutNotch <> s_maxSegmentLengthWithoutNotchPrev) or (s_rampWindow <> s_rampWindowPrev) or (s_rampExcludeFromSearchLength <> s_rampExcludeFromSearchLengthPrev),
             put log;
-            ts_netLoadCur(t) = ts_netLoad2ndDer(bus, t);
+            ts_netLoadCur(t) = ts_netLoad2ndDer(node, t);
             rampNotchTime(t) = no;
             rampSearchTime(t) = yes;
             s_segmentLengthFound = s_rampWindow;
@@ -146,17 +146,17 @@ searchRamp.optfile = 1;
             loop(notch$(ord(notch) <= s_notchCount ),
                 // Calculate the average ramp rate for the segments (only those segments that are relevant)
                 ts_netLoadRampAve(notch, notch_)$(ord(notch_) > ord(notch) and ord(notch_) <= s_notchCount and ord(notch_) <= ord(notch) + (s_notchCount - s_rampSegments) ) =
-                    sum(t$(ord(t) > 1 and ord(t) >= ts_notchPos(notch) and ord(t) <= ts_notchPos(notch_) ), ts_netLoadRamp(bus, t) ) /
+                    sum(t$(ord(t) > 1 and ord(t) >= ts_notchPos(notch) and ord(t) <= ts_notchPos(notch_) ), ts_netLoadRamp(node, t) ) /
                     sum(t$(ord(t) > 1 and ord(t) >= ts_notchPos(notch) and ord(t) <= ts_notchPos(notch_) ), 1 );
 
                 // Calculate the squared error penalty for using a particular segment
-                s_netLoadAtNotch = sum(t_$(ord(t_) = ts_notchPos(notch) ), ts_netLoad(bus, t_) );
+                s_netLoadAtNotch = sum(t_$(ord(t_) = ts_notchPos(notch) ), ts_netLoad(node, t_) );
                 ts_segmentErrorSquared(notch, notch_)$(ord(notch_) > ord(notch) and ord(notch_) <= s_notchCount and ord(notch_) <= ord(notch) + (s_notchCount - s_rampSegments) ) =
                     sum(t$(ord(t) > ts_notchPos(notch) and ord(t) < ts_notchPos(notch_) ),
                         // Squared difference between actual netLoad and netLoad calculated from average ramp over the segment
-                        (ts_netLoad(bus, t) -
+                        (ts_netLoad(node, t) -
                             (s_netLoadAtNotch + (ord(t) - ts_notchPos(notch) ) * ts_netLoadRampAve(notch, notch_) ) ) *
-                        (ts_netLoad(bus, t) -
+                        (ts_netLoad(node, t) -
                             (s_netLoadAtNotch + (ord(t) - ts_notchPos(notch) ) * ts_netLoadRampAve(notch, notch_) ) )
                     );
                 if (ord(notch) < s_notchCount,
@@ -180,13 +180,13 @@ searchRamp.optfile = 1;
 
             s_notchCount = 2;
             // Mark all empty (using EPS, zero will not provide full time series)
-            ts_netLoadRampResult(bus, t) = EPS;
-            ts_netLoadRampNotches(bus, t) = EPS;
+            ts_netLoadRampResult(node, t) = EPS;
+            ts_netLoadRampNotches(node, t) = EPS;
             loop(t$(rampNotchTime(t) and ord(t) <= s_rampWindow ),
-                ts_netLoadRampNotches(bus, t) = ts_netLoad(bus, t);
+                ts_netLoadRampNotches(node, t) = ts_netLoad(node, t);
                 loop(notch_$(ord(notch_) = s_notchCount),
                     if (sum(notch, v_rampNotch.l(notch, notch_) = 1 ),
-                        ts_netLoadRampResult(bus, t) = ts_netLoad(bus, t);
+                        ts_netLoadRampResult(node, t) = ts_netLoad(node, t);
                     );
                 );
                 s_notchCount = s_notchCount + 1;
