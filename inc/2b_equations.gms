@@ -17,6 +17,7 @@ equations
     q_stoMaxContent(grid, node, storage, f, t) "Storage should have enough room to fit committed downward reserves"
     q_maxHydropower(grid, node, storage, f, t) "Sum of unitHydro generation in storage is limited by total installed capacity"
     q_transferLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
+    q_nnStateLimit(grid, node, node, f, t) "Limit node state variables in relation to each other"
 ;
 
 
@@ -114,39 +115,74 @@ q_obj ..
 ;
 
 * -----------------------------------------------------------------------------
-q_balance(gn(grid, node), ft_dynamic(f, t)) ..
-  + v_state(grid, node, f+pf(f,t), t+pt(t))$(nodeState(grid, node))  // state variables with implicit method
-  + sum(m$mSolve(m),
-      + p_stepLength(m, f+pf(f,t), t+pt(t)) * (
-          + sum(unit$gnu(grid, node, unit),
-                v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
-            )
-          + sum(storage$gns(grid, node, storage),
-              - v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
-              + v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
-            )
-          + sum(from_node$(gn2n(grid, from_node, node)),
-                (1 - p_transferLoss(grid, from_node, node))
-                    * v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))
-            )
-          + ts_import_(grid, node, t+pt(t))
-          + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t))
-          - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))
-        )
-    )
-  =E=
-  + sum(m$mSolve(m),
-      + p_stepLength(m, f, t) * (
-          + sum(from_node$(nodeState(grid, node) and p_nnCoEff(grid, from_node, node)), // New state will be influenced by the previous states in linked nodes
-                p_stepLength(m, f, t) * p_nnCoEff(grid, from_node, node) * v_state(grid, from_node, f, t)
-            )
-        )
-      + p_stepLength(m, f+pf(f,t), t+pt(t)) * (
-          + ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))
-          + sum(to_node$(gn2n(grid, node, to_node)), v_transfer(grid, node, to_node, f+pf(f,t), t+pt(t)))
-        )
-    )
-;
+q_balance(gn(grid, node), ft_dynamic(f, t))$(mSolve(m)) ..   // Energy balance dynamics solved using implicit Euler discretization
+   + v_state(grid, node, f+pf(f,t), t+pt(t))$(nodeState(grid, node))   // The current state of the node
+   =E=
+   (
+      (+ p_energyCapacity(grid, node) * v_state(grid, node, f, t) / p_stepLength(m, f, t))$(p_energyCapacity(grid, node) and nodeState(grid, node))   // The dynamics are influenced by the previous state of the node
+      (+ v_state(grid, node, f, t) / p_stepLength(m, f, t))$(not p_energyCapacity(grid, node) and nodeState(grid, node))   // If p_energyCapacity unspecified BUT nodeState, then assume a value of 1.
+      + sum(node_$(gn2n(grid, node_, node) or p_nnCoEff(grid, node_, node)),   // Interactions between nodes
+         (+ p_nnCoEff(grid, node_, node) * v_state(grid, node_, f+pf(f,t), t+pt(t)))$(p_nnCoEff(grid, node_, node) and nodeState(grid, node))   // Dissipation to/from other nodes
+         (
+            + (1 - p_transferLoss(grid, node_, node)) * v_transfer(grid, node_, node, f+pf(f,t), t+pt(t))   // Transfer from other nodes to this one
+            - v_transfer(grid, node, node_, f+pf(f,t), t+pt(t))   // Transfer from this node to other ones
+         )$(gn2n(grid, node_, node))   // Transfer terms are only included for connected nodes
+      )
+      + sum(unit$gnu(grid, node, unit),   // Interactions between the node and its units
+         + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))   // Unit energy generation and consumption
+      )
+      + sum(storage$gns(grid, node, storage),   // Interactions between the node and its storages
+         - v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))   // Charging storages from the node
+         + v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))   // Discharging storages to the node
+      )
+      + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
+      - ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))   // Energy demand from the node
+      + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t))   // Slack variable ensuring the energy dynamics are feasible.
+      - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))   // Slack variable ensuring the energy dynamics are feasible.
+   )
+   ( /   // This division transforms the power terms to energy, a result of implicit discretization
+      (
+         (+ p_energyCapacity(grid, node) / p_stepLength(m, f+pf(f,t), t+pt(t)))$(p_energyCapacity(grid, node) and nodeState(grid, node))   // Energy capacity divided by the time step
+         (+ 1 / p_stepLength(m, f+pf(f,t), t+pt(t)))$(not p_energyCapacity(grid, node) and nodeState(grid, node))   // If p_energyCapacity unspecified BUT nodeState, then assume a value of 1.
+         + sum(node_$(p_nnCoEff(grid, node_, node) and nodeState(grid, node)),
+            + p_nnCoEff(grid, node_, node)   // Summation of the energy dissipation coefficients
+         )
+      )
+   )$(nodeState(grid, node))   // The divisor only exists if the node has a state variable
+* --- OLD ENERGY DYNAMICS ------------------------------------------------------
+*q_balance(gn(grid, node), ft_dynamic(f, t)) ..
+*  + v_state(grid, node, f+pf(f,t), t+pt(t))$(nodeState(grid, node))  // state variables with implicit method
+*  + sum(m$mSolve(m),
+*      + p_stepLength(m, f+pf(f,t), t+pt(t)) * (
+*          + sum(unit$gnu(grid, node, unit),
+*                v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
+*            )
+*          + sum(storage$gns(grid, node, storage),
+*              - v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
+*              + v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
+*            )
+*          + sum(from_node$(gn2n(grid, from_node, node)),
+*                (1 - p_transferLoss(grid, from_node, node))
+*                    * v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))
+*            )
+*          + ts_import_(grid, node, t+pt(t))
+*          + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t))
+*          - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))
+*        )
+*    )
+*  =E=
+*  + sum(m$mSolve(m),
+*      + p_stepLength(m, f, t) * (
+*          + sum(from_node$(nodeState(grid, node) and p_nnCoEff(grid, from_node, node)), // New state will be influenced by the previous states in linked nodes
+*                p_stepLength(m, f, t) * p_nnCoEff(grid, from_node, node) * v_state(grid, from_node, f, t)
+*            )
+*        )
+*      + p_stepLength(m, f+pf(f,t), t+pt(t)) * (
+*          + ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))
+*          + sum(to_node$(gn2n(grid, node, to_node)), v_transfer(grid, node, to_node, f+pf(f,t), t+pt(t)))
+*        )
+*    )
+*;
 * -----------------------------------------------------------------------------
 q_resDemand(resType, resDirection, node, ft(f, t))$ts_reserveDemand_(resType, resDirection, node, f, t) ..
   + sum(nu(node, unitElec),
@@ -324,5 +360,11 @@ q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
         v_resTransCapacity(resType, resDirection, from_node, to_node, f, t))
   =L=
   + p_transferCap(grid, from_node, to_node)
+;
+
+q_gnnStateLimit(gnnState(grid, node, node_), ft(f, t)) ..
+  + v_state(grid, node, f, t)   // The state of the first node sets the upper limit of the second
+  =G=
+  + v_state(grid, node_, f, t)
 ;
 

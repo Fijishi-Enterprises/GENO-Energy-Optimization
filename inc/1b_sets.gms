@@ -79,7 +79,7 @@ Sets
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
     nnu(node, node, unit) "Link between upper and lower nodal levels for units"
     nodeState(grid, node) "Nodes with a state variable"
-    nnState(grid, node, node)
+    gnnState(grid, node, node) "Node state variable bounds"
     storage "Storage"
     grid_storage(grid, storage) "The energy grid stored by the storage"
     gns(grid, node, storage) "Storage units of certain energy type in specific nodes"
