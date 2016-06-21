@@ -115,7 +115,7 @@ q_obj ..
 
 * -----------------------------------------------------------------------------
 q_balance(gn(grid, node), m, ft_dynamic(f, t)) ..
-  + v_state(grid, node, f+pf(f,t), t+pt(t))$(nodeState(grid, node))  // state variables with implicit method
+  + v_state(grid, node, f+pf(f,t), t+pt(t))$(gnState(grid, node))  // state variables with implicit method
   + p_stepLength(m, f+pf(f,t), t+pt(t)) * (
       + sum(unit$gnu(grid, node, unit),
             v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
@@ -134,7 +134,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t)) ..
      )
   =E=
   + p_stepLength(m, f, t) * (
-      + sum(from_node$(nodeState(grid, node) and p_nnCoEff(grid, from_node, node)), // New state will be influenced by the previous states in linked nodes
+      + sum(from_node$(gnState(grid, node) and p_nnCoEff(grid, from_node, node)), // New state will be influenced by the previous states in linked nodes
             p_stepLength(m, f, t) * p_nnCoEff(grid, from_node, node) * v_state(grid, from_node, f, t)
         )
     )

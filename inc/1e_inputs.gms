@@ -41,7 +41,7 @@ $ontext
 $offtext
 
 * Generate sets based on parameter data
-nodeState(grid, node)$gnData(grid, node, 'maxState') = yes;
+gnState(grid, node)$gnData(grid, node, 'maxState') = yes;
 gnu(grid, node, unit)$gnuData(grid, node, unit, 'maxCap') = yes;
 gn(grid, node)$sum(unit, gnu(grid, node, unit)) = yes;
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
