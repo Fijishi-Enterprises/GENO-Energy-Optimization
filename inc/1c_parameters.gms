@@ -10,10 +10,10 @@ Scalars
 
 * --- Power plant and fuel data -----------------------------------------------
 Parameters
-    gnData(grid, node, param_eg) "Data for energy nodes"
-    gnuData(grid, node, unit, param_egu) "Unit data where energy type matters"
-    nuData(node, unit, param_gu) "Unit data where energy type does not matter"
-    gnsData(grid, node, storage, param_egs) "Storage unit data"
+    gnData(grid, node, param_gn) "Data for energy nodes"
+    gnuData(grid, node, unit, param_gnu) "Unit data where energy type matters"
+    nuData(node, unit, param_nu) "Unit data where energy type does not matter"
+    gnsData(grid, node, storage, param_gns) "Storage unit data"
     nuDataReserves(node, unit, resType, *) "Reserve provision data for units"
     p_data2d(*, *, param) "2-dimensional data parameters of objects"
     p_transferCap(grid, node, node) "Transfer capacity limits"

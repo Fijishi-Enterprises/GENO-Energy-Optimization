@@ -17,17 +17,17 @@ Sets
 
 Alias(grid, grid_, grid_output);
 
-Sets param_eg  "Set of possible data parameters for grid, node" /
+Sets param_gn  "Set of possible data parameters for grid, node" /
     maxState    "Maximum energy in the node (MWh)"
 /
 
-Sets param_egu "Set of possible data parameters for grid, node, unit" /
+Sets param_gnu "Set of possible data parameters for grid, node, unit" /
     maxCap      "Maximum output capacity (MW)"
     maxCharging "Maximum loading capacity (MW)"
     cB          "Ratio in energy conversion between primary output and secondary outputs, e.g. heat ratio of a CHP-plant (MWh_e/MWh_h)"
     cV          "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
 /
-param_gu "Set of possible data parameters for node, unit" /
+param_nu "Set of possible data parameters for node, unit" /
     unitCount   "Number of units if aggregated"
     slope       "Slope of the fuel use"
     section     "Section of the fuel use at zero output"
@@ -53,7 +53,7 @@ param_gu "Set of possible data parameters for node, unit" /
     eff_from    "Conversion efficiency from input energy to the conversion process (ratio)"
     eff_fo      "Conversion efficiency from the conversion process to the output energy (ratio)"
 /
-param_egs "Set of possible data parameters for grid, node, storage" /
+param_gns "Set of possible data parameters for grid, node, storage" /
     maxSpill    "Maximum spill rate from storage (MWh/h)"
     minSpill    "Minimum spill rate from storage (MWh/h)"
     maxContent  "Maximum storage content (MWh)"
