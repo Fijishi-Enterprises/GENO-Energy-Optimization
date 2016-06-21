@@ -1,14 +1,14 @@
 equations
     q_obj "Objective function"
-    q_balance(grid, node, f, t) "Energy demand must be satisfied at each nodegraphical location"
+    q_balance(grid, node, mType, f, t) "Energy demand must be satisfied at each nodegraphical location"
     q_resDemand(resType, resDirection, node, f, t) "Demand for each reserve type is greater than demand"
     q_maxDownward(grid, node, unit, f, t) "Downward commitments will not undercut minimum load or maximum elec. consumption"
     q_maxUpward(grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
-    q_storageDynamics(grid, node, storage, f, t) "Dynamic equation for storages"
+    q_storageDynamics(grid, node, storage, mType, f, t) "Dynamic equation for storages"
     q_bindStorage(grid, node, storage, mType, f, t) "Couple storage contents for joining forecasts or for joining sample time periods"
     q_startup(node, unit, f, t) "Capacity started up is greater than the difference of online cap. now and in previous time step"
     q_bindOnline(node, unit, mType, f, t) "Couple online variable for joining forecasts or for joining sample time periods"
-    q_fuelUse(node, unit, fuel, f, t) "Use of fuels in units equals generation and losses"
+    q_fuelUse(node, unit, fuel, mType, f, t) "Use of fuels in units equals generation and losses"
 *    q_storageEnd(node, storage, f, t) "Expected storage end content minus procured reserve energy is greater than start content"
     q_conversion(node, unit, f, t) "Conversion of energy between grids of energy presented in the model, e.g. electricity consumption equals unitHeat generation times efficiency"
     q_outputRatioFixed(grid, grid, node, unit, f, t) "Fixed ratio between two grids of energy output"
@@ -114,37 +114,33 @@ q_obj ..
 ;
 
 * -----------------------------------------------------------------------------
-q_balance(gn(grid, node), ft_dynamic(f, t)) ..
+q_balance(gn(grid, node), m, ft_dynamic(f, t)) ..
   + v_state(grid, node, f+pf(f,t), t+pt(t))$(nodeState(grid, node))  // state variables with implicit method
-  + sum(m$mSolve(m),
-      + p_stepLength(m, f+pf(f,t), t+pt(t)) * (
-          + sum(unit$gnu(grid, node, unit),
-                v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
-            )
-          + sum(storage$gns(grid, node, storage),
-              - v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
-              + v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
-            )
-          + sum(from_node$(gn2n(grid, from_node, node)),
-                (1 - p_transferLoss(grid, from_node, node))
-                    * v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))
-            )
-          + ts_import_(grid, node, t+pt(t))
-          + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t))
-          - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))
+  + p_stepLength(m, f+pf(f,t), t+pt(t)) * (
+      + sum(unit$gnu(grid, node, unit),
+            v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
+        )
+      + sum(storage$gns(grid, node, storage),
+          - v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
+          + v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
+        )
+      + sum(from_node$(gn2n(grid, from_node, node)),
+            (1 - p_transferLoss(grid, from_node, node))
+                * v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))
+        )
+      + ts_import_(grid, node, t+pt(t))
+      + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t))
+      - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))
+     )
+  =E=
+  + p_stepLength(m, f, t) * (
+      + sum(from_node$(nodeState(grid, node) and p_nnCoEff(grid, from_node, node)), // New state will be influenced by the previous states in linked nodes
+            p_stepLength(m, f, t) * p_nnCoEff(grid, from_node, node) * v_state(grid, from_node, f, t)
         )
     )
-  =E=
-  + sum(m$mSolve(m),
-      + p_stepLength(m, f, t) * (
-          + sum(from_node$(nodeState(grid, node) and p_nnCoEff(grid, from_node, node)), // New state will be influenced by the previous states in linked nodes
-                p_stepLength(m, f, t) * p_nnCoEff(grid, from_node, node) * v_state(grid, from_node, f, t)
-            )
-        )
-      + p_stepLength(m, f+pf(f,t), t+pt(t)) * (
-          + ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))
-          + sum(to_node$(gn2n(grid, node, to_node)), v_transfer(grid, node, to_node, f+pf(f,t), t+pt(t)))
-        )
+  + p_stepLength(m, f+pf(f,t), t+pt(t)) * (
+      + ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))
+      + sum(to_node$(gn2n(grid, node, to_node)), v_transfer(grid, node, to_node, f+pf(f,t), t+pt(t)))
     )
 ;
 * -----------------------------------------------------------------------------
@@ -194,13 +190,13 @@ q_maxUpward(gnu(grid, node, unit), ft(f, t))${      [unitMinLoad(unit) and gnuDa
   + v_gen.up(grid, node, unit, f, t) * [ v_online(node, unit, f, t)$nuData(node, unit, 'minLoad') + 1$(not nuData(node, unit, 'minLoad')) ]
 ;
 * -----------------------------------------------------------------------------
-q_storageDynamics(gns(grid, node, storage), ft(f, t)) ..
+q_storageDynamics(gns(grid, node, storage), m, ft(f, t)) ..
   + v_stoContent(grid, node, storage, f, t)
   =E=
   + v_stoContent(grid, node, storage, f+pf(f,t), t+pt(t))
   + ts_inflow_(storage, f+pf(f,t), t+pt(t))
   + vq_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
-  + sum(m, p_stepLength(m, f+pf(f,t), t+pt(t))) *
+  + p_stepLength(m, f+pf(f,t), t+pt(t)) *
      ( (+ v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t)) * gnsData(grid, node, storage, 'chargingEff')
         - v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))  / gnsData(grid, node, storage, 'dischargingEff')
         - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))
@@ -250,11 +246,11 @@ q_bindOnline(nu(node, unitOnline), mftBind(m, f, t)) ..
   + v_online(node, unitOnline, f + mft_bind(m,f,t), t + mt_bind(m,t))
 ;
 
-q_fuelUse(nu(node, unitFuel), fuel, ft(f, t))$unit_fuel(unitFuel, fuel, 'main') ..
+q_fuelUse(nu(node, unitFuel), fuel, m, ft(f, t))$unit_fuel(unitFuel, fuel, 'main') ..
   + v_fuelUse(node, unitFuel, fuel, f, t)
   =E=
-    $$ifi not '%rampSched%' == 'yes' sum(m, p_stepLength(m, f, t)) *
-    $$ifi     '%rampSched%' == 'yes' sum(m, p_stepLength(m, f, t)) / 2 *
+    $$ifi not '%rampSched%' == 'yes' p_stepLength(m, f, t) *
+    $$ifi     '%rampSched%' == 'yes' p_stepLength(m, f, t) / 2 *
     (
       + sum{ gnu(grid, node_, unitFuel)$nuData(node_, unitFuel, 'slope'),
              [
@@ -315,7 +311,7 @@ q_maxHydropower(gns(grid, node, storageHydro), ft(f, t)) ..
     )
   =L=
   + sum{unitHydro$[unit_storage(unitHydro, storageHydro) and unit_fuel(unitHydro, 'water_res', 'main')], gnuData('elec', node, unitHydro, 'maxCap')}
-*  + v_spill(storageHydro, f, t) / sum(m, p_stepLength(m, f, t))
+*  + v_spill(storageHydro, f, t) / p_stepLength(m, f, t)
 ;
 
 q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..

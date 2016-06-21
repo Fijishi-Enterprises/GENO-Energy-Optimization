@@ -29,7 +29,7 @@ if (mType('schedule'),
     sCentral(s) = no;
     sCentral('s001') = yes;
 
-    p_stepLength(m, f, t)$(ord(f)=1 and ord(t)=1) = 0;   // set one p_stepLength value, so that unassigned values will not cause an error later
+    p_stepLength('schedule', f, t)$(ord(f)=1 and ord(t)=1) = 0;   // set one p_stepLength value, so that unassigned values will not cause an error later
     p_sProbability(s) = 0;
     p_sProbability('s000') = 1;
     p_fProbability(f) = 0;
