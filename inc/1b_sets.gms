@@ -19,6 +19,8 @@ Alias(grid, grid_, grid_output);
 
 Sets param_gn  "Set of possible data parameters for grid, node" /
     maxState    "Maximum energy in the node (MWh)"
+    minState    "Minimum energy in the node (MWh)"
+    energyCapacity "Energy capacity of the node (MWh/?)"
 /
 
 Sets param_gnu "Set of possible data parameters for grid, node, unit" /
@@ -73,14 +75,15 @@ param "Set of general parameters" /
 * --- Energy generation and consumption ---------------------------------------
 Sets
     unit "Set of generators, storages and loads"
-    gn(grid,node) "Nodes of the energy grids"
-    gn2n(grid,node,node) "Transfer capacity between nodes in specific energy grids"
+    gn(grid, node) "Nodes of the energy grids"
+    gn2n(grid, node, node) "Transfer capacity between nodes in specific energy grids"
     gnu(grid, node, unit) "Units in specific nodes of particular energy grids"
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
     nu(node, unit) "Units attached to particular nodes. For units with multiple endogenous outputs only single (node, unit) combination allowed - with the primary grid node (affecting e.g. fuel use calculation with cV)"
     nnu(node, node, unit) "Units that link two nodes"
     gnState(grid, node) "Nodes with a state variable"
-    gnnStateLimit(grid, node, node) "Nodes whose states are limited by the states of other nodes"
+    gnnState(grid, node, node) "Nodes with state variables that exchange energy between each other"
+    gnnStateLimit(grid, node, node) "Nodes with state variables that are limited by the states of other nodes"
     storage "Storage"
     grid_storage(grid, storage) "The energy grid stored by the storage"
     gns(grid, node, storage) "Storage units of certain energy type in specific nodes"

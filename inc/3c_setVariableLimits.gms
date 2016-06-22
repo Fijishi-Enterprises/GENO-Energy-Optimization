@@ -45,6 +45,8 @@ loop(ft(f, t),
     v_online.up(nu(node, unitOnline), f, t) = 1;
     // v_state upper border is defined by maxState;
     v_state.up(gn(grid, node), f, t) = gnData(grid, node, 'maxState');
+    // v_state lower border is defined by minState;
+    v_state.lo(gn(grid, node),f, t) = gnData(grid, node, 'minState');
     // Free storage control ...
 *    if(currentStage('scheduling'),
 *        v_stoCharge.up(longStorage, f, t) = inf;

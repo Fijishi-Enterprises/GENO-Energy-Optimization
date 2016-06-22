@@ -18,8 +18,7 @@ Parameters
     p_data2d(*, *, param) "2-dimensional data parameters of objects"
     p_transferCap(grid, node, node) "Transfer capacity limits"
     p_transferLoss(grid, node, node) "Transfer losses"
-    p_nnCoEff(grid, node, node) "Co-efficients for energy dissipation between and within nodes"
-    p_energyCapacity(grid, node) "Node energy capacities (heat capacity, etc.), in [MWh]?"
+    p_nnCoEff(grid, node, node) "Co-efficients for energy dissipation between nodes"
 ;
 
 * --- Probability -------------------------------------------------------------

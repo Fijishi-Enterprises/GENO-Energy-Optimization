@@ -119,14 +119,14 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t)) ..   // Energy balance dynamics s
    + v_state(grid, node, f+pf(f,t), t+pt(t))$(gnState(grid, node))   // The current state of the node
    =E=
    (
-      ( + p_energyCapacity(grid, node) * v_state(grid, node, f, t) / p_stepLength(m, f, t))$(p_energyCapacity(grid, node) and gnState(grid, node))   // The dynamics are influenced by the previous state of the node
-      ( + v_state(grid, node, f, t) / p_stepLength(m, f, t))$(not p_energyCapacity(grid, node) and gnState(grid, node))   // If p_energyCapacity unspecified BUT nodeState, then assume a value of 1.
-      + sum(node_$(gn2n(grid, node_, node) or p_nnCoEff(grid, node_, node)),   // Interactions between nodes
-         ( + p_nnCoEff(grid, node_, node) * v_state(grid, node_, f+pf(f,t), t+pt(t)))$(p_nnCoEff(grid, node_, node) and gnState(grid, node))   // Dissipation to/from other nodes
-         (
-            + (1 - p_transferLoss(grid, node_, node)) * v_transfer(grid, node_, node, f+pf(f,t), t+pt(t))   // Transfer from other nodes to this one
-            - v_transfer(grid, node, node_, f+pf(f,t), t+pt(t))   // Transfer from this node to other ones
-         )$(gn2n(grid, node_, node))   // Transfer terms are only included for connected nodes
+      ( + gnData(grid, node, 'energyCapacity') * v_state(grid, node, f, t) / p_stepLength(m, f, t))$(gnData(grid, node, 'energyCapacity') and gnState(grid, node))   // The dynamics are influenced by the previous state of the node
+      ( + v_state(grid, node, f, t) / p_stepLength(m, f, t))$((not gnData(grid, node, 'energyCapacity')) and gnState(grid, node))   // If energyCapacity unspecified BUT gnState, then assume a value of 1.
+      + sum(node_$(gnnState(grid, node_, node)),   // Energy exchange between nodes
+         + p_nnCoEff(grid, node_, node) * v_state(grid, node_, f+pf(f,t), t+pt(t)) // Dissipation to/from other nodes
+      )
+      + sum(node_$(gn2n(grid, node_, node)),   // Energy transfer between nodes
+         + (1 - p_transferLoss(grid, node_, node)) * v_transfer(grid, node_, node, f+pf(f,t), t+pt(t))   // Transfer from other nodes to this one
+         - v_transfer(grid, node, node_, f+pf(f,t), t+pt(t))   // Transfer from this node to other ones
       )
       + sum(unit$gnu(grid, node, unit),   // Interactions between the node and its units
          + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))   // Unit energy generation and consumption
@@ -142,9 +142,9 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t)) ..   // Energy balance dynamics s
    )
    ( /   // This division transforms the power terms to energy, a result of implicit discretization
       (
-         ( + p_energyCapacity(grid, node) / p_stepLength(m, f+pf(f,t), t+pt(t)))$(p_energyCapacity(grid, node) and gnState(grid, node))   // Energy capacity divided by the time step
-         ( + 1 / p_stepLength(m, f+pf(f,t), t+pt(t)))$(not p_energyCapacity(grid, node) and gnState(grid, node))   // If p_energyCapacity unspecified BUT nodeState, then assume a value of 1.
-         + sum(node_$(p_nnCoEff(grid, node_, node) and gnState(grid, node)),
+         ( + gnData(grid, node, 'energyCapacity') / p_stepLength(m, f+pf(f,t), t+pt(t)))$(gnData(grid, node, 'energyCapacity') and gnState(grid, node))   // Energy capacity divided by the time step
+         ( + 1 / p_stepLength(m, f+pf(f,t), t+pt(t)))$((not gnData(grid, node, 'energyCapacity')) and gnState(grid, node))   // If energyCapacity unspecified BUT gnState, then assume a value of 1.
+         + sum(node_$(gnnState(grid, node_, node)),
             + p_nnCoEff(grid, node_, node)   // Summation of the energy dissipation coefficients
          )
       )
@@ -329,7 +329,7 @@ q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
   + p_transferCap(grid, from_node, to_node)
 ;
 
-q_gnnStateLimit(gnnState(grid, node, node_), ft(f, t))$(gnnStateLimit(grid, node, node_)) ..
+q_gnnStateLimit(gnnStateLimit(grid, node, node_), ft(f, t)) ..
   + v_state(grid, node, f, t)   // The state of the first node sets the upper limit of the second
   =G=
   + v_state(grid, node_, f, t)

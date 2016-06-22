@@ -5,6 +5,7 @@ $loaddc flow
 $loaddc unit
 $loaddc fuel
 $loaddc storage
+$loaddc gnnStateLimit
 $loaddc gnData
 $loaddc gnuData
 $loaddc nuData
@@ -41,7 +42,7 @@ $ontext
 $offtext
 
 * Generate sets based on parameter data
-gnState(grid, node)$gnData(grid, node, 'maxState') = yes;
+gnState(grid, node)$(gnData(grid, node, 'maxState') or gnData(grid, node, 'minState') or gnData(grid, node, 'energyCapacity')) = yes;
 gnu(grid, node, unit)$gnuData(grid, node, unit, 'maxCap') = yes;
 gn(grid, node)$sum(unit, gnu(grid, node, unit)) = yes;
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
@@ -51,6 +52,7 @@ gns(grid, node, storage)$gnsData(grid, node, storage, 'maxContent') = yes;
 nnu(node, node_, unit)$(nu(node, unit) and ord(node) = ord(node_)) = yes;
 gn2n(grid, from_node, to_node)$p_transferCap(grid, from_node, to_node) = yes;
 node_to_node(from_node, to_node)$p_transferCap('elec', from_node, to_node) = yes;
+gnnState(grid, node, node_)$(p_nnCoEff(grid, node, node_) and gnState(grid, node) and gnState(grid, node_)) = yes;
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 
