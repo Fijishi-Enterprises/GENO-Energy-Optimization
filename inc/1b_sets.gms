@@ -80,7 +80,7 @@ Sets
     nu(node, unit) "Units attached to particular nodes. For units with multiple endogenous outputs only single (node, unit) combination allowed - with the primary grid node (affecting e.g. fuel use calculation with cV)"
     nnu(node, node, unit) "Units that link two nodes"
     gnState(grid, node) "Nodes with a state variable"
-    gnnState(grid, node, node) "Nodes that exchange energy with a neighbouring node"
+    gnnStateLimit(grid, node, node) "Nodes whose states are limited by the states of other nodes"
     storage "Storage"
     grid_storage(grid, storage) "The energy grid stored by the storage"
     gns(grid, node, storage) "Storage units of certain energy type in specific nodes"
