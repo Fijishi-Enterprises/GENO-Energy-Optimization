@@ -119,8 +119,8 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t)) ..   // Energy balance dynamics s
    + v_state(grid, node, f+pf(f,t), t+pt(t))$(gnState(grid, node))   // The current state of the node
    =E=
    (
-      + ( gnData(grid, node, 'energyCapacity') * v_state(grid, node, f, t) / p_stepLength(m, f, t))$(gnData(grid, node, 'energyCapacity') and gnState(grid, node))   // The dynamics are influenced by the previous state of the node
-      + ( v_state(grid, node, f, t) / p_stepLength(m, f, t))$((not gnData(grid, node, 'energyCapacity')) and gnState(grid, node))   // If energyCapacity unspecified BUT gnState, then assume a value of 1.
+      + ( gnData(grid, node, 'energyCapacity') * v_state(grid, node, f, t) / p_stepLength(m, f, t))$(gnData(grid, node, 'energyCapacity') and gnState(grid, node) and p_stepLength(m, f, t) > 0)   // The dynamics are influenced by the previous state of the node
+      + ( v_state(grid, node, f, t) / p_stepLength(m, f, t))$((not gnData(grid, node, 'energyCapacity')) and gnState(grid, node) and p_stepLength(m, f, t) > 0)   // If energyCapacity unspecified BUT gnState, then assume a value of 1.
       + sum(node_$(gnnState(grid, node_, node)),   // Energy exchange between nodes
          + p_nnCoEff(grid, node_, node) * v_state(grid, node_, f+pf(f,t), t+pt(t)) // Dissipation to/from other nodes
       )
@@ -141,14 +141,13 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t)) ..   // Energy balance dynamics s
       - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))   // Slack variable ensuring the energy dynamics are feasible.
    )
    / (   // This division transforms the power terms to energy, a result of implicit discretization
-        (
-           + ( gnData(grid, node, 'energyCapacity') / p_stepLength(m, f+pf(f,t), t+pt(t)))$(gnData(grid, node, 'energyCapacity') and gnState(grid, node))   // Energy capacity divided by the time step
-           + ( 1 / p_stepLength(m, f+pf(f,t), t+pt(t)))$((not gnData(grid, node, 'energyCapacity')) and gnState(grid, node))   // If energyCapacity unspecified BUT gnState, then assume a value of 1.
+           + ( gnData(grid, node, 'energyCapacity') / p_stepLength(m, f+pf(f,t), t+pt(t)))$(gnData(grid, node, 'energyCapacity') and gnState(grid, node) and p_stepLength(m, f, t) > 0)   // Energy capacity divided by the time step
+           + ( 1 / p_stepLength(m, f+pf(f,t), t+pt(t)))$((not gnData(grid, node, 'energyCapacity')) and gnState(grid, node) and p_stepLength(m, f, t) > 0)   // If energyCapacity unspecified BUT gnState, then assume a value of 1.
            + sum(node_$(gnnState(grid, node_, node)),
               + p_nnCoEff(grid, node_, node)   // Summation of the energy dissipation coefficients
            )
-        )
-     )$(gnState(grid, node))   // The divisor only exists if the node has a state variable
+           + 1$(not gnState(grid, node))   // The divisor only exists if the gnState exists, so here we prevent division by zero
+     )
 ;
 * -----------------------------------------------------------------------------
 q_resDemand(resType, resDirection, node, ft(f, t))$ts_reserveDemand_(resType, resDirection, node, f, t) ..
