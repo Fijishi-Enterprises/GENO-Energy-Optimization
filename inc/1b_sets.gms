@@ -23,6 +23,12 @@ Sets param_gn  "Set of possible data parameters for grid, node" /
     energyCapacity "Energy capacity of the node (MWh/?)"
 /
 
+Sets param_gnn "Set of possible data parameters for grid, node, node (nodal interconnections)" /
+    transferCap "Transfer capacity limits"
+    transferLoss "Transfer losses"
+    nnCoeff     "Coefficients for energy dissipation between nodes"
+/
+
 Sets param_gnu "Set of possible data parameters for grid, node, unit" /
     maxCap      "Maximum output capacity (MW)"
     maxCharging "Maximum loading capacity (MW)"

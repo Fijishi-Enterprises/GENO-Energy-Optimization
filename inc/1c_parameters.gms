@@ -11,14 +11,12 @@ Scalars
 * --- Power plant and fuel data -----------------------------------------------
 Parameters
     gnData(grid, node, param_gn) "Data for energy nodes"
+    gnnData(grid, node, node, param_gnn) "Data for interconnections between energy nodes"
     gnuData(grid, node, unit, param_gnu) "Unit data where energy type matters"
     nuData(node, unit, param_nu) "Unit data where energy type does not matter"
     gnsData(grid, node, storage, param_gns) "Storage unit data"
     nuDataReserves(node, unit, resType, *) "Reserve provision data for units"
     p_data2d(*, *, param) "2-dimensional data parameters of objects"
-    p_transferCap(grid, node, node) "Transfer capacity limits"
-    p_transferLoss(grid, node, node) "Transfer losses"
-    p_nnCoEff(grid, node, node) "Co-efficients for energy dissipation between nodes"
 ;
 
 * --- Probability -------------------------------------------------------------

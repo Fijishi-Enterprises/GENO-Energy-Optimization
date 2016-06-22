@@ -122,10 +122,10 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t)) ..   // Energy balance dynamics s
       + ( gnData(grid, node, 'energyCapacity') * v_state(grid, node, f, t) / p_stepLength(m, f, t))$(gnData(grid, node, 'energyCapacity') and gnState(grid, node) and p_stepLength(m, f, t) > 0)   // The dynamics are influenced by the previous state of the node
       + ( v_state(grid, node, f, t) / p_stepLength(m, f, t))$((not gnData(grid, node, 'energyCapacity')) and gnState(grid, node) and p_stepLength(m, f, t) > 0)   // If energyCapacity unspecified BUT gnState, then assume a value of 1.
       + sum(node_$(gnnState(grid, node_, node)),   // Energy exchange between nodes
-         + p_nnCoEff(grid, node_, node) * v_state(grid, node_, f+pf(f,t), t+pt(t)) // Dissipation to/from other nodes
+         + gnnData(grid, node_, node, 'nnCoeff') * v_state(grid, node_, f+pf(f,t), t+pt(t)) // Dissipation to/from other nodes
       )
       + sum(node_$(gn2n(grid, node_, node)),   // Energy transfer between nodes
-         + (1 - p_transferLoss(grid, node_, node)) * v_transfer(grid, node_, node, f+pf(f,t), t+pt(t))   // Transfer from other nodes to this one
+         + (1 - gnnData(grid, node_, node, 'transferLoss')) * v_transfer(grid, node_, node, f+pf(f,t), t+pt(t))   // Transfer from other nodes to this one
          - v_transfer(grid, node, node_, f+pf(f,t), t+pt(t))   // Transfer from this node to other ones
       )
       + sum(unit$gnu(grid, node, unit),   // Interactions between the node and its units
@@ -144,7 +144,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t)) ..   // Energy balance dynamics s
            + ( gnData(grid, node, 'energyCapacity') / p_stepLength(m, f+pf(f,t), t+pt(t)))$(gnData(grid, node, 'energyCapacity') and gnState(grid, node) and p_stepLength(m, f, t) > 0)   // Energy capacity divided by the time step
            + ( 1 / p_stepLength(m, f+pf(f,t), t+pt(t)))$((not gnData(grid, node, 'energyCapacity')) and gnState(grid, node) and p_stepLength(m, f, t) > 0)   // If energyCapacity unspecified BUT gnState, then assume a value of 1.
            + sum(node_$(gnnState(grid, node_, node)),
-              + p_nnCoEff(grid, node_, node)   // Summation of the energy dissipation coefficients
+              + gnnData(grid, node_, node, 'nnCoeff')   // Summation of the energy dissipation coefficients
            )
            + 1$(not gnState(grid, node))   // The divisor only exists if the gnState exists, so here we prevent division by zero
      )
@@ -155,7 +155,7 @@ q_resDemand(resType, resDirection, node, ft(f, t))$ts_reserveDemand_(resType, re
         v_reserve(resType, resDirection, node, unitElec, f, t)$resCapable(resType, resDirection, node, unitElec)
     )
   + sum(gn('elec', from_node),
-        (1 - p_transferLoss('elec', from_node, node)
+        (1 - gnnData('elec', from_node, node, 'transferLoss')
         ) * v_resTransCapacity(resType, resDirection, from_node, node, f, t)
     )
   =G=
@@ -325,7 +325,7 @@ q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
   + sum(resTypeAndDir(resType, resDirection)$(resDirection('resUp') and grid('elec')),
         v_resTransCapacity(resType, resDirection, from_node, to_node, f, t))
   =L=
-  + p_transferCap(grid, from_node, to_node)
+  + gnnData(grid, from_node, to_node, 'transferCap')
 ;
 
 q_gnnStateLimit(gnnStateLimit(grid, node, node_), ft(f, t)) ..

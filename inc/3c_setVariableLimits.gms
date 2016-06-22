@@ -63,9 +63,9 @@ loop(ft(f, t),
     v_spill.up(gns(grid, node, storage), f, t)
         = gnsData(grid, node, storage, 'maxSpill') * p_stepLength(mSolve, f, t);
     v_transfer.up(gn2n(grid, from_node, to_node), f, t)
-        = p_transferCap(grid, from_node, to_node);
+        = gnnData(grid, from_node, to_node, 'transferCap');
     v_resTransCapacity.up('tertiary', 'resUp', from_node, to_node, f, t)
-        = p_transferCap('elec', from_node, to_node);
+        = gnnData('elec', from_node, to_node, 'transferCap');
     // Reserve provision limits based on resXX_range (or possibly available generation in case of unitVG)
     v_reserve.up(resCapable(resType, 'resUp', node, unitElec), f, t)
         = min { nuDataReserves(node, unitElec, resType, 'resUp') * [ gnuData('elec', node, unitElec, 'maxCap') + gnuData('elec', node, unitElec, 'maxCharging') ],  // Generator + consuming unit res_range limit

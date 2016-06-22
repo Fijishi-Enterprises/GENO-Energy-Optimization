@@ -7,6 +7,7 @@ $loaddc fuel
 $loaddc storage
 $loaddc gnnStateLimit
 $loaddc gnData
+$loaddc gnnData
 $loaddc gnuData
 $loaddc nuData
 $loaddc nuDataReserves
@@ -25,9 +26,6 @@ $loaddc ts_cf
 $loaddc ts_stoContent
 $loaddc ts_fuelPriceChange
 $loaddc ts_inflow
-$loaddc p_transferCap
-$loaddc p_transferLoss
-$loaddc p_nnCoEff
 $loaddc p_data2d
 $gdxin
 
@@ -50,9 +48,9 @@ nu(node, unit)$sum((grid, grid_), ggnuConstrainedOutputRatio(grid, grid_, node, 
 nu(node, unit)$sum((grid, grid_), ggnuFixedOutputRatio(grid, grid_, node, unit)) = no;
 gns(grid, node, storage)$gnsData(grid, node, storage, 'maxContent') = yes;
 nnu(node, node_, unit)$(nu(node, unit) and ord(node) = ord(node_)) = yes;
-gn2n(grid, from_node, to_node)$p_transferCap(grid, from_node, to_node) = yes;
-node_to_node(from_node, to_node)$p_transferCap('elec', from_node, to_node) = yes;
-gnnState(grid, node, node_)$(p_nnCoEff(grid, node, node_) and gnState(grid, node) and gnState(grid, node_)) = yes;
+gn2n(grid, from_node, to_node)$gnnData(grid, from_node, to_node, 'transferCap') = yes;
+node_to_node(from_node, to_node)$gnnData('elec', from_node, to_node, 'transferCap') = yes;
+gnnState(grid, node, node_)$(gnnData(grid, node, node_, 'nnCoeff') and gnState(grid, node) and gnState(grid, node_)) = yes;
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 
