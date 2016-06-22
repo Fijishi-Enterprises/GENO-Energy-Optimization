@@ -39,7 +39,7 @@ class QSubProcess(QObject):
         self._process.readyReadStandardOutput.connect(self.on_ready_stdout)
         self._process.readyReadStandardError.connect(self.on_ready_stderr)
         self._process.finished.connect(self.process_finished)
-        self._process.error.connect(self.on_process_error)
+        # self._process.error.connect(self.on_process_error)
         self._process.start(command)
         if not self._process.waitForStarted(msecs=10000):
             self._process_failed = True

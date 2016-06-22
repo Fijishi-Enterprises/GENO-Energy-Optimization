@@ -399,6 +399,8 @@ class Setup(MetaObject):
         # TODO: Get input for this tool from own input folder and parents.
         # If parent has a tool -> get output files
         # If parent has no tool -> get input files
+        if self.is_root:
+            return list()
         try:
             filenames = glob.glob(os.path.join(self.input_dir,
                                                tool.short_name,
@@ -412,7 +414,7 @@ class Setup(MetaObject):
             if self.is_root:
                 return filenames
             filenames += self._parent.get_input_files(tool, file_fmt)
-            filenames += self._parent.get_output_files(tool, file_fmt)
+            filenames += self._parent.get_output_files(self._parent.tool, file_fmt)
         return filenames
 
     def get_output_files(self, tool, file_fmt):
@@ -422,12 +424,13 @@ class Setup(MetaObject):
             tool (Tool): The tool
             file_fmt (DataFormat): File format
         """
-
+        if self.is_root:
+            return list()
         filenames = glob.glob(os.path.join(self.output_dir,
                                            tool.short_name,
                                            '*.{}'.format(file_fmt.extension)))
         if self._parent is not None:
-            filenames += self._parent.get_output_files(tool, file_fmt)
+            filenames += self._parent.get_output_files(self._parent.tool, file_fmt)
         return filenames
 
     def save(self, path=''):
@@ -533,10 +536,8 @@ class Setup(MetaObject):
                     # Separate with a blank line
                     outfile.write('\n')
                     logging.debug("Created file '%s' to: <%s>" % (outfilename, dst_dir))
-
         logging.debug(("Copied input files for tool '{}'"
                        .format(tool.name)))
-
         return True
 
     @staticmethod

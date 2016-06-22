@@ -21,6 +21,8 @@ class SceletonProject(MetaObject):
         """
         super().__init__(name, description)
         self.project_dir = os.path.join(PROJECT_DIR, self.short_name)
+        self.filename = self.short_name + '.json'
+        self.path = os.path.join(PROJECT_DIR, self.filename)
         self.dirty = False  # Indicates if the project has changed since loading
         if not os.path.exists(self.project_dir):
             try:

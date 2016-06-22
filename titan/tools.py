@@ -98,7 +98,6 @@ def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):
 
 class SetupTree(MetaObject):
     """Class to store Setups for a single simulation run."""
-    # TODO: Rename this class to SetupBranch
 
     setuptree_finished_signal = pyqtSignal()
 

@@ -14,11 +14,13 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolProxyModel, ToolModel
-from tool import Dimension, DataParameter, Setup, DataFormat
+from tool import Dimension, DataParameter, Setup
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH,\
                    MAGIC_INVESTMENTS_JSON, MAGIC_OPERATION_JSON,\
-                   ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR
+                   ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
+                   CONFIGURATION_FILE
+from configuration import ConfigurationParser
 from widgets.setup_form_widget import SetupFormWidget
 from widgets.project_form_widget import ProjectFormWidget
 from widgets.context_menu_widget import ContextMenuWidget
@@ -37,6 +39,7 @@ class TitanUI(QMainWindow):
 
     def __init__(self):
         """ Initialize GUI."""
+        # TODO: Rename TITAN\models\ folder into TITAN\tools\
         super().__init__()
         # Set number formatting to use user's default settings
         locale.setlocale(locale.LC_NUMERIC, '')
@@ -44,6 +47,7 @@ class TitanUI(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         # Class variables
+        self._project = None
         self._running_setup = None
         self._root = None  # Root node for SetupModel
         self.setup_model = None
@@ -56,11 +60,10 @@ class TitanUI(QMainWindow):
         self.project_form = None
         self.context_menu = None
         self.edit_tool_form = None
-        # Load project
-        self._project = self.init_project('project_1')
         # Initialize general things
         self.connect_signals()
-        self.init_models()
+        # Initialize project
+        self.init_project()
 
     @pyqtSlot()
     def set_debug_level(self):
@@ -119,22 +122,27 @@ class TitanUI(QMainWindow):
         self.tool_proxy_model.setSourceModel(self.setup_model)
         self.ui.listView_tools.setModel(self.tool_proxy_model)
 
-    def init_project(self, project_name):
-        """Initialize project when Sceleton is started.
-
-        Args:
-            project_name (str): Project name
+    def init_project(self):
+        """Initializes project at Sceleton start-up. Loads the last project that was open
+        when Sceleton was closed or if Sceleton is started for the first time, then start
+        without a project.
         """
-        # TODO: This method is not needed when loading works
-        project_desc = 'a test project'
-        project = SceletonProject(project_name, project_desc)
-        self.setWindowTitle("Sceleton Titan    -- {} --".format(project.name))
-        return project
+        config = ConfigurationParser(CONFIGURATION_FILE)
+        config.load()
+        # Get the path of the project file from the configuration file
+        project_file_path = config.get('project', 'path')
+        if not os.path.isfile(project_file_path):
+            # logging.debug("Previous project not found")
+            return
+        if not self.load_project(project_file_path):
+            logging.error("Error loading project from file: %s" % project_file_path)
+            return
 
     def clear_ui(self):
         """Clear UI when starting a new project or loading a project."""
         # Clear Setup Model
-        self.delete_all_no_confirmation()
+        if self._root:
+            self.delete_all_no_confirmation()
         self._root = None
         self.setup_model = None
         self.tool_proxy_model = None
@@ -171,9 +179,7 @@ class TitanUI(QMainWindow):
             return
         # Open file dialog to query save file name
         # noinspection PyCallByClass, PyTypeChecker
-        dir_path = QFileDialog.getSaveFileName(self, 'Save project',
-                                                     PROJECT_DIR,
-                                                     'JSON (*.json)')
+        dir_path = QFileDialog.getSaveFileName(self, 'Save project', PROJECT_DIR, 'JSON (*.json)')
         file_path = dir_path[0]
         if file_path == '':  # Cancel button clicked
             self.add_msg_signal.emit("Saving project Canceled", 0)
@@ -190,9 +196,6 @@ class TitanUI(QMainWindow):
 
     def save_project(self):
         """Save Setups in project to disk. Use project name as file name."""
-        # if self._root.child_count() == 0:
-        #     self.ui.statusbar.showMessage("No Setups to Save", 5000)
-        #     return
         # Use project name as file name
         file_name = os.path.join(PROJECT_DIR, '{}.json'.format(self._project.short_name))
         self.add_msg_signal.emit("Saving project -> {0}".format(file_name), 0)
@@ -297,25 +300,26 @@ class TitanUI(QMainWindow):
                 if item is not None:
                     return item
 
-    def load_project(self):
+    def load_project(self, load_path=None):
         """Load project from file."""
-        # noinspection PyCallByClass, PyTypeChecker
-        answer = QFileDialog.getOpenFileName(self, 'Load project', PROJECT_DIR, 'JSON (*.json)')
-        load_path = answer[0]
-        if load_path == '':  # Cancel button clicked
-            self.add_msg_signal.emit("Loading canceled", 0)
-            return
+        if not load_path:
+            # noinspection PyCallByClass, PyTypeChecker
+            answer = QFileDialog.getOpenFileName(self, 'Load project', PROJECT_DIR, 'JSON (*.json)')
+            load_path = answer[0]
+            if load_path == '':  # Cancel button clicked
+                self.add_msg_signal.emit("Loading canceled", 0)
+                return False
         self.add_msg_signal.emit("Loading project from file: <{0}>".format(load_path), 0)
         if not os.path.isfile(load_path):
             self.add_msg_signal.emit("File not found '%s'" % load_path, 2)
-            return
+            return False
         # dicts = dict()
         try:
             with open(load_path, 'r') as fh:
                 dicts = json.load(fh)
         except OSError:
             self.add_msg_signal.emit("OSError: Could not load file '{}'".format(load_path), 2)
-            return
+            return False
         # Initialize UI
         self.clear_ui()
         # Parse project info
@@ -331,12 +335,13 @@ class TitanUI(QMainWindow):
         setup_dict = dicts['setups']
         if len(setup_dict) == 0:
             self.add_msg_signal.emit("No Setups found in project file '{}'".format(load_path), 0)
-            return
+            return False
         self.add_msg_signal.emit("Switching to project '{0}'".format(self._project.name), 0)
         self.parse_setups(setup_dict)
         msg = "Project '%s' loaded" % self._project.name
         self.ui.statusbar.showMessage(msg, 5000)
         self.add_msg_signal.emit("Done".format(self._project.name), 1)
+        return True
 
     def parse_setups(self, setup_dict):
         """Parse all found Setups recursively from Setup dictionary loaded from JSON file
@@ -416,7 +421,6 @@ class TitanUI(QMainWindow):
                 self.add_msg_signal.emit("No tool found", 0)
             return
         elif option == "Edit Tool":
-            # TODO: Implement Edit Tool option
             logging.debug("Opening edit tool form")
             self.open_edit_tool_form(ind)
             return
@@ -437,6 +441,22 @@ class TitanUI(QMainWindow):
         Args:
             index (QModelIndex): Parent index of the new Setup
         """
+        if not self._project:
+            # If project is not found, create a new one or load before continuing
+            msg = 'Adding Setups requires a project.\nLoad an existing project (Yes)\nor create a new one (No)?'
+            # noinspection PyCallByClass, PyTypeChecker
+            answer = QMessageBox.question(self, 'Project Needed', msg, QMessageBox.Yes, QMessageBox.No)
+            if answer == QMessageBox.Yes:
+                logging.debug("Loading a project")
+                self.load_project()
+                return
+            elif answer == QMessageBox.No:
+                logging.debug("Creating a new project")
+                self.new_project()
+                return
+            else:
+                logging.debug("Project creation canceled")
+                return
         if index is False:  # Happens when 'Add Base' button is pressed
             index = QModelIndex()
         self.setup_form = SetupFormWidget(self, index)
@@ -936,7 +956,10 @@ class TitanUI(QMainWindow):
         # for _, setup in self._setups.items():
         #    setup.cleanup()
         logging.debug("See you later.")
-        # if self.setup_form:
-        #     self.setup_form = None
+        if self._project:
+            # logging.debug("Saving current project path to config file:%s" % self._project.path)
+            config = ConfigurationParser(CONFIGURATION_FILE)
+            config.set('project', 'path', self._project.path)
+            config.save()
         # noinspection PyArgumentList
         QApplication.quit()

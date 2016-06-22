@@ -31,7 +31,6 @@ class GAMSModel(Tool):
             output_dir: Output directory path
             cmdline_args (str, optional): GAMS command line arguments
         """
-        # TODO: Clean up constructor.
         super().__init__(name, description, path, main_prgm,
                          short_name, input_dir, output_dir,
                          cmdline_args=cmdline_args)

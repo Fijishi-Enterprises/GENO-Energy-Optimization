@@ -21,6 +21,8 @@ if getattr(sys, 'frozen', False):
 else:
     APPLICATION_PATH = os.path.realpath(os.path.dirname(__file__))
 
+# General configurations file
+CONFIGURATION_FILE = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'conf', 'titan.conf'))
 # Directory for projects
 PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'projects'))
 # Project input/output directories
@@ -34,10 +36,8 @@ MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir
 # Tool configuration file paths
 MAGIC_INVESTMENTS_JSON = os.path.join(MAGIC_MODEL_PATH, "magic_invest.json")
 MAGIC_OPERATION_JSON = os.path.join(MAGIC_MODEL_PATH, "magic_operation.json")
-
 OLD_MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'models', 'old_magic'))
 
 # GAMS
 GAMS_EXECUTABLE = 'gams'
-
 IGNORE_PATTERNS = ('.git', '.gitignore')
