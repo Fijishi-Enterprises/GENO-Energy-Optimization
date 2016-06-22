@@ -27,6 +27,7 @@ Sets param_gnn "Set of possible data parameters for grid, node, node (nodal inte
     transferCap "Transfer capacity limits"
     transferLoss "Transfer losses"
     nnCoeff     "Coefficients for energy dissipation between nodes"
+    nnOffset    "Offset parameter for relatively bound node states"
 /
 
 Sets param_gnu "Set of possible data parameters for grid, node, unit" /
@@ -89,7 +90,7 @@ Sets
     nnu(node, node, unit) "Units that link two nodes"
     gnState(grid, node) "Nodes with a state variable"
     gnnState(grid, node, node) "Nodes with state variables that exchange energy between each other"
-    gnnStateLimit(grid, node, node) "Nodes with state variables that are limited by the states of other nodes"
+    gnnBoundState(grid, node, node) "Nodes with state variables bounded by other nodes"
     storage "Storage"
     grid_storage(grid, storage) "The energy grid stored by the storage"
     gns(grid, node, storage) "Storage units of certain energy type in specific nodes"

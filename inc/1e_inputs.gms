@@ -5,7 +5,6 @@ $loaddc flow
 $loaddc unit
 $loaddc fuel
 $loaddc storage
-$loaddc gnnStateLimit
 $loaddc gnData
 $loaddc gnnData
 $loaddc gnuData
@@ -51,6 +50,7 @@ nnu(node, node_, unit)$(nu(node, unit) and ord(node) = ord(node_)) = yes;
 gn2n(grid, from_node, to_node)$gnnData(grid, from_node, to_node, 'transferCap') = yes;
 node_to_node(from_node, to_node)$gnnData('elec', from_node, to_node, 'transferCap') = yes;
 gnnState(grid, node, node_)$(gnnData(grid, node, node_, 'nnCoeff') and gnState(grid, node) and gnState(grid, node_)) = yes;
+gnnBoundState(grid, node, node_)$(gnnData(grid, node, node_, 'nnOffset') and gnState(grid, node) and gnState(grid, node_)) = yes;
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 

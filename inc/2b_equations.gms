@@ -17,7 +17,7 @@ equations
     q_stoMaxContent(grid, node, storage, f, t) "Storage should have enough room to fit committed downward reserves"
     q_maxHydropower(grid, node, storage, f, t) "Sum of unitHydro generation in storage is limited by total installed capacity"
     q_transferLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
-    q_gnnStateLimit(grid, node, node, f, t) "Limit node state variables in relation to each other"
+    q_boundState(grid, node, node, f, t) "Node state variables bounded by other nodes"
 ;
 
 
@@ -328,9 +328,10 @@ q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
   + gnnData(grid, from_node, to_node, 'transferCap')
 ;
 
-q_gnnStateLimit(gnnStateLimit(grid, node, node_), ft(f, t)) ..
+q_boundState(gnnBoundState(grid, node, node_), ft(f, t)) ..
   + v_state(grid, node, f, t)   // The state of the first node sets the upper limit of the second
   =G=
   + v_state(grid, node_, f, t)
+  + gnnData(grid, node, node_, 'nnOffset')   // Affected by the offset parameter
 ;
 
