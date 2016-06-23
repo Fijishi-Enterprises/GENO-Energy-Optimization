@@ -32,11 +32,11 @@ OUTPUT_STORAGE_DIR = 'output'
 WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
 
 # Tool model path
-MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'models', 'magic'))
+MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'tools', 'magic'))
 # Tool configuration file paths
 MAGIC_INVESTMENTS_JSON = os.path.join(MAGIC_MODEL_PATH, "magic_invest.json")
 MAGIC_OPERATION_JSON = os.path.join(MAGIC_MODEL_PATH, "magic_operation.json")
-OLD_MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'models', 'old_magic'))
+OLD_MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'tools', 'old_magic'))
 
 # GAMS
 GAMS_EXECUTABLE = 'gams'
