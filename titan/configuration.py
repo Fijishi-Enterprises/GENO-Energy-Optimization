@@ -23,6 +23,8 @@ class ConfigurationParser(object):
         """
         self.parser = configparser.ConfigParser()
         self.file_path = file_path
+        if defaults:
+            self.parser['general'] = defaults
 
     def __str__(self):
         """Print the current configuration."""
@@ -60,8 +62,12 @@ class ConfigurationParser(object):
             self.parser[section] = {}
         self.parser.set(section, option, value)
 
-    def load(self):
-        """Load a configuration file.
+    def load(self, insert_missing=True):
+        """ Load a configuration file. By default if 'default'
+        section is missing, it is inserted into the configuration.
+
+        Args:
+            insert_missing: Add missing sections.
 
         Returns:
             A boolean value depending on the operation success.

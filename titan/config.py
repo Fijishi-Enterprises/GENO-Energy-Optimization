@@ -41,3 +41,5 @@ OLD_MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pa
 # GAMS
 GAMS_EXECUTABLE = 'gams'
 IGNORE_PATTERNS = ('.git', '.gitignore')
+
+GENERAL_OPTIONS = {'project_path': ''}

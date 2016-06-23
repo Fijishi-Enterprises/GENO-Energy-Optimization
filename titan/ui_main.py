@@ -19,7 +19,7 @@ from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH,\
                    MAGIC_INVESTMENTS_JSON, MAGIC_OPERATION_JSON,\
                    ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
-                   CONFIGURATION_FILE
+                   CONFIGURATION_FILE, GENERAL_OPTIONS
 from configuration import ConfigurationParser
 from widgets.setup_form_widget import SetupFormWidget
 from widgets.project_form_widget import ProjectFormWidget
@@ -39,7 +39,6 @@ class TitanUI(QMainWindow):
 
     def __init__(self):
         """ Initialize GUI."""
-        # TODO: Rename TITAN\models\ folder into TITAN\tools\
         super().__init__()
         # Set number formatting to use user's default settings
         locale.setlocale(locale.LC_NUMERIC, '')
@@ -47,6 +46,7 @@ class TitanUI(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         # Class variables
+        self._config = None
         self._project = None
         self._running_setup = None
         self._root = None  # Root node for SetupModel
@@ -61,6 +61,7 @@ class TitanUI(QMainWindow):
         self.context_menu = None
         self.edit_tool_form = None
         # Initialize general things
+        self.init_conf()
         self.connect_signals()
         # Initialize project
         self.init_project()
@@ -122,15 +123,18 @@ class TitanUI(QMainWindow):
         self.tool_proxy_model.setSourceModel(self.setup_model)
         self.ui.listView_tools.setModel(self.tool_proxy_model)
 
+    def init_conf(self):
+        """Initialize configuration file."""
+        self._config = ConfigurationParser(CONFIGURATION_FILE, defaults=GENERAL_OPTIONS)
+        self._config.load()
+
     def init_project(self):
         """Initializes project at Sceleton start-up. Loads the last project that was open
         when Sceleton was closed or if Sceleton is started for the first time, then start
         without a project.
         """
-        config = ConfigurationParser(CONFIGURATION_FILE)
-        config.load()
         # Get the path of the project file from the configuration file
-        project_file_path = config.get('project', 'path')
+        project_file_path = self._config.get('general', 'project_path')
         if not os.path.isfile(project_file_path):
             # logging.debug("Previous project not found")
             return
@@ -957,9 +961,7 @@ class TitanUI(QMainWindow):
         #    setup.cleanup()
         logging.debug("See you later.")
         if self._project:
-            # logging.debug("Saving current project path to config file:%s" % self._project.path)
-            config = ConfigurationParser(CONFIGURATION_FILE)
-            config.set('project', 'path', self._project.path)
-            config.save()
+            self._config.set('general', 'project_path', self._project.path)
+        self._config.save()
         # noinspection PyArgumentList
         QApplication.quit()
