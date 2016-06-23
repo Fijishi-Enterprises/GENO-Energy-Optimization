@@ -25,6 +25,7 @@ $loaddc ts_cf
 $loaddc ts_stoContent
 $loaddc ts_fuelPriceChange
 $loaddc ts_inflow
+$loaddc ts_fixedNodeState
 $loaddc p_data2d
 $gdxin
 

@@ -51,6 +51,8 @@ Parameters
     ts_reserveDemand(resType, resDirection, node, f, t) "Reserve demand in region in the time period/slice (MW)"
     ts_reserveDemand_(resType, resDirection, node, f, t)
 
+    ts_fixedNodeState(grid, node, f, t) "Fix the states of a node according to exogenous input"
+
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (€/MWh)"
     ts_fuelPriceChangenode(fuel, node, t) "Initial fuel price and consequent changes in fuel price in model nodegraphies (€/MWh)"
     ts_stoContent(storage, f, t) "Storage content at the start of the time period (ratio of max)"
