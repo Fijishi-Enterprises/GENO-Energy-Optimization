@@ -14,11 +14,11 @@ $endif
     // Free online capacity and state for the first loop
     if(tElapsed = 0 and not active('addOn'),
         v_online.up(nu(node, unitOnline), f, tSolve) = 1;
-        v_state.up(gn(grid, node), f, tSolve) = gnData(grid, node, 'maxState');
+        v_state.up(gnState(grid, node), f, tSolve)$(gnData(grid, node, 'maxState')) = gnData(grid, node, 'maxState');
     // Fix online capacity and state for later solutions
     else
         v_online.fx(nu(node, unitOnline), f, tSolve) = v_online.l(node, unitOnline, f, tSolve);
-        v_state.fx(gn(grid, node), f, tSolve) = v_state.l(grid, node, f, tSolve);
+        v_state.fx(gnState(grid, node), f, tSolve) = v_state.l(grid, node, f, tSolve);
     );
 
 );
