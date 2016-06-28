@@ -40,9 +40,7 @@ $ontext
 $offtext
 
 * Generate sets based on parameter data
-gnState(grid, node)$(gnData(grid, node, 'maxState') or gnData(grid, node, 'minState') or gnData(grid, node, 'energyCapacity')) = yes;
 gnu(grid, node, unit)$gnuData(grid, node, unit, 'maxCap') = yes;
-gn(grid, node)$sum(unit, gnu(grid, node, unit)) = yes;
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
 nu(node, unit)$sum((grid, grid_), ggnuConstrainedOutputRatio(grid, grid_, node, unit)) = no;
 nu(node, unit)$sum((grid, grid_), ggnuFixedOutputRatio(grid, grid_, node, unit)) = no;
@@ -50,8 +48,10 @@ gns(grid, node, storage)$gnsData(grid, node, storage, 'maxContent') = yes;
 nnu(node, node_, unit)$(nu(node, unit) and ord(node) = ord(node_)) = yes;
 gn2n(grid, from_node, to_node)$gnnData(grid, from_node, to_node, 'transferCap') = yes;
 node_to_node(from_node, to_node)$gnnData('elec', from_node, to_node, 'transferCap') = yes;
-gnnState(grid, node, node_)$(gnnData(grid, node, node_, 'nnCoeff') and gnState(grid, node) and gnState(grid, node_)) = yes;
-gnnBoundState(grid, node, node_)$(gnnData(grid, node, node_, 'nnOffset') and gnState(grid, node) and gnState(grid, node_)) = yes;
+gnnBoundState(grid, node, node_)$(gnnData(grid, node, node_, 'nnOffset')) = yes;
+gnnState(grid, node, node_)$(gnnData(grid, node, node_, 'nnCoeff') or gnnBoundState(grid, node, node_)) = yes;
+gnState(grid, node)$(gnData(grid, node, 'maxState') or gnData(grid, node, 'minState') or gnData(grid, node, 'energyCapacity') or sum(node_,gnnState(grid, node, node_))) = yes;
+gn(grid, node)$(sum(unit, gnu(grid, node, unit)) or (gnState(grid, node) and not sum(f,sum(t,ts_fixedNodeState(grid, node, f, t))))) = yes;
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 

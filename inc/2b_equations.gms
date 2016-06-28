@@ -124,9 +124,11 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t)>0) ..   //
       + sum(node_$(gnnState(grid, node_, node)),   // Energy exchange between nodes
          + gnnData(grid, node_, node, 'nnCoeff') * v_state(grid, node_, f+pf(f,t), t+pt(t)) // Dissipation to/from other nodes
       )
-      + sum(node_$(gn2n(grid, node_, node)),   // Energy transfer between nodes
-         + (1 - gnnData(grid, node_, node, 'transferLoss')) * v_transfer(grid, node_, node, f+pf(f,t), t+pt(t))   // Transfer from other nodes to this one
-         - v_transfer(grid, node, node_, f+pf(f,t), t+pt(t))   // Transfer from this node to other ones
+      + sum(from_node$(gn2n(grid, from_node, node)),   // Energy transfer from other nodes to this one
+         + (1 - gnnData(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))   // Include transfer losses
+      )
+      - sum(to_node$(gn2n(grid, node, to_node)),   // Energy transfer to other node from this one
+         + v_transfer(grid, node, to_node, f+pf(f,t), t+pt(t))   // Transfer losses accounted for in the previous term
       )
       + sum(unit$gnu(grid, node, unit),   // Interactions between the node and its units
          + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))   // Unit energy generation and consumption

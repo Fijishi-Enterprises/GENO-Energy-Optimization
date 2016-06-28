@@ -44,11 +44,11 @@ loop(ft(f, t),
     // v_online cannot exceed 1
     v_online.up(nu(node, unitOnline), f, t) = 1;
     // v_state upper border is defined by maxState;
-    v_state.up(gn(grid, node), f, t) = gnData(grid, node, 'maxState');
+    v_state.up(gnState(grid, node), f, t)$(gnData(grid, node, 'maxState')) = gnData(grid, node, 'maxState');
     // v_state lower border is defined by minState;
-    v_state.lo(gn(grid, node), f, t) = gnData(grid, node, 'minState');
-    // v_state can be fixed when necessary;
-    v_state.fx(gn(grid, node), f, t)$(ts_fixedNodeState(grid, node, f, t)) = ts_fixedNodeState(grid, node, f, t);
+    v_state.lo(gnState(grid, node), f, t)$(gnData(grid, node, 'minState')) = gnData(grid, node, 'minState');
+    // v_state can be fixed according to time series data when necessary;
+    v_state.fx(gnState(grid, node), f, t)$ts_fixedNodeState(grid, node, f, t) = ts_fixedNodeState(grid, node, f, t);
     // Free storage control ...
 *    if(currentStage('scheduling'),
 *        v_stoCharge.up(longStorage, f, t) = inf;

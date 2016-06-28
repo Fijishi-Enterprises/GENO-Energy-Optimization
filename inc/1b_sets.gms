@@ -82,7 +82,8 @@ param "Set of general parameters" /
 * --- Energy generation and consumption ---------------------------------------
 Sets
     unit "Set of generators, storages and loads"
-    gn(grid, node) "Nodes of the energy grids"
+    gn(grid, node) "Active nodes of the energy grids (doesn't include nodes with fixed states)"
+* NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
     gn2n(grid, node, node) "Transfer capacity between nodes in specific energy grids"
     gnu(grid, node, unit) "Units in specific nodes of particular energy grids"
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
