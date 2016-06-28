@@ -116,40 +116,43 @@ q_obj ..
 
 * -----------------------------------------------------------------------------
 q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t)>0) ..   // Energy balance dynamics solved using implicit Euler discretization
-   + v_state(grid, node, f+pf(f,t), t+pt(t))$(gnState(grid, node))   // The current state of the node
-   =E=
-   (
-      + ( gnData(grid, node, 'energyCapacity') * v_state(grid, node, f, t) / p_stepLength(m, f, t))$(gnData(grid, node, 'energyCapacity') and gnState(grid, node))   // The dynamics are influenced by the previous state of the node
-      + ( v_state(grid, node, f, t) / p_stepLength(m, f, t))$((not gnData(grid, node, 'energyCapacity')) and gnState(grid, node))   // If energyCapacity unspecified BUT gnState, then assume a value of 1.
-      + sum(node_$(gnnState(grid, node_, node)),   // Energy exchange between nodes
-         + gnnData(grid, node_, node, 'nnCoeff') * v_state(grid, node_, f+pf(f,t), t+pt(t)) // Dissipation to/from other nodes
+    + v_state(grid, node, f, t)$(gnState(grid, node))   // The current state of the node
+    =E=
+    (   // This section sums all changes to the v_state in power terms (not energy)
+        + (     // Terms accounting for the effect of the previous state of the node
+            + v_state(grid, node, f+pf(f,t), t+pt(t))   // The previous state of the node
+            * ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
+            / p_stepLength(m, f, t)     // Division by time step length to obtain "average power", result of implicit discretization
+          )$(gnState(grid, node))   // Only include this term if the node has a state variable
+        + sum(node_$(gnnState(grid, node_, node)),      // Energy exchange between nodes
+            + gnnData(grid, node_, node, 'nnCoeff') * v_state(grid, node_, f, t)  // Dissipation to/from other nodes
+          )
+        + sum(from_node$(gn2n(grid, from_node, node)),  // Energy transfer from other nodes to this one
+            + (1 - gnnData(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f, t)   // Include transfer losses
+          )
+        - sum(to_node$(gn2n(grid, node, to_node)),   // Energy transfer to other nodes from this one
+            + v_transfer(grid, node, to_node, f, t)   // Transfer losses accounted for in the previous term
+          )
+        + sum(unit$gnu(grid, node, unit),   // Interactions between the node and its units
+            + v_gen(grid, node, unit, f, t)   // Unit energy generation and consumption
+          )
+        + sum(storage$gns(grid, node, storage),   // Interactions between the node and its storages
+            - v_stoCharge(grid, node, storage, f, t)   // Charging storages from the node
+            + v_stoDischarge(grid, node, storage, f, t)   // Discharging storages to the node
+          )
+        + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
+        - ts_energyDemand_(grid, node, f, t)   // Energy demand from the node
+        + vq_gen('increase', grid, node, f, t)   // Slack variable ensuring the energy dynamics are feasible.
+        - vq_gen('decrease', grid, node, f, t)   // Slack variable ensuring the energy dynamics are feasible.
+    )
+    / (   // This division transforms the power terms to energy, a result of implicit discretization
+        + ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
+        / p_stepLength(m, f, t)
+        + sum(node_$(gnnState(grid, node_, node)),
+            + gnnData(grid, node_, node, 'nnCoeff')   // Summation of the energy dissipation coefficients
+          )
+        + 1$(not gnState(grid, node))   // The divisor only exists if the gnState exists, so here we prevent division by zero
       )
-      + sum(from_node$(gn2n(grid, from_node, node)),   // Energy transfer from other nodes to this one
-         + (1 - gnnData(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))   // Include transfer losses
-      )
-      - sum(to_node$(gn2n(grid, node, to_node)),   // Energy transfer to other node from this one
-         + v_transfer(grid, node, to_node, f+pf(f,t), t+pt(t))   // Transfer losses accounted for in the previous term
-      )
-      + sum(unit$gnu(grid, node, unit),   // Interactions between the node and its units
-         + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))   // Unit energy generation and consumption
-      )
-      + sum(storage$gns(grid, node, storage),   // Interactions between the node and its storages
-         - v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))   // Charging storages from the node
-         + v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))   // Discharging storages to the node
-      )
-      + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
-      - ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))   // Energy demand from the node
-      + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t))   // Slack variable ensuring the energy dynamics are feasible.
-      - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))   // Slack variable ensuring the energy dynamics are feasible.
-   )
-   / (   // This division transforms the power terms to energy, a result of implicit discretization
-           + ( gnData(grid, node, 'energyCapacity') / p_stepLength(m, f+pf(f,t), t+pt(t)))$(gnData(grid, node, 'energyCapacity') and gnState(grid, node))   // Energy capacity divided by the time step
-           + ( 1 / p_stepLength(m, f+pf(f,t), t+pt(t)))$((not gnData(grid, node, 'energyCapacity')) and gnState(grid, node))   // If energyCapacity unspecified BUT gnState, then assume a value of 1.
-           + sum(node_$(gnnState(grid, node_, node)),
-              + gnnData(grid, node_, node, 'nnCoeff')   // Summation of the energy dissipation coefficients
-           )
-           + 1$(not gnState(grid, node))   // The divisor only exists if the gnState exists, so here we prevent division by zero
-     )
 ;
 * -----------------------------------------------------------------------------
 q_resDemand(resType, resDirection, node, ft(f, t))$ts_reserveDemand_(resType, resDirection, node, f, t) ..
