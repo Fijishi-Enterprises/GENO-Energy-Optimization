@@ -14,10 +14,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolProxyModel, ToolModel
-from tool import Dimension, DataParameter, Setup
+from tool import Setup
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
-from config import MAGIC_MODEL_PATH, OLD_MAGIC_MODEL_PATH,\
-                   MAGIC_INVESTMENTS_JSON, MAGIC_OPERATION_JSON,\
+from config import MAGIC_INVESTMENTS_JSON, MAGIC_OPERATION_JSON,\
                    ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
                    CONFIGURATION_FILE, GENERAL_OPTIONS
 from configuration import ConfigurationParser
@@ -55,6 +54,7 @@ class TitanUI(QMainWindow):
         self.modeltest = None
         self.tool_proxy_model = None
         self.setup_dict = dict()
+        self.exec_mode = ''
         # References for widgets
         self.setup_form = None
         self.project_form = None
@@ -88,14 +88,14 @@ class TitanUI(QMainWindow):
         self.ui.actionLoad.triggered.connect(self.load_project)
         self.ui.actionQuit.triggered.connect(self.closeEvent)
         # Widgets
-        self.ui.pushButton_create_setups_1.clicked.connect(self.create_setups_1)
-        self.ui.pushButton_create_setups_2.clicked.connect(self.create_setups_2)
-        self.ui.pushButton_create_setups_3.clicked.connect(self.create_setups_3)
-        self.ui.pushButton_create_test_setups.clicked.connect(self.create_test_setups)
-        self.ui.pushButton_execute.clicked.connect(self.execute_setup)
-        self.ui.pushButton_test.clicked.connect(self.traverse_model)
+        self.ui.pushButton_execute_all.clicked.connect(self.execute_all)
+        self.ui.pushButton_execute_branch.clicked.connect(self.execute_branch)
+        self.ui.pushButton_execute_single.clicked.connect(self.execute_single)
         self.ui.pushButton_delete_setup.clicked.connect(self.delete_selected_setup)
         self.ui.pushButton_delete_all.clicked.connect(self.delete_all)
+        self.ui.pushButton_clear_titan_output.clicked.connect(lambda: self.ui.textBrowser_main.clear())
+        self.ui.pushButton_clear_gams_output.clicked.connect(lambda: self.ui.textBrowser_process_output.clear())
+        self.ui.pushButton_test.clicked.connect(self.traverse_model)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
         self.ui.treeView_setups.pressed.connect(self.update_tool_view)
         self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
@@ -305,7 +305,12 @@ class TitanUI(QMainWindow):
                     return item
 
     def load_project(self, load_path=None):
-        """Load project from file."""
+        """Load project from file in JSON format.
+
+        Args:
+            load_path (str): If not None, this method is used to load the
+            previously opened project at start-up
+        """
         if not load_path:
             # noinspection PyCallByClass, PyTypeChecker
             answer = QFileDialog.getOpenFileName(self, 'Load project', PROJECT_DIR, 'JSON (*.json)')
@@ -340,7 +345,7 @@ class TitanUI(QMainWindow):
         if len(setup_dict) == 0:
             self.add_msg_signal.emit("No Setups found in project file '{}'".format(load_path), 0)
             return False
-        self.add_msg_signal.emit("Switching to project '{0}'".format(self._project.name), 0)
+        self.add_msg_signal.emit("Loading project '{0}'".format(self._project.name), 0)
         self.parse_setups(setup_dict)
         msg = "Project '%s' loaded" % self._project.name
         self.ui.statusbar.showMessage(msg, 5000)
@@ -429,8 +434,12 @@ class TitanUI(QMainWindow):
             self.open_edit_tool_form(ind)
             return
         elif option == "Execute":
+            # logging.debug("Selected setup:%s" % ind.internalPointer().name)
+            self.execute_single()
+            return
+        elif option == "Execute Branch":
             logging.debug("Selected setup:%s" % ind.internalPointer().name)
-            self.execute_setup()
+            self.execute_branch()
             return
         else:
             # No option selected
@@ -533,42 +542,45 @@ class TitanUI(QMainWindow):
             setup.add_tool(tool, cmdline_args=cmdline_args)
         return
 
-    def delete_all(self):
-        """Delete all Setups from model. Ask user's permission first."""
-        root_index = QModelIndex()
-        n_kids = self._root.child_count()
-        msg = "You are about to delete all Setups in the project.\nAre you sure?"
-        # noinspection PyCallByClass, PyTypeChecker
-        answer = QMessageBox.question(self, 'Delete all Setups?', msg, QMessageBox.Yes, QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            for i in range(n_kids):
-                name = self._root.child(0).name
-                self.add_msg_signal.emit("Setup '{}' deleted".format(name), 0)
-                self.setup_model.remove_setup(0, root_index)
-            return
-        else:
-            logging.debug("Delete canceled")
-            return
+    def execute_all(self):
+        """Starts executing all Setups in the project."""
+        self.add_msg_signal.emit("Not implemented yet", 0)
+        self.exec_mode = 'all'
+        self.execute_setup()
 
-    def delete_all_no_confirmation(self):
-        """Delete all Setups from model."""
-        root_index = QModelIndex()
-        n_kids = self._root.child_count()
-        for i in range(n_kids):
-            self.setup_model.remove_setup(0, root_index)
-        return
+    def execute_branch(self):
+        """Starts executing a Setup branch."""
+        self.exec_mode = 'branch'
+        self.execute_setup()
+
+    def execute_single(self):
+        """Execute selected Setup."""
+        self.exec_mode = 'single'
+        self.execute_setup()
 
     def execute_setup(self):
-        """Start executing selected Setup and all it's parents."""
-        # Set index of base Setup for the model
-        base = self.get_selected_setup_base_index()
-        # Check if no Setup selected
-        if not base:
-            self.add_msg_signal.emit("No Setup selected.\n", 0)
+        """Start executing Setups according to the selected execution mode."""
+        if self.exec_mode == 'branch':
+            # Set index of base Setup for the model
+            base = self.get_selected_setup_base_index()
+            # Check if no Setup selected
+            if not base:
+                self.add_msg_signal.emit("No Setup selected.\n", 0)
+                return
+            self.setup_model.set_base(base)
+            # Set Base Setup as the first running Setup
+            self._running_setup = self.setup_model.get_base().internalPointer()
+        elif self.exec_mode == 'single':
+            # Execute a single selected Setup
+            selected_setup = self.get_selected_setup_index()
+            # Check if no Setup selected
+            if not selected_setup:
+                self.add_msg_signal.emit("No Setup selected.\n", 0)
+                return
+            self._running_setup = selected_setup.internalPointer()
+        else:
+            self.add_msg_signal.emit("NA\n", 0)
             return
-        self.setup_model.set_base(base)
-        # Set Base Setup as the first running Setup
-        self._running_setup = self.setup_model.get_base().internalPointer()
         # Connect setup_finished_signal to setup_done slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
@@ -577,10 +589,8 @@ class TitanUI(QMainWindow):
 
     @pyqtSlot()
     def setup_done(self):
-        """Start executing finished Setup's parent or end run if all Setups are ready."""
-        logging.debug("Setup <{0}> ready".format(self._running_setup.name))
-        self.add_msg_signal.emit("Setup '%s' ready" % self._running_setup.name, 1)
-        self.add_msg_signal.emit("Results saved to: {0}".format(self._running_setup.output_dir), 0)
+        """Start executing next Setup or end run if all Setups are done."""
+        logging.debug("Setup <{0}> finished".format(self._running_setup.name))
         # Emit dataChanged signal to QtreeView because is_ready has been updated
         self.setup_model.emit_data_changed()
         # Disconnect signal to make sure it is not connected to multiple Setups
@@ -589,10 +599,15 @@ class TitanUI(QMainWindow):
         except TypeError:  # Just in case
             # logging.warning("setup_finished_signal not connected")
             pass
-        # Get next executed Setup
         if not self._running_setup.is_ready:
-            self.add_msg_signal.emit("Setup failed", 2)
+            self.add_msg_signal.emit("Setup '{0}' failed".format(self._running_setup.name), 2)
             return
+        self.add_msg_signal.emit("Setup '%s' ready" % self._running_setup.name, 1)
+        self.add_msg_signal.emit("Results saved to: {0}".format(self._running_setup.output_dir), 0)
+        if self.exec_mode == 'single':
+            self.add_msg_signal.emit("Done", 1)
+            return
+        # Get next executed Setup
         next_setup = self.setup_model.get_next_setup(breadth_first=True)
         if not next_setup:
             logging.debug("All Setups ready")
@@ -604,6 +619,18 @@ class TitanUI(QMainWindow):
         # Connect setup_finished_signal to this same slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         self._running_setup.execute(self)
+
+    def get_selected_setup_index(self):
+        """Returns the index of the selected Setup or None if
+         nothing is selected or index is not valid."""
+        try:
+            index = self.ui.treeView_setups.selectedIndexes()[0]
+        except IndexError:
+            # Nothing selected
+            return None
+        if not index.isValid():
+            return None
+        return index
 
     def get_selected_setup_base_index(self):
         """Returns the index of the base Setup of the selected
@@ -619,13 +646,13 @@ class TitanUI(QMainWindow):
             return None
         setup = index.internalPointer()
         if setup.parent().name == 'root':
-            # base = setup
+            # base == setup
             base_index = index
         else:
-            # base = setup.parent()
+            # base == setup.parent()
             base_index = index.parent()
             while base_index.internalPointer().parent().name is not 'root':
-                # base = base.parent()
+                # base == base.parent()
                 base_index = base_index.parent()
         # self.add_msg_signal.emit("Base Setup '{}'".format(base.name), 0)
         # self.add_msg_signal.emit("Base Setup from Index: '{}'".format(base_index.internalPointer().name), 0)
@@ -677,6 +704,31 @@ class TitanUI(QMainWindow):
         for ind in siblings:
             self.add_msg_signal.emit("Setups on current row:%s" % ind.internalPointer().name, 0)
 
+    def delete_all(self):
+        """Delete all Setups from model. Ask user's permission first."""
+        root_index = QModelIndex()
+        n_kids = self._root.child_count()
+        msg = "You are about to delete all Setups in the project.\nAre you sure?"
+        # noinspection PyCallByClass, PyTypeChecker
+        answer = QMessageBox.question(self, 'Delete all Setups?', msg, QMessageBox.Yes, QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            for i in range(n_kids):
+                name = self._root.child(0).name
+                self.add_msg_signal.emit("Setup '{}' deleted".format(name), 0)
+                self.setup_model.remove_setup(0, root_index)
+            return
+        else:
+            logging.debug("Delete canceled")
+            return
+
+    def delete_all_no_confirmation(self):
+        """Delete all Setups from model."""
+        root_index = QModelIndex()
+        n_kids = self._root.child_count()
+        for i in range(n_kids):
+            self.setup_model.remove_setup(0, root_index)
+        return
+
     def delete_selected_setup(self):
         """Removes selected Setup (and all of it's children) from SetupModel."""
         try:
@@ -699,158 +751,6 @@ class TitanUI(QMainWindow):
         else:
             logging.debug("Delete canceled")
             return
-
-    def create_setups_1(self):
-        """Create two Setups ('base' and 'setup a') and associate tool Magic with Setup A."""
-        # Create tool
-        tool = GAMSModel('OLD MAGIC',
-                         """A number of power stations are committed to meet demand
-                         for a particular day. Three types of generators having
-                         different operating characteristics are available. Generating
-                         units can be shut down or operate between minimum and maximum
-                         output levels. Units can be started up or closed down in
-                         every demand block.""",
-                         OLD_MAGIC_MODEL_PATH, 'magic.gms',
-                         input_dir='input', output_dir='output')
-        # Add input&output formats for tool
-        tool.add_input_format(GDX_DATA_FMT)
-        tool.add_input_format(GAMS_INC_FILE)
-        tool.add_output_format(GDX_DATA_FMT)
-        # Create data parameters
-        g = Dimension('g', 'generators')
-        param = Dimension('param', 'parameters')
-        data = DataParameter('data', 'generation data', '?', [g, param])
-        # Add input data parameter for tool
-        tool.add_input(data)
-        # Add Base Setup
-        if not self.setup_model.insert_setup('base', 'The base setup', self._project, 0):
-            logging.error("Adding 'base' Setup to model failed")
-            return
-        # Add A
-        base_index = self.setup_model.index(0, 0, QModelIndex())
-        if not self.setup_model.insert_setup('setup A', 'test setup A', self._project, 0, base_index):
-            logging.error("Adding 'setup A' Setup to model failed")
-            return
-        # Add tool 'magic' to setup 'Setup A'
-        a_ind = self.setup_model.index(0, 0, base_index)
-        setup_a = self.setup_model.get_setup(a_ind)
-        if not setup_a.add_tool(tool, 'MIP=CPLEX'):
-            self.add_err_msg_signal.emit("Adding a tool to 'setup A' failed\n")
-            logging.error("Adding a tool to Setup setup 'A' failed")
-            return
-        # root_print = self._root.log()
-        # logging.debug("root print:\n%s" % root_print)
-
-    def create_setups_2(self):
-        """Create 'invest' and 'MIP' setups."""
-
-        # Load model definitions
-        magic_invest = GAMSModel.load(MAGIC_INVESTMENTS_JSON)
-        magic_operation = GAMSModel.load(MAGIC_OPERATION_JSON)
-
-        # Add Invest Setup
-        if not self.setup_model.insert_setup('invest', 'Do investments', self._project, 0):
-            logging.error("Adding 'invest' to model failed")
-            return
-        invest_ind = self.setup_model.index(0, 0, QModelIndex())
-        invest = self.setup_model.get_setup(invest_ind)
-        invest.add_input(magic_invest)
-        invest.add_tool(magic_invest, "--USE_MIP=yes")
-        # Add MIP
-        if not self.setup_model.insert_setup('MIP', 'Operation with MIP model', self._project, 0, invest_ind):
-            logging.error("Adding 'MIP' to model failed")
-            return
-        mip_index = self.setup_model.index(0, 0, invest_ind)
-        mip = self.setup_model.get_setup(mip_index)
-        mip.add_input(magic_operation)
-        mip.add_tool(magic_operation, cmdline_args="--USE_MIP=yes")
-
-    def create_setups_3(self):
-        """Creates 'invest' -> 'LP' branch and 'invest' -> MIP branches."""
-
-        # Load model definitions
-        magic_invest = GAMSModel.load(MAGIC_INVESTMENTS_JSON)
-        magic_operation = GAMSModel.load(MAGIC_OPERATION_JSON)
-
-        # Add Invest Setup
-        if not self.setup_model.insert_setup('invest', 'Do investments', self._project, 0):
-            logging.error("Adding 'invest' to model failed")
-            return
-        invest_ind = self.setup_model.index(0, 0, QModelIndex())
-        invest = self.setup_model.get_setup(invest_ind)
-        invest.add_input(magic_invest)
-        invest.add_tool(magic_invest, cmdline_args="--USE_MIP=yes")
-        # Add MIP as child of invest
-        if not self.setup_model.insert_setup('MIP', 'Operation with MIP model', self._project, 0, invest_ind):
-            logging.error("Adding 'MIP' to model failed")
-            return
-        mip_index = self.setup_model.index(0, 0, invest_ind)
-        mip = self.setup_model.get_setup(mip_index)
-        mip.add_input(magic_operation)
-        mip.add_tool(magic_operation, cmdline_args='--USE_MIP=yes')
-
-        # Add LP as child of invest
-        if not self.setup_model.insert_setup('LP', 'Operation with LP model', self._project, 0, invest_ind):
-            logging.error("Adding 'LP' to model failed")
-            return
-        lp_index = self.setup_model.index(0, 0, invest_ind)
-        lp = self.setup_model.get_setup(lp_index)
-        lp.add_tool(magic_operation, cmdline_args='--USE_MIP=no')
-
-    def create_test_setups(self):
-        # Create tool
-        tool = GAMSModel('OLD MAGIC',
-                         """A number of power stations are committed to meet demand
-                         for a particular day. Three types of generators having
-                         different operating characteristics are available. Generating
-                         units can be shut down or operate between minimum and maximum
-                         output levels. Units can be started up or closed down in
-                         every demand block.""",
-                         OLD_MAGIC_MODEL_PATH, 'magic.gms',
-                         input_dir='input', output_dir='output')
-        # Add input&output formats for tool
-        tool.add_input_format(GDX_DATA_FMT)
-        tool.add_input_format(GAMS_INC_FILE)
-        tool.add_output_format(GDX_DATA_FMT)
-        # Create data parameters
-        g = Dimension('g', 'generators')
-        param = Dimension('param', 'parameters')
-        data = DataParameter('data', 'generation data', '?', [g, param])
-        # Add input data parameter for tool
-        tool.add_input(data)
-        # ----------------- Adding a Setup to data model -------------------:
-        # Option 1: Create Setup with the wanted parent
-        # Option 2: Create Setup with no parent and use insert_child() to associate Setup to model
-        # Add Base Setup
-        if not self.setup_model.insert_setup('A', 'Base setup', self._project, 0):
-            logging.error("Adding Base Setup 'A' failed")
-            return
-        # Add C as child of A
-        a_index = self.setup_model.index(0, 0, QModelIndex())
-        # b_index = self.setup_model.index(0, 0, QModelIndex())
-        if not self.setup_model.insert_setup('C', 'Setup C', self._project, 0, a_index):
-            logging.error("Adding C to model failed")
-            return
-        # Add B as child of A
-        if not self.setup_model.insert_setup('B', 'Setup B', self._project, 0, a_index):
-            logging.error("Adding B to model failed")
-            return
-        # Add D as child of C
-        c_index = self.setup_model.index(1, 0, a_index)  # C is on second row now
-        if not self.setup_model.insert_setup('D', 'Setup D', self._project, 0, c_index):
-            logging.error("Adding D to model failed")
-            return
-        # Add another Base
-        if not self.setup_model.insert_setup('E', 'Another base setup', self._project, 0):
-            logging.error("Adding Base Setup 'E' failed")
-            return
-        # Add tool 'magic' to setup 'C'
-        # c_index = self.setup_model.index(1, 0, a_index)
-        # c = self.setup_model.get_setup(c_index)
-        # if not c.add_tool(tool, 'MIP=CPLEX'):
-        #     self.add_err_msg_signal.emit("Adding 'magic' tool to 'C' failed\n")
-        #     logging.error("Adding a model to Setup failed")
-        #     return
 
     @pyqtSlot(str, int)
     def add_msg(self, msg, code=0):
@@ -965,3 +865,32 @@ class TitanUI(QMainWindow):
         self._config.save()
         # noinspection PyArgumentList
         QApplication.quit()
+
+    # def create_setups_3(self):
+    #     """Creates 'invest' -> 'LP' branch and 'invest' -> MIP branches."""
+    #     # Load model definitions
+    #     magic_invest = GAMSModel.load(MAGIC_INVESTMENTS_JSON)
+    #     magic_operation = GAMSModel.load(MAGIC_OPERATION_JSON)
+    #     # Add Invest Setup
+    #     if not self.setup_model.insert_setup('invest', 'Do investments', self._project, 0):
+    #         logging.error("Adding 'invest' to model failed")
+    #         return
+    #     invest_ind = self.setup_model.index(0, 0, QModelIndex())
+    #     invest = self.setup_model.get_setup(invest_ind)
+    #     invest.add_input(magic_invest)
+    #     invest.add_tool(magic_invest, cmdline_args="--USE_MIP=yes")
+    #     # Add MIP as child of invest
+    #     if not self.setup_model.insert_setup('MIP', 'Operation with MIP model', self._project, 0, invest_ind):
+    #         logging.error("Adding 'MIP' to model failed")
+    #         return
+    #     mip_index = self.setup_model.index(0, 0, invest_ind)
+    #     mip = self.setup_model.get_setup(mip_index)
+    #     mip.add_input(magic_operation)
+    #     mip.add_tool(magic_operation, cmdline_args='--USE_MIP=yes')
+    #     # Add LP as child of invest
+    #     if not self.setup_model.insert_setup('LP', 'Operation with LP model', self._project, 0, invest_ind):
+    #         logging.error("Adding 'LP' to model failed")
+    #         return
+    #     lp_index = self.setup_model.index(0, 0, invest_ind)
+    #     lp = self.setup_model.get_setup(lp_index)
+    #     lp.add_tool(magic_operation, cmdline_args='--USE_MIP=no')

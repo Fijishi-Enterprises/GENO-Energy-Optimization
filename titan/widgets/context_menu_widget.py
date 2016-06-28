@@ -24,6 +24,7 @@ class ContextMenuWidget(QMenu):
             self.add_action("Show Input")
             self.add_action("Edit Tool")
             self.add_action("Execute")
+            self.add_action("Execute Branch")
         self.exec_(position)
 
     def add_action(self, text):
