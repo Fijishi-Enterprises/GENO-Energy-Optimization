@@ -5,6 +5,7 @@ equations
     q_maxDownward(grid, node, unit, f, t) "Downward commitments will not undercut minimum load or maximum elec. consumption"
     q_maxUpward(grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
     q_storageDynamics(grid, node, storage, mType, f, t) "Dynamic equation for storages"
+    q_storageConversion(grid, node, storage, f, t) "Converting storage charging and discharging to energy inputs and outputs into grids"
     q_bindStorage(grid, node, storage, mType, f, t) "Couple storage contents for joining forecasts or for joining sample time periods"
     q_startup(node, unit, f, t) "Capacity started up is greater than the difference of online cap. now and in previous time step"
     q_bindOnline(node, unit, mType, f, t) "Couple online variable for joining forecasts or for joining sample time periods"
@@ -136,10 +137,6 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t)>0) ..   //
         + sum(unit$(gnu(grid, node, unit) or gnu_input(grid, node, unit)),   // Interactions between the node and its units
             + v_gen(grid, node, unit, f, t)   // Unit energy generation and consumption
           )
-        + sum(storage$gns(grid, node, storage),   // Interactions between the node and its storages
-            - v_stoCharge(grid, node, storage, f, t)   // Charging storages from the node
-            + v_stoDischarge(grid, node, storage, f, t)   // Discharging storages to the node
-          )
         + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
         - ts_energyDemand_(grid, node, f, t)   // Energy demand from the node
         + vq_gen('increase', grid, node, f, t)   // Slack variable ensuring the energy dynamics are feasible.
@@ -208,16 +205,21 @@ q_storageDynamics(gns(grid, node, storage), m, ft(f, t)) ..
   + ts_inflow_(storage, f+pf(f,t), t+pt(t))
   + vq_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
   + p_stepLength(m, f+pf(f,t), t+pt(t)) *
-     ( (+ v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t)) * gnsData(grid, node, storage, 'chargingEff')
-        - v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))  / gnsData(grid, node, storage, 'dischargingEff')
-        - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))
-       )
-       $$ifi '%rampSched%' == 'yes'   + (+ v_stoCharge(grid, node, storage, f, t) * gnsData(grid, node, storage, 'chargingEff')
-       $$ifi '%rampSched%' == 'yes'      - v_stoDischarge(grid, node, storage, f, t)  / gnsData(grid, node, storage, 'dischargingEff')
-       $$ifi '%rampSched%' == 'yes'      - v_spill(grid, node, storage, f, t)
-       $$ifi '%rampSched%' == 'yes'     )
-     )  // In case rampSched is used and the division by 2 on the next line is valid
-     $$ifi '%rampSched%' == 'yes'   / 2
+    ( + v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
+      - v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
+      - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))
+      $$ifi '%rampSched%' == 'yes' + v_stoCharge(grid, node, storage, f, t)
+      $$ifi '%rampSched%' == 'yes' - v_stoDischarge(grid, node, storage, f, t)
+      $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, storage, f, t)
+    )  // In case rampSched is used and the division by 2 on the next line is valid
+    $$ifi '%rampSched%' == 'yes' / 2
+;
+* -----------------------------------------------------------------------------
+q_storageConversion(gns(grid, node, storage), ft(f, t)) ..
+  + sum(unit$unit_storage(unit, storage), v_gen(grid, node, unit, f, t))
+  =E=
+  + v_stoDischarge(grid, node, storage, f, t) * gnsData(grid, node, storage, 'dischargingEff')
+  - v_stoCharge(grid, node, storage, f, t) / gnsData(grid, node, storage, 'chargingEff')
 ;
 * -----------------------------------------------------------------------------
 q_bindStorage(gns(grid, node, storage), mftBind(m, f, t)) ..
