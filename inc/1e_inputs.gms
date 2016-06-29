@@ -25,7 +25,7 @@ $loaddc ts_cf
 $loaddc ts_stoContent
 $loaddc ts_fuelPriceChange
 $loaddc ts_inflow
-$loaddc ts_fixedNodeState
+$loaddc ts_NodeState
 $loaddc p_data2d
 $gdxin
 
@@ -50,8 +50,8 @@ gn2n(grid, from_node, to_node)$gnnData(grid, from_node, to_node, 'transferCap') 
 node_to_node(from_node, to_node)$gnnData('elec', from_node, to_node, 'transferCap') = yes;
 gnnBoundState(grid, node, node_)$(gnnData(grid, node, node_, 'nnOffset')) = yes;
 gnnState(grid, node, node_)$(gnnData(grid, node, node_, 'nnCoeff') or gnnBoundState(grid, node, node_)) = yes;
-gnState(grid, node)$(gnData(grid, node, 'maxState') or gnData(grid, node, 'minState') or gnData(grid, node, 'energyCapacity') or sum(node_,gnnState(grid, node, node_))) = yes;
-gn(grid, node)$(sum(unit, gnu(grid, node, unit)) or (gnState(grid, node) and not sum(f,sum(t,ts_fixedNodeState(grid, node, f, t))))) = yes;
+gnState(grid, node)$(sum(param_gn, gnData(grid, node, param_gn)) or sum(node_, gnnState(grid, node, node_))) = yes;
+gn(grid, node)$(sum(unit, gnu(grid, node, unit)) or gnState(grid, node)) = yes;
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 

@@ -202,7 +202,7 @@ q_maxUpward(gnu(grid, node, unit), ft(f, t))${      [unitMinLoad(unit) and gnuDa
 ;
 * -----------------------------------------------------------------------------
 q_storageDynamics(gns(grid, node, storage), m, ft(f, t)) ..
-  + v_stoContent(grid, node, storage, f, t) * (1 - gnsData(grid, node, storage, 'selfDischarge'));
+  + v_stoContent(grid, node, storage, f, t) * (1 - gnsData(grid, node, storage, 'selfDischarge'))
   =E=
   + v_stoContent(grid, node, storage, f+pf(f,t), t+pt(t))
   + ts_inflow_(storage, f+pf(f,t), t+pt(t))

@@ -20,6 +20,7 @@ Alias(grid, grid_, grid_output);
 Sets param_gn  "Set of possible data parameters for grid, node" /
     maxState    "Maximum energy in the node (MWh)"
     minState    "Minimum energy in the node (MWh)"
+    fixState    "Fixed energy in the node (MWh)"
     energyCapacity "Energy capacity of the node (MWh/?)"
 /
 
