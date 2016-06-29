@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1094</width>
-    <height>722</height>
+    <height>738</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -161,14 +161,51 @@
        </widget>
       </item>
       <item>
-       <widget class="QListView" name="listView_tools">
+       <widget class="QListView" name="listView_tool">
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>120</height>
+          <height>60</height>
          </size>
         </property>
        </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="frameShape">
+         <enum>QFrame::Panel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <property name="text">
+         <string>Tools</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QListView" name="listView_tools"/>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QToolButton" name="toolButton_add_tool">
+          <property name="text">
+           <string>Add Tool</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="toolButton_remove_tool">
+          <property name="text">
+           <string>Remove Tool</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="QPushButton" name="pushButton_test">
@@ -180,8 +217,14 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>75</width>
-          <height>23</height>
+          <width>50</width>
+          <height>17</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>17</height>
          </size>
         </property>
         <property name="text">
@@ -500,7 +543,7 @@
   <tabstop>pushButton_execute_all</tabstop>
   <tabstop>pushButton_delete_all</tabstop>
   <tabstop>treeView_setups</tabstop>
-  <tabstop>listView_tools</tabstop>
+  <tabstop>listView_tool</tabstop>
  </tabstops>
  <resources/>
  <connections/>

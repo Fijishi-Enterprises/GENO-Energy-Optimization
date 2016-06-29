@@ -36,10 +36,14 @@ MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir
 # Tool configuration file paths
 MAGIC_INVESTMENTS_JSON = os.path.join(MAGIC_MODEL_PATH, "magic_invest.json")
 MAGIC_OPERATION_JSON = os.path.join(MAGIC_MODEL_PATH, "magic_operation.json")
-OLD_MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'tools', 'old_magic'))
+# OLD_MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'tools', 'old_magic'))
+tools = list()
+tools.append(MAGIC_INVESTMENTS_JSON)
+tools.append(MAGIC_OPERATION_JSON)
 
 # GAMS
 GAMS_EXECUTABLE = 'gams'
 IGNORE_PATTERNS = ('.git', '.gitignore')
 
-GENERAL_OPTIONS = {'project_path': ''}
+GENERAL_OPTIONS = {'project_path': '',
+                   'tools': tools}

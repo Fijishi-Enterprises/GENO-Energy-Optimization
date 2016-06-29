@@ -9,6 +9,7 @@ import locale
 import logging
 import os
 import json
+import ast
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog
 from ui.main import Ui_MainWindow
@@ -110,18 +111,22 @@ class TitanUI(QMainWindow):
         # self.modeltest = ModelTest(self.setup_model, self._root)
         # Create model for tools
         self.tool_model = ToolModel()
-        # Load tool definitions
-        magic_invest = GAMSModel.load(MAGIC_INVESTMENTS_JSON)
-        magic_operation = GAMSModel.load(MAGIC_OPERATION_JSON)
-        # Insert tools into model
-        self.tool_model.insertRow(magic_invest)
-        self.tool_model.insertRow(magic_operation)
+        # Read a string of tool definition locations from configs and make it to a list
+        tool_defs = ast.literal_eval(self._config.get('general', 'tools'))
+        for tool_def in tool_defs:
+            logging.debug("tool_def: %s" % tool_def)
+            # Load tool definition
+            tool = GAMSModel.load(tool_def)
+            # Insert tool into model
+            self.tool_model.insertRow(tool)
         # Set SetupModel to QTreeView
         self.ui.treeView_setups.setModel(self.setup_model)
         # Make a ProxyModel to show the tool associated with the selected Setup
         self.tool_proxy_model = ToolProxyModel(self.ui)
         self.tool_proxy_model.setSourceModel(self.setup_model)
-        self.ui.listView_tools.setModel(self.tool_proxy_model)
+        self.ui.listView_tool.setModel(self.tool_proxy_model)
+        # Set ToolModel to available Tools view
+        self.ui.listView_tools.setModel(self.tool_model)
 
     def init_conf(self):
         """Initialize configuration file."""
@@ -349,7 +354,7 @@ class TitanUI(QMainWindow):
         self.parse_setups(setup_dict)
         msg = "Project '%s' loaded" % self._project.name
         self.ui.statusbar.showMessage(msg, 5000)
-        self.add_msg_signal.emit("Done".format(self._project.name), 1)
+        self.add_msg_signal.emit("Done", 1)
         return True
 
     def parse_setups(self, setup_dict):
@@ -544,9 +549,9 @@ class TitanUI(QMainWindow):
 
     def execute_all(self):
         """Starts executing all Setups in the project."""
-        self.add_msg_signal.emit("Not implemented yet", 0)
         self.exec_mode = 'all'
-        self.execute_setup()
+        self.add_msg_signal.emit("Not implemented")
+        #self.execute_setup()
 
     def execute_branch(self):
         """Starts executing a Setup branch."""
@@ -578,9 +583,16 @@ class TitanUI(QMainWindow):
                 self.add_msg_signal.emit("No Setup selected.\n", 0)
                 return
             self._running_setup = selected_setup.internalPointer()
-        else:
-            self.add_msg_signal.emit("NA\n", 0)
-            return
+        elif self.exec_mode == 'all':
+            if not self._project:
+                self.add_msg_signal.emit("Open a Project to execute Setups\n", 0)
+                return
+            self.add_msg_signal.emit("Executing all Setups in Project '{0}'\n".format(self._project.name), 0)
+            # TODO: Return if no Setups in project
+            self.setup_model.set_base(QModelIndex())
+            #self._running_setup = self.setup_model.get_base().internalPointer()
+            self._running_setup = self.setup_model.get_root()
+            logging.debug("running_setup name: %s" % self._running_setup.name)
         # Connect setup_finished_signal to setup_done slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
