@@ -118,19 +118,19 @@ q_obj ..
 q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t)>0) ..   // Energy balance dynamics solved using implicit Euler discretization
     + v_state(grid, node, f, t)$(gnState(grid, node))   // The current state of the node
     =E=
-    (   // This section sums all changes to the v_state in power terms (not energy)
+    + (  // This section sums all changes to the v_state in power terms (not energy)
         + (     // Terms accounting for the effect of the previous state of the node
             + v_state(grid, node, f+pf(f,t), t+pt(t))   // The previous state of the node
             * ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
             / p_stepLength(m, f, t)     // Division by time step length to obtain "average power", result of implicit discretization
           )$(gnState(grid, node))   // Only include this term if the node has a state variable
-        + sum(node_$(gnnState(grid, node_, node)),      // Energy exchange between nodes
+        + sum(node_$(gnnState(grid, node_, node)),      // Energy diffusion between nodes
             + gnnData(grid, node_, node, 'nnCoeff') * v_state(grid, node_, f, t)  // Dissipation to/from other nodes
           )
-        + sum(from_node$(gn2n(grid, from_node, node)),  // Energy transfer from other nodes to this one
+        + sum(from_node$(gn2n(grid, from_node, node)),  // Controlled energy transfer from other nodes to this one
             + (1 - gnnData(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f, t)   // Include transfer losses
           )
-        - sum(to_node$(gn2n(grid, node, to_node)),   // Energy transfer to other nodes from this one
+        - sum(to_node$(gn2n(grid, node, to_node)),   // Controlled energy transfer to other nodes from this one
             + v_transfer(grid, node, to_node, f, t)   // Transfer losses accounted for in the previous term
           )
         + sum(unit$gnu(grid, node, unit),   // Interactions between the node and its units
@@ -144,7 +144,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t)>0) ..   //
         - ts_energyDemand_(grid, node, f, t)   // Energy demand from the node
         + vq_gen('increase', grid, node, f, t)   // Slack variable ensuring the energy dynamics are feasible.
         - vq_gen('decrease', grid, node, f, t)   // Slack variable ensuring the energy dynamics are feasible.
-    )
+      )
     / (   // This division transforms the power terms to energy, a result of implicit discretization
         + ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
         / p_stepLength(m, f, t)
@@ -202,7 +202,7 @@ q_maxUpward(gnu(grid, node, unit), ft(f, t))${      [unitMinLoad(unit) and gnuDa
 ;
 * -----------------------------------------------------------------------------
 q_storageDynamics(gns(grid, node, storage), m, ft(f, t)) ..
-  + v_stoContent(grid, node, storage, f, t)
+  + v_stoContent(grid, node, storage, f, t) * (1 - gnsData(grid, node, storage, 'selfDischarge'));
   =E=
   + v_stoContent(grid, node, storage, f+pf(f,t), t+pt(t))
   + ts_inflow_(storage, f+pf(f,t), t+pt(t))

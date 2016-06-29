@@ -69,6 +69,7 @@ param_gns "Set of possible data parameters for grid, node, storage" /
     minContent  "Minimum storage content (fraction of maximum)"
     chargingEff "Average charging efficiency"
     dischargingEff "Average discharging efficiency"
+    selfDischarge "Self discharge of storages (p.u.)"
 /
 param "Set of general parameters" /
     annualDemand "Total annual energy demand (MWh)"
