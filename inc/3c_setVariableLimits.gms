@@ -48,9 +48,9 @@ loop(ft(f, t),
     v_state.lo(gnState(grid, node), f, t)$(gnData(grid, node, 'minState')) = gnData(grid, node, 'minState');
     v_state.fx(gnState(grid, node), f, t)$(gnData(grid, node, 'fixState')) = gnData(grid, node, 'fixState');
     // Possibility to input v_state boundaries in time-series form. NOTE! Overwrites overlapping constant bounds!;
-    v_state.up(gnState(grid, node), f, t)$ts_NodeState(grid, node, 'maxState', f, t) = ts_NodeState(grid, node, 'maxState', f, t);
-    v_state.lo(gnState(grid, node), f, t)$ts_NodeState(grid, node, 'minState', f, t) = ts_NodeState(grid, node, 'minState', f, t);
-    v_state.fx(gnState(grid, node), f, t)$ts_NodeState(grid, node, 'fixState', f, t) = ts_NodeState(grid, node, 'fixState', f, t);
+    v_state.up(gnState(grid, node), f, t)$ts_nodeState(grid, node, 'maxState', f, t) = ts_nodeState(grid, node, 'maxState', f, t);
+    v_state.lo(gnState(grid, node), f, t)$ts_nodeState(grid, node, 'minState', f, t) = ts_nodeState(grid, node, 'minState', f, t);
+    v_state.fx(gnState(grid, node), f, t)$ts_nodeState(grid, node, 'fixState', f, t) = ts_nodeState(grid, node, 'fixState', f, t);
     // Free storage control ...
 *    if(currentStage('scheduling'),
 *        v_stoCharge.up(longStorage, f, t) = inf;

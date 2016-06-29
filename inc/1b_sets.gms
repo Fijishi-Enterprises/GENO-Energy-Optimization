@@ -27,8 +27,8 @@ Sets param_gn  "Set of possible data parameters for grid, node" /
 Sets param_gnn "Set of possible data parameters for grid, node, node (nodal interconnections)" /
     transferCap "Transfer capacity limits"
     transferLoss "Transfer losses"
-    nnCoeff     "Coefficients for energy dissipation between nodes"
-    nnOffset    "Offset parameter for relatively bound node states"
+    DiffCoeff   "Coefficients for energy diffusion between nodes"
+    BoundStateOffset "Offset parameter for relatively bound node states"
 /
 
 Sets param_gnu "Set of possible data parameters for grid, node, unit" /

@@ -125,7 +125,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t)>0) ..   //
             / p_stepLength(m, f, t)     // Division by time step length to obtain "average power", result of implicit discretization
           )$(gnState(grid, node))   // Only include this term if the node has a state variable
         + sum(node_$(gnnState(grid, node_, node)),      // Energy diffusion between nodes
-            + gnnData(grid, node_, node, 'nnCoeff') * v_state(grid, node_, f, t)  // Dissipation to/from other nodes
+            + gnnData(grid, node_, node, 'DiffCoeff') * v_state(grid, node_, f, t)  // Diffusion to/from other nodes
           )
         + sum(from_node$(gn2n(grid, from_node, node)),  // Controlled energy transfer from other nodes to this one
             + (1 - gnnData(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f, t)   // Include transfer losses
@@ -149,7 +149,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t)>0) ..   //
         + ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
         / p_stepLength(m, f, t)
         + sum(node_$(gnnState(grid, node_, node)),
-            + gnnData(grid, node_, node, 'nnCoeff')   // Summation of the energy dissipation coefficients
+            + gnnData(grid, node_, node, 'DiffCoeff')   // Summation of the energy diffusion coefficients
           )
         + 1$(not gnState(grid, node))   // The divisor only exists if the gnState exists, so here we prevent division by zero
       )
@@ -337,6 +337,6 @@ q_boundState(gnnBoundState(grid, node, node_), ft(f, t)) ..
   + v_state(grid, node, f, t)   // The state of the first node sets the upper limit of the second
   =G=
   + v_state(grid, node_, f, t)
-  + gnnData(grid, node, node_, 'nnOffset')   // Affected by the offset parameter
+  + gnnData(grid, node, node_, 'BoundStateOffset')   // Affected by the offset parameter
 ;
 
