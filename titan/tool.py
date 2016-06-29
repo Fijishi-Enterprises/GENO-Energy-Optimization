@@ -7,7 +7,7 @@ File defines Tool class and related classes.
 
 import os
 import shutil
-import glob
+import glob, fnmatch
 import logging
 import json
 import tempfile
@@ -33,9 +33,9 @@ class Tool(MetaObject):
     """Class for defining a tool"""
 
     def __init__(self, name, description, path, main_prgm,
-                 short_name=None,
-                 input_dir='.', output_dir='.', logfile=None,
-                 cmdline_args=None):
+                 infiles=[], infiles_opt=[],
+                 outfiles=[], short_name=None,
+                 logfile=None, cmdline_args=None):
         """Tool constructor.
 
         Args:
@@ -43,9 +43,12 @@ class Tool(MetaObject):
             description (str): Short description of the tool
             path (str): Path to tool or Git repository
             main_prgm (str): Main program file (relative to `path`)
+            input_dir (str): Path where the tool looks for its input (relative to `path`)
+            infiles (list, optional): List of required input files
+            infiles_opt (list, optional): List of optional input files (wildcards may be used)
+            output_dir (str): Path where the tool saves its input (relative to `path`)
+            outfiles (list, optional): List of output files (wildcards may be used)
             short_name (str, optional): Short name for the tool
-            input_dir (str, optional): Input file directory (relative to `path`)
-            output_dir (str, optional): Output file directory (relative to `path`)
             logfile (str, optional): Log file name (relative to `path`)
             cmdline_args (str, optional): Command line arguments
         """
@@ -56,55 +59,12 @@ class Tool(MetaObject):
             self.path = path
         self.main_prgm = main_prgm
         self.cmdline_args = cmdline_args
-        self.input_dir = input_dir
-        self.output_dir = output_dir
-        self.outfiles = [os.path.join(output_dir, '*')]
+        self.infiles = set(infiles)
+        self.infiles_opt = set(infiles_opt)
+        self.outfiles = set(outfiles)
         if logfile is not None:
-            self.outfiles.append(logfile)
-        self.dimensions = {}
-        self.inputs = set()
-        self.input_formats = set()
-        self.outputs = set()
-        self.output_formats = set()
+            self.outfiles.add(logfile)
         self.return_codes = {}
-
-    def add_input(self, parameter):
-        """Add input parameter for tool.
-
-        Args:
-            parameter (DataParameter): Data parameter object
-        """
-        self.inputs.add(parameter)
-
-    def add_output(self, parameter):
-        """Add output parameter for tool.
-
-        Args:
-            parameter (DataParameter): Data parameter object
-        """
-        self.outputs.add(parameter)
-
-    def add_input_format(self, format_type):
-        """Add input data format to the tool.
-
-        Args:
-            format_type (DataFormat): Data format
-        """
-        self.input_formats.add(format_type)
-
-    def add_output_format(self, format_type):
-        """Add output data format to the tool.
-
-        Args:
-            format_type (DataFormat): Data format
-        """
-        self.output_formats.add(format_type)
-
-    def get_input_file_extensions(self):
-        return [fmt.extension for fmt in self.input_formats]
-
-    def get_output_file_extensions(self):
-        return [fmt.extension for fmt in self.output_formats]
 
     def set_return_code(self, code, description):
         """Set a return code and associated text description for the tool.
@@ -130,7 +90,11 @@ class Tool(MetaObject):
 
         return ToolInstance(self, cmdline_args, tool_output_dir)
         
-    def save(self):
+    def load(self):
+        #TODO
+        pass
+
+    def save(self):  #TODO: This is obsolete
         """Save tool object to disk
         """
         
@@ -161,7 +125,8 @@ class ToolInstance(QObject):
         self.command = os.path.join(self.basedir, tool.main_prgm)
         if cmdline_args is not None:
             self.command += ' ' + cmdline_args
-        self.input_dir = os.path.join(self.basedir, tool.input_dir)
+        self.infiles = [os.path.join(self.basedir, f) for f in tool.infiles]
+        self.infiles_opt = [os.path.join(self.basedir, f) for f in tool.infiles_opt]
         self.tool_output_dir = tool_output_dir
         self.outfiles = [os.path.join(self.basedir, f) for f in tool.outfiles]
 
@@ -197,12 +162,11 @@ class ToolInstance(QObject):
             logging.debug("Unknown return code")
         finally:
             logging.debug("Tool '%s' finished." % self.tool.name)
-            dst_folder = os.path.join(self.tool_output_dir, self.tool.short_name)
             # TODO: Check that copy_output works. invest and MIP output folders are now the same.
-            if not self.copy_output(dst_folder):
+            if not self.copy_output(self.tool_output_dir):
                 logging.error("Copying output files to folder '{0}' failed".format(dst_folder))
             else:
-                logging.debug("Output files copied to <%s>" % dst_folder)
+                logging.debug("Output files copied to <%s>" % self.tool_output_dir)
             # Emit signal to Setup that tool instance has finished with GAMS return code
             self.instance_finished_signal.emit(ret)
 
@@ -248,22 +212,18 @@ class Setup(MetaObject):
         if name == 'root':
             self.is_root = True
         self.project = project
-        self.inputs = set()
         self.tool = None
         self.cmdline_args = ""
         self.tool_instances = []
         self.is_ready = False
         self._setup_process = None
         self._running_tool = None
-        # Create paths to Setup input & output directories
-        self.input_dir = os.path.join(project.project_dir, INPUT_STORAGE_DIR,
-                                      self.short_name)
-        self.output_dir = os.path.join(project.project_dir, OUTPUT_STORAGE_DIR,
-                                       self.short_name)
-        # Do not create directories for root Setup
+        # Create path to setup input directory (except for root)
         if not self.is_root:
+            self.input_dir = os.path.join(project.project_dir, INPUT_STORAGE_DIR,
+                                          self.short_name)
+            self.output_dir = self.input_dir
             create_dir(self.input_dir)
-            create_dir(self.output_dir)
         # If not root, add self to parent's children
         if parent is not None:
             parent._add_child(self)
@@ -341,21 +301,6 @@ class Setup(MetaObject):
         output += "\n"
         return output
 
-    def create_input(self):
-        """Create input files for this tool setup."""
-        raise NotImplementedError
-
-    def add_input(self, tool):
-        """Add inputs for a tool in this setup.
-
-        Args:
-            tool (Tool): The tool
-        """
-        self.inputs.add(tool)
-        input_dir = os.path.join(self.input_dir, tool.short_name)
-        if not os.path.exists(input_dir):
-            create_dir(input_dir)
-
     def add_tool(self, tool, cmdline_args=""):
         """Add a tool to this setup.
 
@@ -363,6 +308,10 @@ class Setup(MetaObject):
             tool (Tool): The tool to be used in this process
             cmdline_args (str, optional): Extra command line arguments for this tool
         """
+        # Create path for setup output directory
+        self.output_dir = os.path.join(self.project.project_dir, OUTPUT_STORAGE_DIR,
+                                       self.short_name)
+        create_dir(self.output_dir)
         # TODO: When adding a model to a Setup, all its parents (at least Base) must have an input
         # TODO: folder with model name. e.g /input/base/magic
         # Add tool to Setup. If Setup already had a tool, it is replaced with the new one.
@@ -373,10 +322,10 @@ class Setup(MetaObject):
         self.tool = tool
         self.cmdline_args = cmdline_args
         # Create model input and output directories for the Setup
-        input_dir = create_dir(self.input_dir, tool.short_name)
-        output_dir = create_dir(self.output_dir, tool.short_name)
-        if (input_dir is None) or (output_dir is None):
-            return False
+        #input_dir = create_dir(self.input_dir, tool.short_name)  #TODO: remove?
+        #output_dir = create_dir(self.output_dir, tool.short_name)  #TODO: remove?
+        #if (input_dir is None) or (output_dir is None):  #TODO: remove?
+        #    return False
         logging.debug("Tool '{0}' with cmdline args '{1}' added to Setup '{2}'"
                       .format(self.tool.name, self.cmdline_args, self.name))
         return True
@@ -388,50 +337,80 @@ class Setup(MetaObject):
         self.inputs = set()
         self.tool = None
         self.cmdline_args = ""
+        # TODO: Add cleanup of output dir
 
-    def get_input_files(self, tool, file_fmt):
-        """Get paths of input files of given format for tool in this setup
+    def get_input_files(self):
+        """Get list of all input files in this setup
+        """
+        return os.listdir(self.input_dir)
+
+    def get_output_files(self):
+        """Get list of all output files in this setup
+        (Lists input files if there is no tool).
+        """
+        return os.listdir(self.output_dir)
+
+    def find_input_file(self, fname, is_ancestor=False):
+        """Find a given input file in the setup hierarchy
 
         Args:
-            tool (Tool): The tool
-            file_fmt (DataFormat): File format
-        """
-        # TODO: Get input for this tool from own input folder and parents.
-        # If parent has a tool -> get output files
-        # If parent has no tool -> get input files
-        if self.is_root:
-            return list()
-        try:
-            filenames = glob.glob(os.path.join(self.input_dir,
-                                               tool.short_name,
-                                               '*.{}'.format(file_fmt.extension)))
-        except OSError:
-            logging.error("OSError")
-            if self.input_dir:
-                logging.error("Setup <{0}> input dir:'{1}'".format(self.name, self.input_dir))
-            return list()
-        if self._parent is not None:
-            if self.is_root:
-                return filenames
-            filenames += self._parent.get_input_files(tool, file_fmt)
-            filenames += self._parent.get_output_files(self._parent.tool, file_fmt)
-        return filenames
+            fname (str): Input file name or pattern
+            is_ancestor (bool): Specifies if looking at an ancestor setup
 
-    def get_output_files(self, tool, file_fmt):
-        """Get paths of output files of given format for tool in this setup.
+        Returns:
+            Full path to file
+        """
+        if self.is_root:
+            return None
+
+        # Look at own input
+        if not is_ancestor:
+            if fname in self.get_input_files():
+                return os.path.join(self.input_dir, fname)
+        # Look at anchestor's output
+        else:
+            if fname in self.get_output_files():
+                return os.path.join(self.output_dir, fname)
+
+        return self._parent.find_input_file(fname, is_ancestor=True)
+
+    def find_input_files(self, pattern, is_ancestor=False, used_filenames=None):
+        """Find all input files which match a pattern in the setup hierarchy.
 
         Args:
-            tool (Tool): The tool
-            file_fmt (DataFormat): File format
+            pattern (str): Input file name or pattern
+            is_ancestor (bool): Specifies if looking at an ancestor setup
+            used_filenames (set): Set of filenames already used
+
+        Returns:
+            List of full paths to file
         """
         if self.is_root:
             return list()
-        filenames = glob.glob(os.path.join(self.output_dir,
-                                           tool.short_name,
-                                           '*.{}'.format(file_fmt.extension)))
-        if self._parent is not None:
-            filenames += self._parent.get_output_files(self._parent.tool, file_fmt)
-        return filenames
+
+        filenames = set() if not used_filenames else used_filenames
+        filepaths = list()
+
+        # Look in own input
+        if not is_ancestor:
+            src_files = self.get_input_files()
+            src_dir = self.input_dir
+        # ...or look in anchestors' output
+        else:
+            src_files = self.get_output_files()
+            src_dir = self.output_dir
+
+        # Search for files
+        new_fnames = [f for f in fnmatch.filter(src_files, pattern)
+                      if f not in filenames]
+        filenames.update(new_fnames)
+        filepaths += [os.path.join(src_dir, fname) for fname in new_fnames]
+
+        # Recourse to parent
+        filepaths += self._parent.find_input_files(pattern, is_ancestor=True,
+                                                   used_filenames=filenames)
+
+        return filepaths
 
     def save(self, path=''):
         """Save setup object to disk.
@@ -508,36 +487,41 @@ class Setup(MetaObject):
         Returns:
             ret (bool): Operation success
         """
-        if not tool_instance:
-            dst_dir = tool.input_dir  # Run tool in /models/ directory
+        if tool is None:
+            return True
+
+        if tool_instance:
+            input_dir = tool_instance.basedir  # Run tool in work directory
         else:
-            dst_dir = tool_instance.input_dir  # Run tool in work directory
-        for fmt in tool.input_formats:
-            filenames = self.get_input_files(tool, fmt)
-            # Just copy binary files
-            if fmt.is_binary:
-                for fname in filenames:
-                    shutil.copy(fname, dst_dir)
-                    logging.debug("Copied file '%s' to: <%s>" % (fname, dst_dir))
-            # Concatenate other files
+            input_dir = tool.path  # Run tool in /models/ directory
+
+        # Process required input files
+        for path in tool.infiles:
+            prefix, fname = os.path.split(path)
+            src_path = self.find_input_file(fname)
+            if not src_path:
+                logging.debug("Could not find required input file '{}'"
+                              .format(fname))
+                return False
             else:
-                outfilename = os.path.join(dst_dir,
-                                           'changes.{}'.format(fmt.extension))
-                # If setup has no parent, then create a new file
-                if self._parent is None:
-                    mode = 'w'
-                # otherwise, append to previous file
-                else:
-                    mode = 'w+'
-                with open(outfilename, mode) as outfile:
-                    for fname in reversed(filenames):
-                        with open(fname, 'r') as readfile:
-                            shutil.copyfileobj(readfile, outfile)
-                    # Separate with a blank line
-                    outfile.write('\n')
-                    logging.debug("Created file '%s' to: <%s>" % (outfilename, dst_dir))
-        logging.debug(("Copied input files for tool '{}'"
-                       .format(tool.name)))
+                dst_dir = os.path.join(input_dir, prefix)
+                shutil.copy(src_path, dst_dir)
+                logging.debug("Copied file '{}' to: {}".format(src_path, dst_dir))
+
+        # Process optional input files
+        for path in tool.infiles_opt:
+            prefix, fname = os.path.split(path)
+            dst_dir = os.path.join(input_dir, prefix)
+            if '*' in fname:
+                src_paths = self.find_input_files(fname)
+            else:
+                src_path = self.find_input_file(fname)
+                src_paths = [src_path] if src_path else []
+            for src_path in src_paths:
+                shutil.copy(src_path, dst_dir)
+                logging.debug("Copied file '{}' to: {}".format(src_path, dst_dir))
+
+        logging.debug("Copied input files for '{}'".format(tool.name))
         return True
 
     @staticmethod
@@ -592,65 +576,3 @@ class Setup(MetaObject):
         """Remove temporary files of the setup."""
         for t in self.tool_instances:
             t.remove()
-
-
-class Dimension(object):
-    """Data dimension."""
-    def __init__(self, name, description):
-        """Constructor.
-
-        Args:
-            name: Dimension name.
-            description: Dimension description.
-
-        """
-        self.name = name
-        self.description = description
-        self.data = []
-        
-    def __repr__(self):        
-        return "Dimension('{}', '{}')".format(self.name, self.description)
-        
-
-class DataFormat(object):
-    """Class for defining data storage formats."""
-    def __init__(self, name, extension, is_binary=False):
-        """
-        Args:
-            name (str): Name of data format
-            extension (str): File name extension
-        """
-        self.name = name
-        self.extension = extension
-        self.is_binary = is_binary
-        
-    def __repr__(self):
-        return ("DataFormat('{}', '{}', is_binary={})"
-                .format(self.name, self.extension, self.is_binary))
-        
-CSV_DATA_FMT = DataFormat('Comma separated values', 'csv')
-
-
-class DataParameter(object):
-    """Class for data parameters
-    """
-    def __init__(self, name, description, units, indices=[]):
-        """
-        Args:
-            name (str): Name of parameter
-            description (str): Description
-            units (str): Units of measure
-            indices (list): List of indices (Dimension objects)
-        """
-        self.name = name
-        self.description = description
-        self.units = units
-        self.indices = indices
-        
-    def __repr__(self):        
-        return ("DataParameter('{}', '{}', '{}', {})"
-                .format(self.name, self.description,
-                        self.units, self.indices))
-
-    def get_dimension(self):
-        return len(self.indices)

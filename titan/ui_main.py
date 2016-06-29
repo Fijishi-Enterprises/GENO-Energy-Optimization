@@ -15,7 +15,7 @@ from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolProxyModel, ToolModel
 from tool import Setup
-from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
+from GAMS import GAMSModel
 from config import MAGIC_INVESTMENTS_JSON, MAGIC_OPERATION_JSON,\
                    ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
                    CONFIGURATION_FILE, GENERAL_OPTIONS
@@ -393,7 +393,6 @@ class TitanUI(QMainWindow):
                             # Add tool to Setup
                             setup_index = self.setup_model.find_index(name)
                             setup = self.setup_model.get_setup(setup_index)
-                            setup.add_input(tool)
                             setup.add_tool(tool, cmdline_args=cmdline_args)
                 self.parse_setups(v)
 
@@ -420,12 +419,10 @@ class TitanUI(QMainWindow):
             setup_name = selected_setup.name
             tool = selected_setup.tool
             if tool:
-                gdx_input_files = selected_setup.get_input_files(tool=tool, file_fmt=GDX_DATA_FMT)
-                inc_input_files = selected_setup.get_input_files(tool=tool, file_fmt=GAMS_INC_FILE)
+                input_files = selected_setup.get_input_files()
                 self.add_msg_signal.emit("Showing input files for Setup '%s'\nInput folder: %s"
                                          % (setup_name, selected_setup.input_dir), 0)
-                self.add_msg_signal.emit("GDX Input files:\n{0}".format(gdx_input_files), 0)
-                self.add_msg_signal.emit("GAMS INC Input files:\n{0}".format(inc_input_files), 0)
+                self.add_msg_signal.emit("Input files:\n{0}".format(input_files), 0)
             else:
                 self.add_msg_signal.emit("No tool found", 0)
             return
@@ -538,7 +535,6 @@ class TitanUI(QMainWindow):
         if tool is not None:
             setup_index = self.setup_model.find_index(name)
             setup = self.setup_model.get_setup(setup_index)
-            setup.add_input(tool)
             setup.add_tool(tool, cmdline_args=cmdline_args)
         return
 

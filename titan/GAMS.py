@@ -8,8 +8,7 @@ Created on Thu Jan 21 13:27:34 2016
 import os.path
 import json
 
-from tool import Tool, ToolInstance, DataFormat, Dimension, DataParameter,\
-                 CSV_DATA_FMT
+from tool import Tool, ToolInstance
 from config import GAMS_EXECUTABLE
 
 
@@ -17,27 +16,29 @@ class GAMSModel(Tool):
     """Class for GAMS models."""
 
     def __init__(self, name, description, path, main_prgm,
-                 short_name=None,
-                 input_dir='.', output_dir='.',
-                 cmdline_args=None):
+                 infiles=[], infiles_opt=[], outfiles=[],
+                 short_name=None, cmdline_args=None):
         """Class constructor.
 
         Args:
             name (str): Model name
             description (str): Model description
             gamsfile (str): Path to main GAMS program (relative to `path`)
+            input_dir (str): Path where the tool looks for its input (relative to `path`)
+            infiles (list, optional): List of required input files
+            infiles_opt (list, optional): List of optional input files (wildcards may be used)
+            output_dir (str): Path where the tool saves its input (relative to `path`)
+            outfiles (list, optional): List of output files (wildcards may be used)
             short_name (str, optional): Short name for the model
-            input_dir: Input directory path
-            output_dir: Output directory path
             cmdline_args (str, optional): GAMS command line arguments
         """
         super().__init__(name, description, path, main_prgm,
-                         short_name, input_dir, output_dir,
+                         infiles, infiles_opt, outfiles, short_name,
                          cmdline_args=cmdline_args)
         self.GAMS_parameters = "Logoption=3"  # send LOG output to STDOUT
         # Add .log and .lst files to list of outputs
-        self.outfiles.append(os.path.join(path, os.path.splitext(main_prgm)[0] + '.log'))
-        self.outfiles.append(os.path.join(path, os.path.splitext(main_prgm)[0] + '.lst'))
+        self.outfiles.add(os.path.splitext(main_prgm)[0] + '.log')
+        self.outfiles.add(os.path.splitext(main_prgm)[0] + '.lst')
         # Logoption options
         # 0 suppress LOG output
         # 1 LOG output to screen (default)
@@ -95,7 +96,8 @@ class GAMSModel(Tool):
 
         # Find required and optional arguments
         required = ['name', 'description', 'main_prgm']
-        optional = ['short_name', 'input_dir', 'output_dir', 'cmdline_args']
+        optional = ['short_name', 'infiles', 'infiles_opt',
+                    'outfiles', 'cmdline_args']
 
         # Construct keyword arguments
         kwargs = {}
@@ -139,7 +141,3 @@ class GAMSModel(Tool):
                 setattr(model, p, set([eval(fmt) for fmt in formats]))
 
         return model
-            
-
-GDX_DATA_FMT = DataFormat('GDX', 'gdx', is_binary=True)
-GAMS_INC_FILE = DataFormat('GAMS inc file', 'inc')

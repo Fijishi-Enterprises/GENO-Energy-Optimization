@@ -73,8 +73,6 @@ $iftheni not %INVEST% == 'yes'
 $endif
 $gdxin
 
-$include 'input/changes.inc'
-
  Parameters peak     peak power (1000MW)
             ener(t)  energy demand in load block (1000MWh)
             tener    total energy demanded (1000MWh)
