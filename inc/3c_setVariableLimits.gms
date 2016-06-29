@@ -37,8 +37,8 @@ loop(ft(f, t),
     v_gen.lo(gnu(grid, node, unit), f, t)$(not gnuData(grid, node, unit, 'maxCharging')) = 0;
     // Max. consumption capacity for chargable storages
     v_gen.lo(gnu_input(grid, node, unit), f, t) = -gnuData(grid, node, unit, 'maxCharging');
-    // Max. unitElec consumption of unitHeat pumps and such
-    v_gen.lo(gnu_input('elec', node, unit), f, t)$sum(grid, gnu('heat', node, unit)) = -gnuData('heat', node, unit, 'maxCap') * nuData(node, unit, 'slope');
+    // Max. consumption for units that convert endogenous inputs to endogenous outputs
+    v_gen.lo(gnu_input(grid_, node_input, unit), f, t) = sum(gn(grid, node)$nu(node, unit), -gnuData(grid, node, unit, 'maxCap') * nuData(node, unit, 'slope'));
     // Fixed generation for run-of-river
     v_gen.up(gnu('elec', node, unit), f, t)$unit_fuel(unit, 'water', 'main') = ts_inflow_(unit, f, t);
     // v_online cannot exceed 1

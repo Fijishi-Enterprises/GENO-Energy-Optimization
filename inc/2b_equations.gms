@@ -121,8 +121,8 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t)>0) ..   //
     + (  // This section sums all changes to the v_state in power terms (not energy)
         + (     // Terms accounting for the effect of the previous state of the node
             + v_state(grid, node, f+pf(f,t), t+pt(t))   // The previous state of the node
-            * ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
-            / p_stepLength(m, f, t)     // Division by time step length to obtain "average power", result of implicit discretization
+                * ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
+                / p_stepLength(m, f, t)     // Division by time step length to obtain "average power", result of implicit discretization
           )$(gnState(grid, node))   // Only include this term if the node has a state variable
         + sum(node_$(gnnState(grid, node_, node)),      // Energy diffusion between nodes
             + gnnData(grid, node_, node, 'nnCoeff') * v_state(grid, node_, f, t)  // Dissipation to/from other nodes
@@ -133,7 +133,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t)>0) ..   //
         - sum(to_node$(gn2n(grid, node, to_node)),   // Controlled energy transfer to other nodes from this one
             + v_transfer(grid, node, to_node, f, t)   // Transfer losses accounted for in the previous term
           )
-        + sum(unit$gnu(grid, node, unit),   // Interactions between the node and its units
+        + sum(unit$(gnu(grid, node, unit) or gnu_input(grid, node, unit)),   // Interactions between the node and its units
             + v_gen(grid, node, unit, f, t)   // Unit energy generation and consumption
           )
         + sum(storage$gns(grid, node, storage),   // Interactions between the node and its storages
@@ -147,7 +147,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t)>0) ..   //
       )
     / (   // This division transforms the power terms to energy, a result of implicit discretization
         + ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
-        / p_stepLength(m, f, t)
+            / p_stepLength(m, f, t)
         + sum(node_$(gnnState(grid, node_, node)),
             + gnnData(grid, node_, node, 'nnCoeff')   // Summation of the energy dissipation coefficients
           )
@@ -202,9 +202,9 @@ q_maxUpward(gnu(grid, node, unit), ft(f, t))${      [unitMinLoad(unit) and gnuDa
 ;
 * -----------------------------------------------------------------------------
 q_storageDynamics(gns(grid, node, storage), m, ft(f, t)) ..
-  + v_stoContent(grid, node, storage, f, t) * (1 - gnsData(grid, node, storage, 'selfDischarge'));
+  + v_stoContent(grid, node, storage, f, t)
   =E=
-  + v_stoContent(grid, node, storage, f+pf(f,t), t+pt(t))
+  + v_stoContent(grid, node, storage, f+pf(f,t), t+pt(t)) * (1 - gnsData(grid, node, storage, 'selfDischarge'))
   + ts_inflow_(storage, f+pf(f,t), t+pt(t))
   + vq_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
   + p_stepLength(m, f+pf(f,t), t+pt(t)) *
@@ -280,10 +280,10 @@ q_fuelUse(nu(node, unitFuel), fuel, m, ft(f, t))$unit_fuel(unitFuel, fuel, 'main
     )
 ;
 
-q_conversion(nu(node, unit), ft(f, t))$[sum(grid, gnu_input(grid, node, unit)) and sum(grid, gnu(grid, node, unit))] ..
-  - sum( grid$gnu_input(grid, node, unit), v_gen(grid, node, unit, f, t) * nuData(node, unit, 'slope') )
+q_conversion(nu(node, unit), ft(f, t))$[sum(gn(grid_, node_input), gnu_input(grid_, node_input, unit)) and sum(grid, gnu(grid, node, unit))] ..
+  - sum( gn(grid_, node_input)$gnu_input(grid_, node_input, unit), v_gen(grid_, node_input, unit, f, t) / nuData(node, unit, 'slope') )
   =E=
-  + sum( grid_$gnu(grid_, node, unit), v_gen(grid_, node, unit, f, t) )
+  + sum( grid$gnu(grid, node, unit), v_gen(grid, node, unit, f, t) )
 * nuData(grid_, node, unit, 'eff_from') )
 ;
 
