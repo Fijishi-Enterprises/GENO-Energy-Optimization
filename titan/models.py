@@ -20,7 +20,6 @@ class SetupModel(QAbstractItemModel):
         parent (Setup): Not used
     """
     def __init__(self, root, parent=None):
-        """SetupModel constructor."""
         super().__init__(parent)
         self._root_setup = root
         self._base_index = None  # Used in tree traversal algorithms
@@ -113,11 +112,7 @@ class SetupModel(QAbstractItemModel):
                 return "Setups"
             else:
                 return "FixMe"
-        # elif role == Qt.SizeHintRole:
-        #     logging.debug("SizeHintRole, section:%d, orientation:%s" % (section, orientation))
-        #     return QSize(40, 20)
         else:
-            # return super().headerData(section, orientation, role)
             return QVariant()
 
     def parent(self, index=None):
@@ -177,7 +172,6 @@ class SetupModel(QAbstractItemModel):
         """
         parent_setup = self.get_setup(parent)
         self.beginInsertRows(parent, row, row)
-        # new_setup = Setup(name, description, project, parent_setup)
         new_setup = Setup(name, description, project)
         retval = parent_setup.insert_child(position=row, child=new_setup)
         self.endInsertRows()
@@ -492,11 +486,31 @@ class ToolModel(QAbstractListModel):
             **kwargs:
 
         Returns:
-            Boolean value depending on operation success
+            Nothing
         """
         self.beginInsertRows(parent, row, row)
         self._tools.append(tool)
         self.endInsertRows()
+
+    def removeRow(self, row, parent=QModelIndex(), *args, **kwargs):
+        """Remove row (tool) from model.
+
+        Args:
+            row (int): Row to remove the tool from
+            parent (QModelIndex): Parent of tool on row (not used)
+            *args:
+            **kwargs:
+
+        Returns:
+            Nothing
+        """
+        if row < 0 or row > self.rowCount():
+            logging.error("Invalid row number")
+            return False
+        self.beginRemoveRows(parent, row, row)
+        self._tools.pop(row)
+        self.endRemoveRows()
+        return True
 
     def tool(self, row):
         """Returns tool located at row

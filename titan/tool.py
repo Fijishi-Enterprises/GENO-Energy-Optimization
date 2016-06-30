@@ -67,6 +67,7 @@ class Tool(MetaObject):
         self.outputs = set()
         self.output_formats = set()
         self.return_codes = {}
+        self.def_file_path = ''  # Definition file path (JSON)
 
     def add_input(self, parameter):
         """Add input parameter for tool.
@@ -131,8 +132,7 @@ class Tool(MetaObject):
         return ToolInstance(self, cmdline_args, tool_output_dir)
         
     def save(self):
-        """Save tool object to disk
-        """
+        """Save tool object to disk."""
         
         the_dict = copy(self.__dict__)
 
@@ -140,6 +140,14 @@ class Tool(MetaObject):
                                 '{}.json'.format(self.short_name))
         with open(jsonfile, 'w') as fp:
             json.dump(the_dict, fp, indent=4, cls=MyEncoder)
+
+    def set_def_path(self, path):
+        """Set definition file path for tool.
+
+        Args:
+            path (str): Absolute path to the definition file.
+        """
+        self.def_file_path = path
 
 
 class ToolInstance(QObject):
@@ -346,7 +354,7 @@ class Setup(MetaObject):
         raise NotImplementedError
 
     def add_input(self, tool):
-        """Add inputs for a tool in this setup.
+        """Add inputs for the tool in this Setup.
 
         Args:
             tool (Tool): The tool
@@ -356,8 +364,8 @@ class Setup(MetaObject):
         if not os.path.exists(input_dir):
             create_dir(input_dir)
 
-    def add_tool(self, tool, cmdline_args=""):
-        """Add a tool to this setup.
+    def attach_tool(self, tool, cmdline_args=""):
+        """Attach a tool to this Setup.
 
         Args:
             tool (Tool): The tool to be used in this process
@@ -381,7 +389,7 @@ class Setup(MetaObject):
                       .format(self.tool.name, self.cmdline_args, self.name))
         return True
 
-    def remove_tool(self):
+    def detach_tool(self):
         """Remove inputs, Tool and command line arguments from Setup.
         Used when the Tool is changed."""
         self.inputs = None
@@ -467,6 +475,7 @@ class Setup(MetaObject):
             logging.debug("Setup '{}' ready. Starting next Setup in SetupTree".format(self.name))
             self.setup_finished_signal.emit()
             return
+        # TODO: If the assigned Tool of Setup is not available in ToolModel then execution should fail.
         # Get Setup tool and command line arguments
         if not self.tool:  # No tool in setup
             self.setup_finished(0)
@@ -493,6 +502,7 @@ class Setup(MetaObject):
             logging.debug("Setup <%s> finished successfully. Setting is_ready to True" % self.name)
             self.is_ready = True
         else:
+            self._parent.add_msg_signal.emit("Setup <%s> failed. is_ready is False" % self.name, 2)
             logging.debug("Setup <%s> failed. is_ready is False" % self.name)
             self.is_ready = False
         # Run next Setup

@@ -104,10 +104,10 @@ class TestSetup(TestCase):
         dir_path = create_dir(base_path=basepath, folder=folder)
         self.assertTrue(os.path.exists(dir_path))
 
-    def test_add_tool(self):
-        log.info("Testing add_tool()")
+    def test_attach_tool(self):
+        log.info("Testing attach_tool()")
         # Test adding tool to Setup
-        retval = self.child_dummy_a.add_tool(self.tool)
+        retval = self.child_dummy_a.attach_tool(self.tool)
         self.assertTrue(retval)
 
     def test_collect_input_files(self):
@@ -115,7 +115,7 @@ class TestSetup(TestCase):
         # Delete files from test model input folders except .gitignore
         self.delete_files(self.tool.input_dir)
         # Add model into Setup. Creates model input directories.
-        self.child_dummy_a.add_tool(self.tool)
+        self.child_dummy_a.attach_tool(self.tool)
         # Add input formats to model
         self.tool.add_input_format(GDX_DATA_FMT)
         self.tool.add_input_format(GAMS_INC_FILE)
@@ -153,7 +153,7 @@ class TestSetup(TestCase):
     def test_get_input_files(self):
         log.info("Testing get_input_files()")
         # Add model into Setup. Creates model input directories.
-        self.child_dummy_a.add_tool(self.tool)
+        self.child_dummy_a.attach_tool(self.tool)
         # Add input formats to model
         self.tool.add_input_format(GDX_DATA_FMT)
         self.tool.add_input_format(GAMS_INC_FILE)
@@ -202,7 +202,7 @@ class TestSetup(TestCase):
 
     def test_pop_model(self):
         log.info("Testing pop_model()")
-        self.child_dummy_a.add_tool(self.tool)
+        self.child_dummy_a.attach_tool(self.tool)
         # Pop next model into model.running_model
         self.child_dummy_a.pop_model()
         retval = False
@@ -232,7 +232,7 @@ class TestSetup(TestCase):
         self.tool.add_input(data)
         log.disable(level=log.ERROR)
         # Add model into Setup. Creates model input & output directories.
-        self.child_dummy_a.add_tool(self.tool, 'MIP=CPLEX')
+        self.child_dummy_a.attach_tool(self.tool, 'MIP=CPLEX')
         log.disable(level=log.NOTSET)
         # Copy dummy test files to setup model folders
         self.prepare_test_data()
@@ -277,8 +277,8 @@ class TestSetup(TestCase):
         self.tool.add_input(data)
         log.disable(level=log.ERROR)
         # Add two models into Setup child_dummy_a. Creates model input & output directories.
-        self.child_dummy_a.add_tool(self.tool, 'MIP=CPLEX')
-        self.child_dummy_a.add_tool(self.tool_two)
+        self.child_dummy_a.attach_tool(self.tool, 'MIP=CPLEX')
+        self.child_dummy_a.attach_tool(self.tool_two)
         log.disable(level=log.NOTSET)
         effects = [self.child_dummy_a.model_finished, self.child_dummy_a.model_finished, Exception("No effects left")]
 
@@ -311,9 +311,9 @@ class TestSetup(TestCase):
         setup_dummy_a and setup_dummy_b have a GAMS model."""
         log.debug("Testing execute() with three setups and two models")
         log.disable(level=log.ERROR)
-        self.child_dummy_a.add_tool(self.tool, 'MIP=CPLEX')
+        self.child_dummy_a.attach_tool(self.tool, 'MIP=CPLEX')
         self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.project, self.child_dummy_a)
-        self.child_dummy_b.add_tool(self.tool_two)
+        self.child_dummy_b.attach_tool(self.tool_two)
         log.disable(level=log.NOTSET)
         effects = [self.child_dummy_a.model_finished, self.child_dummy_b.model_finished, Exception("No effects left")]
 
@@ -338,7 +338,7 @@ class TestSetup(TestCase):
         log.debug("Testing execute() with three setups and one model")
         self.child_dummy_b = Setup('Setup Dummy B', 'Setup with parent A', self.project, self.child_dummy_a)
         log.disable(level=log.ERROR)
-        self.child_dummy_b.add_tool(self.tool_two)
+        self.child_dummy_b.attach_tool(self.tool_two)
         log.disable(level=log.NOTSET)
         effects = [self.child_dummy_b.model_finished, Exception("No effects left")]
 
@@ -372,7 +372,7 @@ class TestSetup(TestCase):
 
     def prepare_test_data(self):
         """Helper function to copy test input data from \test\resources\test_input
-        into appropriate test folders. NOTE: Call this function after add_tool has
+        into appropriate test folders. NOTE: Call this function after attach_tool has
         been called."""
         log.info("Copying test files")
         # Create path strings for easier reference
@@ -394,7 +394,7 @@ class TestSetup(TestCase):
             raise SkipTest("Test skipped. Base (src) input folder missing <{0}>\n".format(base_input_f))
         if not os.path.exists(child_input_f):
             raise SkipTest("Test skipped. Child (src) input folder missing <{0}>\n".format(child_input_f))
-        # Check that destination test input folders exist (Created by add_tool())
+        # Check that destination test input folders exist (Created by attach_tool())
         if not os.path.exists(base_model_f):
             raise SkipTest("Test skipped. Base (dst) input folder not found <{0}>\n".format(base_model_f))
         if not os.path.exists(child_model_f):

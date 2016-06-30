@@ -9,7 +9,6 @@ import locale
 import logging
 import os
 import json
-import ast
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog
 from ui.main import Ui_MainWindow
@@ -17,8 +16,7 @@ from project import SceletonProject
 from models import SetupModel, ToolProxyModel, ToolModel
 from tool import Setup
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
-from config import MAGIC_INVESTMENTS_JSON, MAGIC_OPERATION_JSON,\
-                   ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
+from config import ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
                    CONFIGURATION_FILE, GENERAL_OPTIONS
 from configuration import ConfigurationParser
 from widgets.setup_form_widget import SetupFormWidget
@@ -66,6 +64,8 @@ class TitanUI(QMainWindow):
         self.connect_signals()
         # Initialize project
         self.init_project()
+        # Initialize ToolModel
+        self.init_tool_model()
 
     @pyqtSlot()
     def set_debug_level(self):
@@ -100,6 +100,8 @@ class TitanUI(QMainWindow):
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
         self.ui.treeView_setups.pressed.connect(self.update_tool_view)
         self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
+        self.ui.toolButton_add_tool.clicked.connect(self.add_tool)
+        self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)
 
     def init_models(self):
         """Create data models for GUI views."""
@@ -109,22 +111,29 @@ class TitanUI(QMainWindow):
         self.setup_model = SetupModel(self._root)
         # Start model test for SetupModel
         # self.modeltest = ModelTest(self.setup_model, self._root)
-        # Create model for tools
-        self.tool_model = ToolModel()
-        # Read a string of tool definition locations from configs and make it to a list
-        tool_defs = ast.literal_eval(self._config.get('general', 'tools'))
-        for tool_def in tool_defs:
-            logging.debug("tool_def: %s" % tool_def)
-            # Load tool definition
-            tool = GAMSModel.load(tool_def)
-            # Insert tool into model
-            self.tool_model.insertRow(tool)
+        self.init_tool_model()
         # Set SetupModel to QTreeView
         self.ui.treeView_setups.setModel(self.setup_model)
         # Make a ProxyModel to show the tool associated with the selected Setup
         self.tool_proxy_model = ToolProxyModel(self.ui)
         self.tool_proxy_model.setSourceModel(self.setup_model)
         self.ui.listView_tool.setModel(self.tool_proxy_model)
+        # Set ToolModel to available Tools view
+        # self.ui.listView_tools.setModel(self.tool_model)
+
+    def init_tool_model(self):
+        """Create model for tools"""
+        self.tool_model = ToolModel()
+        tool_defs = self._config.get('general', 'tools').split('\n')
+        for tool_def in tool_defs:
+            if tool_def == '':
+                continue
+            # Load tool definition
+            tool = GAMSModel.load(tool_def)
+            # Add tool definition file path to tool instance variable
+            tool.set_def_path(tool_def)
+            # Insert tool into model
+            self.tool_model.insertRow(tool)
         # Set ToolModel to available Tools view
         self.ui.listView_tools.setModel(self.tool_model)
 
@@ -391,16 +400,92 @@ class TitanUI(QMainWindow):
                         # Get tool from ToolModel
                         tool = self.tool_model.find_tool(tool_name)
                         if not tool:
-                            logging.error("Could not add Tool to Setup. Tool with name '%s' not found" % tool_name)
-                            self.add_msg_signal.emit("Could not add Tool to Setup '%s'. Tool '%s' not found"
-                                                     % (name, tool_name), 2)
+                            logging.error("Could not add Tool to Setup. Tool '%s' not found" % tool_name)
+                            self.add_msg_signal.emit("Could not find Tool '%s' for Setup '%s'."
+                                                     " Add Tool and reload project."
+                                                     % (tool_name, name), 2)
                         else:
                             # Add tool to Setup
                             setup_index = self.setup_model.find_index(name)
                             setup = self.setup_model.get_setup(setup_index)
                             setup.add_input(tool)
-                            setup.add_tool(tool, cmdline_args=cmdline_args)
+                            setup.attach_tool(tool, cmdline_args=cmdline_args)
                 self.parse_setups(v)
+
+    def add_tool(self):
+        """Method to add a new tool from a JSON tool definition file to the
+        ToolModel instance (available tools). Opens a load dialog
+        where user can select the wanted tool definition file. The path of the
+        definition file will be saved to titan.conf, so that it is found on
+        the next startup.
+        """
+        # noinspection PyCallByClass, PyTypeChecker
+        answer = QFileDialog.getOpenFileName(self, 'Select tool definition file',
+                                             os.path.join(PROJECT_DIR, os.path.pardir),
+                                             'JSON (*.json)')
+        if answer[0] == '':  # Cancel button clicked
+            return
+        open_path = os.path.abspath(answer[0])
+        if not os.path.isfile(open_path):
+            self.add_msg_signal.emit("Tool definition file path not valid '%s'" % open_path, 2)
+            return
+        self.add_msg_signal.emit("Adding tool from file: <{0}>".format(open_path), 0)
+        # Load tool definition
+        tool = GAMSModel.load(open_path)
+        if not self.tool_model.find_tool(tool.name):
+            # Add definition file path into tool
+            tool.set_def_path(open_path)
+            # Insert tool into model
+            self.tool_model.insertRow(tool)
+            # self.tool_model.emit_data_changed()
+            # Add path to config file
+            old_string = self._config.get('general', 'tools')
+            new_string = old_string + '\n' + open_path
+            self._config.set('general', 'tools', new_string)
+            self._config.save()
+            self.add_msg_signal.emit("Done", 1)
+        else:
+            # Tool already in model
+            self.add_msg_signal.emit("Tool '{0}' already available".format(tool.name), 0)
+            return
+
+    def remove_tool(self):
+        """Removes a tool from the ToolModel. Also removes the JSON
+        tool definition file path from the configuration file.
+        """
+        try:
+            index = self.ui.listView_tools.selectedIndexes()[0]
+            logging.debug("index:%s" % index)
+        except IndexError:
+            # Nothing selected
+            logging.debug("No Tool selected")
+            return
+        if not index.isValid():
+            logging.debug("Index not valid")
+            return
+        if index.row() == 0:
+            # Do not remove No Tool option
+            self.add_msg_signal.emit("'No Tool' cannot be removed", 0)
+            return
+        sel_tool = self.tool_model.tool(index.row())
+        tool_def_path = sel_tool.def_file_path
+        self.add_msg_signal.emit("Removing tool: {0}\nDefinition file path: {1}"
+                                 .format(sel_tool.name, tool_def_path), 0)
+        old_tool_paths = self._config.get('general', 'tools')
+        if tool_def_path in old_tool_paths:
+            if not self.tool_model.removeRow(index.row()):
+                self.add_msg_signal("Error in removing Tool {0}".format(sel_tool.name), 2)
+                return
+            new_tool_paths = old_tool_paths.replace('\n' + tool_def_path, '')
+            # self.add_msg_signal.emit("Old tools string:{0}".format(old_tool_paths), 0)
+            # self.add_msg_signal.emit("New tools string:{0}".format(new_tool_paths), 0)
+            self._config.set('general', 'tools', new_tool_paths)
+            self._config.save()
+            self.add_msg_signal.emit("Done", 1)
+        else:
+            self.add_msg_signal.emit("Path ({0}) not found in configuration file."
+                                     " Remove the path manually and restart Sceleton".format(tool_def_path), 0)
+            return
 
     def context_menu_configs(self, pos):
         """Context menu for the configuration tree.
@@ -507,12 +592,12 @@ class TitanUI(QMainWindow):
             # setup_index = self.setup_model.find_index(name)
             # setup = self.setup_model.get_setup(setup_index)
             self.add_msg_signal.emit("Changing Tool '%s' for Setup '%s'" % (tool.name, setup.name), 0)
-            setup.remove_tool()
+            setup.detach_tool()
             setup.add_input(tool)
-            setup.add_tool(tool, cmdline_args=cmdline_args)
+            setup.attach_tool(tool, cmdline_args=cmdline_args)
         else:
             self.add_msg_signal.emit("Removing Tool from Setup '%s'" % setup.name, 0)
-            setup.remove_tool()
+            setup.detach_tool()
         self.setup_model.emit_data_changed()
         return True
 
@@ -544,14 +629,14 @@ class TitanUI(QMainWindow):
             setup_index = self.setup_model.find_index(name)
             setup = self.setup_model.get_setup(setup_index)
             setup.add_input(tool)
-            setup.add_tool(tool, cmdline_args=cmdline_args)
+            setup.attach_tool(tool, cmdline_args=cmdline_args)
         return
 
     def execute_all(self):
         """Starts executing all Setups in the project."""
         self.exec_mode = 'all'
-        self.add_msg_signal.emit("Not implemented")
-        #self.execute_setup()
+        self.add_msg_signal.emit("Not implemented", 0)
+        # self.execute_setup()
 
     def execute_branch(self):
         """Starts executing a Setup branch."""
@@ -877,32 +962,3 @@ class TitanUI(QMainWindow):
         self._config.save()
         # noinspection PyArgumentList
         QApplication.quit()
-
-    # def create_setups_3(self):
-    #     """Creates 'invest' -> 'LP' branch and 'invest' -> MIP branches."""
-    #     # Load model definitions
-    #     magic_invest = GAMSModel.load(MAGIC_INVESTMENTS_JSON)
-    #     magic_operation = GAMSModel.load(MAGIC_OPERATION_JSON)
-    #     # Add Invest Setup
-    #     if not self.setup_model.insert_setup('invest', 'Do investments', self._project, 0):
-    #         logging.error("Adding 'invest' to model failed")
-    #         return
-    #     invest_ind = self.setup_model.index(0, 0, QModelIndex())
-    #     invest = self.setup_model.get_setup(invest_ind)
-    #     invest.add_input(magic_invest)
-    #     invest.add_tool(magic_invest, cmdline_args="--USE_MIP=yes")
-    #     # Add MIP as child of invest
-    #     if not self.setup_model.insert_setup('MIP', 'Operation with MIP model', self._project, 0, invest_ind):
-    #         logging.error("Adding 'MIP' to model failed")
-    #         return
-    #     mip_index = self.setup_model.index(0, 0, invest_ind)
-    #     mip = self.setup_model.get_setup(mip_index)
-    #     mip.add_input(magic_operation)
-    #     mip.add_tool(magic_operation, cmdline_args='--USE_MIP=yes')
-    #     # Add LP as child of invest
-    #     if not self.setup_model.insert_setup('LP', 'Operation with LP model', self._project, 0, invest_ind):
-    #         logging.error("Adding 'LP' to model failed")
-    #         return
-    #     lp_index = self.setup_model.index(0, 0, invest_ind)
-    #     lp = self.setup_model.get_setup(lp_index)
-    #     lp.add_tool(magic_operation, cmdline_args='--USE_MIP=no')
