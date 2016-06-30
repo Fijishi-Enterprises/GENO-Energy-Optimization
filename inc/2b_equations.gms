@@ -116,35 +116,41 @@ q_obj ..
 ;
 
 * -----------------------------------------------------------------------------
-q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t) and not gnData(grid, node, 'fixState')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
+q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t)) and not gnData(grid, node, 'fixState')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
     + v_state(grid, node, f, t)$(gnState(grid, node))   // The current state of the node
         * (   // This multiplication transforms the state energy into power, a result of implicit discretization
             + ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
-                / p_stepLength(m, f+pf(f,t), t+pt(t))   // Division by time step length
             + sum(node_$(gnnState(grid, node_, node)),  // Summation of the energy diffusion coefficients
                 + gnnData(grid, node_, node, 'DiffCoeff')   // Diffusion coefficients also transform energy terms into power
+                    * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiplication by time step to keep the equation in energy terms
               )
           )
     - v_state(grid, node, f+pf(f,t), t+pt(t))$(gnState(grid, node)) // The previous state of the node
         * ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
-        / p_stepLength(m, f+pf(f,t), t+pt(t))   // Division by time step length
-    =E= // The right side of the equation contains all the power terms
-    + sum(node_$(gnnState(grid, node, node_)),      // Energy diffusion between nodes
-        + gnnData(grid, node, node_, 'DiffCoeff') * v_state(grid, node_, f, t)  // Diffusion to/from other nodes
+    =E= // The right side of the equation contains all the power/energy terms
+    + (
+        + sum(node_$(gnnState(grid, node, node_)),      // Energy diffusion between nodes
+            + gnnData(grid, node, node_, 'DiffCoeff') * v_state(grid, node_, f, t)  // Diffusion to/from other nodes
+          )
+        + sum(from_node$(gn2n(grid, from_node, node)),  // Controlled energy transfer from other nodes to this one
+            + (1 - gnnData(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f, t)   // Include transfer losses
+          )
+        - sum(to_node$(gn2n(grid, node, to_node)),   // Controlled energy transfer to other nodes from this one
+            + v_transfer(grid, node, to_node, f, t)   // Transfer losses accounted for in the previous term
+          )
+        + sum(unit$(gnu(grid, node, unit) or gnu_input(grid, node, unit)),   // Interactions between the node and its units
+            + v_gen(grid, node, unit, f, t)   // Unit energy generation and consumption
+            $$ifi '%rampSched%' == 'yes' + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
+          ) // If ramp scheduling is turned on, use the average power between the time steps
+            $$ifi '%rampSched%' == 'yes' / 2
+        + sum(storage$gns(grid, node, storage),   // Interactions between the node and its storages
+            - v_stoCharge(grid, node, storage, f, t)   // Charging storages from the node
+            + v_stoDischarge(grid, node, storage, f, t)   // Discharging storages to the node
+            $$ifi '%rampSched%' == 'yes' - v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t)) + v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
+          ) // If ramp scheduling is turned on, use the average power terms between the time steps
+            $$ifi '%rampSched%' == 'yes' / 2
       )
-    + sum(from_node$(gn2n(grid, from_node, node)),  // Controlled energy transfer from other nodes to this one
-        + (1 - gnnData(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f, t)   // Include transfer losses
-      )
-    - sum(to_node$(gn2n(grid, node, to_node)),   // Controlled energy transfer to other nodes from this one
-        + v_transfer(grid, node, to_node, f, t)   // Transfer losses accounted for in the previous term
-      )
-    + sum(unit$(gnu(grid, node, unit) or gnu_input(grid, node, unit)),   // Interactions between the node and its units
-        + v_gen(grid, node, unit, f, t)   // Unit energy generation and consumption
-      )
-    + sum(storage$gns(grid, node, storage),   // Interactions between the node and its storages
-        - v_stoCharge(grid, node, storage, f, t)   // Charging storages from the node
-        + v_stoDischarge(grid, node, storage, f, t)   // Discharging storages to the node
-      )
+        * p_stepLength(m, f+pf(f,t), t+pt(t))   // Again, multiply by time step to get energy terms
     + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
     - ts_energyDemand_(grid, node, f, t)   // Energy demand from the node
     + vq_gen('increase', grid, node, f, t)   // Slack variable ensuring the energy dynamics are feasible.
@@ -197,21 +203,23 @@ q_maxUpward(gnu(grid, node, unit), ft(f, t))${      [unitMinLoad(unit) and gnuDa
   + v_gen.up(grid, node, unit, f, t) * [ v_online(node, unit, f, t)$nuData(node, unit, 'minLoad') + 1$(not nuData(node, unit, 'minLoad')) ]
 ;
 * -----------------------------------------------------------------------------
-q_storageDynamics(gns(grid, node, storage), m, ft(f, t)) ..
-  + v_stoContent(grid, node, storage, f, t)
-  =E=
-  + v_stoContent(grid, node, storage, f+pf(f,t), t+pt(t)) * (1 - gnsData(grid, node, storage, 'selfDischarge'))
-  + ts_inflow_(storage, f+pf(f,t), t+pt(t))
-  + vq_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
-  + p_stepLength(m, f+pf(f,t), t+pt(t)) *
-    ( + v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
-      - v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
-      - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))
-      $$ifi '%rampSched%' == 'yes' + v_stoCharge(grid, node, storage, f, t)
-      $$ifi '%rampSched%' == 'yes' - v_stoDischarge(grid, node, storage, f, t)
-      $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, storage, f, t)
-    )  // In case rampSched is used and the division by 2 on the next line is valid
-    $$ifi '%rampSched%' == 'yes' / 2
+q_storageDynamics(gns(grid, node, storage), m, ft(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t))) ..
+    + v_stoContent(grid, node, storage, f, t)
+        * (1 + gnsData(grid, node, storage, 'selfDischarge'))
+    - v_stoContent(grid, node, storage, f+pf(f,t), t+pt(t))
+    =E=
+    + ts_inflow_(storage, f, t)
+    + vq_stoCharge(grid, node, storage, f, t)
+    + (
+        + v_stoCharge(grid, node, storage, f, t)
+        - v_stoDischarge(grid, node, storage, f, t)
+        - v_spill(grid, node, storage, f, t)
+        $$ifi '%rampSched%' == 'yes' + v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
+        $$ifi '%rampSched%' == 'yes' - v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
+        $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))
+      )  // In case rampSched is used and the division by 2 on the next line is valid
+        $$ifi '%rampSched%' == 'yes' / 2
+        * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiply by time step to get energy terms instead of power
 ;
 * -----------------------------------------------------------------------------
 q_storageConversion(gns(grid, node, storage), ft(f, t)) ..
