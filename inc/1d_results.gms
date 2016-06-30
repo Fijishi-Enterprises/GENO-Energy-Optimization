@@ -3,6 +3,7 @@ Parameters
     r_stoContent(storage, t) "Storage content at end of hour (MWh)"
     r_onlineCap(unit, t) "Online capacity of a unit during hour (MW)"
     r_gen(grid, unit, t) "Energy generation for a unit (MW)"
+    r_genFuel(grid, node, fuel, t) "Energy generation/consumption based on fuels / flows (MW)"
     r_elec_type(genType, t) "Average electricity generation rate of generator type (MW)"
     r_demand(node, t) "Average energy demand (MW)"
     r_transfer(node, node, t) "Energy transfer (MW)"
