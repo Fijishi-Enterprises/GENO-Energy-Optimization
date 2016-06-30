@@ -7,6 +7,7 @@ Created on Thu Jan 21 13:27:34 2016
 
 import os.path
 import json
+import logging
 
 from tool import Tool, ToolInstance, DataFormat, Dimension, DataParameter,\
                  CSV_DATA_FMT
@@ -91,7 +92,12 @@ class GAMSModel(Tool):
     def load(jsonfile):
         """Load a tool description from a file"""
         with open(jsonfile, 'r') as fp:
-            json_data = json.load(fp)
+            try:
+                json_data = json.load(fp)
+            except json.decoder.JSONDecodeError as e:
+                logging.debug("Error reading tool description file '{}'".format(jsonfile))
+                logging.debug(e)
+                return None
 
         # Find required and optional arguments
         required = ['name', 'description', 'main_prgm']
