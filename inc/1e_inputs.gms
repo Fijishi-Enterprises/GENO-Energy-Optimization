@@ -50,7 +50,7 @@ gn2n(grid, from_node, to_node)$gnnData(grid, from_node, to_node, 'transferCap') 
 node_to_node(from_node, to_node)$gnnData('elec', from_node, to_node, 'transferCap') = yes;
 gnnBoundState(grid, node, node_)$(gnnData(grid, node, node_, 'BoundStateOffset')) = yes;
 gnnState(grid, node, node_)$(gnnData(grid, node, node_, 'DiffCoeff') or gnnBoundState(grid, node, node_)) = yes;
-gnState(grid, node)$(sum(param_gn, gnData(grid, node, param_gn)) or sum(node_, gnnState(grid, node, node_))) = yes;
+gnState(grid, node)$(sum(param_gn, gnData(grid, node, param_gn)) or sum(node_, gnnState(grid, node, node_)) or sum(node_, gnnState(grid, node_, node))) = yes;
 gn(grid, node)$(sum(unit, gnu(grid, node, unit)) or gnState(grid, node)) = yes;
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);

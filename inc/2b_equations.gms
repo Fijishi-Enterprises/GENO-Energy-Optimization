@@ -100,7 +100,7 @@ q_obj ..
     // Dummy variables
     + sum(msft(m, s, f, t), p_sProbability(s) * p_fProbability(f) * (
           sum(inc_dec,
-              sum( gn(grid, node), vq_gen(inc_dec, grid, node, f, t) * p_stepLength(m, f, t) * PENALTY_BALANCE(grid) )
+              sum( gn(grid, node)$(not gnData(grid, node, 'fixState')), vq_gen(inc_dec, grid, node, f, t) * p_stepLength(m, f, t) * PENALTY_BALANCE(grid) )
           )
           + sum((resType, resDirection, node),
                 vq_resDemand(resType, resDirection, node, f, t)
@@ -116,7 +116,7 @@ q_obj ..
 ;
 
 * -----------------------------------------------------------------------------
-q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t)>0) ..   // Energy/power balance dynamics solved using implicit Euler discretization
+q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f, t) and not gnData(grid, node, 'fixState')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
     + v_state(grid, node, f, t)$(gnState(grid, node))   // The current state of the node
         * (   // This multiplication transforms the state energy into power, a result of implicit discretization
             + ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
