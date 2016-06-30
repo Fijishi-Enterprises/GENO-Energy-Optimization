@@ -21,7 +21,7 @@
                         ts_energyDemand_(gn(grid, node), f, t)$mf(mSolve,f) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
-                                   ], ts_energyDemand(grid, node, f, t_)} / p_stepLength(mSolve, f, t);
+                                   ], ts_energyDemand(grid, node, f, t_)};
                         ts_inflow_(unitHydro, f, t)$mf(mSolve,f) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
@@ -33,7 +33,7 @@
                         ts_import_(gn(grid, node), t) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
-                                   ], ts_import(grid, node, t_)} / sum(f$fRealization(f), p_stepLength(mSolve, f, t));
+                                   ], ts_import(grid, node, t_)};
                         ts_cf_(flow, node, f, t)$mf(mSolve,f) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
