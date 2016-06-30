@@ -43,6 +43,7 @@ Model schedule /
     q_maxDownward
     q_maxUpward
     q_storageDynamics
+    q_storageConversion
     q_bindStorage
     q_startup
     q_bindOnline
@@ -54,4 +55,5 @@ Model schedule /
     q_stoMaxContent
     q_maxHydropower
     q_transferLimit
+    q_boundState
 /;

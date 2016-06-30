@@ -29,7 +29,7 @@
                         ts_inflow_(storageHydro, f, t)$mf(mSolve,f) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
-                                   ], ts_inflow(storageHydro, f, t_)} / p_stepLength(mSolve, f, t);
+                                   ], ts_inflow(storageHydro, f, t_)};
                         ts_import_(gn(grid, node), t) =
                             sum{t_$[ ord(t_) >= tElapsed + tCounter
                                      and ord(t_) < tElapsed + tCounter + mInterval(mSolve, 'intervalLength', counter)
