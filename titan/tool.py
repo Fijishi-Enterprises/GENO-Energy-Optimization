@@ -472,7 +472,7 @@ class Setup(MetaObject):
         """
         logging.info("Executing Setup '{}'".format(self.name))
         if self.is_ready:
-            logging.debug("Setup '{}' ready. Starting next Setup in SetupTree".format(self.name))
+            logging.debug("Setup '{}' ready. Starting next Setup".format(self.name))
             self.setup_finished_signal.emit()
             return
         # TODO: If the assigned Tool of Setup is not available in ToolModel then execution should fail.
@@ -502,7 +502,6 @@ class Setup(MetaObject):
             logging.debug("Setup <%s> finished successfully. Setting is_ready to True" % self.name)
             self.is_ready = True
         else:
-            self._parent.add_msg_signal.emit("Setup <%s> failed. is_ready is False" % self.name, 2)
             logging.debug("Setup <%s> failed. is_ready is False" % self.name)
             self.is_ready = False
         # Run next Setup
