@@ -62,7 +62,7 @@ class SetupModel(QAbstractItemModel):
         Args:
             parent (QModelIndex): Index of parent Setup
         """
-        return 1
+        return 3
 
     def data(self, index, role=None):
         """Set data for model.
@@ -81,9 +81,22 @@ class SetupModel(QAbstractItemModel):
             return None
         setup = index.internalPointer()
         if index.column() == 0:
+            # Show Setup name in the first column
             if setup.is_ready:
                 return setup.name + " (Ready)"
             return setup.name
+        elif index.column() == 1:
+            # Show Setup Tool in the second column
+            if not setup.tool:
+                return ''
+            else:
+                return setup.tool.name
+        elif index.column() == 2:
+            # Show cmdline_args in the third column
+            if not setup.tool:
+                return ''
+            else:
+                return setup.cmdline_args
 
     def flags(self, index):
         """Set flags for the item requested by view.
@@ -109,9 +122,11 @@ class SetupModel(QAbstractItemModel):
         """
         if role == Qt.DisplayRole:
             if section == 0:
-                return "Setups"
-            else:
-                return "FixMe"
+                return "Setup"
+            elif section == 1:
+                return "Tool"
+            elif section == 2:
+                return "Command Line Args"
         else:
             return QVariant()
 

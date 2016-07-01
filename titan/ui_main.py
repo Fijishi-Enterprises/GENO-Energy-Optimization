@@ -13,7 +13,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog
 from ui.main import Ui_MainWindow
 from project import SceletonProject
-from models import SetupModel, ToolProxyModel, ToolModel
+from models import SetupModel, ToolModel
 from tool import Setup
 from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
 from config import ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
@@ -51,7 +51,6 @@ class TitanUI(QMainWindow):
         self.setup_model = None
         self.tool_model = None
         self.modeltest = None
-        self.tool_proxy_model = None
         self.setup_dict = dict()
         self.exec_mode = ''
         # References for widgets
@@ -98,7 +97,6 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_clear_gams_output.clicked.connect(lambda: self.ui.textBrowser_process_output.clear())
         self.ui.pushButton_test.clicked.connect(self.traverse_model)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
-        self.ui.treeView_setups.pressed.connect(self.update_tool_view)
         self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
         self.ui.toolButton_add_tool.clicked.connect(self.add_tool)
         self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)
@@ -109,17 +107,12 @@ class TitanUI(QMainWindow):
         self._root = Setup('root', 'root node for Setups,', self._project)
         # Create model for Setups
         self.setup_model = SetupModel(self._root)
-        # Start model test for SetupModel
-        # self.modeltest = ModelTest(self.setup_model, self._root)
-        self.init_tool_model()
         # Set SetupModel to QTreeView
         self.ui.treeView_setups.setModel(self.setup_model)
-        # Make a ProxyModel to show the tool associated with the selected Setup
-        self.tool_proxy_model = ToolProxyModel(self.ui)
-        self.tool_proxy_model.setSourceModel(self.setup_model)
-        self.ui.listView_tool.setModel(self.tool_proxy_model)
-        # Set ToolModel to available Tools view
-        # self.ui.listView_tools.setModel(self.tool_model)
+        # Initialize Tool model
+        self.init_tool_model()
+        # Start model test for SetupModel
+        # self.modeltest = ModelTest(self.setup_model, self._root)
 
     def init_tool_model(self):
         """Create model for tools"""
@@ -163,7 +156,7 @@ class TitanUI(QMainWindow):
             self.delete_all_no_confirmation()
         self._root = None
         self.setup_model = None
-        self.tool_proxy_model = None
+        # TODO: Check if self.tool_model should be initialized here
         # Set project to None
         self._project = None
         # Clear text browsers
@@ -925,6 +918,7 @@ class TitanUI(QMainWindow):
 
     def traverse_model(self):
         """Print Setup tree model."""
+        # TODO: Do not crash if SetupModel is empty
         def traverse(item):
             logging.debug("\t" * traverse.level + item.name)
             for kid in item.children():
@@ -934,17 +928,6 @@ class TitanUI(QMainWindow):
         traverse.level = 1
         # Traverse tree starting from root
         traverse(self._root)
-
-    @pyqtSlot("QModelIndex")
-    def update_tool_view(self, index):
-        """Update tool name of selected Setup to tool QListView.
-
-        Args:
-            index (QModelIndex): Index of selected item.
-        """
-        if not index.isValid():
-            return
-        self.tool_proxy_model.emit_data_changed()
 
     def closeEvent(self, event):
         """Method for handling application exit.

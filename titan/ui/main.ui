@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1094</width>
+    <width>1230</width>
     <height>738</height>
    </rect>
   </property>
@@ -97,19 +97,6 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
-            <spacer name="verticalSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
             <widget class="QPushButton" name="pushButton_delete_setup">
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Delete selected Setup and all of it's children&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -132,6 +119,19 @@
           </layout>
          </widget>
         </item>
+        <item>
+         <spacer name="horizontalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
        </layout>
       </item>
       <item>
@@ -152,34 +152,14 @@
       </item>
       <item>
        <widget class="QTreeView" name="treeView_setups">
+        <property name="minimumSize">
+         <size>
+          <width>400</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="contextMenuPolicy">
          <enum>Qt::CustomContextMenu</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_3">
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <property name="text">
-         <string>Tool</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QListView" name="listView_tool">
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>60</height>
-         </size>
         </property>
        </widget>
       </item>
@@ -412,7 +392,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1094</width>
+     <width>1230</width>
      <height>21</height>
     </rect>
    </property>
@@ -556,7 +536,6 @@
   <tabstop>pushButton_execute_all</tabstop>
   <tabstop>pushButton_delete_all</tabstop>
   <tabstop>treeView_setups</tabstop>
-  <tabstop>listView_tool</tabstop>
  </tabstops>
  <resources/>
  <connections/>
