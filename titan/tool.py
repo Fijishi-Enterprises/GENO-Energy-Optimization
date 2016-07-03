@@ -32,7 +32,7 @@ class MyEncoder(json.JSONEncoder):
 class Tool(MetaObject):
     """Class for defining a tool"""
 
-    def __init__(self, name, description, path, main_prgm,
+    def __init__(self, name, description, path, files,
                  infiles=[], infiles_opt=[],
                  outfiles=[], short_name=None,
                  logfile=None, cmdline_args=None):
@@ -42,7 +42,8 @@ class Tool(MetaObject):
             name (str): Name of the tool
             description (str): Short description of the tool
             path (str): Path to tool or Git repository
-            main_prgm (str): Main program file (relative to `path`)
+            files (str): List of files belonging to the tool (relative to `path`)
+                         First file in the list is the main program file.
             input_dir (str): Path where the tool looks for its input (relative to `path`)
             infiles (list, optional): List of required input files
             infiles_opt (list, optional): List of optional input files (wildcards may be used)
@@ -57,7 +58,8 @@ class Tool(MetaObject):
             pass  # TODO: Do something here
         else:
             self.path = path
-        self.main_prgm = main_prgm
+        self.files = files
+        self.main_prgm = files[0]
         self.cmdline_args = cmdline_args
         self.infiles = set(infiles)
         self.infiles_opt = set(infiles_opt)
@@ -129,7 +131,10 @@ class ToolInstance(QObject):
         super().__init__()
         self.tool = tool
         self.tool_process = None
-        self.basedir = self._checkout()
+        self.basedir = tempfile.mkdtemp(dir=WORK_DIR,
+                                        prefix=self.tool.short_name + '__')
+        if not self._checkout:
+            raise OSError("Could not create tool instance")
         self.command = os.path.join(self.basedir, tool.main_prgm)
         if cmdline_args is not None:
             self.command += ' ' + cmdline_args
@@ -138,10 +143,29 @@ class ToolInstance(QObject):
         self.tool_output_dir = tool_output_dir
         self.outfiles = [os.path.join(self.basedir, f) for f in tool.outfiles]
 
+    @property
     def _checkout(self):
-        """Copy tool to a temporary directory."""
-        basedir = os.path.join(WORK_DIR, '{}__{}'.format(self.tool.short_name, next(tempfile._get_candidate_names())))
-        return shutil.copytree(self.tool.path, basedir, ignore=shutil.ignore_patterns(*IGNORE_PATTERNS))
+        """Copy the tool files to the instance base directory"""
+        for filepath in self.tool.files:
+            dirname, filename = os.path.split(filepath)
+            src = os.path.join(self.tool.path, filepath)
+            dst = os.path.join(self.basedir, filepath)
+            # Create the destination directory
+            try:
+                os.makedirs(os.path.join(self.basedir, dirname), exist_ok=True)
+            except OSError as e:
+                logging.debug(e)
+                return False
+            logging.debug("Copying file {} to {}".format(src, dst))
+            # Copy file if necessary
+            if filename:
+                try:
+                    shutil.copyfile(src, dst)
+                except OSError:
+                    logging.debug(e)
+                    return False
+        logging.debug("Copied all files for tool '{}'".format(self.tool.name))
+        return True
 
     def execute(self, ui):
         """Start executing tool instance in QProcess.
@@ -317,7 +341,8 @@ class Setup(MetaObject):
             cmdline_args (str, optional): Extra command line arguments for this tool
         """
         # Create path for setup output directory
-        self.output_dir = os.path.join(self.project.project_dir, OUTPUT_STORAGE_DIR,
+        self.output_dir = os.path.join(self.project.project_dir,
+                                       OUTPUT_STORAGE_DIR,
                                        self.short_name)
         create_dir(self.output_dir)
         # TODO: When adding a model to a Setup, all its parents (at least Base) must have an input
