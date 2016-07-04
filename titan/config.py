@@ -33,12 +33,6 @@ WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'
 
 # Tool model path
 MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'tools', 'magic'))
-# Tool definition file paths
-# MAGIC_INVESTMENTS_JSON = os.path.join(MAGIC_MODEL_PATH, "magic_invest.json")
-# MAGIC_OPERATION_JSON = os.path.join(MAGIC_MODEL_PATH, "magic_operation.json")
-# Make a newline separated string for tool definition file paths
-# tools = '\n' + MAGIC_INVESTMENTS_JSON + '\n' + MAGIC_OPERATION_JSON
-# OLD_MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'tools', 'old_magic'))
 
 # GAMS
 GAMS_EXECUTABLE = 'gams'

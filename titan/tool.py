@@ -7,7 +7,8 @@ File defines Tool class and related classes.
 
 import os
 import shutil
-import glob, fnmatch
+import glob
+import fnmatch
 import logging
 import json
 import tempfile
@@ -67,7 +68,7 @@ class Tool(MetaObject):
         if logfile is not None:
             self.outfiles.add(logfile)
         self.return_codes = {}
-        self.def_file_path = ''  # Definition file path (JSON)
+        self.def_file_path = ''  # Tool definition file path (JSON)
 
     def set_return_code(self, code, description):
         """Set a return code and associated text description for the tool.
@@ -94,14 +95,12 @@ class Tool(MetaObject):
         return ToolInstance(self, cmdline_args, tool_output_dir)
         
     def load(self):
-        #TODO
+        # TODO
         pass
 
-    def save(self):  #TODO: This is obsolete
-        """Save tool object to disk
-        """        
+    def save(self):  # TODO: This is obsolete
+        """Save tool object to disk."""
         the_dict = copy(self.__dict__)
-
         jsonfile = os.path.join(self.path,
                                 '{}.json'.format(self.short_name))
         with open(jsonfile, 'w') as fp:
@@ -118,6 +117,7 @@ class Tool(MetaObject):
 
 class ToolInstance(QObject):
     """Class for Tool instances."""
+
     instance_finished_signal = pyqtSignal(int)
 
     def __init__(self, tool, cmdline_args=None, tool_output_dir=''):
@@ -163,7 +163,7 @@ class ToolInstance(QObject):
                     logging.debug("Copying file {} to {}".format(src_file, dst_file))
                     try:
                         shutil.copyfile(src_file, dst_file)
-                    except OSError:
+                    except OSError as e:
                         logging.debug(e)
                         return False
         logging.debug("Copied all files for tool '{}'".format(self.tool.name))
@@ -177,7 +177,7 @@ class ToolInstance(QObject):
         """
         self.tool_process = qsubprocess.QSubProcess(ui, self.tool)
         self.tool_process.subprocess_finished_signal.connect(self.tool_finished)
-        logging.debug("Starting model: '%s'" % self.tool.name)
+        logging.debug("Starting Tool: '%s'" % self.tool.name)
         # Start running model in sub-process
         self.tool_process.start_process(self.command)
 
@@ -193,12 +193,12 @@ class ToolInstance(QObject):
             return_msg = self.tool.return_codes[ret]
             logging.debug("GAMS Return code:%d. Message: %s" % (ret, return_msg))
         except KeyError:
-            logging.debug("Unknown return code")
+            logging.error("Unknown return code")
         finally:
             logging.debug("Tool '%s' finished." % self.tool.name)
             # TODO: Check that copy_output works. invest and MIP output folders are now the same.
             if not self.copy_output(self.tool_output_dir):
-                logging.error("Copying output files to folder '{0}' failed".format(dst_folder))
+                logging.error("Copying output files to folder '{0}' failed".format(self.tool_output_dir))
             else:
                 logging.debug("Output files copied to <%s>" % self.tool_output_dir)
             # Emit signal to Setup that tool instance has finished with GAMS return code
@@ -347,19 +347,15 @@ class Setup(MetaObject):
                                        OUTPUT_STORAGE_DIR,
                                        self.short_name)
         create_dir(self.output_dir)
-        # TODO: When adding a model to a Setup, all its parents (at least Base) must have an input
-        # TODO: folder with model name. e.g /input/base/magic
-        # Add tool to Setup. If Setup already had a tool, it is replaced with the new one.
-        # self.tools.update({tool: cmdline_args})
         if self.tool is not None:
             logging.warning("Replacing tool '{0}' with tool '{1}' in Setup '{2}'"
                             .format(self.tool.name, tool.name, self.name))
         self.tool = tool
         self.cmdline_args = cmdline_args
         # Create model input and output directories for the Setup
-        #input_dir = create_dir(self.input_dir, tool.short_name)  #TODO: remove?
-        #output_dir = create_dir(self.output_dir, tool.short_name)  #TODO: remove?
-        #if (input_dir is None) or (output_dir is None):  #TODO: remove?
+        # input_dir = create_dir(self.input_dir, tool.short_name)  # TODO: remove?
+        # output_dir = create_dir(self.output_dir, tool.short_name)  # TODO: remove?
+        # if (input_dir is None) or (output_dir is None):  # TODO: remove?
         #    return False
         logging.debug("Tool '{0}' with cmdline args '{1}' added to Setup '{2}'"
                       .format(self.tool.name, self.cmdline_args, self.name))
@@ -368,21 +364,17 @@ class Setup(MetaObject):
     def detach_tool(self):
         """Remove inputs, Tool and command line arguments from Setup.
         Used when the Tool is changed."""
-        self.inputs = None
-        self.inputs = set()
         self.tool = None
         self.cmdline_args = ""
         # TODO: Add cleanup of output dir
 
     def get_input_files(self):
-        """Get list of all input files in this setup
-        """
+        """Get list of all input files in this setup."""
         return os.listdir(self.input_dir)
 
     def get_output_files(self):
-        """Get list of all output files in this setup
-        (Lists input files if there is no tool).
-        """
+        """Get list of all output files in this setup.
+        Lists input files if there is no tool."""
         return os.listdir(self.output_dir)
 
     def find_input_file(self, fname, is_ancestor=False):
@@ -402,7 +394,7 @@ class Setup(MetaObject):
         if not is_ancestor:
             if fname in self.get_input_files():
                 return os.path.join(self.input_dir, fname)
-        # Look at anchestor's output
+        # Look at ancestor's output
         else:
             if fname in self.get_output_files():
                 return os.path.join(self.output_dir, fname)
@@ -430,7 +422,7 @@ class Setup(MetaObject):
         if not is_ancestor:
             src_files = self.get_input_files()
             src_dir = self.input_dir
-        # ...or look in anchestors' output
+        # ...or look in ancestors' output
         else:
             src_files = self.get_output_files()
             src_dir = self.output_dir
@@ -459,8 +451,6 @@ class Setup(MetaObject):
         the_dict = {}
         if self._parent is not None:
             the_dict['parent'] = self._parent.short_name
-        # if len(self.tools) > 0:
-        #     the_dict['processes'] = [p.tool.short_name for p in self.tools]
         if self.tool:
             the_dict['processes'] = [self.tool.short_name]
         the_dict['is_ready'] = self.is_ready

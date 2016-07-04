@@ -576,14 +576,12 @@ class TitanUI(QMainWindow):
         Returns:
             Boolean value depending on operation success
         """
-        # TODO: Tool view is not updated when going from 'No Tool' to some Tool
         # Add tool to Setup
         if tool is not None:
             # setup_index = self.setup_model.find_index(name)
             # setup = self.setup_model.get_setup(setup_index)
             self.add_msg_signal.emit("Changing Tool '%s' for Setup '%s'" % (tool.name, setup.name), 0)
             setup.detach_tool()
-            setup.add_input(tool)
             setup.attach_tool(tool, cmdline_args=cmdline_args)
         else:
             self.add_msg_signal.emit("Removing Tool from Setup '%s'" % setup.name, 0)
@@ -664,7 +662,7 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("Executing all Setups in Project '{0}'\n".format(self._project.name), 0)
             # TODO: Return if no Setups in project
             self.setup_model.set_base(QModelIndex())
-            #self._running_setup = self.setup_model.get_base().internalPointer()
+            # self._running_setup = self.setup_model.get_base().internalPointer()
             self._running_setup = self.setup_model.get_root()
             logging.debug("running_setup name: %s" % self._running_setup.name)
         # Connect setup_finished_signal to setup_done slot
