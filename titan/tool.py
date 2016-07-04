@@ -147,23 +147,25 @@ class ToolInstance(QObject):
     def _checkout(self):
         """Copy the tool files to the instance base directory"""
         for filepath in self.tool.files:
-            dirname, filename = os.path.split(filepath)
-            src = os.path.join(self.tool.path, filepath)
-            dst = os.path.join(self.basedir, filepath)
+            dirname, file_pattern = os.path.split(filepath)
+            src_dir = os.path.join(self.tool.path, dirname)
+            dst_dir = os.path.join(self.basedir, dirname)
             # Create the destination directory
             try:
-                os.makedirs(os.path.join(self.basedir, dirname), exist_ok=True)
+                os.makedirs(dst_dir, exist_ok=True)
             except OSError as e:
                 logging.debug(e)
                 return False
-            logging.debug("Copying file {} to {}".format(src, dst))
             # Copy file if necessary
-            if filename:
-                try:
-                    shutil.copyfile(src, dst)
-                except OSError:
-                    logging.debug(e)
-                    return False
+            if file_pattern:
+                for src_file in glob.glob(os.path.join(src_dir, file_pattern)):
+                    dst_file = os.path.join(dst_dir, os.path.basename(src_file))
+                    logging.debug("Copying file {} to {}".format(src_file, dst_file))
+                    try:
+                        shutil.copyfile(src_file, dst_file)
+                    except OSError:
+                        logging.debug(e)
+                        return False
         logging.debug("Copied all files for tool '{}'".format(self.tool.name))
         return True
 
