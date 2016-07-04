@@ -16,7 +16,7 @@ from config import GAMS_EXECUTABLE
 class GAMSModel(Tool):
     """Class for GAMS models."""
 
-    def __init__(self, name, description, path, main_prgm,
+    def __init__(self, name, description, path, files,
                  infiles=[], infiles_opt=[], outfiles=[],
                  short_name=None, cmdline_args=None):
         """Class constructor.
@@ -24,7 +24,8 @@ class GAMSModel(Tool):
         Args:
             name (str): Model name
             description (str): Model description
-            gamsfile (str): Path to main GAMS program (relative to `path`)
+            files (str): List of files belonging to the model (relative to `path`)
+                         First file in the list is the main GAMS program.
             input_dir (str): Path where the tool looks for its input (relative to `path`)
             infiles (list, optional): List of required input files
             infiles_opt (list, optional): List of optional input files (wildcards may be used)
@@ -33,13 +34,13 @@ class GAMSModel(Tool):
             short_name (str, optional): Short name for the model
             cmdline_args (str, optional): GAMS command line arguments
         """
-        super().__init__(name, description, path, main_prgm,
+        super().__init__(name, description, path, files,
                          infiles, infiles_opt, outfiles, short_name,
                          cmdline_args=cmdline_args)
         self.GAMS_parameters = "Logoption=3"  # send LOG output to STDOUT
         # Add .log and .lst files to list of outputs
-        self.outfiles.add(os.path.splitext(main_prgm)[0] + '.log')
-        self.outfiles.add(os.path.splitext(main_prgm)[0] + '.lst')
+        self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.log')
+        self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.lst')
         # Logoption options
         # 0 suppress LOG output
         # 1 LOG output to screen (default)
@@ -101,7 +102,7 @@ class GAMSModel(Tool):
                 return None
 
         # Find required and optional arguments
-        required = ['name', 'description', 'main_prgm']
+        required = ['name', 'description', 'files']
         optional = ['short_name', 'infiles', 'infiles_opt',
                     'outfiles', 'cmdline_args']
 
@@ -121,29 +122,5 @@ class GAMSModel(Tool):
 
         # Create a GAMSModel instance
         model = GAMSModel(**kwargs)
-
-        # Define other attributes
-        try:
-            model.dimensions = json_data['dimensions']
-        except KeyError:
-            pass
-
-        for p in ['inputs', 'outputs']:
-            try:
-                data = json_data[p]
-            except KeyError:
-                pass
-            else:
-                setattr(model, p, set([DataParameter(p['name'], p['description'],
-                                                     p['units'], p['indices'])
-                                       for p in data]))
-
-        for p in ['input_formats', 'output_formats']:
-            try:
-                formats = json_data[p]
-            except KeyError:
-                pass
-            else:
-                setattr(model, p, set([eval(fmt) for fmt in formats]))
 
         return model
