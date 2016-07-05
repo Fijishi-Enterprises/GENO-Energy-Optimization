@@ -97,7 +97,8 @@ class GAMSModel(Tool):
             try:
                 json_data = json.load(fp)
             except json.decoder.JSONDecodeError as e:
-                logging.debug("Error reading tool description file '{}'".format(jsonfile))
+                logging.debug("Error reading tool description file '{}'"
+                              .format(jsonfile))
                 logging.debug(e)
                 return None
 
@@ -120,7 +121,5 @@ class GAMSModel(Tool):
 
         kwargs['path'] = os.path.dirname(jsonfile)  # Infer path form JSON file
 
-        # Create a GAMSModel instance
-        model = GAMSModel(**kwargs)
-
-        return model
+        # Return a GAMSModel instance
+        return GAMSModel(**kwargs)

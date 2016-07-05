@@ -521,31 +521,25 @@ class Setup(MetaObject):
         else:
             input_dir = tool.path  # Run tool in /models/ directory
 
-        # Process required input files
-        for path in tool.infiles:
-            prefix, fname = os.path.split(path)
-            src_path = self.find_input_file(fname)
-            if not src_path:
-                logging.debug("Could not find required input file '{}'"
-                              .format(fname))
-                return False
-            else:
-                dst_dir = os.path.join(input_dir, prefix)
-                shutil.copy(src_path, dst_dir)
-                logging.debug("Copied file '{}' to: {}".format(src_path, dst_dir))
-
-        # Process optional input files
-        for path in tool.infiles_opt:
-            prefix, fname = os.path.split(path)
+        # Process required and optional input files
+        for filepath in tool.infiles | tool.infiles_opt:
+            prefix, filename = os.path.split(filepath)
             dst_dir = os.path.join(input_dir, prefix)
-            if '*' in fname:
-                src_paths = self.find_input_files(fname)
+            if '*' in filename:  # Deal with wildcards
+                found_files = self.find_input_files(filename)
             else:
-                src_path = self.find_input_file(fname)
-                src_paths = [src_path] if src_path else []
-            for src_path in src_paths:
-                shutil.copy(src_path, dst_dir)
-                logging.debug("Copied file '{}' to: {}".format(src_path, dst_dir))
+                found_file = self.find_input_file(filename)
+                # Required file not found
+                if filepath in tool.infiles and not found_file:
+                    logging.debug("Could not find required input file '{}'"
+                                  .format(filename))
+                    return False
+                # Construct a list
+                found_files = [found_file] if found_file else []
+            # Do copying
+            for src_file in found_files:
+                shutil.copy(src_file, dst_dir)
+                logging.debug("Copied file '{}' to: {}".format(src_file, dst_dir))
 
         logging.debug("Copied input files for '{}'".format(tool.name))
         return True
