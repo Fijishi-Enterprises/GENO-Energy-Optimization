@@ -7,5 +7,5 @@
     "infiles": ["input/data.gdx"],
     "infiles_opt": ["input/changes.inc",
                     "input/magic_*.dat"],
-    "output": ["output/investments.gdx", "output/report.gdx"]
+    "outfiles": ["output/investments.gdx", "output/report.gdx"]
 }
