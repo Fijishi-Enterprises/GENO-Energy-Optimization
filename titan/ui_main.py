@@ -51,7 +51,6 @@ class TitanUI(QMainWindow):
         self.setup_model = None
         self.tool_model = None
         self.modeltest = None
-        self.setup_dict = dict()
         self.exec_mode = ''
         # References for widgets
         self.setup_form = None
@@ -146,8 +145,8 @@ class TitanUI(QMainWindow):
             # logging.debug("Previous project not found")
             return
         if not self.load_project(project_file_path):
-            logging.error("Error loading project from file: %s" % project_file_path)
-            return
+            logging.error("Loading project failed. File: %s" % project_file_path)
+        return
 
     def clear_ui(self):
         """Clear UI when starting a new project or loading a project."""
@@ -156,7 +155,6 @@ class TitanUI(QMainWindow):
             self.delete_all_no_confirmation()
         self._root = None
         self.setup_model = None
-        # TODO: Check if self.tool_model should be initialized here
         # Set project to None
         self._project = None
         # Clear text browsers
@@ -185,10 +183,6 @@ class TitanUI(QMainWindow):
 
     def save_project_as(self):
         """Save Setups in project to disk. Ask file name from user."""
-        if self._root.child_count() == 0:
-            self.ui.statusbar.showMessage("No Setups to Save", 5000)
-            return
-        # Open file dialog to query save file name
         # noinspection PyCallByClass, PyTypeChecker
         dir_path = QFileDialog.getSaveFileName(self, 'Save project', PROJECT_DIR, 'JSON (*.json)')
         file_path = dir_path[0]
@@ -200,116 +194,29 @@ class TitanUI(QMainWindow):
         file_name = os.path.split(file_path)[-1]
         proj_name = os.path.splitext(file_name)[0]
         proj_desc = ''
-        self._project = SceletonProject(proj_name, proj_desc)
-        self.add_msg_signal.emit("Saving project '{0}' to file: <{1}>".format(self._project.name, file_name), 0)
-        self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
-        self.save(file_path)
+        self.create_project(proj_name, proj_desc)
 
     def save_project(self):
         """Save Setups in project to disk. Use project name as file name."""
+        if not self._project:
+            # If project is not found, create a new one before continuing
+            msg = 'No project open. Create a new one?'
+            # noinspection PyCallByClass, PyTypeChecker
+            answer = QMessageBox.question(self, 'No Project', msg, QMessageBox.Yes, QMessageBox.No)
+            if answer == QMessageBox.Yes:
+                logging.debug("Creating a new project")
+                self.new_project()
+                return
+            else:
+                logging.debug("Cancelled")
+                return
         # Use project name as file name
-        file_name = os.path.join(PROJECT_DIR, '{}.json'.format(self._project.short_name))
-        self.add_msg_signal.emit("Saving project -> {0}".format(file_name), 0)
-        self.save(file_name)
-
-    def save(self, fname):
-        """Project information and Setups are collected to their own dictionaries.
-        These dictionaries are then saved into another dictionary, which is saved to a
-        JSON file.
-
-        Args:
-            fname (str): Path to the save file.
-        """
-        # Clear Setup dictionary
-        self.setup_dict.clear()
-        project_dict = dict()  # This is written to JSON file
-        dic = dict()  # This is an intermediate dictionary to hold project info
-        dic['name'] = self._project.name
-        dic['desc'] = self._project.description
-        # Save project stuff
-        project_dict['project'] = dic
-
-        def traverse(item):
-            # Helper function to traverse tree
-            logging.debug("\t" * traverse.level + item.name)
-            if not item.name == 'root':
-                self.update_json_dict(item)
-            for kid in item.children():
-                traverse.level += 1
-                traverse(kid)
-                traverse.level -= 1
-        traverse.level = 1
-        # Traverse tree starting from root
-        traverse(self._root)
-
-        # Save Setups into dictionary
-        project_dict['setups'] = self.setup_dict
-        # Write into JSON file
-        with open(fname, 'w') as fp:
-            json.dump(project_dict, fp, indent=4)
-        msg = "Project '%s' saved to file'%s'" % (self._project.name, fname)
-        self.ui.statusbar.showMessage(msg, 5000)
+        file_path = os.path.join(PROJECT_DIR, '{}.json'.format(self._project.short_name))
+        self.add_msg_signal.emit("Saving project -> {0}".format(file_path), 0)
+        self._project.save(file_path, self._root)
+        msg = "Project '%s' saved to file'%s'" % (self._project.name, file_path)
+        self.ui.statusbar.showMessage(msg, 7000)
         self.add_msg_signal.emit("Done", 1)
-
-    def update_json_dict(self, setup):
-        """Update tree dictionary with Setup dictionary. Setups will be written as a nested dictionary.
-        I.e. child dictionaries are inserted into the parent Setups dictionary with key '.kids'.
-        '.kids' was chosen because this is not allowed as a Setup name.
-
-        Args:
-            setup (Setup): Setup object to save
-        """
-        # TODO: Add all necessary attributes from Setup object to here
-        setup_name = setup.name
-        setup_short_name = setup.short_name
-        parent_name = setup.parent().name
-        parent_short_name = setup.parent().short_name
-        the_dict = dict()
-        the_dict['name'] = setup_name
-        the_dict['desc'] = setup.description
-        if setup.tool:
-            the_dict['tool'] = setup.tool.name
-            the_dict['cmdline_args'] = setup.cmdline_args
-        else:
-            the_dict['tool'] = None
-            the_dict['cmdline_args'] = ""
-        the_dict['is_ready'] = setup.is_ready
-        the_dict['n_child'] = setup.child_count()
-        if setup.parent() is not None:
-            the_dict['parent'] = parent_name
-        else:
-            logging.debug("Setup '%s' parent is None" % setup_name)
-            the_dict['parent'] = None
-        the_dict['.kids'] = dict()  # Note: '.' is because it is not allowed as a Setup name
-        # Add this Setup under the appropriate Setups children
-        if parent_name == 'root':
-            self.setup_dict[setup_short_name] = the_dict
-        else:
-            # Find the parent dictionary where this setup should be inserted
-            diction = self._finditem(self.setup_dict, parent_short_name)
-            try:
-                diction['.kids'][setup_short_name] = the_dict
-            except KeyError:
-                logging.error("_finditem() error while saving. Parent setup dictionary not found")
-        return
-
-    def _finditem(self, obj, key):
-        """Finds a key recursively from a nested dictionary.
-
-        Args:
-            obj: Dictionary to search
-            key: Key to find
-
-        Returns:
-            Dictionary with the given key.
-        """
-        if key in obj:
-            return obj[key]
-        for k, v in obj.items():
-            if isinstance(v, dict):
-                item = self._finditem(v, key)
-                if item is not None:
-                    return item
 
     def load_project(self, load_path=None):
         """Load project from file in JSON format.
@@ -329,7 +236,6 @@ class TitanUI(QMainWindow):
         if not os.path.isfile(load_path):
             self.add_msg_signal.emit("File not found '%s'" % load_path, 2)
             return False
-        # dicts = dict()
         try:
             with open(load_path, 'r') as fh:
                 dicts = json.load(fh)
@@ -347,62 +253,17 @@ class TitanUI(QMainWindow):
         # Setup models and views
         self.init_models()
         self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
+        self.add_msg_signal.emit("Loading project '{0}'".format(self._project.name), 0)
         # Parse Setups
         setup_dict = dicts['setups']
         if len(setup_dict) == 0:
             self.add_msg_signal.emit("No Setups found in project file '{}'".format(load_path), 0)
-            return False
-        self.add_msg_signal.emit("Loading project '{0}'".format(self._project.name), 0)
-        self.parse_setups(setup_dict)
+            return True
+        self._project.parse_setups(setup_dict, self.setup_model, self.tool_model, self)
         msg = "Project '%s' loaded" % self._project.name
-        self.ui.statusbar.showMessage(msg, 5000)
+        self.ui.statusbar.showMessage(msg, 10000)
         self.add_msg_signal.emit("Done", 1)
         return True
-
-    def parse_setups(self, setup_dict):
-        """Parse all found Setups recursively from Setup dictionary loaded from JSON file
-        and add them to the SetupModel.
-
-        Args:
-            setup_dict (dict): Dictionary of Setups in JSON format
-        """
-        for k, v in setup_dict.items():
-            if isinstance(v, dict):
-                if not k == '.kids':
-                    # Add Setup
-                    name = v['name']  # Setup name
-                    desc = v['desc']
-                    parent_name = v['parent']
-                    tool_name = v['tool']
-                    cmdline_args = v['cmdline_args']
-                    logging.info("Loading Setup '%s'" % name)
-                    self.add_msg_signal.emit("Loading Setup '{0}'".format(name), 0)
-                    if parent_name == 'root':
-                        if not self.setup_model.insert_setup(name, desc, self._project, 0):
-                            logging.error("Inserting base Setup %s failed" % name)
-                            self.add_msg_signal.emit("Loading Setup '%s' failed. Parent Setup: '%s'"
-                                                     % (name, parent_name), 2)
-                    else:
-                        parent_index = self.setup_model.find_index(parent_name)
-                        parent_row = parent_index.row()
-                        if not self.setup_model.insert_setup(name, desc, self._project, parent_row, parent_index):
-                            logging.error("Inserting child Setup %s failed" % name)
-                            self.add_msg_signal.emit("Loading Setup '%s' failed. Parent Setup: '%s'"
-                                                     % (name, parent_name), 2)
-                    if tool_name is not None:
-                        # Get tool from ToolModel
-                        tool = self.tool_model.find_tool(tool_name)
-                        if not tool:
-                            logging.error("Could not add Tool to Setup. Tool '%s' not found" % tool_name)
-                            self.add_msg_signal.emit("Could not find Tool '%s' for Setup '%s'."
-                                                     " Add Tool and reload project."
-                                                     % (tool_name, name), 2)
-                        else:
-                            # Add tool to Setup
-                            setup_index = self.setup_model.find_index(name)
-                            setup = self.setup_model.get_setup(setup_index)
-                            setup.attach_tool(tool, cmdline_args=cmdline_args)
-                self.parse_setups(v)
 
     def add_tool(self):
         """Method to add a new tool from a JSON tool definition file to the
@@ -619,6 +480,54 @@ class TitanUI(QMainWindow):
             setup.attach_tool(tool, cmdline_args=cmdline_args)
         return
 
+    def delete_selected_setup(self):
+        """Removes selected Setup (and all of it's children) from SetupModel."""
+        try:
+            index = self.ui.treeView_setups.selectedIndexes()[0]
+        except IndexError:
+            # Nothing selected
+            return
+        if not index.isValid():
+            return
+        row = index.row()
+        parent = self.setup_model.parent(index)
+        name = index.internalPointer().name
+        msg = "You are about to delete Setup '%s' and all of its children.\nAre you sure?" % name
+        # noinspection PyCallByClass, PyTypeChecker
+        answer = QMessageBox.question(self, 'Deleting Setup', msg, QMessageBox.Yes, QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.add_msg_signal.emit("Setup '%s' deleted" % name, 0)
+            self.setup_model.remove_setup(row, parent)
+            return
+        else:
+            logging.debug("Delete canceled")
+            return
+
+    def delete_all(self):
+        """Delete all Setups from model. Ask user's permission first."""
+        root_index = QModelIndex()
+        n_kids = self._root.child_count()
+        msg = "You are about to delete all Setups in the project.\nAre you sure?"
+        # noinspection PyCallByClass, PyTypeChecker
+        answer = QMessageBox.question(self, 'Delete all Setups?', msg, QMessageBox.Yes, QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            for i in range(n_kids):
+                name = self._root.child(0).name
+                self.add_msg_signal.emit("Setup '{}' deleted".format(name), 0)
+                self.setup_model.remove_setup(0, root_index)
+            return
+        else:
+            logging.debug("Delete canceled")
+            return
+
+    def delete_all_no_confirmation(self):
+        """Delete all Setups from model."""
+        root_index = QModelIndex()
+        n_kids = self._root.child_count()
+        for i in range(n_kids):
+            self.setup_model.remove_setup(0, root_index)
+        return
+
     def execute_all(self):
         """Starts executing all Setups in the project."""
         self.exec_mode = 'all'
@@ -738,8 +647,6 @@ class TitanUI(QMainWindow):
             while base_index.internalPointer().parent().name is not 'root':
                 # base == base.parent()
                 base_index = base_index.parent()
-        # self.add_msg_signal.emit("Base Setup '{}'".format(base.name), 0)
-        # self.add_msg_signal.emit("Base Setup from Index: '{}'".format(base_index.internalPointer().name), 0)
         return base_index
 
     def print_next_generation(self):
@@ -787,54 +694,6 @@ class TitanUI(QMainWindow):
             return None
         for ind in siblings:
             self.add_msg_signal.emit("Setups on current row:%s" % ind.internalPointer().name, 0)
-
-    def delete_all(self):
-        """Delete all Setups from model. Ask user's permission first."""
-        root_index = QModelIndex()
-        n_kids = self._root.child_count()
-        msg = "You are about to delete all Setups in the project.\nAre you sure?"
-        # noinspection PyCallByClass, PyTypeChecker
-        answer = QMessageBox.question(self, 'Delete all Setups?', msg, QMessageBox.Yes, QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            for i in range(n_kids):
-                name = self._root.child(0).name
-                self.add_msg_signal.emit("Setup '{}' deleted".format(name), 0)
-                self.setup_model.remove_setup(0, root_index)
-            return
-        else:
-            logging.debug("Delete canceled")
-            return
-
-    def delete_all_no_confirmation(self):
-        """Delete all Setups from model."""
-        root_index = QModelIndex()
-        n_kids = self._root.child_count()
-        for i in range(n_kids):
-            self.setup_model.remove_setup(0, root_index)
-        return
-
-    def delete_selected_setup(self):
-        """Removes selected Setup (and all of it's children) from SetupModel."""
-        try:
-            index = self.ui.treeView_setups.selectedIndexes()[0]
-        except IndexError:
-            # Nothing selected
-            return
-        if not index.isValid():
-            return
-        row = index.row()
-        parent = self.setup_model.parent(index)
-        name = index.internalPointer().name
-        msg = "You are about to delete Setup '%s' and all of its children.\nAre you sure?" % name
-        # noinspection PyCallByClass, PyTypeChecker
-        answer = QMessageBox.question(self, 'Deleting Setup', msg, QMessageBox.Yes, QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            self.add_msg_signal.emit("Setup '%s' deleted" % name, 0)
-            self.setup_model.remove_setup(row, parent)
-            return
-        else:
-            logging.debug("Delete canceled")
-            return
 
     @pyqtSlot(str, int)
     def add_msg(self, msg, code=0):
@@ -912,7 +771,6 @@ class TitanUI(QMainWindow):
 
     def traverse_model(self):
         """Print Setup tree model."""
-        # TODO: Do not crash if SetupModel is empty
         def traverse(item):
             logging.debug("\t" * traverse.level + item.name)
             for kid in item.children():
@@ -921,6 +779,9 @@ class TitanUI(QMainWindow):
                 traverse.level -= 1
         traverse.level = 1
         # Traverse tree starting from root
+        if not self._root:
+            logging.debug("No Setups in SetupModel")
+            return
         traverse(self._root)
 
     def closeEvent(self, event):

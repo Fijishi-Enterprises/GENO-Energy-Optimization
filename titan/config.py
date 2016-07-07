@@ -25,18 +25,17 @@ else:
 CONFIGURATION_FILE = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'conf', 'titan.conf'))
 # Directory for projects
 PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'projects'))
-# Project input/output directories
+# Project input/output directory names
 INPUT_STORAGE_DIR = 'input'
 OUTPUT_STORAGE_DIR = 'output'
 # Work directory
 WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
 
-# Tool model path
-MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'tools', 'magic'))
+# Tool path (obsolete)
+# MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'tools', 'magic'))
 
 # GAMS
 GAMS_EXECUTABLE = 'gams'
-IGNORE_PATTERNS = ('.git', '.gitignore')
 
 GENERAL_OPTIONS = {'project_path': '',
                    'tools': ''}

@@ -15,7 +15,7 @@ import tempfile
 from copy import copy
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 import qsubprocess
-from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR, WORK_DIR, IGNORE_PATTERNS
+from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR, WORK_DIR
 from metaobject import MetaObject
 from tools import create_dir
 
@@ -45,10 +45,8 @@ class Tool(MetaObject):
             path (str): Path to tool or Git repository
             files (str): List of files belonging to the tool (relative to `path`)
                          First file in the list is the main program file.
-            input_dir (str): Path where the tool looks for its input (relative to `path`)
             infiles (list, optional): List of required input files
             infiles_opt (list, optional): List of optional input files (wildcards may be used)
-            output_dir (str): Path where the tool saves its input (relative to `path`)
             outfiles (list, optional): List of output files (wildcards may be used)
             short_name (str, optional): Short name for the tool
             logfile (str, optional): Log file name (relative to `path`)
@@ -98,8 +96,8 @@ class Tool(MetaObject):
         # TODO
         pass
 
-    def save(self):  # TODO: This is obsolete
-        """Save tool object to disk."""
+    def save(self):
+        """[OBSOLETE] Save tool object to disk."""
         the_dict = copy(self.__dict__)
         jsonfile = os.path.join(self.path,
                                 '{}.json'.format(self.short_name))
@@ -352,11 +350,6 @@ class Setup(MetaObject):
                             .format(self.tool.name, tool.name, self.name))
         self.tool = tool
         self.cmdline_args = cmdline_args
-        # Create model input and output directories for the Setup
-        # input_dir = create_dir(self.input_dir, tool.short_name)  # TODO: remove?
-        # output_dir = create_dir(self.output_dir, tool.short_name)  # TODO: remove?
-        # if (input_dir is None) or (output_dir is None):  # TODO: remove?
-        #    return False
         logging.debug("Tool '{0}' with cmdline args '{1}' added to Setup '{2}'"
                       .format(self.tool.name, self.cmdline_args, self.name))
         return True
