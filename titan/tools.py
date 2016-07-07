@@ -8,6 +8,8 @@ import subprocess
 import glob
 import shutil
 import os
+import datetime
+import time
 from metaobject import MetaObject
 from collections import OrderedDict
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
@@ -68,7 +70,7 @@ def create_dir(base_path, folder=''):
 
 
 def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):
-    """Method for copying files.
+    """Method for copying files. Does not copy folders.
 
     Args:
         src_dir (str): Source directory
@@ -89,11 +91,76 @@ def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):
 
     count = 0
     for filename in src_files:
+        if os.path.isdir(filename):
+            continue
         if filename not in exclude_files:
             shutil.copy(filename, dst_dir)
             count += 1
 
     return count
+
+
+def create_results_dir(path, name, simulation_failed=False):
+    """ Creates a new directory for storing simulation results.
+    The new directory is named as follows: "name-time_stamp". If a folder
+    with the same name already exists an underscore and index number is
+    added at the end of folder name.
+
+    Args:
+        path (str): Path where the new directory should be created.
+        name (str): Basename (Setup name) for the directory.
+        simulation_failed (boolean): If True, concatenates '(Failed) ' to the result folder name.
+
+    Returns:
+        Absolute path to the new results directory or None if failed.
+    """
+    # Check that the output directory is writable
+    if not os.access(path, os.W_OK):
+        logging.error('Results folder (%s) missing.' % path)
+        return None
+    # Add timestamp to filename
+    try:
+        stamp = datetime.datetime.fromtimestamp(time.time())
+    except OverflowError:
+        logging.error('Timestamp out of range.')
+        return None
+    dir_name = name + '-' + stamp.strftime('%Y-%m-%dT%H.%M.%S')
+    if simulation_failed:
+        dir_name = '(Failed) ' + dir_name
+    results_path = path + os.sep + dir_name
+    #  Create a new directory for storing results.
+    counter = 1
+    while True:
+        if not os.path.exists(results_path):
+            os.makedirs(results_path)
+            break
+        else:
+            results_path = (path + os.sep + dir_name + '_' +
+                            str(counter))
+            counter += 1
+            if counter >= 1000:
+                logging.error('Unable to create results folder.')
+                return None
+    logging.debug('Created results directory: %s' % results_path)
+    return results_path
+
+
+def create_output_dir_timestamp():
+    """ Creates a new string to be extended to the end of the output
+    directory. This is a timestamp that can be added to the directory
+    name.
+
+    Returns:
+        Timestamp string or empty string if failed.
+    """
+    try:
+        # Create timestamp
+        stamp = datetime.datetime.fromtimestamp(time.time())
+    except OverflowError:
+        logging.error('Timestamp out of range.')
+        return ''
+    extension = '-' + stamp.strftime('%Y-%m-%dT%H.%M.%S')
+    return extension
 
 
 class SetupTree(MetaObject):

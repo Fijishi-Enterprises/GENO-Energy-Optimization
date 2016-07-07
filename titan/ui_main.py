@@ -15,6 +15,7 @@ from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
 from tool import Setup
+from tools import create_dir, copy_files, create_output_dir_timestamp
 from GAMS import GAMSModel
 from config import ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
                    CONFIGURATION_FILE, GENERAL_OPTIONS
@@ -52,6 +53,7 @@ class TitanUI(QMainWindow):
         self.tool_model = None
         self.modeltest = None
         self.exec_mode = ''
+        self.output_dir_timestamp = ''
         # References for widgets
         self.setup_form = None
         self.project_form = None
@@ -546,6 +548,8 @@ class TitanUI(QMainWindow):
 
     def execute_setup(self):
         """Start executing Setups according to the selected execution mode."""
+        # Create a new timestamp for this execution run
+        self.output_dir_timestamp = create_output_dir_timestamp()
         if self.exec_mode == 'branch':
             # Set index of base Setup for the model
             base = self.get_selected_setup_base_index()
@@ -596,7 +600,9 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("Setup '{0}' failed".format(self._running_setup.name), 2)
             return
         self.add_msg_signal.emit("Setup '%s' ready" % self._running_setup.name, 1)
-        self.add_msg_signal.emit("Results saved to: {0}".format(self._running_setup.output_dir), 0)
+        self.add_msg_signal.emit("Output folder: {0}".format(self._running_setup.output_dir), 0)
+        # Collect output files into permanent result directories
+        self.collect_results()
         if self.exec_mode == 'single':
             self.add_msg_signal.emit("Done", 1)
             return
@@ -612,6 +618,23 @@ class TitanUI(QMainWindow):
         # Connect setup_finished_signal to this same slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         self._running_setup.execute(self)
+
+    def collect_results(self):
+        """Collect output files into result directories
+        that are unique for each run."""
+        if not self._running_setup.tool:
+            # No Tool
+            logging.debug("No Tool. No results")
+            self.add_msg_signal.emit("No Tool. No results to collect", 0)
+            return
+        result_path = create_dir(os.path.abspath(os.path.join(self._running_setup.output_dir, self._running_setup.short_name + self.output_dir_timestamp)))
+        # result_path = create_dir(self._running_setup.output_dir + self.output_dir_timestamp)
+        self.add_msg_signal.emit("Collecting results to folder {0}".format(result_path), 0)
+        if result_path:
+            copy_files(self._running_setup.output_dir, result_path)
+        else:
+            self.add_msg_signal("Error collecting results to folder {0}".format(result_path), 2)
+        return
 
     def get_selected_setup_index(self):
         """Returns the index of the selected Setup or None if

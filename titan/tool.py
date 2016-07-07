@@ -152,7 +152,7 @@ class ToolInstance(QObject):
             try:
                 os.makedirs(dst_dir, exist_ok=True)
             except OSError as e:
-                logging.debug(e)
+                logging.error(e)
                 return False
             # Copy file if necessary
             if file_pattern:
@@ -162,7 +162,7 @@ class ToolInstance(QObject):
                     try:
                         shutil.copyfile(src_file, dst_file)
                     except OSError as e:
-                        logging.debug(e)
+                        logging.error(e)
                         return False
         logging.debug("Copied all files for tool '{}'".format(self.tool.name))
         return True
@@ -189,11 +189,10 @@ class ToolInstance(QObject):
         """
         try:
             return_msg = self.tool.return_codes[ret]
-            logging.debug("GAMS Return code:%d. Message: %s" % (ret, return_msg))
+            logging.debug("Tool '%s' finished. GAMS Return code:%d. Message: %s" % (self.tool.name, ret, return_msg))
         except KeyError:
             logging.error("Unknown return code")
         finally:
-            logging.debug("Tool '%s' finished." % self.tool.name)
             # TODO: Check that copy_output works. invest and MIP output folders are now the same.
             if not self.copy_output(self.tool_output_dir):
                 logging.error("Copying output files to folder '{0}' failed".format(self.tool_output_dir))
@@ -346,7 +345,7 @@ class Setup(MetaObject):
                                        self.short_name)
         create_dir(self.output_dir)
         if self.tool is not None:
-            logging.warning("Replacing tool '{0}' with tool '{1}' in Setup '{2}'"
+            logging.info("Replacing tool '{0}' with tool '{1}' in Setup '{2}'"
                             .format(self.tool.name, tool.name, self.name))
         self.tool = tool
         self.cmdline_args = cmdline_args
@@ -355,8 +354,8 @@ class Setup(MetaObject):
         return True
 
     def detach_tool(self):
-        """Remove inputs, Tool and command line arguments from Setup.
-        Used when the Tool is changed."""
+        """Remove Tool and command line arguments from Setup.
+        Used when Tool is changed."""
         self.tool = None
         self.cmdline_args = ""
         # TODO: Add cleanup of output dir
@@ -433,7 +432,7 @@ class Setup(MetaObject):
         return filepaths
 
     def save(self, path=''):
-        """Save setup object to disk.
+        """[OBSOLETE] Save Setup object to disk.
 
         Args:
             path (str): File save path (project dir)
@@ -454,10 +453,11 @@ class Setup(MetaObject):
             json.dump(the_dict, fp, indent=4)
 
     def execute(self, ui):
-        """Execute this tool setup.
+        """Execute Setup.
 
         Args:
-            ui (QMainWindow): User interface
+            ui (TitanUI): User interface
+            output_dir_timestamp (str): String to add to output dir name
         """
         logging.info("Executing Setup '{}'".format(self.name))
         if self.is_ready:
@@ -488,7 +488,7 @@ class Setup(MetaObject):
             True if tool was executed successfully, False otherwise
         """
         if ret == 0:
-            logging.debug("Setup <%s> finished successfully. Setting is_ready to True" % self.name)
+            # logging.debug("Setup <%s> finished successfully. Setting is_ready to True" % self.name)
             self.is_ready = True
         else:
             logging.debug("Setup <%s> failed. is_ready is False" % self.name)
@@ -501,7 +501,8 @@ class Setup(MetaObject):
 
         Args:
             tool (Tool): The tool
-            tool_instance (ToolInstance): Tool instance. If none, execution is done in tool directory.
+            tool_instance (ToolInstance): Tool instance. If not
+                none, execution is done in tool directory.
 
         Returns:
             ret (bool): Operation success
@@ -512,7 +513,7 @@ class Setup(MetaObject):
         if tool_instance:
             input_dir = tool_instance.basedir  # Run tool in work directory
         else:
-            input_dir = tool.path  # Run tool in /models/ directory
+            input_dir = tool.path  # Run tool in /tools/ directory
 
         # Process required and optional input files
         for filepath in tool.infiles | tool.infiles_opt:
@@ -536,54 +537,6 @@ class Setup(MetaObject):
 
         logging.debug("Copied input files for '{}'".format(tool.name))
         return True
-
-    @staticmethod
-    def create_results_dir(path, name, simulation_failed=False):
-        """ Creates a new directory for storing simulation results.
-
-        Args:
-            path (str): Path where the new directory should be created.
-            name (str): Basename for the directory.
-            simulation_failed (boolean): If True, concatenates '(Failed) ' to the result folder name.
-
-        Returns:
-            Absolute path to the new results directory or None if failed.
-
-        The new directory is named as follows: "name-time_stamp". If a folder
-        with the same name already exists an underscore and index number is
-        added at the end of folder name.
-        """
-        # TODO: Use this method to create unique result directories for every run
-        #  Check that the output directory is writable.
-        if not os.access(path, os.W_OK):
-            logging.error('Results folder missing.')
-            return None
-        #  Add timestamp to filename.
-        try:
-            stamp = datetime.datetime.fromtimestamp(time.time())
-        except OverflowError:
-            logging.error('Timestamp out of range.')
-            return None
-        dir_name = name + '-' + stamp.strftime('%Y-%m-%dT%H.%M.%S')
-        if simulation_failed:
-            dir_name = '(Failed) ' + dir_name
-        results_path = path + os.sep + dir_name
-        logging.debug('Output destination dir: %s' % results_path)
-        #  Create a new directory for storing results.
-        counter = 1
-        while True:
-            if not os.path.exists(results_path):
-                os.makedirs(results_path)
-                break
-            else:
-                results_path = (path + os.sep + dir_name + '_' +
-                                str(counter))
-                counter += 1
-                if counter >= 1000:
-                    logging.error('Unable to create results folder.')
-                    return None
-        logging.debug('Created results directory: %s' % results_path)
-        return results_path
 
     def cleanup(self):
         """Remove temporary files of the setup."""
