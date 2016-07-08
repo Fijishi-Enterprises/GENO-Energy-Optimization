@@ -70,6 +70,7 @@ def create_dir(base_path, folder=''):
 
 
 def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):
+    # TODO: Remove mutable default arguments
     """Method for copying files. Does not copy folders.
 
     Args:

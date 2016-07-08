@@ -32,7 +32,7 @@ class MyEncoder(json.JSONEncoder):
 
 class Tool(MetaObject):
     """Class for defining a tool"""
-
+    # TODO: Remove mutable default arguments
     def __init__(self, name, description, path, files,
                  infiles=[], infiles_opt=[],
                  outfiles=[], short_name=None,
@@ -193,7 +193,6 @@ class ToolInstance(QObject):
         except KeyError:
             logging.error("Unknown return code")
         finally:
-            # TODO: Check that copy_output works. invest and MIP output folders are now the same.
             if not self.copy_output(self.tool_output_dir):
                 logging.error("Copying output files to folder '{0}' failed".format(self.tool_output_dir))
             else:
@@ -346,7 +345,7 @@ class Setup(MetaObject):
         create_dir(self.output_dir)
         if self.tool is not None:
             logging.info("Replacing tool '{0}' with tool '{1}' in Setup '{2}'"
-                            .format(self.tool.name, tool.name, self.name))
+                         .format(self.tool.name, tool.name, self.name))
         self.tool = tool
         self.cmdline_args = cmdline_args
         logging.debug("Tool '{0}' with cmdline args '{1}' added to Setup '{2}'"
@@ -457,7 +456,6 @@ class Setup(MetaObject):
 
         Args:
             ui (TitanUI): User interface
-            output_dir_timestamp (str): String to add to output dir name
         """
         logging.info("Executing Setup '{}'".format(self.name))
         if self.is_ready:

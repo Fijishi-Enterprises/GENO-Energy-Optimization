@@ -8,7 +8,7 @@ Note: These models have nothing to do with Balmorel, WILMAR or PSS-E.
 
 import logging
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, \
-    QAbstractListModel, QModelIndex, QSortFilterProxyModel, QSize
+    QAbstractListModel, QModelIndex, QSortFilterProxyModel
 from tool import Setup
 
 
@@ -30,13 +30,14 @@ class SetupModel(QAbstractItemModel):
 
     def set_base(self, ind):
         """Set base index for this tree. Used to determine the starting point
-        for tree traversal algorithms. If the whole project should be
-        executed. This should be set to Root.
+        for tree traversal algorithms.
 
         Args:
-            ind (QModelIndex): Index of Base Setup.
+            ind (QModelIndex): Index of the new base Setup.
         """
-        # TODO: Test with root setup if the whole project is executed
+        if not ind.isValid():
+            logging.error("Index not valid for a base Setup")
+            return
         self._base_index = ind
 
     def get_base(self):

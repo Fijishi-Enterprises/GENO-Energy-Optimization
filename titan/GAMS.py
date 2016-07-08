@@ -15,7 +15,7 @@ from config import GAMS_EXECUTABLE
 
 class GAMSModel(Tool):
     """Class for GAMS models."""
-
+    # TODO: Remove mutable default arguments
     def __init__(self, name, description, path, files,
                  infiles=[], infiles_opt=[], outfiles=[],
                  short_name=None, cmdline_args=None):
@@ -26,10 +26,8 @@ class GAMSModel(Tool):
             description (str): Model description
             files (str): List of files belonging to the model (relative to `path`)
                          First file in the list is the main GAMS program.
-            input_dir (str): Path where the tool looks for its input (relative to `path`)
             infiles (list, optional): List of required input files
             infiles_opt (list, optional): List of optional input files (wildcards may be used)
-            output_dir (str): Path where the tool saves its input (relative to `path`)
             outfiles (list, optional): List of output files (wildcards may be used)
             short_name (str, optional): Short name for the model
             cmdline_args (str, optional): GAMS command line arguments

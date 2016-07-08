@@ -534,27 +534,38 @@ class TitanUI(QMainWindow):
             self.setup_model.remove_setup(0, root_index)
         return
 
-    def execute_all(self):
-        """Starts executing all Setups in the project."""
-        self.exec_mode = 'all'
-        self.add_msg_signal.emit("Not implemented", 0)
-        # self.execute_setup()
+    def execute_single(self):
+        """Execute selected Setup."""
+        self.exec_mode = 'single'
+        self.execute_setup()
 
     def execute_branch(self):
         """Starts executing a Setup branch."""
         self.exec_mode = 'branch'
         self.execute_setup()
 
-    def execute_single(self):
-        """Execute selected Setup."""
-        self.exec_mode = 'single'
+    def execute_all(self):
+        """Starts executing all Setups in the project."""
+        self.exec_mode = 'all'
         self.execute_setup()
 
     def execute_setup(self):
         """Start executing Setups according to the selected execution mode."""
+        if self.ui.radioButton_depth_first.isChecked():
+            self.add_msg_signal.emit("Depth-first algorithm not implemented."
+                                     " Use Breadth-first algorithm for now.", 0)
+            return
         # Create a new timestamp for this execution run
         self.output_dir_timestamp = create_output_dir_timestamp()
-        if self.exec_mode == 'branch':
+        if self.exec_mode == 'single':
+            # Execute a single selected Setup
+            selected_setup = self.get_selected_setup_index()
+            # Check if no Setup selected
+            if not selected_setup:
+                self.add_msg_signal.emit("No Setup selected.\n", 0)
+                return
+            self._running_setup = selected_setup.internalPointer()
+        elif self.exec_mode == 'branch':
             # Set index of base Setup for the model
             base = self.get_selected_setup_base_index()
             # Check if no Setup selected
@@ -564,24 +575,31 @@ class TitanUI(QMainWindow):
             self.setup_model.set_base(base)
             # Set Base Setup as the first running Setup
             self._running_setup = self.setup_model.get_base().internalPointer()
-        elif self.exec_mode == 'single':
-            # Execute a single selected Setup
-            selected_setup = self.get_selected_setup_index()
-            # Check if no Setup selected
-            if not selected_setup:
-                self.add_msg_signal.emit("No Setup selected.\n", 0)
-                return
-            self._running_setup = selected_setup.internalPointer()
         elif self.exec_mode == 'all':
             if not self._project:
                 self.add_msg_signal.emit("Open a Project to execute Setups\n", 0)
                 return
+            if self._root.child_count() == 0:
+                self.add_msg_signal("No Setups to execute", 0)
+                return
             self.add_msg_signal.emit("Executing all Setups in Project '{0}'\n".format(self._project.name), 0)
-            # TODO: Return if no Setups in project
-            self.setup_model.set_base(QModelIndex())
-            # self._running_setup = self.setup_model.get_base().internalPointer()
-            self._running_setup = self.setup_model.get_root()
-            logging.debug("running_setup name: %s" % self._running_setup.name)
+            # Get the first base that is not ready. Set the next one in setup_done()
+            base_name = ''
+            for i in range(self._root.child_count()):
+                if not self._root.child(i).is_ready:
+                    base_name = self._root.child(0).name
+                    break
+            if base_name == '':
+                self.add_msg_signal.emit("All base Setups ready. Clear ready flags"
+                                         " or try executing individual Setups", 0)
+                return
+            base_index = self.setup_model.find_index(base_name)
+            self.setup_model.set_base(base_index)
+            self._running_setup = self.setup_model.get_base().internalPointer()
+            # logging.debug("running_setup name: %s" % self._running_setup.name)
+        else:
+            self.add_msg_signal.emit("Execution mode not recognized", 2)
+            return
         # Connect setup_finished_signal to setup_done slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
@@ -607,15 +625,32 @@ class TitanUI(QMainWindow):
         self.add_msg_signal.emit("Output folder: {0}".format(self._running_setup.output_dir), 0)
         # Collect output files into permanent result directories
         self.collect_results()
+        # Clear running Setup
+        self._running_setup = None
         if self.exec_mode == 'single':
             self.add_msg_signal.emit("Done", 1)
             return
         # Get next executed Setup
         next_setup = self.setup_model.get_next_setup(breadth_first=True)
         if not next_setup:
-            logging.debug("All Setups ready")
-            self.add_msg_signal.emit("All Setups ready", 1)
-            return
+            if self.exec_mode == 'branch':
+                logging.debug("All Setups ready")
+                self.add_msg_signal.emit("All Setups ready", 1)
+                return
+            elif self.exec_mode == 'all':
+                self.add_msg_signal.emit("Looking for a new base Setup", 0)
+                # Get the first base Setup that is not ready
+                for i in range(self._root.child_count()):
+                    if not self._root.child(i).is_ready:
+                        new_base_name = self._root.child(i).name
+                        new_base_index = self.setup_model.find_index(new_base_name)
+                        self.setup_model.set_base(new_base_index)
+                        next_setup = self.setup_model.get_base()
+                        self.add_msg_signal.emit("Found base Setup '{0}'".format(next_setup.internalPointer().name), 0)
+                        break
+                if not next_setup:
+                    self.add_msg_signal.emit("All Setups in Project ready", 1)
+                    return
         self._running_setup = next_setup.internalPointer()
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
         self.add_msg_signal.emit("Starting Setup '%s'" % self._running_setup.name, 0)

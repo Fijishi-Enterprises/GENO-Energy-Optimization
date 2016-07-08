@@ -29,7 +29,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QGroupBox" name="groupBox_2">
+         <widget class="QGroupBox" name="groupBox_execute">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -59,7 +59,7 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="QRadioButton" name="radioButton">
+            <widget class="QRadioButton" name="radioButton_breadth_first">
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Breadth-first tree traversal algorithm. Determines the order of executed Setups when executing All Setups in the project.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -72,9 +72,9 @@
             </widget>
            </item>
            <item>
-            <widget class="QRadioButton" name="radioButton_2">
+            <widget class="QRadioButton" name="radioButton_depth_first">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Depth-first tree traversal algorithm. Determines the order of executed Setups when executing All Setups in the project. [Not Implemented]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;[Not Implemented]. Depth-first tree traversal algorithm.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>Depth-first</string>
@@ -115,7 +115,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox">
+         <widget class="QGroupBox" name="groupBox_delete">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -181,7 +181,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox_3">
+         <widget class="QGroupBox" name="groupBox_flags">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -651,8 +651,8 @@
   </action>
  </widget>
  <tabstops>
-  <tabstop>radioButton</tabstop>
-  <tabstop>radioButton_2</tabstop>
+  <tabstop>radioButton_breadth_first</tabstop>
+  <tabstop>radioButton_depth_first</tabstop>
   <tabstop>pushButton_execute_all</tabstop>
   <tabstop>pushButton_delete_all</tabstop>
   <tabstop>treeView_setups</tabstop>
