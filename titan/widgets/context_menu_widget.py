@@ -25,6 +25,8 @@ class ContextMenuWidget(QMenu):
             self.add_action("Edit Tool")
             self.add_action("Execute")
             self.add_action("Execute Branch")
+            self.add_action("Execute Project")
+            self.add_action("Clear Ready Flag")
         self.exec_(position)
 
     def add_action(self, text):

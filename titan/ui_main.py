@@ -97,6 +97,8 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_clear_titan_output.clicked.connect(lambda: self.ui.textBrowser_main.clear())
         self.ui.pushButton_clear_gams_output.clicked.connect(lambda: self.ui.textBrowser_process_output.clear())
         self.ui.pushButton_test.clicked.connect(self.traverse_model)
+        self.ui.pushButton_clear_ready_selected.clicked.connect(self.clear_selected_ready_flag)
+        self.ui.pushButton_clear_ready_all.clicked.connect(self.clear_all_ready_flags)
         self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
         self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
         self.ui.toolButton_add_tool.clicked.connect(self.add_tool)
@@ -343,17 +345,16 @@ class TitanUI(QMainWindow):
             return
 
     def context_menu_configs(self, pos):
-        """Context menu for the configuration tree.
+        """Context menu for Setup QTreeView.
 
         Args:
             pos (int): Received from the customContextMenuRequested
-            signal, contains mouse position.
+            signal. Contains mouse position.
         """
         ind = self.ui.treeView_setups.indexAt(pos)
         global_pos = self.ui.treeView_setups.mapToGlobal(pos)
         self.context_menu = ContextMenuWidget(self, global_pos, ind)
         option = self.context_menu.get_action()
-        # option = ContextMenuWidget(self, global_pos, ind).get_action()
         if option == "Add Child":
             self.open_setup_form(ind)
             return
@@ -373,16 +374,19 @@ class TitanUI(QMainWindow):
                 self.add_msg_signal.emit("No tool found", 0)
             return
         elif option == "Edit Tool":
-            logging.debug("Opening edit tool form")
             self.open_edit_tool_form(ind)
             return
         elif option == "Execute":
-            # logging.debug("Selected setup:%s" % ind.internalPointer().name)
             self.execute_single()
             return
         elif option == "Execute Branch":
-            logging.debug("Selected setup:%s" % ind.internalPointer().name)
             self.execute_branch()
+            return
+        elif option == "Execute Project":
+            self.execute_all()
+            return
+        elif option == "Clear Ready Flag":
+            self.clear_selected_ready_flag()
             return
         else:
             # No option selected
@@ -624,16 +628,55 @@ class TitanUI(QMainWindow):
         that are unique for each run."""
         if not self._running_setup.tool:
             # No Tool
-            logging.debug("No Tool. No results")
             self.add_msg_signal.emit("No Tool. No results to collect", 0)
             return
-        result_path = create_dir(os.path.abspath(os.path.join(self._running_setup.output_dir, self._running_setup.short_name + self.output_dir_timestamp)))
-        # result_path = create_dir(self._running_setup.output_dir + self.output_dir_timestamp)
+        result_path = create_dir(os.path.abspath(os.path.join(
+            self._running_setup.output_dir, self._running_setup.short_name + self.output_dir_timestamp)))
         self.add_msg_signal.emit("Collecting results to folder {0}".format(result_path), 0)
         if result_path:
             copy_files(self._running_setup.output_dir, result_path)
         else:
             self.add_msg_signal("Error collecting results to folder {0}".format(result_path), 2)
+        return
+
+    def clear_selected_ready_flag(self):
+        """Clears ready flag for the selected Setup."""
+        index = self.get_selected_setup_index()
+        if not index:
+            self.add_msg_signal.emit("No Setup selected", 0)
+            return
+        setup = index.internalPointer()
+        if not setup.is_ready:
+            self.add_msg_signal.emit("Selected Setup not ready", 0)
+            return
+        setup.is_ready = False
+        self.setup_model.emit_data_changed()
+        self.add_msg_signal.emit("Ready flag for Setup '{0}' cleared".format(setup.name), 0)
+        return
+
+    def clear_all_ready_flags(self):
+        """Clear ready flag for all Setups in the project."""
+        if not self._project:
+            self.add_msg_signal("No project open", 0)
+            return
+
+        def traverse(setup):
+            # Helper function to traverse tree
+            if not setup.name == 'root':
+                if setup.is_ready:
+                    setup.is_ready = False
+            for kid in setup.children():
+                traverse.level += 1
+                traverse(kid)
+                traverse.level -= 1
+        traverse.level = 1
+        # Traverse tree starting from root
+        if not self._root:
+            self.add_msg_signal.emit("No Setups in project", 0)
+        else:
+            traverse(self._root)
+        self.setup_model.emit_data_changed()
+        self.add_msg_signal.emit("All ready flags cleared", 0)
         return
 
     def get_selected_setup_index(self):
