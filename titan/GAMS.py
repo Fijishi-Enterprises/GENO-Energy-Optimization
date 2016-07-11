@@ -17,7 +17,7 @@ class GAMSModel(Tool):
     """Class for GAMS models."""
     # TODO: Remove mutable default arguments
     def __init__(self, name, description, path, files,
-                 infiles=[], infiles_opt=[], outfiles=[],
+                 infiles=None, infiles_opt=None, outfiles=None,
                  short_name=None, cmdline_args=None):
         """Class constructor.
 

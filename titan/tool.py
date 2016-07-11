@@ -34,8 +34,8 @@ class Tool(MetaObject):
     """Class for defining a tool"""
     # TODO: Remove mutable default arguments
     def __init__(self, name, description, path, files,
-                 infiles=[], infiles_opt=[],
-                 outfiles=[], short_name=None,
+                 infiles=None, infiles_opt=None,
+                 outfiles=None, short_name=None,
                  logfile=None, cmdline_args=None):
         """Tool constructor.
 
@@ -60,9 +60,9 @@ class Tool(MetaObject):
         self.files = files
         self.main_prgm = files[0]
         self.cmdline_args = cmdline_args
-        self.infiles = set(infiles)
-        self.infiles_opt = set(infiles_opt)
-        self.outfiles = set(outfiles)
+        self.infiles = set(infiles) if infiles else set()
+        self.infiles_opt = set(infiles_opt) if infiles_opt else set()
+        self.outfiles = set(outfiles) if outfiles else set()
         if logfile is not None:
             self.outfiles.add(logfile)
         self.return_codes = {}
