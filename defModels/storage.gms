@@ -33,8 +33,8 @@ Model storage /
     q_resDemand
     q_maxDownward
     q_maxUpward
-    q_storageControl
     q_storageDynamics
+    q_storageConversion
     q_bindStorage
     q_startup
     q_bindOnline
@@ -44,6 +44,6 @@ Model storage /
     q_outputRatioConstrained
     q_stoMinContent
     q_stoMaxContent
-    q_maxHydropower
     q_transferLimit
+    q_boundState
 /;

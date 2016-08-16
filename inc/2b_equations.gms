@@ -1,22 +1,21 @@
 equations
     q_obj "Objective function"
     q_balance(grid, node, mType, f, t) "Energy demand must be satisfied at each nodegraphical location"
-    q_resDemand(resType, resDirection, node, f, t) "Demand for each reserve type is greater than demand"
-    q_maxDownward(grid, node, unit, f, t) "Downward commitments will not undercut minimum load or maximum elec. consumption"
+    q_resDemand(resType, resDirection, node, f, t) "Procurement for each reserve type is greater than demand"
+    q_maxDownward(grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
     q_storageDynamics(grid, node, storage, mType, f, t) "Dynamic equation for storages"
-    q_storageConversion(grid, node, storage, f, t) "Converting storage charging and discharging to energy inputs and outputs into grids"
-    q_bindStorage(grid, node, storage, mType, f, t) "Couple storage contents for joining forecasts or for joining sample time periods"
-    q_startup(node, unit, f, t) "Capacity started up is greater than the difference of online cap. now and in previous time step"
-    q_bindOnline(node, unit, mType, f, t) "Couple online variable for joining forecasts or for joining sample time periods"
+    q_storageConversion(grid, node, storage, f, t) "Discharging storages into grids and charging storages from grids"
+    q_bindStorage(grid, node, storage, mType, f, t) "Couple storage contents when joining branches of forecasts or when joining sample time periods"
+    q_bindOnline(node, unit, mType, f, t) "Couple online variable when joining forecasts or when joining sample time periods"
+    q_startup(node, unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
     q_fuelUse(node, unit, fuel, mType, f, t) "Use of fuels in units equals generation and losses"
 *    q_storageEnd(node, storage, f, t) "Expected storage end content minus procured reserve energy is greater than start content"
     q_conversion(node, unit, f, t) "Conversion of energy between grids of energy presented in the model, e.g. electricity consumption equals unitHeat generation times efficiency"
-    q_outputRatioFixed(grid, grid, node, unit, f, t) "Fixed ratio between two grids of energy output"
+    q_outputRatioFixed(grid, grid, node, unit, f, t) "Force fixed ratio between two energy outputs into different energy grids"
     q_outputRatioConstrained(grid, grid, node, unit, f, t) "Constrained ratio between two grids of energy output; e.g. electricity generation is greater than cV times unitHeat generation in extraction plants"
-    q_stoMinContent(grid, node, storage, f, t) "Storage should have enough content at end of time step to deliver committed upward reserves"
-    q_stoMaxContent(grid, node, storage, f, t) "Storage should have enough room to fit committed downward reserves"
-    q_maxHydropower(grid, node, storage, f, t) "Sum of unitHydro generation in storage is limited by total installed capacity"
+    q_stoMinContent(grid, node, storage, f, t) "Storage should have enough content to discharge and to deliver committed upward reserves"
+    q_stoMaxContent(grid, node, storage, f, t) "Storage should have enough room to fit scheduled charge and committed downward reserves"
     q_transferLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
     q_boundState(grid, node, node, f, t) "Node state variables bounded by other nodes"
 ;
@@ -309,29 +308,25 @@ q_outputRatioConstrained(ggnuConstrainedOutputRatio(grid, grid_output, node, uni
 ;
 
 q_stoMinContent(gns(grid, node, storage), ft(f, t)) ..
-  + v_stoContent(grid, node, storage, f, t)
-  - sum( (resType, resDirection, unitElec)$(resCapable(resType, 'resUp', node, unitElec) and unit_storage(unitElec, storage)), v_reserve(resType, resDirection, node, unitElec, f, t) )
-  =G=
-  + gnsData(grid, node, storage, 'minContent') * gnsData(grid, node, storage, 'maxContent')
+  + v_stoContent(grid, node, storage, f, t)                                                     // Storage content
+  - v_stoDischarge(grid, node, storage, f, t)                                                   // - storage discharging
+  - sum( (resType, resDirection, unitElec)$(resCapable(resType, 'resUp', node, unitElec)        // - reservation for storage discharging (upward reserves)
+        and unit_storage(unitElec, storage)),
+      + v_reserve(resType, resDirection, node, unitElec, f, t)
+          / gnsData(grid, node, storage, 'dischargingEff') )
+  =G=                                                                                           // are greater than
+  + gnsData(grid, node, storage, 'minContent') * gnsData(grid, node, storage, 'maxContent')     // storage min. content
 ;
 
 q_stoMaxContent(gns(grid, node, storage), ft(f, t)) ..
-  + v_stoContent(grid, node, storage, f, t)
-  + sum( (resType, resDirection, unitElec)$(resCapable(resType, 'resUp', node, unitElec) and unit_storage(unitElec, storage)), v_reserve(resType, resDirection, node, unitElec, f, t) )
-  =L=
-  + gnsData(grid, node, storage, 'maxContent')
-;
-
-q_maxHydropower(gns(grid, node, storageHydro), ft(f, t)) ..
-  + sum(gnu(grid, node, unitHydro)$unit_storage(unitHydro, storageHydro),
-      + v_gen(grid, node, unitHydro, f, t)
-      + sum(resTypeAndDir(resType, resDirection)$resDirection('resUp'),
-            v_reserve(resType, resDirection, node, unitHydro, f, t)
-        )
-    )
-  =L=
-  + sum{unitHydro$[unit_storage(unitHydro, storageHydro) and unit_fuel(unitHydro, 'water_res', 'main')], gnuData('elec', node, unitHydro, 'maxCap')}
-*  + v_spill(storageHydro, f, t) / p_stepLength(m, f, t)
+  + v_stoContent(grid, node, storage, f, t)                                                     // Storage content
+  + v_stoCharge(grid, node, storage, f, t)                                                      // + storage charging
+  + sum( (resType, resDirection, unitElec)$(resCapable(resType, 'resDown', node, unitElec)      // + reservation for storage charging (downward reserves)
+        and unit_storage(unitElec, storage)),
+      + v_reserve(resType, resDirection, node, unitElec, f, t)
+          * gnsData(grid, node, storage, 'chargingEff') )
+  =L=                                                                                           // are less than
+  + gnsData(grid, node, storage, 'maxContent')                                                  // storage max. content
 ;
 
 q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..

@@ -53,7 +53,6 @@ Model schedule /
     q_outputRatioConstrained
     q_stoMinContent
     q_stoMaxContent
-    q_maxHydropower
     q_transferLimit
     q_boundState
 /;
