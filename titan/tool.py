@@ -36,7 +36,7 @@ class Tool(MetaObject):
                  infiles=None, infiles_opt=None,
                  outfiles=None, short_name=None,
                  logfile=None, cmdline_args=None):
-        """Tool constructor.
+        """Class constructor.
 
         Args:
             name (str): Name of the tool
@@ -90,10 +90,6 @@ class Tool(MetaObject):
         else:
             cmdline_args = self.cmdline_args
         return ToolInstance(self, ui, cmdline_args, tool_output_dir)
-        
-    def load(self):
-        # TODO
-        pass
 
     def save(self):
         """[OBSOLETE] Save tool object to disk."""

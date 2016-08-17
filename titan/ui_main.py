@@ -125,7 +125,11 @@ class TitanUI(QMainWindow):
             if tool_def == '':
                 continue
             # Load tool definition
-            tool = GAMSModel.load(tool_def)
+            tool = GAMSModel.load(tool_def, self)
+            if not tool:
+                logging.error("Failed to load Tool from path '{0}'".format(tool_def))
+                self.add_msg_signal.emit("Failed to load Tool from path '{0}'".format(tool_def), 2)
+                continue
             # Add tool definition file path to tool instance variable
             tool.set_def_path(tool_def)
             # Insert tool into model
@@ -286,9 +290,12 @@ class TitanUI(QMainWindow):
         if not os.path.isfile(open_path):
             self.add_msg_signal.emit("Tool definition file path not valid '%s'" % open_path, 2)
             return
-        self.add_msg_signal.emit("Adding tool from file: <{0}>".format(open_path), 0)
+        self.add_msg_signal.emit("Adding Tool from file: <{0}>".format(open_path), 0)
         # Load tool definition
-        tool = GAMSModel.load(open_path)
+        tool = GAMSModel.load(open_path, self)
+        if not tool:
+            self.add_msg_signal.emit("Adding Tool failed".format(open_path), 2)
+            return
         if not self.tool_model.find_tool(tool.name):
             # Add definition file path into tool
             tool.set_def_path(open_path)
@@ -312,7 +319,6 @@ class TitanUI(QMainWindow):
         """
         try:
             index = self.ui.listView_tools.selectedIndexes()[0]
-            logging.debug("index:%s" % index)
         except IndexError:
             # Nothing selected
             logging.debug("No Tool selected")

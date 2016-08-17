@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Thu Jan 21 13:27:34 2016
 
@@ -89,22 +88,28 @@ class GAMSModel(Tool):
         return instance
 
     @staticmethod
-    def load(jsonfile):
-        """Load a tool description from a file"""
+    def load(jsonfile, ui):
+        """Load a tool description from a file.
+
+        Args:
+            jsonfile (str): Path of the tool definition file
+            ui (TitanUI): Titan GUI window
+
+        Returns:
+            GAMSModel instance or None if there was a problem in the tool definition file.
+        """
         with open(jsonfile, 'r') as fp:
             try:
                 json_data = json.load(fp)
-            except json.decoder.JSONDecodeError as e:
-                logging.error("Error reading tool description file '{}'"
-                              .format(jsonfile))
-                logging.error(e)
+            except ValueError:
+                ui.add_msg_signal.emit("Tool definition file not valid", 2)
+                logging.exception("Loading JSON data failed")
                 return None
-
         # Find required and optional arguments
         required = ['name', 'description', 'files']
         optional = ['short_name', 'infiles', 'infiles_opt',
                     'outfiles', 'cmdline_args']
-
+        list_required = ['files', 'infiles', 'infiles_opt', 'outfiles']
         # Construct keyword arguments
         kwargs = {}
         for p in required + optional:
@@ -112,12 +117,19 @@ class GAMSModel(Tool):
                 kwargs[p] = json_data[p]
             except KeyError:
                 if p in required:
-                    # TODO: Do something smart
-                    raise
+                    ui.add_msg_signal.emit("Required keyword '{0}' missing".format(p), 2)
+                    logging.error("Required keyword '{0}' missing".format(p))
+                    return None
                 else:
+                    # logging.info("Optional keyword '{0}' missing".format(p))
                     pass
-
-        kwargs['path'] = os.path.dirname(jsonfile)  # Infer path from JSON file
-
+            # Check that some variables are lists
+            if p in list_required:
+                if not isinstance(json_data[p], list):
+                    ui.add_msg_signal.emit("Keyword '{0}' value must be a list".format(p), 2)
+                    logging.error("Keyword '{0}' value must be a list".format(p))
+                    return None
+        # Infer path from JSON file
+        kwargs['path'] = os.path.dirname(jsonfile)
         # Return a GAMSModel instance
         return GAMSModel(**kwargs)
