@@ -15,7 +15,6 @@ from config import GAMS_EXECUTABLE
 
 class GAMSModel(Tool):
     """Class for GAMS models."""
-    # TODO: Remove mutable default arguments
     def __init__(self, name, description, path, files,
                  infiles=None, infiles_opt=None, outfiles=None,
                  short_name=None, cmdline_args=None):
@@ -64,14 +63,15 @@ class GAMSModel(Tool):
     def __repr__(self):
         return "GAMSModel('{}')".format(self.name)
 
-    def create_instance(self, cmdline_args=None, tool_output_dir=''):
+    def create_instance(self, ui, cmdline_args=None, tool_output_dir=''):
         """Create an instance of the GAMS model
 
         Args:
+            ui (TitanUI): Titan GUI window
             cmdline_args (str): Extra command line arguments
             tool_output_dir (str): Tool output directory
         """
-        instance = ToolInstance(self, cmdline_args, tool_output_dir)
+        instance = ToolInstance(self, ui, cmdline_args, tool_output_dir)
         # Tamper the command to call GAMS
         command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE, self.main_prgm,
                                                   instance.basedir,
@@ -87,7 +87,7 @@ class GAMSModel(Tool):
 
         instance.command = command
         return instance
-           
+
     @staticmethod
     def load(jsonfile):
         """Load a tool description from a file"""
@@ -95,9 +95,9 @@ class GAMSModel(Tool):
             try:
                 json_data = json.load(fp)
             except json.decoder.JSONDecodeError as e:
-                logging.debug("Error reading tool description file '{}'"
+                logging.error("Error reading tool description file '{}'"
                               .format(jsonfile))
-                logging.debug(e)
+                logging.error(e)
                 return None
 
         # Find required and optional arguments
@@ -117,7 +117,7 @@ class GAMSModel(Tool):
                 else:
                     pass
 
-        kwargs['path'] = os.path.dirname(jsonfile)  # Infer path form JSON file
+        kwargs['path'] = os.path.dirname(jsonfile)  # Infer path from JSON file
 
         # Return a GAMSModel instance
         return GAMSModel(**kwargs)

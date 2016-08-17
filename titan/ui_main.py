@@ -552,8 +552,7 @@ class TitanUI(QMainWindow):
     def execute_setup(self):
         """Start executing Setups according to the selected execution mode."""
         if self.ui.radioButton_depth_first.isChecked():
-            self.add_msg_signal.emit("Depth-first algorithm not implemented."
-                                     " Use Breadth-first algorithm for now.", 0)
+            self.add_msg_signal.emit("Depth-first algorithm not implemented yet.", 0)
             return
         # Create a new timestamp for this execution run
         self.output_dir_timestamp = create_output_dir_timestamp()

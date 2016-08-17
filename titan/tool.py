@@ -32,7 +32,6 @@ class MyEncoder(json.JSONEncoder):
 
 class Tool(MetaObject):
     """Class for defining a tool"""
-    # TODO: Remove mutable default arguments
     def __init__(self, name, description, path, files,
                  infiles=None, infiles_opt=None,
                  outfiles=None, short_name=None,
@@ -77,10 +76,11 @@ class Tool(MetaObject):
         """
         self.return_codes[code] = description
 
-    def create_instance(self, cmdline_args=None, tool_output_dir=''):
+    def create_instance(self, ui, cmdline_args=None, tool_output_dir=''):
         """Create an instance of the tool.
 
         Args:
+            ui (TitanUI): Titan GUI instance
             cmdline_args (str): Extra command line arguments
             tool_output_dir (str): Output directory for tool
         """
@@ -89,8 +89,7 @@ class Tool(MetaObject):
                 cmdline_args += ' ' + self.cmdline_args
         else:
             cmdline_args = self.cmdline_args
-
-        return ToolInstance(self, cmdline_args, tool_output_dir)
+        return ToolInstance(self, ui, cmdline_args, tool_output_dir)
         
     def load(self):
         # TODO
@@ -118,16 +117,18 @@ class ToolInstance(QObject):
 
     instance_finished_signal = pyqtSignal(int)
 
-    def __init__(self, tool, cmdline_args=None, tool_output_dir=''):
+    def __init__(self, tool, ui, cmdline_args=None, tool_output_dir=''):
         """Tool instance constructor.
 
         Args:
             tool (Tool): Which tool this instance implements
+            ui (TitanUI): Titan GUI instance
             cmdline_args (str, optional): Extra command line arguments
             tool_output_dir (str): Tool output directory
         """
         super().__init__()
         self.tool = tool
+        self.ui = ui
         self.tool_process = None
         self.basedir = tempfile.mkdtemp(dir=WORK_DIR,
                                         prefix=self.tool.short_name + '__')
@@ -144,6 +145,8 @@ class ToolInstance(QObject):
     @property
     def _checkout(self):
         """Copy the tool files to the instance base directory"""
+        logging.info("Copying Tool '{}' to work directory".format(self.tool.name))
+        self.ui.add_msg_signal.emit("Copying Tool '{}' to work directory".format(self.tool.name), 0)
         for filepath in self.tool.files:
             dirname, file_pattern = os.path.split(filepath)
             src_dir = os.path.join(self.tool.path, dirname)
@@ -153,6 +156,7 @@ class ToolInstance(QObject):
                 os.makedirs(dst_dir, exist_ok=True)
             except OSError as e:
                 logging.error(e)
+                self.ui.add_msg_signal.emit("Making directory '{}' failed".format(dst_dir), 2)
                 return False
             # Copy file if necessary
             if file_pattern:
@@ -163,15 +167,17 @@ class ToolInstance(QObject):
                         shutil.copyfile(src_file, dst_file)
                     except OSError as e:
                         logging.error(e)
+                        self.ui.add_msg_signal.emit("Copying file '{}' failed".format(src_file), 2)
                         return False
-        logging.debug("Copied all files for tool '{}'".format(self.tool.name))
+        logging.info("Finished copying Tool '{}'".format(self.tool.name))
+        self.ui.add_msg_signal.emit("Done", 1)
         return True
 
     def execute(self, ui):
         """Start executing tool instance in QProcess.
 
         Args:
-            ui (QMainWindow): User interface
+            ui (TitanUI): User interface
         """
         self.tool_process = qsubprocess.QSubProcess(ui, self.tool)
         self.tool_process.subprocess_finished_signal.connect(self.tool_finished)
@@ -222,12 +228,12 @@ class ToolInstance(QObject):
 
 
 class Setup(MetaObject):
-    """Class for setup."""
+    """Setup class."""
 
     setup_finished_signal = pyqtSignal()
 
     def __init__(self, name, description, project, parent=None):
-        """Setup constructor.
+        """Class constructor.
 
         Args:
             name (str): Name of tool setup
@@ -284,6 +290,7 @@ class Setup(MetaObject):
         return True
 
     def remove_child(self, position):
+        """Remove child Setup."""
         if position < 0 or position > len(self._children):
             return False
         child = self._children.pop(position)
@@ -311,15 +318,17 @@ class Setup(MetaObject):
         return self._parent
 
     def children(self):
+        """Returns the children of this Setup."""
         return self._children
 
     def row(self):
+        """Returns the row on which this Setup is located."""
         if self._parent is not None:
             return self._parent._children.index(self)
         return 0
 
     def log(self, tab_level=-1):
-        """Returns Setup representation as string."""
+        """[OBSOLETE] Returns Setup structure as a string."""
         output = ""
         tab_level += 1
         for i in range(tab_level):
@@ -360,16 +369,16 @@ class Setup(MetaObject):
         # TODO: Add cleanup of output dir
 
     def get_input_files(self):
-        """Get list of all input files in this setup."""
+        """Get list of all input files in this Setup."""
         return os.listdir(self.input_dir)
 
     def get_output_files(self):
-        """Get list of all output files in this setup.
+        """Get list of all output files in this Setup.
         Lists input files if there is no tool."""
         return os.listdir(self.output_dir)
 
     def find_input_file(self, fname, is_ancestor=False):
-        """Find a given input file in the setup hierarchy
+        """Find a given input file in the setup hierarchy.
 
         Args:
             fname (str): Input file name or pattern
@@ -413,7 +422,7 @@ class Setup(MetaObject):
         if not is_ancestor:
             src_files = self.get_input_files()
             src_dir = self.input_dir
-        # ...or look in ancestors' output
+        # ...or look in ancestors output
         else:
             src_files = self.get_output_files()
             src_dir = self.output_dir
@@ -467,11 +476,15 @@ class Setup(MetaObject):
         if not self.tool:  # No tool in setup
             self.setup_finished(0)
             return
-        instance = self.tool.create_instance(self.cmdline_args, self.output_dir)
+        try:
+            instance = self.tool.create_instance(ui, self.cmdline_args, self.output_dir)
+        except OSError:
+            logging.error("Tool instance creation failed")
+            return
         # Connect instance_finished_signal to setup_finished() method
         instance.instance_finished_signal.connect(self.setup_finished)
         self.tool_instances.append(instance)
-        self.copy_input(self.tool, instance)
+        self.copy_input(self.tool, ui, instance)
         instance.execute(ui)
         # Wait for instance_finished_signal to start setup_finished()
 
@@ -489,16 +502,17 @@ class Setup(MetaObject):
             # logging.debug("Setup <%s> finished successfully. Setting is_ready to True" % self.name)
             self.is_ready = True
         else:
-            logging.debug("Setup <%s> failed. is_ready is False" % self.name)
+            logging.debug("Setup <%s> failed" % self.name)
             self.is_ready = False
         # Run next Setup
         self.setup_finished_signal.emit()
 
-    def copy_input(self, tool, tool_instance=None):
+    def copy_input(self, tool, ui, tool_instance=None):
         """Copy input of a tool in this setup to a tool instance.
 
         Args:
             tool (Tool): The tool
+            ui (TitanUI): Titan UI
             tool_instance (ToolInstance): Tool instance. If not
                 none, execution is done in tool directory.
 
@@ -507,16 +521,22 @@ class Setup(MetaObject):
         """
         if tool is None:
             return True
-
         if tool_instance:
             input_dir = tool_instance.basedir  # Run tool in work directory
         else:
             input_dir = tool.path  # Run tool in /tools/ directory
-
+        ui.add_msg_signal.emit("Copying input files for Tool '{}' to work directory".format(tool.name), 0)
+        logging.info("Copying input files for Tool '{}' to work directory".format(tool.name))
         # Process required and optional input files
         for filepath in tool.infiles | tool.infiles_opt:
             prefix, filename = os.path.split(filepath)
             dst_dir = os.path.join(input_dir, prefix)
+            # Create the destination directory
+            try:
+                os.makedirs(dst_dir, exist_ok=True)
+            except OSError as e:
+                logging.error(e)
+                return False
             if '*' in filename:  # Deal with wildcards
                 found_files = self.find_input_files(filename)
             else:
@@ -530,10 +550,14 @@ class Setup(MetaObject):
                 found_files = [found_file] if found_file else []
             # Do copying
             for src_file in found_files:
-                shutil.copy(src_file, dst_dir)
-                logging.debug("Copied file '{}' to: {}".format(src_file, dst_dir))
-
-        logging.debug("Copied input files for '{}'".format(tool.name))
+                try:
+                    ret = shutil.copy(src_file, dst_dir)
+                    logging.debug("File '{}' copied to '{}'".format(src_file, ret))
+                except OSError:
+                    logging.error("Copying file '{}' to directory '{}' failed".format(src_file, dst_dir))
+                    return False
+        logging.info("Finished copying input files for Tool '{}'".format(tool.name))
+        ui.add_msg_signal.emit("Done", 1)
         return True
 
     def cleanup(self):
