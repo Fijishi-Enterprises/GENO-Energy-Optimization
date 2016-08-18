@@ -125,10 +125,13 @@ class GAMSModel(Tool):
                     pass
             # Check that some variables are lists
             if p in list_required:
-                if not isinstance(json_data[p], list):
-                    ui.add_msg_signal.emit("Keyword '{0}' value must be a list".format(p), 2)
-                    logging.error("Keyword '{0}' value must be a list".format(p))
-                    return None
+                try:
+                    if not isinstance(json_data[p], list):
+                        ui.add_msg_signal.emit("Keyword '{0}' value must be a list".format(p), 2)
+                        logging.error("Keyword '{0}' value must be a list".format(p))
+                        return None
+                except KeyError:
+                    pass
         # Infer path from JSON file
         kwargs['path'] = os.path.dirname(jsonfile)
         # Return a GAMSModel instance
