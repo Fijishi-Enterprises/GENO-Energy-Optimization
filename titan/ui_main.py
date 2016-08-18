@@ -10,7 +10,7 @@ import logging
 import os
 import json
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QCheckBox
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
@@ -898,6 +898,24 @@ class TitanUI(QMainWindow):
             return
         traverse(self._root)
 
+    def test_msgbox(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Question)
+        msg.setWindowTitle("Quitting Sceleton")
+        msg.setText("Exit Sceleton?")
+        msg.setInformativeText("This is additional information")
+        msg.setDetailedText("The details are as follows:")
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        chkbox = QCheckBox()
+        chkbox.setText("Do not ask me again")
+        msg.setCheckBox(chkbox)
+        retval = msg.exec_()
+        chk = chkbox.checkState()
+        if retval == QMessageBox.Ok:
+            logging.debug("Ok selected. Checkbox state:{0}".format(chk))
+        else:
+            logging.debug("Cancel selected")
+
     def closeEvent(self, event):
         """Method for handling application exit.
 
@@ -911,12 +929,25 @@ class TitanUI(QMainWindow):
         # for dirpath, dirnames, filenames in os.walk(WORK_DIR):
         #     logging.debug("dirpath:\n{0}\ndirnames:\n{1}\nfilenames:\n{2}".format(dirpath, dirnames, filenames))
 
-        if self._config.get('settings', 'confirm_exit') == 'True':
-            msg = 'Exit Sceleton?'
-            # noinspection PyCallByClass, PyTypeChecker
-            answer = QMessageBox.question(self, 'Quitting', msg, QMessageBox.Yes, QMessageBox.No)
+        if self._config.get('settings', 'confirm_exit') != '0':
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setWindowTitle("Confirm exit")
+            msg.setText("Are you sure you want to exit Sceleton?")
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            chkbox = QCheckBox()
+            chkbox.setText("Do not ask me again")
+            msg.setCheckBox(chkbox)
+            answer = msg.exec_()  # Show message box
+            chk = chkbox.checkState()
             if answer == QMessageBox.Yes:
-                logging.debug("See you later.")
+                logging.debug("See you later. Checkbox state:{0}".format(chk))
+                # Flip check state for config file
+                if chk == 0:
+                    chk = '2'
+                else:
+                    chk = '0'
+                self._config.set('settings', 'confirm_exit', chk)
                 if self._project:
                     self._config.set('general', 'project_path', self._project.path)
                 self._config.save()
@@ -934,4 +965,3 @@ class TitanUI(QMainWindow):
             self._config.save()
             # noinspection PyArgumentList
             QApplication.quit()
-

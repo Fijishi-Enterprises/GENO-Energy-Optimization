@@ -9,8 +9,6 @@ import logging
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSlot, Qt
 import ui.settings
-from configuration import ConfigurationParser
-from config import CONFIGURATION_FILE, SETTINGS
 
 
 class SettingsWidget(QWidget):
@@ -50,8 +48,8 @@ class SettingsWidget(QWidget):
         c = self._configs.get('settings', 'delete_work_dirs')
         if a == 'True':
             self.ui.checkBox_save_at_exit.setChecked(True)
-        if b == 'True':
-            self.ui.checkBox_exit_dialog.setChecked(True)
+        if b == '2':
+            self.ui.checkBox_exit_dialog.setCheckState(Qt.Checked)
         if c == 'True':
             self.ui.checkBox_del_work_dirs.setChecked(True)
         # logging.debug("save at exit:{0}. confirm exit:{1}. delete work dirs:{2}.".format(a, b, c))
@@ -59,17 +57,16 @@ class SettingsWidget(QWidget):
     @pyqtSlot()
     def ok_clicked(self):
         a = self.ui.checkBox_save_at_exit.checkState()
-        b = self.ui.checkBox_exit_dialog.checkState()
+        b = str(self.ui.checkBox_exit_dialog.checkState())
         c = self.ui.checkBox_del_work_dirs.checkState()
+
+        self._configs.set('settings', 'confirm_exit', b)
+
         # Checked box has a state 2, non-checked box has a state 0
         if a == 2:
             self._configs.set('settings', 'save_at_exit', 'True')
         else:
             self._configs.set('settings', 'save_at_exit', 'False')
-        if b == 2:
-            self._configs.set('settings', 'confirm_exit', 'True')
-        else:
-            self._configs.set('settings', 'confirm_exit', 'False')
         if c == 2:
             self._configs.set('settings', 'delete_work_dirs', 'True')
         else:

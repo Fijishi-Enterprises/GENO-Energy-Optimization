@@ -63,7 +63,10 @@
       <item>
        <widget class="QCheckBox" name="checkBox_exit_dialog">
         <property name="text">
-         <string>Show 'Are you sure you want quit' dialog at exit</string>
+         <string>Show confirm exit dialog at exit</string>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
