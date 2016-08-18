@@ -2,15 +2,14 @@
 Widget to ask the user for new project details.
 
 :author: Pekka Savolainen <pekka.t.savolainen@vtt.fi>
-:date:   10.5.2015
+:date:   10.5.2016
 """
 
 import os
 from PyQt5.QtWidgets import QWidget, QStatusBar
-from PyQt5.QtCore import pyqtSlot, QModelIndex, Qt
+from PyQt5.QtCore import pyqtSlot, Qt
 from config import PROJECT_DIR
 import ui.project_form
-import logging
 
 
 class ProjectFormWidget(QWidget):

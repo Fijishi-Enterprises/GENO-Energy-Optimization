@@ -8,6 +8,7 @@ Module for handling Sceleton Titan configuration files.
 import configparser
 import logging
 import codecs
+from config import SETTINGS
 
 
 class ConfigurationParser(object):
@@ -25,6 +26,7 @@ class ConfigurationParser(object):
         self.file_path = file_path
         if defaults:
             self.parser['general'] = defaults
+            self.parser['settings'] = SETTINGS
 
     def __str__(self):
         """Print the current configuration."""

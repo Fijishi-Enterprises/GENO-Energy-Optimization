@@ -2,7 +2,7 @@
 Widget to change the Tool of a selected Setup.
 
 :author: Pekka Savolainen <pekka.t.savolainen@vtt.fi>
-:date:   1.6.2015
+:date:   1.6.2016
 """
 
 import os

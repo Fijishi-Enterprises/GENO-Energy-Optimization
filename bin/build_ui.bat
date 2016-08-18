@@ -24,5 +24,10 @@ CALL pyuic5 ../titan/ui/edit_tool_form.ui -o ../titan/ui/edit_tool_form.py.o
 findstr /V /C:"# Created:" /C:"#      by:" ..\titan\ui\edit_tool_form.py.o > ..\titan\ui\edit_tool_form.py
 del ..\titan\ui\edit_tool_form.py.o
 
+ECHO settings.py
+CALL pyuic5 ../titan/ui/settings.ui -o ../titan/ui/settings.py.o
+findstr /V /C:"# Created:" /C:"#      by:" ..\titan\ui\settings.py.o > ..\titan\ui\settings.py
+del ..\titan\ui\settings.py.o
+
 ECHO --- Build completed ---
 PAUSE

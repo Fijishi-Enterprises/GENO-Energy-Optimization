@@ -2,7 +2,7 @@
 Widget to ask the user for created Setup details.
 
 :author: Pekka Savolainen <pekka.t.savolainen@vtt.fi>
-:date:   5.4.2015
+:date:   5.4.2016
 """
 
 from PyQt5.QtWidgets import QWidget, QStatusBar

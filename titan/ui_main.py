@@ -18,12 +18,13 @@ from tool import Setup
 from tools import create_dir, copy_files, create_output_dir_timestamp
 from GAMS import GAMSModel
 from config import ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
-                   CONFIGURATION_FILE, GENERAL_OPTIONS
+                   WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS
 from configuration import ConfigurationParser
 from widgets.setup_form_widget import SetupFormWidget
 from widgets.project_form_widget import ProjectFormWidget
 from widgets.context_menu_widget import ContextMenuWidget
 from widgets.edit_tool_widget import EditToolWidget
+from widgets.settings_widget import SettingsWidget
 from modeltest.modeltest import ModelTest
 
 
@@ -59,6 +60,7 @@ class TitanUI(QMainWindow):
         self.project_form = None
         self.context_menu = None
         self.edit_tool_form = None
+        self.settings_form = None
         # Initialize general things
         self.init_conf()
         self.connect_signals()
@@ -87,6 +89,7 @@ class TitanUI(QMainWindow):
         self.ui.actionSave.triggered.connect(self.save_project)
         self.ui.actionSave_As.triggered.connect(self.save_project_as)
         self.ui.actionLoad.triggered.connect(self.load_project)
+        self.ui.actionSettings.triggered.connect(self.show_settings)
         self.ui.actionQuit.triggered.connect(self.closeEvent)
         # Widgets
         self.ui.pushButton_execute_all.clicked.connect(self.execute_all)
@@ -216,7 +219,6 @@ class TitanUI(QMainWindow):
                 self.new_project()
                 return
             else:
-                logging.debug("Cancelled")
                 return
         # Use project name as file name
         file_path = os.path.join(PROJECT_DIR, '{}.json'.format(self._project.short_name))
@@ -437,6 +439,12 @@ class TitanUI(QMainWindow):
         """
         self.edit_tool_form = EditToolWidget(self, index)
         self.edit_tool_form.show()
+
+    @pyqtSlot()
+    def show_settings(self):
+        """Show settings window."""
+        self.settings_form = SettingsWidget(self, self._config)
+        self.settings_form.show()
 
     def edit_tool(self, setup, tool, cmdline_args):
         """Change the Tool associated with Setup.
@@ -900,9 +908,30 @@ class TitanUI(QMainWindow):
         # TODO: Fix this
         # for _, setup in self._setups.items():
         #    setup.cleanup()
-        logging.debug("See you later.")
-        if self._project:
-            self._config.set('general', 'project_path', self._project.path)
-        self._config.save()
-        # noinspection PyArgumentList
-        QApplication.quit()
+        # for dirpath, dirnames, filenames in os.walk(WORK_DIR):
+        #     logging.debug("dirpath:\n{0}\ndirnames:\n{1}\nfilenames:\n{2}".format(dirpath, dirnames, filenames))
+
+        if self._config.get('settings', 'confirm_exit') == 'True':
+            msg = 'Exit Sceleton?'
+            # noinspection PyCallByClass, PyTypeChecker
+            answer = QMessageBox.question(self, 'Quitting', msg, QMessageBox.Yes, QMessageBox.No)
+            if answer == QMessageBox.Yes:
+                logging.debug("See you later.")
+                if self._project:
+                    self._config.set('general', 'project_path', self._project.path)
+                self._config.save()
+                # noinspection PyArgumentList
+                QApplication.quit()
+            else:
+                logging.debug("Exit cancelled")
+                if event:
+                    event.ignore()
+                return
+        else:
+            logging.debug("See you later.")
+            if self._project:
+                self._config.set('general', 'project_path', self._project.path)
+            self._config.save()
+            # noinspection PyArgumentList
+            QApplication.quit()
+
