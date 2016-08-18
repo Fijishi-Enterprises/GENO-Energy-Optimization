@@ -46,8 +46,10 @@ class SettingsWidget(QWidget):
         a = self._configs.get('settings', 'save_at_exit')
         b = self._configs.get('settings', 'confirm_exit')
         c = self._configs.get('settings', 'delete_work_dirs')
-        if a == 'True':
-            self.ui.checkBox_save_at_exit.setChecked(True)
+        if a == '1':
+            self.ui.checkBox_save_at_exit.setCheckState(Qt.PartiallyChecked)
+        elif a == '2':
+            self.ui.checkBox_save_at_exit.setCheckState(Qt.Checked)
         if b == '2':
             self.ui.checkBox_exit_dialog.setCheckState(Qt.Checked)
         if c == 'True':
@@ -56,17 +58,13 @@ class SettingsWidget(QWidget):
 
     @pyqtSlot()
     def ok_clicked(self):
-        a = self.ui.checkBox_save_at_exit.checkState()
+        a = str(self.ui.checkBox_save_at_exit.checkState())
         b = str(self.ui.checkBox_exit_dialog.checkState())
         c = self.ui.checkBox_del_work_dirs.checkState()
 
+        self._configs.set('settings', 'save_at_exit', a)
         self._configs.set('settings', 'confirm_exit', b)
 
-        # Checked box has a state 2, non-checked box has a state 0
-        if a == 2:
-            self._configs.set('settings', 'save_at_exit', 'True')
-        else:
-            self._configs.set('settings', 'save_at_exit', 'False')
         if c == 2:
             self._configs.set('settings', 'delete_work_dirs', 'True')
         else:
@@ -122,8 +120,8 @@ class SettingsWidget(QWidget):
         Args:
             e (QMouseEvent): Mouse event
         """
-        #logging.debug("MouseMoveEvent at pos:%s" % e.pos())
-        #logging.debug("MouseMoveEvent globalpos:%s" % e.globalPos())
+        # logging.debug("MouseMoveEvent at pos:%s" % e.pos())
+        # logging.debug("MouseMoveEvent globalpos:%s" % e.globalPos())
         currentpos = self.pos()
         globalpos = e.globalPos()
         diff = globalpos - self._mouseMovePos

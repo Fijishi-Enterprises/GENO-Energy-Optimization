@@ -40,6 +40,6 @@ GAMS_EXECUTABLE = 'gams'
 GENERAL_OPTIONS = {'project_path': '',
                    'tools': ''}
 
-SETTINGS = {'save_at_exit': 'False',
-            'confirm_exit': '0',
+SETTINGS = {'save_at_exit': '1',
+            'confirm_exit': '2',
             'delete_work_dirs': 'False'}

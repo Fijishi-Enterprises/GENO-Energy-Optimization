@@ -916,6 +916,75 @@ class TitanUI(QMainWindow):
         else:
             logging.debug("Cancel selected")
 
+    def show_save_project_question(self):
+        """Shows the save project message box when exiting Sceleton."""
+        save_at_exit = self._config.get('settings', 'save_at_exit')
+        if save_at_exit == '0':
+            # Don't save project and don't show message box
+            logging.debug("Project changes not saved")
+            return
+        elif save_at_exit == '1':  # Default
+            # Show message box
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setWindowTitle("Save project")
+            msg.setText("Save changes to project?")
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            chkbox = QCheckBox()
+            chkbox.setText("Do not ask me again")
+            msg.setCheckBox(chkbox)
+            answer = msg.exec_()  # Show message box
+            chk = chkbox.checkState()
+            if answer == QMessageBox.Yes:
+                logging.debug("Saving project")
+                self.save_project()
+                if chk == 2:
+                    # Save preference into config file
+                    self._config.set('settings', 'save_at_exit', '2')
+            else:
+                logging.debug("Project changes not saved")
+                if chk == 2:
+                    # Save preference into config file
+                    self._config.set('settings', 'save_at_exit', '0')
+        elif save_at_exit == '2':
+            # Save project and don't show message box
+            logging.debug("Saving project")
+            self.save_project()
+        else:
+            logging.info("Unknown setting for save_at_exit. Writing default value")
+            self._config.set('settings', 'save_at_exit', '1')
+        return
+
+    def show_confirm_exit(self):
+        """Shows confirm exit message box.
+
+        Returns:
+            True if user clicks Yes or False if exit is cancelled
+        """
+        ex = self._config.get('settings', 'confirm_exit')
+        if ex != '0':
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setWindowTitle("Confirm exit")
+            msg.setText("Are you sure you want to exit Sceleton?")
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            chkbox = QCheckBox()
+            chkbox.setText("Do not ask me again")
+            msg.setCheckBox(chkbox)
+            answer = msg.exec_()  # Show message box
+            chk = chkbox.checkState()
+            if answer == QMessageBox.Yes:
+                # Flip check state for saving into conf file
+                if chk == 0:
+                    chk = '2'
+                else:
+                    chk = '0'
+                self._config.set('settings', 'confirm_exit', chk)
+                return True
+            else:
+                return False
+        return True
+
     def closeEvent(self, event):
         """Method for handling application exit.
 
@@ -929,39 +998,16 @@ class TitanUI(QMainWindow):
         # for dirpath, dirnames, filenames in os.walk(WORK_DIR):
         #     logging.debug("dirpath:\n{0}\ndirnames:\n{1}\nfilenames:\n{2}".format(dirpath, dirnames, filenames))
 
-        if self._config.get('settings', 'confirm_exit') != '0':
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Question)
-            msg.setWindowTitle("Confirm exit")
-            msg.setText("Are you sure you want to exit Sceleton?")
-            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            chkbox = QCheckBox()
-            chkbox.setText("Do not ask me again")
-            msg.setCheckBox(chkbox)
-            answer = msg.exec_()  # Show message box
-            chk = chkbox.checkState()
-            if answer == QMessageBox.Yes:
-                logging.debug("See you later. Checkbox state:{0}".format(chk))
-                # Flip check state for config file
-                if chk == 0:
-                    chk = '2'
-                else:
-                    chk = '0'
-                self._config.set('settings', 'confirm_exit', chk)
-                if self._project:
-                    self._config.set('general', 'project_path', self._project.path)
-                self._config.save()
-                # noinspection PyArgumentList
-                QApplication.quit()
-            else:
-                logging.debug("Exit cancelled")
-                if event:
-                    event.ignore()
-                return
-        else:
-            logging.debug("See you later.")
-            if self._project:
-                self._config.set('general', 'project_path', self._project.path)
-            self._config.save()
-            # noinspection PyArgumentList
-            QApplication.quit()
+        if not self.show_confirm_exit():
+            # Exit cancelled
+            logging.debug("Exit cancelled")
+            if event:
+                event.ignore()
+            return
+        self.show_save_project_question()
+        logging.debug("See you later.")
+        if self._project:
+            self._config.set('general', 'project_path', self._project.path)
+        self._config.save()
+        # noinspection PyArgumentList
+        QApplication.quit()

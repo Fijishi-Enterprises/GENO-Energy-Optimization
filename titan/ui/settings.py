@@ -31,6 +31,7 @@ class Ui_SettingsForm(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(self.groupBox_general)
         self.verticalLayout.setObjectName("verticalLayout")
         self.checkBox_save_at_exit = QtWidgets.QCheckBox(self.groupBox_general)
+        self.checkBox_save_at_exit.setTristate(True)
         self.checkBox_save_at_exit.setObjectName("checkBox_save_at_exit")
         self.verticalLayout.addWidget(self.checkBox_save_at_exit)
         self.checkBox_exit_dialog = QtWidgets.QCheckBox(self.groupBox_general)
@@ -66,6 +67,7 @@ class Ui_SettingsForm(object):
         _translate = QtCore.QCoreApplication.translate
         SettingsForm.setWindowTitle(_translate("SettingsForm", "Settings"))
         self.groupBox_general.setTitle(_translate("SettingsForm", "General"))
+        self.checkBox_save_at_exit.setToolTip(_translate("SettingsForm", "<html><head/><body><p>Not checked: Does not save project &amp; does not show message box</p><p>Partially checked: Show message box (default)</p><p>Checked: Saves project without showing message box</p><p><br/></p></body></html>"))
         self.checkBox_save_at_exit.setText(_translate("SettingsForm", "Save changes to project at exit"))
         self.checkBox_exit_dialog.setText(_translate("SettingsForm", "Show confirm exit dialog at exit"))
         self.checkBox_del_work_dirs.setText(_translate("SettingsForm", "Delete work directories at exit"))
