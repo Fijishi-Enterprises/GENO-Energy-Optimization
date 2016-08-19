@@ -4,7 +4,8 @@
     "description": "Backbone",
     "files": ["Backbone.gms", "inc/*.gms", "inc/rampSched/*.gms", "defModels/*.gms", "defOutput/*.inc"],
     "cmdline_args": "",
-    "infiles": "input/InputData.gdx"
-    "infiles_opt": ["input/*.gms", "input/*.inc"],
+    "infiles": ["input/InputData.gdx"]
+    "infiles_opt": ["input/*.gms", 
+                    "input/*.inc"],
     "outfiles": ["output/debug.gdx", "results.gdx", "info.txt"]
 }
