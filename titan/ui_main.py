@@ -9,13 +9,14 @@ import locale
 import logging
 import os
 import json
+import shutil
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QCheckBox
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
 from tool import Setup
-from tools import create_dir, copy_files, create_output_dir_timestamp
+from tools import create_dir, copy_files, create_output_dir_timestamp, find_work_dirs
 from GAMS import GAMSModel
 from config import ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
                    WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS
@@ -916,45 +917,6 @@ class TitanUI(QMainWindow):
         else:
             logging.debug("Cancel selected")
 
-    def show_save_project_question(self):
-        """Shows the save project message box when exiting Sceleton."""
-        save_at_exit = self._config.get('settings', 'save_at_exit')
-        if save_at_exit == '0':
-            # Don't save project and don't show message box
-            logging.debug("Project changes not saved")
-            return
-        elif save_at_exit == '1':  # Default
-            # Show message box
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Question)
-            msg.setWindowTitle("Save project")
-            msg.setText("Save changes to project?")
-            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            chkbox = QCheckBox()
-            chkbox.setText("Do not ask me again")
-            msg.setCheckBox(chkbox)
-            answer = msg.exec_()  # Show message box
-            chk = chkbox.checkState()
-            if answer == QMessageBox.Yes:
-                logging.debug("Saving project")
-                self.save_project()
-                if chk == 2:
-                    # Save preference into config file
-                    self._config.set('settings', 'save_at_exit', '2')
-            else:
-                logging.debug("Project changes not saved")
-                if chk == 2:
-                    # Save preference into config file
-                    self._config.set('settings', 'save_at_exit', '0')
-        elif save_at_exit == '2':
-            # Save project and don't show message box
-            logging.debug("Saving project")
-            self.save_project()
-        else:
-            logging.info("Unknown setting for save_at_exit. Writing default value")
-            self._config.set('settings', 'save_at_exit', '1')
-        return
-
     def show_confirm_exit(self):
         """Shows confirm exit message box.
 
@@ -985,26 +947,115 @@ class TitanUI(QMainWindow):
                 return False
         return True
 
+    def show_save_project_prompt(self):
+        """Shows the save project message box when exiting Sceleton."""
+        save_at_exit = self._config.get('settings', 'save_at_exit')
+        if save_at_exit == '0':
+            # Don't save project and don't show message box
+            logging.debug("Project changes not saved")
+            return
+        elif save_at_exit == '1':  # Default
+            # Show message box
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setWindowTitle("Save project")
+            msg.setText("Save changes to project?")
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            chkbox = QCheckBox()
+            chkbox.setText("Do not ask me again")
+            msg.setCheckBox(chkbox)
+            answer = msg.exec_()
+            chk = chkbox.checkState()
+            if answer == QMessageBox.Yes:
+                logging.debug("Saving project")
+                self.save_project()
+                if chk == 2:
+                    # Save preference into config file
+                    self._config.set('settings', 'save_at_exit', '2')
+            else:
+                logging.debug("Project changes not saved")
+                if chk == 2:
+                    # Save preference into config file
+                    self._config.set('settings', 'save_at_exit', '0')
+        elif save_at_exit == '2':
+            # Save project and don't show message box
+            logging.debug("Saving project")
+            self.save_project()
+        else:
+            logging.debug("Unknown setting for save_at_exit. Writing default value")
+            self._config.set('settings', 'save_at_exit', '1')
+        return
+
+    def show_delete_work_dirs_prompt(self):
+        """Shows the delete work directories message box when exiting Sceleton."""
+        del_dirs = self._config.get('settings', 'delete_work_dirs')
+        if del_dirs == '0':
+            # Don't delete work directories and don't show message box
+            logging.debug("Work directories not deleted")
+            return
+        elif del_dirs == '1':  # Default
+            # Find work directories
+            dirs = find_work_dirs()
+            dirs_str = '\n'.join(dirs)
+            if len(dirs) == 0:
+                # No work directories found, skip message box
+                logging.debug("No work directories found in path {0}".format(WORK_DIR))
+                return
+            # Show message box
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setWindowTitle("Emptying work directory")
+            msg.setText("There are {0} work directories in path {1}. Would you like to delete them? "
+                        "Click show details to see the paths.".format(len(dirs), WORK_DIR))
+            msg.setDetailedText("These directories will be deleted:\n{0}".format(dirs_str))
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            chkbox = QCheckBox()
+            chkbox.setText("Do not ask me again")
+            msg.setCheckBox(chkbox)
+            answer = msg.exec_()
+            chk = chkbox.checkState()
+            if answer == QMessageBox.Yes:
+                for directory in dirs:
+                    logging.debug("Deleting folder {0}".format(directory))
+                    shutil.rmtree(directory, ignore_errors=True)
+                logging.debug("Deleted {0} work directories".format(len(dirs)))
+                if chk == 2:
+                    # Save preference into config file
+                    self._config.set('settings', 'delete_work_dirs', '2')
+            else:
+                logging.debug("Work directories not deleted")
+                if chk == 2:
+                    # Save preference into config file
+                    self._config.set('settings', 'delete_work_dirs', '0')
+        elif del_dirs == '2':
+            # Delete work directories without prompt
+            dirs = find_work_dirs()
+            for directory in dirs:
+                logging.debug("Deleting folder {0}".format(directory))
+                shutil.rmtree(directory, ignore_errors=True)
+            logging.debug("Deleted {0} work directories".format(len(dirs)))
+        else:
+            logging.debug("Unknown setting for delete_work_dirs. Writing default value")
+            self._config.set('settings', 'delete_work_dirs', '1')
+        return
+
     def closeEvent(self, event):
         """Method for handling application exit.
 
         Args:
              event (QEvent): PyQt event
         """
-        # Remove working files
-        # TODO: Fix this
-        # for _, setup in self._setups.items():
-        #    setup.cleanup()
-        # for dirpath, dirnames, filenames in os.walk(WORK_DIR):
-        #     logging.debug("dirpath:\n{0}\ndirnames:\n{1}\nfilenames:\n{2}".format(dirpath, dirnames, filenames))
-
+        # Show confirm exit message box
         if not self.show_confirm_exit():
             # Exit cancelled
             logging.debug("Exit cancelled")
             if event:
                 event.ignore()
             return
-        self.show_save_project_question()
+        # Show save project message box
+        self.show_save_project_prompt()
+        # Show delete work directories message box
+        self.show_delete_work_dirs_prompt()
         logging.debug("See you later.")
         if self._project:
             self._config.set('general', 'project_path', self._project.path)

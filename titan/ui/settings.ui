@@ -54,9 +54,22 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
+       <widget class="QCheckBox" name="checkBox_exit_dialog">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Not checked: Exit Sceleton without prompt&lt;/p&gt;&lt;p&gt;Checked: Show confirm exit prompt&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Show confirm exit dialog at exit</string>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="checkBox_save_at_exit">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Not checked: Does not save project &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;Partially checked: Show message box (default)&lt;/p&gt;&lt;p&gt;Checked: Saves project without showing message box&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Not checked: Does not save project &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;Partially checked: Shows message box (default)&lt;/p&gt;&lt;p&gt;Checked: Saves project &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Save changes to project at exit</string>
@@ -67,19 +80,15 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBox_exit_dialog">
-        <property name="text">
-         <string>Show confirm exit dialog at exit</string>
-        </property>
-        <property name="tristate">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QCheckBox" name="checkBox_del_work_dirs">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Not checked: Does not delete work directories &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;Partially checked: Shows message box (default)&lt;/p&gt;&lt;p&gt;Checked: Deletes work directories &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Delete work directories at exit</string>
+        </property>
+        <property name="tristate">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

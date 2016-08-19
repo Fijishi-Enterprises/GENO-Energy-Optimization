@@ -13,6 +13,7 @@ import time
 from metaobject import MetaObject
 from collections import OrderedDict
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from config import WORK_DIR
 
 
 def run(command):
@@ -43,6 +44,17 @@ def run2(command):
                             shell=True)
     out = proc.communicate()
     return out
+
+
+def find_work_dirs():
+    """Returns a list of work directory paths."""
+    work_dirs = list()
+    entries = os.listdir(WORK_DIR)
+    for entry in entries:
+        dir_path = os.path.join(WORK_DIR, entry)
+        if os.path.isdir(dir_path):
+            work_dirs.append(dir_path)
+    return work_dirs
 
 
 def create_dir(base_path, folder=''):

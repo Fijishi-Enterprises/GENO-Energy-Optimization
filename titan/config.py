@@ -42,4 +42,4 @@ GENERAL_OPTIONS = {'project_path': '',
 
 SETTINGS = {'save_at_exit': '1',
             'confirm_exit': '2',
-            'delete_work_dirs': 'False'}
+            'delete_work_dirs': '1'}

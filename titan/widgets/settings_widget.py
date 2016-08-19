@@ -52,23 +52,21 @@ class SettingsWidget(QWidget):
             self.ui.checkBox_save_at_exit.setCheckState(Qt.Checked)
         if b == '2':
             self.ui.checkBox_exit_dialog.setCheckState(Qt.Checked)
-        if c == 'True':
-            self.ui.checkBox_del_work_dirs.setChecked(True)
+        if c == '1':
+            self.ui.checkBox_del_work_dirs.setCheckState(Qt.PartiallyChecked)
+        elif c == '2':
+            self.ui.checkBox_del_work_dirs.setCheckState(Qt.Checked)
         # logging.debug("save at exit:{0}. confirm exit:{1}. delete work dirs:{2}.".format(a, b, c))
 
     @pyqtSlot()
     def ok_clicked(self):
+        """Get selections and save them to conf file."""
         a = str(self.ui.checkBox_save_at_exit.checkState())
         b = str(self.ui.checkBox_exit_dialog.checkState())
-        c = self.ui.checkBox_del_work_dirs.checkState()
-
+        c = str(self.ui.checkBox_del_work_dirs.checkState())
         self._configs.set('settings', 'save_at_exit', a)
         self._configs.set('settings', 'confirm_exit', b)
-
-        if c == 2:
-            self._configs.set('settings', 'delete_work_dirs', 'True')
-        else:
-            self._configs.set('settings', 'delete_work_dirs', 'False')
+        self._configs.set('settings', 'delete_work_dirs', c)
         self._configs.save()
         # logging.debug("save at exit:{0}. confirm exit:{1}. delete work dirs:{2}.".format(a, b, c))
         self.close()
