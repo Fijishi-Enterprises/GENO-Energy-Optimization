@@ -12,7 +12,7 @@ $else
             = v_stoContent.l(grid, node, storage, f, tSolve);
 $endif
     // Free online capacity and state for the first loop
-    if(tElapsed = 0 and not active('addOn'),
+    if(tSolveFirst = mSettings('schedule', 't_start') and not active('addOn'),
         v_online.up(nu(node, unitOnline), f, tSolve) = 1;
         v_state.up(gnState(grid, node), f, tSolve)$(gnData(grid, node, 'maxState')) = gnData(grid, node, 'maxState');
     // Fix online capacity and state for later solutions

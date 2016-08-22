@@ -9,6 +9,7 @@ loop(mType,
             modelSolves(mType, t)=yes;
             t_skip_counter = t_skip_counter + 1;
         );
+        p_stepLengthNoReset(mSolve, f, t) = no;
     );
 );
 

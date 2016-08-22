@@ -1,6 +1,6 @@
 equations
     q_obj "Objective function"
-    q_balance(grid, node, mType, f, t) "Energy demand must be satisfied at each nodegraphical location"
+    q_balance(grid, node, mType, f, t) "Energy demand must be satisfied at each node"
     q_resDemand(resType, resDirection, node, f, t) "Procurement for each reserve type is greater than demand"
     q_maxDownward(grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
@@ -10,7 +10,6 @@ equations
     q_bindOnline(node, unit, mType, f, t) "Couple online variable when joining forecasts or when joining sample time periods"
     q_startup(node, unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
     q_fuelUse(node, unit, fuel, mType, f, t) "Use of fuels in units equals generation and losses"
-*    q_storageEnd(node, storage, f, t) "Expected storage end content minus procured reserve energy is greater than start content"
     q_conversion(node, unit, f, t) "Conversion of energy between grids of energy presented in the model, e.g. electricity consumption equals unitHeat generation times efficiency"
     q_outputRatioFixed(grid, grid, node, unit, f, t) "Force fixed ratio between two energy outputs into different energy grids"
     q_outputRatioConstrained(grid, grid, node, unit, f, t) "Constrained ratio between two grids of energy output; e.g. electricity generation is greater than cV times unitHeat generation in extraction plants"
@@ -33,7 +32,6 @@ PENALTY_BALANCE(grid) = %def_penalty%;
 PENALTY_RES(resType, resDirection) =  %def_penalty%;
 
 * -----------------------------------------------------------------------------
-
 q_obj ..
   + v_obj
   =E=
@@ -116,6 +114,7 @@ q_obj ..
 
 * -----------------------------------------------------------------------------
 q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t)) and not gnData(grid, node, 'fixState')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
+    // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
     + v_state(grid, node, f, t)$(gnState(grid, node))   // The current state of the node
         * (   // This multiplication transforms the state energy into power, a result of implicit discretization
             + ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
@@ -126,7 +125,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
           )
     - v_state(grid, node, f+pf(f,t), t+pt(t))$(gnState(grid, node)) // The previous state of the node
         * ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
-    =E= // The right side of the equation contains all the power/energy terms
+    =E= // The right side of the equation contains all the changes converted to energy terms
     + (
         + sum(node_$(gnnState(grid, node, node_)),      // Energy diffusion between nodes
             + gnnData(grid, node, node_, 'DiffCoeff') * v_state(grid, node_, f, t)  // Diffusion to/from other nodes
@@ -234,37 +233,18 @@ q_bindStorage(gns(grid, node, storage), mftBind(m, f, t)) ..
   + v_stoContent(grid, node, storage, f + mft_bind(m,f,t), t + mt_bind(m,t) )
 ;
 * -----------------------------------------------------------------------------
-$ontext
-q_storageEnd(longStorage(storage), start(f, t))
-    $(active('storageEnd') and currentStage('scheduling') and mft(m, f, t)) ..
-  + sum(tree(s_, t_)$endTime(t_),
-        p_probability(n_)
-      * (   v_stoContent(longStorage, t_)
-* Juha: Not sure why reserve provision would be relevant here
-*                  + sum(resCapable(resType, upwardReserve, node, unitElec)$unitElec(longStorage),
-*                        p_stepLength(f, t)
-*                      * v_reserve(resType, upwardReserve, unitElec, t_)
-*                      * uReserveData(node, unitElec, resType, upwardReserve, 'res_timelim')
-*                    )
-        )
-    )
-  =G=
-  + v_stoContent(longStorage, f, t)
-;
-$offtext
-* -----------------------------------------------------------------------------
 q_startup(nu(node, unitOnline), ft(f, t)) ..
   + v_startup(node, unitOnline, f, t)
   =G=
   + v_online(node, unitOnline, f, t) - v_online(node, unitOnline, f + pf(f,t), t + pt(t))  // This reaches to t_solve when pt = -1
 ;
-
+* -----------------------------------------------------------------------------
 q_bindOnline(nu(node, unitOnline), mftBind(m, f, t)) ..
   + v_online(node, unitOnline, f, t)
   =E=
   + v_online(node, unitOnline, f + mft_bind(m,f,t), t + mt_bind(m,t))
 ;
-
+* -----------------------------------------------------------------------------
 q_fuelUse(nu(node, unitFuel), fuel, m, ft(f, t))$unit_fuel(unitFuel, fuel, 'main') ..
   + v_fuelUse(node, unitFuel, fuel, f, t)
   =E=
@@ -287,26 +267,26 @@ q_fuelUse(nu(node, unitFuel), fuel, m, ft(f, t))$unit_fuel(unitFuel, fuel, 'main
            ]
     )
 ;
-
+* -----------------------------------------------------------------------------
 q_conversion(nu(node, unit), ft(f, t))$[sum(gn(grid_, node_input), gnu_input(grid_, node_input, unit)) and sum(grid, gnu(grid, node, unit))] ..
   - sum( gn(grid_, node_input)$gnu_input(grid_, node_input, unit), v_gen(grid_, node_input, unit, f, t) / nuData(node, unit, 'slope') )
   =E=
   + sum( grid$gnu(grid, node, unit), v_gen(grid, node, unit, f, t) )
 * nuData(grid_, node, unit, 'eff_from') )
 ;
-
+* -----------------------------------------------------------------------------
 q_outputRatioFixed(ggnuFixedOutputRatio(grid, grid_output, node, unit), ft(f, t)) ..
   + sum(node_input$gnu(grid, node_input, unit), v_gen(grid, node_input, unit, f, t))
   =E=
   + gnuData(grid_output, node, unit, 'cB') * v_gen(grid_output, node, unit, f, t)
 ;
-
+* -----------------------------------------------------------------------------
 q_outputRatioConstrained(ggnuConstrainedOutputRatio(grid, grid_output, node, unit), ft(f, t)) ..
   + sum(node_input$gnu(grid, node_input, unit), v_gen(grid, node_input, unit, f, t))
   =G=
   + gnuData(grid_output, node, unit, 'cB') * v_gen(grid_output, node, unit, f, t)
 ;
-
+* -----------------------------------------------------------------------------
 q_stoMinContent(gns(grid, node, storage), ft(f, t)) ..
   + v_stoContent(grid, node, storage, f, t)                                                     // Storage content
   - v_stoDischarge(grid, node, storage, f, t)                                                   // - storage discharging
@@ -317,7 +297,7 @@ q_stoMinContent(gns(grid, node, storage), ft(f, t)) ..
   =G=                                                                                           // are greater than
   + gnsData(grid, node, storage, 'minContent') * gnsData(grid, node, storage, 'maxContent')     // storage min. content
 ;
-
+* -----------------------------------------------------------------------------
 q_stoMaxContent(gns(grid, node, storage), ft(f, t)) ..
   + v_stoContent(grid, node, storage, f, t)                                                     // Storage content
   + v_stoCharge(grid, node, storage, f, t)                                                      // + storage charging
@@ -328,7 +308,7 @@ q_stoMaxContent(gns(grid, node, storage), ft(f, t)) ..
   =L=                                                                                           // are less than
   + gnsData(grid, node, storage, 'maxContent')                                                  // storage max. content
 ;
-
+* -----------------------------------------------------------------------------
 q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
   + v_transfer(grid, from_node, to_node, f, t)
   + sum(resTypeAndDir(resType, resDirection)$(resDirection('resUp') and grid('elec')),
@@ -336,7 +316,7 @@ q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
   =L=
   + gnnData(grid, from_node, to_node, 'transferCap')
 ;
-
+* -----------------------------------------------------------------------------
 q_boundState(gnnBoundState(grid, node, node_), ft(f, t)) ..
   + v_state(grid, node, f, t)   // The state of the first node sets the upper limit of the second
   =G=

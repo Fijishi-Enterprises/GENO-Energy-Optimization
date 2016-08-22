@@ -172,7 +172,6 @@ Sets
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     mft_(mType, f, t) "Combination of forecasts and time periods in the models"
     msft(mType, s, f, t) "Combination of samples, forecasts and time periods in the models"
-    sft(s, f, t) "Combination of samples, forecasts and time periods in the current model"
     mftStart(mType, f, t) "Start point of simulation"
     mftBind(mType, f, t) "Time periods/slices where forecasts/samples are coupled, note: t couples samples"
     fRealization(f) "fRealization of the forecasts"

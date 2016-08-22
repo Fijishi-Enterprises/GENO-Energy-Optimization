@@ -1,9 +1,10 @@
 * --- Internal counters -------------------------------------------------------
 Scalars
     errorcount /0/
-    tElapsed "Model time elapsed since simulation start (t)" /0/
-    tLast "How many time periods to the end of the current solve (t)" /0/
-    tSolveOrd "ord of tSolve"
+//    tElapsed "Model time elapsed since simulation start (t)" /0/
+//    tLast "How many time periods to the end of the current solve (t)" /0/
+    tSolveFirst "counter (ord) for the first t in the solve"
+    tSolveLast "counter for the last t in the solve"
     tCounter "counter for t" /0/
     lastCounter "last member in use of the general counter"
 ;
@@ -63,4 +64,5 @@ Parameters
 Parameters
     p_storageValue(grid, node, storage, t) "Value of storage at the end of a time step"
     p_stepLength(mType, f, t) "Length of a time step (t)"
+    p_stepLengthNoReset(mType, f, t) "Length of a time step (t)"
 ;
