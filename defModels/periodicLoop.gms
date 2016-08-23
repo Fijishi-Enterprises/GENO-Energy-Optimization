@@ -42,15 +42,15 @@
                                          and ord(t_) < tSolveFirst + tCounter + mInterval(mSolve, 'intervalLength', counter)
                                        ], ts_cf(flow, node, f, t_)} / p_stepLength(mSolve, f, t);
                         );
-                        if ( mInterval(mSolve, 'intervalEnd', counter) <= mSettings(mSolve, 't_forecastLength'),
-                            mftLastForecast(mSolve,f,t_) = no;
-                            mftLastForecast(mSolve,f,t)$[mf(mSolve,f) and ord(t) = tSolveFirst + tCounter] = yes;
-                        );
-                        if ( mInterval(mSolve, 'intervalEnd', counter) <= tSolveLast,
-                            mftLastSteps(mSolve,f,t_) = no;
-                            mftLastSteps(mSolve,f,t)$[mf(mSolve,f) and ord(t) = tSolveFirst + tCounter] = yes;
-                        );
                         pt(t + mInterval(mSolve, 'intervalLength', counter)) = -mInterval(mSolve, 'intervalLength', counter);
+                    );
+                    if ( mInterval(mSolve, 'intervalEnd', counter) <= mSettings(mSolve, 't_forecastLength'),
+                        mftLastForecast(mSolve,f,t_) = no;
+                        mftLastForecast(mSolve,f,t)$[mf(mSolve,f) and ord(t) = tSolveFirst + tCounter] = yes;
+                    );
+                    if ( mInterval(mSolve, 'intervalEnd', counter) <= tSolveLast,
+                        mftLastSteps(mSolve,f,t_) = no;
+                        mftLastSteps(mSolve,f,t)$[mf(mSolve,f) and ord(t) = tSolveFirst + tCounter] = yes;
                     );
                 );
                 tCounter = tCounter + 1;
