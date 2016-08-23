@@ -43,13 +43,9 @@ loop(ft(f, t),
     v_gen.up(gnu('elec', node, unit), f, t)$unit_fuel(unit, 'water', 'main') = ts_inflow_(unit, f, t);
     // v_online cannot exceed 1
     v_online.up(nu(node, unitOnline), f, t) = 1;
-    // v_state constant bounds set according to gnData parameters;
-    v_state.up(gnState(grid, node), f, t)$(gnData(grid, node, 'maxState')) = gnData(grid, node, 'maxState');
-    v_state.lo(gnState(grid, node), f, t)$(gnData(grid, node, 'minState')) = gnData(grid, node, 'minState');
+    // v_state constant fix set according to gnData parameters;
     v_state.fx(gnState(grid, node), f, t)$(gnData(grid, node, 'fixState')) = gnData(grid, node, 'fixState');
-    // Possibility to input v_state boundaries in time-series form. NOTE! Overwrites overlapping constant bounds!;
-    v_state.up(gnState(grid, node), f, t)$ts_nodeState(grid, node, 'maxState', f, t) = ts_nodeState(grid, node, 'maxState', f, t);
-    v_state.lo(gnState(grid, node), f, t)$ts_nodeState(grid, node, 'minState', f, t) = ts_nodeState(grid, node, 'minState', f, t);
+    // Possibility to input v_state fix in time-series form. NOTE! Overwrites overlapping constant fix!;
     v_state.fx(gnState(grid, node), f, t)$ts_nodeState(grid, node, 'fixState', f, t) = ts_nodeState(grid, node, 'fixState', f, t);
     // Free storage control ...
 *    if(currentStage('scheduling'),
