@@ -56,6 +56,7 @@ class TitanUI(QMainWindow):
         self.modeltest = None
         self.exec_mode = ''
         self.output_dir_timestamp = ''
+        self.algorithm = True  # Tree-traversal algorithm (True=Breadth-first, False=Depth-first)
         # References for widgets
         self.setup_form = None
         self.project_form = None
@@ -566,8 +567,14 @@ class TitanUI(QMainWindow):
 
     def execute_setup(self):
         """Start executing Setups according to the selected execution mode."""
-        if self.ui.radioButton_depth_first.isChecked():
-            self.add_msg_signal.emit("Depth-first algorithm not implemented yet.", 0)
+        if self.ui.radioButton_breadth_first.isChecked():
+            alg = 'breadth-first'
+            self.algorithm = True
+        elif self.ui.radioButton_depth_first.isChecked():
+            alg = 'depth-first'
+            self.algorithm = False
+        else:
+            self.add_msg_signal.emit("No tree traversal algorithm selected", 2)
             return
         # Create a new timestamp for this execution run
         self.output_dir_timestamp = create_output_dir_timestamp()
@@ -578,6 +585,7 @@ class TitanUI(QMainWindow):
             if not selected_setup:
                 self.add_msg_signal.emit("No Setup selected.\n", 0)
                 return
+            self.add_msg_signal.emit("\nExecuting a single Setup", 0)
             self._running_setup = selected_setup.internalPointer()
         elif self.exec_mode == 'branch':
             # Set index of base Setup for the model
@@ -586,6 +594,7 @@ class TitanUI(QMainWindow):
             if not base:
                 self.add_msg_signal.emit("No Setup selected.\n", 0)
                 return
+            self.add_msg_signal.emit("\nExecuting Branch. Algorithm: {0}".format(alg), 0)
             self.setup_model.set_base(base)
             # Set Base Setup as the first running Setup
             self._running_setup = self.setup_model.get_base().internalPointer()
@@ -596,7 +605,7 @@ class TitanUI(QMainWindow):
             if self._root.child_count() == 0:
                 self.add_msg_signal("No Setups to execute", 0)
                 return
-            self.add_msg_signal.emit("Executing all Setups in Project '{0}'\n".format(self._project.name), 0)
+            self.add_msg_signal.emit("\nExecuting Project '{0}'. Algorithm: {1}".format(self._project.name, alg), 0)
             # Get the first base that is not ready. Set the next one in setup_done()
             base_name = ''
             for i in range(self._root.child_count()):
@@ -645,7 +654,7 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("Done", 1)
             return
         # Get next executed Setup
-        next_setup = self.setup_model.get_next_setup(breadth_first=True)
+        next_setup = self.setup_model.get_next_setup(breadth_first=self.algorithm)
         if not next_setup:
             if self.exec_mode == 'branch':
                 logging.debug("All Setups ready")
@@ -667,7 +676,7 @@ class TitanUI(QMainWindow):
                     return
         self._running_setup = next_setup.internalPointer()
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
-        self.add_msg_signal.emit("Starting Setup '%s'" % self._running_setup.name, 0)
+        self.add_msg_signal.emit("\nStarting Setup '%s'" % self._running_setup.name, 0)
         # Connect setup_finished_signal to this same slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         self._running_setup.execute(self)

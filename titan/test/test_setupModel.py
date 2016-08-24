@@ -52,10 +52,11 @@ class TestSetupModel(TestCase):
         """get_next_setup is called the first time when Base Setup has already finished.
         Expected output should start from the first child of Base.
         """
+        breadth_first = True
         # Create Setups 1
         self.create_setups_1()
         # Create expected output
-        exp_output = self.expected_output_for_setups_1(breadth_first=True)
+        exp_output = self.expected_output_for_setups_1(breadth_first=breadth_first)
         # List for actual output
         act_output = list()
         # Get first Setup
@@ -65,74 +66,197 @@ class TestSetupModel(TestCase):
             # Set Setup ready
             self.test_model.get_setup(ret).is_ready = True
             act_output.append(ret.internalPointer().name)
-            ret = self.test_model.get_next_setup(breadth_first=True)
+            ret = self.test_model.get_next_setup(breadth_first=breadth_first)
         self.assertEqual(act_output, exp_output)
 
     def test_breadth_first_setups_2(self):
         """get_next_setup is called the first time when Base Setup has already finished.
         Expected output should start from the first child of Base.
         """
+        breadth_first = True
         # Create Setups 2
         self.create_setups_2()
         # Create expected output
-        exp_output = self.expected_output_for_setups_2(breadth_first=True)
+        exp_output = self.expected_output_for_setups_2(breadth_first=breadth_first)
         # List for actual output
         act_output = list()
         # Get first Setup
-        ret = self.test_model.get_next_setup(breadth_first=True)
+        ret = self.test_model.get_next_setup(breadth_first=breadth_first)
         # Get next Setup until None is returned
         while ret is not None:
             # Set Setup ready
             self.test_model.get_setup(ret).is_ready = True
             act_output.append(ret.internalPointer().name)
-            ret = self.test_model.get_next_setup(breadth_first=True)
+            ret = self.test_model.get_next_setup(breadth_first=breadth_first)
         self.assertEqual(act_output, exp_output)
 
     def test_breadth_first_setups_3(self):
         """get_next_setup is called the first time when Base Setup has already finished.
         Expected output should start from the first child of Base.
         """
+        breadth_first = True
         # Create Setups 3
         self.create_setups_3()
         # Create expected output
-        exp_output = self.expected_output_for_setups_3(breadth_first=True)
+        exp_output = self.expected_output_for_setups_3()
         # List for actual output
         act_output = list()
         # Get first Setup
-        ret = self.test_model.get_next_setup(breadth_first=True)
+        ret = self.test_model.get_next_setup(breadth_first=breadth_first)
         # Get next Setup until None is returned
         while ret is not None:
             # Set Setup ready
             self.test_model.get_setup(ret).is_ready = True
             act_output.append(ret.internalPointer().name)
-            ret = self.test_model.get_next_setup(breadth_first=True)
+            ret = self.test_model.get_next_setup(breadth_first=breadth_first)
         self.assertEqual(act_output, exp_output)
 
     def test_breadth_first_setups_4(self):
         """get_next_setup is called the first time when Base Setup has already finished.
         Expected output should start from the first child of Base.
         """
+        breadth_first = True
         # Create Setups 4
         self.create_setups_4()
         # Create expected output
-        exp_output = self.expected_output_for_setups_4(breadth_first=True)
+        exp_output = self.expected_output_for_setups_4()
         # List for actual output
         act_output = list()
         # Get first Setup
-        ret = self.test_model.get_next_setup(breadth_first=True)
+        ret = self.test_model.get_next_setup(breadth_first=breadth_first)
         # Get next Setup until None is returned
         while ret is not None:
             # Set Setup ready
             self.test_model.get_setup(ret).is_ready = True
             act_output.append(ret.internalPointer().name)
-            ret = self.test_model.get_next_setup(breadth_first=True)
+            ret = self.test_model.get_next_setup(breadth_first=breadth_first)
         self.assertEqual(act_output, exp_output)
 
-    def test_breadth_first(self):
-        self.fail()
+    def test_breadth_first_setups_5(self):
+        """get_next_setup is called the first time when Base Setup has already finished.
+        Expected output should start from the first child of Base.
+        """
+        breadth_first = True
+        # Create Setups 5
+        self.create_setups_5()
+        # Create expected output
+        exp_output = self.expected_output_for_setups_5(breadth_first=breadth_first)
+        # List for actual output
+        act_output = list()
+        # Get first Setup
+        ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        # Get next Setup until None is returned
+        while ret is not None:
+            # Set Setup ready
+            self.test_model.get_setup(ret).is_ready = True
+            act_output.append(ret.internalPointer().name)
+            ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        self.assertEqual(act_output, exp_output)
 
-    def test_depth_first(self):
-        self.fail()
+    def test_depth_first_setups_1(self):
+        """get_next_setup is called the first time when Base Setup has already finished.
+        Expected output should start from the first child of Base.
+        """
+        breadth_first = False
+        # Create Setups 1
+        self.create_setups_1()
+        # Create expected output
+        exp_output = self.expected_output_for_setups_1(breadth_first=breadth_first)
+        # List for actual output
+        act_output = list()
+        # Get first Setup
+        ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        # Get next Setup until None is returned
+        while ret is not None:
+            # Set Setup ready
+            self.test_model.get_setup(ret).is_ready = True
+            act_output.append(ret.internalPointer().name)
+            ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        self.assertEqual(act_output, exp_output)
+
+    def test_depth_first_setups_2(self):
+        """get_next_setup is called the first time when Base Setup has already finished.
+        Expected output should start from the first child of Base.
+        """
+        breadth_first = False
+        # Create Setups 2
+        self.create_setups_2()
+        # Create expected output
+        exp_output = self.expected_output_for_setups_2(breadth_first=breadth_first)
+        # List for actual output
+        act_output = list()
+        # Get first Setup
+        ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        # Get next Setup until None is returned
+        while ret is not None:
+            # Set Setup ready
+            self.test_model.get_setup(ret).is_ready = True
+            act_output.append(ret.internalPointer().name)
+            ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        self.assertEqual(act_output, exp_output)
+
+    def test_depth_first_setups_3(self):
+        """get_next_setup is called the first time when Base Setup has already finished.
+        Expected output should start from the first child of Base.
+        """
+        breadth_first = False
+        # Create Setups 3
+        self.create_setups_3()
+        # Create expected output
+        exp_output = self.expected_output_for_setups_3()
+        # List for actual output
+        act_output = list()
+        # Get first Setup
+        ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        # Get next Setup until None is returned
+        while ret is not None:
+            # Set Setup ready
+            self.test_model.get_setup(ret).is_ready = True
+            act_output.append(ret.internalPointer().name)
+            ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        self.assertEqual(act_output, exp_output)
+
+    def test_depth_first_setups_4(self):
+        """get_next_setup is called the first time when Base Setup has already finished.
+        Expected output should start from the first child of Base.
+        """
+        breadth_first = False
+        # Create Setups 4
+        self.create_setups_4()
+        # Create expected output
+        exp_output = self.expected_output_for_setups_4()
+        # List for actual output
+        act_output = list()
+        # Get first Setup
+        ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        # Get next Setup until None is returned
+        while ret is not None:
+            # Set Setup ready
+            self.test_model.get_setup(ret).is_ready = True
+            act_output.append(ret.internalPointer().name)
+            ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        self.assertEqual(act_output, exp_output)
+
+    def test_depth_first_setups_5(self):
+        """get_next_setup is called the first time when Base Setup has already finished.
+        Expected output should start from the first child of Base.
+        """
+        breadth_first = False
+        # Create Setups 5
+        self.create_setups_5()
+        # Create expected output
+        exp_output = self.expected_output_for_setups_5(breadth_first=breadth_first)
+        # List for actual output
+        act_output = list()
+        # Get first Setup
+        ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        # Get next Setup until None is returned
+        while ret is not None:
+            # Set Setup ready
+            self.test_model.get_setup(ret).is_ready = True
+            act_output.append(ret.internalPointer().name)
+            ret = self.test_model.get_next_setup(breadth_first=breadth_first)
+        self.assertEqual(act_output, exp_output)
 
     def test_get_next_generation(self):
         self.fail()
@@ -298,9 +422,9 @@ class TestSetupModel(TestCase):
         # Set Base as base index
         self.test_model.set_base(self.base_ind)
         log.disable(level=log.NOTSET)
-        log.debug("Setups 2:\n{}".format(self._root.log()))
+        log.debug("Setups 3:\n{}".format(self._root.log()))
 
-    def expected_output_for_setups_3(self, breadth_first=True):
+    def expected_output_for_setups_3(self):
         """Returns expected output for setups_1 according to given algorithm.
         Expected output for breadth_first
         a, b, c, d, e, f
@@ -340,9 +464,9 @@ class TestSetupModel(TestCase):
         # Set Base as base index
         self.test_model.set_base(self.base_ind)
         log.disable(level=log.NOTSET)
-        log.debug("Setups 2:\n{}".format(self._root.log()))
+        log.debug("Setups 4:\n{}".format(self._root.log()))
 
-    def expected_output_for_setups_4(self, breadth_first=True):
+    def expected_output_for_setups_4(self):
         """Returns expected output for setups_1 according to given algorithm.
         Expected output for breadth_first
         a, b, c
@@ -353,4 +477,79 @@ class TestSetupModel(TestCase):
         out.append(self.a_ind.internalPointer().name)
         out.append(self.b_ind.internalPointer().name)
         out.append(self.c_ind.internalPointer().name)
+        return out
+
+    def create_setups_5(self):
+        """Creates Setups:
+        base
+            a
+            b
+                e
+                    f
+                        h
+                    g
+            c
+            d
+        """
+        log.disable(level=log.ERROR)
+        # TODO: Mock create_dir method so that directories are not actually created
+        #  Add Base
+        self.test_model.insert_setup('base', 'Base Setup', self._project, 0)
+        self.base_ind = self.test_model.index(0, 0, QModelIndex())
+        # Add A
+        self.test_model.insert_setup('A', 'A setup', self._project, 0, self.base_ind)
+        self.a_ind = self.test_model.index(0, 0, self.base_ind)
+        # Add B
+        self.test_model.insert_setup('B', 'B setup', self._project, 1, self.base_ind)
+        self.b_ind = self.test_model.index(1, 0, self.base_ind)
+        # Add C
+        self.test_model.insert_setup('C', 'C setup', self._project, 2, self.base_ind)
+        self.c_ind = self.test_model.index(2, 0, self.base_ind)
+        # Add D
+        self.test_model.insert_setup('D', 'D setup', self._project, 3, self.base_ind)
+        self.d_ind = self.test_model.index(3, 0, self.base_ind)
+        # Add E as child of B
+        self.test_model.insert_setup('E', 'E setup', self._project, 0, self.b_ind)
+        self.e_ind = self.test_model.index(0, 0, self.b_ind)
+        # Add F as child of E
+        self.test_model.insert_setup('F', 'F setup', self._project, 0, self.e_ind)
+        self.f_ind = self.test_model.index(0, 0, self.e_ind)
+        # Add G as child of E
+        self.test_model.insert_setup('G', 'G setup', self._project, 1, self.e_ind)
+        self.g_ind = self.test_model.index(1, 0, self.e_ind)
+        # Add H as child of F
+        self.test_model.insert_setup('H', 'H setup', self._project, 0, self.f_ind)
+        self.h_ind = self.test_model.index(0, 0, self.f_ind)
+
+        # Set Base as base index
+        self.test_model.set_base(self.base_ind)
+        log.disable(level=log.NOTSET)
+        log.debug("Setups 5:\n{}".format(self._root.log()))
+
+    def expected_output_for_setups_5(self, breadth_first=True):
+        """Returns expected output for setups_5 according to given algorithm.
+        Expected output for breadth_first
+        a, b, c, d, e, f, g, h
+        Expected output for depth_first
+        a, b, e, f, h, g, c, d
+        """
+        out = list()
+        if breadth_first:
+            out.append(self.a_ind.internalPointer().name)
+            out.append(self.b_ind.internalPointer().name)
+            out.append(self.c_ind.internalPointer().name)
+            out.append(self.d_ind.internalPointer().name)
+            out.append(self.e_ind.internalPointer().name)
+            out.append(self.f_ind.internalPointer().name)
+            out.append(self.g_ind.internalPointer().name)
+            out.append(self.h_ind.internalPointer().name)
+        else:
+            out.append(self.a_ind.internalPointer().name)
+            out.append(self.b_ind.internalPointer().name)
+            out.append(self.e_ind.internalPointer().name)
+            out.append(self.f_ind.internalPointer().name)
+            out.append(self.h_ind.internalPointer().name)
+            out.append(self.g_ind.internalPointer().name)
+            out.append(self.c_ind.internalPointer().name)
+            out.append(self.d_ind.internalPointer().name)
         return out

@@ -23,6 +23,7 @@ class SetupModel(QAbstractItemModel):
         super().__init__(parent)
         self._root_setup = root
         self._base_index = None  # Used in tree traversal algorithms
+        self.next_setup = None  # Used with depth-first algorithm
 
     def get_root(self):
         """Returns root Setup."""
@@ -290,14 +291,16 @@ class SetupModel(QAbstractItemModel):
         if breadth_first:
             next_setup = self.breadth_first(siblings)
         else:
-            next_setup = self.depth_first(siblings)
+            next_setup = self.depth_first()
         if not next_setup:
             return None
         return next_setup
 
     def breadth_first(self, siblings):
         """Traverse Setup tree by levels (breadth-first traversal algorithm).
-        Visit every node on a level before going to a lower level.
+        Visit every node on a level before going to a lower level. Note:
+        The algorithm starts on the second level so that 1st level (base) Setups
+        are not part of this algorithm.
 
         Args:
             siblings (list): List of sibling indices
@@ -325,33 +328,50 @@ class SetupModel(QAbstractItemModel):
             next_gen = self.get_next_generation(parent)
             return self.breadth_first(next_gen)
 
-    def depth_first(self, siblings):
-        """Traverse Setup tree by levels by pre-order breadth-first algorithm.
-
-        Args:
-            siblings (list): List of sibling indices
+    def depth_first(self):
+        """Traverse Setup tree using pre-order depth-first algorithm.
+        Ugly hack but gets the job done.
 
         Returns:
-            First encountered Setup, which is not ready
+            First encountered Setup, which is not ready or None if all Setups ready
         """
-        # TODO: Fix this algorithm
-        # Make sure that siblings are in a list, even if only one sibling present
-        if not siblings.__class__ == list:
-            siblings = list([siblings])
-        for sib in siblings:
-            if not sib.internalPointer().is_ready:
-                return sib
-            else:
-                # Check if sib has children
-                n_sib_children = sib.internalPointer().child_count()
-                if n_sib_children == 0:
-                    # Get next sib from siblings
-                    continue
+        self.next_setup = None
+
+        def traverse(setup):
+            # Helper function to traverse tree
+            # logging.debug("Setup name: %s (%s)" % (setup.name, setup.is_ready))
+            if not setup.is_ready and self.next_setup_empty():
+                if setup.parent().name == 'root':
+                    # logging.debug("Skipping base Setup")
+                    pass
                 else:
-                    # sib has children. Get siblings of the next level
-                    child_of_sib = sib.child(0, 0)
-                    siblings_of_sib = self.get_siblings(child_of_sib)
-                    return self.depth_first(siblings_of_sib)
+                    self.update_next_setup(setup)
+                    return
+            for kid in setup.children():
+                traverse.level += 1
+                traverse(kid)
+                traverse.level -= 1
+        traverse.level = 1
+        # Traverse tree starting from base
+        traverse(self.get_base().internalPointer())
+        if not self.next_setup:
+            return None
+        else:
+            return self.find_index(self.next_setup.name)
+
+    def next_setup_empty(self):
+        """Helper method for depth-first algorithm."""
+        if not self.next_setup:
+            return True
+        return False
+
+    def update_next_setup(self, item):
+        """Helper method for depth-first algorithm.
+
+        Args:
+            item (Setup): Next Setup to be executed
+        """
+        self.next_setup = item
 
     def get_next_generation(self, index):
         """Given an index, returns indices of all children on the next level (generation).
