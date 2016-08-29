@@ -165,6 +165,7 @@ Sets
     $$include 'input/timeAndSamples.inc'
     m(mType) "model(s) in use"
     tt(t) "Time steps in the current model"
+    tInterval(t) "Temp for t's when calculating time series averages"
     mf(mType, f) "Forecasts present in the models"
     ms(mType, s) "Samples present in the models"
     mstStart(mType, s, t) "Start point of samples"
@@ -183,6 +184,7 @@ Sets
     mftLastForecast(mType, f, t) "Last time period where the forecast extends"
     mftLastSteps(mType, f, t) "Last time periods of the model (can be end of forecasts or end of samples)"
     modelSolves(mType, t) "when different models are to be solved"
+    fSolve(f) "forecasts in the model to be solved next"
 ;
 
 

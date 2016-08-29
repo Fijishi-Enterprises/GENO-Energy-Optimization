@@ -2,14 +2,14 @@
 
 * Check the modelSolves for preset patterns for model solve timings
 * If not found, then use mSettings to set the model solve timings
-loop(mType,
-    if(sum(t$modelSolves(mType, t), 1) = 0,
+loop(m,
+    if(sum(t$modelSolves(m, t), 1) = 0,
         t_skip_counter = 0;
-        loop(t$( ord(t) = mSettings(mType, 't_start') + mSettings(mType, 't_jump') * t_skip_counter and ord(t) <= mSettings(mType, 't_end') ),
-            modelSolves(mType, t)=yes;
+        loop(t$( ord(t) = mSettings(m, 't_start') + mSettings(m, 't_jump') * t_skip_counter and ord(t) <= mSettings(m, 't_end') ),
+            modelSolves(m, t)=yes;
             t_skip_counter = t_skip_counter + 1;
         );
-        p_stepLengthNoReset(mSolve, f, t) = no;
+        p_stepLengthNoReset(m, f, t) = no;
     );
 );
 
@@ -29,3 +29,16 @@ loop(m,
 );
 
 
+* Calculate the length of the time series
+continueLoop = 1;
+loop(m$(continueLoop),
+    loop(gn(grid, node),
+        ts_length = sum(t$ts_energyDemand(grid, node, 'f00', t), 1);
+    );
+    ct(t)$(
+            ord(t) > ts_length
+        and ord(t) <= ts_length + max(mSettings(m, 't_forecastLength'), mSettings(m, 't_horizon'))
+        and ord(t) <= mSettings(m, 't_end') + max(mSettings(m, 't_forecastLength'), mSettings(m, 't_horizon'))
+    ) = -ts_length;
+    continueLoop = 0;
+);

@@ -1,12 +1,13 @@
 * --- Internal counters -------------------------------------------------------
 Scalars
     errorcount /0/
-//    tElapsed "Model time elapsed since simulation start (t)" /0/
-//    tLast "How many time periods to the end of the current solve (t)" /0/
     tSolveFirst "counter (ord) for the first t in the solve"
     tSolveLast "counter for the last t in the solve"
     tCounter "counter for t" /0/
     lastCounter "last member in use of the general counter"
+    ts_length "Length of time series (t)"
+    continueLoop "Helper to stop the looping early"
+    intervalLength "Legnth of the interval to be calculated, considering end of modelling period"
 ;
 
 * --- Power plant and fuel data -----------------------------------------------
@@ -33,6 +34,7 @@ Scalar p_sWeightSum "Sum of sample weights";
 Parameters
     pt(t) "Displacement needed to reach the previous time period (in time periods)"
     pf(f, t) "Displacement needed to reach the previous forecast (in forecasts)"
+    ct(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
     t_bind(t) "Displacement to reach the binding time period in the parent sample (in time periods). Can skip with aggregated steps as well as when connecting samples."
     ft_bind(f, t) "Displacement to reach the binding forecast (in forecasts) in the current model"
     mt_bind(mType, t) "Displacement to reach the binding time period in the parent sample (in time periods) in the models"

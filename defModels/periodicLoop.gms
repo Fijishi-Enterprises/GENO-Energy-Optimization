@@ -1,65 +1,69 @@
+    fSolve(f) = no;
+    fSolve(f)$mf(mSolve,f) = yes;
+
     tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve
     tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
 //    tElapsed = tSolveFirst - mSettings(mSolve, 't_start');  // tElapsed counts the starting point for current model solve
 //    tLast = tElapsed + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));
     p_stepLength(mSolve, f, t) = no;
 
+$offOrder
     // Calculate parameters affected by model intervals
     if(sum(counter, mInterval(mSolve, 'intervalLength', counter)),  // But only if interval data has been set in the model definition file
         tCounter = 0;
-        loop(counter$mInterval(mSolve, 'intervalLength', counter),  // Loop thorough all the different intervals set in the model definition file
-            loop(t$[ord(t) >= tSolveFirst + tCounter and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast + 1)],  // Loop t relevant for each interval (interval borders defined by intervalEnd) - but do not go beyond tSolveLast
-                if (not mod(tCounter, mInterval(mSolve, 'intervalLength', counter)),  // Skip those t's that are not at the start of any interval
-                    p_stepLength(mSolve, f, t)$mf(mSolve, f) = mInterval(mSolve, 'intervalLength', counter);  // p_stepLength will hold the length of the interval in model equations
-                    if (p_stepLengthNoReset(mSolve, 'f00', t) <> mInterval(mSolve, 'intervalLength', counter),  // and skip those t's that have been calculated for the right interval previously
-                        p_stepLengthNoReset(mSolve, 'f00', t) = mInterval(mSolve, 'intervalLength', counter);
-                        if (mInterval(mSolve, 'intervalLength', counter) = 1,  // Calculations are not needed if the time interval has the same length as original data
-                            ts_energyDemand_(gn(grid, node), f, t)$mf(mSolve,f) = ts_energyDemand(grid, node, f, t);
-                            ts_inflow_(unitHydro, f, t)$mf(mSolve,f) = ts_inflow(unitHydro, f, t);
-                            ts_inflow_(storageHydro, f, t)$mf(mSolve,f) = ts_inflow(storageHydro, f, t);
-                            ts_import_(gn(grid, node), t) = ts_import(grid, node, t);
-                            ts_cf_(flow, node, f, t)$mf(mSolve,f) = ts_cf(flow, node, f, t);
+        loop(counter$mInterval(mSolve, 'intervalLength', counter),  // Loop through all the different intervals set in the model definition file
+            if (mInterval(mSolve, 'intervalLength', counter) = 1,  // Calculations are not needed if the time interval has the same length as original data
+                tInterval(t) = no;
+                tInterval(t)$(    ord(t) >= tSolveFirst + tCounter
+                           and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast + 1)
+                ) = yes;   // Set of t's where the interval is 1 (right border defined by intervalEnd) - but do not go beyond tSolveLast
+                ts_energyDemand_(gn(grid, node), fSolve, t)$tInterval(t) = ts_energyDemand(grid, node, fSolve, t+ct(t));
+                ts_inflow_(unitHydro, fSolve, t)$tInterval(t) = ts_inflow(unitHydro, fSolve, t+ct(t));
+                ts_inflow_(storageHydro, fSolve, t)$tInterval(t) = ts_inflow(storageHydro, fSolve, t+ct(t));
+                ts_import_(gn(grid, node), t)$tInterval(t) = ts_import(grid, node, t+ct(t));
+                ts_cf_(flow, node, fSolve, t)$tInterval(t) = ts_cf(flow, node, fSolve, t+ct(t));
+                tCounter = mInterval(mSolve, 'intervalEnd', counter) + 1; // move tCounter to the next interval setting
+                p_stepLength(mf(mSolve, fSolve), t)$tInterval(t) = 1;  // p_stepLength will hold the length of the interval in model equations
+                p_stepLengthNoReset(mSolve, fSolve, t)$tInterval(t) = 1;
+                pt(t + 1)$tInterval(t) = -1;
+            elseif mInterval(mSolve, 'intervalLength', counter) > 1, // intervalLength > 1 (not defined if intervalLength < 1)
+                loop(t$[ord(t) >= tSolveFirst + tCounter and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast + 1)],  // Loop t relevant for each interval (interval borders defined by intervalEnd) - but do not go beyond tSolveLast
+                    if (not mod(tCounter, mInterval(mSolve, 'intervalLength', counter)),  // Skip those t's that are not at the start of any interval
+                        if (p_stepLengthNoReset(mSolve, 'f00', t) <> mInterval(mSolve, 'intervalLength', counter),  // and skip those t's that have been calculated for the right interval previously
+                            intervalLength = min(mInterval(mSolve, 'intervalLength', counter), tSolveLast - tCounter - 1);
+                            tInterval(t_) = no;
+                            tInterval(t_)$(    ord(t_) >= ord(t)
+                                           and ord(t_) < ord(t) + intervalLength
+                            ) = yes;   // Set of t's within the interval (right border defined by intervalEnd) - but do not go beyond tSolveLast
+                            p_stepLength(mf(mSolve, fSolve), t) = intervalLength;  // p_stepLength will hold the length of the interval in model equations
+                            p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength;
+                            // Calculate averages for the interval time series data
+                            ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t_))};
+                            ts_inflow_(unitHydro, fSolve, t) = sum{t_$tInterval(t_), ts_inflow(unitHydro, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);
+                            ts_inflow_(storageHydro, fSolve, t) = sum{t_$tInterval(t_), ts_inflow(storageHydro, fSolve, t_+ct(t_))};
+                            ts_import_(gn(grid, node), t) = sum{t_$tInterval(t_), ts_import(grid, node, t_+ct(t_))};
+                            ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);
+                            // Set the previous time step displacement
+                            pt(t + mInterval(mSolve, 'intervalLength', counter)) = -mInterval(mSolve, 'intervalLength', counter);
                         );
-                        if (mInterval(mSolve, 'intervalLength', counter) > 1, // Calculate averages for the interval time series data
-                            ts_energyDemand_(gn(grid, node), f, t)$mf(mSolve,f) =
-                                sum{t_$[ ord(t_) >= tSolveFirst + tCounter
-                                         and ord(t_) < tSolveFirst + tCounter + mInterval(mSolve, 'intervalLength', counter)
-                                       ], ts_energyDemand(grid, node, f, t_)};
-                            ts_inflow_(unitHydro, f, t)$mf(mSolve,f) =
-                                sum{t_$[ ord(t_) >= tSolveFirst + tCounter
-                                         and ord(t_) < tSolveFirst + tCounter + mInterval(mSolve, 'intervalLength', counter)
-                                       ], ts_inflow(unitHydro, f, t_)} / p_stepLength(mSolve, f, t);
-                            ts_inflow_(storageHydro, f, t)$mf(mSolve,f) =
-                                sum{t_$[ ord(t_) >= tSolveFirst + tCounter
-                                         and ord(t_) < tSolveFirst + tCounter + mInterval(mSolve, 'intervalLength', counter)
-                                       ], ts_inflow(storageHydro, f, t_)};
-                            ts_import_(gn(grid, node), t) =
-                                sum{t_$[ ord(t_) >= tSolveFirst + tCounter
-                                         and ord(t_) < tSolveFirst + tCounter + mInterval(mSolve, 'intervalLength', counter)
-                                       ], ts_import(grid, node, t_)};
-                            ts_cf_(flow, node, f, t)$mf(mSolve,f) =
-                                sum{t_$[ ord(t_) >= tSolveFirst + tCounter
-                                         and ord(t_) < tSolveFirst + tCounter + mInterval(mSolve, 'intervalLength', counter)
-                                       ], ts_cf(flow, node, f, t_)} / p_stepLength(mSolve, f, t);
+                        if (mInterval(mSolve, 'intervalEnd', counter) <= mSettings(mSolve, 't_forecastLength'),
+                             mftLastForecast(mf(mSolve,fSolve),t_) = no;
+                             mftLastForecast(mf(mSolve,fSolve),t)$[ord(t) = tSolveFirst + tCounter] = yes;
                         );
-                        pt(t + mInterval(mSolve, 'intervalLength', counter)) = -mInterval(mSolve, 'intervalLength', counter);
-                    );
-                    if ( mInterval(mSolve, 'intervalEnd', counter) <= mSettings(mSolve, 't_forecastLength'),
-                        mftLastForecast(mSolve,f,t_) = no;
-                        mftLastForecast(mSolve,f,t)$[mf(mSolve,f) and ord(t) = tSolveFirst + tCounter] = yes;
-                    );
-                    if ( mInterval(mSolve, 'intervalEnd', counter) <= tSolveLast,
-                        mftLastSteps(mSolve,f,t_) = no;
-                        mftLastSteps(mSolve,f,t)$[mf(mSolve,f) and ord(t) = tSolveFirst + tCounter] = yes;
-                    );
-                );
-                tCounter = tCounter + 1;
-            )
-        )
+                        if (mInterval(mSolve, 'intervalEnd', counter) <= tSolveLast,
+                             mftLastSteps(mf(mSolve,fSolve),t_) = no;
+                             mftLastSteps(mf(mSolve,fSolve),t)$[mf(mSolve,fSolve) and ord(t) = tSolveFirst + tCounter] = yes;
+                        );
+                    );  // end if that skips t's not at the start of any interval
+                    tCounter = tCounter + 1;
+                ); // end loop t
+            ) // end if ... elseif
+        ) // end loop for set intervals
     else
     // ...otherwise use all time periods with equal weight
         p_stepLength(mSolve, f, t)$(ord(t) >= tSolveFirst and ord(t) < tSolveLast and fRealization(f)) = 1;
     );
+$onOrder
 
     // Set mft for the modelling period and model forecasts
     mft(mSolve,f,t) = no;
@@ -105,4 +109,4 @@
 
 
     // PSEUDO DATA
-    ts_reserveDemand_(resType, resDirection, node, fRealization(f), t) = 50;
+    ts_reserveDemand_(resType, resDirection, node, fRealization(f), t)$ft(f,t) = 50;
