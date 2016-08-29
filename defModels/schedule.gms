@@ -1,21 +1,21 @@
 if (mType('schedule'),
     m('schedule') = yes;
-    mSettings('schedule', 't_start') = 10;  // Ord of first solve (i.e. >0)
+    mSettings('schedule', 't_start') = 1;  // Ord of first solve (i.e. >0)
     mSettings('schedule', 't_horizon') = 8760;
-    mSettings('schedule', 't_jump') = 12;
+    mSettings('schedule', 't_jump') = 48;
     mSettings('schedule', 't_forecastLength') = 8760;
     mSettings('schedule', 't_end') = 48;
     mSettings('schedule', 'samples') = 1;
     mSettings('schedule', 'forecasts') = 0;
     mf('schedule', f)$[ord(f)-1 <= mSettings('schedule', 'forecasts')] = yes;
     mInterval('schedule', 'intervalLength', 'c000') = 1;
-    mInterval('schedule', 'intervalEnd', 'c000') = 24;
+    mInterval('schedule', 'intervalEnd', 'c000') = 48;
     mInterval('schedule', 'intervalLength', 'c001') = 3;
-    mInterval('schedule', 'intervalEnd', 'c001') = 48;
+    mInterval('schedule', 'intervalEnd', 'c001') = 96;
     mInterval('schedule', 'intervalLength', 'c002') = 6;
     mInterval('schedule', 'intervalEnd', 'c002') = 168;
     mInterval('schedule', 'intervalLength', 'c003') = 24;
-    mInterval('schedule', 'intervalEnd', 'c003') = 26*168;
+    mInterval('schedule', 'intervalEnd', 'c003') = 4*168+24;
     mInterval('schedule', 'intervalLength', 'c004') = 168;
     mInterval('schedule', 'intervalEnd', 'c004') = 8760;
     active('storageValue') = yes;
