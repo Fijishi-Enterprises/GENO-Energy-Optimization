@@ -146,11 +146,11 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
           )
         // Controlled energy transfer from other nodes to this one
         + sum(from_node$(gn2n(grid, from_node, node)),
-            + (1 - gnnData(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f, t)   // Include transfer losses
+            + (1 - gnnData(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))   // Include transfer losses
           )
         // Controlled energy transfer to other nodes from this one
         - sum(to_node$(gn2n(grid, node, to_node)),
-            + v_transfer(grid, node, to_node, f, t)   // Transfer losses accounted for in the previous term
+            + v_transfer(grid, node, to_node, f+pf(f,t), t+pt(t))   // Transfer losses accounted for in the previous term
           )
         // Interactions between the node and its units
         + sum(unit$(gnu(grid, node, unit) or gnu_input(grid, node, unit)),
@@ -161,9 +161,9 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
       )
         * p_stepLength(m, f+pf(f,t), t+pt(t))   // Again, multiply by time step to get energy terms
     + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
-    - ts_energyDemand_(grid, node, f, t)   // Energy demand from the node
-    + vq_gen('increase', grid, node, f, t)${not gnState(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnState
-    - vq_gen('decrease', grid, node, f, t)${not gnState(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnState
+    - ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))   // Energy demand from the node
+    + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t))${not gnState(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnState
+    - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))${not gnState(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnState
 ;
 * -----------------------------------------------------------------------------
 q_resDemand(resType, resDirection, node, ft(f, t))$ts_reserveDemand_(resType, resDirection, node, f, t) ..
