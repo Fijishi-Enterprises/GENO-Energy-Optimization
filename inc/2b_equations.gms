@@ -16,6 +16,8 @@ equations
     q_stoMinContent(grid, node, storage, f, t) "Storage should have enough content to discharge and to deliver committed upward reserves"
     q_stoMaxContent(grid, node, storage, f, t) "Storage should have enough room to fit scheduled charge and committed downward reserves"
     q_transferLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
+    q_maxState(grid, node, f, t) "Slack variables keep track of state variables exceeding permitted limits"
+    q_minState(grid, node, f, t) "Slack variables keep track of state variables under permitted limits"
     q_boundState(grid, node, node, f, t) "Node state variables bounded by other nodes"
 ;
 
@@ -110,12 +112,22 @@ q_obj ..
             ) * PENALTY
         )
       )
+    // Node state variable penalties, NOTE! With time series form bounds the v_stateSlack is still created for all (f, t) even though technically ts_nodeState can only impose bounds on specific timesteps.
+    + sum(msft(m, s, f, t), p_sProbability(s) * p_fProbability(f) * (
+        + sum(inc_dec,
+            sum(gnBoundState(grid, node),
+                + v_stateSlack(inc_dec, grid, node, f, t) * PENALTY // NOTE! Currently the v_stateSlack functions as a normal penalty, but this should change according to desired effect
+            )
+          )
+        )
+      )
 ;
 
 * -----------------------------------------------------------------------------
 q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t)) and not gnData(grid, node, 'fixState')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
     // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
-    + v_state(grid, node, f, t)$(gnState(grid, node))   // The current state of the node
+    // The current state of the node
+    + v_state(grid, node, f, t)$(gnState(grid, node))
         * (   // This multiplication transforms the state energy into power, a result of implicit discretization
             + ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
             + sum(node_$(gnnState(grid, node_, node)),  // Summation of the energy diffusion coefficients
@@ -123,20 +135,25 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
                     * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiplication by time step to keep the equation in energy terms
               )
           )
-    - v_state(grid, node, f+pf(f,t), t+pt(t))$(gnState(grid, node)) // The previous state of the node
+    // The previous state of the node
+    - v_state(grid, node, f+pf(f,t), t+pt(t))$(gnState(grid, node))
         * ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
     =E= // The right side of the equation contains all the changes converted to energy terms
     + (
-        + sum(node_$(gnnState(grid, node, node_)),      // Energy diffusion between nodes
+        // Energy diffusion between nodes
+        + sum(node_$(gnnState(grid, node, node_)),
             + gnnData(grid, node, node_, 'DiffCoeff') * v_state(grid, node_, f, t)  // Diffusion to/from other nodes
           )
-        + sum(from_node$(gn2n(grid, from_node, node)),  // Controlled energy transfer from other nodes to this one
+        // Controlled energy transfer from other nodes to this one
+        + sum(from_node$(gn2n(grid, from_node, node)),
             + (1 - gnnData(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f, t)   // Include transfer losses
           )
-        - sum(to_node$(gn2n(grid, node, to_node)),   // Controlled energy transfer to other nodes from this one
+        // Controlled energy transfer to other nodes from this one
+        - sum(to_node$(gn2n(grid, node, to_node)),
             + v_transfer(grid, node, to_node, f, t)   // Transfer losses accounted for in the previous term
           )
-        + sum(unit$(gnu(grid, node, unit) or gnu_input(grid, node, unit)),   // Interactions between the node and its units
+        // Interactions between the node and its units
+        + sum(unit$(gnu(grid, node, unit) or gnu_input(grid, node, unit)),
             + v_gen(grid, node, unit, f, t)   // Unit energy generation and consumption
             $$ifi '%rampSched%' == 'yes' + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
           ) // If ramp scheduling is turned on, use the average power between the time steps
@@ -145,8 +162,8 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
         * p_stepLength(m, f+pf(f,t), t+pt(t))   // Again, multiply by time step to get energy terms
     + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
     - ts_energyDemand_(grid, node, f, t)   // Energy demand from the node
-    + vq_gen('increase', grid, node, f, t)   // Slack variable ensuring the energy dynamics are feasible.
-    - vq_gen('decrease', grid, node, f, t)   // Slack variable ensuring the energy dynamics are feasible.
+    + vq_gen('increase', grid, node, f, t)${not gnState(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnState
+    - vq_gen('decrease', grid, node, f, t)${not gnState(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnState
 ;
 * -----------------------------------------------------------------------------
 q_resDemand(resType, resDirection, node, ft(f, t))$ts_reserveDemand_(resType, resDirection, node, f, t) ..
@@ -309,6 +326,22 @@ q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
         v_resTransCapacity(resType, resDirection, from_node, to_node, f, t))
   =L=
   + gnnData(grid, from_node, to_node, 'transferCap')
+;
+* -----------------------------------------------------------------------------
+q_maxState(gnBoundState(grid, node), ft(f, t)) ..                                               // NOTE! These probably won't work if ts_nodeState doesn't set bounds for all timesteps!
+    + v_state(grid, node, f, t)                                                                 // Node state
+    - v_stateSlack('decrease', grid, node, f, t)                                                // Downwards slack variable
+    =L=
+    + gnData(grid, node, 'maxState')${not ts_nodeState(grid, node, 'maxState', f,t)}            // Maximum permitted node state for all timesteps, overwritten by possible timeseries data
+    + ts_nodeState(grid, node, 'maxState', f, t)${ts_nodeState(grid, node, 'maxState', f, t)}    // Maximum permitted node state for this timestep, if determined by data
+;
+* -----------------------------------------------------------------------------
+q_minState(gnBoundState(grid, node), ft(f, t)) ..                                               // NOTE! These probably won't work if ts_nodeState doesn't set bounds for all timesteps!
+    + v_state(grid, node, f, t)                                                                 // Node state
+    + v_stateSlack('increase', grid, node, f, t)                                                // Upwards slack variable
+    =G=
+    + gnData(grid, node, 'minState')${not ts_nodeState(grid, node, 'minState', f,t)}            // Minimum permitted node state for all timesteps, overwritten by possible timeseries data
+    + ts_nodeState(grid, node, 'minState', f, t)${ts_nodeState(grid, node, 'minState', f,t)}    // Minimum permitted node state for this timestep, if determined by data
 ;
 * -----------------------------------------------------------------------------
 q_boundState(gnnBoundState(grid, node, node_), ft(f, t)) ..

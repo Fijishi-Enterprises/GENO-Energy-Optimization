@@ -6,7 +6,7 @@ Positive variables
     v_fuelUse(node, unit, fuel, f, t) "Fuel use of a unit during time period (MWh_fuel)"
     v_online(node, unit, f, t) "Capacity online for generators with unit commitment restrictions (MW)"
     v_startup(node, unit, f, t) "Capacity started up from previous time period/slice (MW)"
-    v_state(grid, node, f, t) "State variable for nodes that maintain a state (MWh)"
+    v_state(grid, node, f, t) "State variable for nodes that maintain a state (MWh, unless modified by energyCapacity parameter)"
     v_stoCharge(grid, node, storage, f, t) "Charging of storage during time period (MWh)"
     v_stoDischarge(grid, node, storage, f, t) "Discharging of storage during time step (MWh)"
     v_stoContent(grid, node, storage, f, t) "Content of storage at the start of time period/time slice (MWh)"
@@ -19,6 +19,7 @@ Positive variables
 * --- Feasibility control -----------------------------------------------------
 Set inc_dec "Increase or decrease in dummy variables" / increase, decrease /;
 Positive variables
+    v_stateSlack(inc_dec, grid, node, f, t) "Slack variable for v_state, permits e.g. costs for exceeding acceptable v_states (MWh, unless modified by energyCapacity parameter)"
     vq_gen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
     vq_resDemand(resType, resDirection, node, f, t) "Dummy to decrease demand for a reserve (MW)"
     vq_stoCharge(grid, node, storage, f, t) "Dummy loading of storages to ensure equation feasibility (MWh)"
