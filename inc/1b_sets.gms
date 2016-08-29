@@ -111,6 +111,8 @@ Sets
     unit_fuel(unit, fuel, param) "Fuel(s) used by the unit"
     unit_storage(unit, storage) "Units attached to storages"
     storageHydro(storage)    "Hydropower reservoirs"
+    storageCharging(storage) "Storages that cannot be charged (but may have inflow); used to remove v_stoCharge variables where not relevant"
+    storageSpill(storage) "Storages that cannot spill; used to remove v_spill variables where not relevant"
 ;
 
 *alias (generator, generator_);

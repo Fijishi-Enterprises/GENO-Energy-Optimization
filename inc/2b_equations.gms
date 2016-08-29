@@ -209,12 +209,12 @@ q_storageDynamics(gns(grid, node, storage), m, ft(f, t))$(p_stepLength(m, f+pf(f
     + ts_inflow_(storage, f, t)
     + vq_stoCharge(grid, node, storage, f, t)
     + (
-        + v_stoCharge(grid, node, storage, f, t)
+        + v_stoCharge(grid, node, storage, f, t)$storageCharging(storage)
         - v_stoDischarge(grid, node, storage, f, t)
-        - v_spill(grid, node, storage, f, t)
-        $$ifi '%rampSched%' == 'yes' + v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
+        - v_spill(grid, node, storage, f, t)$storageSpill(storage)
+        $$ifi '%rampSched%' == 'yes' + v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))$storageCharging(storage)
         $$ifi '%rampSched%' == 'yes' - v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
-        $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))
+        $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))$storageSpill(storage)
       )  // In case rampSched is used and the division by 2 on the next line is valid
         $$ifi '%rampSched%' == 'yes' / 2
         * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiply by time step to get energy terms instead of power
@@ -224,7 +224,7 @@ q_storageConversion(gns(grid, node, storage), ft(f, t)) ..
   + sum(unit$unit_storage(unit, storage), v_gen(grid, node, unit, f, t))
   =E=
   + v_stoDischarge(grid, node, storage, f, t) * gnsData(grid, node, storage, 'dischargingEff')
-  - v_stoCharge(grid, node, storage, f, t) / gnsData(grid, node, storage, 'chargingEff')
+  - v_stoCharge(grid, node, storage, f, t)$storageCharging(storage) / gnsData(grid, node, storage, 'chargingEff')
 ;
 * -----------------------------------------------------------------------------
 q_bindStorage(gns(grid, node, storage), mftBind(m, f, t)) ..
@@ -300,7 +300,7 @@ q_stoMinContent(gns(grid, node, storage), ft(f, t)) ..
 * -----------------------------------------------------------------------------
 q_stoMaxContent(gns(grid, node, storage), ft(f, t)) ..
   + v_stoContent(grid, node, storage, f, t)                                                     // Storage content
-  + v_stoCharge(grid, node, storage, f, t)                                                      // + storage charging
+  + v_stoCharge(grid, node, storage, f, t)$storageCharging(storage)                                                      // + storage charging
   + sum( (resType, resDirection, unitElec)$(resCapable(resType, 'resDown', node, unitElec)      // + reservation for storage charging (downward reserves)
         and unit_storage(unitElec, storage)),
       + v_reserve(resType, resDirection, node, unitElec, f, t)

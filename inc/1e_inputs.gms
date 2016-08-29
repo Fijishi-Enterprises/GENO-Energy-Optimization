@@ -67,6 +67,8 @@ unitMinload(unit)$sum(gnu(grid, node, unit), nuData(node, unit, 'minLoad')) = ye
 unitHydro(unit)$sum(unit_fuel(unit,'WATER','main'), 1) = yes;
 unitHydro(unit)$sum(unit_fuel(unit,'WATER_RES','main'), 1) = yes;
 storageHydro(storage)$sum(unitHydro, unit_storage(unitHydro, storage)) = yes;
+storageCharging(storage)$(sum(gnu(grid, node, unit)$unit_storage(unit, storage), gnuData(grid, node, unit, 'maxCharging'))) = yes;
+storageSpill(storage)$(sum(gns(grid, node, storage), gnsData(grid, node, storage, 'maxSpill'))) = yes;
 resCapable(resType, resDirection, node, unit)$nuDataReserves(node, unit, resType, resDirection) = yes;
 
 * Link units to genTypes
