@@ -2,7 +2,7 @@
     loop(ft(fRealization(f), t),
 *        p_stoContent(f, t)$(p_data(storage, 'maxContent') > 0)
 *            = v_stoContent(storage, f, t) / p_data(f, 'maxContent');
-        r_gen(grid, unit, t) = sum(node$gnu(grid, node, unit), v_gen.l(grid, node, unit, f, t));
+        r_gen(grid, unit, t) = sum(node$(gnu(grid, node, unit) or gnu_input(grid, node, unit)), v_gen.l(grid, node, unit, f, t));
         loop(fuel,
             r_genFuel(gn(grid, node), fuel, t) = sum(unit$unit_fuel(unit, fuel, 'main'), v_gen.l(grid, node, unit, f, t));
         );
