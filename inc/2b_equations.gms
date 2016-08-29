@@ -141,12 +141,6 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
             $$ifi '%rampSched%' == 'yes' + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
           ) // If ramp scheduling is turned on, use the average power between the time steps
             $$ifi '%rampSched%' == 'yes' / 2
-        + sum(storage$gns(grid, node, storage),   // Interactions between the node and its storages
-            - v_stoCharge(grid, node, storage, f, t)   // Charging storages from the node
-            + v_stoDischarge(grid, node, storage, f, t)   // Discharging storages to the node
-            $$ifi '%rampSched%' == 'yes' - v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t)) + v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
-          ) // If ramp scheduling is turned on, use the average power terms between the time steps
-            $$ifi '%rampSched%' == 'yes' / 2
       )
         * p_stepLength(m, f+pf(f,t), t+pt(t))   // Again, multiply by time step to get energy terms
     + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
