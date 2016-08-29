@@ -2,13 +2,14 @@
 * Fix storage contents for the beginning
 loop(ft_realized(f, tSolve),
 $iftheni '%mode%' == 'findStorageStart'
-        v_stoContent.lo(grid, node, storage, f, tSolve)
+        v_stoContent.lo(grid, node, storage, f, tSolve)$gns(grid,node,storage)
            = gnsData(grid, node, storage, 'min_content') * gnsData(grid, node, storage, 'maxContent');
-        v_stoContent.up(grid, node, storage, f, tSolve) = gnsData(grid, node, storage, 'maxContent');
+        v_stoContent.up(grid, node, storage, f, tSolve)$gns(grid,node,storage)
+           = gnsData(grid, node, storage, 'maxContent');
 $else
-        v_stoContent.fx(grid, node, storage, f, tSolve)$(ord(tSolve) = mSettings('schedule', 't_start'))
+        v_stoContent.fx(grid, node, storage, f, tSolve)$(gns(grid,node,storage) and ord(tSolve) = mSettings('schedule', 't_start'))
             = ts_stoContent(storage, f, tSolve) * gnsData(grid, node, storage, 'maxContent');
-        v_stoContent.fx(grid, node, storage, f, tSolve)$(not ord(tSolve) = mSettings('schedule', 't_start'))
+        v_stoContent.fx(grid, node, storage, f, tSolve)$(gns(grid,node,storage) and not ord(tSolve) = mSettings('schedule', 't_start'))
             = v_stoContent.l(grid, node, storage, f, tSolve);
 $endif
     // Free online capacity and state for the first loop
