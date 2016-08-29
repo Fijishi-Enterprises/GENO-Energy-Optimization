@@ -52,7 +52,7 @@ $onempty   // Allow empty data definitions
 files log /''/, gdx, f_info /'output\info.txt'/;
 
 options
-    profile = 3
+    profile = 8
     solvelink = %Solvelink.Loadlibrary%
 $ifi not '%debug%' == 'yes'
     solprint = Silent
