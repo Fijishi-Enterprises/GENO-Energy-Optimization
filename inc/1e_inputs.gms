@@ -5,21 +5,23 @@ $loaddc flow
 $loaddc unit
 $loaddc fuel
 $loaddc storage
-$loaddc gnData
-$loaddc gnnData
-$loaddc gnuData
-$loaddc nuData
-$loaddc nuDataReserves
-$loaddc gnsData
-$loaddc pgnData
+$loaddc p_gn
+$loaddc p_gnn
+$loaddc p_gnu
+$loaddc p_nu
+$loaddc p_nuReserves
+$loaddc p_gnStorage
+$loaddc p_gnSlack
+$loaddc p_gnPolicy
 $loaddc gnu_input
 $loaddc nnu
-$loaddc unit_fuel
-$loaddc flow_unit
-$loaddc unit_storage
-$loaddc ggnuFixedOutputRatio
-$loaddc ggnuConstrainedOutputRatio
+$loaddc unitFuelParam
+$loaddc flowUnit
+$loaddc unitStorage
+$loaddc ggnu_fixedOutputRatio
+$loaddc ggnu_constrainedOutputRatio
 $loaddc emission
+$loaddc p_fuelEmission
 $loaddc ts_energyDemand
 $loaddc ts_import
 $loaddc ts_cf
@@ -27,7 +29,6 @@ $loaddc ts_stoContent
 $loaddc ts_fuelPriceChange
 $loaddc ts_inflow
 $loaddc ts_nodeState
-$loaddc p_data2d
 $gdxin
 
 $ontext
@@ -41,53 +42,53 @@ $ontext
 $offtext
 
 * Generate sets based on parameter data
-gnu(grid, node, unit)$gnuData(grid, node, unit, 'maxCap') = yes;
+gnu(grid, node, unit)$p_gnu(grid, node, unit, 'maxCap') = yes;
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
-nu(node, unit)$sum((grid, grid_), ggnuConstrainedOutputRatio(grid, grid_, node, unit)) = no;
-nu(node, unit)$sum((grid, grid_), ggnuFixedOutputRatio(grid, grid_, node, unit)) = no;
-gns(grid, node, storage)$gnsData(grid, node, storage, 'maxContent') = yes;
+nu(node, unit)$sum((grid, grid_), ggnu_constrainedOutputRatio(grid, grid_, node, unit)) = no;
+nu(node, unit)$sum((grid, grid_), ggnu_fixedOutputRatio(grid, grid_, node, unit)) = no;
+gnStorage(grid, node, storage)$p_gnStorage(grid, node, storage, 'maxContent') = yes;
 nnu(node, node_, unit)$(nu(node, unit) and ord(node) = ord(node_)) = yes;
-gn2n(grid, from_node, to_node)$gnnData(grid, from_node, to_node, 'transferCap') = yes;
-node_to_node(from_node, to_node)$gnnData('elec', from_node, to_node, 'transferCap') = yes;
-gnnBoundState(grid, node, node_)$(gnnData(grid, node, node_, 'BoundStateOffset')) = yes;
-gnnState(grid, node, node_)$(gnnData(grid, node, node_, 'DiffCoeff') or gnnBoundState(grid, node, node_)) = yes;
-gnState(grid, node)$(sum(param_gn, gnData(grid, node, param_gn)) or sum(node_, gnnState(grid, node, node_)) or sum(node_, gnnState(grid, node_, node))) = yes;
-gnStateSlack(grid, node)$((gnData(grid, node, 'maxStateSlack') or gnData(grid, node, 'minStateSlack') or sum(f, sum(t, ts_nodeState(grid, node, 'maxStateSlack', f, t) + ts_nodeState(grid, node, 'minStateSlack', f, t)))) and not gnData(grid, node, 'fixState')) = yes;
-gn(grid, node)$(sum(unit, gnu(grid, node, unit)) or gnState(grid, node)) = yes;
-pgn(slack, inc_dec, grid, node)$(sum(param_pgn, pgnData(slack, inc_dec, grid, node, param_pgn))) = yes;
+gn2n(grid, from_node, to_node)$p_gnn(grid, from_node, to_node, 'transferCap') = yes;
+node_to_node(from_node, to_node)$p_gnn('elec', from_node, to_node, 'transferCap') = yes;
+gnn_boundState(grid, node, node_)$(p_gnn(grid, node, node_, 'BoundStateOffset')) = yes;
+gnn_state(grid, node, node_)$(p_gnn(grid, node, node_, 'DiffCoeff') or gnn_boundState(grid, node, node_)) = yes;
+gn_state(grid, node)$(sum(param_gn, p_gn(grid, node, param_gn)) or sum(node_, gnn_state(grid, node, node_)) or sum(node_, gnn_state(grid, node_, node))) = yes;
+gn_stateSlack(grid, node)$((p_gn(grid, node, 'maxStateSlack') or p_gn(grid, node, 'minStateSlack') or sum(f, sum(t, ts_nodeState(grid, node, 'maxStateSlack', f, t) + ts_nodeState(grid, node, 'minStateSlack', f, t)))) and not p_gn(grid, node, 'fixState')) = yes;
+gn(grid, node)$(sum(unit, gnu(grid, node, unit)) or gn_state(grid, node)) = yes;
+gnSlack(inc_dec, slack, grid, node)$(sum(param_slack, p_gnSlack(inc_dec, slack, grid, node, param_slack))) = yes;
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 
-unitOnline(unit)$[ sum(gnu(grid, node, unit), nuData(node, unit, 'startupCost') or nuData(node, unit, 'startupFuelCons') or nuData(node, unit, 'coldStart') ) ] = yes;
-unitVG(unit)$sum(flow, flow_unit(flow, unit)) = yes;
+unit_online(unit)$[ sum(gnu(grid, node, unit), p_nu(node, unit, 'startupCost') or p_nu(node, unit, 'startupFuelCons') or p_nu(node, unit, 'coldStart') ) ] = yes;
+unit_VG(unit)$sum(flow, flowUnit(flow, unit)) = yes;
 *unitConversion(unit)$sum(gn(grid, node), gnu_input(grid, node, unit)) = yes;
-unitElec(unit)$sum(gnu(grid, node, unit), gnuData('elec', node, unit, 'maxCap')) = yes;
-unitHeat(unit)$sum(gnu(grid, node, unit), gnuData('heat', node, unit, 'maxCap')) = yes;
-unitFuel(unit)$sum[ (fuel, node)$sum(t, ts_fuelPriceChangenode(fuel, node, t)), unit_fuel(unit, fuel, 'main') ] = yes;
-unitVG(unit)$sum(flow, flow_unit(flow, unit)) = yes;
-unitWithCV(unit)$(sum(gnu(grid, node, unit), 1) > 1) = yes;
-unitMinload(unit)$sum(gnu(grid, node, unit), nuData(node, unit, 'minLoad')) = yes;
-unitHydro(unit)$sum(unit_fuel(unit,'WATER','main'), 1) = yes;
-unitHydro(unit)$sum(unit_fuel(unit,'WATER_RES','main'), 1) = yes;
-storageHydro(storage)$sum(unitHydro, unit_storage(unitHydro, storage)) = yes;
-storageCharging(storage)$(sum(gnu(grid, node, unit)$unit_storage(unit, storage), gnuData(grid, node, unit, 'maxCharging'))) = yes;
-storageSpill(storage)$(sum(gns(grid, node, storage), gnsData(grid, node, storage, 'maxSpill'))) = yes;
-resCapable(resType, resDirection, node, unit)$nuDataReserves(node, unit, resType, resDirection) = yes;
+unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxCap')) = yes;
+unit_heat(unit)$sum(gnu(grid, node, unit), p_gnu('heat', node, unit, 'maxCap')) = yes;
+unit_fuel(unit)$sum[ (fuel, node)$sum(t, ts_fuelPriceChangenode(fuel, node, t)), unitFuelParam(unit, fuel, 'main') ] = yes;
+unit_VG(unit)$sum(flow, flowUnit(flow, unit)) = yes;
+unit_withConstrainedOutputRatio(unit)$(sum(gnu(grid, node, unit), 1) > 1) = yes;
+unit_minload(unit)$sum(gnu(grid, node, unit), p_nu(node, unit, 'minLoad')) = yes;
+unit_hydro(unit)$sum(unitFuelParam(unit,'WATER','main'), 1) = yes;
+unit_hydro(unit)$sum(unitFuelParam(unit,'WATER_RES','main'), 1) = yes;
+storage_hydro(storage)$sum(unit_hydro, unitStorage(unit_hydro, storage)) = yes;
+storage_charging(storage)$(sum(gnu(grid, node, unit)$unitStorage(unit, storage), p_gnu(grid, node, unit, 'maxCharging'))) = yes;
+storage_spill(storage)$(sum(gnStorage(grid, node, storage), p_gnStorage(grid, node, storage, 'maxSpill'))) = yes;
+nuRescapable(restype, resdirection, node, unit)$p_nuReserves(node, unit, restype, resdirection) = yes;
 
-* Link units to genTypes
-$iftheni '%genTypes%' == 'yes'
+* Link units to unittypes
+$iftheni '%unittypes%' == 'yes'
 loop(nu_fuel(node, unit, fuel, 'main'),
-    genType_g('pumped storage', unit) = yes$(sameas(fuel, 'water')
-                                          and nuData(node, unit, 'maxCharging') > 0);
-    genType_g('hydropower', unit) = yes$(sameas(fuel, 'water')
-                                      and not genType_g('pumped storage', unit));
-    genType_g('nuclear', unit) = yes$sameas(fuel, 'nuclear');
-    genType_g('coal', unit) = yes$sameas(fuel, 'coal');
-    genType_g('OCGT', unit) = yes$(sameas(g, 'OCGT') or sameas(unit, 'DoE_Peaker'));
-    genType_g('CCGT', unit) = yes$(sameas(fuel, 'nat_gas')
-                                and not genType_g('OCGT', unit));
-    genType_g('solar', unit) = yes$sameas(fuel, 'solar');
-    genType_g('wind', unit) = yes$sameas(fuel, 'wind');
-    genType_g('dummy', unit) = yes$sameas(unit, 'dummy');
+    unittypeUnit('pumped storage', unit) = yes$(sameas(fuel, 'water')
+                                          and p_nu(node, unit, 'maxCharging') > 0);
+    unittypeUnit('hydropower', unit) = yes$(sameas(fuel, 'water')
+                                      and not unittypeUnit('pumped storage', unit));
+    unittypeUnit('nuclear', unit) = yes$sameas(fuel, 'nuclear');
+    unittypeUnit('coal', unit) = yes$sameas(fuel, 'coal');
+    unittypeUnit('OCGT', unit) = yes$(sameas(g, 'OCGT') or sameas(unit, 'DoE_Peaker'));
+    unittypeUnit('CCGT', unit) = yes$(sameas(fuel, 'nat_gas')
+                                and not unittypeUnit('OCGT', unit));
+    unittypeUnit('solar', unit) = yes$sameas(fuel, 'solar');
+    unittypeUnit('wind', unit) = yes$sameas(fuel, 'wind');
+    unittypeUnit('dummy', unit) = yes$sameas(unit, 'dummy');
 );
 $endif

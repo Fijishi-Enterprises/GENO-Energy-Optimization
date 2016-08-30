@@ -12,18 +12,19 @@ Scalars
 
 * --- Power plant and fuel data -----------------------------------------------
 Parameters
-    gnData(grid, node, param_gn) "Data for energy nodes"
-    gnnData(grid, node, node, param_gnn) "Data for interconnections between energy nodes"
-    gnuData(grid, node, unit, param_gnu) "Unit data where energy type matters"
-    nuData(node, unit, param_nu) "Unit data where energy type does not matter"
-    gnsData(grid, node, storage, param_gns) "Storage unit data"
-    nuDataReserves(node, unit, resType, *) "Reserve provision data for units"
-    p_data2d(*, *, param) "2-dimensional data parameters of objects"
+    p_gn(grid, node, param_gn) "Data for energy nodes"
+    p_gnn(grid, node, node, param_gnn) "Data for interconnections between energy nodes"
+    p_gnu(grid, node, unit, param_gnu) "Unit data where energy type matters"
+    p_nu(node, unit, param_nu) "Unit data where energy type does not matter"
+    p_gnStorage(grid, node, storage, param_gnStorage) "Storage unit data"
+    p_nuReserves(node, unit, restype, *) "Reserve provision data for units"
+    p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
+    p_fuelEmission(fuel, emission) "Fuel emission content"
 ;
 
 * --- Feasibility control -----------------------------------------------------
 Parameters
-    pgnData(slack, inc_dec, grid, node, param_pgn) "Data for slack terms"
+    p_gnSlack(inc_dec, slack, grid, node, param_slack) "Data for slack terms"
 ;
 
 * --- Probability -------------------------------------------------------------
@@ -56,11 +57,10 @@ Parameters
     ts_cf_(flow, node, f, t)
     ts_import(grid, node, t) "Energy import from locations outside the model scope (MW)"
     ts_import_(grid, node, t)
-    ts_reserveDemand(resType, resDirection, node, f, t) "Reserve demand in region in the time period/slice (MW)"
-    ts_reserveDemand_(resType, resDirection, node, f, t)
+    ts_reserveDemand(restype, resdirection, node, f, t) "Reserve demand in region in the time period/slice (MW)"
+    ts_reserveDemand_(restype, resdirection, node, f, t)
 
     ts_nodeState(grid, node, param_gn, f, t) "Fix the states of a node according to time-series form exogenous input"
-
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (€/MWh)"
     ts_fuelPriceChangenode(fuel, node, t) "Initial fuel price and consequent changes in fuel price in model nodegraphies (€/MWh)"
     ts_stoContent(storage, f, t) "Storage content at the start of the time period (ratio of max)"

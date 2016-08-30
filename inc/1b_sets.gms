@@ -26,19 +26,20 @@ Sets param_gn  "Set of possible data parameters for grid, node" /
     energyCapacity "Energy capacity of the node (MWh/?, allows for changing the quality of the node state variables)"
 /
 
-Sets param_gnn "Set of possible data parameters for grid, node, node (nodal interconnections)" /
+param_gnn "Set of possible data parameters for grid, node, node (nodal interconnections)" /
     transferCap "Transfer capacity limits"
     transferLoss "Transfer losses"
     DiffCoeff   "Coefficients for energy diffusion between nodes"
     BoundStateOffset "Offset parameter for relatively bound node states"
 /
 
-Sets param_gnu "Set of possible data parameters for grid, node, unit" /
+param_gnu "Set of possible data parameters for grid, node, unit" /
     maxCap      "Maximum output capacity (MW)"
     maxCharging "Maximum loading capacity (MW)"
     cB          "Ratio in energy conversion between primary output and secondary outputs, e.g. heat ratio of a CHP-plant (MWh_e/MWh_h)"
     cV          "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
 /
+
 param_nu "Set of possible data parameters for node, unit" /
     unitCount   "Number of units if aggregated"
     slope       "Slope of the fuel use"
@@ -65,7 +66,8 @@ param_nu "Set of possible data parameters for node, unit" /
     eff_from    "Conversion efficiency from input energy to the conversion process (ratio)"
     eff_fo      "Conversion efficiency from the conversion process to the output energy (ratio)"
 /
-param_gns "Set of possible data parameters for grid, node, storage" /
+
+param_gnStorage "Set of possible data parameters for grid, node, storage" /
     maxSpill    "Maximum spill rate from storage (MWh/h)"
     minSpill    "Minimum spill rate from storage (MWh/h)"
     maxContent  "Maximum storage content (MWh)"
@@ -74,14 +76,17 @@ param_gns "Set of possible data parameters for grid, node, storage" /
     dischargingEff "Average discharging efficiency"
     selfDischarge "Self discharge of storages (p.u.)"
 /
-param "Set of general parameters" /
-    annualDemand "Total annual energy demand (MWh)"
-    annualImport "Electricity import from an exogenous region (MWh per year)"
-    emissionTax "Emission tax (€/tonne)"
+
+param_fuel "Parateres for fuels" /
     emissionIntensity "Intensity of emission from fuel (kg/MWh_fuel)"
     main        "Main fuel"
     startup     "Start-up fuel"
+/
+
+param_policy "Set of possible data parameters for grid, node, regulation" /
+    emissionTax "Emission tax (€/tonne)"
 /;
+
 
 * --- Energy generation and consumption ---------------------------------------
 Sets
@@ -93,29 +98,28 @@ Sets
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
     nu(node, unit) "Units attached to particular nodes. For units with multiple endogenous outputs only single (node, unit) combination allowed - with the primary grid node (affecting e.g. fuel use calculation with cV)"
     nnu(node, node, unit) "Units that link two nodes"
-    gnState(grid, node) "Nodes with a state variable"
-    gnStateSlack(grid, node) "Nodes with a state slack variable"
-    gnnState(grid, node, node) "Nodes with state variables interconnected via diffusion"
-    gnnBoundState(grid, node, node) "Nodes with state variables bound by other nodes"
+    gn_state(grid, node) "Nodes with a state variable"
+    gn_stateSlack(grid, node) "Nodes with a state slack variable"
+    gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
+    gnn_boundState(grid, node, node) "Nodes with state variables bound by other nodes"
     storage "Storage"
-    grid_storage(grid, storage) "The energy grid stored by the storage"
-    gns(grid, node, storage) "Storage units of certain energy type in specific nodes"
-    ggnuFixedOutputRatio(grid, grid, node, unit) "Units with a fixed ratio between two different grids of output (e.g. backpressure)"
-    ggnuConstrainedOutputRatio(grid, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
-    unitElec(unit) "Units that generate and/or consume electricity"
-    unitHeat(unit) "Units that produce and/or consume unitHeat"
-    unitVG(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
-    unitWithCV(unit) "Units that use cV factor for their secondary output(s)"
-    unitHydro(unit) "Hydropower generators"
-    unitFuel(unit) "Units using a commercial fuel"
-    unitMinLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
-    unitOnline(unit) "Units that have an online variable"
-    flow_unit(flow, unit) "Units linked to a certain energy flow time series"
-    unit_fuel(unit, fuel, param) "Fuel(s) used by the unit"
-    unit_storage(unit, storage) "Units attached to storages"
-    storageHydro(storage)    "Hydropower reservoirs"
-    storageCharging(storage) "Storages that cannot be charged (but may have inflow); used to remove v_stoCharge variables where not relevant"
-    storageSpill(storage) "Storages that cannot spill; used to remove v_spill variables where not relevant"
+    gnStorage(grid, node, storage) "Storage units of certain energy type in specific nodes"
+    ggnu_fixedOutputRatio(grid, grid, node, unit) "Units with a fixed ratio between two different grids of output (e.g. backpressure)"
+    ggnu_constrainedOutputRatio(grid, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
+    unit_elec(unit) "Units that generate and/or consume electricity"
+    unit_heat(unit) "Units that produce and/or consume unit_heat"
+    unit_VG(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
+    unit_withConstrainedOutputRatio(unit) "Units that use cV factor for their secondary output(s)"
+    unit_hydro(unit) "Hydropower generators"
+    unit_fuel(unit) "Units using a commercial fuel"
+    unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
+    unit_online(unit) "Units that have an online variable"
+    flowUnit(flow, unit) "Units linked to a certain energy flow time series"
+    unitFuelParam(unit, fuel, param_fuel) "Fuel(s) used by the unit"
+    unitStorage(unit, storage) "Units attached to storages"
+    storage_hydro(storage)    "Hydropower reservoirs"
+    storage_charging(storage) "Storages that cannot be charged (but may have inflow); used to remove v_stoCharge variables where not relevant"
+    storage_spill(storage) "Storages that cannot spill; used to remove v_spill variables where not relevant"
 ;
 
 *alias (generator, generator_);
@@ -123,32 +127,32 @@ alias(storage, storage_);
 
 
 Sets
-    genType "Generation technology types"
+    unittype "Unit technology types"
      / nuclear
        imports
        coal
-       unitHydro
+       unit_hydro
        CCGT
        "pumped storage"
        solar
        wind
        OCGT
        dummy /
-    genType_g(genType, unit) "Link generation technologies to types"
+    unittypeUnit(unittype, unit) "Link generation technologies to types"
 ;
 
 * --- Reserve types -----------------------------------------------------------
 Sets
-    resType "Reserve types"
+    restype "Reserve types"
         / primary "Automatic frequency containment reserves"
           secondary "Fast frequency restoration reserves"
           tertiary "Replacement reserves"
         /
-    resDirection "Reserve direction"
+    resdirection "Reserve direction"
         / resUp       "Capacity available for upward reserves (p.u.)"
           resDown     "Capacity available for downward reserves (p.u.)"
         /
-    resTypeAndDir(resType, resDirection) "Different combinations of reserve types and directions"
+    restypeDirection(restype, resdirection) "Different combinations of reserve types and directions"
         / primary.resUp
           primary.resDown
           secondary.resUp
@@ -156,19 +160,19 @@ Sets
           tertiary.resUp
           tertiary.resDown
         /
-    resCapable(resType, resDirection, node, unit) "Generators capable and available to provide particular reserves"
+    nuRescapable(restype, resdirection, node, unit) "Units capable and available to provide particular reserves"
 ;
 
 * --- Feasibility control -----------------------------------------------------
-SETS
+Sets
     slack "Categories for slack variables"
-        / s01*s10 /
+        / slack01*slack10 /
     inc_dec "Increase or decrease in dummy or slack variables"
         / increase
           decrease
         /
-    pgn(slack, inc_dec, grid, node) "Penalty categories for nodes"
-    param_pgn "Possible parameters for node inc_dec penalties"
+    gnSlack(inc_dec, slack, grid, node) "Penalty categories for nodes"
+    param_slack "Possible parameters for node inc_dec penalties"
         / costCoeff "The cost coefficient of the slack category to be used in the objective function"
           maxSlack  "The maximum slack provided"
         /

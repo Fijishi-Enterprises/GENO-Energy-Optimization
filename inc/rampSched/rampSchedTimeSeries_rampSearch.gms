@@ -21,10 +21,10 @@ loop(node,
                 // Calculates a moving window for net load using linearly increasing/decreasing weighting
                 sum((fRealization(f), t_)$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12),
                     (ts_energyDemand('elec', node, f, t_) -
-                        sum(unit_flow(flow, unitVG)$nu(unitVG, node),
+                        sum(unit_flow(flow, unit_VG)$nu(unit_VG, node),
                           ts_cf(flow, node, f, t) *
-                          p_data2d('elec', unitVG, 'maxCap') *
-                          p_data(unitVG, 'availability')
+                          p_data2d('elec', unit_VG, 'maxCap') *
+                          p_data(unit_VG, 'availability')
                         )
                     ) * (13 - abs(ord(t) - ord(t_)))  // Weighting
                 )  /
@@ -45,10 +45,10 @@ if (s_netLoadChanged = 1,
     ts_netLoad(node, t) =
         sum((fRealization(f), t_)$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12),
             (ts_energyDemand('elec', node, f, t_) -
-                sum(unit_flow(flow, unitVG)$nu(unitVG, node),
+                sum(unit_flow(flow, unit_VG)$nu(unit_VG, node),
                    ts_cf(flow, node, f, t) *
-                   p_data2d('elec', unitVG, 'maxCap') *
-                   p_data(unitVG, 'availability')
+                   p_data2d('elec', unit_VG, 'maxCap') *
+                   p_data(unit_VG, 'availability')
                 )
             ) * (13 - abs(ord(t) - ord(t_)))
         )  /

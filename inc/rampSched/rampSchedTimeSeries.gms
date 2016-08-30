@@ -1,7 +1,7 @@
 ts_netLoad(node, hour) =
     sum(load$load_in_hub(load, node), ts_elecLoad(load, hour)) -
-    sum(unitVG$unit_in_hub(unitVG, node),
-        ts_fluctuation(unitVG, hour) * p_data(unitVG, 'max_power')
+    sum(unit_VG$unit_in_hub(unit_VG, node),
+        ts_fluctuation(unit_VG, hour) * p_data(unit_VG, 'max_power')
     );
 
 for (w_sortCount = 0 to (floor(card(hour) / RAMP_LENGTH)),

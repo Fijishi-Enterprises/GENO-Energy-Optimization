@@ -1,7 +1,7 @@
 equations
     q_obj "Objective function"
     q_balance(grid, node, mType, f, t) "Energy demand must be satisfied at each node"
-    q_resDemand(resType, resDirection, node, f, t) "Procurement for each reserve type is greater than demand"
+    q_resDemand(restype, resdirection, node, f, t) "Procurement for each reserve type is greater than demand"
     q_maxDownward(grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
     q_storageDynamics(grid, node, storage, mType, f, t) "Dynamic equation for storages"
@@ -10,9 +10,9 @@ equations
     q_bindOnline(node, unit, mType, f, t) "Couple online variable when joining forecasts or when joining sample time periods"
     q_startup(node, unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
     q_fuelUse(node, unit, fuel, mType, f, t) "Use of fuels in units equals generation and losses"
-    q_conversion(node, unit, f, t) "Conversion of energy between grids of energy presented in the model, e.g. electricity consumption equals unitHeat generation times efficiency"
+    q_conversion(node, unit, f, t) "Conversion of energy between grids of energy presented in the model, e.g. electricity consumption equals unit_heat generation times efficiency"
     q_outputRatioFixed(grid, grid, node, unit, f, t) "Force fixed ratio between two energy outputs into different energy grids"
-    q_outputRatioConstrained(grid, grid, node, unit, f, t) "Constrained ratio between two grids of energy output; e.g. electricity generation is greater than cV times unitHeat generation in extraction plants"
+    q_outputRatioConstrained(grid, grid, node, unit, f, t) "Constrained ratio between two grids of energy output; e.g. electricity generation is greater than cV times unit_heat generation in extraction plants"
     q_stoMinContent(grid, node, storage, f, t) "Storage should have enough content to discharge and to deliver committed upward reserves"
     q_stoMaxContent(grid, node, storage, f, t) "Storage should have enough room to fit scheduled charge and committed downward reserves"
     q_transferLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
@@ -28,10 +28,10 @@ Scalars
 ;
 Parameters
     PENALTY_BALANCE(grid) "Penalty on violating energy balance eq. (€/MWh)"
-    PENALTY_RES(resType, resDirection) "Penalty on violating a reserve (€/MW)"
+    PENALTY_RES(restype, resdirection) "Penalty on violating a reserve (€/MW)"
 ;
 PENALTY_BALANCE(grid) = %def_penalty%;
-PENALTY_RES(resType, resDirection) =  %def_penalty%;
+PENALTY_RES(restype, resdirection) =  %def_penalty%;
 
 * -----------------------------------------------------------------------------
 q_obj ..
@@ -43,44 +43,44 @@ q_obj ..
         (
            // Variable O&M costs
            sum(gnu(grid, node, unit),
-                nuData(node, unit, 'omCosts') *
+                p_nu(node, unit, 'omCosts') *
                 $$ifi not '%rampSched%' == 'yes' p_stepLength(m, f, t) *
                 $$ifi '%rampSched%' == 'yes' (p_stepLength(m, f, t) + p_stepLength(m, f, t+1))/2 *
                      v_gen(grid, node, unit, f, t)
            )
            // Fuel and emission costs
-         + sum((node, unitFuel, fuel)$(nu(node, unitFuel) and unit_fuel(unitFuel, fuel, 'main')),
-                v_fuelUse(node, unitFuel, fuel, f, t)
+         + sum((node, unit_fuel, fuel)$(nu(node, unit_fuel) and unitFuelParam(unit_fuel, fuel, 'main')),
+                v_fuelUse(node, unit_fuel, fuel, f, t)
               * (   sum{tFuel$[ord(tFuel) <= ord(t)],
                         ts_fuelPriceChangenode(fuel, node, tFuel) }  // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
                   + sum(emission,         // Emission taxes
-                        p_data2d(fuel, emission, 'emissionIntensity') / 1e3
-                          * p_data2d(emission, node, 'emissionTax')
+                        p_fuelEmission(fuel, emission) / 1e3
+                          * sum(grid$gnu(grid, node, unit_fuel), p_gnPolicy(grid, node, 'emissionTax', emission))
                     )
                  )
             )
            // Start-up costs
-         + sum(gnu(grid, node, unitOnline)$nu(node, unitOnline),
+         + sum(gnu(grid, node, unit_online)$nu(node, unit_online),
              + {
-                 + v_startup(node, unitOnline, f, t)                                       // Cost of starting up
-                 - sum(t_$mftStart(m, f, t_), 0.5 * v_online(node, unitOnline, f, t_))     // minus value of avoiding startup costs before
-                 - sum(t_$mftLastSteps(m, f, t_), 0.5 * v_online(node, unitOnline, f, t_)) // or after the model solve
+                 + v_startup(node, unit_online, f, t)                                       // Cost of starting up
+                 - sum(t_$mftStart(m, f, t_), 0.5 * v_online(node, unit_online, f, t_))     // minus value of avoiding startup costs before
+                 - sum(t_$mftLastSteps(m, f, t_), 0.5 * v_online(node, unit_online, f, t_)) // or after the model solve
                }
              * {
                   // Startup variable costs
-                 + nuData(node, unitOnline, 'startupCost')
-                 * gnuData(grid, node, unitOnline, 'maxCap')
+                 + p_nu(node, unit_online, 'startupCost')
+                 * p_gnu(grid, node, unit_online, 'maxCap')
                   // Start-up fuel and emission costs
-                 + sum(unit_fuel(unitFuel, fuel, 'startup'),
-                     + gnuData(grid, node, unitOnline, 'maxCap')
-                     * nuData(node, unitOnline, 'startupFuelCons')
+                 + sum(unitFuelParam(unit_fuel, fuel, 'startup'),
+                     + p_gnu(grid, node, unit_online, 'maxCap')
+                     * p_nu(node, unit_online, 'startupFuelCons')
                            // Fuel costs for start-up fuel use
                      * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
                                ts_fuelPriceChangenode(fuel, node, tFuel) }
                            // Emission taxes of startup fuel use
                          + sum(emission,
-                               p_data2d(emission, fuel, 'emissionIntensity') / 1e3
-                                 * p_data2d(emission, node, 'emissionTax')
+                            p_fuelEmission(fuel, emission) / 1e3
+                              * p_gnPolicy(grid, node, 'emissionTax', emission)
                            )
                        )
                    )
@@ -91,7 +91,7 @@ q_obj ..
     // Value of energy storage change
     - sum((mftLastSteps(m, f, t), mftStart(m, f_, t_)) $(active('storageValue')),
           p_fProbability(f) *
-            sum(gns(grid, node, storage),
+            sum(gnStorage(grid, node, storage),
                 p_storageValue(grid, node, storage, t) *
                     (v_stoContent(grid, node, storage, f, t) - v_stoContent(grid, node, storage, f_, t_))
             )
@@ -99,51 +99,51 @@ q_obj ..
     // Dummy variables
     + sum(msft(m, s, f, t), p_sProbability(s) * p_fProbability(f) * (
           sum(inc_dec,
-              sum( gn(grid, node)$(not gnData(grid, node, 'fixState')), vq_gen(inc_dec, grid, node, f, t) * p_stepLength(m, f, t) * PENALTY_BALANCE(grid) )
+              sum( gn(grid, node)$(not p_gn(grid, node, 'fixState')), vq_gen(inc_dec, grid, node, f, t) * p_stepLength(m, f, t) * PENALTY_BALANCE(grid) )
           )
-          + sum((resType, resDirection, node),
-                vq_resDemand(resType, resDirection, node, f, t)
+          + sum((restype, resdirection, node),
+                vq_resDemand(restype, resdirection, node, f, t)
               * p_stepLength(m, f, t)
-              * PENALTY_RES(resType, resDirection)
+              * PENALTY_RES(restype, resdirection)
             )
-          + sum(gns(grid, node, storage),
+          + sum(gnStorage(grid, node, storage),
                 vq_stoCharge(grid, node, storage, f, t)
               * p_stepLength(m, f, t)
             ) * PENALTY
         )
       )
     // Node state slack variable penalties
-    + sum(pgn(slack, inc_dec, grid, node),
-        + sum(msft(m, s, f, t)$(gnStateSlack(grid, node) or ts_nodeState(grid, node, 'maxStateSlack', f, t) or ts_nodeState(grid, node, 'minStateSlack', f, t)),
-            + p_sProbability(s) * p_fProbability(f) * ( pgnData(slack, inc_dec, grid, node, 'costCoeff') * v_stateSlack(slack, inc_dec, grid, node, f, t) )
+    + sum(gnSlack(inc_dec, slack, grid, node),
+        + sum(msft(m, s, f, t)$(gn_stateSlack(grid, node) or ts_nodeState(grid, node, 'maxStateSlack', f, t) or ts_nodeState(grid, node, 'minStateSlack', f, t)),
+            + p_sProbability(s) * p_fProbability(f) * ( p_gnSlack(inc_dec, slack, grid, node, 'costCoeff') * v_stateSlack(inc_dec, slack, grid, node, f, t) )
           )
       )
 ;
 
 * -----------------------------------------------------------------------------
-q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t)) and not gnData(grid, node, 'fixState')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
+q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t)) and not p_gn(grid, node, 'fixState')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
     // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
     // The current state of the node
-    + v_state(grid, node, f, t)$(gnState(grid, node))
+    + v_state(grid, node, f, t)$(gn_state(grid, node))
         * (   // This multiplication transforms the state energy into power, a result of implicit discretization
-            + ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
-            + sum(node_$(gnnState(grid, node_, node)),  // Summation of the energy diffusion coefficients
-                + gnnData(grid, node_, node, 'DiffCoeff')   // Diffusion coefficients also transform energy terms into power
+            + ( p_gn(grid, node, 'energyCapacity') + 1$(not p_gn(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
+            + sum(node_$(gnn_state(grid, node_, node)),  // Summation of the energy diffusion coefficients
+                + p_gnn(grid, node_, node, 'DiffCoeff')   // Diffusion coefficients also transform energy terms into power
                     * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiplication by time step to keep the equation in energy terms
               )
           )
     // The previous state of the node
-    - v_state(grid, node, f+pf(f,t), t+pt(t))$(gnState(grid, node))
-        * ( gnData(grid, node, 'energyCapacity') + 1$(not gnData(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
+    - v_state(grid, node, f+pf(f,t), t+pt(t))$(gn_state(grid, node))
+        * ( p_gn(grid, node, 'energyCapacity') + 1$(not p_gn(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
     =E= // The right side of the equation contains all the changes converted to energy terms
     + (
         // Energy diffusion between nodes
-        + sum(node_$(gnnState(grid, node, node_)),
-            + gnnData(grid, node, node_, 'DiffCoeff') * v_state(grid, node_, f, t)  // Diffusion to/from other nodes
+        + sum(node_$(gnn_state(grid, node, node_)),
+            + p_gnn(grid, node, node_, 'DiffCoeff') * v_state(grid, node_, f, t)  // Diffusion to/from other nodes
           )
         // Controlled energy transfer from other nodes to this one
         + sum(from_node$(gn2n(grid, from_node, node)),
-            + (1 - gnnData(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))   // Include transfer losses
+            + (1 - p_gnn(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))   // Include transfer losses
           )
         // Controlled energy transfer to other nodes from this one
         - sum(to_node$(gn2n(grid, node, to_node)),
@@ -163,192 +163,192 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
     - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
 ;
 * -----------------------------------------------------------------------------
-q_resDemand(resType, resDirection, node, ft(f, t))$ts_reserveDemand_(resType, resDirection, node, f, t) ..
-  + sum(nu(node, unitElec),
-        v_reserve(resType, resDirection, node, unitElec, f, t)$resCapable(resType, resDirection, node, unitElec)
+q_resDemand(restype, resdirection, node, ft(f, t))$ts_reserveDemand_(restype, resdirection, node, f, t) ..
+  + sum(nu(node, unit_elec),
+        v_reserve(restype, resdirection, node, unit_elec, f, t)$nuRescapable(restype, resdirection, node, unit_elec)
     )
   + sum(gn('elec', from_node),
-        (1 - gnnData('elec', from_node, node, 'transferLoss')
-        ) * v_resTransCapacity(resType, resDirection, from_node, node, f, t)
+        (1 - p_gnn('elec', from_node, node, 'transferLoss')
+        ) * v_resTransCapacity(restype, resdirection, from_node, node, f, t)
     )
   =G=
-  + ts_reserveDemand_(resType, resDirection, node, f, t)
-  - vq_resDemand(resType, resDirection, node, f, t)
+  + ts_reserveDemand_(restype, resdirection, node, f, t)
+  - vq_resDemand(restype, resdirection, node, f, t)
   + sum(to_node,
-        v_resTransCapacity(resType, resDirection, node, to_node, f, t)
+        v_resTransCapacity(restype, resdirection, node, to_node, f, t)
     )
 ;
 * -----------------------------------------------------------------------------
-q_maxDownward(gnu(grid, node, unit), ft(f, t))${     [unitMinLoad(unit) and gnuData(grid, node, unit, 'maxCap')]  // generators with min_load
-                                                  or sum(resType, resCapable(resType, 'resDown', node, unit))         // all units with downward reserve provision
-                                                  or [gnuData(grid, node, unit, 'maxCharging') and unitOnline(unit)]     // consuming units with an online variable
+q_maxDownward(gnu(grid, node, unit), ft(f, t))${     [unit_minLoad(unit) and p_gnu(grid, node, unit, 'maxCap')]  // generators with min_load
+                                                  or sum(restype, nuRescapable(restype, 'resDown', node, unit))         // all units with downward reserve provision
+                                                  or [p_gnu(grid, node, unit, 'maxCharging') and unit_online(unit)]     // consuming units with an online variable
                                                 }..
   + v_gen(grid, node, unit, f, t)                                                  // energy generation/consumption
-  + sum( ggnuConstrainedOutputRatio(grid, grid_output, node_, unit),
-        gnuData(grid_output, node_, unit, 'cV') * v_gen(grid_output, node_, unit, f, t) )       // considering output constraints (e.g. cV line)
-  - sum(resCapable(resType, 'resDown', node, unit)$unitElec(unit),                     // minus downward reserve participation
-        v_reserve(resType, 'resDown', node, unit, f, t)  // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+  + sum( ggnu_constrainedOutputRatio(grid, grid_output, node_, unit),
+        p_gnu(grid_output, node_, unit, 'cV') * v_gen(grid_output, node_, unit, f, t) )       // considering output constraints (e.g. cV line)
+  - sum(nuRescapable(restype, 'resDown', node, unit)$unit_elec(unit),                     // minus downward reserve participation
+        v_reserve(restype, 'resDown', node, unit, f, t)  // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
   =G=                                                                        // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
-  + v_online(node, unit, f, t) * nuData(node, unit, 'minLoad') * gnuData(grid, node, unit, 'maxCap')$[nuData(node, unit, 'minLoad') and gnuData(grid, node, unit, 'maxCap')]
-  + v_gen.lo(grid, node, unit, f, t) * [ v_online(node, unit, f, t)$nuData(node, unit, 'minLoad') + 1$(not nuData(node, unit, 'minLoad')) ]         // notice: v_gen.lo for consuming units is negative
+  + v_online(node, unit, f, t) * p_nu(node, unit, 'minLoad') * p_gnu(grid, node, unit, 'maxCap')$[p_nu(node, unit, 'minLoad') and p_gnu(grid, node, unit, 'maxCap')]
+  + v_gen.lo(grid, node, unit, f, t) * [ v_online(node, unit, f, t)$p_nu(node, unit, 'minLoad') + 1$(not p_nu(node, unit, 'minLoad')) ]         // notice: v_gen.lo for consuming units is negative
 ;
 * -----------------------------------------------------------------------------
-q_maxUpward(gnu(grid, node, unit), ft(f, t))${      [unitMinLoad(unit) and gnuData(grid, node, unit, 'maxCharging')]  // consuming units with min_load
-                                                 or sum(resType, resCapable(resType, 'resUp', node, unit))              // all units with upward reserve provision
-                                                 or [gnuData(grid, node, unit, 'maxCap') and unitOnline(unit)]            // generators with an online variable
+q_maxUpward(gnu(grid, node, unit), ft(f, t))${      [unit_minLoad(unit) and p_gnu(grid, node, unit, 'maxCharging')]  // consuming units with min_load
+                                                 or sum(restype, nuRescapable(restype, 'resUp', node, unit))              // all units with upward reserve provision
+                                                 or [p_gnu(grid, node, unit, 'maxCap') and unit_online(unit)]            // generators with an online variable
                                                }..
   + v_gen(grid, node, unit, f, t)                                                   // energy generation/consumption
-  + sum( ggnuConstrainedOutputRatio(grid, grid_output, node_, unit),
-         gnuData(grid_output, node_, unit, 'cV') * v_gen(grid_output, node_, unit, f, t) )        // considering output constraints (e.g. cV line)
-  + sum(resCapable(resType, 'resUp', node, unit)$unitElec(unit),                        // plus upward reserve participation
-        v_reserve(resType, 'resUp', node, unit, f, t)  // (v_reserve can be used only if the unit can provide a particular reserve)
+  + sum( ggnu_constrainedOutputRatio(grid, grid_output, node_, unit),
+         p_gnu(grid_output, node_, unit, 'cV') * v_gen(grid_output, node_, unit, f, t) )        // considering output constraints (e.g. cV line)
+  + sum(nuRescapable(restype, 'resUp', node, unit)$unit_elec(unit),                        // plus upward reserve participation
+        v_reserve(restype, 'resUp', node, unit, f, t)  // (v_reserve can be used only if the unit can provide a particular reserve)
     )
   =L=                                                                         // must be less than available/online capacity
-  - v_online(node, unit, f, t) * nuData(node, unit, 'minLoad')$[nuData(node, unit, 'minLoad') and gnuData(grid, node, unit, 'maxCharging')]
-  + v_gen.up(grid, node, unit, f, t) * [ v_online(node, unit, f, t)$nuData(node, unit, 'minLoad') + 1$(not nuData(node, unit, 'minLoad')) ]
+  - v_online(node, unit, f, t) * p_nu(node, unit, 'minLoad')$[p_nu(node, unit, 'minLoad') and p_gnu(grid, node, unit, 'maxCharging')]
+  + v_gen.up(grid, node, unit, f, t) * [ v_online(node, unit, f, t)$p_nu(node, unit, 'minLoad') + 1$(not p_nu(node, unit, 'minLoad')) ]
 ;
 * -----------------------------------------------------------------------------
-q_storageDynamics(gns(grid, node, storage), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t))) ..
+q_storageDynamics(gnStorage(grid, node, storage), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t))) ..
     + v_stoContent(grid, node, storage, f, t)
-        * (1 + gnsData(grid, node, storage, 'selfDischarge'))
+        * (1 + p_gnStorage(grid, node, storage, 'selfDischarge'))
     - v_stoContent(grid, node, storage, f+pf(f,t), t+pt(t))
     =E=
     + ts_inflow_(storage, f+pf(f,t), t+pt(t))
     + vq_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
     + (
-        + v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))$storageCharging(storage)
+        + v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))$storage_charging(storage)
         - v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
-        - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))$storageSpill(storage)
-        $$ifi '%rampSched%' == 'yes' + v_stoCharge(grid, node, storage, f, t)$storageCharging(storage)
+        - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))$storage_spill(storage)
+        $$ifi '%rampSched%' == 'yes' + v_stoCharge(grid, node, storage, f, t)$storage_charging(storage)
         $$ifi '%rampSched%' == 'yes' - v_stoDischarge(grid, node, storage, f, t)
-        $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, storage, f, t)$storageSpill(storage)
+        $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, storage, f, t)$storage_spill(storage)
       )  // In case rampSched is used and the division by 2 on the next line is valid
         $$ifi '%rampSched%' == 'yes' / 2
         * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiply by time step to get energy terms instead of power
 ;
 * -----------------------------------------------------------------------------
-q_storageConversion(gns(grid, node, storage), ft(f, t)) ..
-  + sum(unit$unit_storage(unit, storage), v_gen(grid, node, unit, f, t))
+q_storageConversion(gnStorage(grid, node, storage), ft(f, t)) ..
+  + sum(unit$unitStorage(unit, storage), v_gen(grid, node, unit, f, t))
   =E=
-  + v_stoDischarge(grid, node, storage, f, t) * gnsData(grid, node, storage, 'dischargingEff')
-  - v_stoCharge(grid, node, storage, f, t)$storageCharging(storage) / gnsData(grid, node, storage, 'chargingEff')
+  + v_stoDischarge(grid, node, storage, f, t) * p_gnStorage(grid, node, storage, 'dischargingEff')
+  - v_stoCharge(grid, node, storage, f, t)$storage_charging(storage) / p_gnStorage(grid, node, storage, 'chargingEff')
 ;
 * -----------------------------------------------------------------------------
-q_bindStorage(gns(grid, node, storage), mftBind(m, f, t)) ..
+q_bindStorage(gnStorage(grid, node, storage), mftBind(m, f, t)) ..
   + v_stoContent(grid, node, storage, f, t)
   =E=
   + v_stoContent(grid, node, storage, f + mft_bind(m,f,t), t + mt_bind(m,t) )
 ;
 * -----------------------------------------------------------------------------
-q_startup(nu(node, unitOnline), ft_dynamic(f, t)) ..
-  + v_startup(node, unitOnline, f+pf(f,t), t+pt(t))
+q_startup(nu(node, unit_online), ft_dynamic(f, t)) ..
+  + v_startup(node, unit_online, f+pf(f,t), t+pt(t))
   =G=
-  + v_online(node, unitOnline, f, t) - v_online(node, unitOnline, f+pf(f,t), t+pt(t))  // This reaches to tFirstSolve when pt = -1
+  + v_online(node, unit_online, f, t) - v_online(node, unit_online, f+pf(f,t), t+pt(t))  // This reaches to tFirstSolve when pt = -1
 ;
 * -----------------------------------------------------------------------------
-q_bindOnline(nu(node, unitOnline), mftBind(m, f, t)) ..
-  + v_online(node, unitOnline, f, t)
+q_bindOnline(nu(node, unit_online), mftBind(m, f, t)) ..
+  + v_online(node, unit_online, f, t)
   =E=
-  + v_online(node, unitOnline, f + mft_bind(m,f,t), t + mt_bind(m,t))
+  + v_online(node, unit_online, f + mft_bind(m,f,t), t + mt_bind(m,t))
 ;
 * -----------------------------------------------------------------------------
-q_fuelUse(nu(node, unitFuel), fuel, m, ft(f, t))$unit_fuel(unitFuel, fuel, 'main') ..
-  + v_fuelUse(node, unitFuel, fuel, f, t)
+q_fuelUse(nu(node, unit_fuel), fuel, m, ft(f, t))$unitFuelParam(unit_fuel, fuel, 'main') ..
+  + v_fuelUse(node, unit_fuel, fuel, f, t)
   =E=
     $$ifi not '%rampSched%' == 'yes' p_stepLength(m, f, t) *
     $$ifi     '%rampSched%' == 'yes' p_stepLength(m, f, t) / 2 *
     (
-      + sum{ gnu(grid, node_, unitFuel)$nuData(node_, unitFuel, 'slope'),
+      + sum{ gnu(grid, node_, unit_fuel)$p_nu(node_, unit_fuel, 'slope'),
              [
-               + v_gen(grid, node_, unitFuel, f, t)
-               $$ifi '%rampSched%' == 'yes'     + v_gen(grid, node_, unitFuel, f+pf(f,t), t+pt(t))
-             ] * nuData(node_, unitFuel, 'slope')
-               * [ + 1$(not unitWithCV(unitFuel) or nu(node_,unitFuel))   // not a backpressure or extraction unit, expect for the primary grid (where cV has to be 1)
-                   + gnuData(grid, node_, unitFuel, 'cV')$(unitWithCV(unitFuel) and not nu(node_, unitFuel)) // for secondary outputs with cV
+               + v_gen(grid, node_, unit_fuel, f, t)
+               $$ifi '%rampSched%' == 'yes'     + v_gen(grid, node_, unit_fuel, f+pf(f,t), t+pt(t))
+             ] * p_nu(node_, unit_fuel, 'slope')
+               * [ + 1$(not unit_withConstrainedOutputRatio(unit_fuel) or nu(node_,unit_fuel))   // not a backpressure or extraction unit, expect for the primary grid (where cV has to be 1)
+                   + p_gnu(grid, node_, unit_fuel, 'cV')$(unit_withConstrainedOutputRatio(unit_fuel) and not nu(node_, unit_fuel)) // for secondary outputs with cV
                  ]
            }
-      + sum[ gnu(grid, node_, unitFuel)$( unitOnline(unitFuel) and nuData(node_, unitFuel, 'section') ),
-              (                              + v_online(node_, unitFuel, f, t)
-                $$ifi '%rampSched%' == 'yes' + v_online(node_, unitFuel, f+pf(f,t), t+pt(t))
-              ) * nuData(node_, unitFuel, 'section') * gnuData(grid, node, unitFuel, 'maxCap')  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
+      + sum[ gnu(grid, node_, unit_fuel)$( unit_online(unit_fuel) and p_nu(node_, unit_fuel, 'section') ),
+              (                              + v_online(node_, unit_fuel, f, t)
+                $$ifi '%rampSched%' == 'yes' + v_online(node_, unit_fuel, f+pf(f,t), t+pt(t))
+              ) * p_nu(node_, unit_fuel, 'section') * p_gnu(grid, node, unit_fuel, 'maxCap')  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
            ]
     )
 ;
 * -----------------------------------------------------------------------------
 q_conversion(nu(node, unit), ft(f, t))$[sum(gn(grid_, node_input), gnu_input(grid_, node_input, unit)) and sum(grid, gnu(grid, node, unit))] ..
-  - sum( gn(grid_, node_input)$gnu_input(grid_, node_input, unit), v_gen(grid_, node_input, unit, f, t) / nuData(node, unit, 'slope') )
+  - sum( gn(grid_, node_input)$gnu_input(grid_, node_input, unit), v_gen(grid_, node_input, unit, f, t) / p_nu(node, unit, 'slope') )
   =E=
   + sum( grid$gnu(grid, node, unit), v_gen(grid, node, unit, f, t) )
-* nuData(grid_, node, unit, 'eff_from') )
+* p_nu(grid_, node, unit, 'eff_from') )
 ;
 * -----------------------------------------------------------------------------
-q_outputRatioFixed(ggnuFixedOutputRatio(grid, grid_output, node, unit), ft(f, t)) ..
+q_outputRatioFixed(ggnu_fixedOutputRatio(grid, grid_output, node, unit), ft(f, t)) ..
   + sum(node_input$gnu(grid, node_input, unit), v_gen(grid, node_input, unit, f, t))
   =E=
-  + gnuData(grid_output, node, unit, 'cB') * v_gen(grid_output, node, unit, f, t)
+  + p_gnu(grid_output, node, unit, 'cB') * v_gen(grid_output, node, unit, f, t)
 ;
 * -----------------------------------------------------------------------------
-q_outputRatioConstrained(ggnuConstrainedOutputRatio(grid, grid_output, node, unit), ft(f, t)) ..
+q_outputRatioConstrained(ggnu_constrainedOutputRatio(grid, grid_output, node, unit), ft(f, t)) ..
   + sum(node_input$gnu(grid, node_input, unit), v_gen(grid, node_input, unit, f, t))
   =G=
-  + gnuData(grid_output, node, unit, 'cB') * v_gen(grid_output, node, unit, f, t)
+  + p_gnu(grid_output, node, unit, 'cB') * v_gen(grid_output, node, unit, f, t)
 ;
 * -----------------------------------------------------------------------------
-q_stoMinContent(gns(grid, node, storage), ft(f, t)) ..
+q_stoMinContent(gnStorage(grid, node, storage), ft(f, t)) ..
   + v_stoContent(grid, node, storage, f, t)                                                     // Storage content
   - v_stoDischarge(grid, node, storage, f, t)                                                   // - storage discharging
-  - sum( (resType, resDirection, unitElec)$(resCapable(resType, 'resUp', node, unitElec)        // - reservation for storage discharging (upward reserves)
-        and unit_storage(unitElec, storage)),
-      + v_reserve(resType, resDirection, node, unitElec, f, t)
-          / gnsData(grid, node, storage, 'dischargingEff') )
+  - sum( (restype, resdirection, unit_elec)$(nuRescapable(restype, 'resUp', node, unit_elec)        // - reservation for storage discharging (upward reserves)
+        and unitStorage(unit_elec, storage)),
+      + v_reserve(restype, resdirection, node, unit_elec, f, t)
+          / p_gnStorage(grid, node, storage, 'dischargingEff') )
   =G=                                                                                           // are greater than
-  + gnsData(grid, node, storage, 'minContent') * gnsData(grid, node, storage, 'maxContent')     // storage min. content
+  + p_gnStorage(grid, node, storage, 'minContent') * p_gnStorage(grid, node, storage, 'maxContent')     // storage min. content
 ;
 * -----------------------------------------------------------------------------
-q_stoMaxContent(gns(grid, node, storage), ft(f, t)) ..
+q_stoMaxContent(gnStorage(grid, node, storage), ft(f, t)) ..
   + v_stoContent(grid, node, storage, f, t)                                                     // Storage content
-  + v_stoCharge(grid, node, storage, f, t)$storageCharging(storage)                                                      // + storage charging
-  + sum( (resType, resDirection, unitElec)$(resCapable(resType, 'resDown', node, unitElec)      // + reservation for storage charging (downward reserves)
-        and unit_storage(unitElec, storage)),
-      + v_reserve(resType, resDirection, node, unitElec, f, t)
-          * gnsData(grid, node, storage, 'chargingEff') )
+  + v_stoCharge(grid, node, storage, f, t)$storage_charging(storage)                                                      // + storage charging
+  + sum( (restype, resdirection, unit_elec)$(nuRescapable(restype, 'resDown', node, unit_elec)      // + reservation for storage charging (downward reserves)
+        and unitStorage(unit_elec, storage)),
+      + v_reserve(restype, resdirection, node, unit_elec, f, t)
+          * p_gnStorage(grid, node, storage, 'chargingEff') )
   =L=                                                                                           // are less than
-  + gnsData(grid, node, storage, 'maxContent')                                                  // storage max. content
+  + p_gnStorage(grid, node, storage, 'maxContent')                                                  // storage max. content
 ;
 * -----------------------------------------------------------------------------
 q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
   + v_transfer(grid, from_node, to_node, f, t)
-  + sum(resTypeAndDir(resType, resDirection)$(resDirection('resUp') and grid('elec')),
-        v_resTransCapacity(resType, resDirection, from_node, to_node, f, t))
+  + sum(restypeDirection(restype, resdirection)$(resdirection('resUp') and grid('elec')),
+        v_resTransCapacity(restype, resdirection, from_node, to_node, f, t))
   =L=
-  + gnnData(grid, from_node, to_node, 'transferCap')
+  + p_gnn(grid, from_node, to_node, 'transferCap')
 ;
 * -----------------------------------------------------------------------------
-q_maxStateSlack(gnStateSlack(grid, node), ft(f, t))$(gnData(grid, node, 'maxStateSlack') or ts_nodeState(grid, node, 'maxStateSlack', f, t)) ..
+q_maxStateSlack(gn_stateSlack(grid, node), ft(f, t))$(p_gn(grid, node, 'maxStateSlack') or ts_nodeState(grid, node, 'maxStateSlack', f, t)) ..
     + v_state(grid, node, f, t)                                                                 // Node state
-    - sum(pgn(slack, 'decrease', grid, node),                                                   // Summation over all determined slack categories
-        + v_stateSlack(slack, 'decrease', grid, node, f, t)                                     // Downward slack variables
+    - sum(gnSlack('decrease', slack, grid, node),                                               // Summation over all determined slack categories
+        + v_stateSlack('decrease', slack, grid, node, f, t)                                     // Downward slack variables
       )
     =L=
-    + gnData(grid, node, 'maxStateSlack')${not ts_nodeState(grid, node, 'maxStateSlack', f,t)}  // Maximum permitted node state for all timesteps, overwritten by possible timeseries data
+    + p_gn(grid, node, 'maxStateSlack')${not ts_nodeState(grid, node, 'maxStateSlack', f,t)}  // Maximum permitted node state for all timesteps, overwritten by possible timeseries data
     + ts_nodeState(grid, node, 'maxStateSlack', f, t)${ts_nodeState(grid, node, 'maxStateSlack', f, t)} // Maximum permitted node state for this timestep, if determined by data
 ;
 * -----------------------------------------------------------------------------
-q_minStateSlack(gnStateSlack(grid, node), ft(f, t))$(gnData(grid, node, 'minStateSlack') or ts_nodeState(grid, node, 'minStateSlack', f, t)) ..
+q_minStateSlack(gn_stateSlack(grid, node), ft(f, t))$(p_gn(grid, node, 'minStateSlack') or ts_nodeState(grid, node, 'minStateSlack', f, t)) ..
     + v_state(grid, node, f, t)                                                                 // Node state
-    + sum(pgn(slack, 'increase', grid, node),                                                   // Sukmmation over all determined slack categories
-        + v_stateSlack(slack, 'increase', grid, node, f, t)                                     // Upwards slack variables
+    + sum(gnSlack('increase', slack, grid, node),                                               // Sukmmation over all determined slack categories
+        + v_stateSlack('increase', slack, grid, node, f, t)                                     // Upwards slack variables
       )
     =G=
-    + gnData(grid, node, 'minStateSlack')${not ts_nodeState(grid, node, 'minStateSlack', f,t)}            // Minimum permitted node state for all timesteps, overwritten by possible timeseries data
+    + p_gn(grid, node, 'minStateSlack')${not ts_nodeState(grid, node, 'minStateSlack', f,t)}            // Minimum permitted node state for all timesteps, overwritten by possible timeseries data
     + ts_nodeState(grid, node, 'minStateSlack', f, t)${ts_nodeState(grid, node, 'minStateSlack', f,t)}    // Minimum permitted node state for this timestep, if determined by data
 ;
 * -----------------------------------------------------------------------------
-q_boundState(gnnBoundState(grid, node, node_), ft(f, t)) ..
+q_boundState(gnn_boundState(grid, node, node_), ft(f, t)) ..
   + v_state(grid, node, f, t)   // The state of the first node sets the upper limit of the second
   =G=
   + v_state(grid, node_, f, t)
-  + gnnData(grid, node, node_, 'BoundStateOffset')   // Affected by the offset parameter
+  + p_gnn(grid, node, node_, 'BoundStateOffset')   // Affected by the offset parameter
 ;
 

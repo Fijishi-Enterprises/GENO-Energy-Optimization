@@ -18,8 +18,8 @@ $offOrder
                            and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast + 1)
                 ) = yes;   // Set of t's where the interval is 1 (right border defined by intervalEnd) - but do not go beyond tSolveLast
                 ts_energyDemand_(gn(grid, node), fSolve, t)$tInterval(t) = ts_energyDemand(grid, node, fSolve, t+ct(t));
-                ts_inflow_(unitHydro, fSolve, t)$tInterval(t) = ts_inflow(unitHydro, fSolve, t+ct(t));
-                ts_inflow_(storageHydro, fSolve, t)$tInterval(t) = ts_inflow(storageHydro, fSolve, t+ct(t));
+                ts_inflow_(unit_hydro, fSolve, t)$tInterval(t) = ts_inflow(unit_hydro, fSolve, t+ct(t));
+                ts_inflow_(storage_hydro, fSolve, t)$tInterval(t) = ts_inflow(storage_hydro, fSolve, t+ct(t));
                 ts_import_(gn(grid, node), t)$tInterval(t) = ts_import(grid, node, t+ct(t));
                 ts_cf_(flow, node, fSolve, t)$tInterval(t) = ts_cf(flow, node, fSolve, t+ct(t));
                 tCounter = mInterval(mSolve, 'intervalEnd', counter); // move tCounter to the next interval setting
@@ -39,8 +39,8 @@ $offOrder
                             p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength;
                             // Calculate averages for the interval time series data
                             ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t_))};
-                            ts_inflow_(unitHydro, fSolve, t) = sum{t_$tInterval(t_), ts_inflow(unitHydro, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);
-                            ts_inflow_(storageHydro, fSolve, t) = sum{t_$tInterval(t_), ts_inflow(storageHydro, fSolve, t_+ct(t_))};
+                            ts_inflow_(unit_hydro, fSolve, t) = sum{t_$tInterval(t_), ts_inflow(unit_hydro, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);
+                            ts_inflow_(storage_hydro, fSolve, t) = sum{t_$tInterval(t_), ts_inflow(storage_hydro, fSolve, t_+ct(t_))};
                             ts_import_(gn(grid, node), t) = sum{t_$tInterval(t_), ts_import(grid, node, t_+ct(t_))};
                             ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);
                             // Set the previous time step displacement
@@ -105,7 +105,7 @@ $onOrder
     pf(ft(f,t))$(ord(t) eq ord(tSolve) + 1) = 1 - ord(f);
 
     // Arbitrary value for energy in storage
-    p_storageValue(gns(grid, node, storage), t)$sum(mf(mSolve, fRealization(f)), mftStart(mSolve,f,t) + mftLastSteps(mSolve,f,t)) = 50;
+    p_storageValue(gnStorage(grid, node, storage), t)$sum(mf(mSolve, fRealization(f)), mftStart(mSolve,f,t) + mftLastSteps(mSolve,f,t)) = 50;
 
 
     // PSEUDO DATA
