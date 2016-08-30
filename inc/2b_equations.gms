@@ -154,7 +154,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
           )
         // Interactions between the node and its units
         + sum(unit$(gnu(grid, node, unit) or gnu_input(grid, node, unit)),
-            + v_gen(grid, node, unit, f, t)   // Unit energy generation and consumption
+            + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))   // Unit energy generation and consumption
             $$ifi '%rampSched%' == 'yes' + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
           ) // If ramp scheduling is turned on, use the average power between the time steps
             $$ifi '%rampSched%' == 'yes' / 2
@@ -212,20 +212,20 @@ q_maxUpward(gnu(grid, node, unit), ft(f, t))${      [unitMinLoad(unit) and gnuDa
   + v_gen.up(grid, node, unit, f, t) * [ v_online(node, unit, f, t)$nuData(node, unit, 'minLoad') + 1$(not nuData(node, unit, 'minLoad')) ]
 ;
 * -----------------------------------------------------------------------------
-q_storageDynamics(gns(grid, node, storage), m, ft(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t))) ..
+q_storageDynamics(gns(grid, node, storage), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t))) ..
     + v_stoContent(grid, node, storage, f, t)
         * (1 + gnsData(grid, node, storage, 'selfDischarge'))
     - v_stoContent(grid, node, storage, f+pf(f,t), t+pt(t))
     =E=
-    + ts_inflow_(storage, f, t)
-    + vq_stoCharge(grid, node, storage, f, t)
+    + ts_inflow_(storage, f+pf(f,t), t+pt(t))
+    + vq_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
     + (
-        + v_stoCharge(grid, node, storage, f, t)$storageCharging(storage)
-        - v_stoDischarge(grid, node, storage, f, t)
-        - v_spill(grid, node, storage, f, t)$storageSpill(storage)
-        $$ifi '%rampSched%' == 'yes' + v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))$storageCharging(storage)
-        $$ifi '%rampSched%' == 'yes' - v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
-        $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))$storageSpill(storage)
+        + v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))$storageCharging(storage)
+        - v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
+        - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))$storageSpill(storage)
+        $$ifi '%rampSched%' == 'yes' + v_stoCharge(grid, node, storage, f, t)$storageCharging(storage)
+        $$ifi '%rampSched%' == 'yes' - v_stoDischarge(grid, node, storage, f, t)
+        $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, storage, f, t)$storageSpill(storage)
       )  // In case rampSched is used and the division by 2 on the next line is valid
         $$ifi '%rampSched%' == 'yes' / 2
         * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiply by time step to get energy terms instead of power
@@ -244,10 +244,10 @@ q_bindStorage(gns(grid, node, storage), mftBind(m, f, t)) ..
   + v_stoContent(grid, node, storage, f + mft_bind(m,f,t), t + mt_bind(m,t) )
 ;
 * -----------------------------------------------------------------------------
-q_startup(nu(node, unitOnline), ft(f, t)) ..
-  + v_startup(node, unitOnline, f, t)
+q_startup(nu(node, unitOnline), ft_dynamic(f, t)) ..
+  + v_startup(node, unitOnline, f+pf(f,t), t+pt(t))
   =G=
-  + v_online(node, unitOnline, f, t) - v_online(node, unitOnline, f + pf(f,t), t + pt(t))  // This reaches to t_solve when pt = -1
+  + v_online(node, unitOnline, f, t) - v_online(node, unitOnline, f+pf(f,t), t+pt(t))  // This reaches to tFirstSolve when pt = -1
 ;
 * -----------------------------------------------------------------------------
 q_bindOnline(nu(node, unitOnline), mftBind(m, f, t)) ..
