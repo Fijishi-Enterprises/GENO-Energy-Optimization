@@ -54,7 +54,7 @@ Model schedule /
     q_stoMinContent
     q_stoMaxContent
     q_transferLimit
-    q_maxState
-    q_minState
+    q_maxStateSlack
+    q_minStateSlack
     q_boundState
 /;

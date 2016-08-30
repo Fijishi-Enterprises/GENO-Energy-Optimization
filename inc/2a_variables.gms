@@ -17,9 +17,8 @@ Positive variables
 ;
 
 * --- Feasibility control -----------------------------------------------------
-Set inc_dec "Increase or decrease in dummy variables" / increase, decrease /;
 Positive variables
-    v_stateSlack(inc_dec, grid, node, f, t) "Slack variable for v_state, permits e.g. costs for exceeding acceptable v_states (MWh, unless modified by energyCapacity parameter)"
+    v_stateSlack(slack, inc_dec, grid, node, f, t) "Slack variable for different v_state slack categories, permits e.g. costs for exceeding acceptable v_states (MWh, unless modified by energyCapacity parameter)"
     vq_gen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
     vq_resDemand(resType, resDirection, node, f, t) "Dummy to decrease demand for a reserve (MW)"
     vq_stoCharge(grid, node, storage, f, t) "Dummy loading of storages to ensure equation feasibility (MWh)"

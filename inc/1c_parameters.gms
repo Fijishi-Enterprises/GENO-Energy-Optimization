@@ -21,6 +21,11 @@ Parameters
     p_data2d(*, *, param) "2-dimensional data parameters of objects"
 ;
 
+* --- Feasibility control -----------------------------------------------------
+Parameters
+    pgnData(slack, inc_dec, grid, node, param_pgn) "Data for slack terms"
+;
+
 * --- Probability -------------------------------------------------------------
 Parameters
     p_sWeight(s) "Weight of sample"

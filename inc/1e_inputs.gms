@@ -11,6 +11,7 @@ $loaddc gnuData
 $loaddc nuData
 $loaddc nuDataReserves
 $loaddc gnsData
+$loaddc pgnData
 $loaddc gnu_input
 $loaddc nnu
 $loaddc unit_fuel
@@ -51,8 +52,9 @@ node_to_node(from_node, to_node)$gnnData('elec', from_node, to_node, 'transferCa
 gnnBoundState(grid, node, node_)$(gnnData(grid, node, node_, 'BoundStateOffset')) = yes;
 gnnState(grid, node, node_)$(gnnData(grid, node, node_, 'DiffCoeff') or gnnBoundState(grid, node, node_)) = yes;
 gnState(grid, node)$(sum(param_gn, gnData(grid, node, param_gn)) or sum(node_, gnnState(grid, node, node_)) or sum(node_, gnnState(grid, node_, node))) = yes;
-gnBoundState(grid, node)$((gnData(grid, node, 'maxState') or gnData(grid, node, 'minState') or sum(f, sum(t, ts_nodeState(grid, node, 'maxState', f, t) + ts_nodeState(grid, node, 'minState', f, t)))) and not gnData(grid, node, 'fixState')) = yes;
+gnStateSlack(grid, node)$((gnData(grid, node, 'maxStateSlack') or gnData(grid, node, 'minStateSlack') or sum(f, sum(t, ts_nodeState(grid, node, 'maxStateSlack', f, t) + ts_nodeState(grid, node, 'minStateSlack', f, t)))) and not gnData(grid, node, 'fixState')) = yes;
 gn(grid, node)$(sum(unit, gnu(grid, node, unit)) or gnState(grid, node)) = yes;
+pgn(slack, inc_dec, grid, node)$(sum(param_pgn, pgnData(slack, inc_dec, grid, node, param_pgn))) = yes;
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 
