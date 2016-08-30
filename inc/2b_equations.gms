@@ -16,8 +16,8 @@ equations
     q_stoMinContent(grid, node, storage, f, t) "Storage should have enough content to discharge and to deliver committed upward reserves"
     q_stoMaxContent(grid, node, storage, f, t) "Storage should have enough room to fit scheduled charge and committed downward reserves"
     q_transferLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
-    q_maxState(grid, node, f, t) "Slack variables keep track of state variables exceeding permitted limits"
-    q_minState(grid, node, f, t) "Slack variables keep track of state variables under permitted limits"
+    q_maxStateSlack(grid, node, f, t) "Slack variables keep track of state variables exceeding permitted limits"
+    q_minStateSlack(grid, node, f, t) "Slack variables keep track of state variables under permitted limits"
     q_boundState(grid, node, node, f, t) "Node state variables bounded by other nodes"
 ;
 
@@ -112,14 +112,11 @@ q_obj ..
             ) * PENALTY
         )
       )
-    // Node state variable penalties, NOTE! With time series form bounds the v_stateSlack is still created for all (f, t) even though technically ts_nodeState can only impose bounds on specific timesteps.
-    + sum(msft(m, s, f, t), p_sProbability(s) * p_fProbability(f) * (
-        + sum(inc_dec,
-            sum(gnBoundState(grid, node),
-                + v_stateSlack(inc_dec, grid, node, f, t) * PENALTY // NOTE! Currently the v_stateSlack functions as a normal penalty, but this should change according to desired effect
-            )
+    // Node state slack variable penalties
+    + sum(pgn(slack, inc_dec, grid, node),
+        + sum(msft(m, s, f, t)$(gnStateSlack(grid, node) or ts_nodeState(grid, node, 'maxStateSlack', f, t) or ts_nodeState(grid, node, 'minStateSlack', f, t)),
+            + p_sProbability(s) * p_fProbability(f) * ( pgnData(slack, inc_dec, grid, node, 'costCoeff') * v_stateSlack(slack, inc_dec, grid, node, f, t) )
           )
-        )
       )
 ;
 
@@ -162,8 +159,8 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
         * p_stepLength(m, f+pf(f,t), t+pt(t))   // Again, multiply by time step to get energy terms
     + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
     - ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))   // Energy demand from the node
-    + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t))${not gnState(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnState
-    - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))${not gnState(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnState
+    + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t))${not gnStateSlack(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnStateSlack
+    - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))${not gnStateSlack(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnStateSlack
 ;
 * -----------------------------------------------------------------------------
 q_resDemand(resType, resDirection, node, ft(f, t))$ts_reserveDemand_(resType, resDirection, node, f, t) ..
@@ -328,20 +325,24 @@ q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
   + gnnData(grid, from_node, to_node, 'transferCap')
 ;
 * -----------------------------------------------------------------------------
-q_maxState(gnBoundState(grid, node), ft(f, t)) ..                                               // NOTE! These probably won't work if ts_nodeState doesn't set bounds for all timesteps!
+q_maxStateSlack(gnStateSlack(grid, node), ft(f, t))$(gnData(grid, node, 'maxStateSlack') or ts_nodeState(grid, node, 'maxStateSlack', f, t)) ..
     + v_state(grid, node, f, t)                                                                 // Node state
-    - v_stateSlack('decrease', grid, node, f, t)                                                // Downwards slack variable
+    - sum(pgn(slack, 'decrease', grid, node),                                                   // Summation over all determined slack categories
+        + v_stateSlack(slack, 'decrease', grid, node, f, t)                                     // Downward slack variables
+      )
     =L=
-    + gnData(grid, node, 'maxState')${not ts_nodeState(grid, node, 'maxState', f,t)}            // Maximum permitted node state for all timesteps, overwritten by possible timeseries data
-    + ts_nodeState(grid, node, 'maxState', f, t)${ts_nodeState(grid, node, 'maxState', f, t)}    // Maximum permitted node state for this timestep, if determined by data
+    + gnData(grid, node, 'maxStateSlack')${not ts_nodeState(grid, node, 'maxStateSlack', f,t)}  // Maximum permitted node state for all timesteps, overwritten by possible timeseries data
+    + ts_nodeState(grid, node, 'maxStateSlack', f, t)${ts_nodeState(grid, node, 'maxStateSlack', f, t)} // Maximum permitted node state for this timestep, if determined by data
 ;
 * -----------------------------------------------------------------------------
-q_minState(gnBoundState(grid, node), ft(f, t)) ..                                               // NOTE! These probably won't work if ts_nodeState doesn't set bounds for all timesteps!
+q_minStateSlack(gnStateSlack(grid, node), ft(f, t))$(gnData(grid, node, 'minStateSlack') or ts_nodeState(grid, node, 'minStateSlack', f, t)) ..
     + v_state(grid, node, f, t)                                                                 // Node state
-    + v_stateSlack('increase', grid, node, f, t)                                                // Upwards slack variable
+    + sum(pgn(slack, 'increase', grid, node),                                                   // Sukmmation over all determined slack categories
+        + v_stateSlack(slack, 'increase', grid, node, f, t)                                     // Upwards slack variables
+      )
     =G=
-    + gnData(grid, node, 'minState')${not ts_nodeState(grid, node, 'minState', f,t)}            // Minimum permitted node state for all timesteps, overwritten by possible timeseries data
-    + ts_nodeState(grid, node, 'minState', f, t)${ts_nodeState(grid, node, 'minState', f,t)}    // Minimum permitted node state for this timestep, if determined by data
+    + gnData(grid, node, 'minStateSlack')${not ts_nodeState(grid, node, 'minStateSlack', f,t)}            // Minimum permitted node state for all timesteps, overwritten by possible timeseries data
+    + ts_nodeState(grid, node, 'minStateSlack', f, t)${ts_nodeState(grid, node, 'minStateSlack', f,t)}    // Minimum permitted node state for this timestep, if determined by data
 ;
 * -----------------------------------------------------------------------------
 q_boundState(gnnBoundState(grid, node, node_), ft(f, t)) ..

@@ -18,10 +18,12 @@ Sets
 Alias(grid, grid_, grid_output);
 
 Sets param_gn  "Set of possible data parameters for grid, node" /
-    maxState    "Maximum energy in the node (MWh)"
-    minState    "Minimum energy in the node (MWh)"
-    fixState    "Fixed energy in the node (MWh)"
-    energyCapacity "Energy capacity of the node (MWh/?)"
+    maxState    "Absolute maximum state of the node (unit depends on energyCapacity)"
+    maxStateSlack "Desired maximum state of the node (unit depends on energyCapacity)"
+    minState    "Absolute minimum energy in the node (unit depends on energyCapacity)"
+    minStateSlack "Desired minimum desired state of the node (unit depends on energyCapacity)"
+    fixState    "Fixed state of the node (unit depends on energyCapacity)"
+    energyCapacity "Energy capacity of the node (MWh/?, allows for changing the quality of the node state variables)"
 /
 
 Sets param_gnn "Set of possible data parameters for grid, node, node (nodal interconnections)" /
@@ -92,7 +94,7 @@ Sets
     nu(node, unit) "Units attached to particular nodes. For units with multiple endogenous outputs only single (node, unit) combination allowed - with the primary grid node (affecting e.g. fuel use calculation with cV)"
     nnu(node, node, unit) "Units that link two nodes"
     gnState(grid, node) "Nodes with a state variable"
-    gnBoundState(grid, node) "Nodes with a bound state variable"
+    gnStateSlack(grid, node) "Nodes with a state slack variable"
     gnnState(grid, node, node) "Nodes with state variables interconnected via diffusion"
     gnnBoundState(grid, node, node) "Nodes with state variables bound by other nodes"
     storage "Storage"
@@ -157,6 +159,20 @@ Sets
     resCapable(resType, resDirection, node, unit) "Generators capable and available to provide particular reserves"
 ;
 
+* --- Feasibility control -----------------------------------------------------
+SETS
+    slack "Categories for slack variables"
+        / s01*s10 /
+    inc_dec "Increase or decrease in dummy or slack variables"
+        / increase
+          decrease
+        /
+    pgn(slack, inc_dec, grid, node) "Penalty categories for nodes"
+    param_pgn "Possible parameters for node inc_dec penalties"
+        / costCoeff "The cost coefficient of the slack category to be used in the objective function"
+          maxSlack  "The maximum slack provided"
+        /
+;
 
 * --- Time & stochastics ------------------------------------------------------
 
@@ -203,6 +219,7 @@ alias(s, s_, s__);
 *if(active('rampSched'),
   $$include inc/rampSched/sets_rampSched.gms
 *);
+
 
 
 
