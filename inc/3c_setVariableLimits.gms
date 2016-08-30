@@ -83,3 +83,4 @@ loop(ft(f, t),
                  v_gen.up('elec', node, unitElec, f, t) - v_gen.lo('elec', node, unitElec, f, t)                           // Generator + consuming unit available unitElec. output delta
                };
 );
+v_online.up(nu(node, unitOnline), f, t)$mftLastSteps(mSolve,f,t) = 1;
