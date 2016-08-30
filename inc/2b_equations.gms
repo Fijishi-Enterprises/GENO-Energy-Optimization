@@ -159,8 +159,8 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
         * p_stepLength(m, f+pf(f,t), t+pt(t))   // Again, multiply by time step to get energy terms
     + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
     - ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))   // Energy demand from the node
-    + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t))${not gnStateSlack(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnStateSlack
-    - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))${not gnStateSlack(grid, node)}   // Slack variable ensuring the energy dynamics are feasible. Only required if no gnStateSlack
+    + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+    - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
 ;
 * -----------------------------------------------------------------------------
 q_resDemand(resType, resDirection, node, ft(f, t))$ts_reserveDemand_(resType, resDirection, node, f, t) ..
