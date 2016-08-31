@@ -126,41 +126,58 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
     // The current state of the node
     + v_state(grid, node, f, t)$(gn_state(grid, node))
         * (   // This multiplication transforms the state energy into power, a result of implicit discretization
-            + ( p_gn(grid, node, 'energyCapacity') + 1$(not p_gn(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
-            + sum(node_$(gnn_state(grid, node_, node)),  // Summation of the energy diffusion coefficients
-                + p_gnn(grid, node_, node, 'diffCoeff')   // Diffusion coefficients also transform energy terms into power
+            + p_gn(grid, node, 'energyCapacity') + 1$(not p_gn(grid, node, 'energyCapacity'))   // Energy capacity assumed to be 1 if not given.
+            + sum(node_$(gnn_state(grid, node_, node)), // Summation of the energy diffusion coefficients
+                + p_gnn(grid, node_, node, 'diffCoeff') // Diffusion coefficients also transform energy terms into power
                     * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiplication by time step to keep the equation in energy terms
+                        $$ifi '%rampSched%' == 'yes' / 2    // Ramp scheduling averages the diffusion between this and the previous state
               )
           )
     // The previous state of the node
     - v_state(grid, node, f+pf(f,t), t+pt(t))$(gn_state(grid, node))
-        * ( p_gn(grid, node, 'energyCapacity') + 1$(not p_gn(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
+        * (
+            + p_gn(grid, node, 'energyCapacity') + 1$(not p_gn(grid, node, 'energyCapacity')) // Energy capacity assumed to be 1 if not given.
+            $$ifi '%rampSched%' == 'yes' - sum( node_$(gnn_state(grid, node_, node)), p_gnn(grid, node_, node, 'diffCoeff') * p_stepLength(m, f+pf(f,t), t+pt(t)) / 2 ) // Ramp scheduling averages the diffusion between timesteps
+          )
     =E= // The right side of the equation contains all the changes converted to energy terms
     + (
-        // Energy diffusion between nodes
-        + sum(node_$(gnn_state(grid, node, node_)),
-            + p_gnn(grid, node, node_, 'diffCoeff') * v_state(grid, node_, f, t)  // Diffusion to/from other nodes
+        + (
+            // Energy diffusion between nodes
+            + sum(node_$(gnn_state(grid, node, node_)),
+                + p_gnn(grid, node, node_, 'diffCoeff') * (
+                    + v_state(grid, node_, f, t)
+                    $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+pf(f,t), t+pt(t))  // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
+                  )
+              )
+            // Controlled energy transfer from other nodes to this one
+            + sum(from_node$(gn2n(grid, from_node, node)),
+                + (1 - p_gnn(grid, from_node, node, 'transferLoss')) * (    // Include transfer losses
+                    + v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))
+                    $$ifi '%rampSched%' == 'yes' + v_transfer(grid, from_node, node, f, t)    // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
+                  )
+              )
+            // Controlled energy transfer to other nodes from this one
+            - sum(to_node$(gn2n(grid, node, to_node)),
+                + v_transfer(grid, node, to_node, f+pf(f,t), t+pt(t))   // Transfer losses accounted for in the previous term
+                $$ifi '%rampSched%' == 'yes' + v_transfer(grid, node, to_node, f, t)    // Ramp schedule averaging
+              )
+            // Interactions between the node and its units
+            + sum(unit$(gnu(grid, node, unit) or gnu_input(grid, node, unit)),
+                + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))   // Unit energy generation and consumption
+                $$ifi '%rampSched%' == 'yes' + v_gen(grid, node, unit, f, t)
+              )
           )
-        // Controlled energy transfer from other nodes to this one
-        + sum(from_node$(gn2n(grid, from_node, node)),
-            + (1 - p_gnn(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))   // Include transfer losses
-          )
-        // Controlled energy transfer to other nodes from this one
-        - sum(to_node$(gn2n(grid, node, to_node)),
-            + v_transfer(grid, node, to_node, f+pf(f,t), t+pt(t))   // Transfer losses accounted for in the previous term
-          )
-        // Interactions between the node and its units
-        + sum(unit$(gnu(grid, node, unit) or gnu_input(grid, node, unit)),
-            + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))   // Unit energy generation and consumption
-            $$ifi '%rampSched%' == 'yes' + v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
-          ) // If ramp scheduling is turned on, use the average power between the time steps
-            $$ifi '%rampSched%' == 'yes' / 2
+            * p_stepLength(m, f+pf(f,t), t+pt(t))   // Again, multiply by time step to get energy terms
+        + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
+        $$ifi '%rampSched%' == 'yes' + ts_import_(grid, node, t)
+        - ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))   // Energy demand from the node
+        $$ifi '%rampSched%' == 'yes' - ts_energyDemand_(grid, node, f, t)
+        + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+        $$ifi '%rampSched%' == 'yes' + vq_gen('increase', grid, node, f, t)
+        - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+        $$ifi '%rampSched%' == 'yes' - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))
       )
-        * p_stepLength(m, f+pf(f,t), t+pt(t))   // Again, multiply by time step to get energy terms
-    + ts_import_(grid, node, t+pt(t))   // Energy imported to the node
-    - ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))   // Energy demand from the node
-    + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-    - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+        $$ifi '%rampSched%' == 'yes' / 2    // Averaging all the terms on the right side of the equation over the timestep here.
 ;
 * -----------------------------------------------------------------------------
 q_resDemand(restype, resdirection, node, ft(f, t))$ts_reserveDemand_(restype, resdirection, node, f, t) ..
