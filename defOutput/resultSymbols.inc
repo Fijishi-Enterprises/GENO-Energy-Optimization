@@ -1,6 +1,7 @@
 *r_stoContent
 *r_onlineCap
 r_gen
+r_genFuel
 r_elec_type
 r_demand
 *r_transmission

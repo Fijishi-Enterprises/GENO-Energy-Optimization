@@ -180,18 +180,18 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
         $$ifi '%rampSched%' == 'yes' / 2    // Averaging all the terms on the right side of the equation over the timestep here.
 ;
 * -----------------------------------------------------------------------------
-q_resDemand(restype, resdirection, node, ft(f, t))$ts_reserveDemand_(restype, resdirection, node, f, t) ..
-  + sum(nu(node, unit_elec),
-        v_reserve(restype, resdirection, node, unit_elec, f, t)$nuRescapable(restype, resdirection, node, unit_elec)
+q_resDemand(restypeDirectionNode(restype, resdirection, node), ft(f, t)) ..
+  + sum(nu(node, unit_elec)$nuRescapable(restype, resdirection, node, unit_elec),
+        v_reserve(restype, resdirection, node, unit_elec, f, t)
     )
-  + sum(gn('elec', from_node),
-        (1 - p_gnn('elec', from_node, node, 'transferLoss')
+  + sum(gn(grid, from_node)$restypeDirectionNode(restype, resdirection, from_node),
+        (1 - p_gnn(grid, from_node, node, 'transferLoss')
         ) * v_resTransCapacity(restype, resdirection, from_node, node, f, t)
     )
   =G=
   + ts_reserveDemand_(restype, resdirection, node, f, t)
   - vq_resDemand(restype, resdirection, node, f, t)
-  + sum(to_node,
+  + sum(to_node$restypeDirectionNode(restype, resdirection, to_node),
         v_resTransCapacity(restype, resdirection, node, to_node, f, t)
     )
 ;
@@ -336,7 +336,7 @@ q_stoMaxContent(gnStorage(grid, node, storage), ft(f, t)) ..
 * -----------------------------------------------------------------------------
 q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
   + v_transfer(grid, from_node, to_node, f, t)
-  + sum(restypeDirection(restype, resdirection)$(resdirection('resUp') and grid('elec')),
+  + sum(restypeDirection(restype, resdirection)$(restypeDirectionNode(restype, resdirection, from_node) and restypeDirectionNode(restype, resdirection, to_node)),
         v_resTransCapacity(restype, resdirection, from_node, to_node, f, t))
   =L=
   + p_gnn(grid, from_node, to_node, 'transferCap')

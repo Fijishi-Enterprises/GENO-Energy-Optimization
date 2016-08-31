@@ -1,16 +1,14 @@
     // Deterministic stage
-    loop(ft(fRealization(f), t),
-*        p_stoContent(f, t)$(p_data(storage, 'maxContent') > 0)
-*            = v_stoContent(storage, f, t) / p_data(f, 'maxContent');
-        r_gen(grid, unit, t) = sum(node$(gnu(grid, node, unit) or gnu_input(grid, node, unit)), v_gen.l(grid, node, unit, f, t));
+    loop(fRealization(f),
+        r_gen(grid, unit, t)$ft_realized(f,t) = sum(node$(gnu(grid, node, unit) or gnu_input(grid, node, unit)), v_gen.l(grid, node, unit, f, t));
         loop(fuel,
-            r_genFuel(gn(grid, node), fuel, t) = sum(unit$unitFuelParam(unit, fuel, 'main'), v_gen.l(grid, node, unit, f, t));
+            r_genFuel(gn(grid, node), fuel, t)$ft_realized(f,t) = sum(unit$unitFuelParam(unit, fuel, 'main'), v_gen.l(grid, node, unit, f, t));
         );
 $iftheni.unittypes '%unittypes%' == 'yes'
-            r_elec_type(unittype, t) = sum(g $unittypeUnit(unittype, unit),
+            r_elec_type(unittype, t)$ft_realized(f,t) = sum(g $unittypeUnit(unittype, unit),
                                           v_gen.l('elec', unit, f, t));
 $endif.unittypes
-            r_demand(node, t)
+            r_demand(node, t)$ft_realized(f,t)
                 = sum(gn('elec', node), ts_energyDemand('elec', node, f, t));
 $ontext
             r_transmission(h, from_node, to_node, t)

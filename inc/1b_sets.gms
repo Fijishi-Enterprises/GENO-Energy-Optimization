@@ -160,6 +160,7 @@ Sets
           tertiary.resUp
           tertiary.resDown
         /
+    restypeDirectionNode(restype, resdirection, node) "Nodes with reserve requirements"
     nuRescapable(restype, resdirection, node, unit) "Units capable and available to provide particular reserves"
 ;
 
@@ -192,7 +193,8 @@ Sets
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
     ft_dynamic(f, t) "ft without first t and with tLast+1 (moved right)"
-    ft_realized(f, t) "Last realized ft"
+    ft_realized(f, t) "Realized ft"
+    ft_realizedLast(f, t) "Last realized ft"
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     mft_(mType, f, t) "Combination of forecasts and time periods in the models"
     msft(mType, s, f, t) "Combination of samples, forecasts and time periods in the models"

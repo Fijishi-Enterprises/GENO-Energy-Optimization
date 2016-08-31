@@ -81,14 +81,13 @@ loop(modelSolves(mSolve, tSolve),
 
     $$include 'inc\4a_outputVariant.gms'  // Store results from the loop
     $$ifi '%debug%' == 'yes' execute_unload 'output\debug.gdx';   // Output debugging information
-// Debugging results
-    $$iftheni.debug '%debug%' == 'yes'
+*    $$ifi.debug '%debug%' == 'yes'
 *        putclose gdx;
 *        put_utility 'gdxout' / 'output\'mSolve.tl:0, '-', tSolve.tl:0, '.gdx';
 *            execute_unload
 *            $$include defOutput\debugSymbols.inc
 *        ;
-    $$endif.debug
+*    $$endifi.debug
 );
 
 $if exist 'input\3z_modelsClose.gms' $include 'input\3z_modelsClose.gms';
@@ -107,7 +106,8 @@ execute_unload 'output\results.gdx',
     $$include 'defOutput\resultSymbols.inc'
 ;
 
-$ifi '%debug%' == 'yes' execute_unload 'output\debug.gdx';
+*$ifi '%debug%' == 'yes' execute_unload 'output\debug.gdx';
+execute_unload 'output\debug.gdx';
 
 if(errorcount > 0, abort errorcount);
 * === THE END =================================================================

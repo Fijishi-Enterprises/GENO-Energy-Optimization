@@ -101,12 +101,10 @@ $onOrder
         ft_dynamic(f,t)$(mf(mSolve, f) and ord(t) = min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)) = yes;
     );
     ft_realized(f,t) = no;
-    ft_realized(f,t)$[fRealization(f) and ord(t) = ord(tSolve)] = yes;
+    ft_realized(f,t)$[fRealization(f) and ord(t) >= ord(tSolve) and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_jump')] = yes;
+    ft_realizedLast(f,t) = no;
+    ft_realizedLast(f,t)$[fRealization(f) and ord(t) = ord(tSolve) + mSettings(mSolve, 't_jump')] = yes;
     pf(ft(f,t))$(ord(t) eq ord(tSolve) + 1) = 1 - ord(f);
 
-    // Arbitrary value for energy in storage
-    p_storageValue(gnStorage(grid, node, storage), t)$sum(mf(mSolve, fRealization(f)), mftStart(mSolve,f,t) + mftLastSteps(mSolve,f,t)) = 50;
 
 
-    // PSEUDO DATA
-    ts_reserveDemand_(resType, resDirection, node, fRealization(f), t)$ft(f,t) = 50;
