@@ -128,7 +128,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
         * (   // This multiplication transforms the state energy into power, a result of implicit discretization
             + ( p_gn(grid, node, 'energyCapacity') + 1$(not p_gn(grid, node, 'energyCapacity')) )   // Energy capacity assumed to be 1 if not given.
             + sum(node_$(gnn_state(grid, node_, node)),  // Summation of the energy diffusion coefficients
-                + p_gnn(grid, node_, node, 'DiffCoeff')   // Diffusion coefficients also transform energy terms into power
+                + p_gnn(grid, node_, node, 'diffCoeff')   // Diffusion coefficients also transform energy terms into power
                     * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiplication by time step to keep the equation in energy terms
               )
           )
@@ -139,7 +139,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
     + (
         // Energy diffusion between nodes
         + sum(node_$(gnn_state(grid, node, node_)),
-            + p_gnn(grid, node, node_, 'DiffCoeff') * v_state(grid, node_, f, t)  // Diffusion to/from other nodes
+            + p_gnn(grid, node, node_, 'diffCoeff') * v_state(grid, node_, f, t)  // Diffusion to/from other nodes
           )
         // Controlled energy transfer from other nodes to this one
         + sum(from_node$(gn2n(grid, from_node, node)),
@@ -349,6 +349,6 @@ q_boundState(gnn_boundState(grid, node, node_), ft(f, t)) ..
   + v_state(grid, node, f, t)   // The state of the first node sets the upper limit of the second
   =G=
   + v_state(grid, node_, f, t)
-  + p_gnn(grid, node, node_, 'BoundStateOffset')   // Affected by the offset parameter
+  + p_gnn(grid, node, node_, 'boundStateOffset')   // Affected by the offset parameter
 ;
 

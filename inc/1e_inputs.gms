@@ -50,8 +50,8 @@ gnStorage(grid, node, storage)$p_gnStorage(grid, node, storage, 'maxContent') = 
 nnu(node, node_, unit)$(nu(node, unit) and ord(node) = ord(node_)) = yes;
 gn2n(grid, from_node, to_node)$p_gnn(grid, from_node, to_node, 'transferCap') = yes;
 node_to_node(from_node, to_node)$p_gnn('elec', from_node, to_node, 'transferCap') = yes;
-gnn_boundState(grid, node, node_)$(p_gnn(grid, node, node_, 'BoundStateOffset')) = yes;
-gnn_state(grid, node, node_)$(p_gnn(grid, node, node_, 'DiffCoeff') or gnn_boundState(grid, node, node_)) = yes;
+gnn_boundState(grid, node, node_)$(p_gnn(grid, node, node_, 'boundStateOffset')) = yes;
+gnn_state(grid, node, node_)$(p_gnn(grid, node, node_, 'diffCoeff') or gnn_boundState(grid, node, node_)) = yes;
 gn_state(grid, node)$(sum(param_gn, p_gn(grid, node, param_gn)) or sum(node_, gnn_state(grid, node, node_)) or sum(node_, gnn_state(grid, node_, node))) = yes;
 gn_stateSlack(grid, node)$((p_gn(grid, node, 'maxStateSlack') or p_gn(grid, node, 'minStateSlack') or sum(f, sum(t, ts_nodeState(grid, node, 'maxStateSlack', f, t) + ts_nodeState(grid, node, 'minStateSlack', f, t)))) and not p_gn(grid, node, 'fixState')) = yes;
 gn(grid, node)$(sum(unit, gnu(grid, node, unit)) or gn_state(grid, node)) = yes;
