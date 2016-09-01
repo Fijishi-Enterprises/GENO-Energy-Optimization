@@ -27,6 +27,7 @@ from widgets.context_menu_widget import ContextMenuWidget
 from widgets.edit_tool_widget import EditToolWidget
 from widgets.settings_widget import SettingsWidget
 from modeltest.modeltest import ModelTest
+from excel_handler import ExcelHandler
 
 
 class TitanUI(QMainWindow):
@@ -155,6 +156,8 @@ class TitanUI(QMainWindow):
         # Get the path of the project file from the configuration file
         project_file_path = self._config.get('general', 'project_path')
         if not os.path.isfile(project_file_path):
+            msg = 'Could not load previous project. Project file {0} not found.'.format(project_file_path)
+            self.ui.statusbar.showMessage(msg, 10000)
             # logging.debug("Previous project not found")
             return
         if not self.load_project(project_file_path):
@@ -197,17 +200,26 @@ class TitanUI(QMainWindow):
     def save_project_as(self):
         """Save Setups in project to disk. Ask file name from user."""
         # noinspection PyCallByClass, PyTypeChecker
-        dir_path = QFileDialog.getSaveFileName(self, 'Save project', PROJECT_DIR, 'JSON (*.json)')
+        dir_path = QFileDialog.getSaveFileName(self, 'Save project', PROJECT_DIR, 'JSON (*.json);;EXCEL (*.xlsx)')
         file_path = dir_path[0]
         if file_path == '':  # Cancel button clicked
             self.add_msg_signal.emit("Saving project Canceled", 0)
             logging.debug("Saving canceled")
             return
-        # Create new project
+        # Create new save file for a project
         file_name = os.path.split(file_path)[-1]
-        proj_name = os.path.splitext(file_name)[0]
-        proj_desc = ''
-        self.create_project(proj_name, proj_desc)
+        if not file_name.lower().endswith('.json'):
+            self.add_msg_signal.emit("Only *.json files supported. Saving to Excel file not implemented.", 0)
+            return
+        if not self._project:
+            # Create new project
+            self.new_project()
+        else:
+            # Update project file name
+            self._project.change_filename(file_name)
+            # Save open project into new file
+            self.save_project()
+        return
 
     def save_project(self):
         """Save Setups in project to disk. Use project name as file name."""
@@ -223,7 +235,8 @@ class TitanUI(QMainWindow):
             else:
                 return
         # Use project name as file name
-        file_path = os.path.join(PROJECT_DIR, '{}.json'.format(self._project.short_name))
+        # file_path = os.path.join(PROJECT_DIR, '{}.json'.format(self._project.short_name))
+        file_path = os.path.join(PROJECT_DIR, '{}'.format(self._project.filename))
         self.add_msg_signal.emit("Saving project -> {0}".format(file_path), 0)
         self._project.save(file_path, self._root)
         msg = "Project '%s' saved to file'%s'" % (self._project.name, file_path)
@@ -231,7 +244,7 @@ class TitanUI(QMainWindow):
         self.add_msg_signal.emit("Done", 1)
 
     def load_project(self, load_path=None):
-        """Load project from file in JSON format.
+        """Load project from a JSON (.json) or from an MS Excel (.xlsx) file.
 
         Args:
             load_path (str): If not None, this method is used to load the
@@ -239,7 +252,7 @@ class TitanUI(QMainWindow):
         """
         if not load_path:
             # noinspection PyCallByClass, PyTypeChecker
-            answer = QFileDialog.getOpenFileName(self, 'Load project', PROJECT_DIR, 'JSON (*.json)')
+            answer = QFileDialog.getOpenFileName(self, 'Load project', PROJECT_DIR, 'Projects (*.json *.xlsx)')
             load_path = answer[0]
             if load_path == '':  # Cancel button clicked
                 self.add_msg_signal.emit("Loading canceled", 0)
@@ -248,34 +261,68 @@ class TitanUI(QMainWindow):
         if not os.path.isfile(load_path):
             self.add_msg_signal.emit("File not found '%s'" % load_path, 2)
             return False
-        try:
-            with open(load_path, 'r') as fh:
-                dicts = json.load(fh)
-        except OSError:
-            self.add_msg_signal.emit("OSError: Could not load file '{}'".format(load_path), 2)
-            return False
-        # Initialize UI
-        self.clear_ui()
-        # Parse project info
-        project_dict = dicts['project']
-        proj_name = project_dict['name']
-        proj_desc = project_dict['desc']
-        # Create project
-        self._project = SceletonProject(proj_name, proj_desc)
-        # Setup models and views
-        self.init_models()
-        self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
-        self.add_msg_signal.emit("Loading project '{0}'".format(self._project.name), 0)
-        # Parse Setups
-        setup_dict = dicts['setups']
-        if len(setup_dict) == 0:
-            self.add_msg_signal.emit("No Setups found in project file '{}'".format(load_path), 0)
+        if load_path.lower().endswith('.json'):
+            # Load project from JSON file
+            try:
+                with open(load_path, 'r') as fh:
+                    dicts = json.load(fh)
+            except OSError:
+                self.add_msg_signal.emit("OSError: Could not load file '{}'".format(load_path), 2)
+                return False
+            # Initialize UI
+            self.clear_ui()
+            # Parse project info
+            project_dict = dicts['project']
+            proj_name = project_dict['name']
+            proj_desc = project_dict['desc']
+            # Create project
+            self._project = SceletonProject(proj_name, proj_desc)
+            # Setup models and views
+            self.init_models()
+            self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
+            self.add_msg_signal.emit("Loading project '{0}'".format(self._project.name), 0)
+            # Parse Setups
+            setup_dict = dicts['setups']
+            if len(setup_dict) == 0:
+                self.add_msg_signal.emit("No Setups found in project file '{}'".format(load_path), 0)
+                return True
+            self._project.parse_setups(setup_dict, self.setup_model, self.tool_model, self)
+            msg = "Project '%s' loaded" % self._project.name
+            self.ui.statusbar.showMessage(msg, 10000)
+            self.add_msg_signal.emit("Done", 1)
             return True
-        self._project.parse_setups(setup_dict, self.setup_model, self.tool_model, self)
-        msg = "Project '%s' loaded" % self._project.name
-        self.ui.statusbar.showMessage(msg, 10000)
-        self.add_msg_signal.emit("Done", 1)
-        return True
+        elif load_path.lower().endswith('.xlsx'):
+            # Load project from MS Excel file
+            wb = ExcelHandler(load_path)
+            try:
+                wb.load_wb()
+            except OSError:
+                self.add_msg_signal.emit("OSError when loading file {0}".format(load_path), 2)
+                return
+            proj_details = wb.read_project_sheet()
+            # # Initialize UI
+            self.clear_ui()
+            if not proj_details[0]:
+                self.add_msg_signal.emit("Project name not found in Excel file. "
+                                         "It should be located on sheet 'Project' in Cell 'B1'.", 2)
+                return
+            if not proj_details[1]:
+                self.add_msg_signal.emit("Project description missing (Sheet: 'Project'. Cell: B2)", 0)
+                proj_details[1] = ''
+            # Create project
+            self._project = SceletonProject(proj_details[0], proj_details[1])
+            # Setup models and views
+            self.init_models()
+            self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
+            self.add_msg_signal.emit("Loading project '{0}'".format(self._project.name), 0)
+            # Parse Setups from Excel and add them to the project
+            self._project.parse_excel_setups(self.setup_model, self.tool_model, wb, self)
+            msg = "Project '%s' loaded" % self._project.name
+            self.ui.statusbar.showMessage(msg, 10000)
+            self.add_msg_signal.emit("Done", 1)
+            return True
+        else:
+            self.add_msg_signal.emit("Project file format not recognized", 2)
 
     def add_tool(self):
         """Method to add a new tool from a JSON tool definition file to the
@@ -907,24 +954,6 @@ class TitanUI(QMainWindow):
             logging.debug("No Setups in SetupModel")
             return
         traverse(self._root)
-
-    def test_msgbox(self):
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Question)
-        msg.setWindowTitle("Quitting Sceleton")
-        msg.setText("Exit Sceleton?")
-        msg.setInformativeText("This is additional information")
-        msg.setDetailedText("The details are as follows:")
-        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        chkbox = QCheckBox()
-        chkbox.setText("Do not ask me again")
-        msg.setCheckBox(chkbox)
-        retval = msg.exec_()
-        chk = chkbox.checkState()
-        if retval == QMessageBox.Ok:
-            logging.debug("Ok selected. Checkbox state:{0}".format(chk))
-        else:
-            logging.debug("Cancel selected")
 
     def show_confirm_exit(self):
         """Shows confirm exit message box.

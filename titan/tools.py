@@ -1,6 +1,8 @@
 """
-:author: Erkka Rinne <erkka.rinne@vtt.fi>
-:date:   27/10/2015
+General helper functions and classes.
+
+:authors: Erkka Rinne <erkka.rinne@vtt.fi>, Pekka Savolainen <pekka.t.savolainen@vtt.fi>
+:date:   27.10.2015
 """
 
 import logging
@@ -10,8 +12,9 @@ import shutil
 import os
 import datetime
 import time
+import collections
 from metaobject import MetaObject
-from collections import OrderedDict
+# from collections import OrderedDict
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from config import WORK_DIR
 
@@ -176,6 +179,11 @@ def create_output_dir_timestamp():
     return extension
 
 
+def find_duplicates(a):
+    """Finds duplicates in a list. Returns a list with the duplicates or an empty list if none found."""
+    return [item for item, count in collections.Counter(a).items() if count > 1]
+
+
 class SetupTree(MetaObject):
     """Class to store Setups for a single simulation run."""
 
@@ -194,7 +202,7 @@ class SetupTree(MetaObject):
         super().__init__(name, description)
         self.setup = setup
         self.last = last  # True -> LIFO, False -> FIFO
-        self.setup_dict = OrderedDict()
+        self.setup_dict = collections.OrderedDict()
         self.n = 0  # Number of Setups in SetupTree
         self.build_tree()
 

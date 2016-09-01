@@ -1,6 +1,8 @@
 """
-:author: Erkka Rinne <erkka.rinne@vtt.fi>
-:date:   16/03/2016
+Class to handle Sceleton projects.
+
+:authors: Erkka Rinne <erkka.rinne@vtt.fi>, Pekka Savolainen <pekka.t.savolainen@vtt.fi>
+:date:   16.03.2016
 """
 
 import os
@@ -8,23 +10,25 @@ import logging
 import json
 from metaobject import MetaObject
 from config import PROJECT_DIR
+from tools import find_duplicates
 
 
 class SceletonProject(MetaObject):
     """Class for Sceleton projects."""
 
-    def __init__(self, name, description):
+    def __init__(self, name, description, ext='.json'):
         """Class constructor.
 
         Args:
             name (str): Project name
             description (str): Project description
+            ext (str): Project save file extension (.json or .xlsx)
         """
         super().__init__(name, description)
         self.project_dir = os.path.join(PROJECT_DIR, self.short_name)
-        self.filename = self.short_name + '.json'
+        self.filename = self.short_name + ext
         self.path = os.path.join(PROJECT_DIR, self.filename)
-        self.dirty = False  # Indicates if the project has changed since loading
+        self.dirty = False  # TODO: Indicates if the project has changed since loading
         self.setup_dict = dict()
         if not os.path.exists(self.project_dir):
             try:
@@ -34,6 +38,24 @@ class SceletonProject(MetaObject):
         else:
             # TODO: Notice that project already exists...
             pass
+
+    def set_name(self, name):
+        # TODO: Do something smarter here when Save Project As... is pressed.
+        self.short_name = name
+        self.name = name
+
+    def set_description(self, desc):
+        self.description = desc
+
+    def change_filename(self, new_filename):
+        """Change the save filename associated with this project.
+
+        Args:
+            new_filename (str): Filename used in saving the project. No full path. Example 'project.json'
+        """
+        # TODO: Add checks for file extension (.json or .xlsx supported)
+        self.filename = new_filename
+        self.path = os.path.join(PROJECT_DIR, self.filename)
 
     def save(self, filepath, root):
         """Project information and Setups are collected to their own dictionaries.
@@ -184,5 +206,64 @@ class SceletonProject(MetaObject):
                             setup.attach_tool(tool, cmdline_args=cmdline_args)
                 self.parse_setups(v, setup_model, tool_model, ui)
 
-    def load(self):
-        raise NotImplementedError
+    def parse_excel_setups(self, setup_model, tool_model, wb, ui):
+        """Parse Setups from Excel file and create them to this project.
+
+        Args:
+            setup_model (SetupModel): SetupModel for this project
+            tool_model (ToolModel): ToolModel for this project
+            wb (ExcelHandler): Excel workbook
+            ui (TitanUI): Titan user interface
+        """
+        items = wb.import_setups()
+        # logging.debug("setups:\n%s" % items)
+        duplicates = find_duplicates(items[1])
+        if len(duplicates) > 0:
+            ui.add_msg_signal.emit("There are more than one Setups with the same name."
+                                   " Remove duplicates and try loading again. List of duplicates: {0}"
+                                   .format(duplicates), 2)
+            return
+        for i in range(len(items[0])):
+            # Add Setup
+            parent_name = items[0][i]
+            name = items[1][i]  # Setup name
+            tool_name = items[2][i]
+            cmdline_args = items[3][i]
+            desc = items[4][i]
+            if not name:
+                ui.add_msg_signal.emit("Could not load Setup. Name missing.", 2)
+                continue
+            logging.info("Loading Setup '%s'" % name)
+            ui.add_msg_signal.emit("Loading Setup '{0}'".format(name), 0)
+            if not parent_name or parent_name.lower() == 'root':
+                if not setup_model.insert_setup(name, desc, self, 0):
+                    logging.error("Inserting base Setup %s failed" % name)
+                    ui.add_msg_signal.emit("Loading Setup '%s' failed. Parent Setup: '%s'"
+                                           % (name, parent_name), 2)
+            else:
+                parent_index = setup_model.find_index(parent_name)
+                if not parent_index:
+                    # Parent not found
+                    ui.add_msg_signal.emit("Parent '{0}' of Setup '{1}' not found".format(parent_name, name), 2)
+                    continue
+                parent_row = parent_index.row()
+                # logging.debug("parent index:{0} parent row:{1} parent name:{2}"
+                #               .format(parent_index, parent_row, parent_index.internalPointer().name))
+                if not setup_model.insert_setup(name, desc, self, parent_row, parent_index):
+                    logging.error("Inserting child Setup %s failed" % name)
+                    ui.add_msg_signal.emit("Loading Setup '%s' failed. Parent Setup: '%s'"
+                                           % (name, parent_name), 2)
+            if tool_name is not None:
+                # Get tool from ToolModel
+                tool = tool_model.find_tool(tool_name)
+                if not tool:
+                    logging.error("Could not add Tool to Setup. Tool '%s' not found" % tool_name)
+                    ui.add_msg_signal.emit("Could not find Tool '%s' for Setup '%s'."
+                                           " Add Tool and reload project."
+                                           % (tool_name, name), 2)
+                else:
+                    # Add tool to Setup
+                    setup_index = setup_model.find_index(name)
+                    setup = setup_model.get_setup(setup_index)
+                    setup.attach_tool(tool, cmdline_args=cmdline_args)
+        return

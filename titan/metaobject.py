@@ -1,6 +1,8 @@
 """
+MetaObject class.
+
 :author: Erkka Rinne <erkka.rinne@vtt.fi>
-:date:   16/03/2016
+:date:   16.03.2016
 """
 
 from PyQt5.QtCore import QObject

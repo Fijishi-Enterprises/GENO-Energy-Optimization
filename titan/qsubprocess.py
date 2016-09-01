@@ -49,7 +49,7 @@ class QSubProcess(QObject):
     def process_started(self):
         """ Run when sub-process is started. """
         self._ui.add_msg_signal.emit('*** Sub-process for tool <%s> started ***'
-                                         % self._running_tool.name, 0)
+                                     % self._running_tool.name, 0)
         self._ui.add_msg_signal.emit('Process pid: %d ' % self._process.processId(), 0)
 
     @pyqtSlot()
@@ -67,7 +67,7 @@ class QSubProcess(QObject):
         self._process.deleteLater()
         self._process = None
         self._ui.add_msg_signal.emit("GAMS return code:{0} & Sub-process exit status:{1}"
-                                         .format(gams_exit_code, gams_exit_status), 0)
+                                     .format(gams_exit_code, gams_exit_status), 0)
         self.subprocess_finished_signal.emit(gams_exit_code)
 
     @pyqtSlot(int)

@@ -316,12 +316,14 @@ class ModelTest(QtCore.QObject):
         c['last'] = self.model.data(self.model.index(start-1, 0, parent))
         c['next'] = self.model.data(self.model.index(start, 0, parent))
         self.insert.append(c)
+        # print("c_parent:{0} c_oldSize:{1}, c_last:{2} c_next:{3} start:{4}".format(c['parent'].internalPointer(), c['oldSize'], c['last'], c['next'], start))
 
     def rowsInserted(self, parent, start, end):
         """
         Confirm that what was said was going to happen actually did
         """
         c = self.insert.pop()
+        # print("c_parent:{0} c_oldSize:{1}, c_last:{2} c_next:{3} start:{4} end: {5}".format(c['parent'].internalPointer(), c['oldSize'], c['last'], c['next'], start, end))
         assert(c['parent'] == parent)
         assert(c['oldSize'] + (end - start + 1) == self.model.rowCount(parent))
         assert(c['last'] == self.model.data(self.model.index(start-1, 0, c['parent'])))

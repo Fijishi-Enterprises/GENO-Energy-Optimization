@@ -1,7 +1,8 @@
 """
-Created on Thu Jan 21 13:27:34 2016
+GAMSModel class.
 
-@author: ererkka
+:authors: Erkka Rinne <erkka.rinne@vtt.fi>, Pekka Savolainen <pekka.t.savolainen@vtt.fi>
+:date:   21.01.2016
 """
 
 import os.path

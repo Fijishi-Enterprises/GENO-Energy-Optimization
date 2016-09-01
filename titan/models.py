@@ -51,6 +51,8 @@ class SetupModel(QAbstractItemModel):
         Args:
             parent (QModelIndex): Index of parent Setup
         """
+        if parent.column() > 0:
+            return 0
         if not parent.isValid():
             parent_setup = self._root_setup
         else:
@@ -99,6 +101,8 @@ class SetupModel(QAbstractItemModel):
                 return ''
             else:
                 return setup.cmdline_args
+        else:
+            return None
 
     def flags(self, index):
         """Set flags for the item requested by view.
@@ -144,15 +148,15 @@ class SetupModel(QAbstractItemModel):
         setup = self.get_setup(index)
         parent_setup = setup.parent()
 
-        if parent_setup == self._root_setup:
+        if not parent_setup:
             return QModelIndex()
 
-        if not parent_setup:
+        if parent_setup == self._root_setup:
             return QModelIndex()
 
         return self.createIndex(parent_setup.row(), 0, parent_setup)
 
-    def index(self, row, column, parent=None, *args, **kwargs):
+    def index(self, row, column, parent=QModelIndex(), *args, **kwargs):
         """Gives a QModelIndex that corresponds to the given row, column and parent setup.
 
         Args:
@@ -165,10 +169,8 @@ class SetupModel(QAbstractItemModel):
         """
         if row < 0 or row >= self.rowCount(parent) or column < 0 or column >= self.columnCount(parent):
             return QModelIndex()
-
         parent_setup = self.get_setup(parent)
         child_setup = parent_setup.child(row)
-
         if child_setup:
             return self.createIndex(row, column, child_setup)
         else:
@@ -187,10 +189,13 @@ class SetupModel(QAbstractItemModel):
         Returns:
             True if successful, False otherwise
         """
+        # TODO: Add new Setup to the end of the list
         parent_setup = self.get_setup(parent)
         self.beginInsertRows(parent, row, row)
         new_setup = Setup(name, description, project)
         retval = parent_setup.insert_child(position=row, child=new_setup)
+        # position = parent_setup.child_count()  # Add new child as the last item in children list
+        # retval = parent_setup.insert_child(position=position, child=new_setup)
         self.endInsertRows()
         return retval
 
@@ -234,7 +239,6 @@ class SetupModel(QAbstractItemModel):
         Returns:
             QModelIndex of a Setup with the given name or None if not found
         """
-        # model = self.setup_model
         start_index = self.index(0, 0, QModelIndex())
         if start_index.isValid():
             matching_index = self.match(
@@ -340,7 +344,7 @@ class SetupModel(QAbstractItemModel):
         def traverse(setup):
             # Helper function to traverse tree
             # logging.debug("Setup name: %s (%s)" % (setup.name, setup.is_ready))
-            if not setup.is_ready and self.next_setup_empty():
+            if not setup.is_ready and self.no_next_setup():
                 if setup.parent().name == 'root':
                     # logging.debug("Skipping base Setup")
                     pass
@@ -359,7 +363,7 @@ class SetupModel(QAbstractItemModel):
         else:
             return self.find_index(self.next_setup.name)
 
-    def next_setup_empty(self):
+    def no_next_setup(self):
         """Helper method for depth-first algorithm."""
         if not self.next_setup:
             return True
@@ -509,6 +513,7 @@ class ToolModel(QAbstractListModel):
                 return toolname
 
     def flags(self, index):
+        """Returns enabled flags for the given index."""
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def insertRow(self, tool, row=0, parent=QModelIndex(), *args, **kwargs):
@@ -569,61 +574,6 @@ class ToolModel(QAbstractListModel):
             if isinstance(tool, str):
                 continue
             else:
-                if name == tool.name:
+                if name.lower() == tool.name.lower():
                     return tool
         return False
-
-
-class SetupTreeListModel(QAbstractListModel):
-    """Class to store SetupTree instances."""
-    def __init__(self, parent=None):
-        super().__init__()
-        self._data = list()
-        self._parent = parent
-
-    def rowCount(self, parent=None, *args, **kwargs):
-        """Reimplemented from QAbstractItemModel.
-
-        Args:
-            parent (QModelIndex): Parent index
-            *args:
-            **kwargs:
-
-        Returns:
-            The number of rows under the given parent.
-        """
-        return len(self._data)
-
-    def data(self, index, role=None):
-        """Reimplemented method from QAbstractItemModel.
-
-        Args:
-            index (QModelIndex): Index of data
-            role (int): Role of data asked from the model by view
-
-        Returns:
-            Data stored under the given role for the item referred to by the index.
-        """
-        if not index.isValid() or self.rowCount() == 0:
-            return QVariant()
-
-        if role == Qt.DisplayRole:
-            row = index.row()
-            name = self._data[row].name
-            return name
-
-    def flags(self, index):
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
-
-    def add_data(self, d):
-        """Append new object to the end of the data list.
-
-        Args:
-            d (QObject): New SetupTree, Setup or Tool to add
-
-        Returns:
-            True if successful, False otherwise
-        """
-        self.beginInsertRows(QModelIndex(), len(self._data), len(self._data))
-        self._data.append(d)
-        self.endInsertRows()

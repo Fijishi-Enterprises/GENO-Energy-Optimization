@@ -1,8 +1,8 @@
 """
-File defines Tool class and related classes.
+Setup, Tool, ToolInstance and related classes.
 
-:author: Erkka Rinne <erkka.rinne@vtt.fi>
-:date:   26/10/2015
+:authors: Erkka Rinne <erkka.rinne@vtt.fi>, Pekka Savolainen <pekka.t.savolainen@vtt.fi>
+:date:   26.10.2015
 """
 
 import os
@@ -278,8 +278,9 @@ class Setup(MetaObject):
         Returns:
             Boolean variable depending on operation's success
         """
-        if position < 0 or position > len(self._children):
-            logging.error("Invalid position")
+        n = len(self._children)
+        if position < 0:  # TODO: Removed or position > n
+            logging.error("Invalid position. Setup:{2} Position:{0} nr of children:{1}".format(position, n, self.name))
             return False
         self._children.insert(position, child)
         child._parent = self

@@ -1,5 +1,5 @@
 """
-Unit tests for Setup class.
+Unit tests for Setup class [Needs updating).
 
 @author: Pekka Savolainen <pekka.t.savolainen@vtt.fi>
 @date: 26.2.2016
