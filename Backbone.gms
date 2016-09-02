@@ -54,6 +54,10 @@ files log /''/, gdx, f_info /'output\info.txt'/;
 options
     profile = 8
     solvelink = %Solvelink.Loadlibrary%
+    bratio = 1
+    solveopt = replace
+    savepoint = 0
+    threads = -1
 $ifi not '%debug%' == 'yes'
     solprint = Silent
 ;
@@ -78,6 +82,10 @@ loop(modelSolves(mSolve, tSolve),
     $$include 'input\3b_modelsLoop.gms'         // Set sets that define model scope
     $$include 'inc\3c_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
     $$include 'inc\3d_solve.gms'                // Solve model(s)
+    put log;
+    put schedule.resGen;
+    put tSolveFirst;
+    putclose log;
 
     $$include 'inc\4a_outputVariant.gms'  // Store results from the loop
     $$ifi '%debug%' == 'yes' execute_unload 'output\debug.gdx';   // Output debugging information
