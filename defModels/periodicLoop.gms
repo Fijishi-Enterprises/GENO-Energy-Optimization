@@ -6,6 +6,7 @@
 //    tElapsed = tSolveFirst - mSettings(mSolve, 't_start');  // tElapsed counts the starting point for current model solve
 //    tLast = tElapsed + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));
     p_stepLength(mSolve, f, t) = no;
+    ft_new(f,t) = no;
 
 $offOrder
     // Calculate parameters affected by model intervals
@@ -36,6 +37,7 @@ $offOrder
                             tInterval(t_)$(    ord(t_) >= ord(t)
                                            and ord(t_) < ord(t) + intervalLength
                             ) = yes;   // Set of t's within the interval (right border defined by intervalEnd) - but do not go beyond tSolveLast
+                            ft_new(f,t_)$(mf(mSolve, f) and tInterval(t_)) = yes;
                             p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength;
                             // Calculate averages for the interval time series data
                             ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t_))};
@@ -93,7 +95,7 @@ $onOrder
     ft(f,t) = no;
     ft(f,t) = mft(mSolve, f, t);
     ft_dynamic(f,t) = ft(f,t);
-    ft_dynamic(f,t)$(ord(t) = tSolveFirst) = no;
+    ft_dynamic(f,tSolve) = no;
     loop(counter$mInterval(mSolve, 'intervalLength', counter),
         lastCounter = ord(counter);
     );
@@ -104,6 +106,21 @@ $onOrder
     ft_realized(f,t)$[fRealization(f) and ord(t) >= ord(tSolve) and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_jump')] = yes;
     ft_realizedLast(f,t) = no;
     ft_realizedLast(f,t)$[fRealization(f) and ord(t) = ord(tSolve) + mSettings(mSolve, 't_jump')] = yes;
+
+    nuft(node, unit, f, t) = no;
+    nuft(node, unit, f, t)$[     ft(f, t)
+                             and ord(t) <= mSettings(mSolve, 't_aggregate')
+                             and not unit_aggregate(unit)
+                           ] = yes;
+
+    nuft(node, unit, f, t)$[     ft(f, t)
+                             and ord(t) > mSettings(mSolve, 't_aggregate')
+                             and (unit_aggregate(unit) or unit_noAggregate(unit))
+                           ] = yes;
+
+    gnuft(grid, node, unit, f, t) = no;
+    gnuft(grid, node, unit, f, t)$(gn(grid, node) and nuft(node, unit, f, t)) = yes;
+
     pf(ft(f,t))$(ord(t) eq ord(tSolve) + 1) = 1 - ord(f);
 
 

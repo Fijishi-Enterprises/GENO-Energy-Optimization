@@ -5,6 +5,7 @@ $loaddc flow
 $loaddc unit
 $loaddc fuel
 $loaddc storage
+$loaddc unitUnit_aggregate
 $loaddc p_gn
 $loaddc p_gnn
 $loaddc p_gnu
@@ -41,6 +42,13 @@ $ontext
  $gdxin
 $offtext
 
+unit_aggregate(unit)$sum(unit_, unitUnit_aggregate(unit, unit_)) = yes;
+unit_noAggregate(unit)$(unit(unit) - unit_aggregate(unit) - sum(unit_, unitUnit_aggregate(unit_, unit))) = yes;
+unitStorage(unit, storage)$sum(unit_$(unitUnit_aggregate(unit, unit_) and unitStorage(unit_, storage)), 1) = yes;
+
+p_gnu(grid, node, unit_aggregate(unit), 'maxCap') = sum(unit_$unitUnit_aggregate(unit, unit_), p_gnu(grid, node, unit_, 'maxCap'));
+p_gnu(grid, node, unit_aggregate(unit), 'maxCharging') = sum(unit_$unitUnit_aggregate(unit, unit_), p_gnu(grid, node, unit_, 'maxCharging'));
+
 * Generate sets based on parameter data
 gnu(grid, node, unit)$p_gnu(grid, node, unit, 'maxCap') = yes;
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
@@ -69,7 +77,6 @@ unit_VG(unit)$sum(flow, flowUnit(flow, unit)) = yes;
 unit_withConstrainedOutputRatio(unit)$(sum(gnu(grid, node, unit), 1) > 1) = yes;
 unit_minload(unit)$sum(gnu(grid, node, unit), p_nu(node, unit, 'minLoad')) = yes;
 unit_hydro(unit)$sum(unitFuelParam(unit,'WATER','main'), 1) = yes;
-unit_hydro(unit)$sum(unitFuelParam(unit,'WATER_RES','main'), 1) = yes;
 storage_hydro(storage)$sum(unit_hydro, unitStorage(unit_hydro, storage)) = yes;
 storage_charging(storage)$(sum(gnu(grid, node, unit)$unitStorage(unit, storage), p_gnu(grid, node, unit, 'maxCharging'))) = yes;
 storage_spill(storage)$(sum(gnStorage(grid, node, storage), p_gnStorage(grid, node, storage, 'maxSpill'))) = yes;
@@ -92,3 +99,4 @@ loop(nu_fuel(node, unit, fuel, 'main'),
     unittypeUnit('dummy', unit) = yes$sameas(unit, 'dummy');
 );
 $endif
+

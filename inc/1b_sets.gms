@@ -114,7 +114,10 @@ Sets
     unit_fuel(unit) "Units using a commercial fuel"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
     unit_online(unit) "Units that have an online variable"
-    flowUnit(flow, unit) "Units linked to a certain energy flow time series"
+    unit_aggregate(unit) "Aggregate units aggragating several units"
+    unit_noAggregate(unit) "Units that are not aggregated at all"
+    unitUnit_aggregate(unit, unit) "Aggregate unit linked to aggregated units"
+    flowUnit(flow, *) "Units or storages linked to a certain energy flow time series"
     unitFuelParam(unit, fuel, param_fuel) "Fuel(s) used by the unit"
     unitStorage(unit, storage) "Units attached to storages"
     storage_hydro(storage)    "Hydropower reservoirs"
@@ -195,11 +198,14 @@ Sets
     ft_dynamic(f, t) "ft without first t and with tLast+1 (moved right)"
     ft_realized(f, t) "Realized ft"
     ft_realizedLast(f, t) "Last realized ft"
+    ft_new(f, t) "Newly introduced f,t to be used in calculating parameter/variable values"
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     mft_(mType, f, t) "Combination of forecasts and time periods in the models"
     msft(mType, s, f, t) "Combination of samples, forecasts and time periods in the models"
     mftStart(mType, f, t) "Start point of simulation"
     mftBind(mType, f, t) "Time periods/slices where forecasts/samples are coupled, note: t couples samples"
+    nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
+    gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     fRealization(f) "fRealization of the forecasts"
     fCentral(f) "Forecast that continues as sample(s) after the forecast horizon ends"
     sInitial(s) "Sample that presents the realized/forecasted period"
@@ -220,6 +226,7 @@ alias(m, mSolve);
 alias(t, t_, t__, tSolve, tFuel);
 alias(f, f_, f__);
 alias(s, s_, s__);
+alias(unit, unit_);
 
 
 *if(active('rampSched'),

@@ -8,6 +8,7 @@ if (mType('storage'),
     mSettings('storage', 't_end') = 20;
     mSettings('storage', 'samples') = 1;
     mSettings('storage', 'forecasts') = 0;
+    mSettings('storage', 't_aggregate') = 72;
     mf('storage', f)$[ord(f)-1 <= mSettings('storage', 'forecasts')] = yes;
     active('storageValue') = yes;
 

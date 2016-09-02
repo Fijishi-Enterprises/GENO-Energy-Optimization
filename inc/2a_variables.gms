@@ -1,4 +1,4 @@
-Free variable v_obj "Total operating cost (¤)";
+Free variable v_obj "Total operating cost (monetary unit)";
 Free variables
     v_gen(grid, node, unit, f, t) "Energy generation or consumption in a time step (MW)"
 ;

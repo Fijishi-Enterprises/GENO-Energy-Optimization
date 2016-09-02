@@ -7,6 +7,7 @@ if (mType('schedule'),
     mSettings('schedule', 't_end') = 168;
     mSettings('schedule', 'samples') = 1;
     mSettings('schedule', 'forecasts') = 0;
+    mSettings('schedule', 't_aggregate') = 72;
     mf('schedule', f)$[ord(f)-1 <= mSettings('schedule', 'forecasts')] = yes;
     mInterval('schedule', 'intervalLength', 'c000') = 1;
     mInterval('schedule', 'intervalEnd', 'c000') = 48;

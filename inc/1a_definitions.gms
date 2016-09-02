@@ -1,7 +1,7 @@
 * --- Model parameters, features and switches ---------------------------------
 Sets  // Model related selections
     mType "model types in the Backbone" /invest, storage, schedule, realtime/
-    mSetting "setting categories for models" /t_start, t_jump, t_horizon, t_forecastLength, t_end, samples, forecasts, intervalEnd, intervalLength/
+    mSetting "setting categories for models" /t_start, t_jump, t_horizon, t_forecastLength, t_end, samples, forecasts, intervalEnd, intervalLength, t_aggregate/
     counter "general counter set" /c000*c999/;
 ;
 
