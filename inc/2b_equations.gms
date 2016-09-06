@@ -16,8 +16,8 @@ equations
     q_stoMinContent(grid, node, storage, f, t) "Storage should have enough content to discharge and to deliver committed upward reserves"
     q_stoMaxContent(grid, node, storage, f, t) "Storage should have enough room to fit scheduled charge and committed downward reserves"
     q_transferLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
-    q_maxStateSlack(grid, node, f, t) "Slack variables keep track of state variables exceeding permitted limits"
-    q_minStateSlack(grid, node, f, t) "Slack variables keep track of state variables under permitted limits"
+    q_maxStateSlack(grid, node, mType, f, t) "Slack variables keep track of state variables and connected reserves exceeding permitted limits"
+    q_minStateSlack(grid, node, mType, f, t) "Slack variables keep track of state variables and connected reserves under permitted limits"
     q_boundState(grid, node, node, f, t) "Node state variables bounded by other nodes"
 ;
 
@@ -181,17 +181,20 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
 ;
 * -----------------------------------------------------------------------------
 q_resDemand(restypeDirectionNode(restype, resdirection, node), ft(f, t)) ..
-  + sum(nu(node, unit_elec)$nuRescapable(restype, resdirection, node, unit_elec),
-        v_reserve(restype, resdirection, node, unit_elec, f, t)$nuft(node, unit_elec, f, t)
+  + sum(nu(node, unit)$nuRescapable(restype, resdirection, node, unit),   // Reserve capable units on this node
+        v_reserve(restype, resdirection, node, unit, f, t)$nuft(node, unit, f, t)
     )
-  + sum(gn(grid, from_node)$restypeDirectionNode(restype, resdirection, from_node),
+  + sum(gnu_input(grid, node, unit)$nuRescapable(restype, resdirection, node, unit),
+        v_reserve(restype, resdirection, node, unit, f, t)$nuft(node, unit, f, t)   // Reserve capable units with input from this node
+    )
+  + sum(gn2n(grid, from_node, node)$restypeDirectionNode(restype, resdirection, from_node),
         (1 - p_gnn(grid, from_node, node, 'transferLoss')
         ) * v_resTransCapacity(restype, resdirection, from_node, node, f, t)
     )
   =G=
   + ts_reserveDemand_(restype, resdirection, node, f, t)
   - vq_resDemand(restype, resdirection, node, f, t)
-  + sum(to_node$restypeDirectionNode(restype, resdirection, to_node),
+  + sum(gn2n(grid, node, to_node)$restypeDirectionNode(restype, resdirection, to_node),
         v_resTransCapacity(restype, resdirection, node, to_node, f, t)
     )
 ;
@@ -342,24 +345,78 @@ q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
   + p_gnn(grid, from_node, to_node, 'transferCap')
 ;
 * -----------------------------------------------------------------------------
-q_maxStateSlack(gn_stateSlack(grid, node), ft(f, t))$(p_gn(grid, node, 'maxStateSlack') or ts_nodeState(grid, node, 'maxStateSlack', f, t)) ..
-    + v_state(grid, node, f, t)                                                                 // Node state
-    - sum(gnSlack('decrease', slack, grid, node),                                               // Summation over all determined slack categories
-        + v_stateSlack('decrease', slack, grid, node, f, t)                                     // Downward slack variables
+q_maxStateSlack(gn_state(grid, node), m, ft(f, t))${    p_gn(grid, node, 'maxStateSlack')    // Node has a maxStateSlack parameter
+                                                        or ts_nodeState(grid, node, 'maxStateSlack', f, t) // Node has a temporary maxStateSlack parameter
+                                                        or (
+                                                                (
+                                                                    p_gn(grid, node, 'maxState') // Node has a maxState parameter
+                                                                    or ts_nodeState(grid, node, 'maxState', f, t) // Node has a temporary maxState parameter
+                                                                )
+                                                                and (
+                                                                        sum(nuRescapable(restype, resdirection, node, unit), nu(node, unit)) // Node has a reserve capable unit
+                                                                        or sum(nuRescapable(restype, resdirection, node_input, unit), gnu_input(grid, node_input, unit) + nu(node, unit)) // Node has a reserve capable input unit
+                                                                    )
+                                                           )
+                                                   }..
+    + (
+        + p_gn(grid, node, 'maxState')${not ts_nodeState(grid, node, 'maxState', f, t) and not p_gn(grid, node, 'maxStateSlack') and not ts_nodeState(grid, node, 'maxStateSlack', f, t)} // Absolute maximum node state
+        + ts_nodeState(grid, node, 'maxState', f, t)${ts_nodeState(grid, node, 'maxState', f, t) and not p_gn(grid, node, 'maxStateSlack') and not ts_nodeState(grid, node, 'maxStateSlack', f, t)} // Temporary absolute maximum node state
+        + p_gn(grid, node, 'maxStateSlack')${not ts_nodeState(grid, node, 'maxStateSlack', f, t)} // Maximum permitted node state for all timesteps, overwritten by possible timeseries data
+        + ts_nodeState(grid, node, 'maxStateSlack', f, t)${ts_nodeState(grid, node, 'maxStateSlack', f, t)} // Maximum permitted node state for this timestep, if determined by data
+        - v_state(grid, node, f, t)                                                             // Node state
+        + sum(gnSlack('increase', slack, grid, node),                                           // Summation over all determined slack categories
+            + v_stateSlack('increase', slack, grid, node, f, t)                                 // Downward slack variables
+          )
       )
-    =L=
-    + p_gn(grid, node, 'maxStateSlack')${not ts_nodeState(grid, node, 'maxStateSlack', f,t)}  // Maximum permitted node state for all timesteps, overwritten by possible timeseries data
-    + ts_nodeState(grid, node, 'maxStateSlack', f, t)${ts_nodeState(grid, node, 'maxStateSlack', f, t)} // Maximum permitted node state for this timestep, if determined by data
+        * ( p_gn(grid, node, 'energyCapacity') + 1$(not p_gn(grid, node, 'energyCapacity')) )   // Account for the possible energy capacity
+    =G=
+    + (
+        + sum(nuRescapable(restype, 'resUp', node, unit),                                       // Possible reserve by this node
+            + v_reserve(restype, 'resUp', node, unit, f+pf(f,t), t+pt(t))
+          )
+        + sum(nuRescapable(restype, 'resDown', node_input, unit)$(gnu_input(grid, node_input, unit) and nu(node, unit)), // Possible reserve by input node
+            + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
+                / p_nu(node, unit, 'slope')
+          )
+      )
+        * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiplication with the time step to get energy
 ;
 * -----------------------------------------------------------------------------
-q_minStateSlack(gn_stateSlack(grid, node), ft(f, t))$(p_gn(grid, node, 'minStateSlack') or ts_nodeState(grid, node, 'minStateSlack', f, t)) ..
-    + v_state(grid, node, f, t)                                                                 // Node state
-    + sum(gnSlack('increase', slack, grid, node),                                               // Sukmmation over all determined slack categories
-        + v_stateSlack('increase', slack, grid, node, f, t)                                     // Upwards slack variables
+q_minStateSlack(gn_state(grid, node), m, ft(f, t))${    p_gn(grid, node, 'minStateSlack')    // Node has a maxStateSlack parameter
+                                                        or ts_nodeState(grid, node, 'minStateSlack', f, t) // Node has a temporary maxStateSlack parameter
+                                                        or (
+                                                                (
+                                                                    p_gn(grid, node, 'minState') // Node has a maxState parameter
+                                                                    or ts_nodeState(grid, node, 'minState', f, t) // Node has a temporary maxState parameter
+                                                                )
+                                                                and (
+                                                                        sum(nuRescapable(restype, resdirection, node, unit), nu(node, unit)) // Node has a reserve capable unit
+                                                                        or sum(nuRescapable(restype, resdirection, node_input, unit), gnu_input(grid, node_input, unit) + nu(node, unit)) // Node has a reserve capable input unit
+                                                                    )
+                                                           )
+                                                   }..
+    + (
+        - p_gn(grid, node, 'minState')${not ts_nodeState(grid, node, 'minState', f, t) and not p_gn(grid, node, 'minStateSlack') and not ts_nodeState(grid, node, 'minStateSlack', f, t)} // Absolute minimum node state
+        - ts_nodeState(grid, node, 'minState', f, t)${ts_nodeState(grid, node, 'minState', f, t) and not p_gn(grid, node, 'minStateSlack') and not ts_nodeState(grid, node, 'minStateSlack', f, t)} // Temporary absolute minimum node state
+        - p_gn(grid, node, 'minStateSlack')${not ts_nodeState(grid, node, 'minStateSlack', f, t)} // Minimum permitted node state for all timesteps, overwritten by possible timeseries data
+        - ts_nodeState(grid, node, 'minStateSlack', f, t)${ts_nodeState(grid, node, 'minStateSlack', f, t)} // Minimum permitted node state for this timestep, if determined by data
+        + v_state(grid, node, f, t)                                                             // Node state
+        + sum(gnSlack('decrease', slack, grid, node),                                           // Summation over all determined slack categories
+            + v_stateSlack('decrease', slack, grid, node, f, t)                                 // Downward slack variables
+          )
       )
+        * ( p_gn(grid, node, 'energyCapacity') + 1$(not p_gn(grid, node, 'energyCapacity')) )   // Account for the possible energy capacity
     =G=
-    + p_gn(grid, node, 'minStateSlack')${not ts_nodeState(grid, node, 'minStateSlack', f,t)}            // Minimum permitted node state for all timesteps, overwritten by possible timeseries data
-    + ts_nodeState(grid, node, 'minStateSlack', f, t)${ts_nodeState(grid, node, 'minStateSlack', f,t)}    // Minimum permitted node state for this timestep, if determined by data
+    + (
+        + sum(nuRescapable(restype, 'resDown', node, unit),                                     // Possible reserve by this node
+            + v_reserve(restype, 'resDown', node, unit, f+pf(f,t), t+pt(t))
+          )
+        + sum(nuRescapable(restype, 'resUp', node_input, unit)$(gnu_input(grid, node_input, unit) and nu(node, unit)), // Possible reserve by input node
+            + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))                 // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
+                / p_nu(node, unit, 'slope')
+          )
+      )
+        * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiplication with the time step to get energy
 ;
 * -----------------------------------------------------------------------------
 q_boundState(gnn_boundState(grid, node, node_), ft(f, t)) ..
