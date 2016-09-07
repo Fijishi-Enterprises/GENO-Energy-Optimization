@@ -206,7 +206,7 @@ q_maxDownward(gnuft(grid, node, unit, f, t))${     [unit_minLoad(unit) and p_gnu
   + v_gen(grid, node, unit, f, t)                                                                                    // energy generation/consumption
   + sum( ggnu_constrainedOutputRatio(grid, grid_output, node_, unit),
         p_gnu(grid_output, node_, unit, 'cV') * v_gen(grid_output, node_, unit, f, t) )                              // considering output constraints (e.g. cV line)
-  - sum(nuRescapable(restype, 'resDown', node, unit)$unit_elec(unit),                                                // minus downward reserve participation
+  - sum(nuRescapable(restype, 'resDown', node, unit),                                                // minus downward reserve participation
         v_reserve(restype, 'resDown', node, unit, f, t)                                                              // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
   =G=                                                                        // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
@@ -221,7 +221,7 @@ q_maxUpward(gnuft(grid, node, unit, f, t))${      [unit_minLoad(unit) and p_gnu(
   + v_gen(grid, node, unit, f, t)                                                                                    // energy generation/consumption
   + sum( ggnu_constrainedOutputRatio(grid, grid_output, node_, unit),
          p_gnu(grid_output, node_, unit, 'cV') * v_gen(grid_output, node_, unit, f, t) )                             // considering output constraints (e.g. cV line)
-  + sum(nuRescapable(restype, 'resUp', node, unit)$unit_elec(unit),                                                  // plus upward reserve participation
+  + sum(nuRescapable(restype, 'resUp', node, unit),                                                  // plus upward reserve participation
         v_reserve(restype, 'resUp', node, unit, f, t)                                                                // (v_reserve can be used only if the unit can provide a particular reserve)
     )
   =L=                                                                         // must be less than available/online capacity
@@ -396,11 +396,11 @@ q_minStateSlack(gn_state(grid, node), m, ft(f, t))${    p_gn(grid, node, 'minSta
                                                            )
                                                    }..
     + (
+        + v_state(grid, node, f, t)                                                             // Node state
         - p_gn(grid, node, 'minState')${not ts_nodeState(grid, node, 'minState', f, t) and not p_gn(grid, node, 'minStateSlack') and not ts_nodeState(grid, node, 'minStateSlack', f, t)} // Absolute minimum node state
         - ts_nodeState(grid, node, 'minState', f, t)${ts_nodeState(grid, node, 'minState', f, t) and not p_gn(grid, node, 'minStateSlack') and not ts_nodeState(grid, node, 'minStateSlack', f, t)} // Temporary absolute minimum node state
         - p_gn(grid, node, 'minStateSlack')${not ts_nodeState(grid, node, 'minStateSlack', f, t)} // Minimum permitted node state for all timesteps, overwritten by possible timeseries data
         - ts_nodeState(grid, node, 'minStateSlack', f, t)${ts_nodeState(grid, node, 'minStateSlack', f, t)} // Minimum permitted node state for this timestep, if determined by data
-        + v_state(grid, node, f, t)                                                             // Node state
         + sum(gnSlack('decrease', slack, grid, node),                                           // Summation over all determined slack categories
             + v_stateSlack('decrease', slack, grid, node, f, t)                                 // Downward slack variables
           )
