@@ -377,7 +377,7 @@ q_maxStateSlack(gn_state(grid, node), m, ft(f, t))${    p_gn(grid, node, 'maxSta
         + sum(nuRescapable(restype, 'resUp', node, unit),                                       // Possible reserve by this node
             + v_reserve(restype, 'resUp', node, unit, f+pf(f,t), t+pt(t))
           )
-        + sum(nuRescapable(restype, 'resDown', node_input, unit)$(gnu_input(grid, node_input, unit) and nu(node, unit)), // Possible reserve by input node
+        + sum(nuRescapable(restype, 'resDown', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and nu(node, unit) }, // Possible reserve by input node
             + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 / p_nu(node, unit, 'slope')
           )
@@ -424,7 +424,7 @@ q_minStateSlack(gn_state(grid, node), m, ft(f, t))${    p_gn(grid, node, 'minSta
         + sum(nuRescapable(restype, 'resDown', node, unit),                                     // Possible reserve by this node
             + v_reserve(restype, 'resDown', node, unit, f+pf(f,t), t+pt(t))
           )
-        + sum(nuRescapable(restype, 'resUp', node_input, unit)$(gnu_input(grid, node_input, unit) and nu(node, unit)), // Possible reserve by input node
+        + sum(nuRescapable(restype, 'resUp', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and nu(node, unit) }, // Possible reserve by input node
             + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))                 // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 / p_nu(node, unit, 'slope')
           )
