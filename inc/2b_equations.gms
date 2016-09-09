@@ -381,13 +381,13 @@ q_maxStateSlack(gn_state(grid, node), m, ft(f, t))${    p_gn(grid, node, 'maxSta
             + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 / p_nu(node, unit, 'slope')
           )
-        + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, from_node) * restypeDirectionNode(restype, resdirection, node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resUp', from_node) and restypeDirectionNode(restype, 'resUp', node) },
+        + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
+            + sum(restype${ restypeDirectionNode(restype, 'resUp', node) },
                 + (1 - p_gnn(grid, from_node, node, 'transferLoss')) * v_resTransCapacity(restype, 'resUp', from_node, node, f+pf(f,t), t+pt(t)) // Reserved transfer capacity for importing energy from from_node
               )
           )
-        + sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node) * restypeDirectionNode(restype, resdirection, to_node)) }, // Reserved transfer capacities from this node to another
-            + sum(restype${ restypeDirectionNode(restype, 'resDown', node) and restypeDirectionNode(restype, 'resDown', to_node) },
+        + sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, to_node)) }, // Reserved transfer capacities from this node to another
+            + sum(restype${ restypeDirectionNode(restype, 'resDown', to_node) },
                 + (1 - p_gnn(grid, node, to_node, 'transferLoss')) * v_resTransCapacity(restype, 'resDown', node, to_node, f+pf(f,t), t+pt(t)) // Reserved transfer capacity for importing energy from to_node
               )
           )
@@ -428,13 +428,13 @@ q_minStateSlack(gn_state(grid, node), m, ft(f, t))${    p_gn(grid, node, 'minSta
             + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))                 // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 / p_nu(node, unit, 'slope')
           )
-        + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, from_node) * restypeDirectionNode(restype, resdirection, node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resDown', from_node) and restypeDirectionNode(restype, 'resDown', node) },
+        + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
+            + sum(restype${ restypeDirectionNode(restype, 'resDown', node) },
                 + v_resTransCapacity(restype, 'resDown', from_node, node, f+pf(f,t), t+pt(t))                 // Reserved transfer capacity for exporting energy to from_node
               )
           )
-        + sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node) * restypeDirectionNode(restype, resdirection, to_node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resUp', node) and restypeDirectionNode(restype, 'resUp', to_node) },
+        + sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, to_node)) },
+            + sum(restype${ restypeDirectionNode(restype, 'resUp', to_node) },
                 + v_resTransCapacity(restype, 'resUp', node, to_node, f+pf(f,t), t+pt(t))                     // Reserved transfer capacity for exporting energy to to_node
               )
           )
@@ -452,13 +452,13 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
             + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))                 // Upwards reserve provided by input units
                 / p_nu(node, unit, 'slope')
           )
-        - sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, from_node) * restypeDirectionNode(restype, resdirection, node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resDown', from_node) and restypeDirectionNode(restype, 'resDown', node) },
+        - sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
+            + sum(restype${ restypeDirectionNode(restype, 'resDown', node) },
                 + v_resTransCapacity(restype, 'resDown', from_node, node, f+pf(f,t),t+pt(t))    // Reserved energy to be exported to from_node
               )
           )
-        - sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node) * restypeDirectionNode(restype, resdirection, to_node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resUp', node) and restypeDirectionNode(restype, 'resUp', to_node) },
+        - sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, to_node)) },
+            + sum(restype${ restypeDirectionNode(restype, 'resUp', to_node) },
                 + v_resTransCapacity(restype, 'resUp', node, to_node, f+pf(f,t),t+pt(t))        // Reserved energy to be exported to to_node
               )
           )
@@ -476,13 +476,13 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
             + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 / p_nu(node, unit, 'slope')
           )
-        + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, from_node) * restypeDirectionNode(restype, resdirection, node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resUp', from_node) and restypeDirectionNode(restype, 'resUp', node) },
+        + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
+            + sum(restype${ restypeDirectionNode(restype, 'resUp', node) },
                 + (1 - p_gnn(grid, from_node, node, 'transferLoss')) * v_resTransCapacity(restype, 'resUp', from_node, node, f+pf(f,t), t+pt(t)) // Reserved transfer capacity for importing energy from from_node
               )
           )
-        + sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node) * restypeDirectionNode(restype, resdirection, to_node)) }, // Reserved transfer capacities from this node to another
-            + sum(restype${ restypeDirectionNode(restype, 'resDown', node) and restypeDirectionNode(restype, 'resDown', to_node) },
+        + sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, to_node)) }, // Reserved transfer capacities from this node to another
+            + sum(restype${ restypeDirectionNode(restype, 'resDown', to_node) },
                 + (1 - p_gnn(grid, node, to_node, 'transferLoss')) * v_resTransCapacity(restype, 'resDown', node, to_node, f+pf(f,t), t+pt(t)) // Reserved transfer capacity for importing energy from to_node
               )
           )
