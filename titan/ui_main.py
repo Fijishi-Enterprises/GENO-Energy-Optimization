@@ -93,6 +93,11 @@ class TitanUI(QMainWindow):
         self.ui.actionSave_As.triggered.connect(self.save_project_as)
         self.ui.actionLoad.triggered.connect(self.load_project)
         self.ui.actionSettings.triggered.connect(self.show_settings)
+        self.ui.actionMake_Input_Data.triggered.connect(self.make_input)
+        self.ui.actionHelp.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
+        self.ui.actionAbout.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
+        self.ui.actionImport.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
+        self.ui.actionExport.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionQuit.triggered.connect(self.closeEvent)
         # Widgets
         self.ui.pushButton_execute_all.clicked.connect(self.execute_all)
@@ -109,6 +114,7 @@ class TitanUI(QMainWindow):
         self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
         self.ui.toolButton_add_tool.clicked.connect(self.add_tool)
         self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)
+        self.ui.pushButton_make.clicked.connect(self.make_input)
 
     def init_models(self):
         """Create data models for GUI views."""
@@ -118,6 +124,8 @@ class TitanUI(QMainWindow):
         self.setup_model = SetupModel(self._root)
         # Set SetupModel to QTreeView
         self.ui.treeView_setups.setModel(self.setup_model)
+        self.ui.treeView_setups.setColumnWidth(0, 150)
+        self.ui.treeView_setups.setColumnWidth(1, 125)
         # Initialize Tool model
         self.init_tool_model()
         # Start model test for SetupModel
@@ -865,6 +873,28 @@ class TitanUI(QMainWindow):
             return None
         for ind in siblings:
             self.add_msg_signal.emit("Setups on current row:%s" % ind.internalPointer().name, 0)
+
+    def make_input(self):
+        """Open selected Excel file for creating text data files for Setups."""
+        # noinspection PyCallByClass, PyTypeChecker
+        answer = QFileDialog.getOpenFileName(self, 'Make Input Data', PROJECT_DIR, 'MS Excel (*.xlsx)')
+        load_path = answer[0]
+        if load_path == '':  # Cancel button clicked
+            return False
+        self.add_msg_signal.emit("Reading data from file: <{0}>".format(load_path), 0)
+        if not os.path.isfile(load_path):
+            self.add_msg_signal.emit("File not found '%s'" % load_path, 2)
+            return False
+        # Load project from MS Excel file
+        wb = ExcelHandler(load_path)
+        try:
+            wb.load_wb()
+        except OSError:
+            self.add_msg_signal.emit("OSError while loading file {0}".format(load_path), 2)
+            return
+        # Read data
+        self._project.make_data_files(self.setup_model, wb, self)
+        return True
 
     @pyqtSlot(str, int)
     def add_msg(self, msg, code=0):

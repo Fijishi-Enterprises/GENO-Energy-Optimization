@@ -391,7 +391,7 @@ class Setup(MetaObject):
         if not is_ancestor:
             if fname in self.get_input_files():
                 return os.path.join(self.input_dir, fname)
-        # Look at ancestor's output
+        # Look from ancestor's output
         else:
             if fname in self.get_output_files():
                 return os.path.join(self.output_dir, fname)
@@ -419,7 +419,7 @@ class Setup(MetaObject):
         if not is_ancestor:
             src_files = self.get_input_files()
             src_dir = self.input_dir
-        # ...or look in ancestors output
+        # ...or look from ancestor's output
         else:
             src_files = self.get_output_files()
             src_dir = self.output_dir

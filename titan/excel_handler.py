@@ -24,6 +24,10 @@ class ExcelHandler:
         except:
             raise
 
+    def sheet_names(self):
+        """Return a list of sheet names in the opened workbook."""
+        return self.wb.get_sheet_names()
+
     def read_project_sheet(self):
         """Read Project details from Project sheet."""
         project_sheet = self.wb['Project']
@@ -43,6 +47,43 @@ class ExcelHandler:
         tool_args = [v[0].value for v in setup_sheet['D2':'D' + rows]]
         descriptions = [v[0].value for v in setup_sheet['E2':'E' + rows]]
         return [parents, currents, tools, tool_args, descriptions]
+
+    def read_data_sheet(self, sheet):
+        """Read data from the given sheet.
+
+        Args:
+            sheet (str): Name of sheet with data
+
+        Returns:
+            List of lists including filename, Setups and other data
+        """
+        sheet = self.wb[sheet]
+        n_rows = sheet.max_row
+        n_columns = sheet.max_column
+        logging.debug("Processing {2}. Includes {0} rows and {1} columns".format(n_rows, n_columns, sheet))
+        # Get all data on the sheet
+        data = list(sheet.rows)
+        # Get header row
+        header = data.pop(0)
+        if n_columns == 1 and n_rows == 1 and not header[0].value:
+            logging.debug("No data found on {0}".format(sheet))
+            return []
+        if not n_columns == 5:
+            logging.error("Sheet should contain 5 columns: Filename, Setup, Set, Set, and Value")
+            return []
+        headers = list()
+        # Put header values into list
+        for item in header:
+            a = item.value
+            headers.append(a)
+            # logging.debug("Header: {0}".format(a))
+        # All data
+        filename = [v[0].value for v in data]
+        setup = [v[1].value for v in data]
+        set1 = [v[2].value for v in data]
+        set2 = [v[3].value for v in data]
+        value = [v[4].value for v in data]
+        return [headers, filename, setup, set1, set2, value, n_rows]
 
     def export_to_excel(self):
         """Exports the selected data to the defined excel file.

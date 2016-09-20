@@ -8,6 +8,7 @@ Class to handle Sceleton projects.
 import os
 import logging
 import json
+from collections import Counter
 from metaobject import MetaObject
 from config import PROJECT_DIR
 from tools import find_duplicates
@@ -267,3 +268,55 @@ class SceletonProject(MetaObject):
                     setup = setup_model.get_setup(setup_index)
                     setup.attach_tool(tool, cmdline_args=cmdline_args)
         return
+
+    def make_data_files(self, setup_model, wb, ui):
+        """Reads data from Excel and creates GAMS compliant (text) data files.
+
+        Args:
+            setup_model (SetupModel): SetupModel for this project
+            wb (ExcelHandler): Excel workbook
+            ui (TitanUI): Titan user interface
+        """
+        sheet_names = wb.sheet_names()
+        for sheet in sheet_names:
+            if sheet.lower() == 'project' or sheet.lower() == 'setups' or sheet.lower() == 'recipes':
+                continue
+            try:
+                ui.add_msg_signal.emit("\nProcessing sheet '{0}'".format(sheet), 0)
+                [headers, filename, setup, set1, set2, value, n_rows] = wb.read_data_sheet(sheet)
+            except ValueError:  # No data found
+                ui.add_msg_signal.emit("No data found on sheet:{0}".format(sheet), 0)
+                continue
+            # Get the file name found on this sheet
+            filename = set(filename)
+            # If more than one file name on sheet. Skip whole sheet.
+            if len(filename) > 1:
+                ui.add_msg_signal.emit("Sheet '{0}' has {1} file names. Only one file name per sheet allowed."
+                                       " Data files not created.".format(sheet, len(filename)), 2)
+                continue
+            # Make a dictionary where key is Setup name and value is a list
+            data = dict()
+            setups = Counter(setup).keys()
+            for setup_name in setups:
+                data[setup_name] = list()
+            # Collect data into dictionary
+            for i in range(n_rows-1):  # subtract header row
+                line = set1[i] + '.' + set2[i] + '=' + str(value[i]) + '\n'
+                data[setup[i]].append(line)
+            # Write values from dictionary to files
+            for key, value in data.items():
+                index = setup_model.find_index(key)
+                # Skip if Setup does not exist
+                if not index:
+                    ui.add_msg_signal.emit("Setup '{0}' not found".format(key), 2)
+                    continue
+                input_dir = index.internalPointer().input_dir
+                d_file = os.path.join(input_dir, list(filename)[0])
+                ui.add_msg_signal.emit("Writing file:{0}".format(d_file), 0)
+                try:
+                    with open(d_file, 'w') as d:
+                        d.write("$offlisting\n")
+                        d.writelines(value)
+                except OSError:
+                    ui.add_msg_signal.emit("OSError: Writing to file '{0}' failed".format(d_file), 2)
+            ui.add_msg_signal.emit("Processing sheet '{0}' done".format(sheet), 1)

@@ -44,7 +44,7 @@
           </property>
           <property name="maximumSize">
            <size>
-            <width>16777215</width>
+            <width>100</width>
             <height>160</height>
            </size>
           </property>
@@ -124,13 +124,13 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>104</width>
+            <width>100</width>
             <height>160</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>104</width>
+            <width>100</width>
             <height>160</height>
            </size>
           </property>
@@ -190,13 +190,13 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>104</width>
+            <width>100</width>
             <height>160</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>104</width>
+            <width>100</width>
             <height>160</height>
            </size>
           </property>
@@ -247,17 +247,48 @@
          </widget>
         </item>
         <item>
-         <spacer name="horizontalSpacer_5">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
+         <widget class="QGroupBox" name="groupBox">
+          <property name="minimumSize">
            <size>
-            <width>40</width>
-            <height>20</height>
+            <width>100</width>
+            <height>160</height>
            </size>
           </property>
-         </spacer>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>160</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>Input Data</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_6">
+           <item>
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>95</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_make">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Make GAMS input data files from data in a MS Excel workbook&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Make</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </item>
        </layout>
       </item>
@@ -545,7 +576,14 @@
     <addaction name="actionHelp"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuData">
+    <property name="title">
+     <string>Data</string>
+    </property>
+    <addaction name="actionMake_Input_Data"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuData"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -566,6 +604,9 @@
   <action name="actionAbout">
    <property name="text">
     <string>About Sceleton</string>
+   </property>
+   <property name="shortcut">
+    <string>F12</string>
    </property>
   </action>
   <action name="actionNew">
@@ -601,7 +642,7 @@
     <string>Sceleton documentation</string>
    </property>
    <property name="shortcut">
-    <string>F1</string>
+    <string>F10</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::WindowShortcut</enum>
@@ -659,7 +700,18 @@
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manage Sceleton Settings&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
-    <string>F2</string>
+    <string>F1</string>
+   </property>
+  </action>
+  <action name="actionMake_Input_Data">
+   <property name="text">
+    <string>Make Input Data...</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Make GAMS input data files from data in a MS Excel workbook&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
    </property>
   </action>
  </widget>
