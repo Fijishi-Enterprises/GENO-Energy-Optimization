@@ -11,7 +11,7 @@ import json
 from collections import Counter
 from metaobject import MetaObject
 from config import PROJECT_DIR
-from tools import find_duplicates
+from helpers import find_duplicates
 
 
 class SceletonProject(MetaObject):

@@ -17,7 +17,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 import qsubprocess
 from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR, WORK_DIR
 from metaobject import MetaObject
-from tools import create_dir
+from helpers import create_dir
 
                    
 class MyEncoder(json.JSONEncoder):
@@ -256,6 +256,7 @@ class Setup(MetaObject):
                                           self.short_name)
             self.output_dir = self.input_dir
             create_dir(self.input_dir)
+            self.result_dir = None
         # If not root, add self to parent's children
         if parent is not None:
             parent._add_child(self)
@@ -337,18 +338,31 @@ class Setup(MetaObject):
         output += "\n"
         return output
 
+    def set_result_dir(self, d):
+        """Set result directory name.
+
+        Args:
+            d (str): Result directory name that includes Setup name and timestamp.
+        """
+        self.result_dir = os.path.join(self.project.project_dir, OUTPUT_STORAGE_DIR, d)
+
     def attach_tool(self, tool, cmdline_args=""):
         """Attach a tool to this Setup.
 
         Args:
             tool (Tool): The tool to be used in this process
             cmdline_args (str, optional): Extra command line arguments for this tool
+
+        Returns:
+            True if successful, False if not
         """
         # Create path for setup output directory
         self.output_dir = os.path.join(self.project.project_dir,
                                        OUTPUT_STORAGE_DIR,
                                        self.short_name)
-        create_dir(self.output_dir)
+        if not create_dir(self.output_dir):
+            logging.error("Could not create output directory '{0}' for Setup '{1}'".format(self.output_dir, self.name))
+            return False
         if self.tool is not None:
             logging.info("Replacing tool '{0}' with tool '{1}' in Setup '{2}'"
                          .format(self.tool.name, tool.name, self.name))
@@ -477,11 +491,14 @@ class Setup(MetaObject):
             instance = self.tool.create_instance(ui, self.cmdline_args, self.output_dir)
         except OSError:
             logging.error("Tool instance creation failed")
+            ui.add_msg_signal.emit("Creating a Tool instance failed", 2)
             return
         # Connect instance_finished_signal to setup_finished() method
         instance.instance_finished_signal.connect(self.setup_finished)
         self.tool_instances.append(instance)
-        self.copy_input(self.tool, ui, instance)
+        if not self.copy_input(self.tool, ui, instance):
+            ui.add_msg_signal.emit("Copying input files for Setup '{0}' failed".format(self.name), 2)
+            return
         instance.execute(ui)
         # Wait for instance_finished_signal to start setup_finished()
 
@@ -533,6 +550,7 @@ class Setup(MetaObject):
                 os.makedirs(dst_dir, exist_ok=True)
             except OSError as e:
                 logging.error(e)
+                ui.add_msg_signal.emit("Creating directory '{0}' failed. Check permissions.".format(dst_dir), 2)
                 return False
             if '*' in filename:  # Deal with wildcards
                 found_files = self.find_input_files(filename)
@@ -540,8 +558,8 @@ class Setup(MetaObject):
                 found_file = self.find_input_file(filename)
                 # Required file not found
                 if filepath in tool.infiles and not found_file:
-                    logging.debug("Could not find required input file '{}'"
-                                  .format(filename))
+                    logging.error("Could not find required input file '{}'".format(filename))
+                    ui.add_msg_signal.emit("Required input file '{0}' not found".format(filename), 2)
                     return False
                 # Construct a list
                 found_files = [found_file] if found_file else []
@@ -552,6 +570,8 @@ class Setup(MetaObject):
                     logging.debug("File '{}' copied to '{}'".format(src_file, ret))
                 except OSError:
                     logging.error("Copying file '{}' to directory '{}' failed".format(src_file, dst_dir))
+                    ui.add_msg_signal.emit("Copying file '{0}' to directory '{1}' failed."
+                                           " Check directory permissions.".format(src_file, dst_dir), 2)
                     return False
         logging.info("Finished copying input files for Tool '{}'".format(tool.name))
         ui.add_msg_signal.emit("Done", 1)
@@ -559,5 +579,6 @@ class Setup(MetaObject):
 
     def cleanup(self):
         """Remove temporary files of the setup."""
+        # TODO: Check if this is needed
         for t in self.tool_instances:
             t.remove()

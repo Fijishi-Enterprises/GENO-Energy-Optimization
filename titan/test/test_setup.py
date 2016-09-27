@@ -5,216 +5,283 @@ Unit tests for Setup class [Needs updating).
 @date: 26.2.2016
 """
 
-from unittest import TestCase, SkipTest, mock
+from unittest import TestCase, SkipTest, mock, skip
 import os
 import sys
 import shutil
 import logging as log
-from tool import Setup, Dimension, DataParameter
+from tool import Setup
 import tool
 import ui_main
-from GAMS import GAMSModel, GDX_DATA_FMT, GAMS_INC_FILE
-from config import APPLICATION_PATH, PROJECT_DIR
-from tools import copy_files, create_dir
+from GAMS import GAMSModel
+from config import APPLICATION_PATH, PROJECT_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS
+from helpers import copy_files, create_dir
 from project import SceletonProject
+from models import SetupModel
+from models import ToolModel
+from configuration import ConfigurationParser
 
 
 class TestSetup(TestCase):
-    # TODO: Create Setups into SetupModel
-    # TODO: Move test input files into appropriate folder
     # TODO: Mock create_dir so that directories are not actually created
     # TODO: Fix or move execution tests
 
-    # add_msg_signal = mock.Mock()  # If a mock signal is needed
+    # add_msg_signal = mock.Mock()  # Example of a mock signal
 
     def setUp(self):
+        """Make a Setup Model with 3 Setups (base -> dummy_a, dummy_b)."""
         log.basicConfig(stream=sys.stderr, level=log.DEBUG,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-        # log.info("Setting up")
         log.disable(level=log.ERROR)
-        self.project = SceletonProject('Unit Test Project', ' ')
-        self.magic_model_file = os.path.join(APPLICATION_PATH, 'test', 'resources', 'test_model', 'magic.gms')
-        self.magic_model_path = os.path.split(self.magic_model_file)[0]
-        self.base_setup = Setup('Test base', 'Base Setup for testing', self.project)
-        self.child_dummy_a = Setup('Setup Dummy A', 'Setup with parent Base', self.project, self.base_setup)
-        self.child_dummy_b = None  # Placeholder for a third setup
-        self.tool = GAMSModel('Test GAMS Magic Tool', 'Tool for testing.', self.magic_model_path,
-                               self.magic_model_file, 'input', 'output')
-        self.tool_two = GAMSModel('Another Test GAMS Magic Tool', 'Second model for testing.',
-                                   self.magic_model_path, self.magic_model_file, 'input', 'output')
+        self._project = SceletonProject('Unit Test Project', '')
+        # Make SetupModel
+        self._root = Setup('root', 'root node for Setups,', self._project)
+        self._setup_model = SetupModel(self._root)
+        # Add a few Setups into SetupModel
+        self._setup_model.insert_setup('Base', 'Base Setup for unit tests', self._project, 0)
+        base_index = self._setup_model.find_index('Base')
+        self._setup_model.insert_setup('Dummy A', 'Setup A with parent Base', self._project, 0, base_index)
+        self._setup_model.insert_setup('Dummy B', 'Setup B with parent Base', self._project, 0, base_index)
+        self._tool_model = None  # Initialize ToolModel only if test needs it
         log.disable(level=log.NOTSET)
 
     def tearDown(self):
+        """Delete files and reset models."""
         # log.info("Tearing down")
-        if os.path.exists(os.path.abspath(os.path.join('C:\\', 'data', 'temp', 'test'))):
-            shutil.rmtree(os.path.abspath(os.path.join('C:\\', 'data', 'temp', 'test')))
-        if os.path.exists(self.base_setup.input_dir):
-            # log.info("Removing directory: %s" % self.base_setup.input_dir)
-            shutil.rmtree(self.base_setup.input_dir)
-        if os.path.exists(self.base_setup.output_dir):
-            # log.info("Removing directory: %s" % self.base_setup.output_dir)
-            shutil.rmtree(self.base_setup.output_dir)
-        # Remove folders created while making setup child_dummy_a
-        if os.path.exists(os.path.join(self.child_dummy_a.input_dir, self.tool.short_name)):
-            # log.info("Removing directory: %s" % os.path.join(self.child_dummy_a.input_dir, self.tool.short_name))
-            shutil.rmtree(os.path.join(self.child_dummy_a.input_dir, self.tool.short_name))
-        if os.path.exists(os.path.join(self.child_dummy_a.output_dir, self.tool.short_name)):
-            # log.info("Removing directory: %s" % os.path.join(self.child_dummy_a.output_dir, self.tool.short_name))
-            shutil.rmtree(os.path.join(self.child_dummy_a.output_dir, self.tool.short_name))
-        if os.path.exists(self.child_dummy_a.input_dir):
-            # log.info("Removing directory: %s" % self.child_dummy_a.input_dir)
-            shutil.rmtree(self.child_dummy_a.input_dir)
-        if os.path.exists(self.child_dummy_a.output_dir):
-            # log.info("Removing directory: %s" % self.child_dummy_a.output_dir)
-            shutil.rmtree(self.child_dummy_a.output_dir)
-        # Remove folders created while making setup child_dummy_b
-        if self.child_dummy_b:  # Remove only if child_dummy_b available
-            if os.path.exists(os.path.join(self.child_dummy_b.input_dir, self.tool.short_name)):
-                shutil.rmtree(os.path.join(self.child_dummy_b.input_dir, self.tool.short_name))
-            if os.path.exists(os.path.join(self.child_dummy_b.output_dir, self.tool.short_name)):
-                shutil.rmtree(os.path.join(self.child_dummy_b.output_dir, self.tool.short_name))
-            if os.path.exists(self.child_dummy_b.input_dir):
-                shutil.rmtree(self.child_dummy_b.input_dir)
-            if os.path.exists(self.child_dummy_b.output_dir):
-                shutil.rmtree(self.child_dummy_b.output_dir)
+        log.disable(level=log.ERROR)
+        base_f = os.path.join(self._project.project_dir, 'input', 'base')
+        dummy_a_f = os.path.join(self._project.project_dir, 'input', 'dummy_a')
+        dummy_b_f = os.path.join(self._project.project_dir, 'input', 'dummy_b')
+        if os.path.exists(base_f):
+            self.delete_files(base_f)
+        if os.path.exists(dummy_a_f):
+            self.delete_files(dummy_a_f)
+        if os.path.exists(dummy_b_f):
+            self.delete_files(dummy_b_f)
+        log.disable(level=log.NOTSET)
+        # Clear project, setup model, tool model, and root setup
+        self._project = None
+        self._root = None
+        self._setup_model = None
+        if self._tool_model:
+            self._tool_model = None
 
-    def test_create_dir(self):
-        # Test create_dir() function in tools.py
-        log.info("Testing create_dir()")
-        basepath = os.path.abspath(os.path.join('C:\\', 'data', 'temp'))
-        folder = 'test'
-        create_dir(basepath, folder)
-        self.assertTrue(os.path.exists(os.path.join(basepath, folder)))
-
-    def test_create_dir_without_second_argument(self):
-        log.info("Testing create_dir_without_second_argument()")
-        basepath = os.path.abspath(os.path.join('C:\\', 'data', 'temp', 'test'))
-        create_dir(basepath)
-        self.assertTrue(os.path.exists(basepath))
-
-    def test_create_dir_with_pardir(self):
-        """ Note: makedirs() will become confused if the path
-            elements to create include pardir (eg. ”..” on UNIX systems)
-            (from Python Docs).
-        """
-        log.info("Testing create_dir_with_pardir()")
-        basepath = os.path.abspath(os.path.join('C:\\', 'data', os.path.pardir, 'data', 'temp', 'test'))
-        folder = os.path.join(os.path.pardir, 'test')
-        dir_path = create_dir(base_path=basepath, folder=folder)
-        self.assertTrue(os.path.exists(dir_path))
+    @mock.patch('ui_main.TitanUI', autospec=True)
+    def init_tool_model(self, mock_ui):
+        """Create Tool model and initialize configuration file."""
+        config = ConfigurationParser(CONFIGURATION_FILE, defaults=GENERAL_OPTIONS)
+        config.load()
+        # Tool model
+        self._tool_model = ToolModel()
+        tool_defs = config.get('general', 'tools').split('\n')
+        gui = mock_ui()
+        # log.debug("Asserting mock GUI")
+        assert mock_ui is ui_main.TitanUI
+        assert gui is ui_main.TitanUI()
+        for tool_def in tool_defs:
+            if tool_def == '':
+                continue
+            # Load tool definition
+            t = GAMSModel.load(tool_def, gui)
+            if not t:
+                log.error("Failed to load Tool from path '{0}'".format(tool_def))
+                continue
+            # Add tool definition file path to tool instance variable
+            t.set_def_path(tool_def)
+            # Insert tool into model
+            # log.debug("Inserting Tool {0} to ToolModel".format(t.name))
+            self._tool_model.insertRow(t)
 
     def test_attach_tool(self):
+        """Test adding tool to Setup Base."""
         log.info("Testing attach_tool()")
-        # Test adding tool to Setup
-        retval = self.child_dummy_a.attach_tool(self.tool)
+        # Fill ToolModel
+        self.init_tool_model()
+        # Get Setup
+        base_index = self._setup_model.find_index('Base')
+        base = base_index.internalPointer()
+        # Get the first tool in ToolModel from index 1 (0:No Tool)
+        t = self._tool_model.tool(1)
+        # log.debug("Attaching Tool '{0}' to Setup '{1}'".format(t.name, base.name))
+        retval = base.attach_tool(t)
         self.assertTrue(retval)
 
+    def test_find_input_file(self):
+        """Test finding individual files."""
+        log.info("Testing find_input_file()")
+        # Prepare test data
+        self.prepare_test_data()
+        # Get test Setup
+        s = self._setup_model.find_index('Dummy A').internalPointer()
+        # Make folder refs
+        base_f = os.path.join(self._project.project_dir, 'input', 'base')
+        dummy_a_f = os.path.join(self._project.project_dir, 'input', 'dummy_a')
+        dummy_b_f = os.path.join(self._project.project_dir, 'input', 'dummy_b')
+        # TEST 1. Find a file in Setups's own input folder (Dummy A)
+        path = s.find_input_file('dummy3.gdx')
+        self.assertEqual(path, os.path.join(dummy_a_f, 'dummy3.gdx'))
+        # TEST 2. Find a file in Setups's parents input folder (Base)
+        path = s.find_input_file('data.gdx')
+        self.assertEqual(path, os.path.join(base_f, 'data.gdx'))
+        # TEST 3. Find a file in Setups's siblings input folder. (Dummy B) Must return None.
+        path = s.find_input_file('dummy4.gdx')
+        self.assertEqual(path, None)
+        # TEST 4. Find a file in that does not exist. Must return None.
+        path = s.find_input_file('dummy4.gdx')
+        self.assertEqual(path, None)
+        # TODO: Find required files from parents output folder
+
+    def test_find_input_files(self):
+        """Test finding files with wildcards."""
+        log.info("Testing find_input_files()")
+        # Prepare test data
+        self.prepare_test_data()
+        # Get test Setup
+        s = self._setup_model.find_index('Dummy A').internalPointer()
+        # Make folder refs
+        base_f = os.path.join(self._project.project_dir, 'input', 'base')
+        dummy_a_f = os.path.join(self._project.project_dir, 'input', 'dummy_a')
+        dummy_b_f = os.path.join(self._project.project_dir, 'input', 'dummy_b')
+        # TEST 1: Find *.gdx files
+        found_files = s.find_input_files('*.gdx')
+        # log.debug("found_files:\n{0}".format(found_files))
+        ref = list()
+        ref.append(os.path.join(dummy_a_f, 'dummy3.gdx'))
+        ref.append(os.path.join(base_f, 'data.gdx'))
+        ref.append(os.path.join(base_f, 'dummy1.gdx'))
+        ref.append(os.path.join(base_f, 'dummy2.gdx'))
+        self.assertEqual(found_files, ref)
+
+    def test_copy_input(self):
+        log.info("Testing copy_input()")
+        # Fill ToolModel
+        self.init_tool_model()
+        # Get BackBone tool from ToolModel
+        t = self._tool_model.find_tool('Backbone')
+        if not t:
+            self.skipTest("Cannot make test without Backbone tool")
+        # Get test Setup
+        s = self._setup_model.find_index('Dummy A').internalPointer()
+        # Attach Tool Backbone to Setup Dummy A
+        s.attach_tool(t)
+
+        s.co
+
+        # TODO: Make a tool instance
+        input_dir = t.path  # Todo: Change this to tool_instance.basedir
+        log.debug("Tool input_dir:{0}".format(input_dir))
+        for filepath in t.infiles | t.infiles_opt:
+            prefix, filename = os.path.split(filepath)
+            dst_dir = os.path.join(input_dir, prefix)
+            # Create the destination directory
+            try:
+                # os.makedirs(dst_dir, exist_ok=True)
+                log.debug("calling os.makedirs with dst_dir:{0}".format(dst_dir))
+            except OSError as e:
+                log.error(e)
+                return False
+            if '*' in filename:  # Deal with wildcards
+                found_files = s.find_input_files(filename)
+            else:
+                found_file = s.find_input_file(filename)
+                # Required file not found
+                if filepath in t.infiles and not found_file:
+                    log.debug("Could not find required input file '{}'".format(filename))
+                    # return False
+                # Construct a list
+                found_files = [found_file] if found_file else []
+            log.debug("found_files:\n{0}".format(found_files))
+
+        # # Add model into Setup. Creates model input directories.
+        # self.child_dummy_a.attach_tool(self.tool)
+        # # Add input formats to model
+        # self.tool.add_input_format(GDX_DATA_FMT)
+        # self.tool.add_input_format(GAMS_INC_FILE)
+        # # Copy dummy test files to setup model folders
+        # self.prepare_test_data()
+        # # DO THE ACTUAL TEST
+        # self.child_dummy_a.pop_model()
+        # gdx_count = 1
+        # inc_count = 1
+        # for fmt in self.child_dummy_a.running_model.input_formats:
+        #     # get_input_files gives the names of the input files in a list
+        #     filenames = self.child_dummy_a.get_input_files(self.child_dummy_a.running_model, fmt)
+        #     count = 0
+        #     for file in filenames:
+        #         # log.info(".%s file #%d: %s" % (fmt.extension, count, file))
+        #         count += 1
+        #     if fmt.extension == 'gdx':
+        #         gdx_count = count
+        #     elif fmt.extension == 'inc':
+        #         inc_count = count
+        # log.debug("GDX count:%d INC_count:%d" % (gdx_count, inc_count))
+        # # Simply check that 4 gdx files and 2 inc files were found
+        # self.assertEqual(gdx_count, 4)
+        # self.assertEqual(inc_count, 2)
+        # # # This is how you can check variables if a test fails
+        # # try:
+        # #     self.assertTrue(False)
+        # # except AssertionError as e:
+        # #     print("Assertion error caught")
+        # #     # Do something with variables
+        # #     raise e
+
+    @mock.patch('ui_main.TitanUI', autospec=True)
+    def test_execute_base_setup(self, mock_ui):
+        """Execute Base Setup with no Tool."""
+        log.debug("Testing execute()")
+        gui = mock_ui()
+        assert mock_ui is ui_main.TitanUI
+        assert gui is ui_main.TitanUI()
+        base = self._setup_model.find_index('Base').internalPointer()
+        base.execute(gui)
+        self.assertTrue(base.is_ready)
+
+    @skip("Method 'collect_input_files' does not exist")
     def test_collect_input_files(self):
-        log.info("Testing collect_input_files()")
-        # Delete files from test model input folders except .gitignore
-        self.delete_files(self.tool.input_dir)
-        # Add model into Setup. Creates model input directories.
-        self.child_dummy_a.attach_tool(self.tool)
-        # Add input formats to model
-        self.tool.add_input_format(GDX_DATA_FMT)
-        self.tool.add_input_format(GAMS_INC_FILE)
-        # Copy dummy test files to setup model folders
-        self.prepare_test_data()
-        self.child_dummy_a.pop_model()
-        # DO THE ACTUAL TEST
-        self.child_dummy_a.collect_input_files()
-        # Check that created changes.inc is the same as reference changes.inc
-        changes_path = os.path.abspath(os.path.join(self.tool.input_dir, 'changes.inc'))
-        changes_ref_path = os.path.abspath(os.path.join(APPLICATION_PATH, 'test', 'resources',
-                                                        'test_input', 'changes_reference.inc'))
-        # Check that both have the same number of lines
-        with open(changes_path, 'r') as changes:
-            n_changes = sum(1 for line in changes)
-        with open(changes_ref_path, 'r') as ref:
-            n_ref = sum(1 for line in ref)
-        self.assertEqual(n_changes, n_ref, "Number of lines in changes.inc and reference file does not match")
-        # Check files line by line
-        mismatch_found = False
-        n = 0
-        with open(changes_path, 'r') as changes:
-            with open(changes_ref_path, 'r') as ref:
-                for line in changes:
-                    n += 1
-                    ref_line = ref.readline()
-                    if line == ref_line:
-                        # log.debug("\nLine #%d:>\n%smatches line:>\n%s" % (n, line, ref_line))
-                        pass
-                    else:
-                        log.debug("\nMismatch on Line #%d:>\n%sand line:>\n%s" % (n, line, ref_line))
-                        mismatch_found = True
-        self.assertFalse(mismatch_found, "There was a mismatch in changes.inc and reference file")
+        # TODO: Test here that changes in child Setup input files have an effect
+        pass
+        # log.info("Testing collect_input_files()")
+        # # Delete files from test model input folders except .gitignore
+        # self.delete_files(self.tool.input_dir)
+        # # Add model into Setup. Creates model input directories.
+        # self.child_dummy_a.attach_tool(self.tool)
+        # # Add input formats to model
+        # self.tool.add_input_format(GDX_DATA_FMT)
+        # self.tool.add_input_format(GAMS_INC_FILE)
+        # # Copy dummy test files to setup model folders
+        # self.prepare_test_data()
+        # self.child_dummy_a.pop_model()
+        # # DO THE ACTUAL TEST
+        # self.child_dummy_a.collect_input_files()
+        # # Check that created changes.inc is the same as reference changes.inc
+        # changes_path = os.path.abspath(os.path.join(self.tool.input_dir, 'changes.inc'))
+        # changes_ref_path = os.path.abspath(os.path.join(APPLICATION_PATH, 'test', 'resources',
+        #                                                 'test_input', 'changes_reference.inc'))
+        # # Check that both have the same number of lines
+        # with open(changes_path, 'r') as changes:
+        #     n_changes = sum(1 for line in changes)
+        # with open(changes_ref_path, 'r') as ref:
+        #     n_ref = sum(1 for line in ref)
+        # self.assertEqual(n_changes, n_ref, "Number of lines in changes.inc and reference file does not match")
+        # # Check files line by line
+        # mismatch_found = False
+        # n = 0
+        # with open(changes_path, 'r') as changes:
+        #     with open(changes_ref_path, 'r') as ref:
+        #         for line in changes:
+        #             n += 1
+        #             ref_line = ref.readline()
+        #             if line == ref_line:
+        #                 # log.debug("\nLine #%d:>\n%smatches line:>\n%s" % (n, line, ref_line))
+        #                 pass
+        #             else:
+        #                 log.debug("\nMismatch on Line #%d:>\n%sand line:>\n%s" % (n, line, ref_line))
+        #                 mismatch_found = True
+        # self.assertFalse(mismatch_found, "There was a mismatch in changes.inc and reference file")
 
-    def test_get_input_files(self):
-        log.info("Testing get_input_files()")
-        # Add model into Setup. Creates model input directories.
-        self.child_dummy_a.attach_tool(self.tool)
-        # Add input formats to model
-        self.tool.add_input_format(GDX_DATA_FMT)
-        self.tool.add_input_format(GAMS_INC_FILE)
-        # Copy dummy test files to setup model folders
-        self.prepare_test_data()
-        # DO THE ACTUAL TEST
-        self.child_dummy_a.pop_model()
-        gdx_count = 1
-        inc_count = 1
-        for fmt in self.child_dummy_a.running_model.input_formats:
-            # get_input_files gives the names of the input files in a list
-            filenames = self.child_dummy_a.get_input_files(self.child_dummy_a.running_model, fmt)
-            count = 0
-            for file in filenames:
-                # log.info(".%s file #%d: %s" % (fmt.extension, count, file))
-                count += 1
-            if fmt.extension == 'gdx':
-                gdx_count = count
-            elif fmt.extension == 'inc':
-                inc_count = count
-        log.debug("GDX count:%d INC_count:%d" % (gdx_count, inc_count))
-        # Simply check that 4 gdx files and 2 inc files were found
-        self.assertEqual(gdx_count, 4)
-        self.assertEqual(inc_count, 2)
-        # # This is how you can check variables if a test fails
-        # try:
-        #     self.assertTrue(False)
-        # except AssertionError as e:
-        #     print("Assertion error caught")
-        #     # Do something with variables
-        #     raise e
-
-    def test_save(self):
-        """Tests only that .json files are saved to \input\ folder."""
-        log.info("Testing save()")
-        self.base_setup.save()
-        self.child_dummy_a.save()
-        base_json_filename = self.base_setup.short_name + '.json'
-        child_json_filename = self.child_dummy_a.short_name + '.json'
-        json_save_path = os.path.abspath(os.path.join(PROJECT_DIR, 'input'))
-        base_json_path = os.path.join(json_save_path, base_json_filename)
-        child_json_path = os.path.join(json_save_path, child_json_filename)
-        self.assertTrue(os.path.exists(base_json_path))
-        self.assertTrue(os.path.exists(child_json_path))
-        self.delete_files(json_save_path)
-
-    def test_pop_model(self):
-        log.info("Testing pop_model()")
-        self.child_dummy_a.attach_tool(self.tool)
-        # Pop next model into model.running_model
-        self.child_dummy_a.pop_model()
-        retval = False
-        if self.child_dummy_a.running_model.__class__.__name__ == 'GAMSModel':
-            retval = True
-        self.assertTrue(retval)
-
-    def test_pop_model_from_empty_dict(self):
-        log.info("Testing pop_model_from_empty_dict()")
-        # Pop a model from an empty dictionary
-        self.assertRaises(KeyError, self.child_dummy_a.models.popitem)
-
+    @skip("Obsolete")
     def test_execute_and_model_finished(self):
         """Executes a setup tree with base setup (no model) and one setup (gams model)
         with base parent. Skips start_process() and goes straight to model_finished().
@@ -262,6 +329,7 @@ class TestSetup(TestCase):
         self.assertTrue(self.base_setup.is_ready)
         self.assertTrue(self.child_dummy_a.is_ready)
 
+    @skip("Obsolete")
     def test_execute_with_multiple_models_in_setup(self):
         """Testing execute with base setup (no model) and child setup (2 GAMS models)."""
         log.info("Testing execute() with multiple models in a setup")
@@ -296,16 +364,7 @@ class TestSetup(TestCase):
         self.assertTrue(self.base_setup.is_ready)
         self.assertTrue(self.child_dummy_a.is_ready)
 
-    def test_execute_with_base_setup(self):
-        """Test execute with just base setup (no model)."""
-        log.debug("Testing execute() with base setup")
-        self.base_setup.execute()
-        # with mock.patch('model.qsubprocess.QSubProcess.start_process',
-        #                 side_effect=self.side_effect_base) as mock_start_process:
-        #     self.base_setup.execute()
-        #     assert mock_start_process is model.qsubprocess.QSubProcess.start_process
-        self.assertTrue(self.base_setup.is_ready)
-
+    @skip("Obsolete")
     def test_execute_with_three_setups_and_two_models(self):
         """Test execute with three setups: base -> setup_dummy_a -> setup_dummy_b.
         setup_dummy_a and setup_dummy_b have a GAMS model."""
@@ -332,6 +391,7 @@ class TestSetup(TestCase):
         self.assertTrue(self.child_dummy_a.is_ready)
         self.assertTrue(self.child_dummy_b.is_ready)  # TODO: Fails because of bug in execute()
 
+    @skip("Obsolete")
     def test_execute_with_three_setups_and_one_model(self):
         """Test execute with three setups: base -> setup_dummy_a -> setup_dummy_b.
         setup_dummy_b has a GAMS model."""
@@ -357,6 +417,7 @@ class TestSetup(TestCase):
         self.assertTrue(self.child_dummy_a.is_ready)
         self.assertTrue(self.child_dummy_b.is_ready)
 
+    @skip("Obsolete")
     def test_execute_with_three_setups(self):
         """Test execute with three setups: base -> setup_dummy_a -> setup_dummy_b."""
         log.debug("Testing execute() with three setups")
@@ -377,33 +438,41 @@ class TestSetup(TestCase):
         log.info("Copying test files")
         # Create path strings for easier reference
         # Path to test input
-        input_f = os.path.abspath(os.path.join(APPLICATION_PATH, 'test', 'resources', 'test_input'))
-        # Path to base setup input for model magic (src)
-        base_input_f = os.path.join(input_f, 'base', self.tool.short_name)
-        # Path to child setup input for model magic (src)
-        child_input_f = os.path.join(input_f, 'child', self.tool.short_name)
-        # Path to base setup input for model magic (dst). This must be made manually.
-        base_model_f = os.path.join(self.base_setup.input_dir, self.tool.short_name)
-        # Path to child setup input for model magic (dst)
-        child_model_f = os.path.join(self.child_dummy_a.input_dir, self.tool.short_name)
-        # TODO: Make input folder for model in base setup as well, when a model is added to setup.
-        # This is not done at the moment when a model is added to Setup
-        create_dir(base_model_f)
+        src_f = os.path.abspath(os.path.join(APPLICATION_PATH, 'test', 'resources', 'test_input'))
+        # Path to base setup input (src)
+        src_base_f = os.path.join(src_f, 'base')
+        # Path to Dummy A setup input (src)
+        src_dummy_a_f = os.path.join(src_f, 'dummy_a')
+        # Path to Dummy B setup input (src)
+        src_dummy_b_f = os.path.join(src_f, 'dummy_b')
+
+        if not self._project:
+            raise SkipTest("Test skipped. No project found")
+        dst_base_f = os.path.join(self._project.project_dir, 'input', 'base')
+        dst_dummy_a_f = os.path.join(self._project.project_dir, 'input', 'dummy_a')
+        dst_dummy_b_f = os.path.join(self._project.project_dir, 'input', 'dummy_b')
+
         # Check that source test input folders exist
-        if not os.path.exists(base_input_f):
-            raise SkipTest("Test skipped. Base (src) input folder missing <{0}>\n".format(base_input_f))
-        if not os.path.exists(child_input_f):
-            raise SkipTest("Test skipped. Child (src) input folder missing <{0}>\n".format(child_input_f))
-        # Check that destination test input folders exist (Created by attach_tool())
-        if not os.path.exists(base_model_f):
-            raise SkipTest("Test skipped. Base (dst) input folder not found <{0}>\n".format(base_model_f))
-        if not os.path.exists(child_model_f):
-            raise SkipTest("Test skipped. Child (dst) input folder not found <{0}>\n".format(child_model_f))
+        if not os.path.exists(src_base_f):
+            raise SkipTest("Test skipped. Base (src) input folder missing <{0}>\n".format(src_base_f))
+        if not os.path.exists(src_dummy_a_f):
+            raise SkipTest("Test skipped. Child (src) input folder missing <{0}>\n".format(src_dummy_a_f))
+        if not os.path.exists(src_dummy_b_f):
+            raise SkipTest("Test skipped. Child (src) input folder missing <{0}>\n".format(src_dummy_b_f))
+        # Check that destination project input folders exist (created by SceletonProject())
+        if not os.path.exists(dst_base_f):
+            raise SkipTest("Test skipped. Base (dst) input folder not found <{0}>\n".format(dst_base_f))
+        if not os.path.exists(dst_dummy_a_f):
+            raise SkipTest("Test skipped. Child (dst) input folder not found <{0}>\n".format(dst_dummy_a_f))
+        if not os.path.exists(dst_dummy_b_f):
+            raise SkipTest("Test skipped. Child (dst) input folder not found <{0}>\n".format(dst_dummy_b_f))
         # Copy files from test input folders to appropriate test setup folders
-        base_count = copy_files(base_input_f, base_model_f)
-        child_count = copy_files(child_input_f, child_model_f)
-        log.debug("copied {0} files to folder: {1}".format(base_count, base_model_f))
-        log.debug("copied {0} files to folder: {1}".format(child_count, child_model_f))
+        base_count = copy_files(src_base_f, dst_base_f)
+        dummy_a_count = copy_files(src_dummy_a_f, dst_dummy_a_f)
+        dummy_b_count = copy_files(src_dummy_b_f, dst_dummy_b_f)
+        # log.debug("copied {0} files to folder: {1}".format(base_count, dst_base_f))
+        # log.debug("copied {0} files to folder: {1}".format(dummy_a_count, dst_dummy_a_f))
+        # log.debug("copied {0} files to folder: {1}".format(dummy_b_count, dst_dummy_b_f))
 
     def delete_files(self, dir_path):
         """Helper function to delete all files from folder dir_path excluding .gitignore."""

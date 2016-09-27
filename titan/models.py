@@ -499,7 +499,7 @@ class ToolModel(QAbstractListModel):
             role (int): Data role
 
         Returns:
-            Tool name when displayrole requested
+            Tool name when display role requested
         """
         if not index.isValid() or self.rowCount() == 0:
             return QVariant()
@@ -513,7 +513,11 @@ class ToolModel(QAbstractListModel):
                 return toolname
 
     def flags(self, index):
-        """Returns enabled flags for the given index."""
+        """Returns enabled flags for the given index.
+
+        Args:
+            index (QModelIndex): Index of Tool
+        """
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def insertRow(self, tool, row=0, parent=QModelIndex(), *args, **kwargs):

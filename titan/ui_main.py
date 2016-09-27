@@ -10,13 +10,14 @@ import logging
 import os
 import json
 import shutil
+import glob
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QCheckBox
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
 from tool import Setup
-from tools import create_dir, copy_files, create_output_dir_timestamp, find_work_dirs
+from helpers import create_dir, copy_files, create_output_dir_timestamp, find_work_dirs
 from GAMS import GAMSModel
 from config import ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
                    WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS
@@ -396,7 +397,7 @@ class TitanUI(QMainWindow):
         old_tool_paths = self._config.get('general', 'tools')
         if tool_def_path in old_tool_paths:
             if not self.tool_model.removeRow(index.row()):
-                self.add_msg_signal("Error in removing Tool {0}".format(sel_tool.name), 2)
+                self.add_msg_signal.emit("Error in removing Tool {0}".format(sel_tool.name), 2)
                 return
             new_tool_paths = old_tool_paths.replace('\n' + tool_def_path, '')
             # self.add_msg_signal.emit("Old tools string:{0}".format(old_tool_paths), 0)
@@ -658,7 +659,7 @@ class TitanUI(QMainWindow):
                 self.add_msg_signal.emit("Open a Project to execute Setups\n", 0)
                 return
             if self._root.child_count() == 0:
-                self.add_msg_signal("No Setups to execute", 0)
+                self.add_msg_signal.emit("No Setups to execute", 0)
                 return
             self.add_msg_signal.emit("\nExecuting Project '{0}'. Algorithm: {1}".format(self._project.name, alg), 0)
             # Get the first base that is not ready. Set the next one in setup_done()
@@ -699,10 +700,10 @@ class TitanUI(QMainWindow):
         if not self._running_setup.is_ready:
             self.add_msg_signal.emit("Setup '{0}' failed".format(self._running_setup.name), 2)
             return
-        self.add_msg_signal.emit("Setup '%s' ready" % self._running_setup.name, 1)
         self.add_msg_signal.emit("Output folder: {0}".format(self._running_setup.output_dir), 0)
         # Collect output files into permanent result directories
         self.collect_results()
+        self.add_msg_signal.emit("Setup '%s' ready" % self._running_setup.name, 1)
         # Clear running Setup
         self._running_setup = None
         if self.exec_mode == 'single':
@@ -745,12 +746,17 @@ class TitanUI(QMainWindow):
             return
         result_path = create_dir(os.path.abspath(os.path.join(
             self._running_setup.output_dir, self._running_setup.short_name + self.output_dir_timestamp)))
+        if not result_path:
+            self.add_msg_signal.emit("Error creating timestamped result directory. Results not copied", 2)
+            return
         self.add_msg_signal.emit("Collecting results to folder {0}".format(result_path), 0)
-        if result_path:
-            copy_files(self._running_setup.output_dir, result_path)
-        else:
-            self.add_msg_signal("Error collecting results to folder {0}".format(result_path), 2)
-        return
+        copy_files(self._running_setup.output_dir, result_path)
+        # Delete files from the output folder 'root'
+        # contents = glob.glob(os.path.join(self._running_setup.output_dir, '*'))
+        # for contender in contents:
+        #     if os.path.isfile(contender):
+        #         self.add_msg_signal.emit("Removing file: {0}".format(contender), 0)
+        #         os.remove(contender)
 
     def clear_selected_ready_flag(self):
         """Clears ready flag for the selected Setup."""
@@ -770,7 +776,7 @@ class TitanUI(QMainWindow):
     def clear_all_ready_flags(self):
         """Clear ready flag for all Setups in the project."""
         if not self._project:
-            self.add_msg_signal("No project open", 0)
+            self.add_msg_signal.emit("No project open", 0)
             return
 
         def traverse(setup):
