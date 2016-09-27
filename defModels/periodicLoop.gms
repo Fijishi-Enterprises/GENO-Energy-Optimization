@@ -19,9 +19,7 @@ $offOrder
                            and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast + 1)
                 ) = yes;   // Set of t's where the interval is 1 (right border defined by intervalEnd) - but do not go beyond tSolveLast
                 ts_energyDemand_(gn(grid, node), fSolve, t)$tInterval(t) = ts_energyDemand(grid, node, fSolve, t+ct(t));
-                ts_inflow_(unit_hydro, fSolve, t)$tInterval(t) = ts_inflow(unit_hydro, fSolve, t+ct(t));
-                ts_inflow_(storage_hydro, fSolve, t)$tInterval(t) = ts_inflow(storage_hydro, fSolve, t+ct(t));
-                ts_import_(gn(grid, node), t)$tInterval(t) = ts_import(grid, node, t+ct(t));
+                ts_absolute_(node, fSolve, t)$tInterval(t) = ts_absolute(node, fSolve, t+ct(t));
                 ts_cf_(flow, node, fSolve, t)$tInterval(t) = ts_cf(flow, node, fSolve, t+ct(t));
                 tCounter = mInterval(mSolve, 'intervalEnd', counter); // move tCounter to the next interval setting
                 p_stepLength(mf(mSolve, fSolve), t)$tInterval(t) = 1;  // p_stepLength will hold the length of the interval in model equations
@@ -29,7 +27,7 @@ $offOrder
                 pt(t + 1)$tInterval(t) = -1;
             elseif mInterval(mSolve, 'intervalLength', counter) > 1, // intervalLength > 1 (not defined if intervalLength < 1)
                 loop(t$[ord(t) >= tSolveFirst + tCounter and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast + 1)],  // Loop t relevant for each interval (interval borders defined by intervalEnd) - but do not go beyond tSolveLast
-                    if (not mod(tCounter, mInterval(mSolve, 'intervalLength', counter)),  // Skip those t's that are not at the start of any interval
+                    if (not mod(tCounter - mInterval(mSolve, 'intervalEnd', counter), mInterval(mSolve, 'intervalLength', counter)),  // Skip those t's that are not at the start of any interval
                         intervalLength = min(mInterval(mSolve, 'intervalLength', counter), max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon')) - tCounter);
                         p_stepLength(mf(mSolve, fSolve), t) = intervalLength;  // p_stepLength will hold the length of the interval in model equations
                         if (p_stepLengthNoReset(mSolve, 'f00', t) <> mInterval(mSolve, 'intervalLength', counter),  // and skip those t's that have been calculated for the right interval previously
@@ -41,9 +39,7 @@ $offOrder
                             p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength;
                             // Calculate averages for the interval time series data
                             ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t_))};
-                            ts_inflow_(unit_hydro, fSolve, t) = sum{t_$tInterval(t_), ts_inflow(unit_hydro, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);
-                            ts_inflow_(storage_hydro, fSolve, t) = sum{t_$tInterval(t_), ts_inflow(storage_hydro, fSolve, t_+ct(t_))};
-                            ts_import_(gn(grid, node), t) = sum{t_$tInterval(t_), ts_import(grid, node, t_+ct(t_))};
+                            ts_absolute_(node, fSolve, t) = sum{t_$tInterval(t_), ts_absolute(node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);
                             ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);
                             // Set the previous time step displacement
                             pt(t+intervalLength) = -intervalLength;
@@ -69,7 +65,7 @@ $onOrder
 
     // Set mft for the modelling period and model forecasts
     mft(mSolve,f,t) = no;
-    mft(mSolve, f, t)$( p_stepLength(mSolve, f, t) and ord(t) < tSolveFirst + mSettings(mSolve, 't_forecastLength' ) ) = yes;
+    mft(mSolve, f, t)$( p_stepLength(mSolve, f, t) and ord(t) < tSolveFirst + mSettings(mSolve, 't_horizon' ) ) = yes;
 *    mft(mSolve, f, t)${ [ord(t) >= ord(tSolve)]
 *                         $$ifi     '%rampSched%' == 'yes' and [ord(t) <=
 *                         $$ifi not '%rampSched%' == 'yes' and [ord(t) <
@@ -107,19 +103,34 @@ $onOrder
     ft_realizedLast(f,t) = no;
     ft_realizedLast(f,t)$[fRealization(f) and ord(t) = ord(tSolve) + mSettings(mSolve, 't_jump')] = yes;
 
-    nuft(node, unit, f, t) = no;
-    nuft(node, unit, f, t)$[     ft(f, t)
-                             and ord(t) <= mSettings(mSolve, 't_aggregate')
-                             and not unit_aggregate(unit)
-                           ] = yes;
+    uft(unit, f, t) = no;
+    uft(unit, f, t)$[ ft(f, t)
+                        and ord(t) <= mSettings(mSolve, 't_aggregate')
+                        and not unit_aggregate(unit)
+                    ] = yes;
 
-    nuft(node, unit, f, t)$[     ft(f, t)
-                             and ord(t) > mSettings(mSolve, 't_aggregate')
-                             and (unit_aggregate(unit) or unit_noAggregate(unit))
-                           ] = yes;
+    uft(unit, f, t)$[ ft(f, t)
+                        and ord(t) > mSettings(mSolve, 't_aggregate')
+                        and (unit_aggregate(unit) or unit_noAggregate(unit))
+                    ] = yes;
+
+    nuft(node, unit, f, t) = no;
+    nuft(node, unit, f, t)$(nu(node, unit) and uft(unit, f, t)) = yes;
 
     gnuft(grid, node, unit, f, t) = no;
     gnuft(grid, node, unit, f, t)$(gn(grid, node) and nuft(node, unit, f, t)) = yes;
+
+    loop(effLevel$mSettingsEff(mSolve, effLevel),
+        tInterval(t) = no;
+        tInterval(t)$(ord(effLevel) = 1 and ord(t) = tSolveFirst) = yes;
+        tInterval(t)$(     ord(t) >= tSolveFirst + mSettingsEff(mSolve, effLevel)
+                       and ord(t) < tSolveFirst + mSettingsEff(mSolve, effLevel+1)
+                     ) = yes;
+        loop(effLevelGroupUnit(effLevel, effGroup, unit),
+            suft(effGroup, unit, f, tInterval(t))$(effLevelGroupUnit(effLevel, effGroup, unit) and uft(unit, f, tInterval)) = yes;
+        );
+    );
+    sufts(effGroup, unit, f, t, effSelector)$(effGroupSelector(effGroup, effSelector) and suft(effGroup, unit, f, t)) = yes;
 
     pf(ft(f,t))$(ord(t) eq ord(tSolve) + 1) = 1 - ord(f);
 

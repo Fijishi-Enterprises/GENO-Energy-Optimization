@@ -2,7 +2,7 @@
     loop(fRealization(f),
         r_gen(grid, unit, t)$ft_realized(f,t) = sum(node$(gnu(grid, node, unit) or gnu_input(grid, node, unit)), v_gen.l(grid, node, unit, f, t));
         loop(fuel,
-            r_genFuel(gn(grid, node), fuel, t)$ft_realized(f,t) = sum(unit$unitFuelParam(unit, fuel, 'main'), v_gen.l(grid, node, unit, f, t));
+            r_genFuel(gn(grid, node), fuel, t)$ft_realized(f,t) = sum(unit$uFuel(unit, 'main', fuel), v_gen.l(grid, node, unit, f, t));
         );
 $iftheni.unittypes '%unittypes%' == 'yes'
             r_elec_type(unittype, t)$ft_realized(f,t) = sum(g $unittypeUnit(unittype, unit),
@@ -22,16 +22,16 @@ $ontext
                = v_stoCharge.l(storage, f, t) / p_blockLength(t);
             r_onlineCap(h, elec) = v_gen.l('elec', elec, fCentral(f), t);
             r_onlineCap(h, unit_minLoad(elec)) = v_online.l(elec, f, t);
-            r_onlineCap(h, unit_VG(elec)) = p_unit_VG(elec, f, t);
-            r_onlineCap(h, unit_VG(elec))
-               = v_elec.l(unit_VG, t);
+            r_onlineCap(h, unit_flow(elec)) = p_unit_flow(elec, f, t);
+            r_onlineCap(h, unit_flow(elec))
+               = v_elec.l(unit_flow, t);
         loop(step_hour(h, t),
            r_stoContent(h, f)$p_data(f, 'maxContent')
               = r_stoContent(h - 1, f)
                 + (r_storageControl(h, f)
-                   + ts_inflow(h, f)
-                   + sum(unitStorage(unit_VG, f),
-                         ts_inflow(h, unit_VG)
+                   + ts_absolute(h, f)
+                   + sum(unitStorage(unit_flow, f),
+                         ts_absolute(h, unit_flow)
                      )
                   ) / p_data(f, 'maxContent');
            r_storageValue(h, f) = p_storageValue(f, t);

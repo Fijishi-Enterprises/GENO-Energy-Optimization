@@ -1,34 +1,32 @@
 * Load updates made for BackBone
 $gdxin  'input/inputData.gdx'
+$loaddc grid
 $loaddc node
 $loaddc flow
 $loaddc unit
 $loaddc fuel
-$loaddc storage
 $loaddc unitUnit_aggregate
+$loaddc uFuel
+$loaddc gnuUnion
+$loaddc effLevelGroupUnit
 $loaddc p_gn
 $loaddc p_gnn
 $loaddc p_gnu
-$loaddc p_nu
+$loaddc p_unit
 $loaddc p_nuReserves
-$loaddc p_gnStorage
 $loaddc p_gnSlack
 $loaddc p_gnPolicy
-$loaddc gnu_input
-$loaddc nnu
-$loaddc unitFuelParam
+$loaddc p_uFuel
 $loaddc flowUnit
-$loaddc unitStorage
-$loaddc ggnu_fixedOutputRatio
-$loaddc ggnu_constrainedOutputRatio
+$loaddc gngnu_fixedOutputRatio
+$loaddc gngnu_constrainedOutputRatio
 $loaddc emission
 $loaddc p_fuelEmission
 $loaddc ts_energyDemand
-$loaddc ts_import
 $loaddc ts_cf
 $loaddc ts_stoContent
 $loaddc ts_fuelPriceChange
-$loaddc ts_inflow
+$loaddc ts_absolute
 $loaddc ts_nodeState
 $gdxin
 
@@ -44,49 +42,82 @@ $offtext
 
 unit_aggregate(unit)$sum(unit_, unitUnit_aggregate(unit, unit_)) = yes;
 unit_noAggregate(unit)$(unit(unit) - unit_aggregate(unit) - sum(unit_, unitUnit_aggregate(unit_, unit))) = yes;
-unitStorage(unit, storage)$sum(unit_$(unitUnit_aggregate(unit, unit_) and unitStorage(unit_, storage)), 1) = yes;
+*unitStorage(unit, storage)$sum(unit_$(unitUnit_aggregate(unit, unit_) and unitStorage(unit_, storage)), 1) = yes;
 
-p_gnu(grid, node, unit_aggregate(unit), 'maxCap') = sum(unit_$unitUnit_aggregate(unit, unit_), p_gnu(grid, node, unit_, 'maxCap'));
-p_gnu(grid, node, unit_aggregate(unit), 'maxCharging') = sum(unit_$unitUnit_aggregate(unit, unit_), p_gnu(grid, node, unit_, 'maxCharging'));
+* Process data for unit aggregations
+p_gnu(grid, node, unit_aggregate(unit), 'maxGen') = sum(unit_$unitUnit_aggregate(unit, unit_), p_gnu(grid, node, unit_, 'maxGen'));
+p_gnu(grid, node, unit_aggregate(unit), 'maxCons') = sum(unit_$unitUnit_aggregate(unit, unit_), p_gnu(grid, node, unit_, 'maxCons'));
 
 * Generate sets based on parameter data
-gnu(grid, node, unit)$p_gnu(grid, node, unit, 'maxCap') = yes;
+gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'maxGen') or p_gnu(grid, node, unit, 'maxCons')) = yes;
+gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'maxGen') = yes;
+gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'maxCons') = yes;
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
-nu(node, unit)$sum((grid, grid_), ggnu_constrainedOutputRatio(grid, grid_, node, unit)) = no;
-nu(node, unit)$sum((grid, grid_), ggnu_fixedOutputRatio(grid, grid_, node, unit)) = no;
-gnStorage(grid, node, storage)$p_gnStorage(grid, node, storage, 'maxContent') = yes;
+*nu(node, unit)$sum((grid, grid_, node_), gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit)) = no;
+*nu(node, unit)$sum((grid, grid_, node_), gngnu_fixedOutputRatio(grid, node, grid_, node_, unit)) = no;
 nnu(node, node_, unit)$(nu(node, unit) and ord(node) = ord(node_)) = yes;
 gn2n(grid, from_node, to_node)$p_gnn(grid, from_node, to_node, 'transferCap') = yes;
 node_to_node(from_node, to_node)$p_gnn('elec', from_node, to_node, 'transferCap') = yes;
 gnn_boundState(grid, node, node_)$(p_gnn(grid, node, node_, 'boundStateOffset')) = yes;
 gnn_state(grid, node, node_)$(p_gnn(grid, node, node_, 'diffCoeff') or gnn_boundState(grid, node, node_)) = yes;
-gn_state(grid, node)$(sum(param_gn, p_gn(grid, node, param_gn)) or sum(node_, gnn_state(grid, node, node_)) or sum(node_, gnn_state(grid, node_, node))) = yes;
+gn_state(grid, node)$(p_gn(grid, node, 'maxState') or p_gn(grid, node, 'maxStateSlack') or sum(node_, gnn_state(grid, node, node_)) or sum(node_, gnn_state(grid, node_, node))) = yes;
 gn_stateSlack(grid, node)$((p_gn(grid, node, 'maxStateSlack') or p_gn(grid, node, 'minStateSlack') or sum(f, sum(t, ts_nodeState(grid, node, 'maxStateSlack', f, t) + ts_nodeState(grid, node, 'minStateSlack', f, t)))) and not p_gn(grid, node, 'fixState')) = yes;
 gn(grid, node)$(sum(unit, gnu(grid, node, unit)) or gn_state(grid, node)) = yes;
 gnSlack(inc_dec, slack, grid, node)$(sum(param_slack, p_gnSlack(inc_dec, slack, grid, node, param_slack))) = yes;
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 
-unit_online(unit)$[ sum(gnu(grid, node, unit), p_nu(node, unit, 'startupCost') or p_nu(node, unit, 'startupFuelCons') or p_nu(node, unit, 'coldStart') ) ] = yes;
-unit_VG(unit)$sum(flow, flowUnit(flow, unit)) = yes;
+unit_online(unit)$[ p_unit(unit, 'startupCost') or p_unit(unit, 'startupFuelCons') or p_unit(unit, 'coldStart') ] = yes;
+unit_flow(unit)$sum(flow, flowUnit(flow, unit)) = yes;
 *unitConversion(unit)$sum(gn(grid, node), gnu_input(grid, node, unit)) = yes;
-unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxCap')) = yes;
-unit_heat(unit)$sum(gnu(grid, node, unit), p_gnu('heat', node, unit, 'maxCap')) = yes;
-unit_fuel(unit)$sum[ (fuel, node)$sum(t, ts_fuelPriceChangenode(fuel, node, t)), unitFuelParam(unit, fuel, 'main') ] = yes;
-unit_VG(unit)$sum(flow, flowUnit(flow, unit)) = yes;
-unit_withConstrainedOutputRatio(unit)$(sum(gnu(grid, node, unit), 1) > 1) = yes;
-unit_minload(unit)$sum(gnu(grid, node, unit), p_nu(node, unit, 'minLoad')) = yes;
-unit_hydro(unit)$sum(unitFuelParam(unit,'WATER','main'), 1) = yes;
-storage_hydro(storage)$sum(unit_hydro, unitStorage(unit_hydro, storage)) = yes;
-storage_charging(storage)$(sum(gnu(grid, node, unit)$unitStorage(unit, storage), p_gnu(grid, node, unit, 'maxCharging'))) = yes;
-storage_spill(storage)$(sum(gnStorage(grid, node, storage), p_gnStorage(grid, node, storage, 'maxSpill'))) = yes;
+unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) = yes;
+unit_heat(unit)$sum(gnu(grid, node, unit), p_gnu('heat', node, unit, 'maxGen')) = yes;
+unit_fuel(unit)$sum[ (fuel, node)$sum(t, ts_fuelPriceChangenode(fuel, node, t)), uFuel(unit, 'main', fuel) ] = yes;
+unit_flow(unit)$sum(flow, flowUnit(flow, unit)) = yes;
+unit_withConstrainedOutputRatio(unit)$(sum(gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit), 1)) = yes;
+p_gnu(gnu(grid, node, unit), 'eff00')$(not p_gnu(grid, node, unit, 'eff00')) = 1; // If the unit does not have efficiency set, it is 1
+p_gnu(gnu(grid, node, unit), 'rb00')$(not p_gnu(grid, node, unit, 'rb00')) = 0;   // If there is no right border for the first efficiency point, there will be no section
+unit_minload(unit)$[sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'rb00') > 0 and p_gnu(grid, node, unit, 'rb00') < 1)] = yes;   // If the first point is between 0 and 1, then the unit has a min load limit
+*unit_hydro(unit)$sum(unitFuelParam(unit,'WATER','main'), 1) = yes;
+*node_reservoir(node)$sum(unit_hydro, unitStorage(unit_hydro, storage)) = yes;
+node_storage(node)$(sum(grid, p_gn(grid, node, 'maxState')) > 0) = yes;
+node_charging(node_storage)$(sum(gnu(grid, node_storage, unit), p_gnu(grid, node_storage, unit, 'maxCons'))) = yes;
+node_spill(node_storage)$(sum(grid, p_gn(grid, node_storage, 'maxSpill'))) = yes;
 nuRescapable(restype, resdirection, node, unit)$p_nuReserves(node, unit, restype, resdirection) = yes;
+
+p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount')) = 1;  // In case number of units has not been defined it is 1.
+$ontext
+p_unit(unit, 'section00') = p_unit(unit, 'rb00') / p_unit(unit, 'eff00'); // Section at min. load defined by rb00
+p_unit(unit, 'slope00')$p_unit(unit, 'eff01')
+                                           = [ + 1 / p_unit(unit, 'eff01')
+                                               - 1 / p_unit(unit, 'eff00')
+                                             ] /
+                                             [ + p_unit(unit, 'rb01')
+                                               - p_unit(unit, 'rb00')
+                                             ];
+p_unit(unit, 'slope00')$(not p_unit(unit, 'eff01'))   // In case there is single efficiency over the whole operating area
+                                           = 1 / p_unit(unit, 'eff00');
+p_unit(unit, 'slope01')$p_unit(unit, 'eff02')         // Calculate rest of the slope as additions over the first slope
+                                           = [ + p_unit(unit, 'rb02') / p_unit(unit, 'eff02')
+                                               - p_unit(unit, 'rb01') / p_unit(unit, 'eff01')
+                                             ] /
+                                             [ + p_unit(unit, 'rb02')
+                                               - p_unit(unit, 'rb01')
+                                             ]
+                                             - p_unit(unit, 'slope00');
+unit_slope(unit)$(sum(slope$p_unit(unit, slope), 1) > 1) = yes;
+unit_noSlope(unit)$(sum(slope$p_unit(unit, slope), 1) <= 1 and not unit_flow(unit)) = yes;
+slopeUnit(slope, unit)$(p_unit(unit, slope) and ord(slope)>1) = yes;
+$offtext
+p_unit(unit, 'unitCapacity')$p_unit(unit, 'unitCapacity') = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));  // By default add outputs in order to get the total capacity of the unit
+
+* Rest of the slope calculations missing... need to implement slope set or something similar.
 
 * Link units to unittypes
 $iftheni '%unittypes%' == 'yes'
 loop(nu_fuel(node, unit, fuel, 'main'),
     unittypeUnit('pumped storage', unit) = yes$(sameas(fuel, 'water')
-                                          and p_nu(node, unit, 'maxCharging') > 0);
+                                          and p_unit(unit, 'maxCons') > 0);
     unittypeUnit('hydropower', unit) = yes$(sameas(fuel, 'water')
                                       and not unittypeUnit('pumped storage', unit));
     unittypeUnit('nuclear', unit) = yes$sameas(fuel, 'nuclear');
@@ -99,4 +130,5 @@ loop(nu_fuel(node, unit, fuel, 'main'),
     unittypeUnit('dummy', unit) = yes$sameas(unit, 'dummy');
 );
 $endif
+
 
