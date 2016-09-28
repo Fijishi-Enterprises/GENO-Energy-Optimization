@@ -22,13 +22,14 @@ class TestSetupModel(TestCase):
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
         log.info("Setting up")
-        self._project = SceletonProject('unit_test_project', 'a project for unit tests')
+        self._project = SceletonProject('Unittest Project', 'a project for unit tests')
         self._root = Setup('root', 'root node for Setups,', self._project)
         self.test_model = SetupModel(self._root)
 
     def tearDown(self):
-        self.test_model = None
         log.info("Tearing down")
+        self.test_model = None
+        # TODO: Remove Setup input directories (and maybe the whole unittest_project directory)
 
     def test_get_siblings(self):
         """Test if get_siblings returns indices a, b, c if given index a."""

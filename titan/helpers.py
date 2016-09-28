@@ -179,6 +179,50 @@ def create_output_dir_timestamp():
     return extension
 
 
+def find_in_latest_output_folder(setup_name, base_output_path, folders, fname=''):
+    """Finds a file from the most recent folder in the given folder list. Folder names are ranked
+     according to the timestamp in their name.
+
+    Args:
+        setup_name (str): Setup short name
+        base_output_path (str): Path of Setups' 'base' output path. eg. ..\project1\output\setup1\
+        folders (list): List of folder names
+        fname (str): File name that is being searched
+
+    Returns:
+        Name of the newest folder if it contains the given file or None if it does not or None
+        if folders parameter does not have any folders. If fname not given then this function
+        is used with find_input_files method which only needs the folder name.
+    """
+    # TODO: Remove fname argument and just return the most recent folder
+    if len(folders) == 0:
+        return None
+    f_dict = dict()
+    st = setup_name + '-'  # String that is stripped from the folder name to get the timestamp
+    for folder_name in folders:
+        # Get time stamp by stripping the Setup name and '-' from it
+        timestamp = folder_name.strip(st)
+        date_obj = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H.%M.%S')
+        # Populate dictionary with parsed datetime object as key and folder name as value
+        f_dict[date_obj] = folder_name
+    # Get the latest date
+    latest_date = max(f_dict.keys())
+    # Get the folder corresponding to the latest date
+    latest_folder_name = f_dict.get(latest_date)
+    # logging.debug("latest date:{0}. latest folder:{1}".format(latest_date, latest_folder_name))
+    latest_folder_path = os.path.join(base_output_path, latest_folder_name)
+    files = os.listdir(latest_folder_path)
+    if fname == '':
+        logging.debug("Returning latest output path")
+        return latest_folder_path
+    if fname in files:
+        logging.debug("Found file '{0}' in folder '{1}'".format(fname, latest_folder_path))
+        return latest_folder_path
+    else:
+        logging.debug("Did not find file '{0}' in folder '{1}'".format(fname, latest_folder_path))
+        return None
+
+
 def find_duplicates(a):
     """Finds duplicates in a list. Returns a list with the duplicates or an empty list if none found."""
     return [item for item, count in collections.Counter(a).items() if count > 1]

@@ -17,7 +17,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 import qsubprocess
 from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR, WORK_DIR
 from metaobject import MetaObject
-from helpers import create_dir
+from helpers import create_dir, find_in_latest_output_folder, create_output_dir_timestamp
 
                    
 class MyEncoder(json.JSONEncoder):
@@ -76,20 +76,21 @@ class Tool(MetaObject):
         """
         self.return_codes[code] = description
 
-    def create_instance(self, ui, cmdline_args=None, tool_output_dir=''):
+    def create_instance(self, ui, cmdline_args=None, tool_output_dir='', setup_name=''):
         """Create an instance of the tool.
 
         Args:
             ui (TitanUI): Titan GUI instance
             cmdline_args (str): Extra command line arguments
             tool_output_dir (str): Output directory for tool
+            setup_name (str): Short name of Setup that calls this method
         """
         if cmdline_args is not None:
             if self.cmdline_args is not None:
                 cmdline_args += ' ' + self.cmdline_args
         else:
             cmdline_args = self.cmdline_args
-        return ToolInstance(self, ui, cmdline_args, tool_output_dir)
+        return ToolInstance(self, ui, cmdline_args, tool_output_dir, setup_name)
 
     def save(self):
         """[OBSOLETE] Save tool object to disk."""
@@ -113,7 +114,7 @@ class ToolInstance(QObject):
 
     instance_finished_signal = pyqtSignal(int)
 
-    def __init__(self, tool, ui, cmdline_args=None, tool_output_dir=''):
+    def __init__(self, tool, ui, cmdline_args=None, tool_output_dir='', setup_name=''):
         """Tool instance constructor.
 
         Args:
@@ -121,6 +122,7 @@ class ToolInstance(QObject):
             ui (TitanUI): Titan GUI instance
             cmdline_args (str, optional): Extra command line arguments
             tool_output_dir (str): Tool output directory
+            setup_name (str): Short name of Setup that creates this instance
         """
         super().__init__()
         self.tool = tool
@@ -137,6 +139,7 @@ class ToolInstance(QObject):
         self.infiles_opt = [os.path.join(self.basedir, f) for f in tool.infiles_opt]
         self.tool_output_dir = tool_output_dir
         self.outfiles = [os.path.join(self.basedir, f) for f in tool.outfiles]
+        self.setup_name = setup_name
 
     @property
     def _checkout(self):
@@ -195,10 +198,25 @@ class ToolInstance(QObject):
         except KeyError:
             logging.error("Unknown return code")
         finally:
-            if not self.copy_output(self.tool_output_dir):
-                logging.error("Copying output files to folder '{0}' failed".format(self.tool_output_dir))
+            # Get timestamp when tool finished
+            output_dir_timestamp = create_output_dir_timestamp()
+            # Create an output folder with timestamp and copy output directly there
+            result_path = create_dir(os.path.abspath(os.path.join(
+                self.tool_output_dir, self.setup_name + output_dir_timestamp)))
+            if not result_path:
+                self.ui.add_msg_signal.emit("Error creating timestamped result directory. "
+                                            "Tool output files not copied. "
+                                            "Check permissions of Setup folders", 2)
+                return
+            # TODO: If Tool fails, either don't copy output files or copy them to [FAILED] folder
+            if not self.copy_output(result_path):
+                logging.error("Copying output files to folder '{0}' failed".format(result_path))
+                self.ui.add_msg_signal.emit("Copying output files of Tool '{0}' to directory '{1}' failed"
+                                            .format(self.tool.name, result_path), 2)
             else:
-                logging.debug("Output files copied to <%s>" % self.tool_output_dir)
+                logging.debug("Output files copied to <%s>" % result_path)
+                self.ui.add_msg_signal.emit("Tool '{0}' output files copied to '{1}'"
+                                            .format(self.tool.name, result_path), 0)
             # Emit signal to Setup that tool instance has finished with GAMS return code
             self.instance_finished_signal.emit(ret)
 
@@ -256,7 +274,6 @@ class Setup(MetaObject):
                                           self.short_name)
             self.output_dir = self.input_dir
             create_dir(self.input_dir)
-            self.result_dir = None
         # If not root, add self to parent's children
         if parent is not None:
             parent._add_child(self)
@@ -338,14 +355,6 @@ class Setup(MetaObject):
         output += "\n"
         return output
 
-    def set_result_dir(self, d):
-        """Set result directory name.
-
-        Args:
-            d (str): Result directory name that includes Setup name and timestamp.
-        """
-        self.result_dir = os.path.join(self.project.project_dir, OUTPUT_STORAGE_DIR, d)
-
     def attach_tool(self, tool, cmdline_args=""):
         """Attach a tool to this Setup.
 
@@ -377,6 +386,8 @@ class Setup(MetaObject):
         Used when Tool is changed."""
         self.tool = None
         self.cmdline_args = ""
+        # Make input the same as output again so that finding files works correctly
+        self.output_dir = self.input_dir
         # TODO: Add cleanup of output dir
 
     def get_input_files(self):
@@ -400,16 +411,22 @@ class Setup(MetaObject):
         """
         if self.is_root:
             return None
-
         # Look at own input
         if not is_ancestor:
             if fname in self.get_input_files():
                 return os.path.join(self.input_dir, fname)
         # Look from ancestor's output
-        else:
+        # If ancestor has no Tool, then its output directory is the same as its input directory
+        elif not self.tool:  # Same as self.output_dir == self.input_dir:
             if fname in self.get_output_files():
                 return os.path.join(self.output_dir, fname)
-
+        # If ancestor has a Tool, then files must be searched from the most recent output directory
+        else:
+            folders = self.get_output_files()
+            # Find file in the output folder with the most recent timestamp
+            latest_folder_path = find_in_latest_output_folder(self.short_name, self.output_dir, folders, fname)
+            if latest_folder_path:
+                return os.path.join(latest_folder_path, fname)
         return self._parent.find_input_file(fname, is_ancestor=True)
 
     def find_input_files(self, pattern, is_ancestor=False, used_filenames=None):
@@ -425,29 +442,36 @@ class Setup(MetaObject):
         """
         if self.is_root:
             return list()
-
         filenames = set() if not used_filenames else used_filenames
         filepaths = list()
-
         # Look in own input
         if not is_ancestor:
             src_files = self.get_input_files()
             src_dir = self.input_dir
         # ...or look from ancestor's output
-        else:
+        elif not self.tool:
+            # Setup does not have a tool so input and output folders are the same
             src_files = self.get_output_files()
             src_dir = self.output_dir
-
+        else:
+            # Setup has a tool so look from the most recent output folder
+            folders = self.get_output_files()
+            # Get the most recent output folder file in the output folder with the most recent timestamp
+            src_dir = find_in_latest_output_folder(self.short_name, self.output_dir, folders)
+            if not src_dir:
+                src_dir = ''
+                src_files = list()
+            else:
+                src_files = os.listdir(src_dir)
+        logging.debug("Looking for files matching pattern '{0}' in source dir: '{1}'".format(pattern, src_dir))
         # Search for files
         new_fnames = [f for f in fnmatch.filter(src_files, pattern)
                       if f not in filenames]
         filenames.update(new_fnames)
         filepaths += [os.path.join(src_dir, fname) for fname in new_fnames]
-
         # Recourse to parent
         filepaths += self._parent.find_input_files(pattern, is_ancestor=True,
                                                    used_filenames=filenames)
-
         return filepaths
 
     def save(self, path=''):
@@ -488,7 +512,8 @@ class Setup(MetaObject):
             self.setup_finished(0)
             return
         try:
-            instance = self.tool.create_instance(ui, self.cmdline_args, self.output_dir)
+            # TODO: Maybe add Setup short name to output dir here
+            instance = self.tool.create_instance(ui, self.cmdline_args, self.output_dir, self.short_name)
         except OSError:
             logging.error("Tool instance creation failed")
             ui.add_msg_signal.emit("Creating a Tool instance failed", 2)
@@ -578,7 +603,7 @@ class Setup(MetaObject):
         return True
 
     def cleanup(self):
-        """Remove temporary files of the setup."""
+        """Remove temporary files of the setup. Removes Tool instance directories."""
         # TODO: Check if this is needed
         for t in self.tool_instances:
             t.remove()

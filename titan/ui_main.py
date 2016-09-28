@@ -700,9 +700,8 @@ class TitanUI(QMainWindow):
         if not self._running_setup.is_ready:
             self.add_msg_signal.emit("Setup '{0}' failed".format(self._running_setup.name), 2)
             return
-        self.add_msg_signal.emit("Output folder: {0}".format(self._running_setup.output_dir), 0)
-        # Collect output files into permanent result directories
-        self.collect_results()
+        if not self._running_setup.tool:  # No Tool
+            self.add_msg_signal.emit("No Tool. No results.", 0)
         self.add_msg_signal.emit("Setup '%s' ready" % self._running_setup.name, 1)
         # Clear running Setup
         self._running_setup = None
@@ -736,27 +735,6 @@ class TitanUI(QMainWindow):
         # Connect setup_finished_signal to this same slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         self._running_setup.execute(self)
-
-    def collect_results(self):
-        """Collect output files into result directories
-        that are unique for each run."""
-        if not self._running_setup.tool:
-            # No Tool
-            self.add_msg_signal.emit("No Tool. No results to collect", 0)
-            return
-        result_path = create_dir(os.path.abspath(os.path.join(
-            self._running_setup.output_dir, self._running_setup.short_name + self.output_dir_timestamp)))
-        if not result_path:
-            self.add_msg_signal.emit("Error creating timestamped result directory. Results not copied", 2)
-            return
-        self.add_msg_signal.emit("Collecting results to folder {0}".format(result_path), 0)
-        copy_files(self._running_setup.output_dir, result_path)
-        # Delete files from the output folder 'root'
-        # contents = glob.glob(os.path.join(self._running_setup.output_dir, '*'))
-        # for contender in contents:
-        #     if os.path.isfile(contender):
-        #         self.add_msg_signal.emit("Removing file: {0}".format(contender), 0)
-        #         os.remove(contender)
 
     def clear_selected_ready_flag(self):
         """Clears ready flag for the selected Setup."""

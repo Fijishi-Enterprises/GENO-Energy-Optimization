@@ -15,7 +15,7 @@ import tool
 import ui_main
 from GAMS import GAMSModel
 from config import APPLICATION_PATH, PROJECT_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS
-from helpers import copy_files, create_dir
+from helpers import copy_files, create_dir, create_output_dir_timestamp
 from project import SceletonProject
 from models import SetupModel
 from models import ToolModel
@@ -34,7 +34,7 @@ class TestSetup(TestCase):
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
         log.disable(level=log.ERROR)
-        self._project = SceletonProject('Unit Test Project', '')
+        self._project = SceletonProject('Unittest Project', '')
         # Make SetupModel
         self._root = Setup('root', 'root node for Setups,', self._project)
         self._setup_model = SetupModel(self._root)
@@ -49,16 +49,29 @@ class TestSetup(TestCase):
     def tearDown(self):
         """Delete files and reset models."""
         # log.info("Tearing down")
+        # TODO: Remove Setup input directories (and maybe the whole unittest_project directory)
         log.disable(level=log.ERROR)
         base_f = os.path.join(self._project.project_dir, 'input', 'base')
+        base_output_f = os.path.join(self._project.project_dir, 'output', 'base')
         dummy_a_f = os.path.join(self._project.project_dir, 'input', 'dummy_a')
         dummy_b_f = os.path.join(self._project.project_dir, 'input', 'dummy_b')
-        if os.path.exists(base_f):
-            self.delete_files(base_f)
-        if os.path.exists(dummy_a_f):
-            self.delete_files(dummy_a_f)
-        if os.path.exists(dummy_b_f):
-            self.delete_files(dummy_b_f)
+        # DELETE INPUT FILES
+        delete = True
+        if delete:
+            if os.path.exists(base_f):
+                self.delete_files(base_f)
+            if os.path.exists(dummy_a_f):
+                self.delete_files(dummy_a_f)
+            if os.path.exists(dummy_b_f):
+                self.delete_files(dummy_b_f)
+        # DELETE TIMESTAMPED OUTPUT FOLDERS OF SETUP BASE
+        base_output_folders = os.listdir(base_output_f)
+        # log.debug("base output folders:{0}".format(base_output_folders))
+        for folder in base_output_folders:
+            folder_path = os.path.join(base_output_f, folder)
+            if os.path.isdir(folder_path):
+                log.debug("Deleting folder: {0}".format(folder_path))
+                shutil.rmtree(folder_path)
         log.disable(level=log.NOTSET)
         # Clear project, setup model, tool model, and root setup
         self._project = None
@@ -67,7 +80,7 @@ class TestSetup(TestCase):
         if self._tool_model:
             self._tool_model = None
 
-    @mock.patch('ui_main.TitanUI', autospec=True)
+    @mock.patch('ui_main.TitanUI')
     def init_tool_model(self, mock_ui):
         """Create Tool model and initialize configuration file."""
         config = ConfigurationParser(CONFIGURATION_FILE, defaults=GENERAL_OPTIONS)
@@ -108,7 +121,7 @@ class TestSetup(TestCase):
         self.assertTrue(retval)
 
     def test_find_input_file(self):
-        """Test finding individual files."""
+        """Test finding individual files from Setups with no Tool."""
         log.info("Testing find_input_file()")
         # Prepare test data
         self.prepare_test_data()
@@ -117,20 +130,22 @@ class TestSetup(TestCase):
         # Make folder refs
         base_f = os.path.join(self._project.project_dir, 'input', 'base')
         dummy_a_f = os.path.join(self._project.project_dir, 'input', 'dummy_a')
-        dummy_b_f = os.path.join(self._project.project_dir, 'input', 'dummy_b')
+        # dummy_b_f = os.path.join(self._project.project_dir, 'input', 'dummy_b')
         # TEST 1. Find a file in Setups's own input folder (Dummy A)
         path = s.find_input_file('dummy3.gdx')
         self.assertEqual(path, os.path.join(dummy_a_f, 'dummy3.gdx'))
         # TEST 2. Find a file in Setups's parents input folder (Base)
-        path = s.find_input_file('data.gdx')
-        self.assertEqual(path, os.path.join(base_f, 'data.gdx'))
+        path = s.find_input_file('dummy1.gdx')
+        self.assertEqual(path, os.path.join(base_f, 'dummy1.gdx'))
         # TEST 3. Find a file in Setups's siblings input folder. (Dummy B) Must return None.
         path = s.find_input_file('dummy4.gdx')
         self.assertEqual(path, None)
-        # TEST 4. Find a file in that does not exist. Must return None.
+        # TEST 4. Try to find a file that does not exist. Must return None.
         path = s.find_input_file('dummy4.gdx')
         self.assertEqual(path, None)
-        # TODO: Find required files from parents output folder
+        # TEST 5. Find a file from parent's output(=input) folder. No tools.
+        path = s.find_input_file('dummy1.gdx')
+        self.assertEqual(path, os.path.join(base_f, 'dummy1.gdx'))
 
     def test_find_input_files(self):
         """Test finding files with wildcards."""
@@ -142,56 +157,176 @@ class TestSetup(TestCase):
         # Make folder refs
         base_f = os.path.join(self._project.project_dir, 'input', 'base')
         dummy_a_f = os.path.join(self._project.project_dir, 'input', 'dummy_a')
-        dummy_b_f = os.path.join(self._project.project_dir, 'input', 'dummy_b')
+
         # TEST 1: Find *.gdx files
         found_files = s.find_input_files('*.gdx')
         # log.debug("found_files:\n{0}".format(found_files))
         ref = list()
+        ref.append(os.path.join(dummy_a_f, 'data.gdx'))
         ref.append(os.path.join(dummy_a_f, 'dummy3.gdx'))
-        ref.append(os.path.join(base_f, 'data.gdx'))
         ref.append(os.path.join(base_f, 'dummy1.gdx'))
         ref.append(os.path.join(base_f, 'dummy2.gdx'))
         self.assertEqual(found_files, ref)
 
-    def test_copy_input(self):
-        log.info("Testing copy_input()")
+    def test_find_input_files_from_setups_with_tools(self):
+        """Test that find_input_files works with wildcards with Setups with a tool.
+        This means that find_input_files should look for files matching the pattern from
+        the most recent timestamped output folder."""
+        log.info("Testing find_input_files with Setups with tools()")
+        # Prepare test data
+        self.prepare_test_data()
         # Fill ToolModel
         self.init_tool_model()
-        # Get BackBone tool from ToolModel
-        t = self._tool_model.find_tool('Backbone')
-        if not t:
-            self.skipTest("Cannot make test without Backbone tool")
-        # Get test Setup
-        s = self._setup_model.find_index('Dummy A').internalPointer()
-        # Attach Tool Backbone to Setup Dummy A
-        s.attach_tool(t)
+        # Get tool from ToolModel
+        t_magic_invest = self._tool_model.find_tool('Magic Investments')
+        if not t_magic_invest:
+            self.skipTest("Cannot make test without Magic Investments tool")
+        # Get tool from ToolModel
+        t_magic_operation = self._tool_model.find_tool('Magic Operation')
+        if not t_magic_operation:
+            self.skipTest("Cannot make test without Magic Operation tool")
+        # Get base Setup
+        s_base = self._setup_model.find_index('Base').internalPointer()
+        # Get Dummy A
+        s_dummy_a = self._setup_model.find_index('Dummy A').internalPointer()
+        # Attach Tool Magic Investments to Setup Base
+        s_base.attach_tool(t_magic_invest)
+        # Attach Tool Magic Operation to Setup Dummy A
+        s_dummy_a.attach_tool(t_magic_operation)
+        # Make folder refs
+        base_f = os.path.join(self._project.project_dir, 'input', 'base')
+        base_output_f = os.path.join(self._project.project_dir, 'output', 'base')
+        dummy_a_f = os.path.join(self._project.project_dir, 'input', 'dummy_a')
 
-        s.co
+        # TEST 1: Find all *.gdx files for Base with Tool
+        log.debug("TEST 1")
+        base_files = s_base.find_input_files('*.gdx')
+        # log.debug("Base *.gdx files:\n{0}".format(base_files))
+        ref_base = list()
+        ref_base.append(os.path.join(base_f, 'data.gdx'))
+        ref_base.append(os.path.join(base_f, 'dummy1.gdx'))
+        ref_base.append(os.path.join(base_f, 'dummy2.gdx'))
+        self.assertEqual(base_files, ref_base)
 
-        # TODO: Make a tool instance
-        input_dir = t.path  # Todo: Change this to tool_instance.basedir
-        log.debug("Tool input_dir:{0}".format(input_dir))
-        for filepath in t.infiles | t.infiles_opt:
-            prefix, filename = os.path.split(filepath)
-            dst_dir = os.path.join(input_dir, prefix)
-            # Create the destination directory
-            try:
-                # os.makedirs(dst_dir, exist_ok=True)
-                log.debug("calling os.makedirs with dst_dir:{0}".format(dst_dir))
-            except OSError as e:
-                log.error(e)
-                return False
-            if '*' in filename:  # Deal with wildcards
-                found_files = s.find_input_files(filename)
-            else:
-                found_file = s.find_input_file(filename)
-                # Required file not found
-                if filepath in t.infiles and not found_file:
-                    log.debug("Could not find required input file '{}'".format(filename))
-                    # return False
-                # Construct a list
-                found_files = [found_file] if found_file else []
-            log.debug("found_files:\n{0}".format(found_files))
+        # TEST 2: Find all *.gdx files for Dummy A with Tool
+        # Simulate that Base Setup Magic Investments finished by copying Magic Investments
+        # output files to a new timestamped folder
+        base_result_path = create_dir(os.path.abspath(os.path.join(
+            s_base.output_dir, s_base.short_name + create_output_dir_timestamp())))
+        # Copy investments.gdx from \test\resources to a timestamped base Setup output folder
+        src_file_path = os.path.abspath(os.path.join(
+            APPLICATION_PATH, 'test', 'resources', 'test_output_for_magic_invest'))
+        base_count = copy_files(src_file_path, base_result_path)
+        log.debug("TEST 2")
+        # Find input files for Dummy A with Tool
+        dummy_files = s_dummy_a.find_input_files('*.gdx')
+        # log.debug("Dummy A *.gdx files:\n{0}".format(dummy_files))
+        ref_dummy = list()
+        ref_dummy.append(os.path.join(dummy_a_f, 'data.gdx'))
+        ref_dummy.append(os.path.join(dummy_a_f, 'dummy3.gdx'))
+        ref_dummy.append(os.path.join(base_result_path, 'investments.gdx'))
+        ref_dummy.append(os.path.join(base_result_path, 'report.gdx'))
+        self.assertEqual(dummy_files, ref_dummy)
+
+        # TEST 3: Find all *.inc for Dummy A and Base with Tools
+        log.debug("TEST 3")
+        dummy_inc_files = s_dummy_a.find_input_files('*.inc')
+        # log.debug("Dummy A *.inc files:\n{0}".format(dummy_inc_files))
+        ref_dummy_inc = list()
+        ref_dummy_inc.append(os.path.join(dummy_a_f, 'change1.inc'))
+        self.assertEqual(dummy_inc_files, ref_dummy_inc)
+
+        # TEST 4: Find *.gdx files for Dummy A when Base has no results dirs
+        # Delete Output folders
+        log.debug("TEST 4")
+        base_output_folders = os.listdir(base_output_f)
+        # log.debug("base output folders:{0}".format(base_output_folders))
+        for folder in base_output_folders:
+            folder_path = os.path.join(base_output_f, folder)
+            if os.path.isdir(folder_path):
+                log.debug("Deleting folder: {0}".format(folder_path))
+                shutil.rmtree(folder_path)
+        dummy_gdx_files4 = s_dummy_a.find_input_files('*.gdx')
+        # log.debug("Dummy A *.gdx files:\n{0}".format(dummy_gdx_files4))
+        ref_dummy4 = list()
+        ref_dummy4.append(os.path.join(dummy_a_f, 'data.gdx'))
+        ref_dummy4.append(os.path.join(dummy_a_f, 'dummy3.gdx'))
+        self.assertEqual(dummy_gdx_files4, ref_dummy4)
+
+        # TEST 5: Find all *.inc for Dummy A with Tool and Base with no Tool
+        # Detach tool from Base
+        log.debug("TEST 5")
+        s_base.detach_tool()
+        dummy_inc_files2 = s_dummy_a.find_input_files('*.inc')
+        # log.debug("Dummy A *.inc files:\n{0}".format(dummy_inc_files2))
+        ref_dummy_inc2 = list()
+        ref_dummy_inc2.append(os.path.join(dummy_a_f, 'change1.inc'))
+        ref_dummy_inc2.append(os.path.join(base_f, 'choice.inc'))
+        self.assertEqual(dummy_inc_files2, ref_dummy_inc2)
+
+    @mock.patch('ui_main.TitanUI')
+    def test_copy_input(self, mock_ui):
+        log.info("Testing copy_input()")
+        log.disable(level=log.ERROR)
+        # Prepare test data
+        self.prepare_test_data()
+        # Fill ToolModel
+        self.init_tool_model()
+        # Get tool from ToolModel
+        t_magic_invest = self._tool_model.find_tool('Magic Investments')
+        if not t_magic_invest:
+            self.skipTest("Cannot make test without Magic Investments tool")
+        # Get tool from ToolModel
+        t_magic_operation = self._tool_model.find_tool('Magic Operation')
+        if not t_magic_operation:
+            self.skipTest("Cannot make test without Magic Operation tool")
+        # Get base Setup
+        s_base = self._setup_model.find_index('Base').internalPointer()
+        # Get Dummy A
+        s_dummy_a = self._setup_model.find_index('Dummy A').internalPointer()
+        # Attach Tool Magic Investments to Setup Base
+        s_base.attach_tool(t_magic_invest)
+        # Attach Tool Magic Operation to Setup Dummy A
+        s_dummy_a.attach_tool(t_magic_operation)
+
+        # Mock GUI
+        gui = mock_ui()
+        assert mock_ui is ui_main.TitanUI
+        assert gui is ui_main.TitanUI()
+
+        # Make a Magic Investments tool instance
+        try:
+            magic_invest_instance = t_magic_invest.create_instance(gui, s_base.cmdline_args,
+                                                                   s_base.output_dir, s_base.short_name)
+        except OSError:
+            self.fail("Creating instance of Magic Investments failed")
+        log.disable(level=log.NOTSET)
+        # TEST 1
+        # Copy input of Magic Investments to tool instance input folder
+        retval = s_base.copy_input(t_magic_invest, gui, magic_invest_instance)
+        self.assertTrue(retval)
+
+        # TEST 2
+        # Simulate that Magic Investments finished by copying Magic Investments output files to a timestamped folder
+        base_result_path = create_dir(os.path.abspath(os.path.join(
+            s_base.output_dir, s_base.short_name + create_output_dir_timestamp())))
+        # Copy investments.gdx from \test\resources to a timestamped base Setup output folder
+        src_file_path = os.path.abspath(os.path.join(
+            APPLICATION_PATH, 'test', 'resources', 'test_output_for_magic_invest'))
+        base_count = copy_files(src_file_path, base_result_path)
+        # Magic Operation should now find investments.gdx from the latest \output\base\base-???\ folder
+        # Make a Magic Operation tool instance
+        log.disable(level=log.ERROR)
+        try:
+            magic_operation_instance = t_magic_operation.create_instance(gui, s_dummy_a.cmdline_args,
+                                                                         s_dummy_a.output_dir,
+                                                                         s_dummy_a.short_name)
+        except OSError:
+            self.fail("Creating instance of Magic Operation failed")
+        log.disable(level=log.NOTSET)
+        # Copy input of Magic Operation to tool instance input folder
+        retval = s_dummy_a.copy_input(t_magic_operation, gui, magic_operation_instance)
+        self.assertTrue(retval)
 
         # # Add model into Setup. Creates model input directories.
         # self.child_dummy_a.attach_tool(self.tool)
@@ -240,7 +375,7 @@ class TestSetup(TestCase):
 
     @skip("Method 'collect_input_files' does not exist")
     def test_collect_input_files(self):
-        # TODO: Test here that changes in child Setup input files have an effect
+        # TODO: Test here that changes in child Setup input files have an effect (change1.inc)
         pass
         # log.info("Testing collect_input_files()")
         # # Delete files from test model input folders except .gitignore

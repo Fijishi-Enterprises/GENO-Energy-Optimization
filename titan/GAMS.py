@@ -63,15 +63,16 @@ class GAMSModel(Tool):
     def __repr__(self):
         return "GAMSModel('{}')".format(self.name)
 
-    def create_instance(self, ui, cmdline_args=None, tool_output_dir=''):
+    def create_instance(self, ui, cmdline_args=None, tool_output_dir='', setup_name=''):
         """Create an instance of the GAMS model
 
         Args:
             ui (TitanUI): Titan GUI window
             cmdline_args (str): Extra command line arguments
             tool_output_dir (str): Tool output directory
+            setup_name (str): Short name of Setup that owns this Tool
         """
-        instance = ToolInstance(self, ui, cmdline_args, tool_output_dir)
+        instance = ToolInstance(self, ui, cmdline_args, tool_output_dir, setup_name)
         # Tamper the command to call GAMS
         command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE, self.main_prgm,
                                                   instance.basedir,
