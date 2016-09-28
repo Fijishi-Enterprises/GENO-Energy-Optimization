@@ -9,7 +9,7 @@ Note: These models have nothing to do with Balmorel, WILMAR or PSS-E.
 import logging
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, \
     QAbstractListModel, QModelIndex, QSortFilterProxyModel
-from tool import Setup
+from setup import Setup
 
 
 class SetupModel(QAbstractItemModel):

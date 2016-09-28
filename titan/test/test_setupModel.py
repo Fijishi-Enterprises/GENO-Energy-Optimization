@@ -6,12 +6,10 @@ Unit tests for SetupModel class.
 """
 
 from unittest import TestCase
-import os
 import sys
 import logging as log
 from PyQt5.Qt import QModelIndex
-from tool import Setup
-from config import APPLICATION_PATH, PROJECT_DIR
+from setup import Setup
 from models import SetupModel
 from project import SceletonProject
 

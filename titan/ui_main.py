@@ -10,14 +10,13 @@ import logging
 import os
 import json
 import shutil
-import glob
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QCheckBox
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
-from tool import Setup
-from helpers import create_dir, copy_files, create_output_dir_timestamp, find_work_dirs
+from setup import Setup
+from helpers import find_work_dirs
 from GAMS import GAMSModel
 from config import ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
                    WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS
@@ -57,7 +56,6 @@ class TitanUI(QMainWindow):
         self.tool_model = None
         self.modeltest = None
         self.exec_mode = ''
-        self.output_dir_timestamp = ''
         self.algorithm = True  # Tree-traversal algorithm (True=Breadth-first, False=Depth-first)
         # References for widgets
         self.setup_form = None
@@ -632,8 +630,6 @@ class TitanUI(QMainWindow):
         else:
             self.add_msg_signal.emit("No tree traversal algorithm selected", 2)
             return
-        # Create a new timestamp for this execution run
-        self.output_dir_timestamp = create_output_dir_timestamp()
         if self.exec_mode == 'single':
             # Execute a single selected Setup
             selected_setup = self.get_selected_setup_index()
