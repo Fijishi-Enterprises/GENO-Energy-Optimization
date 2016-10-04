@@ -4,12 +4,12 @@
         loop(fuel,
             r_genFuel(gn(grid, node), fuel, t)$ft_realized(f,t) = sum(unit$uFuel(unit, 'main', fuel), v_gen.l(grid, node, unit, f, t));
         );
-$iftheni.unittypes '%unittypes%' == 'yes'
-            r_elec_type(unittype, t)$ft_realized(f,t) = sum(g $unittypeUnit(unittype, unit),
-                                          v_gen.l('elec', unit, f, t));
-$endif.unittypes
-            r_demand(node, t)$ft_realized(f,t)
-                = sum(gn('elec', node), ts_energyDemand('elec', node, f, t));
+        r_genNodeType(grid, node, unittype, t)$ft_realized(f,t) = sum(unit$unitUnittype(unit, unittype),
+                                          v_gen.l(grid, node, unit, f, t));
+        r_genType(grid, unittype, t)$ft_realized(f,t) = sum(nu(node, unit)$unitUnittype(unit, unittype),
+                                          v_gen.l(grid, node, unit, f, t));
+        r_demand(grid, node, t)$ft_realized(f,t)
+             = sum(gn(grid, node), ts_energyDemand(grid, node, f, t));
 $ontext
             r_transmission(h, from_node, to_node, t)
                 = v_transmission(from_node, to_node, t);

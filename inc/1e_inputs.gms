@@ -3,7 +3,9 @@ $gdxin  'input/inputData.gdx'
 $loaddc grid
 $loaddc node
 $loaddc flow
+$loaddc unittype
 $loaddc unit
+$loaddc unitUnittype
 $loaddc fuel
 $loaddc unitUnit_aggregate
 $loaddc uFuel
@@ -112,23 +114,4 @@ $offtext
 p_unit(unit, 'unitCapacity')$p_unit(unit, 'unitCapacity') = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));  // By default add outputs in order to get the total capacity of the unit
 
 * Rest of the slope calculations missing... need to implement slope set or something similar.
-
-* Link units to unittypes
-$iftheni '%unittypes%' == 'yes'
-loop(nu_fuel(node, unit, fuel, 'main'),
-    unittypeUnit('pumped storage', unit) = yes$(sameas(fuel, 'water')
-                                          and p_unit(unit, 'maxCons') > 0);
-    unittypeUnit('hydropower', unit) = yes$(sameas(fuel, 'water')
-                                      and not unittypeUnit('pumped storage', unit));
-    unittypeUnit('nuclear', unit) = yes$sameas(fuel, 'nuclear');
-    unittypeUnit('coal', unit) = yes$sameas(fuel, 'coal');
-    unittypeUnit('OCGT', unit) = yes$(sameas(g, 'OCGT') or sameas(unit, 'DoE_Peaker'));
-    unittypeUnit('CCGT', unit) = yes$(sameas(fuel, 'nat_gas')
-                                and not unittypeUnit('OCGT', unit));
-    unittypeUnit('solar', unit) = yes$sameas(fuel, 'solar');
-    unittypeUnit('wind', unit) = yes$sameas(fuel, 'wind');
-    unittypeUnit('dummy', unit) = yes$sameas(unit, 'dummy');
-);
-$endif
-
 

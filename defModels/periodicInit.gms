@@ -99,7 +99,7 @@ loop(unit,
                 count = count + 1;
                 if( count > cum_lambda - count_lambda and count <= cum_lambda,
                     effLevelSelectorUnit(effLevel, effSelector, unit) = yes;
-                    effGroupSelectorUnit(effGroup, effSelector, unit)$effLevelGroupUnit(effLevel, effGroup, unit) = yes;
+                    effGroupSelectorUnit(effGroup, unit, effSelector)$effLevelGroupUnit(effLevel, effGroup, unit) = yes;
                 );
                 if ( count = count_lambda,
                     count_lambda2 = 0;
@@ -128,7 +128,7 @@ loop(unit,
                 count = count + 1;
                 if( count > cum_slope - count_slope and count <= cum_slope,
                     effLevelSelectorUnit(effLevel, effSelector, unit) = yes;
-                    effGroupSelectorUnit(effGroup, effSelector, unit)$effLevelGroupUnit(effLevel, effGroup, unit) = yes;
+                    effGroupSelectorUnit(effGroup, unit, effSelector)$effLevelGroupUnit(effLevel, effGroup, unit) = yes;
                 );
                 if (count = count_slope,
                     count_slope2 = 0;
@@ -139,9 +139,6 @@ loop(unit,
                             effGroupSelector(effSelector, effSelector_) = yes;
                         );
                     );
-                );
-                if( count = cum_slope - count_slope + 1,
-                    effLevelSelectorFirst(effLevel, effSelector) = yes;
                 );
             );
         );

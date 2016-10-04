@@ -3,8 +3,6 @@
 
     tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve
     tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
-//    tElapsed = tSolveFirst - mSettings(mSolve, 't_start');  // tElapsed counts the starting point for current model solve
-//    tLast = tElapsed + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));
     p_stepLength(mSolve, f, t) = no;
     ft_new(f,t) = no;
 
@@ -120,16 +118,18 @@ $onOrder
     gnuft(grid, node, unit, f, t) = no;
     gnuft(grid, node, unit, f, t)$(gn(grid, node) and nuft(node, unit, f, t)) = yes;
 
+    suft(effGroup, unit, f, t) = no;
     loop(effLevel$mSettingsEff(mSolve, effLevel),
         tInterval(t) = no;
         tInterval(t)$(ord(effLevel) = 1 and ord(t) = tSolveFirst) = yes;
         tInterval(t)$(     ord(t) >= tSolveFirst + mSettingsEff(mSolve, effLevel)
                        and ord(t) < tSolveFirst + mSettingsEff(mSolve, effLevel+1)
                      ) = yes;
-        loop(effLevelGroupUnit(effLevel, effGroup, unit),
+        loop(effLevelGroupUnit(effLevel, effGroup, unit)$(not sum(flow$flowUnit(flow, unit), 1)),
             suft(effGroup, unit, f, tInterval(t))$(effLevelGroupUnit(effLevel, effGroup, unit) and uft(unit, f, tInterval)) = yes;
         );
     );
+    sufts(effGroup, unit, f, t, effSelector) = no;
     sufts(effGroup, unit, f, t, effSelector)$(effGroupSelector(effGroup, effSelector) and suft(effGroup, unit, f, t)) = yes;
 
     pf(ft(f,t))$(ord(t) eq ord(tSolve) + 1) = 1 - ord(f);

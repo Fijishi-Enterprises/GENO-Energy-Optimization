@@ -314,7 +314,7 @@ q_conversionSOS1InputIntermediate(suft(effGroup, unit, f, t))$effSlope(effGroup)
   + p_unit(unit, 'section00')
       * v_online(unit, f, t) / p_unit(unit, 'unitCount')
       * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
-  + sum(effGroupSelectorUnit(effGroup, effSelector, unit),
+  + sum(effGroupSelectorUnit(effGroup, unit, effSelector),
       + v_sos1(effGroup, unit, f, t, effSelector)
           * p_effUnit(effSelector, unit, 'slope')
 *          * [ + 1$(not unit_withConstrainedOutputRatio(unit))   // not a backpressure or extraction unit, expect for the primary grid (where cV has to be 1)
@@ -323,14 +323,14 @@ q_conversionSOS1InputIntermediate(suft(effGroup, unit, f, t))$effSlope(effGroup)
     );
 * -----------------------------------------------------------------------------
 q_conversionSOS1Constraint(suft(effGroup, unit, f, t))$effSlope(effGroup) ..
-  + sum(effGroupSelectorUnit(effGroup, effSelector, unit), v_sos1(effGroup, unit, f, t, effSelector))
+  + sum(effGroupSelectorUnit(effGroup, unit, effSelector), v_sos1(effGroup, unit, f, t, effSelector))
 *  + sum(effSelector_$effSelectorFirstSlope(effSelector, effSelector_), v_sos1(effSelector_, unit, f, t))
   =L=
   + sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))
 ;
 * -----------------------------------------------------------------------------
 q_conversionSOS1IntermediateOutput(suft(effGroup, unit, f, t))$effSlope(effGroup) ..
-  + sum(effSelector$effGroupSelectorUnit(effGroup, effSelector, unit), v_sos1(effGroup, unit, f, t, effSelector))
+  + sum(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), v_sos1(effGroup, unit, f, t, effSelector))
   =E=
   + sum(gnu_output(grid, node, unit),
       + v_gen(grid, node, unit, f, t)
@@ -344,7 +344,7 @@ q_conversionSOS2InputIntermediate(suft(effGroup, unit, f, t))$effLambda(effGroup
       + v_fuelUse(fuel, unit, f, t)
     )
   =E=
-  + sum(effSelector$effGroupSelectorUnit(effGroup, effSelector, unit),
+  + sum(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector),
       + v_sos2(unit, f, t, effSelector) * p_effUnit(effSelector, unit, 'rb') * p_effUnit(effSelector, unit, 'slope')
     )
   / p_unit(unit, 'unitCount')
@@ -352,7 +352,7 @@ q_conversionSOS2InputIntermediate(suft(effGroup, unit, f, t))$effLambda(effGroup
 ;
 * -----------------------------------------------------------------------------
 q_conversionSOS2Constraint(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
-  + sum(effSelector$effGroupSelectorUnit(effGroup, effSelector, unit),
+  + sum(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector),
       + v_sos2(unit, f, t, effSelector)
     )
   =E=
@@ -360,7 +360,7 @@ q_conversionSOS2Constraint(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
 ;
 * -----------------------------------------------------------------------------
 q_conversionSOS2IntermediateOutput(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
-  + sum(effSelector$effGroupSelectorUnit(effGroup, effSelector, unit),
+  + sum(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector),
       + v_sos2(unit, f, t, effSelector)
       * p_effUnit(effSelector, unit, 'rb')
     )
@@ -423,7 +423,7 @@ q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..
   + p_gnn(grid, from_node, to_node, 'transferCap')
 ;
 * -----------------------------------------------------------------------------
-q_maxStateSlack(gn_state(grid, node), m, ft(f, t))${    p_gn(grid, node, 'maxStateSlack')    // Node has a maxStateSlack parameter
+q_maxStateSlack(gn_state(grid, node), m, ft_dynamic(f, t))${    p_gn(grid, node, 'maxStateSlack')    // Node has a maxStateSlack parameter
                                                         or ts_nodeState(grid, node, 'maxStateSlack', f, t) // Node has a temporary maxStateSlack parameter
                                                         or (
                                                                 (
