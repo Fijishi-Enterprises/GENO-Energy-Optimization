@@ -4,6 +4,7 @@
     tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve
     tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
     p_stepLength(mSolve, f, t) = no;
+    p_stepLength(mSolve, f, tSolve-1) = yes;
     ft_new(f,t) = no;
 
 $offOrder
