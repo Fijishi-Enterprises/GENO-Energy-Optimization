@@ -151,17 +151,3 @@ param_union "Different ways inputs and outputs of energy conversion units can be
     substitute  "Inputs and outputs can be substituted"
 /
 
-* --- Sets for aggregating output
-unittype "Unit technology types" /
-    nuclear
-    imports
-    coal
-    unit_hydro
-    CCGT
-    "pumped storage"
-    solar
-    wind
-    OCGT
-    dummy
-/
-;

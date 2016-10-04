@@ -25,9 +25,11 @@ Sets
     unit_noSlope(unit) "Units without piecewise linear efficiency constraints"
     unitUnit_aggregate(unit, unit) "Aggregate unit linked to aggregated units"
     flowUnit(flow, *) "Units or storages linked to a certain energy flow time series"
-    unittypeUnit(unittype, unit) "Link generation technologies to types"
+    unitUnittype(unit, *) "Link generation technologies to types"
     uFuel(unit, param_fuel, fuel) "Units linked with fuels"
     slopeUnit(slope, unit) "Piece-wise linear slope used by an unit"
+    unittype "Unit technology types"
+
 
 * --- Storages ---------------------------------------
 *    node_reservoir(node)  "Hydropower reservoirs"

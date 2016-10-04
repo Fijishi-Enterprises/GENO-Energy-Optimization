@@ -6,6 +6,7 @@
 //    tElapsed = tSolveFirst - mSettings(mSolve, 't_start');  // tElapsed counts the starting point for current model solve
 //    tLast = tElapsed + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));
     p_stepLength(mSolve, f, t) = no;
+    p_stepLength(mSolve, f, tSolve-1) = yes;
     ft_new(f,t) = no;
 
 $offOrder
@@ -126,7 +127,7 @@ $onOrder
         tInterval(t)$(     ord(t) >= tSolveFirst + mSettingsEff(mSolve, effLevel)
                        and ord(t) < tSolveFirst + mSettingsEff(mSolve, effLevel+1)
                      ) = yes;
-        loop(effLevelGroupUnit(effLevel, effGroup, unit),
+        loop(effLevelGroupUnit(effLevel, effGroup, unit)$(not sum(flow$flowUnit(flow, unit), 1)),
             suft(effGroup, unit, f, tInterval(t))$(effLevelGroupUnit(effLevel, effGroup, unit) and uft(unit, f, tInterval)) = yes;
         );
     );
