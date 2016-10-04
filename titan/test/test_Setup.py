@@ -49,7 +49,7 @@ class TestSetup(TestCase):
     def tearDown(self):
         """Delete files and reset models."""
         # log.info("Tearing down")
-        # TODO: Remove Setup input directories (and maybe the whole unittest_project directory)
+        # TODO: Remove Setup input directories in tearDown(). Maybe the whole unittest_project directory as well.
         log.disable(level=log.ERROR)
         base_f = os.path.join(self._project.project_dir, 'input', 'base')
         base_output_f = os.path.join(self._project.project_dir, 'output', 'base')

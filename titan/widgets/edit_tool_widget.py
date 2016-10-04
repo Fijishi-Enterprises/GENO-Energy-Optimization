@@ -80,7 +80,7 @@ class EditToolWidget(QWidget):
         self.close()
 
     def keyPressEvent(self, e):
-        """Close project form when escape key is pressed.
+        """Close form when escape key is pressed.
 
         Args:
             e (QKeyEvent): Received key press event.

@@ -18,15 +18,17 @@ class ContextMenuWidget(QMenu):
         self.option = "None"
         if not ind.isValid():
             self.add_action("Add New Base")
+            self.add_action("Execute Project")
+            self.add_action("Inspect Setup Data")
         else:
             self.add_action("Add New Base")
             self.add_action("Add Child")
-            self.add_action("Show Input")
             self.add_action("Edit Tool")
             self.add_action("Execute")
             self.add_action("Execute Branch")
             self.add_action("Execute Project")
             self.add_action("Clear Ready Flag")
+            self.add_action("Inspect Setup Data")
         self.exec_(position)
 
     def add_action(self, text):

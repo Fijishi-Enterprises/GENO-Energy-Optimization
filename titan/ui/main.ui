@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1230</width>
+    <width>1241</width>
     <height>738</height>
    </rect>
   </property>
@@ -20,8 +20,19 @@
    <string>Sceleton Titan</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
+   <widget class="QSplitter" name="splitter">
+    <property name="geometry">
+     <rect>
+      <x>9</x>
+      <y>9</y>
+      <width>1224</width>
+      <height>681</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+    <widget class="QWidget" name="">
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <property name="spacing">
        <number>0</number>
@@ -247,7 +258,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox">
+         <widget class="QGroupBox" name="groupBox_data">
           <property name="minimumSize">
            <size>
             <width>100</width>
@@ -261,7 +272,7 @@
            </size>
           </property>
           <property name="title">
-           <string>Input Data</string>
+           <string>Data</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
@@ -278,12 +289,22 @@
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_make">
+            <widget class="QPushButton" name="pushButton_import_data">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Make GAMS input data files from data in a MS Excel workbook&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import GAMS input data for Setups from MS Excel files&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Make</string>
+              <string>Import...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_inspect_data">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show Setup Input/Output Data&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Inspect</string>
              </property>
             </widget>
            </item>
@@ -390,8 +411,8 @@
        </widget>
       </item>
      </layout>
-    </item>
-    <item row="0" column="1">
+    </widget>
+    <widget class="QWidget" name="">
      <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
        <number>0</number>
@@ -535,15 +556,15 @@
        </widget>
       </item>
      </layout>
-    </item>
-   </layout>
+    </widget>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1230</width>
+     <width>1241</width>
      <height>21</height>
     </rect>
    </property>
@@ -580,7 +601,8 @@
     <property name="title">
      <string>Data</string>
     </property>
-    <addaction name="actionMake_Input_Data"/>
+    <addaction name="actionImportData"/>
+    <addaction name="actionInspectData"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuData"/>
@@ -603,7 +625,7 @@
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>About Sceleton</string>
+    <string>About</string>
    </property>
    <property name="shortcut">
     <string>F12</string>
@@ -642,7 +664,7 @@
     <string>Sceleton documentation</string>
    </property>
    <property name="shortcut">
-    <string>F10</string>
+    <string>F11</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::WindowShortcut</enum>
@@ -703,24 +725,51 @@
     <string>F1</string>
    </property>
   </action>
-  <action name="actionMake_Input_Data">
+  <action name="actionImportData">
    <property name="text">
-    <string>Make Input Data...</string>
+    <string>Import...</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Make GAMS input data files from data in a MS Excel workbook&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import GAMS input data for Setups from MS Excel files&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+M</string>
+    <string>F2</string>
+   </property>
+  </action>
+  <action name="actionInspectData">
+   <property name="text">
+    <string>Inspect</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show Setup Input/Output Data&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>F3</string>
    </property>
   </action>
  </widget>
  <tabstops>
   <tabstop>radioButton_breadth_first</tabstop>
   <tabstop>radioButton_depth_first</tabstop>
+  <tabstop>pushButton_execute_single</tabstop>
+  <tabstop>pushButton_execute_branch</tabstop>
   <tabstop>pushButton_execute_all</tabstop>
+  <tabstop>pushButton_delete_setup</tabstop>
   <tabstop>pushButton_delete_all</tabstop>
+  <tabstop>pushButton_clear_ready_selected</tabstop>
+  <tabstop>pushButton_clear_ready_all</tabstop>
+  <tabstop>pushButton_import_data</tabstop>
+  <tabstop>pushButton_inspect_data</tabstop>
   <tabstop>treeView_setups</tabstop>
+  <tabstop>listView_tools</tabstop>
+  <tabstop>toolButton_add_tool</tabstop>
+  <tabstop>toolButton_remove_tool</tabstop>
+  <tabstop>textBrowser_main</tabstop>
+  <tabstop>pushButton_clear_titan_output</tabstop>
+  <tabstop>textBrowser_process_output</tabstop>
+  <tabstop>pushButton_clear_gams_output</tabstop>
+  <tabstop>checkBox_debug</tabstop>
+  <tabstop>pushButton_test</tabstop>
  </tabstops>
  <resources/>
  <connections/>

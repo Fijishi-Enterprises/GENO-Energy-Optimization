@@ -16,6 +16,8 @@ import collections
 from metaobject import MetaObject
 # from collections import OrderedDict
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QApplication
+from PyQt5.Qt import QCursor, Qt
 from config import WORK_DIR
 
 
@@ -202,7 +204,11 @@ def find_in_latest_output_folder(setup_name, base_output_path, folders, fname=''
     for folder_name in folders:
         # Get time stamp by stripping the Setup name and '-' from it
         timestamp = folder_name.strip(st)
-        date_obj = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H.%M.%S')
+        try:
+            date_obj = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H.%M.%S')
+        except ValueError:
+            logging.debug("Tried to get time stamp from folder: {0}".format(folder_name))
+            continue
         # Populate dictionary with parsed datetime object as key and folder name as value
         f_dict[date_obj] = folder_name
     # Get the latest date
@@ -213,7 +219,7 @@ def find_in_latest_output_folder(setup_name, base_output_path, folders, fname=''
     latest_folder_path = os.path.join(base_output_path, latest_folder_name)
     files = os.listdir(latest_folder_path)
     if fname == '':
-        logging.debug("Returning latest output path")
+        # logging.debug("Returning latest output path")
         return latest_folder_path
     if fname in files:
         logging.debug("Found file '{0}' in folder '{1}'".format(fname, latest_folder_path))
@@ -226,6 +232,26 @@ def find_in_latest_output_folder(setup_name, base_output_path, folders, fname=''
 def find_duplicates(a):
     """Finds duplicates in a list. Returns a list with the duplicates or an empty list if none found."""
     return [item for item, count in collections.Counter(a).items() if count > 1]
+
+
+def busy_effect(function):
+    """ Decorator to change the mouse cursor to 'busy' while a function is processed.
+
+    Args:
+        function: Decorated function.
+    """
+    def new_function(*args, **kwargs):
+        # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
+        try:
+            return function(*args, **kwargs)
+        except Exception as e:
+            logging.exception("Error {}".format(e.args[0]))
+            raise e
+        finally:
+            # noinspection PyArgumentList
+            QApplication.restoreOverrideCursor()
+    return new_function
 
 
 class SetupTree(MetaObject):

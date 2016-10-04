@@ -246,7 +246,7 @@ class Setup(MetaObject):
                 src_files = list()
             else:
                 src_files = os.listdir(src_dir)
-        logging.debug("Looking for files matching pattern '{0}' in source dir: '{1}'".format(pattern, src_dir))
+        # logging.debug("Looking for files matching pattern '{0}' in source dir: '{1}'".format(pattern, src_dir))
         # Search for files
         new_fnames = [f for f in fnmatch.filter(src_files, pattern)
                       if f not in filenames]

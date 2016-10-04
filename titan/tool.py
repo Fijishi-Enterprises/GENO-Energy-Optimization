@@ -97,6 +97,10 @@ class Tool(MetaObject):
         """
         self.def_file_path = path
 
+    def get_def_path(self):
+        """Get definition file path of tool."""
+        return self.def_file_path
+
 
 class ToolInstance(QObject):
     """Class for Tool instances."""

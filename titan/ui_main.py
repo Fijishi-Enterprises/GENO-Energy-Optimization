@@ -26,6 +26,7 @@ from widgets.project_form_widget import ProjectFormWidget
 from widgets.context_menu_widget import ContextMenuWidget
 from widgets.edit_tool_widget import EditToolWidget
 from widgets.settings_widget import SettingsWidget
+from widgets.input_data_widget import InputDataWidget
 from modeltest.modeltest import ModelTest
 from excel_handler import ExcelHandler
 
@@ -63,6 +64,7 @@ class TitanUI(QMainWindow):
         self.context_menu = None
         self.edit_tool_form = None
         self.settings_form = None
+        self.input_data_form = None
         # Initialize general things
         self.init_conf()
         self.connect_signals()
@@ -92,7 +94,8 @@ class TitanUI(QMainWindow):
         self.ui.actionSave_As.triggered.connect(self.save_project_as)
         self.ui.actionLoad.triggered.connect(self.load_project)
         self.ui.actionSettings.triggered.connect(self.show_settings)
-        self.ui.actionMake_Input_Data.triggered.connect(self.make_input)
+        self.ui.actionImportData.triggered.connect(self.import_data)
+        self.ui.actionInspectData.triggered.connect(self.open_input_data_form)
         self.ui.actionHelp.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionAbout.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionImport.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
@@ -113,7 +116,8 @@ class TitanUI(QMainWindow):
         self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
         self.ui.toolButton_add_tool.clicked.connect(self.add_tool)
         self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)
-        self.ui.pushButton_make.clicked.connect(self.make_input)
+        self.ui.pushButton_import_data.clicked.connect(self.import_data)
+        self.ui.pushButton_inspect_data.clicked.connect(self.open_input_data_form)
 
     def init_models(self):
         """Create data models for GUI views."""
@@ -425,18 +429,6 @@ class TitanUI(QMainWindow):
         elif option == "Add New Base":
             self.open_setup_form()
             return
-        elif option == "Show Input":
-            selected_setup = ind.internalPointer()
-            setup_name = selected_setup.name
-            tool = selected_setup.tool
-            if tool:
-                input_files = selected_setup.get_input_files()
-                self.add_msg_signal.emit("Showing input files for Setup '%s'\nInput folder: %s"
-                                         % (setup_name, selected_setup.input_dir), 0)
-                self.add_msg_signal.emit("Input files:\n{0}".format(input_files), 0)
-            else:
-                self.add_msg_signal.emit("No tool found", 0)
-            return
         elif option == "Edit Tool":
             self.open_edit_tool_form(ind)
             return
@@ -451,6 +443,9 @@ class TitanUI(QMainWindow):
             return
         elif option == "Clear Ready Flag":
             self.clear_selected_ready_flag()
+            return
+        elif option == "Inspect Setup Data":
+            self.open_input_data_form(ind)
             return
         else:
             # No option selected
@@ -495,6 +490,21 @@ class TitanUI(QMainWindow):
         """
         self.edit_tool_form = EditToolWidget(self, index)
         self.edit_tool_form.show()
+
+    @pyqtSlot("QModelIndex")
+    def open_input_data_form(self, index):
+        """Show Input Data form.
+
+        Args:
+            index (QModelIndex): Selected Setup Index
+        """
+        if not index:
+            self.input_data_form = InputDataWidget(self, index, self.setup_model)
+            self.input_data_form.show()
+        elif not index.isValid():
+            index = False
+        self.input_data_form = InputDataWidget(self, index, self.setup_model)
+        self.input_data_form.show()
 
     @pyqtSlot()
     def show_settings(self):
@@ -854,10 +864,10 @@ class TitanUI(QMainWindow):
         for ind in siblings:
             self.add_msg_signal.emit("Setups on current row:%s" % ind.internalPointer().name, 0)
 
-    def make_input(self):
+    def import_data(self):
         """Open selected Excel file for creating text data files for Setups."""
         # noinspection PyCallByClass, PyTypeChecker
-        answer = QFileDialog.getOpenFileName(self, 'Make Input Data', PROJECT_DIR, 'MS Excel (*.xlsx)')
+        answer = QFileDialog.getOpenFileName(self, 'Import Input Data', PROJECT_DIR, 'MS Excel (*.xlsx)')
         load_path = answer[0]
         if load_path == '':  # Cancel button clicked
             return False
