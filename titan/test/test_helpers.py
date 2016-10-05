@@ -13,7 +13,7 @@ import logging as log
 from helpers import create_dir
 
 
-class TestTitanUI(TestCase):
+class TestHelpers(TestCase):
 
     def setUp(self):
         log.basicConfig(stream=sys.stderr, level=log.DEBUG,

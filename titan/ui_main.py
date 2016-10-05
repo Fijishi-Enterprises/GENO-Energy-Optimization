@@ -103,7 +103,7 @@ class TitanUI(QMainWindow):
         self.ui.actionLoad.triggered.connect(self.load_project)
         self.ui.actionSettings.triggered.connect(self.show_settings)
         self.ui.actionImportData.triggered.connect(self.import_data)
-        self.ui.actionInspectData.triggered.connect(self.open_input_data_form)
+        self.ui.actionInspectData.triggered.connect(self.open_inspect_form)
         self.ui.actionHelp.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionAbout.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionImport.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
@@ -123,7 +123,7 @@ class TitanUI(QMainWindow):
         self.ui.toolButton_add_tool.clicked.connect(self.add_tool)
         self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)
         self.ui.pushButton_import_data.clicked.connect(self.import_data)
-        self.ui.pushButton_inspect_data.clicked.connect(self.open_input_data_form)
+        self.ui.pushButton_inspect_data.clicked.connect(self.open_inspect_form)
 
     def init_models(self):
         """Create data models for GUI views."""
@@ -487,7 +487,7 @@ class TitanUI(QMainWindow):
         self.setup_form = SetupFormWidget(self, index)
         self.setup_form.show()
 
-    @pyqtSlot("QModelIndex")
+    @pyqtSlot("QModelIndex", name="open_edit_tool_form")
     def open_edit_tool_form(self, index=QModelIndex()):
         """Show Edit Tool form.
 
@@ -497,7 +497,11 @@ class TitanUI(QMainWindow):
         self.edit_tool_form = EditToolWidget(self, index)
         self.edit_tool_form.show()
 
-    @pyqtSlot("QModelIndex")
+    @pyqtSlot(name="open_inspect_form")
+    def open_inspect_form(self):
+        """PyqtSlot for QMenu and QPushButton Widgets."""
+        self.open_input_data_form(QModelIndex())
+
     def open_input_data_form(self, index):
         """Show Input Data form.
 
