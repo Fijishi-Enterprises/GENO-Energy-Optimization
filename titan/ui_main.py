@@ -67,19 +67,27 @@ class TitanUI(QMainWindow):
         self.input_data_form = None
         # Initialize general things
         self.init_conf()
+        # Set logging level according to settings
+        self.set_debug_level(level=self._config.get("settings", "debug_messages"))
         self.connect_signals()
         # Initialize project
         self.init_project()
         # Initialize ToolModel
         self.init_tool_model()
 
-    @pyqtSlot()
-    def set_debug_level(self):
-        """Control application debug messages."""
-        if self.sender().checkState():
+    # noinspection PyMethodMayBeStatic
+    def set_debug_level(self, level):
+        """Control application debug messages.
+
+        Args:
+            level (str): 0: not checked, 2: checked
+        """
+        if level == '2':
             logging.getLogger().setLevel(level=logging.DEBUG)
+            logging.debug("Logging level: All messages ")
         else:
-            logging.getLogger().setLevel(level=logging.INFO)
+            logging.debug("Logging level: Error messages only")
+            logging.getLogger().setLevel(level=logging.ERROR)
 
     def connect_signals(self):
         """Connect PyQt signals."""
@@ -109,10 +117,8 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_delete_all.clicked.connect(self.delete_all)
         self.ui.pushButton_clear_titan_output.clicked.connect(lambda: self.ui.textBrowser_main.clear())
         self.ui.pushButton_clear_gams_output.clicked.connect(lambda: self.ui.textBrowser_process_output.clear())
-        self.ui.pushButton_test.clicked.connect(self.traverse_model)
         self.ui.pushButton_clear_ready_selected.clicked.connect(self.clear_selected_ready_flag)
         self.ui.pushButton_clear_ready_all.clicked.connect(self.clear_all_ready_flags)
-        self.ui.checkBox_debug.clicked.connect(self.set_debug_level)
         self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
         self.ui.toolButton_add_tool.clicked.connect(self.add_tool)
         self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)

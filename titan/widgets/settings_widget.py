@@ -46,6 +46,7 @@ class SettingsWidget(QWidget):
         a = self._configs.get('settings', 'save_at_exit')
         b = self._configs.get('settings', 'confirm_exit')
         c = self._configs.get('settings', 'delete_work_dirs')
+        d = self._configs.get('settings', 'debug_messages')
         if a == '1':
             self.ui.checkBox_save_at_exit.setCheckState(Qt.PartiallyChecked)
         elif a == '2':
@@ -56,6 +57,8 @@ class SettingsWidget(QWidget):
             self.ui.checkBox_del_work_dirs.setCheckState(Qt.PartiallyChecked)
         elif c == '2':
             self.ui.checkBox_del_work_dirs.setCheckState(Qt.Checked)
+        if d == '2':
+            self.ui.checkBox_debug.setCheckState(Qt.Checked)
         # logging.debug("save at exit:{0}. confirm exit:{1}. delete work dirs:{2}.".format(a, b, c))
 
     @pyqtSlot()
@@ -64,10 +67,14 @@ class SettingsWidget(QWidget):
         a = str(self.ui.checkBox_save_at_exit.checkState())
         b = str(self.ui.checkBox_exit_dialog.checkState())
         c = str(self.ui.checkBox_del_work_dirs.checkState())
+        d = str(self.ui.checkBox_debug.checkState())
         self._configs.set('settings', 'save_at_exit', a)
         self._configs.set('settings', 'confirm_exit', b)
         self._configs.set('settings', 'delete_work_dirs', c)
+        self._configs.set('settings', 'debug_messages', d)
         self._configs.save()
+        # Set logging level
+        self._parent.set_debug_level(d)
         # logging.debug("save at exit:{0}. confirm exit:{1}. delete work dirs:{2}.".format(a, b, c))
         self.close()
 

@@ -32,7 +32,7 @@
     <property name="orientation">
      <enum>Qt::Horizontal</enum>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <property name="spacing">
        <number>0</number>
@@ -385,34 +385,9 @@
         </item>
        </layout>
       </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_test">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>50</width>
-          <height>17</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>50</width>
-          <height>17</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Test</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
        <number>0</number>
@@ -536,22 +511,6 @@
           <width>800</width>
           <height>0</height>
          </size>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox_debug">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Switch logging verbosity&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="layoutDirection">
-         <enum>Qt::RightToLeft</enum>
-        </property>
-        <property name="text">
-         <string>Debug</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -768,8 +727,6 @@
   <tabstop>pushButton_clear_titan_output</tabstop>
   <tabstop>textBrowser_process_output</tabstop>
   <tabstop>pushButton_clear_gams_output</tabstop>
-  <tabstop>checkBox_debug</tabstop>
-  <tabstop>pushButton_test</tabstop>
  </tabstops>
  <resources/>
  <connections/>

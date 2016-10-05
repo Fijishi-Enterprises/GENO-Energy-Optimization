@@ -15,15 +15,15 @@ ERROR_COLOR = QColor('red')
 SUCCESS_COLOR = QColor('green')
 NEUTRAL_COLOR = QColor('blue')
 
-# Paths
+# Application path
 if getattr(sys, 'frozen', False):
     APPLICATION_PATH = os.path.realpath(os.path.dirname(sys.executable))
 else:
     APPLICATION_PATH = os.path.realpath(os.path.dirname(__file__))
 
-# General configurations file
+# Sceleton configuration file
 CONFIGURATION_FILE = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'conf', 'titan.conf'))
-# Directory for projects
+# Project directory
 PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'projects'))
 # Project input/output directory names
 INPUT_STORAGE_DIR = 'input'
@@ -31,15 +31,14 @@ OUTPUT_STORAGE_DIR = 'output'
 # Work directory
 WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
 
-# Tool path (obsolete)
-# MAGIC_MODEL_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'tools', 'magic'))
-
 # GAMS
 GAMS_EXECUTABLE = 'gams'
 
+# Default options and settings
 GENERAL_OPTIONS = {'project_path': '',
                    'tools': ''}
 
 SETTINGS = {'save_at_exit': '1',
             'confirm_exit': '2',
-            'delete_work_dirs': '1'}
+            'delete_work_dirs': '1',
+            'debug_messages': '2'}
