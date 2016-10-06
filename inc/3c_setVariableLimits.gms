@@ -22,7 +22,7 @@ $endif
         v_online.up(uft(unit, f, tSolve)) = 1;
     // Fix online capacity and state for later solutions
     else
-        v_online.fx(uft(unit, f, tSolve)) = v_online.l(unit, f, tSolve);
+        v_online.fx(uft(unit, f, tSolve)) = round(v_online.l(unit, f, tSolve));
         v_state.fx(gn_state(grid, node), f, tSolve) = v_state.l(grid, node, f, tSolve);
     );
 
