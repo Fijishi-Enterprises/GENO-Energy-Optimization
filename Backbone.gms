@@ -1,14 +1,15 @@
 $title Backbone
 $ontext
 Backbone - chronological energy systems model
-===============================================================================
+==========================================================================
 Created by:
     Juha Kiviluoma <juha.kiviluoma@vtt.fi>
     Erkka Rinne <erkka.rinne@vtt.fi>
+    Topi Rasku <topi.rasku@vtt.fi>
 
 - Based on Stochastic Model Predictive Control method [1].
-- Enables multiple different models (m) to be implemented by changing the temporal
-  structure of the model.
+- Enables multiple different models (m) to be implemented by changing
+  the temporal structure of the model.
 - Time steps (t) can vary in length.
 - Short term forecast stochasticity (f) and longer term statistical uncertainty (s).
 - Can handle ramp based dispatch in addition to energy blocks.
@@ -52,6 +53,8 @@ $onempty   // Allow empty data definitions
 files log /''/, gdx, f_info /'output\info.txt'/;
 
 options
+    optca = 0
+    optcr = 0.00001
     profile = 8
     solvelink = %Solvelink.Loadlibrary%
     bratio = 1
@@ -81,6 +84,7 @@ $include 'input\3a_modelsInit.gms'  // Sets that are defined over the whole mode
 loop(modelSolves(mSolve, tSolve),
     $$include 'input\3b_modelsLoop.gms'         // Set sets that define model scope
     $$include 'inc\3c_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
+    $$ifi '%debug%' == 'yes' execute_unload 'output\debug.gdx';   // Output debugging information
     $$include 'inc\3d_solve.gms'                // Solve model(s)
     put log;
     put schedule.resGen;
