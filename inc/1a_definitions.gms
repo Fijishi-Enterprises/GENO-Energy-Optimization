@@ -80,7 +80,7 @@ param_gn  "Set of possible data parameters for grid, node" /
     minSpill    "Minimum spill rate from the node (MWh/h)"
     chargingEff "Average charging efficiency (p.u)"
     dischargingEff "Average discharging efficiency (p.u.)"
-    selfDischarge "Self discharge of the node (p.u.)"
+    selfDischargeLoss "Self discharge rate of the node (p.u.)"
 /
 
 param_gnn "Set of possible data parameters for grid, node, node (nodal interconnections)" /
