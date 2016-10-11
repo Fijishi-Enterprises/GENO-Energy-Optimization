@@ -58,8 +58,8 @@ options
     profile = 8
     solvelink = %Solvelink.Loadlibrary%
     bratio = 1
-    solveopt = replace
-    savepoint = 0
+    solveopt = merge
+    savepoint = 1
     threads = -1
 $ifi not '%debug%' == 'yes'
     solprint = Silent
