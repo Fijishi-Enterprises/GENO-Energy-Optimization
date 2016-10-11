@@ -76,6 +76,7 @@ param_gn  "Set of possible data parameters for grid, node" /
     minStateSlack "Desired minimum desired state of the node (unit depends on energyCapacity)"
     fixState    "Fixed state of the node (unit depends on energyCapacity)"
     absolute    "A flag that the ts_nodeState time series are absolute"
+    fixOnlyStart "A flag to fix only t_start based on fixState constant or time series"
     energyCapacity "Energy capacity of the node (MWh/?, allows for changing the quality of the node state variables)"
     maxSpill    "Maximum spill rate from the node (MWh/h)"
     minSpill    "Minimum spill rate from the node (MWh/h)"

@@ -23,6 +23,16 @@ loop(ft(f, tSolve),
     );
 );
 
+// Possibility to input v_state boundaries in time-series form. NOTE! Overwrites overlapping constant boundaries!
+v_state.up(gn_state(grid, node), ft(f, t))$ts_nodeState(grid, node, 'maxState', f, t) = ts_nodeState(grid, node, 'maxState', f, t);
+v_state.lo(gn_state(grid, node), ft(f, t))$ts_nodeState(grid, node, 'minState', f, t) = ts_nodeState(grid, node, 'minState', f, t);
+v_state.fx(gn_state(grid, node), ft(f, t))$(not p_gn(grid, node, 'fixOnlyStart') and ts_nodeState(grid, node, 'fixState', f, t))
+  = ts_nodeState(grid, node, 'fixState', f, t) * (p_gn(grid, node, 'maxState')$(not p_gn(grid, node, 'absolute')) + p_gn(grid, node, 'absolute'));
+
+// v_stateSlack absolute boundaries determined by the slack data in p_gnSlack
+v_stateSlack.up(gnSlack(inc_dec, slack, grid, node), ft(f, t))$p_gnSlack(inc_dec, slack, grid, node, 'maxSlack') = p_gnSlack(inc_dec, slack, grid, node, 'maxSlack');
+
+
 * Other time dependent parameters and variable limits
     // Max. energy generation
 v_gen.up(gnuft(grid, node, unit, f, t))$(not unit_flow(unit)) = p_gnu(grid, node, unit, 'maxGen') * p_unit(unit, 'availability');
@@ -48,14 +58,6 @@ v_online.up(uft(unit, f, t))$sum(effSelector$(not effDirectOff(effSelector)), su
 // Restrict v_online also in the last dynamic time step
 v_online.up(uft(unit, f, t))$(sum(effSelector$(not effDirectOff(effSelector)), suft(effSelector, unit, f, t)) and mftLastSteps(mSolve,f,t)) = p_unit(unit, 'unitCount');
 
-
-// Possibility to input v_state boundaries in time-series form. NOTE! Overwrites overlapping constant boundaries!
-v_state.up(gn_state(grid, node), ft(f, t))$ts_nodeState(grid, node, 'maxState', f, t) = ts_nodeState(grid, node, 'maxState', f, t);
-v_state.lo(gn_state(grid, node), ft(f, t))$ts_nodeState(grid, node, 'minState', f, t) = ts_nodeState(grid, node, 'minState', f, t);
-v_state.fx(gn_state(grid, node), ft(f, t))$ts_nodeState(grid, node, 'fixState', f, t) = ts_nodeState(grid, node, 'fixState', f, t);
-
-// v_stateSlack absolute boundaries determined by the slack data in p_gnSlack
-v_stateSlack.up(gnSlack(inc_dec, slack, grid, node), ft(f, t))$p_gnSlack(inc_dec, slack, grid, node, 'maxSlack') = p_gnSlack(inc_dec, slack, grid, node, 'maxSlack');
 
 // Free storage control ...
 *    if(currentStage('scheduling'),
