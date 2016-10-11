@@ -31,14 +31,12 @@ Sets
     unittype "Unit technology types"
 
 
-* --- Storages ---------------------------------------
+* --- Nodes -----------------------------------------------------------------
 *    node_reservoir(node)  "Hydropower reservoirs"
-    node_storage(node)    "Nodes with storage capability (state variable)"
-    node_charging(node)   "Storages that cannot be charged (but may have inflow); used to remove v_stoCharge variables where not relevant"
-    node_spill(node)      "Storages that cannot spill; used to remove v_spill variables where not relevant"
+    node_spill(node)      "Nodes that can spill; used to remove v_spill variables where not relevant"
 
 
-* --- Sets bounding geography and units -----------------------------------------
+* --- Sets bounding geography and units -------------------------------------
     gn(grid, node) "Grids and their nodes"
 * NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
     gn2n(grid, node, node) "Transfer capacity between nodes in specific energy grids"

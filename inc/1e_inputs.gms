@@ -26,7 +26,6 @@ $loaddc emission
 $loaddc p_fuelEmission
 $loaddc ts_energyDemand
 $loaddc ts_cf
-$loaddc ts_stoContent
 $loaddc ts_fuelPriceChange
 $loaddc ts_absolute
 $loaddc ts_nodeState
@@ -82,11 +81,8 @@ p_gnu(gnu(grid, node, unit), 'rb00')$(not p_gnu(grid, node, unit, 'rb00')) = 0; 
 unit_minload(unit)$[sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'rb00') > 0 and p_gnu(grid, node, unit, 'rb00') < 1)] = yes;   // If the first point is between 0 and 1, then the unit has a min load limit
 *unit_hydro(unit)$sum(unitFuelParam(unit,'WATER','main'), 1) = yes;
 *node_reservoir(node)$sum(unit_hydro, unitStorage(unit_hydro, storage)) = yes;
-node_storage(node)$(sum(grid, p_gn(grid, node, 'maxState')) > 0) = yes;
-node_charging(node_storage)$(sum(gnu(grid, node_storage, unit), p_gnu(grid, node_storage, unit, 'maxCons'))) = yes;
-node_spill(node_storage)$(sum(grid, p_gn(grid, node_storage, 'maxSpill'))) = yes;
 nuRescapable(restype, resdirection, node, unit)$p_nuReserves(node, unit, restype, resdirection) = yes;
-
+node_spill(node)$(sum(grid, p_gn(grid, node, 'maxSpill'))) = yes;
 p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount')) = 1;  // In case number of units has not been defined it is 1.
 $ontext
 p_unit(unit, 'section00') = p_unit(unit, 'rb00') / p_unit(unit, 'eff00'); // Section at min. load defined by rb00

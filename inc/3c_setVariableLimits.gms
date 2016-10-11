@@ -1,22 +1,18 @@
 * --- Variable limits ---------------------------------------------------------
 // v_state absolute boundaries set according to p_gn parameters;
 v_state.up(gn_state(grid, node), ft(f, t))$(p_gn(grid, node, 'maxState')) = p_gn(grid, node, 'maxState');
+v_state.up(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'maxState')) = p_gn(grid, node, 'maxState');
 v_state.lo(gn_state(grid, node), ft(f, t))$(p_gn(grid, node, 'minState')) = p_gn(grid, node, 'minState');
+v_state.lo(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'minState')) = p_gn(grid, node, 'minState');
 v_state.fx(gn_state(grid, node), ft(f, t))$(p_gn(grid, node, 'fixState')) = p_gn(grid, node, 'fixState');
 
 * Fix storage contents for the beginning
 loop(ft(f, tSolve),
-$iftheni '%mode%' == 'findStorageStart'
-        v_state.lo(grid, node, f, tSolve)$p_gn(grid, node, 'minState')
-           = p_gn(grid, node, 'minState');
-        v_state.up(grid, node, f, tSolve)$p_gn(grid, node, 'maxState')
-           = p_gn(grid, node, 'maxState');
-$else
-        v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and ord(tSolve) = mSettings('schedule', 't_start'))
-            = ts_stoContent(node, f, tSolve) * p_gn(grid, node, 'maxState');
-        v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and not ord(tSolve) = mSettings('schedule', 't_start'))
-            = v_state.l(grid, node, f, tSolve);
-$endif
+    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and ord(tSolve) = mSettings('schedule', 't_start'))
+      = ts_nodeState(grid, node, 'fixState', f, tSolve) * (p_gn(grid, node, 'maxState')$(not p_gn(grid, node, 'absolute')) + p_gn(grid, node, 'absolute'));
+    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and not ord(tSolve) = mSettings('schedule', 't_start'))
+      = v_state.l(grid, node, f, tSolve);
+
     // Free online capacity and state for the first loop
     if(tSolveFirst = mSettings('schedule', 't_start'),
         v_online.up(uft(unit, f, tSolve)) = 1;
@@ -25,7 +21,6 @@ $endif
         v_online.fx(uft(unit, f, tSolve)) = round(v_online.l(unit, f, tSolve));
         v_state.fx(gn_state(grid, node), f, tSolve) = v_state.l(grid, node, f, tSolve);
     );
-
 );
 
 * Other time dependent parameters and variable limits

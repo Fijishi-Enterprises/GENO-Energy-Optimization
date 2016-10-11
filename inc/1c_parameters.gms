@@ -70,7 +70,6 @@ Parameters
     ts_nodeState(grid, node, param_gn, f, t) "Fix the states of a node according to time-series form exogenous input"
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (€/MWh)"
     ts_fuelPriceChangenode(fuel, node, t) "Initial fuel price and consequent changes in fuel price in model nodegraphies (€/MWh)"
-    ts_stoContent(node, f, t) "Storage content at the start of the time period (ratio of max)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time period/slice (p.u.)"
 ;
 
