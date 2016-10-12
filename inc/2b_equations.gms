@@ -460,7 +460,7 @@ q_maxStateSlack(gn_state(grid, node), m, ft_dynamic(f, t))${    p_gn(grid, node,
           )
         + sum(nuRescapable(restype, 'resDown', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and nu(node, unit) }, // Possible reserve by input node
             + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
-                / p_unit(unit, 'slope00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+                * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
           )
         + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
             + sum(restype${ restypeDirectionNode(restype, 'resUp', node) },
@@ -507,7 +507,7 @@ q_minStateSlack(gn_state(grid, node), m, ft(f, t))${    p_gn(grid, node, 'minSta
           )
         + sum(nuRescapable(restype, 'resUp', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and nu(node, unit) }, // Possible reserve by input node
             + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))                 // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
-                / p_unit(unit, 'slope00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+                * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
           )
         + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
             + sum(restype${ restypeDirectionNode(restype, 'resDown', node) },
@@ -531,7 +531,7 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
           )
         - sum(nuRescapable(restype, 'resUp', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and nu(node, unit) },
             + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))                 // Upwards reserve provided by input units
-                / p_unit(unit, 'slope00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+                * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
           )
         - sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
             + sum(restype${ restypeDirectionNode(restype, 'resDown', node) },
@@ -555,7 +555,7 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
           )
         + sum(nuRescapable(restype, 'resDown', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and nu(node_, unit) }, // Possible reserve by input node
             + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
-                / p_unit(unit, 'slope00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+                * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
           )
         + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
             + sum(restype${ restypeDirectionNode(restype, 'resUp', node) },
