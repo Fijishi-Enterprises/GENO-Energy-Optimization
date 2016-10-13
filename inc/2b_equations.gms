@@ -458,7 +458,7 @@ q_maxStateSlack(gn_state(grid, node), m, ft_dynamic(f, t))${    p_gn(grid, node,
         + sum(nuRescapable(restype, 'resUp', node, unit),                                       // Possible reserve by this node
             + v_reserve(restype, 'resUp', node, unit, f+pf(f,t), t+pt(t))
           )
-        + sum(nuRescapable(restype, 'resDown', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and nu(node, unit) }, // Possible reserve by input node
+        + sum(nuRescapable(restype, 'resDown', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and gnu_output(grid, node, unit) }, // Possible reserve by input node
             + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
           )
@@ -505,7 +505,7 @@ q_minStateSlack(gn_state(grid, node), m, ft(f, t))${    p_gn(grid, node, 'minSta
         + sum(nuRescapable(restype, 'resDown', node, unit),                                     // Possible reserve by this node
             + v_reserve(restype, 'resDown', node, unit, f+pf(f,t), t+pt(t))
           )
-        + sum(nuRescapable(restype, 'resUp', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and nu(node, unit) }, // Possible reserve by input node
+        + sum(nuRescapable(restype, 'resUp', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and gnu_output(grid, node, unit) }, // Possible reserve by input node
             + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))                 // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
           )
@@ -529,7 +529,7 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
         - sum(nuRescapable(restype, 'resDown', node, unit),
             + v_reserve(restype, 'resDown', node, unit, f+pf(f,t), t+pt(t))                     // Downward reserve provided by units in node
           )
-        - sum(nuRescapable(restype, 'resUp', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and nu(node, unit) },
+        - sum(nuRescapable(restype, 'resUp', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and gnu_output(grid, node, unit) },
             + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))                 // Upwards reserve provided by input units
                 * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
           )
@@ -553,7 +553,7 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
         + sum(nuRescapable(restype, 'resUp', node_, unit),                                       // Possible reserve by this node
             + v_reserve(restype, 'resUp', node_, unit, f+pf(f,t), t+pt(t))
           )
-        + sum(nuRescapable(restype, 'resDown', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and nu(node_, unit) }, // Possible reserve by input node
+        + sum(nuRescapable(restype, 'resDown', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and gnu_output(grid, node_, unit) }, // Possible reserve by input node
             + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
           )
