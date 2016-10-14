@@ -31,7 +31,7 @@ v_state.fx(gn_state(grid, node), ft(f, t))$(not p_gn(grid, node, 'fixOnlyStart')
 
 // v_stateSlack absolute boundaries determined by the slack data in p_gnSlack
 v_stateSlack.up(gnSlack(inc_dec, slack, grid, node), ft(f, t))$p_gnSlack(inc_dec, slack, grid, node, 'maxSlack') = p_gnSlack(inc_dec, slack, grid, node, 'maxSlack');
-
+v_stateSlack.up(gnSlack(inc_dec, slack, grid, node), f, t)${mftLastSteps(mSolve, f, t) and p_gnSlack(inc_dec, slack, grid, node, 'maxSlack')} = p_gnSlack(inc_dec, slack, grid, node, 'maxSlack');
 
 * Other time dependent parameters and variable limits
     // Max. energy generation
