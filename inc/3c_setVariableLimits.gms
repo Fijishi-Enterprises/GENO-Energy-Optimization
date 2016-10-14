@@ -5,6 +5,7 @@ v_state.up(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid
 v_state.lo(gn_state(grid, node), ft(f, t))$(p_gn(grid, node, 'minState')) = p_gn(grid, node, 'minState');
 v_state.lo(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'minState')) = p_gn(grid, node, 'minState');
 v_state.fx(gn_state(grid, node), ft(f, t))$(p_gn(grid, node, 'fixState')) = p_gn(grid, node, 'fixState') * ( p_gn(grid, node, 'maxState')${not p_gn(grid, node, 'absolute')} + p_gn(grid, node, 'absolute') );
+v_state.fx(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'fixState')) = p_gn(grid, node, 'fixState') * ( p_gn(grid, node, 'maxState')${not p_gn(grid, node, 'absolute')} + p_gn(grid, node, 'absolute') );
 
 * Fix storage contents for the beginning
 loop(ft(f, tSolve),
