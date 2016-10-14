@@ -34,7 +34,12 @@ class GAMSModel(Tool):
         super().__init__(name, description, path, files,
                          infiles, infiles_opt, outfiles, short_name,
                          cmdline_args=cmdline_args)
-        self.GAMS_parameters = "Logoption=3"  # send LOG output to STDOUT
+        # Split main_prgm to main_dir and main_prgm
+        # because GAMS needs to run in the directory of the main program
+        self.main_dir, self.main_prgm = os.path.split(self.main_prgm)
+        self.GAMS_parameters = ['Cerr=1',  # Stop on first compilation error
+                                'Logoption=3'  # Send LOG output to STDOUT
+                               ]
         # Add .log and .lst files to list of outputs
         self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.log')
         self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.lst')
@@ -75,8 +80,9 @@ class GAMSModel(Tool):
         instance = ToolInstance(self, ui, cmdline_args, tool_output_dir, setup_name)
         # Tamper the command to call GAMS
         command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE, self.main_prgm,
-                                                  instance.basedir,
-                                                  self.GAMS_parameters)
+                                                  os.path.join(instance.basedir,
+                                                               self.main_dir),
+                                                  ' '.join(self.GAMS_parameters))
         if cmdline_args is not None:
             if self.cmdline_args is not None:
                 command += ' ' + self.cmdline_args + ' ' + cmdline_args
