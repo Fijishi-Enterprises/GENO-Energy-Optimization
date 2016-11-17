@@ -107,7 +107,7 @@ q_obj ..
     // Dummy variables
   + sum(msft(m, s, f, t), p_sProbability(s) * p_fProbability(f) * (
         sum(inc_dec,
-            sum( gn(grid, node)$(not p_gn(grid, node, 'fixTimeSeries')), vq_gen(inc_dec, grid, node, f, t) * p_stepLength(m, f, t) * PENALTY_BALANCE(grid) )
+            sum( gn(grid, node)$(not p_gn(grid, node, 'fixState') and not p_gn(grid, node, 'fixTimeSeries')), vq_gen(inc_dec, grid, node, f, t) * (p_stepLength(m, f, t) + p_stepLength(m, f+pf(f,t), t+pt(t))${not p_stepLength(m, f, t)}) * PENALTY_BALANCE(grid) )
         )
         + sum((restype, resdirection, node),
               vq_resDemand(restype, resdirection, node, f, t)
