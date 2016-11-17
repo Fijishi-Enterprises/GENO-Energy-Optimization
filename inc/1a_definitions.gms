@@ -71,18 +71,26 @@ Sets
 
 param_gn  "Set of possible data parameters for grid, node" /
     maxState    "Absolute maximum state of the node (unit depends on energyCapacity)"
-    maxStateSlack "Desired maximum state of the node (unit depends on energyCapacity)"
     minState    "Absolute minimum energy in the node (unit depends on energyCapacity)"
-    minStateSlack "Desired minimum desired state of the node (unit depends on energyCapacity)"
-    fixState    "Fixed state of the node (unit depends on energyCapacity)"
-    absolute    "A flag that the ts_nodeState time series are absolute"
-    fixOnlyStart "A flag to fix only t_start based on fixState constant or time series"
+    maxStateSlack "Maximum increase or decrease in the state of the node with a specifict cost co-efficient (unit depends on energyCapacity)"
+    referenceState    "Reference value for a state that can be used to fix a state (unit depends on energyCapacity)"
     energyCapacity "Energy capacity of the node (MWh/?, allows for changing the quality of the node state variables)"
     maxSpill    "Maximum spill rate from the node (MWh/h)"
     minSpill    "Minimum spill rate from the node (MWh/h)"
     chargingEff "Average charging efficiency (p.u)"
     dischargingEff "Average discharging efficiency (p.u.)"
     selfDischargeLoss "Self discharge rate of the node (p.u.)"
+    fixNothing  "A flag to indicate that no state should be fixed"
+    fixStart "A flag to fix tSolve based on fixState constant or time series or on the previous solve"
+    fixEnd "A flag to fix last t based on fixState constant or time series"
+    fixConstant "A flag to fix a state with a constant value in referenceState"
+    fixTimeSeries "A flag to use time series to fix states"
+    fixCircular "Force the last states to equal the first state"
+    maxUseTimeSeries "Use time series instead of a constant to set state maximum"
+    minUseTimeSeries "Use time series instead of a constant to set state minimum"
+    referenceMultiplier  "A multiplier to change the reference value (either constant or time series), default 1"
+    maxMultiplier "State maximum (time series or constant) multiplier, default 1"
+    minMultiplier "State minimum (time series or constant) multiplier, default 1"
 /
 
 param_gnn "Set of possible data parameters for grid, node, node (nodal interconnections)" /
@@ -153,3 +161,8 @@ param_union "Different ways inputs and outputs of energy conversion units can be
     substitute  "Inputs and outputs can be substituted"
 /
 
+
+param_slack "Possible parameters for node inc_dec penalties" /
+    costCoeff "The cost coefficient of the slack category to be used in the objective function"
+    maxSlack  "The maximum slack provided"
+/

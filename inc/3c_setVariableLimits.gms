@@ -1,36 +1,39 @@
 * --- Variable limits ---------------------------------------------------------
 // v_state absolute boundaries set according to p_gn parameters;
-v_state.up(gn_state(grid, node), ft(f, t))$(p_gn(grid, node, 'maxState')) = p_gn(grid, node, 'maxState');
-v_state.up(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'maxState')) = p_gn(grid, node, 'maxState');
-v_state.lo(gn_state(grid, node), ft(f, t))$(p_gn(grid, node, 'minState')) = p_gn(grid, node, 'minState');
-v_state.lo(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'minState')) = p_gn(grid, node, 'minState');
-v_state.fx(gn_state(grid, node), ft(f, t))$(p_gn(grid, node, 'fixState')) = p_gn(grid, node, 'fixState');
+  // When using constant values and to supplement time series with constant values (time series will override when data available)
+v_state.up(gn_state(grid, node), ft(f, t))$p_gn(grid, node, 'maxState') = p_gn(grid, node, 'maxState') * p_gn(grid, node, 'maxMultiplier');
+v_state.up(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'maxState')) = p_gn(grid, node, 'maxState') * p_gn(grid, node, 'maxMultiplier');
+v_state.lo(gn_state(grid, node), ft(f, t))$p_gn(grid, node, 'minState') = p_gn(grid, node, 'minState') * p_gn(grid, node, 'minMultiplier');
+v_state.lo(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'minState')) = p_gn(grid, node, 'minState') * p_gn(grid, node, 'minMultiplier');
+v_state.fx(gn_state(grid, node), ft(f, t))$(p_gn(grid, node, 'fixConstant')) = p_gn(grid, node, 'referenceState') * p_gn(grid, node, 'referenceMultiplier');
+v_state.fx(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'fixConstant')) = p_gn(grid, node, 'referenceState') * p_gn(grid, node, 'referenceMultiplier');
+  // When using time series
+v_state.up(gn_state(grid, node), ft(f, t))$p_gn(grid, node, 'maxUseTimeSeries') = ts_nodeState(grid, node, 'maxState', f, t) * p_gn(grid, node, 'maxMultiplier');
+v_state.up(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'maxUseTimeSeries')) = ts_nodeState(grid, node, 'maxState', f, t) * p_gn(grid, node, 'maxMultiplier');
+v_state.lo(gn_state(grid, node), ft(f, t))$p_gn(grid, node, 'minUseTimeSeries') = ts_nodeState(grid, node, 'minState', f, t) * p_gn(grid, node, 'minMultiplier');
+v_state.lo(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'minUseTimeSeries')) = ts_nodeState(grid, node, 'minState', f, t) * p_gn(grid, node, 'minMultiplier');
+v_state.fx(gn_state(grid, node), ft(f, t))$(p_gn(grid, node, 'fixTimeSeries')) = p_gn(grid, node, 'referenceState') * p_gn(grid, node, 'referenceMultiplier');
+v_state.fx(gn_state(grid, node), f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'fixTimeSeries')) = p_gn(grid, node, 'referenceState') * p_gn(grid, node, 'referenceMultiplier');
 
-* Fix storage contents for the beginning
+* Fix state variables for the first solve if required
 loop(ft(f, tSolve),
-    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and ord(tSolve) = mSettings('schedule', 't_start'))
-      = ts_nodeState(grid, node, 'fixState', f, tSolve) * (p_gn(grid, node, 'maxState')$(not p_gn(grid, node, 'absolute')) + p_gn(grid, node, 'absolute'));
-    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and not ord(tSolve) = mSettings('schedule', 't_start'))
+    // First solve, state variables (only if fixStart flag is true)
+    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and p_gn(grid, node, 'fixStart') and tSolveFirst = mSettings('schedule', 't_start'))
+      = + p_gn(grid, node, 'fixConstant') * p_gn(grid, node, 'referenceState') * p_gn(grid, node, 'referenceMultiplier')
+        + p_gn(grid, node, 'fixTimeSeries') * ts_nodeState(grid, node, 'fixTimeSeries', f, tSolve) * p_gn(grid, node, 'referenceMultiplier');
+    // Remaining solves once v_state has been established (only if fixStart flag is true)
+    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and p_gn(grid, node, 'fixStart') and not tSolveFirst = mSettings('schedule', 't_start'))
       = v_state.l(grid, node, f, tSolve);
 
-    // Free online capacity and state for the first loop
-    if(tSolveFirst = mSettings('schedule', 't_start'),
-        v_online.up(uft(unit, f, tSolve)) = 1;
-    // Fix online capacity and state for later solutions
-    else
-        v_online.fx(uft(unit, f, tSolve)) = round(v_online.l(unit, f, tSolve));
-        v_state.fx(gn_state(grid, node), f, tSolve) = v_state.l(grid, node, f, tSolve);
+    // First solve, online variables
+    v_online.up(uft(unit, f, tSolve))$(tSolveFirst = mSettings('schedule', 't_start')) = p_unit(unit, 'unitCount');
+    // Remaining solves
+    v_online.fx(uft(unit, f, tSolve))$(not tSolveFirst = mSettings('schedule', 't_start')) = round(v_online.l(unit, f, tSolve));
     );
 );
 
-// Possibility to input v_state boundaries in time-series form. NOTE! Overwrites overlapping constant boundaries!
-v_state.up(gn_state(grid, node), ft(f, t))$ts_nodeState(grid, node, 'maxState', f, t) = ts_nodeState(grid, node, 'maxState', f, t);
-v_state.lo(gn_state(grid, node), ft(f, t))$ts_nodeState(grid, node, 'minState', f, t) = ts_nodeState(grid, node, 'minState', f, t);
-v_state.fx(gn_state(grid, node), ft(f, t))$(not p_gn(grid, node, 'fixOnlyStart') and ts_nodeState(grid, node, 'fixState', f, t))
-  = ts_nodeState(grid, node, 'fixState', f, t) * (p_gn(grid, node, 'maxState')$(not p_gn(grid, node, 'absolute')) + p_gn(grid, node, 'absolute'));
-
 // v_stateSlack absolute boundaries determined by the slack data in p_gnSlack
-v_stateSlack.up(gnSlack(inc_dec, slack, grid, node), ft(f, t))$p_gnSlack(inc_dec, slack, grid, node, 'maxSlack') = p_gnSlack(inc_dec, slack, grid, node, 'maxSlack');
+v_stateSlack.up(gnSlack(inc_dec, slack, grid, node), ft(f, t))$p_gnSlack(inc_dec, slack, grid, node, 'maxStateSlack') = p_gnSlack(inc_dec, slack, grid, node, 'maxStateSlack');
 
 
 * Other time dependent parameters and variable limits

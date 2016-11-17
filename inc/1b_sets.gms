@@ -81,11 +81,7 @@ Sets
         / increase
           decrease
         /
-    gnSlack(inc_dec, slack, grid, node) "Penalty categories for nodes"
-    param_slack "Possible parameters for node inc_dec penalties"
-        / costCoeff "The cost coefficient of the slack category to be used in the objective function"
-          maxSlack  "The maximum slack provided"
-        /
+    gnSlack(inc_dec, slack, grid, node) "Grid nodes with a slack state variable" 
 
 * --- Sets to define time, forecasts and samples -----------------------------------------------
     $$include 'input/timeAndSamples.inc'
