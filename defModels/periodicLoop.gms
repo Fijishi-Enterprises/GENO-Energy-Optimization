@@ -90,6 +90,9 @@ $onOrder
     ft(f,t) = mft(mSolve, f, t);
     ft_dynamic(f,t) = ft(f,t);
     ft_dynamic(f,tSolve) = no;
+    ft_full(f,t) = no;
+    ft_full(f,t) = ft(f,t);
+    ft_full(f,t) = mftLastSteps(mSolve, f, t);
     loop(counter$mInterval(mSolve, 'intervalLength', counter),
         lastCounter = ord(counter);
     );

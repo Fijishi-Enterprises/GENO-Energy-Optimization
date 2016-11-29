@@ -209,3 +209,7 @@ loop(m,
     );
 );
 
+
+* Set slack direction
+p_slackDirection(upwardSlack) = 1;
+p_slackDirection(downwardSlack) = -1;

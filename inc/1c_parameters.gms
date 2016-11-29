@@ -18,7 +18,8 @@ Scalars
 
 * --- Power plant and fuel data -----------------------------------------------
 Parameters
-    p_gn(grid, node, param_gn) "Data for energy nodes"
+    p_gn(grid, node, param_gn) "Properties for energy nodes"
+    p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, param_gnBoundaryProperties) "Properties of different state boundaries and limits"
     p_gnn(grid, node, node, param_gnn) "Data for interconnections between energy nodes"
     p_gnu(grid, node, unit, param_gnu) "Unit data where energy type matters"
     p_unit(unit, *) "Unit data where energy type does not matter"
@@ -27,11 +28,6 @@ Parameters
     p_fuelEmission(fuel, emission) "Fuel emission content"
     p_uFuel(unit, param_fuel, fuel, param_unitFuel) "Parameters interacting between units and fuels"
     p_effUnit(effSelector, unit, *)  "Data for piece-wise linear efficiency blocks"
-;
-
-* --- Feasibility control -----------------------------------------------------
-Parameters
-    p_gnSlack(inc_dec, slack, grid, node, param_slack) "Data for slack terms"
 ;
 
 * --- Probability -------------------------------------------------------------
@@ -52,6 +48,7 @@ Parameters
     ft_bind(f, t) "Displacement to reach the binding forecast (in forecasts) in the current model"
     mt_bind(mType, t) "Displacement to reach the binding time period in the parent sample (in time periods) in the models"
     mft_bind(mType, f, t) "Displacement to reach the binding forecast (in forecasts) in the models"
+    p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------
@@ -67,7 +64,7 @@ Parameters
     ts_reserveDemand(restype, resdirection, node, f, t) "Reserve demand in region in the time period/slice (MW)"
     ts_reserveDemand_(restype, resdirection, node, f, t)
 
-    ts_nodeState(grid, node, param_gn, f, t) "Fix the states of a node according to time-series form exogenous input"
+    ts_nodeState(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input"
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (€/MWh)"
     ts_fuelPriceChangenode(fuel, node, t) "Initial fuel price and consequent changes in fuel price in model nodegraphies (€/MWh)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time period/slice (p.u.)"

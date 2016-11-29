@@ -16,7 +16,7 @@ $loaddc p_gnn
 $loaddc p_gnu
 $loaddc p_unit
 $loaddc p_nuReserves
-$loaddc p_gnSlack
+$loaddc p_gnBoundaryPropertiesForStates
 $loaddc p_gnPolicy
 $loaddc p_uFuel
 $loaddc flowUnit
@@ -61,11 +61,13 @@ gn2n(grid, from_node, to_node)$p_gnn(grid, from_node, to_node, 'transferCap') = 
 node_to_node(from_node, to_node)$p_gnn('elec', from_node, to_node, 'transferCap') = yes;
 gnn_boundState(grid, node, node_)$(p_gnn(grid, node, node_, 'boundStateOffset')) = yes;
 gnn_state(grid, node, node_)$(p_gnn(grid, node, node_, 'diffCoeff') or gnn_boundState(grid, node, node_)) = yes;
-gn_state(grid, node)$(p_gn(grid, node, 'maxState') or p_gn(grid, node, 'maxStateSlack') or sum(node_, gnn_state(grid, node, node_)) or sum(node_, gnn_state(grid, node_, node))) = yes;
-gn_stateSlack(grid, node)$(p_gn(grid, node, 'maxStateSlack') and not p_gn(grid, node, 'fixTimeSeries') and not p_gn(grid, node, 'fixConstant')) = yes;
-gn(grid, node)$(sum(unit, gnu(grid, node, unit)) or gn_state(grid, node)) = yes;
-gnSlack(inc_dec, slack, grid, node)$(sum(param_slack, p_gnSlack(inc_dec, slack, grid, node, param_slack))) = yes;
-p_gn(gn(grid, node), 'referenceMultiplier')$(not p_gn(grid, node, 'referenceMultiplier')) = 1; // If referenceMultiplier has not been set, set it to 1 by default
+gn_stateSlack(grid, node)$(sum((upwardSlack,   useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node,   upwardSlack, useConstantOrTimeSeries))) = yes;
+gn_stateSlack(grid, node)$(sum((downwardSlack, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, downwardSlack, useConstantOrTimeSeries))) = yes;
+gn_state(grid, node)$gn_stateSlack(grid, node) = yes;
+gn_state(grid, node)$(sum((stateLimits, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, stateLimits, useConstantOrTimeSeries))) = yes;
+gn(grid, node)$(sum(unit, gnu(grid, node, unit) or gn_state(grid, node))) = yes;
+p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multiplier')$(not p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'multiplier')) = 1; // If referenceMultiplier has not been set, set it to 1 by default
+p_gn(gn(grid, node), 'unitConversion')$(not p_gn(grid, node, 'unitConversion')) = 1; // If unitConversion has not been set, default to 1
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 
@@ -83,7 +85,7 @@ unit_minload(unit)$[sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'rb00') >
 *unit_hydro(unit)$sum(unitFuelParam(unit,'WATER','main'), 1) = yes;
 *node_reservoir(node)$sum(unit_hydro, unitStorage(unit_hydro, storage)) = yes;
 nuRescapable(restype, resdirection, node, unit)$p_nuReserves(node, unit, restype, resdirection) = yes;
-node_spill(node)$(sum(grid, p_gn(grid, node, 'maxSpill'))) = yes;
+node_spill(node)$(sum((grid, spillLimits, useConstantOrTimeSeries)$gn(grid, node), p_gnBoundaryPropertiesForStates(grid, node, spillLimits, useConstantOrTimeSeries))) = yes;
 p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount')) = 1;  // In case number of units has not been defined it is 1.
 $ontext
 p_unit(unit, 'section00') = p_unit(unit, 'rb00') / p_unit(unit, 'eff00'); // Section at min. load defined by rb00

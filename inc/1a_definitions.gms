@@ -69,29 +69,51 @@ $if set rampSched active('rampSched') = %rampSched%;
 * --- Set definitions for parameters -----------------------------------------------------
 Sets
 
-param_gn  "Set of possible data parameters for grid, node" /
-    maxState    "Absolute maximum state of the node (unit depends on energyCapacity)"
-    minState    "Absolute minimum energy in the node (unit depends on energyCapacity)"
-    maxStateSlack "Maximum increase or decrease in the state of the node with a specifict cost co-efficient (unit depends on energyCapacity)"
-    referenceState    "Reference value for a state that can be used to fix a state (unit depends on energyCapacity)"
-    energyCapacity "Energy capacity of the node (MWh/?, allows for changing the quality of the node state variables)"
-    maxSpill    "Maximum spill rate from the node (MWh/h)"
-    minSpill    "Minimum spill rate from the node (MWh/h)"
-    chargingEff "Average charging efficiency (p.u)"
+param_gn  "Possible parameters for grid, node" /
+    chargingEff   "Average charging efficiency (p.u)"
     dischargingEff "Average discharging efficiency (p.u.)"
     selfDischargeLoss "Self discharge rate of the node (p.u.)"
-    fixNothing  "A flag to indicate that no state should be fixed"
-    fixStart "A flag to fix tSolve based on fixState constant or time series or on the previous solve"
-    fixEnd "A flag to fix last t based on fixState constant or time series"
-    fixConstant "A flag to fix a state with a constant value in referenceState"
-    fixTimeSeries "A flag to use time series to fix states"
-    fixCircular "Force the last states to equal the first state"
-    maxUseTimeSeries "Use time series instead of a constant to set state maximum"
-    minUseTimeSeries "Use time series instead of a constant to set state minimum"
-    referenceMultiplier  "A multiplier to change the reference value (either constant or time series), default 1"
-    maxMultiplier "State maximum (time series or constant) multiplier, default 1"
-    minMultiplier "State minimum (time series or constant) multiplier, default 1"
+    unitConversion "A possible unit conversion if v_state uses something else than MWh"
+    boundStart    "A flag to bound the first t in the run using reference constant or time series"
+    boundStartAndEnd "A flag that both start and end are bound using reference constant or time series"
+    boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
+    boundAll      "A flag to bound the state to the reference in all time steps"
+    boundStartToEnd  "Force the last states to equal the first state"
 /
+
+param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
+    upwardLimit   "Absolute maximum state of the node (unit depends on energyCapacity)"
+    downwardLimit "Absolute minimum energy in the node (unit depends on energyCapacity)"
+    upwardSlack01*upwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit depends on energyCapacity)"
+    downwardSlack01*downwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit depends on energyCapacity)"
+    reference     "Reference value for a state that can be used to bound a state (unit depends on energyCapacity)"
+    maxSpill      "Maximum spill rate from the node (MWh/h)"
+    minSpill      "Minimum spill rate from the node (MWh/h)"
+/
+
+param_gnBoundaryProperties "Properties that can be set for the different boundaries" /
+    useTimeSeries "A flag to use time series to set state bounds and limits"
+    useConstant   "A flag to use constant to set state bounds and limits"
+    deltaFromReference "The constant or the time series indicate how much the boundary deviates from reference (instead of being an absolute number)"
+    constant      "A constant value for the boundary or the reference"
+    slackCost     "The cost of exceeding the slack boundary"
+    multiplier    "A multiplier to change the value (either constant or time series), default 1"
+/
+
+slack(param_gnBoundaryTypes) "Categories for slack variables"
+       / upwardSlack01*upwardSlack20, downwardSlack01*downwardSlack20 /
+upwardSlack(slack) "Set of upward slacks"
+       / upwardSlack01*upwardSlack20 /
+downwardSlack(slack) "Set of downward slacks"
+       / downwardSlack01*downwardSlack20 /
+inc_dec "Increase or decrease in dummy or slack variables"
+       / increase, decrease /
+stateLimits(param_gnBoundaryTypes) "set of upward and downward state limits"
+       / upwardLimit, downwardLimit /
+spillLimits(param_gnBoundaryTypes) "set of upward and downward state limits"
+       / maxSpill, minSpill /
+useConstantOrTimeSeries(param_gnBoundaryProperties) "useTimeSeries and useConstant property together"
+       / useTimeSeries, useConstant /
 
 param_gnn "Set of possible data parameters for grid, node, node (nodal interconnections)" /
     transferCap "Transfer capacity limits"
@@ -159,10 +181,4 @@ param_union "Different ways inputs and outputs of energy conversion units can be
     unbound    "The ratio of this output is not constrained by other forms of energy"
     constrained "The usage is limited by the output of free outputs - in relation to the efficiency limits"
     substitute  "Inputs and outputs can be substituted"
-/
-
-
-param_slack "Possible parameters for node inc_dec penalties" /
-    costCoeff "The cost coefficient of the slack category to be used in the objective function"
-    maxSlack  "The maximum slack provided"
 /

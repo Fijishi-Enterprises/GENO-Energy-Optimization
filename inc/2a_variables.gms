@@ -10,7 +10,7 @@ SOS2 variable
 Positive variables
     v_fuelUse(fuel, unit, f, t) "Fuel use of a unit during time period (MWh_fuel)"
     v_startup(unit, f, t) "Capacity started up from previous time period/slice (MW)"
-    v_state(grid, node, f, t) "State variable for nodes that maintain a state (MWh, unless modified by energyCapacity parameter)"
+    v_state(grid, node, f, t) "State variable for nodes that maintain a state (MWh, unless modified by unitConversion parameter)"
 *    v_stoCharge(grid, node, storage, f, t) "Charging of storage during time period (MWh)"
 *    v_stoDischarge(grid, node, storage, f, t) "Discharging of storage during time step (MWh)"
 *    v_stoContent(grid, node, storage, f, t) "Content of storage at the start of time period/time slice (MWh)"
@@ -22,7 +22,7 @@ Positive variables
 
 * --- Feasibility control -----------------------------------------------------
 Positive variables
-    v_stateSlack(inc_dec, slack, grid, node, f, t) "Slack variable for different v_state slack categories, permits e.g. costs for exceeding acceptable v_states (MWh, unless modified by energyCapacity parameter)"
+    v_stateSlack(grid, node, slack, f, t) "Slack variable for different v_state slack categories, permits e.g. costs for exceeding acceptable v_states (MWh, unless modified by energyCapacity parameter)"
     vq_gen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
     vq_resDemand(restype, resdirection, node, f, t) "Dummy to decrease demand for a reserve (MW)"
 ;

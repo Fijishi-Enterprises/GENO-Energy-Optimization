@@ -74,15 +74,6 @@ Sets
     restypeDirectionNode(restype, resdirection, node) "Nodes with reserve requirements"
     nuRescapable(restype, resdirection, node, unit) "Units capable and available to provide particular reserves"
 
-* --- Feasibility control -----------------------------------------------------
-    slack "Categories for slack variables"
-        / slack01*slack10 /
-    inc_dec "Increase or decrease in dummy or slack variables"
-        / increase
-          decrease
-        /
-    gnSlack(inc_dec, slack, grid, node) "Grid nodes with a slack state variable" 
-
 * --- Sets to define time, forecasts and samples -----------------------------------------------
     $$include 'input/timeAndSamples.inc'
     m(mType) "model(s) in use"
@@ -93,6 +84,7 @@ Sets
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
     ft_dynamic(f, t) "ft without first t and with tLast+1 (moved right)"
+    ft_full(f, t) "ft with all t's in the solve including tSolve and tLast+1"
     ft_realized(f, t) "Realized ft"
     ft_realizedLast(f, t) "Last realized ft"
     ft_new(f, t) "Newly introduced f,t to be used in calculating parameter/variable values"
