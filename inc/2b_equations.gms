@@ -22,8 +22,8 @@ equations
 *    q_stoMaxContent(grid, node, storage, f, t) "Storage should have enough room to fit scheduled charge and committed downward reserves"
     q_transferLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
     q_stateSlack(grid, node, slack, f, t) "Slack variable greater than the difference between v_state and the slack boundary"
-    q_stateUpwardLimit(grid, node, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
-*    q_stateDownwardLimit(grid, node, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
+    q_stateUpwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
+    q_stateDownwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_boundState(grid, node, node, mType, f, t) "Node state variables bounded by other nodes"
 ;
 
@@ -443,117 +443,57 @@ q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t)) ..
   - ts_nodeState(grid, node, slack, f, t)$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries')
 ;
 
-q_stateUpwardLimit(gn_state(grid, node), ft(f, t))$( sum(nuResCapable(resType, resDirection, node, unit), nu(node, unit)) // If the node has units with reserves
-                                                         or sum(nuResCapable(resType, resDirection, node, unit), gnu_input(grid, node, unit)) // or the node has a reserve capable input unit
-                                                       ) ..
+q_stateUpwardLimit(gn_state(grid, node), m, ft(f, t))$(    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'resDown', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
+                                                        or sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, nuRescapable(restype, 'resDown', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
+                                                      ) ..
   + v_state(grid, node, f, t)
   + p_stepLength(m, f, t) * (
-      + (sum(nuRescapable(restype, 'resUp', node, unit),
-          + v_reserve(resType, 'resUp', node, unit, f, t)   // upward reserves from units that output energy to the node
-        )
-      + sum(nuRescapable(restype, 'resDown', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and gnu_output(grid, node, unit) }, // downward reserves from units that use the node as an input energy
-          + v_reserve(restype, 'resDown', node_input, unit, f, t)                           // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
-              * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
-        )
-      + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, 'resUp'), restypeDirectionNode(restype, 'resUp', node)) },
-          + sum(restype${ restypeDirectionNode(restype, 'resUp', node) },
-              + (1 - p_gnn(grid, from_node, node, 'transferLoss')) * v_resTransfer(restype, 'resUp', from_node, node, f+pf(f,t), t+pt(t)) // Potential inflow from another node due to upward reserve import
+      + sum(gn2gnu(grid_, node_input, grid, node, unit),
+          + sum(restype$nuRescapable(restype, 'resDown', node_input, unit), // downward reserves from units that output energy from the node
+              + v_reserve(restype, 'resDown', node_input, unit, f, t)
+                  * p_unit(unit, 'eff00')                                                        // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
             )
         )
-      + sum(gn2n(grid, node, to_node)${   sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, to_node)) },
-          + sum(restype${ restypeDirectionNode(restype, 'resDown', to_node) },
-              + (1 - p_gnn(grid, node, to_node,   'transferLoss')) * v_resTransfer(restype, 'resDown', node, to_node, f+pf(f,t), t+pt(t)) // Potential inflow from another node due to downward reserve export
+      + sum(gn2gnu(grid, node, grid_, node_output, unit),
+          + sum(restype$nuRescapable(restype, 'resDown', node_output, unit), // downward reserves from units that use the node as an input energy
+              + v_reserve(restype, 'resDown', node_output, unit, f, t)
+                  / p_unit(unit, 'eff00')                                                        // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
             )
         )
+      // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
+      // considered in power grids that do not have state variables, these terms are not needed. Earlier commit (29.11.2016) contains a draft of those terms.
     )
   =L=
   + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
   + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'upwardLimit', f, t)
 ;
 
-$ontext
-q_maxStateSlack(gn_stateSlack(grid, node), m, ft_dynamic(f, t))${  v_state.up(grid, node, f, t)         // node has an upward state limit
-                                                                and (                                // and the node is connected to units offering reserves
-                                                                        sum(nuRescapable(restype, resdirection, node, unit), nu(node, unit)) // Node has a reserve capable unit
-                                                                        or sum(nuRescapable(restype, resdirection, node_input, unit), gnu_input(grid, node_input, unit) + nu(node, unit)) // Node has a reserve capable input unit
-                                                                    )
-                                                           )
-                                                   }..
-    + (
-        + v_state(grid, node, f, t)                                                             // Node state
-        + p_gn(grid, node, 'maxState')${not p_gn(grid, node, 'maxUseTimeSeries') and not p_gn(grid, node, 'maxStateSlack') and not ts_nodeState(grid, node, 'maxStateSlack', f, t)} // Constant maximum node state
-        + ts_nodeState(grid, node, 'maxState', f, t)${p_gn(grid, node, 'maxUseTimeSeries') and not p_gn(grid, node, 'maxStateSlack') and not ts_nodeState(grid, node, 'maxStateSlack', f, t)} // Time series maximum node state
-        + sum(gn_stateSlack, grid, node),                                           // Sum
-            + p_gnSlack('increase', slack, grid, node, 'maxSlack')
-            + v_stateSlack(grid, node, upwardSlack, f, t)                                 // Upward slack variables
-          )
-      )
-        * ( p_gn(grid, node, 'energyCapacity') + 1$(not p_gn(grid, node, 'energyCapacity')) )   // Account for the possible energy capacity
-    =G=
-    + (
-        + sum(nuRescapable(restype, 'resUp', node, unit),                                       // Possible reserve by this node
-            + v_reserve(restype, 'resUp', node, unit, f+pf(f,t), t+pt(t))
-          )
-        + sum(nuRescapable(restype, 'resDown', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and gnu_output(grid, node, unit) }, // Possible reserve by input node
-            + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
-                * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
-          )
-        + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resUp', node) },
-                + (1 - p_gnn(grid, from_node, node, 'transferLoss')) * v_resTransfer(restype, 'resUp', from_node, node, f+pf(f,t), t+pt(t)) // Reserved transfer capacity for importing energy from from_node
-              )
-          )
-        + sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, to_node)) }, // Reserved transfer capacities from this node to another
-            + sum(restype${ restypeDirectionNode(restype, 'resDown', to_node) },
-                + (1 - p_gnn(grid, node, to_node, 'transferLoss')) * v_resTransfer(restype, 'resDown', node, to_node, f+pf(f,t), t+pt(t)) // Reserved transfer capacity for importing energy from to_node
-              )
-          )
-      )
-        * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiplication with the time step to get energy
+q_stateDownwardLimit(gn_state(grid, node), m, ft(f, t))$(    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'resUp', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
+                                                          or sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, nuRescapable(restype, 'resUp', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
+                                                        ) ..
+  + v_state(grid, node, f, t)
+  + p_stepLength(m, f, t) * (
+      + sum(gn2gnu(grid_, node_input, grid, node, unit),
+          + sum(restype$nuRescapable(restype, 'resUp', node_input, unit), // downward reserves from units that output energy from the node
+              + v_reserve(restype, 'resUp', node_input, unit, f, t)
+                  * p_unit(unit, 'eff00')                                                        // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+            )
+        )
+      + sum(gn2gnu(grid, node, grid_, node_output, unit),
+          + sum(restype$nuRescapable(restype, 'resUp', node_output, unit), // downward reserves from units that use the node as an input energy
+              + v_reserve(restype, 'resUp', node_output, unit, f, t)
+                  / p_unit(unit, 'eff00')                                                        // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+            )
+        )
+      // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
+      // considered in power grids that do not have state variables, these terms are not needed. Earlier commit (29.11.2016) contains a draft of those terms.
+    )
+  =G=
+  + p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
+  + p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'downwardLimit', f, t)
 ;
-* -----------------------------------------------------------------------------
-q_minStateSlack(gn_state(grid, node), m, ft(f, t))${    p_gn(grid, node, 'maxStateSlack')    // Only if the node has a maxStateSlack parameter or
-                                                        or (  v_state.lo(grid, node, f, t)   // node has an downward state limit
-                                                                and (                        // and the node is connected to units offering reserves
-                                                                        sum(nuRescapable(restype, resdirection, node, unit), nu(node, unit)) // Node has a reserve capable unit
-                                                                        or sum(nuRescapable(restype, resdirection, node_input, unit), gnu_input(grid, node_input, unit) + nu(node, unit)) // Node has a reserve capable input unit
-                                                                    )
-                                                           )
-                                                   }..
-    + (
-        + v_state(grid, node, f, t)                                                             // Node state
-        - p_gn(grid, node, 'minState')${not p_gn(grid, node, 'minUseTimeSeries') and not p_gn(grid, node, 'minStateSlack') and not ts_nodeState(grid, node, 'minStateSlack', f, t)} // Absolute minimum node state
-        - ts_nodeState(grid, node, 'minState', f, t)${p_gn(grid, node, 'minUseTimeSeries')  and not p_gn(grid, node, 'minStateSlack') and not ts_nodeState(grid, node, 'minStateSlack', f, t)} // Temporary absolute minimum node state
-        - p_gn(grid, node, 'minStateSlack')${not ts_nodeState(grid, node, 'minStateSlack', f, t)} // Minimum permitted node state for all timesteps, overwritten by possible timeseries data
-        - ts_nodeState(grid, node, 'minStateSlack', f, t)${ts_nodeState(grid, node, 'minStateSlack', f, t)} // Minimum permitted node state for this timestep, if determined by data
-        + sum(gnSlack('decrease', slack, grid, node),                                           // Summation over all determined slack categories
-            + v_stateSlack('decrease', slack, grid, node, f, t)                                 // Downward slack variables
-          )
-      )
-        * ( p_gn(grid, node, 'energyCapacity') + 1$(not p_gn(grid, node, 'energyCapacity')) )   // Account for the possible energy capacity
-    =G=
-    + (
-        + sum(nuRescapable(restype, 'resDown', node, unit),                                     // Possible reserve by this node
-            + v_reserve(restype, 'resDown', node, unit, f+pf(f,t), t+pt(t))
-          )
-        + sum(nuRescapable(restype, 'resUp', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and gnu_output(grid, node, unit) }, // Possible reserve by input node
-            + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))                 // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
-                * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
-          )
-        + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resDown', node) },
-                + v_resTransfer(restype, 'resDown', from_node, node, f+pf(f,t), t+pt(t))                 // Reserved transfer capacity for exporting energy to from_node
-              )
-          )
-        + sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, to_node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resUp', to_node) },
-                + v_resTransfer(restype, 'resUp', node, to_node, f+pf(f,t), t+pt(t))                     // Reserved transfer capacity for exporting energy to to_node
-              )
-          )
-      )
-        * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiplication with the time step to get energy
-;
-$offtext
+
+
 * -----------------------------------------------------------------------------
 q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
     + v_state(grid, node, f, t)   // The state of the first node sets the upper limit of the second

@@ -53,6 +53,7 @@ p_gnu(grid, node, unit_aggregate(unit), 'maxCons') = sum(unit_$unitUnit_aggregat
 gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'maxGen') or p_gnu(grid, node, unit, 'maxCons')) = yes;
 gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'maxGen') = yes;
 gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'maxCons') = yes;
+gn2gnu(grid_, node_input, grid, node, unit)$(gnu_input(grid_, node_input, unit) and gnu_output(grid, node, unit)) = yes;
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
 *nu(node, unit)$sum((grid, grid_, node_), gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit)) = no;
 *nu(node, unit)$sum((grid, grid_, node_), gngnu_fixedOutputRatio(grid, node, grid_, node_, unit)) = no;

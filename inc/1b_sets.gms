@@ -50,6 +50,7 @@ Sets
     gn_stateSlack(grid, node) "Nodes with a state slack variable"
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
     gnn_boundState(grid, node, node) "Nodes with state variables bound by other nodes"
+    gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
     gngnu_fixedOutputRatio(grid, node, grid, node, unit) "Units with a fixed ratio between two different grids of output (e.g. backpressure)"
     gngnu_constrainedOutputRatio(grid, node, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
 
@@ -125,7 +126,7 @@ alias(f, f_, f__);
 alias(s, s_, s__);
 alias(grid, grid_, grid_output);
 alias(unit, unit_);
-alias(node, from_node, to_node, node_, node_input);
+alias(node, from_node, to_node, node_, node_input, node_output);
 alias(node, from_node, to_node);
 alias(effSelector, effSelector_);
 
