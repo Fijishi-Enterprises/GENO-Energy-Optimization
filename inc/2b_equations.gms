@@ -4,9 +4,6 @@ equations
     q_resDemand(restype, resdirection, node, f, t) "Procurement for each reserve type is greater than demand"
     q_maxDownward(grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
-*    q_storageDynamics(grid, node, storage, mType, f, t) "Dynamic equation for storages"
-*    q_storageConversion(grid, node, storage, f, t) "Discharging storages into grids and charging storages from grids"
-*    q_bindStorage(grid, node, storage, mType, f, t) "Couple storage contents when joining branches of forecasts or when joining sample time periods"
     q_bindOnline(unit, mType, f, t) "Couple online variable when joining forecasts or when joining sample time periods"
     q_startup(unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
     q_conversionDirectInputOutput(effSelector, unit, f, t, effSelector)          "Direct conversion of inputs to outputs (no piece-wise linear part-load efficiencies)"
@@ -18,8 +15,6 @@ equations
     q_conversionSOS2IntermediateOutput(effSelector, unit, f, t)  "Output is forced equal with v_sos2 output"
     q_outputRatioFixed(grid, node, grid, node, unit, f, t) "Force fixed ratio between two energy outputs into different energy grids"
     q_outputRatioConstrained(grid, node, grid, node, unit, f, t) "Constrained ratio between two grids of energy output; e.g. electricity generation is greater than cV times unit_heat generation in extraction plants"
-*    q_stoMinContent(grid, node, storage, f, t) "Storage should have enough content to discharge and to deliver committed upward reserves"
-*    q_stoMaxContent(grid, node, storage, f, t) "Storage should have enough room to fit scheduled charge and committed downward reserves"
     q_transferLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
     q_stateSlack(grid, node, slack, f, t) "Slack variable greater than the difference between v_state and the slack boundary"
     q_stateUpwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
@@ -244,40 +239,6 @@ q_maxUpward(gnuft(grid, node, unit, f, t))${      [unit_minLoad(unit) and p_gnu(
   - v_online(unit, f, t) / p_unit(unit, 'unitCount') * p_gnu(grid, node, unit, 'rb00')$[unit_minload(unit) and p_gnu(grid, node, unit, 'maxCons')]
   + v_gen.up(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$unit_minload(unit) + 1$(not unit_minload(unit)) ]
 ;
-$ontext
-* -----------------------------------------------------------------------------
-q_storageDynamics(gnStorage(grid, node, storage), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t))) ..
-    + v_stoContent(grid, node, storage, f, t)
-        * (1 + p_gnStorage(grid, node, storage, 'selfDischarge'))
-    - v_stoContent(grid, node, storage, f+pf(f,t), t+pt(t))
-    =E=
-    + ts_absolute_(storage, f+pf(f,t), t+pt(t))
-    + vq_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))
-    + (
-        + v_stoCharge(grid, node, storage, f+pf(f,t), t+pt(t))$storage_charging(storage)
-        - v_stoDischarge(grid, node, storage, f+pf(f,t), t+pt(t))
-        - v_spill(grid, node, storage, f+pf(f,t), t+pt(t))$storage_spill(storage)
-        $$ifi '%rampSched%' == 'yes' + v_stoCharge(grid, node, storage, f, t)$storage_charging(storage)
-        $$ifi '%rampSched%' == 'yes' - v_stoDischarge(grid, node, storage, f, t)
-        $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, storage, f, t)$storage_spill(storage)
-      )  // In case rampSched is used and the division by 2 on the next line is valid
-        $$ifi '%rampSched%' == 'yes' / 2
-        * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiply by time step to get energy terms instead of power
-;
-* -----------------------------------------------------------------------------
-q_storageConversion(gnStorage(grid, node, storage), ft(f, t)) ..
-  + sum(unit$unitStorage(unit, storage), v_gen(grid, node, unit, f, t)$nuft(node, unit, f, t))
-  =E=
-  + v_stoDischarge(grid, node, storage, f, t) * p_gnStorage(grid, node, storage, 'dischargingEff')
-  - v_stoCharge(grid, node, storage, f, t)$storage_charging(storage) / p_gnStorage(grid, node, storage, 'chargingEff')
-;
-* -----------------------------------------------------------------------------
-q_bindStorage(gnStorage(grid, node, storage), mftBind(m, f, t)) ..
-  + v_stoContent(grid, node, storage, f, t)
-  =E=
-  + v_stoContent(grid, node, storage, f + mft_bind(m,f,t), t + mt_bind(m,t) )
-;
-$offtext
 * -----------------------------------------------------------------------------
 q_startup(unit_online, ft_dynamic(f, t)) ..
   + v_startup(unit_online, f+pf(f,t), t+pt(t))$uft(unit_online, f+pf(f,t), t+pt(t))
@@ -399,30 +360,6 @@ q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, 
   + v_gen(grid_, node_, unit, f, t)$uft(unit, f, t)
       / p_gnu(grid_, node_, unit, 'cB')
 ;
-$ontext
-* -----------------------------------------------------------------------------
-q_stoMinContent(gnStorage(grid, node, storage), ft(f, t)) ..
-  + v_stoContent(grid, node, storage, f, t)                                                     // Storage content
-  - v_stoDischarge(grid, node, storage, f, t)                                                   // - storage discharging
-  - sum( (restype, resdirection, unit_elec)$(nuRescapable(restype, 'resUp', node, unit_elec)    // - reservation for storage discharging (upward reserves)
-        and unitStorage(unit_elec, storage)),
-      + v_reserve(restype, resdirection, node, unit_elec, f, t)$nuft(node, unit_elec, f, t)
-          / p_gnStorage(grid, node, storage, 'dischargingEff') )
-  =G=                                                                                           // are greater than
-  + p_gnStorage(grid, node, storage, 'minContent') * p_gnStorage(grid, node, storage, 'maxContent') // storage min. content
-;
-* -----------------------------------------------------------------------------
-q_stoMaxContent(gnStorage(grid, node, storage), ft(f, t)) ..
-  + v_stoContent(grid, node, storage, f, t)                                                     // Storage content
-  + v_stoCharge(grid, node, storage, f, t)$storage_charging(storage)                            // + storage charging
-  + sum( (restype, resdirection, unit_elec)$(nuRescapable(restype, 'resDown', node, unit_elec)  // + reservation for storage charging (downward reserves)
-        and unitStorage(unit_elec, storage)),
-      + v_reserve(restype, resdirection, node, unit_elec, f, t)$nuft(node, unit_elec, f, t)
-          * p_gnStorage(grid, node, storage, 'chargingEff') )
-  =L=                                                                                           // are less than
-  + p_gnStorage(grid, node, storage, 'maxContent')                                              // storage max. content
-;
-$offtext
 * -----------------------------------------------------------------------------
 q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..                                    // NOTE! Currently generates identical equations for both directions unnecessarily
   + v_transfer(grid, from_node, to_node, f, t)                                                  // Transfer from this node to the target node
@@ -442,7 +379,7 @@ q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t)) ..
   - p_gnBoundaryPropertiesForStates(grid, node, slack, 'constant')$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useConstant')
   - ts_nodeState(grid, node, slack, f, t)$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries')
 ;
-
+* -----------------------------------------------------------------------------
 q_stateUpwardLimit(gn_state(grid, node), m, ft(f, t))$(    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'resDown', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
                                                         or sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, nuRescapable(restype, 'resDown', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
                                                       ) ..
@@ -467,7 +404,7 @@ q_stateUpwardLimit(gn_state(grid, node), m, ft(f, t))$(    sum(gn2gnu(grid, node
   + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
   + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'upwardLimit', f, t)
 ;
-
+* -----------------------------------------------------------------------------
 q_stateDownwardLimit(gn_state(grid, node), m, ft(f, t))$(    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'resUp', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
                                                           or sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, nuRescapable(restype, 'resUp', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
                                                         ) ..
@@ -492,8 +429,6 @@ q_stateDownwardLimit(gn_state(grid, node), m, ft(f, t))$(    sum(gn2gnu(grid, no
   + p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
   + p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'downwardLimit', f, t)
 ;
-
-
 * -----------------------------------------------------------------------------
 q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
     + v_state(grid, node, f, t)   // The state of the first node sets the upper limit of the second

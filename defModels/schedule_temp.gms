@@ -59,7 +59,8 @@ Model schedule /
     q_outputRatioFixed
     q_outputRatioConstrained
     q_transferLimit
-    q_maxStateSlack
-    q_minStateSlack
+    q_stateSlack
+    q_stateUpwardLimit
+    q_stateDownwardLimit
     q_boundState
 /;
