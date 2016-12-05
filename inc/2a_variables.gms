@@ -10,7 +10,7 @@ SOS2 variable
 Positive variables
     v_fuelUse(fuel, unit, f, t) "Fuel use of a unit during time period (MWh_fuel)"
     v_startup(unit, f, t) "Capacity started up from previous time period/slice (MW)"
-    v_state(grid, node, f, t) "State variable for nodes that maintain a state (MWh, unless modified by unitConversion parameter)"
+    v_state(grid, node, f, t) "State variable for nodes that maintain a state (MWh, unless modified by energyStoredPerUnitOfState and diffCoeff parameters)"
     v_spill(grid, node, f, t) "Spill of energy from storage node during time period (MWh)"
     v_transfer(grid, node, node, f, t) "Average electricity transmission level from node to node during time period/slice (MW)"
     v_resTransfer(restype, resdirection, node, node, f, t) "Electricity transmission capacity from node to node reserved for providing reserves (MW)"
