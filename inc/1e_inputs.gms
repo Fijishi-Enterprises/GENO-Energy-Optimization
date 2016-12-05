@@ -68,7 +68,7 @@ gn_state(grid, node)$gn_stateSlack(grid, node) = yes;
 gn_state(grid, node)$(sum((stateLimits, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, stateLimits, useConstantOrTimeSeries))) = yes;
 gn(grid, node)$(sum(unit, gnu(grid, node, unit) or gn_state(grid, node))) = yes;
 p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multiplier')$(not p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'multiplier')) = 1; // If referenceMultiplier has not been set, set it to 1 by default
-p_gn(gn(grid, node), 'unitConversion')$(not p_gn(grid, node, 'unitConversion')) = 1; // If unitConversion has not been set, default to 1
+p_gn(gn(grid, node), 'energyStoredPerUnitOfState')$(not p_gn(grid, node, 'energyStoredPerUnitOfState')) = 1; // If unitConversion has not been set, default to 1
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 

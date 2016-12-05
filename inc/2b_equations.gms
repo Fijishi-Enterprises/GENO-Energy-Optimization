@@ -148,10 +148,10 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
                   )
               )
             // Energy diffusion from neighbouring nodes to this node
-            + sum(node_$(gnn_state(grid, node, node_)),
-                + p_gnn(grid, node, node_, 'diffCoeff') * (
-                    + v_state(grid, node_, f, t)
-                    $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+pf(f,t), t+pt(t))  // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
+            + sum(from_node$(gnn_state(grid, from_node, node)),
+                + p_gnn(grid, from_node, node, 'diffCoeff') * (
+                    + v_state(grid, from_node, f, t)
+                    $$ifi '%rampSched%' == 'yes' + v_state(grid, from_node, f+pf(f,t), t+pt(t))  // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
                   )
               )
             // Controlled energy transfer from other nodes to this one
@@ -448,7 +448,7 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
               )
           )
       )
-        / (p_gn(grid, node, 'unitConversion') )                                                 // Divide by the node energy capacity to obtain same unit as the state/time
+        / (p_gn(grid, node, 'energyStoredPerUnitOfState') )                                     // Divide by the stored energy in the node per unit of v_state to obtain same unit as the v_state
         * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiply with time step to obtain change in state over the step
     =G=
     + v_state(grid, node_, f, t)
@@ -472,7 +472,7 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
               )
           )
       )
-        / (p_gn(grid, node_, 'unitConversion') )                                                // Divide by the node energy capacity to obtain same unit as the state/time
+        / (p_gn(grid, node_, 'energyStoredPerUnitOfState') )                                    // Divide by the stored energy in the node per unit of v_state to obtain same unit as the v_state
         * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiply with time step to obtain change in state over the step
 ;
 

@@ -73,7 +73,7 @@ param_gn  "Possible parameters for grid, node" /
     chargingEff   "Average charging efficiency (p.u)"
     dischargingEff "Average discharging efficiency (p.u.)"
     selfDischargeLoss "Self discharge rate of the node (p.u.)"
-    unitConversion "A possible unit conversion if v_state uses something else than MWh"
+    energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh"
     boundStart    "A flag to bound the first t in the run using reference constant or time series"
     boundStartAndEnd "A flag that both start and end are bound using reference constant or time series"
     boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
