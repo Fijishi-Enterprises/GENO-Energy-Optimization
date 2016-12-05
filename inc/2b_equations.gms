@@ -128,29 +128,26 @@ q_obj ..
 * -----------------------------------------------------------------------------
 q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t)) and not p_gn(grid, node, 'boundAll')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
     // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
-    // The current state of the node
-    + v_state(grid, node, f, t)$(gn_state(grid, node))
-        * (   // This multiplication transforms the state energy into power, a result of implicit discretization
-            + p_gn(grid, node, 'unitConversion') // Unit conversion factor has been assumed to be 1 if not given
-            + (
-                + p_gn(grid, node, 'selfDischargeLoss') // Self discharge rate
-                + sum(node_$(gnn_state(grid, node_, node)), // Summation of the energy diffusion coefficients
-                    + p_gnn(grid, node_, node, 'diffCoeff') // Diffusion coefficients also transform energy terms into power
-                  )
-              )
-                * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiplication by time step to keep the equation in energy terms
-                $$ifi '%rampSched%' == 'yes' / 2    // Ramp scheduling averages the diffusion between this and the previous state
+    + p_gn(grid, node, 'energyStoredPerUnitOfState') // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
+        * ( + v_state(grid, node, f, t)$(gn_state(grid, node))                   // The difference between current
+            - v_state(grid, node, f+pf(f,t), t+pt(t))$(gn_state(grid, node))     // ... and previous state of the node
           )
-    // The previous state of the node
-    - v_state(grid, node, f+pf(f,t), t+pt(t))$(gn_state(grid, node))
-        * (
-            + p_gn(grid, node, 'unitConversion') // Unit conversion factor has been assumed to be 1 if not given.
-            $$ifi '%rampSched%' == 'yes' - ( p_gn(grid, node, 'selfDischargeLoss') + sum( node_$(gnn_state(grid, node_, node)), p_gnn(grid, node_, node, 'diffCoeff') ) * p_stepLength(m, f+pf(f,t), t+pt(t)) / 2 ) // Ramp scheduling averages the diffusion between timesteps
+    - p_gn(grid, node, 'selfDischargeLoss') // Minus the self discharge out of the model boundaries
+        * ( + v_state(grid, node, f, t)$(gn_state(grid, node)) * p_stepLength(m, f+pf(f,t), t+pt(t))                                                // The current state of the node
+            $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+pf(f,t), t+pt(t))$(gn_state(grid, node)) * p_stepLength(m, f+pf(f,t), t+pt(t))     // The previous state of the node
           )
+        $$ifi '%rampSched%' == 'yes' / 2
     =E= // The right side of the equation contains all the changes converted to energy terms
     + (
         + (
-            // Energy diffusion between nodes
+            // Energy diffusion from this node to neighbouring nodes
+            + sum(to_node$(gnn_state(grid, node, to_node)),
+                + p_gnn(grid, node, to_node, 'diffCoeff') * (
+                    + v_state(grid, node, f, t)
+                    $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+pf(f,t), t+pt(t))
+                  )
+              )
+            // Energy diffusion from neighbouring nodes to this node
             + sum(node_$(gnn_state(grid, node, node_)),
                 + p_gnn(grid, node, node_, 'diffCoeff') * (
                     + v_state(grid, node_, f, t)
@@ -188,7 +185,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
         - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
         $$ifi '%rampSched%' == 'yes' - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))
       )
-        $$ifi '%rampSched%' == 'yes' / 2    // Averaging all the terms on the right side of the equation over the timestep here.
+    $$ifi '%rampSched%' == 'yes' / 2    // Averaging all the terms on the right side of the equation over the timestep here.
 ;
 * -----------------------------------------------------------------------------
 q_resDemand(restypeDirectionNode(restype, resdirection, node), ft(f, t)) ..
