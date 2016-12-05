@@ -141,7 +141,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
     + (
         + (
             // Energy diffusion from this node to neighbouring nodes
-            + sum(to_node$(gnn_state(grid, node, to_node)),
+            - sum(to_node$(gnn_state(grid, node, to_node)),
                 + p_gnn(grid, node, to_node, 'diffCoeff') * (
                     + v_state(grid, node, f, t)
                     $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+pf(f,t), t+pt(t))
