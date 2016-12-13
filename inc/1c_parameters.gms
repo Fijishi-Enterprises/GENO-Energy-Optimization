@@ -28,6 +28,7 @@ Parameters
     p_fuelEmission(fuel, emission) "Fuel emission content"
     p_uFuel(unit, param_fuel, fuel, param_unitFuel) "Parameters interacting between units and fuels"
     p_effUnit(effSelector, unit, *)  "Data for piece-wise linear efficiency blocks"
+    p_effGroupUnit(effSelector, unit, *) "Unit data specific to a efficiency group (e.g. left border of the unit)"
 ;
 
 * --- Probability -------------------------------------------------------------

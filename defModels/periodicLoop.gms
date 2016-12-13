@@ -92,12 +92,12 @@ $onOrder
     ft_dynamic(f,tSolve) = no;
     ft_full(f,t) = no;
     ft_full(f,t) = ft(f,t);
-    ft_full(f,t) = mftLastSteps(mSolve, f, t);
     loop(counter$mInterval(mSolve, 'intervalLength', counter),
         lastCounter = ord(counter);
     );
     loop(counter$(ord(counter) = lastCounter),
         ft_dynamic(f,t)$(mf(mSolve, f) and ord(t) = min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)) = yes;
+        ft_full(f,t)$   (mf(mSolve, f) and ord(t) = min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)) = yes;
     );
     ft_realized(f,t) = no;
     ft_realized(f,t)$[fRealization(f) and ord(t) >= ord(tSolve) and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_jump')] = yes;

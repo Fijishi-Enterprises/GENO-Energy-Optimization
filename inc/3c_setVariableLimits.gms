@@ -26,6 +26,9 @@ loop(ft(f, tSolve),
     v_online.fx(uft(unit, f, tSolve))$(not tSolveFirst = mSettings('schedule', 't_start')) = round(v_online.l(unit, f, tSolve));
 );
 
+v_state.fx(grid, node, f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'boundStartToEnd')) = v_state.l(grid, node, f, tSolve);
+
+
 // v_stateSlack absolute boundaries determined by the slack data in p_gnSlack
 *v_stateSlack.up(gn_stateSlack(grid, node), slack, ft_full(f, t))$param_gnBoundaryTypes(grid, node, slack, 'useConstant') = p_gnSlack(grid, node, slack, 'constant') * param_gnBoundaryTypes(grid, node, slack, 'multiplier');
 *v_stateSlack.up(gn_stateSlack(grid, node), slack, ft_full(f, t))$param_gnBoundaryTypes(grid, node, slack, 'useTimeSeries') = ts_nodeState(grid, node, slack, f, t) * param_gnBoundaryTypes(grid, node, slack, 'multiplier');

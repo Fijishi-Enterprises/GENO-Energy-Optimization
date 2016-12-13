@@ -192,6 +192,18 @@ loop(unit,
               = ((count_lambda-1 - count_lambda2) * (1 / p_unit(unit, 'eff00')) + count_lambda2 * (1 / p_unit(unit, 'eff01'))) / (count_lambda - 1);
             count_lambda2 = count_lambda2 + 1;
         );
+
+    );
+);
+
+
+// Calculate unit wide parameters for each efficiency group
+loop(unit,
+    loop(effLevel$sum(m, mSettingsEff(m, effLevel)),
+        loop(effLevelGroupUnit(effLevel, effGroup, unit),
+            p_effGroupUnit(effGroup, unit, 'rb') = smax(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effSelector, unit, 'rb'));
+            p_effGroupUnit(effGroup, unit, 'lb') = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effSelector, unit, 'lb'));
+        );
     );
 );
 

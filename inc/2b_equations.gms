@@ -115,10 +115,10 @@ q_obj ..
     // Node state slack variable penalties
   + sum(gn_stateSlack(grid, node),
       + sum(msft(m, s, f, t),
-          + sum(upwardSlack,
+          + sum(upwardSlack$p_gnBoundaryPropertiesForStates(grid, node, upwardSlack, 'slackCost'),
               + p_sProbability(s) * p_fProbability(f) * ( p_gnBoundaryPropertiesForStates(grid, node,   upwardSlack, 'slackCost') * v_stateSlack(grid, node,   upwardSlack, f, t) )
             )
-          + sum(downwardSlack,
+          + sum(downwardSlack$p_gnBoundaryPropertiesForStates(grid, node, downwardSlack, 'slackCost'),
               + p_sProbability(s) * p_fProbability(f) * ( p_gnBoundaryPropertiesForStates(grid, node, downwardSlack, 'slackCost') * v_stateSlack(grid, node, downwardSlack, f, t) )
             )
         )
@@ -128,18 +128,18 @@ q_obj ..
 * -----------------------------------------------------------------------------
 q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t)) and not p_gn(grid, node, 'boundAll')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
   // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
-  + p_gn(grid, node, 'energyStoredPerUnitOfState') // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
-      * ( + v_state(grid, node, f, t)$(gn_state(grid, node))                   // The difference between current
-          - v_state(grid, node, f+pf(f,t), t+pt(t))$(gn_state(grid, node))     // ... and previous state of the node
+  + p_gn(grid, node, 'energyStoredPerUnitOfState')$gn_state(grid, node) // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
+      * ( + v_state(grid, node, f, t)                                   // The difference between current
+          - v_state(grid, node, f+pf(f,t), t+pt(t))                     // ... and previous state of the node
         )
   =E=
   // The right side of the equation contains all the changes converted to energy terms
   + (
       + (
           // Self discharge out of the model boundaries
-          - p_gn(grid, node, 'selfDischargeLoss') * (
-              + v_state(grid, node, f, t)$(gn_state(grid, node))                                               // The current state of the node
-              $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+pf(f,t), t+pt(t))$(gn_state(grid, node))    // and possibly averaging with the previous state of the node
+          - p_gn(grid, node, 'selfDischargeLoss')$gn_state(grid, node) * (
+              + v_state(grid, node, f, t)                                               // The current state of the node
+              $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+pf(f,t), t+pt(t))    // and possibly averaging with the previous state of the node
             )
           // Energy diffusion from this node to neighbouring nodes
           - sum(to_node$(gnn_state(grid, node, to_node)),
@@ -218,7 +218,9 @@ q_maxDownward(gnuft(grid, node, unit, f, t))${     [unit_minLoad(unit) and p_gnu
         v_reserve(restype, 'resDown', node, unit, f, t)                                                              // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
   =G=                                                                                                                // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
-  + v_online(unit, f, t) / p_unit(unit, 'unitCount') * p_gnu(grid, node, unit, 'rb00') * p_gnu(grid, node, unit, 'maxGen')$[unit_minload(unit) and p_gnu(grid, node, unit, 'maxGen')]
+  + sum(effGroupSelector(effGroup, effSelector)$sufts(effGroup, unit, f, t, effSelector),
+      + v_online(unit, f, t) / p_unit(unit, 'unitCount') * p_effUnit(effSelector, unit, 'lb') * p_gnu(grid, node, unit, 'maxGen')$[unit_minload(unit) and p_gnu(grid, node, unit, 'maxGen')]
+    )
   + v_gen.lo(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$unit_minload(unit) + 1$(not unit_minload(unit)) ]         // notice: v_gen.lo for consuming units is negative
 ;
 * -----------------------------------------------------------------------------
@@ -233,7 +235,9 @@ q_maxUpward(gnuft(grid, node, unit, f, t))${      [unit_minLoad(unit) and p_gnu(
         v_reserve(restype, 'resUp', node, unit, f, t)                                                                // (v_reserve can be used only if the unit can provide a particular reserve)
     )
   =L=                                                                         // must be less than available/online capacity
-  - v_online(unit, f, t) / p_unit(unit, 'unitCount') * p_gnu(grid, node, unit, 'rb00')$[unit_minload(unit) and p_gnu(grid, node, unit, 'maxCons')]
+*  + sum(effGroup$suft(effGroup, unit, f, t),
+*      - v_online(unit, f, t) / p_unit(unit, 'unitCount') * p_effGroupUnit(effGroup, unit, 'lb') * p_gnu(grid, node, unit, 'maxCons')$[unit_minload(unit) and p_gnu(grid, node, unit, 'maxCons')]
+*    )
   + v_gen.up(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$unit_minload(unit) + 1$(not unit_minload(unit)) ]
 ;
 * -----------------------------------------------------------------------------
@@ -369,12 +373,14 @@ q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..                    
   + p_gnn(grid, from_node, to_node, 'transferCap')
 ;
 * -----------------------------------------------------------------------------
-q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t)) ..
-  + v_stateSlack(grid, node, slack, f, t) * p_slackDirection(slack)
+q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))$p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost') ..
+  + v_stateSlack(grid, node, slack, f, t)
   =G=
-  + v_state(grid, node, f, t)
-  - p_gnBoundaryPropertiesForStates(grid, node, slack, 'constant')$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useConstant')
-  - ts_nodeState(grid, node, slack, f, t)$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries')
+  + p_slackDirection(slack) * (
+      + v_state(grid, node, f, t)
+      - p_gnBoundaryPropertiesForStates(grid, node, slack, 'constant')$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useConstant')
+      - ts_nodeState(grid, node, slack, f, t)$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries')
+    )
 ;
 * -----------------------------------------------------------------------------
 q_stateUpwardLimit(gn_state(grid, node), m, ft(f, t))$(    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'resDown', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
