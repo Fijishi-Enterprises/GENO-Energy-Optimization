@@ -48,6 +48,7 @@ class TitanUI(QMainWindow):
         # Setup the user interface from Qt Creator files
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.ui.splitter.setStretchFactor(1, 1)  # Set UI horizontal splitter to left
         # Class variables
         self._config = None
         self._project = None
