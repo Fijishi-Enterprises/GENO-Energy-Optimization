@@ -17,13 +17,13 @@ loop(ft(f, tSolve),
     v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and p_gn(grid, node, 'boundStart') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') and tSolveFirst = mSettings('schedule', 't_start'))
       = ts_nodeState(grid, node, 'reference', f, tSolve) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
     // Remaining solves will use bound start value for v_state once it has been established
-    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and not tSolveFirst = mSettings(mSolve, 't_start'))
+    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and not tSolveFirst = mSettings('schedule', 't_start'))
       = v_state.l(grid, node, f, tSolve);
 
     // First solve, online variables
-    v_online.up(uft(unit, f, tSolve))$(tSolveFirst = mSettings(mSolve, 't_start')) = p_unit(unit, 'unitCount');
+    v_online.up(uft(unit, f, tSolve))$(tSolveFirst = mSettings('schedule', 't_start')) = p_unit(unit, 'unitCount');
     // Remaining solves
-    v_online.fx(uft(unit, f, tSolve))$(not tSolveFirst = mSettings(mSolve, 't_start')) = round(v_online.l(unit, f, tSolve));
+    v_online.fx(uft(unit, f, tSolve))$(not tSolveFirst = mSettings('schedule', 't_start')) = round(v_online.l(unit, f, tSolve));
 );
 
 v_state.fx(grid, node, f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'boundStartToEnd')) = v_state.l(grid, node, f, tSolve);
