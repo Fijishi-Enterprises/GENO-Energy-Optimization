@@ -48,7 +48,7 @@ class TitanUI(QMainWindow):
         # Setup the user interface from Qt Creator files
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.ui.splitter.setStretchFactor(1, 1)  # Set UI horizontal splitter to left
+        self.ui.splitter.setStretchFactor(1, 1)  # Set UI horizontal splitter to the left
         # Class variables
         self._config = None
         self._project = None
@@ -107,9 +107,11 @@ class TitanUI(QMainWindow):
         self.ui.actionInspectData.triggered.connect(self.open_inspect_form)
         self.ui.actionHelp.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionAbout.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
-        self.ui.actionImport.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
-        self.ui.actionExport.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
+        self.ui.actionUnpack.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
+        self.ui.actionPack.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionQuit.triggered.connect(self.closeEvent)
+        self.ui.actionAdd_Tool.triggered.connect(self.add_tool)
+        self.ui.actionRemove_Tool.triggered.connect(self.remove_tool)
         # Widgets
         self.ui.pushButton_execute_all.clicked.connect(self.execute_all)
         self.ui.pushButton_execute_branch.clicked.connect(self.execute_branch)
@@ -391,6 +393,7 @@ class TitanUI(QMainWindow):
         except IndexError:
             # Nothing selected
             logging.debug("No Tool selected")
+            self.add_msg_signal.emit("No Tool selected", 0)
             return
         if not index.isValid():
             logging.debug("Index not valid")
@@ -401,22 +404,28 @@ class TitanUI(QMainWindow):
             return
         sel_tool = self.tool_model.tool(index.row())
         tool_def_path = sel_tool.def_file_path
-        self.add_msg_signal.emit("Removing tool: {0}\nDefinition file path: {1}"
-                                 .format(sel_tool.name, tool_def_path), 0)
-        old_tool_paths = self._config.get('general', 'tools')
-        if tool_def_path in old_tool_paths:
-            if not self.tool_model.removeRow(index.row()):
-                self.add_msg_signal.emit("Error in removing Tool {0}".format(sel_tool.name), 2)
+        msg = "Removing Tool '{0}'. Are you sure?".format(sel_tool.name)
+        # noinspection PyCallByClass, PyTypeChecker
+        answer = QMessageBox.question(self, 'Remove Tool', msg, QMessageBox.Yes, QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.add_msg_signal.emit("Removing tool: {0}\nDefinition file path: {1}"
+                                     .format(sel_tool.name, tool_def_path), 0)
+            old_tool_paths = self._config.get('general', 'tools')
+            if tool_def_path in old_tool_paths:
+                if not self.tool_model.removeRow(index.row()):
+                    self.add_msg_signal.emit("Error in removing Tool {0}".format(sel_tool.name), 2)
+                    return
+                new_tool_paths = old_tool_paths.replace('\n' + tool_def_path, '')
+                # self.add_msg_signal.emit("Old tools string:{0}".format(old_tool_paths), 0)
+                # self.add_msg_signal.emit("New tools string:{0}".format(new_tool_paths), 0)
+                self._config.set('general', 'tools', new_tool_paths)
+                self._config.save()
+                self.add_msg_signal.emit("Done", 1)
+            else:
+                self.add_msg_signal.emit("Path ({0}) not found in configuration file."
+                                         " Remove the path manually and restart Sceleton".format(tool_def_path), 0)
                 return
-            new_tool_paths = old_tool_paths.replace('\n' + tool_def_path, '')
-            # self.add_msg_signal.emit("Old tools string:{0}".format(old_tool_paths), 0)
-            # self.add_msg_signal.emit("New tools string:{0}".format(new_tool_paths), 0)
-            self._config.set('general', 'tools', new_tool_paths)
-            self._config.save()
-            self.add_msg_signal.emit("Done", 1)
         else:
-            self.add_msg_signal.emit("Path ({0}) not found in configuration file."
-                                     " Remove the path manually and restart Sceleton".format(tool_def_path), 0)
             return
 
     def context_menu_configs(self, pos):

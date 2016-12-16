@@ -685,8 +685,8 @@
     <addaction name="actionSave_As"/>
     <addaction name="actionLoad"/>
     <addaction name="separator"/>
-    <addaction name="actionImport"/>
-    <addaction name="actionExport"/>
+    <addaction name="actionUnpack"/>
+    <addaction name="actionPack"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
     <addaction name="separator"/>
@@ -802,23 +802,29 @@
     <enum>Qt::WindowShortcut</enum>
    </property>
   </action>
-  <action name="actionImport">
+  <action name="actionUnpack">
    <property name="text">
-    <string>Import Project...</string>
+    <string>Unpack Project...</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import project from a zip file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+I</string>
+    <string>Ctrl+U</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::WindowShortcut</enum>
    </property>
   </action>
-  <action name="actionExport">
+  <action name="actionPack">
    <property name="text">
-    <string>Export Project...</string>
+    <string>Pack Project...</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Export project to a zip file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+E</string>
+    <string>Ctrl+P</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::WindowShortcut</enum>
@@ -861,10 +867,16 @@
    <property name="text">
     <string>Add Tool</string>
    </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
   </action>
   <action name="actionRemove_Tool">
    <property name="text">
     <string>Remove Tool</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
    </property>
   </action>
  </widget>
