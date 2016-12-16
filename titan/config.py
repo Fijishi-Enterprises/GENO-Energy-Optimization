@@ -14,6 +14,7 @@ SCELETON_VERSION = '0.1'
 ERROR_COLOR = QColor('red')
 SUCCESS_COLOR = QColor('green')
 NEUTRAL_COLOR = QColor('blue')
+BLACK_COLOR = QColor('black')  # Default text color
 
 # Application path
 if getattr(sys, 'frozen', False):

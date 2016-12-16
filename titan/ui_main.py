@@ -18,7 +18,7 @@ from models import SetupModel, ToolModel
 from setup import Setup
 from helpers import find_work_dirs
 from GAMS import GAMSModel
-from config import ERROR_COLOR, SUCCESS_COLOR, PROJECT_DIR, \
+from config import ERROR_COLOR, SUCCESS_COLOR, BLACK_COLOR, PROJECT_DIR, \
                    WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS
 from configuration import ConfigurationParser
 from widgets.setup_form_widget import SetupFormWidget
@@ -35,10 +35,10 @@ class TitanUI(QMainWindow):
     """Class for application main GUI functions."""
 
     # Custom PyQt signals
-    add_msg_signal = pyqtSignal(str, int)
-    add_err_msg_signal = pyqtSignal(str)
-    add_proc_msg_signal = pyqtSignal(str)
-    add_proc_err_msg_signal = pyqtSignal(str)
+    add_msg_signal = pyqtSignal(str, int, name="add_msg_signal")
+    add_err_msg_signal = pyqtSignal(str, name="add_err_msg_signal")
+    add_proc_msg_signal = pyqtSignal(str, name="add_proc_msg_signal")
+    add_proc_err_msg_signal = pyqtSignal(str, name="add_proc_err_msg_signal")
 
     def __init__(self):
         """ Initialize GUI."""
@@ -469,7 +469,7 @@ class TitanUI(QMainWindow):
         self.context_menu.deleteLater()
         self.context_menu = None
 
-    @pyqtSlot("QModelIndex")
+    @pyqtSlot("QModelIndex", name="open_setup_form")
     def open_setup_form(self, index=QModelIndex()):
         """Show Setup creation form.
 
@@ -526,7 +526,7 @@ class TitanUI(QMainWindow):
         self.input_data_form = InputDataWidget(self, index, self.setup_model)
         self.input_data_form.show()
 
-    @pyqtSlot()
+    @pyqtSlot(name="show_settings")
     def show_settings(self):
         """Show settings window."""
         self.settings_form = SettingsWidget(self, self._config)
@@ -711,7 +711,7 @@ class TitanUI(QMainWindow):
         self.add_msg_signal.emit("\nStarting Setup '%s'" % self._running_setup.name, 0)
         self._running_setup.execute(self)
 
-    @pyqtSlot()
+    @pyqtSlot(name="setup_done")
     def setup_done(self):
         """Start executing next Setup or end run if all Setups are done."""
         logging.debug("Setup <{0}> finished".format(self._running_setup.name))
@@ -906,7 +906,7 @@ class TitanUI(QMainWindow):
         self._project.make_data_files(self.setup_model, wb, self)
         return True
 
-    @pyqtSlot(str, int)
+    @pyqtSlot(str, int, name="add_msg")
     def add_msg(self, msg, code=0):
         """Writes given message to main textBrowser.
 
@@ -914,31 +914,30 @@ class TitanUI(QMainWindow):
             msg (str): String written to TextBrowser
             code (int): Code for text color, 0: regular, 1=green, 2=red
         """
-        old_color = self.ui.textBrowser_main.textColor()
         if code == 1:
             self.ui.textBrowser_main.setTextColor(SUCCESS_COLOR)
         elif code == 2:
             self.ui.textBrowser_main.setTextColor(ERROR_COLOR)
+        else:
+            self.ui.textBrowser_main.setTextColor(BLACK_COLOR)
         self.ui.textBrowser_main.append(msg)
-        self.ui.textBrowser_main.setTextColor(old_color)
         # noinspection PyArgumentList
         QApplication.processEvents()
 
-    @pyqtSlot(str)
+    @pyqtSlot(str, name="add_err_msg")
     def add_err_msg(self, message):
         """Writes given error message to main textBrowser with error text color.
 
         Args:
             message (str): The error message to be written.
         """
-        old_color = self.ui.textBrowser_main.textColor()
         self.ui.textBrowser_main.setTextColor(ERROR_COLOR)
         self.ui.textBrowser_main.append(message)
-        self.ui.textBrowser_main.setTextColor(old_color)
+        self.ui.textBrowser_main.setTextColor(BLACK_COLOR)
         # noinspection PyArgumentList
         QApplication.processEvents()
 
-    @pyqtSlot(str)
+    @pyqtSlot(str, name="add_proc_msg")
     def add_proc_msg(self, msg):
         """Writes given message to process output textBrowser.
 
@@ -949,7 +948,7 @@ class TitanUI(QMainWindow):
         # noinspection PyArgumentList
         QApplication.processEvents()
 
-    @pyqtSlot(str)
+    @pyqtSlot(str, name="add_proc_err_msg")
     def add_proc_err_msg(self, msg):
         """Writes given message to main textBrowser.
 
