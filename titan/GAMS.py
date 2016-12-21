@@ -38,18 +38,17 @@ class GAMSModel(Tool):
         # because GAMS needs to run in the directory of the main program
         self.main_dir, self.main_prgm = os.path.split(self.main_prgm)
         self.GAMS_parameters = ['Cerr=1',  # Stop on first compilation error
-                                'Logoption=3'  # Send LOG output to STDOUT
-                               ]
-        # Add .log and .lst files to list of outputs
-        self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.log')
-        self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.lst')
+                                'Logoption=3']  # Send LOG output to STDOUT
         # Logoption options
         # 0 suppress LOG output
         # 1 LOG output to screen (default)
         # 2 send LOG output to file
         # 3 writes LOG output to standard output
-        # 4 writes LOG output to a file and standard output  # Not supported
+        # 4 writes LOG output to a file and standard output  [Not supported]
 
+        # Add .log and .lst files to list of outputs
+        self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.log')
+        self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.lst')
         self.return_codes = {
             0: "normal return",
             1: "solver is to be called the system should never return this number",
@@ -64,11 +63,11 @@ class GAMSModel(Tool):
             10: "out of memory",
             11: "out of disk"
         }
-        
+
     def __repr__(self):
         return "GAMSModel('{}')".format(self.name)
 
-    def create_instance(self, ui, cmdline_args=None, tool_output_dir='', setup_name=''):
+    def create_instance(self, ui, cmdline_args, tool_output_dir, setup_name):
         """Create an instance of the GAMS model
 
         Args:
@@ -79,9 +78,9 @@ class GAMSModel(Tool):
         """
         instance = ToolInstance(self, ui, cmdline_args, tool_output_dir, setup_name)
         # Tamper the command to call GAMS
-        command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE, self.main_prgm,
-                                                  os.path.join(instance.basedir,
-                                                               self.main_dir),
+        command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE,
+                                                  self.main_prgm,
+                                                  os.path.join(instance.basedir, self.main_dir),
                                                   ' '.join(self.GAMS_parameters))
         if cmdline_args is not None:
             if self.cmdline_args is not None:
@@ -97,11 +96,11 @@ class GAMSModel(Tool):
 
     @staticmethod
     def load(jsonfile, ui):
-        """Load a tool description from a file.
+        """Create a GAMSModel according to a tool definition file.
 
         Args:
             jsonfile (str): Path of the tool definition file
-            ui (TitanUI): Titan GUI window
+            ui (TitanUI): Titan GUI instance
 
         Returns:
             GAMSModel instance or None if there was a problem in the tool definition file.

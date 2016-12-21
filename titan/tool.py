@@ -65,7 +65,7 @@ class Tool(MetaObject):
         """
         self.return_codes[code] = description
 
-    def create_instance(self, ui, cmdline_args=None, tool_output_dir='', setup_name=''):
+    def create_instance(self, ui, cmdline_args, tool_output_dir, setup_name):
         """Create an instance of the tool.
 
         Args:
@@ -105,9 +105,9 @@ class Tool(MetaObject):
 class ToolInstance(QObject):
     """Class for Tool instances."""
 
-    instance_finished_signal = pyqtSignal(int)
+    instance_finished_signal = pyqtSignal(int, name="instance_finished_signal")
 
-    def __init__(self, tool, ui, cmdline_args=None, tool_output_dir='', setup_name=''):
+    def __init__(self, tool, ui, cmdline_args, tool_output_dir, setup_name):
         """Tool instance constructor.
 
         Args:
@@ -121,22 +121,24 @@ class ToolInstance(QObject):
         self.tool = tool
         self.ui = ui
         self.tool_process = None
+        self.tool_output_dir = tool_output_dir
         self.basedir = tempfile.mkdtemp(dir=WORK_DIR,
                                         prefix=self.tool.short_name + '__')
-        if not self._checkout:
-            raise OSError("Could not create tool instance")
+        self.setup_name = setup_name
         self.command = os.path.join(self.basedir, tool.main_prgm)
-        if cmdline_args is not None:
+        if cmdline_args is not None or cmdline_args is not "":
             self.command += ' ' + cmdline_args
         self.infiles = [os.path.join(self.basedir, f) for f in tool.infiles]
         self.infiles_opt = [os.path.join(self.basedir, f) for f in tool.infiles_opt]
-        self.tool_output_dir = tool_output_dir
         self.outfiles = [os.path.join(self.basedir, f) for f in tool.outfiles]
-        self.setup_name = setup_name
+        self.make_work_output_dirs()
+        # Checkout Tool
+        if not self._checkout:
+            raise OSError("Could not create tool instance")
 
     @property
     def _checkout(self):
-        """Copy the tool files to the instance base directory"""
+        """Copy Tool files to work directory."""
         logging.info("Copying Tool '{}' to work directory".format(self.tool.name))
         self.ui.add_msg_signal.emit("Copying Tool '{}' to work directory".format(self.tool.name), 0)
         for filepath in self.tool.files:
@@ -177,7 +179,7 @@ class ToolInstance(QObject):
         # Start running model in sub-process
         self.tool_process.start_process(self.command)
 
-    @pyqtSlot(int)
+    @pyqtSlot(int, name="tool_finished")
     def tool_finished(self, ret):
         """Run when tool has finished processing. Copies output of tool
         to project output directory.
@@ -232,6 +234,29 @@ class ToolInstance(QObject):
                     shutil.copy(fname, target_dir)
                     count += 1
             return True if count > 0 else False
+
+    def make_work_output_dirs(self):
+        """Make sure that work directory has the necessary output directories for Tool output files.
+        Checks only "outfiles" list. Alternatively you can add directories to "files" list in the tool definition file.
+
+        Returns:
+            Boolean value depending on operation success.
+        """
+        for path in self.tool.outfiles:
+            dirname, file_pattern = os.path.split(path)
+            if dirname == '':
+                continue
+            dst_dir = os.path.join(self.basedir, dirname)
+            # Create the destination directory
+            if not os.path.isdir(dst_dir):
+                try:
+                    os.makedirs(dst_dir, exist_ok=True)
+                except OSError as e:
+                    logging.error(e)
+                    self.ui.add_msg_signal.emit("Making directory '{}' failed".format(dst_dir), 2)
+                    return False
+                logging.debug("Created output directory <{0}>".format(dst_dir))
+        return True
 
 
 class MyEncoder(json.JSONEncoder):

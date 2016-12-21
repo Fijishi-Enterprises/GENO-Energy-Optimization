@@ -1,0 +1,11 @@
+{
+    "name": "Test Tool",
+    "short_name": "Test_Tool",
+    "description": "Tool definition file for Sceleton Titan unit tests.",
+    "files": ["testtool.gms", "inc/*.gms", "inc/*.inc"],
+    "cmdline_args": "A=100",
+    "infiles": ["input/InputData.gdx"],
+    "infiles_opt": ["input/*.gms",
+                    "input/*.inc"],
+    "outfiles": ["output/debug.gdx", "results/results.gdx", "info.txt", "output/list/list.gdx"]
+}
