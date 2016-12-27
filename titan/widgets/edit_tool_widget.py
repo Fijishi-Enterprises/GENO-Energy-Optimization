@@ -25,11 +25,13 @@ class EditToolWidget(QWidget):
         #  Set up the user interface from Designer.
         self.ui = ui.edit_tool_form.Ui_Form()
         self.ui.setupUi(self)
+        # Ensure this window gets garbage-collected when closed
+        self.setAttribute(Qt.WA_DeleteOnClose)
         # Class attributes
         self.index = index  # Selected Setup index
         self.setup = index.internalPointer()
         self.tool = self.setup.tool
-        self.connect_signals()
+        self.cmdline_args = self.setup.cmdline_args
         # self.ui.pushButton_ok.setDefault(True)
         self.ui.comboBox_tool.setFocus()
         # Load Tool model to comboBox
@@ -44,19 +46,35 @@ class EditToolWidget(QWidget):
                     # Skip tool_model._tools[0] because it is a string
                     continue
                 if tool_name == self._parent.tool_model.tool(i).name:
-                    # logging.debug("Found Tool:%s from tool model" % tool_name)
+                    # Set Tool command line arguments to readonly line_edit as default
                     self.ui.comboBox_tool.setCurrentIndex(i)
+                    tool_args = self.tool.cmdline_args
+                    self.ui.lineEdit_tool_args.setText(tool_args)
         # Set current command line arguments to lineEdit as default
-        self.cmdline_args = self.setup.cmdline_args
         self.ui.lineEdit_cmdline_params.setText(self.cmdline_args)
-        # Ensure this window gets garbage-collected when closed
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.connect_signals()
 
     def connect_signals(self):
         """ Connect PyQt signals. """
         # Button clicked handlers
         self.ui.pushButton_ok.clicked.connect(self.ok_clicked)
         self.ui.pushButton_cancel.clicked.connect(self.close)
+        self.ui.comboBox_tool.currentIndexChanged.connect(self.update)
+
+    @pyqtSlot(int)
+    def update(self, row):
+        """Show Tool command line arguments in a line edit (read-only)."""
+        if row == 0:
+            # No Tool selected
+            self.ui.lineEdit_tool_args.setText("")
+            return
+        selected_tool = self._parent.tool_model.tool(row)
+        args = selected_tool.cmdline_args
+        if not args:
+            # Tool cmdline_args is None if the line does not exist in Tool definition file
+            args = ''
+        self.ui.lineEdit_tool_args.setText("{0}".format(args))
+        return
 
     @pyqtSlot()
     def ok_clicked(self):

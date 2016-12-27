@@ -464,6 +464,26 @@
            </spacer>
           </item>
           <item>
+           <widget class="QToolButton" name="toolButton_refresh_tools">
+            <property name="text">
+             <string>Refresh Tools</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
            <widget class="QToolButton" name="toolButton_remove_tool">
             <property name="text">
              <string>Remove Tool</string>
@@ -711,6 +731,7 @@
      <string>Tools</string>
     </property>
     <addaction name="actionAdd_Tool"/>
+    <addaction name="actionRefresh_Tools"/>
     <addaction name="actionRemove_Tool"/>
    </widget>
    <addaction name="menuFile"/>
@@ -868,7 +889,7 @@
     <string>Add Tool</string>
    </property>
    <property name="shortcut">
-    <string>F9</string>
+    <string>F8</string>
    </property>
   </action>
   <action name="actionRemove_Tool">
@@ -877,6 +898,14 @@
    </property>
    <property name="shortcut">
     <string>F10</string>
+   </property>
+  </action>
+  <action name="actionRefresh_Tools">
+   <property name="text">
+    <string>Refresh Tools</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
    </property>
   </action>
  </widget>

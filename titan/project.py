@@ -116,6 +116,7 @@ class SceletonProject(MetaObject):
         the_dict['desc'] = setup.description
         if setup.tool:
             the_dict['tool'] = setup.tool.name
+            # Save only Setup cmdline_args. Tool cmdline_args will be added to Setups when the Tool is added
             the_dict['cmdline_args'] = setup.cmdline_args
         else:
             the_dict['tool'] = None

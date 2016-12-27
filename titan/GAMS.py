@@ -72,7 +72,7 @@ class GAMSModel(Tool):
 
         Args:
             ui (TitanUI): Titan GUI window
-            cmdline_args (str): Extra command line arguments
+            cmdline_args (str): Extra Setup command line arguments
             tool_output_dir (str): Tool output directory
             setup_name (str): Short name of Setup that owns this Tool
         """
@@ -83,7 +83,7 @@ class GAMSModel(Tool):
                                                   os.path.join(instance.basedir, self.main_dir),
                                                   ' '.join(self.GAMS_parameters))
         if cmdline_args is not None:
-            if self.cmdline_args is not None:
+            if (self.cmdline_args is not None) and (not self.cmdline_args == ''):
                 command += ' ' + self.cmdline_args + ' ' + cmdline_args
             else:
                 command += ' ' + cmdline_args

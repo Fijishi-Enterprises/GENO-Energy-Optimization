@@ -143,7 +143,7 @@ class Setup(MetaObject):
 
         Args:
             tool (Tool): The tool to be used in this process
-            cmdline_args (str, optional): Extra command line arguments for this tool
+            cmdline_args (str, optional): Additional Setup command line arguments for the attached tool
 
         Returns:
             True if successful, False if not

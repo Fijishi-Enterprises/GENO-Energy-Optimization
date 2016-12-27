@@ -100,7 +100,18 @@ class SetupModel(QAbstractItemModel):
             if not setup.tool:
                 return ''
             else:
-                return setup.cmdline_args
+                tool_args = setup.tool.cmdline_args
+                setup_args = setup.cmdline_args
+                if not tool_args:
+                    tool_args = ''
+                if not setup_args:
+                    setup_args = ''
+                if tool_args == '':
+                    return setup_args
+                elif setup_args == '':
+                    return tool_args
+                else:
+                    return tool_args + ' ' + setup_args
         else:
             return None
 

@@ -8,10 +8,11 @@ Module for main application GUI functions.
 import locale
 import logging
 import os
+import sys
 import json
 import shutil
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QCheckBox
+from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QCheckBox, QTextBrowser
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
@@ -66,15 +67,16 @@ class TitanUI(QMainWindow):
         self.edit_tool_form = None
         self.settings_form = None
         self.input_data_form = None
+        self.tool_def_textbrowser = None  # QTextBrowser to show selected tool definition file
         # Initialize general things
         self.init_conf()
         # Set logging level according to settings
         self.set_debug_level(level=self._config.get("settings", "debug_messages"))
         self.connect_signals()
-        # Initialize project
-        self.init_project()
         # Initialize ToolModel
         self.init_tool_model()
+        # Initialize project
+        self.init_project()
 
     # noinspection PyMethodMayBeStatic
     def set_debug_level(self, level):
@@ -92,7 +94,7 @@ class TitanUI(QMainWindow):
 
     def connect_signals(self):
         """Connect PyQt signals."""
-        # Custom signals
+        # Custom signals (Needs to be done before project and model initialization)
         self.add_msg_signal.connect(self.add_msg)
         self.add_err_msg_signal.connect(self.add_err_msg)
         self.add_proc_msg_signal.connect(self.add_proc_msg)
@@ -111,6 +113,7 @@ class TitanUI(QMainWindow):
         self.ui.actionPack.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionQuit.triggered.connect(self.closeEvent)
         self.ui.actionAdd_Tool.triggered.connect(self.add_tool)
+        self.ui.actionRefresh_Tools.triggered.connect(self.refresh_tools)
         self.ui.actionRemove_Tool.triggered.connect(self.remove_tool)
         # Widgets
         self.ui.pushButton_execute_all.clicked.connect(self.execute_all)
@@ -124,6 +127,7 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_clear_ready_all.clicked.connect(self.clear_all_ready_flags)
         self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
         self.ui.toolButton_add_tool.clicked.connect(self.add_tool)
+        self.ui.toolButton_refresh_tools.clicked.connect(self.refresh_tools)
         self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)
         self.ui.pushButton_import_data.clicked.connect(self.import_data)
         self.ui.pushButton_inspect_data.clicked.connect(self.open_inspect_form)
@@ -152,6 +156,7 @@ class TitanUI(QMainWindow):
                 continue
             # Load tool definition
             tool = GAMSModel.load(tool_def, self)
+            logging.debug("{0} cmdline_args: {1}".format(tool.name, tool.cmdline_args))
             if not tool:
                 logging.error("Failed to load Tool from path '{0}'".format(tool_def))
                 self.add_msg_signal.emit("Failed to load Tool from path '{0}'".format(tool_def), 2)
@@ -162,6 +167,10 @@ class TitanUI(QMainWindow):
             self.tool_model.insertRow(tool)
         # Set ToolModel to available Tools view
         self.ui.listView_tools.setModel(self.tool_model)
+        # Connect currentChanged and doubleClicked signals to Tool QListView
+        # This method creates a new Tool model, so it's signals must be reconnected
+        self.ui.listView_tools.selectionModel().currentChanged.connect(self.view_tool_def)
+        self.ui.listView_tools.doubleClicked.connect(self.edit_tool_def)
 
     def init_conf(self):
         """Initialize configuration file."""
@@ -384,6 +393,41 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("Tool '{0}' already available".format(tool.name), 0)
             return
 
+    def refresh_tools(self):
+        """Refresh all Tools from available tool definition files."""
+        if not self._project:
+            self.add_msg_signal.emit("No project open", 0)
+            return
+        self.add_msg_signal.emit("Refreshing tools", 0)
+        self.init_tool_model()
+        # Reattach all Tools to Setups because the tool model has changed.
+
+        def traverse(setup):
+            # Helper function to traverse tree
+            if not setup.name == 'root':
+                if setup.tool:
+                    # Find the Tool with a same name from the tool model
+                    old_tool_name = setup.tool.name
+                    new_tool = self.tool_model.find_tool(old_tool_name)
+                    if not new_tool:
+                        self.add_msg_signal.emit("Refreshing tool '{0}' failed for Setup '{1}'".format(
+                            old_tool_name, setup.name), 2)
+                        setup.tool = None
+                    else:
+                        setup.attach_tool(new_tool, setup.cmdline_args)
+            for kid in setup.children():
+                traverse.level += 1
+                traverse(kid)
+                traverse.level -= 1
+        traverse.level = 1
+        # Traverse tree starting from root
+        if not self._root:
+            self.add_msg_signal.emit("No Setups in project", 0)
+        else:
+            traverse(self._root)
+        self.setup_model.emit_data_changed()
+        self.add_msg_signal.emit("Done", 1)
+
     def remove_tool(self):
         """Removes a tool from the ToolModel. Also removes the JSON
         tool definition file path from the configuration file.
@@ -427,6 +471,89 @@ class TitanUI(QMainWindow):
                 return
         else:
             return
+
+    def edit_tool(self, setup, tool, cmdline_args):
+        """Change the Tool associated with Setup.
+
+        Args:
+            setup (Setup): Setup whose Tool is edited
+            tool (Tool): Tool that replaces current one
+            cmdline_args (str): Additional Setup command line arguments
+
+        Returns:
+            Boolean value depending on operation success
+        """
+        # Add tool to Setup
+        if tool is not None:
+            self.add_msg_signal.emit("Changing Tool '%s' for Setup '%s'" % (tool.name, setup.name), 0)
+            setup.detach_tool()
+            setup.attach_tool(tool, cmdline_args=cmdline_args)
+        else:
+            self.add_msg_signal.emit("Removing Tool from Setup '%s'" % setup.name, 0)
+            setup.detach_tool()
+        self.setup_model.emit_data_changed()
+        return True
+
+    def view_tool_def(self, current, previous):
+        """Show selected Tool definition file in a QTextBrowser in main window.
+
+        Args:
+            current (QModelIndex): Index of the current item
+            previous (QModelIndex): Index of the previous item
+        """
+        if not current.isValid():
+            return
+        if current.row() == 0:
+            if self.tool_def_textbrowser:
+                self.tool_def_textbrowser.hide()
+                self.ui.label_5.setText("GAMS Output")
+                self.ui.textBrowser_process_output.show()
+            return
+        current_tool = self.tool_model.tool(current.row())
+        tool_def_file_path = current_tool.def_file_path
+        json_data = ''
+        with open(tool_def_file_path, 'r') as fp:
+            try:
+                json_data = json.load(fp)
+            except ValueError:
+                self.add_msg_signal.emit("Tool definition file not valid: '{0}'".format(tool_def_file_path), 2)
+                logging.exception("Loading JSON data failed")
+                return
+        # Add QTextBrowser below GAMS output QTextBrowser
+        if not self.tool_def_textbrowser:
+            self.tool_def_textbrowser = QTextBrowser(self)
+            self.ui.verticalLayout.addWidget(self.tool_def_textbrowser)
+            self.tool_def_textbrowser.append(json.dumps(json_data, sort_keys=True, indent=4))
+            # Edit label
+            self.ui.label_5.setText("Tool Definition File")
+            self.ui.textBrowser_process_output.hide()
+        else:
+            self.tool_def_textbrowser.clear()
+            self.tool_def_textbrowser.append(json.dumps(json_data, sort_keys=True, indent=4))
+            self.tool_def_textbrowser.show()
+            self.ui.label_5.setText("Tool Definition File")
+            self.ui.textBrowser_process_output.hide()
+
+    def edit_tool_def(self):
+        """Open the double-clicked Tools definition file in the default (.json) text-editor."""
+        try:
+            index = self.ui.listView_tools.selectedIndexes()[0]
+        except IndexError:
+            # Nothing selected
+            return
+        if not index.isValid():
+            return
+        if index.row() == 0:
+            # Do not do anything if No Tool option is double-clicked
+            return
+        sel_tool = self.tool_model.tool(index.row())
+        tool_def_path = sel_tool.def_file_path
+        # Open the tool def file in editor (only windows supported)
+        if not sys.platform == 'win32':
+            logging.error("This feature is not supported by your OS: <{0}>".format(sys.platform))
+            return
+        os.system('start {0}'.format(tool_def_path))
+        return
 
     def context_menu_configs(self, pos):
         """Context menu for Setup QTreeView.
@@ -518,6 +645,12 @@ class TitanUI(QMainWindow):
         Args:
             index (QModelIndex): Selected Setup Index
         """
+        if not self._project:
+            self.add_msg_signal.emit("No project found. Load a project or create a new project to continue.", 0)
+            return
+        if self._root.child_count() == 0:
+            self.add_msg_signal.emit("No Setups to inspect", 0)
+            return
         if not index:
             self.input_data_form = InputDataWidget(self, index, self.setup_model)
             self.input_data_form.show()
@@ -532,30 +665,6 @@ class TitanUI(QMainWindow):
         self.settings_form = SettingsWidget(self, self._config)
         self.settings_form.show()
 
-    def edit_tool(self, setup, tool, cmdline_args):
-        """Change the Tool associated with Setup.
-
-        Args:
-            setup (Setup): Setup whose Tool is edited
-            tool (Tool): Tool that replaces current one
-            cmdline_args (str): Command line arguments for the tool
-
-        Returns:
-            Boolean value depending on operation success
-        """
-        # Add tool to Setup
-        if tool is not None:
-            # setup_index = self.setup_model.find_index(name)
-            # setup = self.setup_model.get_setup(setup_index)
-            self.add_msg_signal.emit("Changing Tool '%s' for Setup '%s'" % (tool.name, setup.name), 0)
-            setup.detach_tool()
-            setup.attach_tool(tool, cmdline_args=cmdline_args)
-        else:
-            self.add_msg_signal.emit("Removing Tool from Setup '%s'" % setup.name, 0)
-            setup.detach_tool()
-        self.setup_model.emit_data_changed()
-        return True
-
     def add_setup(self, name, description, tool, cmdline_args, parent=QModelIndex()):
         """Insert new Setup into SetupModel.
 
@@ -563,7 +672,7 @@ class TitanUI(QMainWindow):
             name (str): Setup name
             description (str): Setup description
             tool (Tool): Tool of Setup
-            cmdline_args (str): Command line arguments used with tool
+            cmdline_args (str): Additional Setup Command line arguments
             parent (QModelIndex): Parent Setup index
         """
         if name == '':
@@ -592,6 +701,7 @@ class TitanUI(QMainWindow):
             index = self.ui.treeView_setups.selectedIndexes()[0]
         except IndexError:
             # Nothing selected
+            self.add_msg_signal.emit("No Setup selected", 0)
             return
         if not index.isValid():
             return
@@ -611,6 +721,9 @@ class TitanUI(QMainWindow):
 
     def delete_all(self):
         """Delete all Setups from model. Ask user's permission first."""
+        if not self._project:
+            self.add_msg_signal.emit("No project open", 0)
+            return
         root_index = QModelIndex()
         n_kids = self._root.child_count()
         msg = "You are about to delete all Setups in the project.\nAre you sure?"

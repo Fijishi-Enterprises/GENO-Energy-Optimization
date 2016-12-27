@@ -74,6 +74,7 @@ class Tool(MetaObject):
             tool_output_dir (str): Output directory for tool
             setup_name (str): Short name of Setup that calls this method
         """
+        # TODO: Check if this cmdline_args manipulation is necessary (Same thing done in GAMSModel)
         if cmdline_args is not None:
             if self.cmdline_args is not None:
                 cmdline_args += ' ' + self.cmdline_args
@@ -126,6 +127,7 @@ class ToolInstance(QObject):
                                         prefix=self.tool.short_name + '__')
         self.setup_name = setup_name
         self.command = os.path.join(self.basedir, tool.main_prgm)
+        # TODO: Check if this cmdline args update is needed
         if cmdline_args is not None or cmdline_args is not "":
             self.command += ' ' + cmdline_args
         self.infiles = [os.path.join(self.basedir, f) for f in tool.infiles]

@@ -49,7 +49,24 @@ class SetupFormWidget(QWidget):
         # Button clicked handlers
         self.ui.pushButton_ok.clicked.connect(self.ok_clicked)
         self.ui.pushButton_cancel.clicked.connect(self.close)
+        self.ui.comboBox_tool.currentIndexChanged.connect(self.update_args)
 
+    @pyqtSlot(int)
+    def update_args(self, row):
+        """Show Tool command line arguments in text input."""
+        if row == 0:
+            # No Tool selected
+            self.ui.lineEdit_tool_args.setText("")
+            return
+        selected_tool = self._parent.tool_model.tool(row)
+        args = selected_tool.cmdline_args
+        if not args:
+            # Tool cmdline_args is None if the line does not exist in Tool definition file
+            args = ''
+        self.ui.lineEdit_tool_args.setText("{0}".format(args))
+        return
+
+    @pyqtSlot()
     def name_changed(self):
         """Update label to show upcoming folder name."""
         setup_name = self.ui.lineEdit_name.text()
@@ -120,7 +137,7 @@ class SetupFormWidget(QWidget):
             c_text = self.ui.comboBox_tool.currentText()
             logging.debug("Adding tool '{0}' to Setup '{1}'".format(c_text, self.setupname))
             selected_tool = self._parent.tool_model.tool(c_index)
-        cmdline_params = self.ui.lineEdit_cmdline_params.text()
+        cmdline_params = self.ui.lineEdit_cmdline_params.text()  # Setup cmdline_args
         logging.debug("command line arguments: '%s'" % cmdline_params)
         self._parent.add_setup(self.setupname, self.setupdescription, selected_tool, cmdline_params, self.parent_index)
 
