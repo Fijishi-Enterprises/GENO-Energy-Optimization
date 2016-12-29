@@ -9,7 +9,6 @@ import os
 import shutil
 import fnmatch
 import logging
-import json
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR
 from metaobject import MetaObject
@@ -19,7 +18,7 @@ from helpers import create_dir, find_in_latest_output_folder
 class Setup(MetaObject):
     """Setup class."""
 
-    setup_finished_signal = pyqtSignal()
+    setup_finished_signal = pyqtSignal(name="setup_finished_signal")
 
     def __init__(self, name, description, project, parent=None):
         """Class constructor.
@@ -256,27 +255,6 @@ class Setup(MetaObject):
         filepaths += self._parent.find_input_files(pattern, is_ancestor=True,
                                                    used_filenames=filenames)
         return filepaths
-
-    def save(self, path=''):
-        """[OBSOLETE] Save Setup object to disk.
-
-        Args:
-            path (str): File save path (project dir)
-        """
-        if path == '':
-            logging.error("No path given")
-            return
-        the_dict = {}
-        if self._parent is not None:
-            the_dict['parent'] = self._parent.short_name
-        if self.tool:
-            the_dict['processes'] = [self.tool.short_name]
-        the_dict['is_ready'] = self.is_ready
-
-        jsonfile = os.path.join(path,
-                                '{}.json'.format(self.short_name))
-        with open(jsonfile, 'w') as fp:
-            json.dump(the_dict, fp, indent=4)
 
     def execute(self, ui):
         """Execute Setup.

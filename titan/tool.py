@@ -11,7 +11,6 @@ import glob
 import logging
 import json
 import tempfile
-from copy import copy
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 import qsubprocess
 from config import WORK_DIR
@@ -31,14 +30,14 @@ class Tool(MetaObject):
             name (str): Name of the tool
             description (str): Short description of the tool
             path (str): Path to tool or Git repository
-            files (str): List of files belonging to the tool (relative to `path`)
+            files (str): List of files belonging to the tool (relative to 'path')
                          First file in the list is the main program file.
             infiles (list, optional): List of required input files
             infiles_opt (list, optional): List of optional input files (wildcards may be used)
             outfiles (list, optional): List of output files (wildcards may be used)
             short_name (str, optional): Short name for the tool
-            logfile (str, optional): Log file name (relative to `path`)
-            cmdline_args (str, optional): Command line arguments
+            logfile (str, optional): Log file name (relative to 'path')
+            cmdline_args (str, optional): Tool command line arguments (read from tool definition file)
         """
         super().__init__(name, description, short_name)
         if not os.path.exists(path):
@@ -65,31 +64,6 @@ class Tool(MetaObject):
         """
         self.return_codes[code] = description
 
-    def create_instance(self, ui, cmdline_args, tool_output_dir, setup_name):
-        """Create an instance of the tool.
-
-        Args:
-            ui (TitanUI): Titan GUI instance
-            cmdline_args (str): Extra command line arguments
-            tool_output_dir (str): Output directory for tool
-            setup_name (str): Short name of Setup that calls this method
-        """
-        # TODO: Check if this cmdline_args manipulation is necessary (Same thing done in GAMSModel)
-        if cmdline_args is not None:
-            if self.cmdline_args is not None:
-                cmdline_args += ' ' + self.cmdline_args
-        else:
-            cmdline_args = self.cmdline_args
-        return ToolInstance(self, ui, cmdline_args, tool_output_dir, setup_name)
-
-    def save(self):
-        """[OBSOLETE] Save tool object to disk."""
-        the_dict = copy(self.__dict__)
-        jsonfile = os.path.join(self.path,
-                                '{}.json'.format(self.short_name))
-        with open(jsonfile, 'w') as fp:
-            json.dump(the_dict, fp, indent=4, cls=MyEncoder)
-
     def set_def_path(self, path):
         """Set definition file path for tool.
 
@@ -102,19 +76,29 @@ class Tool(MetaObject):
         """Get definition file path of tool."""
         return self.def_file_path
 
+    def create_instance(self, ui, setup_cmdline_args, tool_output_dir, setup_name):
+        """Create an instance of the tool.
+
+        Args:
+            ui (TitanUI): Titan GUI instance
+            setup_cmdline_args (str): Extra command line arguments
+            tool_output_dir (str): Output directory for tool
+            setup_name (str): Short name of Setup that calls this method
+        """
+        return ToolInstance(self, ui, tool_output_dir, setup_name)
+
 
 class ToolInstance(QObject):
     """Class for Tool instances."""
 
     instance_finished_signal = pyqtSignal(int, name="instance_finished_signal")
 
-    def __init__(self, tool, ui, cmdline_args, tool_output_dir, setup_name):
+    def __init__(self, tool, ui, tool_output_dir, setup_name):
         """Tool instance constructor.
 
         Args:
-            tool (Tool): Which tool this instance implements
+            tool (Tool): Tool for which this instance is created
             ui (TitanUI): Titan GUI instance
-            cmdline_args (str, optional): Extra command line arguments
             tool_output_dir (str): Tool output directory
             setup_name (str): Short name of Setup that creates this instance
         """
@@ -126,13 +110,11 @@ class ToolInstance(QObject):
         self.basedir = tempfile.mkdtemp(dir=WORK_DIR,
                                         prefix=self.tool.short_name + '__')
         self.setup_name = setup_name
-        self.command = os.path.join(self.basedir, tool.main_prgm)
-        # TODO: Check if this cmdline args update is needed
-        if cmdline_args is not None or cmdline_args is not "":
-            self.command += ' ' + cmdline_args
+        self.command = ''  # command is created after ToolInstance is initialized
         self.infiles = [os.path.join(self.basedir, f) for f in tool.infiles]
         self.infiles_opt = [os.path.join(self.basedir, f) for f in tool.infiles_opt]
         self.outfiles = [os.path.join(self.basedir, f) for f in tool.outfiles]
+        # Check that required output directories are created
         self.make_work_output_dirs()
         # Checkout Tool
         if not self._checkout:

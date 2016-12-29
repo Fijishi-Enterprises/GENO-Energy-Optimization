@@ -21,15 +21,15 @@ class GAMSModel(Tool):
         """Class constructor.
 
         Args:
-            name (str): Model name
-            description (str): Model description
-            files (str): List of files belonging to the model (relative to `path`)
+            name (str): GAMS Tool name
+            description (str): GAMS Tool description
+            files (str): List of files belonging to the tool (relative to 'path')
                          First file in the list is the main GAMS program.
             infiles (list, optional): List of required input files
             infiles_opt (list, optional): List of optional input files (wildcards may be used)
             outfiles (list, optional): List of output files (wildcards may be used)
-            short_name (str, optional): Short name for the model
-            cmdline_args (str, optional): GAMS command line arguments
+            short_name (str, optional): Short name for the GAMS tool
+            cmdline_args (str, optional): GAMS tool command line arguments (read from tool definition file)
         """
         super().__init__(name, description, path, files,
                          infiles, infiles_opt, outfiles, short_name,
@@ -67,29 +67,30 @@ class GAMSModel(Tool):
     def __repr__(self):
         return "GAMSModel('{}')".format(self.name)
 
-    def create_instance(self, ui, cmdline_args, tool_output_dir, setup_name):
+    def create_instance(self, ui, setup_cmdline_args, tool_output_dir, setup_name):
         """Create an instance of the GAMS model
 
         Args:
             ui (TitanUI): Titan GUI window
-            cmdline_args (str): Extra Setup command line arguments
+            setup_cmdline_args (str): Extra Setup command line arguments
             tool_output_dir (str): Tool output directory
             setup_name (str): Short name of Setup that owns this Tool
         """
-        instance = ToolInstance(self, ui, cmdline_args, tool_output_dir, setup_name)
-        # Tamper the command to call GAMS
+        # Let Tool class create the ToolInstance
+        instance = super().create_instance(ui, setup_cmdline_args, tool_output_dir, setup_name)
+        # Create the run command for GAMS
         command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE,
                                                   self.main_prgm,
                                                   os.path.join(instance.basedir, self.main_dir),
                                                   ' '.join(self.GAMS_parameters))
-        if cmdline_args is not None:
+        if (setup_cmdline_args is not None) and (not setup_cmdline_args == ''):
             if (self.cmdline_args is not None) and (not self.cmdline_args == ''):
-                command += ' ' + self.cmdline_args + ' ' + cmdline_args
+                command += ' ' + self.cmdline_args + ' ' + setup_cmdline_args
             else:
-                command += ' ' + cmdline_args
+                command += ' ' + setup_cmdline_args
         else:
-            if self.cmdline_args is not None:
-                command += self.cmdline_args
+            if (self.cmdline_args is not None) and (not self.cmdline_args == ''):
+                command += ' ' + self.cmdline_args
 
         instance.command = command
         return instance

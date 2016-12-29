@@ -5,7 +5,7 @@ Unit tests for SetupModel class.
 @date: 7.4.2016
 """
 
-from unittest import TestCase
+from unittest import TestCase, skip
 import sys
 import logging as log
 from PyQt5.Qt import QModelIndex
@@ -44,6 +44,7 @@ class TestSetupModel(TestCase):
         #     log.debug("%s" % self.test_model.get_setup(ind).name)
         self.assertEqual(expected_output, actual_output)
 
+    @skip("Not ready")
     def test_get_next_setup(self):
         self.fail()
 
@@ -257,6 +258,7 @@ class TestSetupModel(TestCase):
             ret = self.test_model.get_next_setup(breadth_first=breadth_first)
         self.assertEqual(act_output, exp_output)
 
+    @skip("Not ready")
     def test_get_next_generation(self):
         self.fail()
 

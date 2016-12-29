@@ -5,7 +5,7 @@ Unit tests for ToolInstance class.
 @date: 19.12.2016
 """
 
-from unittest import TestCase, mock
+from unittest import TestCase, mock, skip
 import logging as log
 import os
 import sys
@@ -47,17 +47,22 @@ class TestToolInstance(TestCase):
         if os.path.exists(work_dir):
             shutil.rmtree(work_dir)
 
+    @skip("Not ready")
     def test__checkout(self):
         self.fail()
 
+    @skip("Not ready")
     def test_execute(self):
         self.fail()
 
+    @skip("Not ready")
     def test_tool_finished(self):
         self.fail()
 
+    @skip("Not ready")
     def test_remove(self):
         self.fail()
 
+    @skip("Not ready")
     def test_copy_output(self):
         self.fail()

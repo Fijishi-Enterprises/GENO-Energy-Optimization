@@ -3,7 +3,7 @@
     "short_name": "Test_Tool",
     "description": "Tool definition file for Sceleton Titan unit tests.",
     "files": ["testtool.gms", "inc/*.gms", "inc/*.inc"],
-    "cmdline_args": "A=100",
+    "cmdline_args": "--INVEST=yes",
     "infiles": ["input/InputData.gdx"],
     "infiles_opt": ["input/*.gms",
                     "input/*.inc"],

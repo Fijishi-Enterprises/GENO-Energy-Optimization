@@ -5,7 +5,7 @@ Unit tests for titanUI class.
 @date: 7.4.2016
 """
 
-from unittest import TestCase
+from unittest import TestCase, skip
 import sys
 import logging as log
 
@@ -21,8 +21,10 @@ class TestTitanUI(TestCase):
     def tearDown(self):
         log.info("Tearing down")
 
+    @skip("Not ready")
     def test_get_selected_setup_base_index(self):
         self.fail()
 
+    @skip("Not ready")
     def test_get_selected_setup_siblings(self):
         self.fail()

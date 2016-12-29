@@ -86,19 +86,22 @@ def create_dir(base_path, folder=''):
         return directory
 
 
-def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):
-    # TODO: Remove mutable default arguments
+def copy_files(src_dir, dst_dir, includes=None, excludes=None):
     """Method for copying files. Does not copy folders.
 
     Args:
         src_dir (str): Source directory
         dst_dir (str): Destination directory
-        includes (reg. exp): Included files
-        excludes (reg. exp): Excluded files
+        includes (list): Included files (wildcards accepted)
+        excludes (list): Excluded files (wildcards accepted)
 
     Returns:
         count (int): Number of files copied
     """
+    if not includes:
+        includes = ['*']
+    if not excludes:
+        excludes = []
     src_files = []
     for pattern in includes:
         src_files += glob.glob(os.path.join(src_dir, pattern))
@@ -114,7 +117,6 @@ def copy_files(src_dir, dst_dir, includes=['*'], excludes=[]):
         if filename not in exclude_files:
             shutil.copy(filename, dst_dir)
             count += 1
-
     return count
 
 
