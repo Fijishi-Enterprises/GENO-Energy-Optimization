@@ -181,7 +181,7 @@ class ToolInstance(QObject):
             output_dir_timestamp = create_output_dir_timestamp()
             # Create an output folder with timestamp and copy output directly there
             result_path = create_dir(os.path.abspath(os.path.join(
-                self.tool_output_dir, self.setup_name + output_dir_timestamp)))
+                self.tool_output_dir, output_dir_timestamp)))
             if not result_path:
                 self.ui.add_msg_signal.emit("Error creating timestamped result directory. "
                                             "Tool output files not copied. "

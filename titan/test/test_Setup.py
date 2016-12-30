@@ -212,7 +212,7 @@ class TestSetup(TestCase):
         # Simulate that Base Setup Magic Investments finished by copying Magic Investments
         # output files to a new timestamped folder
         base_result_path = create_dir(os.path.abspath(os.path.join(
-            s_base.output_dir, s_base.short_name + create_output_dir_timestamp())))
+            s_base.output_dir, create_output_dir_timestamp())))
         # Copy investments.gdx from \test\resources to a timestamped base Setup output folder
         src_file_path = os.path.abspath(os.path.join(
             APPLICATION_PATH, 'test', 'resources', 'test_output_for_magic_invest'))
@@ -309,7 +309,7 @@ class TestSetup(TestCase):
         # TEST 2
         # Simulate that Magic Investments finished by copying Magic Investments output files to a timestamped folder
         base_result_path = create_dir(os.path.abspath(os.path.join(
-            s_base.output_dir, s_base.short_name + create_output_dir_timestamp())))
+            s_base.output_dir, create_output_dir_timestamp())))
         # Copy investments.gdx from \test\resources to a timestamped base Setup output folder
         src_file_path = os.path.abspath(os.path.join(
             APPLICATION_PATH, 'test', 'resources', 'test_output_for_magic_invest'))

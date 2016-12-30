@@ -12,7 +12,7 @@ import logging
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from config import INPUT_STORAGE_DIR, OUTPUT_STORAGE_DIR
 from metaobject import MetaObject
-from helpers import create_dir, find_in_latest_output_folder
+from helpers import create_dir, find_latest_output_folder
 
 
 class Setup(MetaObject):
@@ -206,9 +206,12 @@ class Setup(MetaObject):
         else:
             folders = self.get_output_files()
             # Find file in the output folder with the most recent timestamp
-            latest_folder_path = find_in_latest_output_folder(self.short_name, self.output_dir, folders, fname)
+            latest_folder_path = find_latest_output_folder(self.output_dir, folders)
             if latest_folder_path:
-                return os.path.join(latest_folder_path, fname)
+                files = os.listdir(latest_folder_path)
+                if fname in files:
+                    logging.debug("Found file '{0}' in folder '{1}'".format(fname, latest_folder_path))
+                    return os.path.join(latest_folder_path, fname)
         return self._parent.find_input_file(fname, is_ancestor=True)
 
     def find_input_files(self, pattern, is_ancestor=False, used_filenames=None):
@@ -239,7 +242,7 @@ class Setup(MetaObject):
             # Setup has a tool so look from the most recent output folder
             folders = self.get_output_files()
             # Get the most recent output folder file in the output folder with the most recent timestamp
-            src_dir = find_in_latest_output_folder(self.short_name, self.output_dir, folders)
+            src_dir = find_latest_output_folder(self.output_dir, folders)
             if not src_dir:
                 src_dir = ''
                 src_files = list()

@@ -166,9 +166,8 @@ def create_results_dir(path, name, simulation_failed=False):
 
 
 def create_output_dir_timestamp():
-    """ Creates a new string to be extended to the end of the output
-    directory. This is a timestamp that can be added to the directory
-    name.
+    """ Creates a new timestamp string that is used as a Setup output
+    directory.
 
     Returns:
         Timestamp string or empty string if failed.
@@ -179,56 +178,45 @@ def create_output_dir_timestamp():
     except OverflowError:
         logging.error('Timestamp out of range.')
         return ''
-    extension = '-' + stamp.strftime('%Y-%m-%dT%H.%M.%S')
+    extension = stamp.strftime('%Y-%m-%dT%H.%M.%S')
     return extension
 
 
-def find_in_latest_output_folder(setup_name, base_output_path, folders, fname=''):
-    """Finds a file from the most recent folder in the given folder list. Folder names are ranked
+def find_latest_output_folder(base_output_path, folders):
+    """Finds the most recent folder in the given folder list. Folder names are ranked
      according to the timestamp in their name.
 
     Args:
-        setup_name (str): Setup short name
         base_output_path (str): Path of Setups' 'base' output path. eg. ..\project1\output\setup1\
         folders (list): List of folder names
-        fname (str): File name that is being searched
 
     Returns:
         Name of the newest folder if it contains the given file or None if it does not or None
-        if folders parameter does not have any folders. If fname not given then this function
+        if 'folders' parameter does not have any folders. If fname not given then this function
         is used with find_input_files method which only needs the folder name.
     """
-    # TODO: Remove fname argument and just return the most recent folder
     if len(folders) == 0:
         return None
     f_dict = dict()
-    st = setup_name + '-'  # String that is stripped from the folder name to get the timestamp
     for folder_name in folders:
-        # Get time stamp by stripping the Setup name and '-' from it
-        timestamp = folder_name.strip(st)
+        # Folder name is the timestamp
         try:
-            date_obj = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H.%M.%S')
+            date_obj = datetime.datetime.strptime(folder_name, '%Y-%m-%dT%H.%M.%S')
         except ValueError:
             logging.debug("Tried to get time stamp from folder: {0}".format(folder_name))
             continue
         # Populate dictionary with parsed datetime object as key and folder name as value
         f_dict[date_obj] = folder_name
+    # Return None if no timestamped folders found
+    if not f_dict:
+        return None
     # Get the latest date
     latest_date = max(f_dict.keys())
     # Get the folder corresponding to the latest date
     latest_folder_name = f_dict.get(latest_date)
     # logging.debug("latest date:{0}. latest folder:{1}".format(latest_date, latest_folder_name))
     latest_folder_path = os.path.join(base_output_path, latest_folder_name)
-    files = os.listdir(latest_folder_path)
-    if fname == '':
-        # logging.debug("Returning latest output path")
-        return latest_folder_path
-    if fname in files:
-        logging.debug("Found file '{0}' in folder '{1}'".format(fname, latest_folder_path))
-        return latest_folder_path
-    else:
-        logging.debug("Did not find file '{0}' in folder '{1}'".format(fname, latest_folder_path))
-        return None
+    return latest_folder_path
 
 
 def find_duplicates(a):
