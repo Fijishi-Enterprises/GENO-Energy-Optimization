@@ -124,7 +124,7 @@ class ToolInstance(QObject):
     def _checkout(self):
         """Copy Tool files to work directory."""
         logging.info("Copying Tool '{}' to work directory".format(self.tool.name))
-        self.ui.add_msg_signal.emit("Copying Tool '{}' to work directory".format(self.tool.name), 0)
+        self.ui.add_msg_signal.emit("*** Copying Tool '{}' to work directory ***".format(self.tool.name), 0)
         for filepath in self.tool.files:
             dirname, file_pattern = os.path.split(filepath)
             src_dir = os.path.join(self.tool.path, dirname)
@@ -188,14 +188,38 @@ class ToolInstance(QObject):
                                             "Check permissions of Setup folders", 2)
                 return
             # TODO: If Tool fails, either don't copy output files or copy them to [FAILED] folder
-            if not self.copy_output(result_path):
-                logging.error("Copying output files to folder '{0}' failed".format(result_path))
-                self.ui.add_msg_signal.emit("Copying output files of Tool '{0}' to directory '{1}' failed"
-                                            .format(self.tool.name, result_path), 2)
+            self.ui.add_msg_signal.emit("*** Saving result files ***", 0)
+            saved_files, failed_files = self.copy_output(result_path)
+            if len(saved_files) == 0:
+                # If no files were saved
+                logging.error("No files saved to result directory '{0}'".format(result_path))
+                self.ui.add_msg_signal.emit("No files saved to result directory", 2)
+                if len(failed_files) == 0:
+                    # If there were no failed files either
+                    logging.error("No failed files")
+                    self.ui.add_msg_signal.emit("No failed files. "
+                                                "Check 'outfiles' parameter in tool definition file.", 2)
+            if len(saved_files) > 0:
+                # If there are saved files
+                logging.debug("Saved output files:{0}".format(saved_files))
+                self.ui.add_msg_signal.emit("The following result files were saved successfully", 0)
+                for i in range(len(saved_files)):
+                    self.ui.add_msg_signal.emit("{0}".format(saved_files[i]), 0)
+            if len(failed_files) > 0:
+                # If some files failed
+                logging.error("These files were not found:{0}".format(failed_files))
+                self.ui.add_msg_signal.emit("The following result files were not found", 2)
+                for i in range(len(failed_files)):
+                    self.ui.add_msg_signal.emit("{0}".format(failed_files[i]), 2)
+            if len(failed_files) == 0:
+                logging.debug("All output files saved successfully to <{0}>".format(result_path))
+                self.ui.add_msg_signal.emit("All output files saved successfully to '{0}'".format(result_path), 0)
             else:
-                logging.debug("Output files copied to <%s>" % result_path)
-                self.ui.add_msg_signal.emit("Tool '{0}' output files copied to '{1}'"
-                                            .format(self.tool.name, result_path), 0)
+                logging.debug("Output files saved to <{0}>".format(result_path))
+                self.ui.add_msg_signal.emit("Output files saved to '{0}'".format(result_path), 0)
+                anchor = "<a href='file:///" + result_path + "'>Click here to open result folder</a>"
+                self.ui.add_link_signal.emit(anchor)
+            self.ui.add_msg_signal.emit("Done", 1)
             # Emit signal to Setup that tool instance has finished with GAMS return code
             self.instance_finished_signal.emit(ret)
 
@@ -212,12 +236,24 @@ class ToolInstance(QObject):
             Returns:
                 ret (bool): Operation success
             """
-            count = 0
+            failed_files = list()
+            saved_files = list()
+            logging.debug("Saving result files to <{0}>".format(target_dir))
             for pattern in self.outfiles:
-                for fname in glob.glob(pattern):
-                    shutil.copy(fname, target_dir)
-                    count += 1
-            return True if count > 0 else False
+                # Check for wildcards in pattern
+                if ('*' in pattern) or ('?' in pattern):
+                    for fname in glob.glob(pattern):
+                        logging.debug("Match for pattern <{0}> found. Saving file {1}".format(pattern, fname))
+                        shutil.copy(fname, target_dir)
+                        saved_files.append(fname)
+                else:
+                    if not os.path.isfile(pattern):
+                        failed_files.append(pattern)
+                        continue
+                    logging.debug("Saving file {0}".format(pattern))
+                    shutil.copy(pattern, target_dir)
+                    saved_files.append(pattern)
+            return saved_files, failed_files
 
     def make_work_output_dirs(self):
         """Make sure that work directory has the necessary output directories for Tool output files.

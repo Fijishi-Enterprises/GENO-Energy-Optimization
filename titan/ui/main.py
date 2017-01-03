@@ -225,6 +225,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.textBrowser_main.sizePolicy().hasHeightForWidth())
         self.textBrowser_main.setSizePolicy(sizePolicy)
         self.textBrowser_main.setMinimumSize(QtCore.QSize(200, 50))
+        self.textBrowser_main.setOpenLinks(False)
         self.textBrowser_main.setObjectName("textBrowser_main")
         self.verticalLayout.addWidget(self.textBrowser_main)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()

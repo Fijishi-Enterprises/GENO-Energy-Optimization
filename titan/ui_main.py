@@ -19,7 +19,7 @@ from models import SetupModel, ToolModel
 from setup import Setup
 from helpers import find_work_dirs
 from GAMS import GAMSModel
-from config import ERROR_COLOR, SUCCESS_COLOR, BLACK_COLOR, PROJECT_DIR, \
+from config import ERROR_COLOR, BLACK_COLOR, PROJECT_DIR, \
                    WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS
 from configuration import ConfigurationParser
 from widgets.setup_form_widget import SetupFormWidget
@@ -40,6 +40,7 @@ class TitanUI(QMainWindow):
     add_err_msg_signal = pyqtSignal(str, name="add_err_msg_signal")
     add_proc_msg_signal = pyqtSignal(str, name="add_proc_msg_signal")
     add_proc_err_msg_signal = pyqtSignal(str, name="add_proc_err_msg_signal")
+    add_link_signal = pyqtSignal(str, name="add_link_signal")
 
     def __init__(self):
         """ Initialize GUI."""
@@ -99,6 +100,7 @@ class TitanUI(QMainWindow):
         self.add_err_msg_signal.connect(self.add_err_msg)
         self.add_proc_msg_signal.connect(self.add_proc_msg)
         self.add_proc_err_msg_signal.connect(self.add_proc_err_msg)
+        self.add_link_signal.connect(self.add_link)
         # Menu actions
         self.ui.actionNew.triggered.connect(self.new_project)
         self.ui.actionSave.triggered.connect(self.save_project)
@@ -131,6 +133,7 @@ class TitanUI(QMainWindow):
         self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)
         self.ui.pushButton_import_data.clicked.connect(self.import_data)
         self.ui.pushButton_inspect_data.clicked.connect(self.open_inspect_form)
+        self.ui.textBrowser_main.anchorClicked.connect(self.open_anchor)
 
     def init_models(self):
         """Create data models for GUI views."""
@@ -286,7 +289,6 @@ class TitanUI(QMainWindow):
             if load_path == '':  # Cancel button clicked
                 self.add_msg_signal.emit("Loading canceled", 0)
                 return False
-        self.add_msg_signal.emit("Loading project from file: <{0}>".format(load_path), 0)
         if not os.path.isfile(load_path):
             self.add_msg_signal.emit("File not found '%s'" % load_path, 2)
             return False
@@ -309,7 +311,7 @@ class TitanUI(QMainWindow):
             # Setup models and views
             self.init_models()
             self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
-            self.add_msg_signal.emit("Loading project '{0}'".format(self._project.name), 0)
+            self.add_msg_signal.emit("Loading project '{0}' from file: {1}".format(self._project.name, load_path), 0)
             # Parse Setups
             setup_dict = dicts['setups']
             if len(setup_dict) == 0:
@@ -326,7 +328,7 @@ class TitanUI(QMainWindow):
             try:
                 wb.load_wb()
             except OSError:
-                self.add_msg_signal.emit("OSError when loading file {0}".format(load_path), 2)
+                self.add_msg_signal.emit("OSError while loading project file: {0}".format(load_path), 2)
                 return
             proj_details = wb.read_project_sheet()
             # # Initialize UI
@@ -370,7 +372,7 @@ class TitanUI(QMainWindow):
         if not os.path.isfile(open_path):
             self.add_msg_signal.emit("Tool definition file path not valid '%s'" % open_path, 2)
             return
-        self.add_msg_signal.emit("Adding Tool from file: <{0}>".format(open_path), 0)
+        self.add_msg_signal.emit("Adding Tool from file: {0}".format(open_path), 0)
         # Load tool definition
         tool = GAMSModel.load(open_path, self)
         if not tool:
@@ -381,7 +383,6 @@ class TitanUI(QMainWindow):
             tool.set_def_path(open_path)
             # Insert tool into model
             self.tool_model.insertRow(tool)
-            # self.tool_model.emit_data_changed()
             # Add path to config file
             old_string = self._config.get('general', 'tools')
             new_string = old_string + '\n' + open_path
@@ -452,7 +453,7 @@ class TitanUI(QMainWindow):
         # noinspection PyCallByClass, PyTypeChecker
         answer = QMessageBox.question(self, 'Remove Tool', msg, QMessageBox.Yes, QMessageBox.No)
         if answer == QMessageBox.Yes:
-            self.add_msg_signal.emit("Removing tool: {0}\nDefinition file path: {1}"
+            self.add_msg_signal.emit("Removing tool: {0}<br/>Definition file path: {1}"
                                      .format(sel_tool.name, tool_def_path), 0)
             old_tool_paths = self._config.get('general', 'tools')
             if tool_def_path in old_tool_paths:
@@ -550,7 +551,8 @@ class TitanUI(QMainWindow):
         tool_def_path = sel_tool.def_file_path
         # Open the tool def file in editor (only windows supported)
         if not sys.platform == 'win32':
-            logging.error("This feature is not supported by your OS: <{0}>".format(sys.platform))
+            logging.error("This feature is not supported by your OS: ({0})".format(sys.platform))
+            self.add_msg_signal.emit("This feature is not supported by your OS: ({0})".format(sys.platform), 2)
             return
         os.system('start {0}'.format(tool_def_path))
         return
@@ -778,29 +780,29 @@ class TitanUI(QMainWindow):
             selected_setup = self.get_selected_setup_index()
             # Check if no Setup selected
             if not selected_setup:
-                self.add_msg_signal.emit("No Setup selected.\n", 0)
+                self.add_msg_signal.emit("No Setup selected.<br/>", 0)
                 return
-            self.add_msg_signal.emit("\nExecuting a single Setup", 0)
+            self.add_msg_signal.emit("<br/>Executing a single Setup", 0)
             self._running_setup = selected_setup.internalPointer()
         elif self.exec_mode == 'branch':
             # Set index of base Setup for the model
             base = self.get_selected_setup_base_index()
             # Check if no Setup selected
             if not base:
-                self.add_msg_signal.emit("No Setup selected.\n", 0)
+                self.add_msg_signal.emit("No Setup selected.<br/>", 0)
                 return
-            self.add_msg_signal.emit("\nExecuting Branch. Algorithm: {0}".format(alg), 0)
+            self.add_msg_signal.emit("<br/>Executing Branch. Algorithm: {0}".format(alg), 0)
             self.setup_model.set_base(base)
             # Set Base Setup as the first running Setup
             self._running_setup = self.setup_model.get_base().internalPointer()
         elif self.exec_mode == 'all':
             if not self._project:
-                self.add_msg_signal.emit("Open a Project to execute Setups\n", 0)
+                self.add_msg_signal.emit("Open a Project to execute Setups<br/>", 0)
                 return
             if self._root.child_count() == 0:
                 self.add_msg_signal.emit("No Setups to execute", 0)
                 return
-            self.add_msg_signal.emit("\nExecuting Project '{0}'. Algorithm: {1}".format(self._project.name, alg), 0)
+            self.add_msg_signal.emit("<br/>Executing Project '{0}'. Algorithm: {1}".format(self._project.name, alg), 0)
             # Get the first base that is not ready. Set the next one in setup_done()
             base_name = ''
             for i in range(self._root.child_count()):
@@ -821,7 +823,7 @@ class TitanUI(QMainWindow):
         # Connect setup_finished_signal to setup_done slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
-        self.add_msg_signal.emit("\nStarting Setup '%s'" % self._running_setup.name, 0)
+        self.add_msg_signal.emit("<br/>Starting Setup '%s'" % self._running_setup.name, 0)
         self._running_setup.execute(self)
 
     @pyqtSlot(name="setup_done")
@@ -855,7 +857,6 @@ class TitanUI(QMainWindow):
                 self.add_msg_signal.emit("All Setups ready", 1)
                 return
             elif self.exec_mode == 'all':
-                self.add_msg_signal.emit("Looking for a new base Setup", 0)
                 # Get the first base Setup that is not ready
                 for i in range(self._root.child_count()):
                     if not self._root.child(i).is_ready:
@@ -870,7 +871,7 @@ class TitanUI(QMainWindow):
                     return
         self._running_setup = next_setup.internalPointer()
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
-        self.add_msg_signal.emit("\nStarting Setup '%s'" % self._running_setup.name, 0)
+        self.add_msg_signal.emit("<br/>Starting Setup '%s'" % self._running_setup.name, 0)
         # Connect setup_finished_signal to this same slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         self._running_setup.execute(self)
@@ -1004,9 +1005,9 @@ class TitanUI(QMainWindow):
         load_path = answer[0]
         if load_path == '':  # Cancel button clicked
             return False
-        self.add_msg_signal.emit("Reading data from file: <{0}>".format(load_path), 0)
+        self.add_msg_signal.emit("Importing data from file: {0}".format(load_path), 0)
         if not os.path.isfile(load_path):
-            self.add_msg_signal.emit("File not found '%s'" % load_path, 2)
+            self.add_msg_signal.emit("File not found '{0}'".format(load_path), 2)
             return False
         # Load project from MS Excel file
         wb = ExcelHandler(load_path)
@@ -1024,22 +1025,24 @@ class TitanUI(QMainWindow):
         """Writes given message to main textBrowser.
 
         Args:
-            msg (str): String written to TextBrowser
-            code (int): Code for text color, 0: regular, 1=green, 2=red
+            msg (str): String written to QTextBrowser
+            code (int): Code for text color, 0: black, 1=green, 2=red
         """
         if code == 1:
-            self.ui.textBrowser_main.setTextColor(SUCCESS_COLOR)
+            open_tag = "<span style='color:green'>"
         elif code == 2:
-            self.ui.textBrowser_main.setTextColor(ERROR_COLOR)
+            open_tag = "<span style='color:red'>"
         else:
-            self.ui.textBrowser_main.setTextColor(BLACK_COLOR)
-        self.ui.textBrowser_main.append(msg)
+            open_tag = "<span style='color:black'>"
+        message = open_tag + msg + "</span>"
+        self.ui.textBrowser_main.append(message)
         # noinspection PyArgumentList
         QApplication.processEvents()
 
     @pyqtSlot(str, name="add_err_msg")
     def add_err_msg(self, message):
         """Writes given error message to main textBrowser with error text color.
+        Note: Not in use at the moment.
 
         Args:
             message (str): The error message to be written.
@@ -1055,7 +1058,7 @@ class TitanUI(QMainWindow):
         """Writes given message to process output textBrowser.
 
         Args:
-            msg (str): String written to TextBrowser
+            msg (str): String written to QTextBrowser
         """
         self.ui.textBrowser_process_output.append(msg)
         # noinspection PyArgumentList
@@ -1063,14 +1066,42 @@ class TitanUI(QMainWindow):
 
     @pyqtSlot(str, name="add_proc_err_msg")
     def add_proc_err_msg(self, msg):
-        """Writes given message to main textBrowser.
+        """Writes given message to process output textBrowser.
 
         Args:
-            msg (str): String written to TextBrowser
+            msg (str): Error message written to QTextBrowser
         """
-        self.ui.textBrowser_main.append(msg)
+        self.ui.textBrowser_process_output.setTextColor(ERROR_COLOR)
+        self.ui.textBrowser_process_output.append(msg)
+        self.ui.textBrowser_process_output.setTextColor(BLACK_COLOR)
         # noinspection PyArgumentList
         QApplication.processEvents()
+
+    @pyqtSlot(str, name="add_link")
+    def add_link(self, html_link):
+        """Add link as an HTML <a> tag to textbrowser.
+
+        Args:
+            html_link (str): Link to the result folder embedded in a HTML <a> tag
+        """
+        self.ui.textBrowser_main.append(html_link)
+        # noinspection PyArgumentList
+        QApplication.processEvents()
+
+    @pyqtSlot("QUrl", name="open_anchor")
+    def open_anchor(self, qurl):
+        """Open Windows Explorer in result directory, which is given in qurl.
+
+        Args:
+            qurl (QUrl): Address embedded into anchor.
+        """
+        folder_path = qurl.toLocalFile()
+        if not sys.platform == 'win32':
+            logging.error("This feature is not supported by your OS: ({0})".format(sys.platform))
+            self.add_msg_signal.emit("This feature is not supported by your OS: ({0})".format(sys.platform), 2)
+            return
+        os.system('start {}'.format(folder_path))
+        return
 
     def test_match(self):
         """Test method for finding an item based on a string."""

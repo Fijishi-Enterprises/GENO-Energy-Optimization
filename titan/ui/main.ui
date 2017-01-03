@@ -582,6 +582,9 @@
             <height>50</height>
            </size>
           </property>
+          <property name="openLinks">
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
         <item>

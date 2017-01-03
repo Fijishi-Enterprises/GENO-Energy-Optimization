@@ -283,7 +283,7 @@ class SceletonProject(MetaObject):
             if sheet.lower() == 'project' or sheet.lower() == 'setups' or sheet.lower() == 'recipes':
                 continue
             try:
-                ui.add_msg_signal.emit("\nProcessing sheet '{0}'".format(sheet), 0)
+                ui.add_msg_signal.emit("<br/>Processing sheet '{0}'".format(sheet), 0)
                 [headers, filename, setup, set1, set2, value, n_rows] = wb.read_data_sheet(sheet)
             except ValueError:  # No data found
                 ui.add_msg_signal.emit("No data found on sheet:{0}".format(sheet), 0)

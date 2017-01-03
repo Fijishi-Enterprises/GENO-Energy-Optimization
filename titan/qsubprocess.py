@@ -34,7 +34,7 @@ class QSubProcess(QObject):
         Args:
             command: Run command
         """
-        self._ui.add_msg_signal.emit("<%s>" % command, 0)
+        self._ui.add_msg_signal.emit("{0}".format(command), 0)
         self._process.started.connect(self.process_started)
         self._process.readyReadStandardOutput.connect(self.on_ready_stdout)
         self._process.readyReadStandardError.connect(self.on_ready_stderr)
@@ -43,13 +43,13 @@ class QSubProcess(QObject):
         self._process.start(command)
         if not self._process.waitForStarted(msecs=10000):
             self._process_failed = True
-            self._ui.add_err_msg_signal.emit('*** Launching sub-process failed. ***')
+            self._ui.add_msg_signal.emit('*** Launching sub-process failed. ***', 2)
 
     @pyqtSlot()
     def process_started(self):
         """ Run when sub-process is started. """
-        self._ui.add_msg_signal.emit('*** Sub-process for tool <%s> started ***'
-                                     % self._running_tool.name, 0)
+        self._ui.add_msg_signal.emit("*** Sub-process for tool --{0}-- started ***"
+                                     .format(self._running_tool.name), 0)
         self._ui.add_msg_signal.emit('Process pid: %d ' % self._process.processId(), 0)
 
     @pyqtSlot()
@@ -66,15 +66,15 @@ class QSubProcess(QObject):
         # Delete GAMS QProcess
         self._process.deleteLater()
         self._process = None
-        self._ui.add_msg_signal.emit("GAMS return code:{0} & Sub-process exit status:{1}"
+        self._ui.add_msg_signal.emit("GAMS return code: {0} & Sub-process exit status: {1}"
                                      .format(gams_exit_code, gams_exit_status), 0)
         self.subprocess_finished_signal.emit(gams_exit_code)
 
     @pyqtSlot(int)
     def on_process_error(self, process_error):
         logging.error("Error in QProcess: %s" % process_error)
-        self._ui.add_err_msg_signal.emit('Process State: %d' % self._process.state())
-        self._ui.add_err_msg_signal.emit('Process Error: %d' % self._process.error())
+        self._ui.add_msg_signal.emit('Process State: %d' % self._process.state(), 2)
+        self._ui.add_msg_signal.emit('Process Error: %d' % self._process.error(), 2)
 
     @pyqtSlot()
     def on_ready_stdout(self):

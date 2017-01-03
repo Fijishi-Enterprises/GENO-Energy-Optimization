@@ -300,7 +300,6 @@ class Setup(MetaObject):
             True if tool was executed successfully, False otherwise
         """
         if ret == 0:
-            # logging.debug("Setup <%s> finished successfully. Setting is_ready to True" % self.name)
             self.is_ready = True
         else:
             logging.debug("Setup <%s> failed" % self.name)
@@ -326,7 +325,7 @@ class Setup(MetaObject):
             input_dir = tool_instance.basedir  # Run tool in work directory
         else:
             input_dir = tool.path  # Run tool in /tools/ directory
-        ui.add_msg_signal.emit("Copying input files for Tool '{}' to work directory".format(tool.name), 0)
+        ui.add_msg_signal.emit("*** Copying input files for Tool '{}' to work directory ***".format(tool.name), 0)
         logging.info("Copying input files for Tool '{}' to work directory".format(tool.name))
         # Process required and optional input files
         for filepath in tool.infiles | tool.infiles_opt:
