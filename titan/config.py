@@ -33,11 +33,13 @@ OUTPUT_STORAGE_DIR = 'output'
 WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
 
 # GAMS
-GAMS_EXECUTABLE = 'gams'
+GAMS_EXECUTABLE = 'gams.exe'
+GAMSIDE_EXECUTABLE = 'gamside.exe'
 
 # Default options and settings
 GENERAL_OPTIONS = {'project_path': '',
-                   'tools': ''}
+                   'tools': '',
+                   'gams_path': ''}
 
 SETTINGS = {'save_at_exit': '1',
             'confirm_exit': '2',

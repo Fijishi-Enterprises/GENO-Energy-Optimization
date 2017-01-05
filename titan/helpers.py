@@ -244,82 +244,33 @@ def busy_effect(function):
     return new_function
 
 
-class SetupTree(MetaObject):
-    """Class to store Setups for a single simulation run."""
+def make_gams_project_file(path, tool):
+    """Make a GAMS project file for debugging that opens GAMSIDE with the .lst file open.
 
-    setuptree_finished_signal = pyqtSignal()
+    Args:
+        path (str): Path where to store the project path
+        tool (Tool): Tool for which this project file is done
 
-    def __init__(self, name, description, setup, last=True):
-        """SetupTree constructor.
-
-        Args:
-            name (str): Name of SetupTree
-            description (str): Description of SetupTree
-            setup (Setup): Setup from which the SetupTree is built toward the root
-            last (boolean): Parameter to set SetupTree popping order. if True, SetupTree
-                is LIFO, if False, SetupTree is FIFO.
-        """
-        super().__init__(name, description)
-        self.setup = setup
-        self.last = last  # True -> LIFO, False -> FIFO
-        self.setup_dict = collections.OrderedDict()
-        self.n = 0  # Number of Setups in SetupTree
-        self.build_tree()
-
-    def build_tree(self):
-        """Add Setup and all it's parent Setups into an ordered dictionary.
-
-        Returns:
-            (boolean): True if successful, False otherwise.
-        """
-        # Setups are added from the leaf toward the root. E.g. last added item is base.
-        item = self.setup
-        while item is not None:
-            self.n += 1
-            self.setup_dict.update({self.n: item})
-            item = item.parent()
-
-    def get_next_setup(self):
-        """Get the next Setup to execute.
-
-        Returns:
-            Next Setup object or None if dictionary empty
-        """
-        try:
-            # Pop the last added Setup (LIFO). Note: To get FIFO, set popitem kwarg last=False.
-            item = self.setup_dict.popitem(last=self.last)  # item is (key, value) tuple
-            setup = item[1]
-            self.n -= 1
-        except KeyError:
-            logging.debug("SetupTree <{0}> empty".format(self.name))
-            self.n = 0
-            setup = None
-        return setup
-
-    @pyqtSlot()
-    def run(self):
-        """Start running Setups in SetupTree."""
-        logging.debug("Popping next Setup from SetupTree <{}>".format(self.name))
-        self.setup = self.get_next_setup()
-        if self.setup is not None:
-            try:
-                # Disconnect setup_finished_signal to prevent it from
-                # being connected to multiple SetupTree instances.
-                # NOTE: This is required when Setup is part of multiple
-                # SetupTrees.
-                self.setup.setup_finished_signal.disconnect()
-            except TypeError:
-                # logging.warning("setup_finished_signal not connected")
-                pass
-            try:
-                # Connect setup_finished_signal to run()
-                self.setup.setup_finished_signal.connect(self.run)
-            except Exception as e:
-                logging.exception("Could not connect setup_finished_signal: Reason:{}".format(e.args[0]))
-                return  # No reason to continue if signal could not be connected
-            # Execute Setup
-            self.setup.execute()
-        else:
-            # All Setups in SetupTree finished
-            self.setuptree_finished_signal.emit()
-        return
+    Returns:
+        Boolean variable depending on operation success
+    """
+    prj_file_path = os.path.join(path, tool.short_name + ".gpr")
+    lst_file_path = os.path.join(path, os.path.splitext(tool.main_prgm)[0] + ".lst")
+    # logging.debug("List file path: {0}".format(lst_file_path))
+    # logging.debug("Project file path: {0}".format(prj_file_path))
+    file0_str = "FILE0=" + lst_file_path + '\n'
+    # Write GAMS project file
+    try:
+        with open(prj_file_path, 'w') as f:
+            f.write('[PROJECT]\n\n')
+            f.write('[OPENWINDOW_1]\n')
+            f.write(file0_str)
+            f.write('MAXIM=0\n')
+            f.write('TOP=0\n')
+            f.write('LEFT=0\n')
+            f.write('HEIGHT=600\n')
+            f.write('WIDTH=1000\n')
+    except OSError:
+        logging.error("Failed to write GAMS project file: {0}".format(prj_file_path))
+        return False
+    return True

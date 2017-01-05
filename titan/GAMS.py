@@ -8,9 +8,9 @@ GAMSModel class.
 import os.path
 import json
 import logging
-
-from tool import Tool, ToolInstance
-from config import GAMS_EXECUTABLE
+from tool import Tool
+from configuration import ConfigurationParser
+from config import GAMS_EXECUTABLE, CONFIGURATION_FILE
 
 
 class GAMSModel(Tool):
@@ -78,8 +78,15 @@ class GAMSModel(Tool):
         """
         # Let Tool class create the ToolInstance
         instance = super().create_instance(ui, setup_cmdline_args, tool_output_dir, setup_name)
+        # Use gams.exe according to the selected GAMS directory in settings
+        configs = ConfigurationParser(CONFIGURATION_FILE)
+        configs.load()
+        gams_path = configs.get('general', 'gams_path')
+        gams_exe_path = GAMS_EXECUTABLE
+        if not gams_path == '':
+            gams_exe_path = os.path.join(gams_path, GAMS_EXECUTABLE)
         # Create the run command for GAMS
-        command = '{} "{}" Curdir="{}" {}'.format(GAMS_EXECUTABLE,
+        command = '{} "{}" Curdir="{}" {}'.format(gams_exe_path,
                                                   self.main_prgm,
                                                   os.path.join(instance.basedir, self.main_dir),
                                                   ' '.join(self.GAMS_parameters))

@@ -6,9 +6,11 @@ Widget for configuring user settings.
 """
 
 import logging
-from PyQt5.QtWidgets import QWidget
+import os
+from PyQt5.QtWidgets import QWidget, QFileDialog, QStatusBar
 from PyQt5.QtCore import pyqtSlot, Qt
 import ui.settings
+from config import GAMS_EXECUTABLE, GAMSIDE_EXECUTABLE
 
 
 class SettingsWidget(QWidget):
@@ -26,6 +28,9 @@ class SettingsWidget(QWidget):
         self.setWindowFlags(Qt.CustomizeWindowHint)
         # Ensure this window gets garbage-collected when closed
         self.setAttribute(Qt.WA_DeleteOnClose)
+        self.statusbar = QStatusBar(self)
+        self.ui.verticalLayout.addWidget(self.statusbar)
+        self.statusbar.setSizeGripEnabled(False)
         self.ui.pushButton_ok.setDefault(True)
         # Class attributes
         self._parent = parent  # QWidget parent
@@ -40,6 +45,26 @@ class SettingsWidget(QWidget):
         """ Connect PyQt signals. """
         self.ui.pushButton_ok.clicked.connect(self.ok_clicked)
         self.ui.pushButton_cancel.clicked.connect(self.close)
+        self.ui.pushButton_browse_gamside.clicked.connect(self.open_gamside_browser)
+
+    def open_gamside_browser(self):
+        """Open dialog where user can select the desired GAMS version."""
+        # noinspection PyCallByClass, PyTypeChecker
+        answer = QFileDialog.getExistingDirectory(self, 'Select GAMS Directory', os.path.abspath('C:\\'))
+        if answer == '':  # Cancel button clicked
+            return
+        selected_path = os.path.abspath(answer)
+        gams_path = os.path.join(selected_path, GAMS_EXECUTABLE)
+        gamside_path = os.path.join(selected_path, GAMSIDE_EXECUTABLE)
+        if not os.path.isfile(gams_path) and not os.path.isfile(gamside_path):
+            logging.debug("Selected directory is not valid GAMS directory:{0}".format(selected_path))
+            self.statusbar.showMessage("gams.exe and gamside.exe not found in selected directory", 6000)
+            self.ui.lineEdit_gamside_path.setText("")
+            return
+        else:
+            logging.debug("Selected directory is valid GAMS directory")
+            self.ui.lineEdit_gamside_path.setText(selected_path)
+        return
 
     def read_settings(self):
         """Read current settings from config file and update UI to show them."""
@@ -47,6 +72,7 @@ class SettingsWidget(QWidget):
         b = self._configs.get('settings', 'confirm_exit')
         c = self._configs.get('settings', 'delete_work_dirs')
         d = self._configs.get('settings', 'debug_messages')
+        gamsdir = self._configs.get('general', 'gams_path')
         if a == '1':
             self.ui.checkBox_save_at_exit.setCheckState(Qt.PartiallyChecked)
         elif a == '2':
@@ -59,6 +85,8 @@ class SettingsWidget(QWidget):
             self.ui.checkBox_del_work_dirs.setCheckState(Qt.Checked)
         if d == '2':
             self.ui.checkBox_debug.setCheckState(Qt.Checked)
+        # Set saved GAMS directory to lineEdit
+        self.ui.lineEdit_gamside_path.setText(gamsdir)
         # logging.debug("save at exit:{0}. confirm exit:{1}. delete work dirs:{2}.".format(a, b, c))
 
     @pyqtSlot()
@@ -72,6 +100,7 @@ class SettingsWidget(QWidget):
         self._configs.set('settings', 'confirm_exit', b)
         self._configs.set('settings', 'delete_work_dirs', c)
         self._configs.set('settings', 'debug_messages', d)
+        self._configs.set('general', 'gams_path', self.ui.lineEdit_gamside_path.text())
         self._configs.save()
         # Set logging level
         self._parent.set_debug_level(d)

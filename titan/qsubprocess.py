@@ -43,19 +43,18 @@ class QSubProcess(QObject):
         self._process.start(command)
         if not self._process.waitForStarted(msecs=10000):
             self._process_failed = True
-            self._ui.add_msg_signal.emit('*** Launching sub-process failed. ***', 2)
+            self._ui.add_msg_signal.emit('*** Launching subprocess failed. ***', 2)
 
     @pyqtSlot()
     def process_started(self):
         """ Run when sub-process is started. """
-        self._ui.add_msg_signal.emit("*** Sub-process for tool --{0}-- started ***"
+        self._ui.add_msg_signal.emit("*** Subprocess for tool --{0}-- started ***"
                                      .format(self._running_tool.name), 0)
         self._ui.add_msg_signal.emit('Process pid: %d ' % self._process.processId(), 0)
 
     @pyqtSlot()
     def process_finished(self):
         """ Run when sub-process is finished. """
-        self._ui.add_msg_signal.emit('*** Sub-process finished ***', 0)
         out = str(self._process.readAllStandardOutput(), 'utf-8')
         if out is not None:
             self._ui.add_proc_msg_signal.emit(out.strip())
@@ -66,8 +65,7 @@ class QSubProcess(QObject):
         # Delete GAMS QProcess
         self._process.deleteLater()
         self._process = None
-        self._ui.add_msg_signal.emit("GAMS return code: {0} & Sub-process exit status: {1}"
-                                     .format(gams_exit_code, gams_exit_status), 0)
+        self._ui.add_msg_signal.emit("*** Subprocess finished -- Exit status: {0} ***".format(gams_exit_status), 0)
         self.subprocess_finished_signal.emit(gams_exit_code)
 
     @pyqtSlot(int)

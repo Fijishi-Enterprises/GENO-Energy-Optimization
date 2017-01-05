@@ -1090,17 +1090,28 @@ class TitanUI(QMainWindow):
 
     @pyqtSlot("QUrl", name="open_anchor")
     def open_anchor(self, qurl):
-        """Open Windows Explorer in result directory, which is given in qurl.
+        """Starts Gamside or opens Windows Explorer in the given directory depending on the contents of qurl.
 
         Args:
-            qurl (QUrl): Address embedded into anchor.
+            qurl (QUrl): gamside.exe command or a result directory embedded into an anchor.
         """
-        folder_path = qurl.toLocalFile()
+        cmd = qurl.toLocalFile()  # Either a path to result folder or a command to open gamside.exe
+        if not os.path.isdir(cmd):
+            # cmd is a command to open gamside.exe with the included project file
+            # This all is just to remove '/' from the beginning of cmd
+            split_cmd = cmd.split(' ')  # Split command into a list
+            first_item = split_cmd.pop(0)  # Pop first part from list.
+            if first_item[0] == '/':
+                # first_item is '/gamside.exe'
+                first_item = os.path.basename(first_item)  # Get rid of extra '/' in front of gamside.exe
+            # Construct the cmd again
+            cmd = first_item + ' ' + ' '.join(split_cmd)
         if not sys.platform == 'win32':
             logging.error("This feature is not supported by your OS: ({0})".format(sys.platform))
             self.add_msg_signal.emit("This feature is not supported by your OS: ({0})".format(sys.platform), 2)
             return
-        os.system('start {}'.format(folder_path))
+        logging.debug("start {}".format(cmd))
+        os.system('start {}'.format(cmd))
         return
 
     def test_match(self):

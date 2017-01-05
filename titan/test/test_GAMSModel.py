@@ -89,7 +89,7 @@ class TestGAMSModel(TestCase):
         # log.debug("gams_model cmdline_args: '{0}'".format(gams_model.cmdline_args))
         # log.debug("setup cmdline_args: '{0}'".format(test_setup.cmdline_args))
         # log.debug("create_dir call_count: {0}".format(mock_create_dir.call_count))
-        correct_cmd = "gams \"" + gams_model.main_prgm + "\" Curdir=\"" \
+        correct_cmd = "gams.exe \"" + gams_model.main_prgm + "\" Curdir=\"" \
                       + self.instance.basedir + "\\\" Cerr=1 Logoption=3 --INVEST=yes A=100 B=100"
         self.assertEqual(correct_cmd, self.instance.command)
 
@@ -114,7 +114,7 @@ class TestGAMSModel(TestCase):
                                                        setup_name="root")
         log.disable(level=log.NOTSET)  # Enable logging
         log.debug("[test_command2] command: '{0}'".format(self.instance.command))
-        correct_cmd = "gams \"" + gams_model.main_prgm + "\" Curdir=\"" \
+        correct_cmd = "gams.exe \"" + gams_model.main_prgm + "\" Curdir=\"" \
                       + self.instance.basedir + "\\\" Cerr=1 Logoption=3 --INVEST=yes"
         self.assertEqual(correct_cmd, self.instance.command)
 
@@ -139,7 +139,7 @@ class TestGAMSModel(TestCase):
                                                        setup_name="root")
         log.disable(level=log.NOTSET)  # Enable logging
         log.debug("[test_command3] command: '{0}'".format(self.instance.command))
-        correct_cmd = "gams \"" + gams_model.main_prgm + "\" Curdir=\"" \
+        correct_cmd = "gams.exe \"" + gams_model.main_prgm + "\" Curdir=\"" \
                       + self.instance.basedir + "\\\" Cerr=1 Logoption=3 --INVEST=yes A=100"
         self.assertEqual(correct_cmd, self.instance.command)
 
@@ -166,7 +166,7 @@ class TestGAMSModel(TestCase):
                                                        setup_name="root")
         log.disable(level=log.NOTSET)  # Enable logging
         log.debug("[test_command4] command: '{0}'".format(self.instance.command))
-        correct_cmd = "gams \"" + gams_model.main_prgm + "\" Curdir=\"" \
+        correct_cmd = "gams.exe \"" + gams_model.main_prgm + "\" Curdir=\"" \
                       + self.instance.basedir + "\\\" Cerr=1 Logoption=3 A=100"
         self.assertEqual(correct_cmd, self.instance.command)
 
@@ -193,7 +193,7 @@ class TestGAMSModel(TestCase):
                                                        setup_name="root")
         log.disable(level=log.NOTSET)  # Enable logging
         log.debug("[test_command5] command: '{0}'".format(self.instance.command))
-        correct_cmd = "gams \"" + gams_model.main_prgm + "\" Curdir=\"" \
+        correct_cmd = "gams.exe \"" + gams_model.main_prgm + "\" Curdir=\"" \
                       + self.instance.basedir + "\\\" Cerr=1 Logoption=3 A=100"
         self.assertEqual(correct_cmd, self.instance.command)
 
@@ -218,7 +218,7 @@ class TestGAMSModel(TestCase):
                                                        setup_name="root")
         log.disable(level=log.NOTSET)  # Enable logging
         log.debug("[test_command6] command: '{0}'".format(self.instance.command))
-        correct_cmd = "gams \"" + gams_model.main_prgm + "\" Curdir=\"" \
+        correct_cmd = "gams.exe \"" + gams_model.main_prgm + "\" Curdir=\"" \
                       + self.instance.basedir + "\\\" Cerr=1 Logoption=3 --INVEST=yes"
         self.assertEqual(correct_cmd, self.instance.command)
 
@@ -243,7 +243,7 @@ class TestGAMSModel(TestCase):
                                                        setup_name="root")
         log.disable(level=log.NOTSET)  # Enable logging
         log.debug("[test_command7] command: '{0}'".format(self.instance.command))
-        correct_cmd = "gams \"" + gams_model.main_prgm + "\" Curdir=\"" \
+        correct_cmd = "gams.exe \"" + gams_model.main_prgm + "\" Curdir=\"" \
                       + self.instance.basedir + "\\\" Cerr=1 Logoption=3 --INVEST=yes"
         self.assertEqual(correct_cmd, self.instance.command)
 
@@ -270,7 +270,7 @@ class TestGAMSModel(TestCase):
                                                        setup_name="root")
         log.disable(level=log.NOTSET)  # Enable logging
         log.debug("[test_command8] command: '{0}'".format(self.instance.command))
-        correct_cmd = "gams \"" + gams_model.main_prgm + "\" Curdir=\"" \
+        correct_cmd = "gams.exe \"" + gams_model.main_prgm + "\" Curdir=\"" \
                       + self.instance.basedir + "\\\" Cerr=1 Logoption=3 --INVEST=yes A=100"
         self.assertEqual(correct_cmd, self.instance.command)
 
@@ -297,7 +297,7 @@ class TestGAMSModel(TestCase):
                                                        setup_name="root")
         log.disable(level=log.NOTSET)  # Enable logging
         log.debug("[test_command9] command: '{0}'".format(self.instance.command))
-        correct_cmd = "gams \"" + gams_model.main_prgm + "\" Curdir=\"" \
+        correct_cmd = "gams.exe \"" + gams_model.main_prgm + "\" Curdir=\"" \
                       + self.instance.basedir + "\\\" Cerr=1 Logoption=3 A=100 B=100"
         self.assertEqual(correct_cmd, self.instance.command)
 
@@ -324,7 +324,7 @@ class TestGAMSModel(TestCase):
                                                        setup_name="root")
         log.disable(level=log.NOTSET)  # Enable logging
         log.debug("[test_command9] command: '{0}'".format(self.instance.command))
-        correct_cmd = "gams \"" + gams_model.main_prgm + "\" Curdir=\"" \
+        correct_cmd = "gams.exe \"" + gams_model.main_prgm + "\" Curdir=\"" \
                       + self.instance.basedir + "\\\" Cerr=1 Logoption=3"
         self.assertEqual(correct_cmd, self.instance.command)
 

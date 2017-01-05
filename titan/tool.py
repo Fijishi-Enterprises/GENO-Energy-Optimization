@@ -13,9 +13,10 @@ import json
 import tempfile
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 import qsubprocess
-from config import WORK_DIR
+from config import WORK_DIR, GAMSIDE_EXECUTABLE, CONFIGURATION_FILE
+from configuration import ConfigurationParser
 from metaobject import MetaObject
-from helpers import create_dir, create_output_dir_timestamp
+from helpers import create_dir, create_output_dir_timestamp, make_gams_project_file
 
 
 class Tool(MetaObject):
@@ -171,9 +172,17 @@ class ToolInstance(QObject):
         Args:
             ret (int): Return code given by tool
         """
+        tool_failed = True
         try:
             return_msg = self.tool.return_codes[ret]
             logging.debug("Tool '%s' finished. GAMS Return code:%d. Message: %s" % (self.tool.name, ret, return_msg))
+            if ret == 0:
+                ret_color = 0
+                tool_failed = False
+            else:
+                ret_color = 2
+            self.ui.add_msg_signal.emit("GAMS return code: {0}. Return message: '{1}'".format(ret, return_msg),
+                                        ret_color)
         except KeyError:
             logging.error("Unknown return code")
         finally:
@@ -201,7 +210,7 @@ class ToolInstance(QObject):
                                                 "Check 'outfiles' parameter in tool definition file.", 2)
             if len(saved_files) > 0:
                 # If there are saved files
-                logging.debug("Saved output files:{0}".format(saved_files))
+                logging.debug("Saved result files:{0}".format(saved_files))
                 self.ui.add_msg_signal.emit("The following result files were saved successfully", 0)
                 for i in range(len(saved_files)):
                     self.ui.add_msg_signal.emit("{0}".format(saved_files[i]), 0)
@@ -212,13 +221,31 @@ class ToolInstance(QObject):
                 for i in range(len(failed_files)):
                     self.ui.add_msg_signal.emit("{0}".format(failed_files[i]), 2)
             if len(failed_files) == 0:
-                logging.debug("All output files saved successfully to <{0}>".format(result_path))
-                self.ui.add_msg_signal.emit("All output files saved successfully to '{0}'".format(result_path), 0)
+                logging.debug("All result files saved successfully to <{0}>".format(result_path))
+                self.ui.add_msg_signal.emit("All result files saved successfully to '{0}'".format(result_path), 0)
             else:
-                logging.debug("Output files saved to <{0}>".format(result_path))
-                self.ui.add_msg_signal.emit("Output files saved to '{0}'".format(result_path), 0)
+                logging.debug("Result files saved to <{0}>".format(result_path))
+                self.ui.add_msg_signal.emit("Result files saved to '{0}'".format(result_path), 0)
                 anchor = "<a href='file:///" + result_path + "'>Click here to open result folder</a>"
                 self.ui.add_link_signal.emit(anchor)
+            if tool_failed:
+                # Add anchor where user can go directly to GAMS
+                configs = ConfigurationParser(CONFIGURATION_FILE)
+                configs.load()
+                # Get selected GAMS version from settings
+                gams_path = configs.get('general', 'gams_path')
+                # Make path to gamside.exe according to the selected GAMS directory in settings
+                gamside_exe_path = GAMSIDE_EXECUTABLE
+                if not gams_path == '':
+                    gamside_exe_path = os.path.join(gams_path, GAMSIDE_EXECUTABLE)
+                # Make GAMS project file
+                if not make_gams_project_file(result_path, self.tool):
+                    self.ui.add_msg_signal.emit("Failed to make GAMS project file", 2)
+                else:
+                    prj_file_path = os.path.join(result_path, self.tool.short_name + ".gpr")
+                    gams_cmd = gamside_exe_path + " " + prj_file_path
+                    gams_anchor = "<a href='file:///" + gams_cmd + "'>Click here to debug Tool in GAMS</a>"
+                    self.ui.add_link_signal.emit(gams_anchor)
             self.ui.add_msg_signal.emit("Done", 1)
             # Emit signal to Setup that tool instance has finished with GAMS return code
             self.instance_finished_signal.emit(ret)
