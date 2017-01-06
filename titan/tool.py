@@ -196,7 +196,6 @@ class ToolInstance(QObject):
                                             "Tool output files not copied. "
                                             "Check permissions of Setup folders", 2)
                 return
-            # TODO: If Tool fails, either don't copy output files or copy them to [FAILED] folder
             self.ui.add_msg_signal.emit("*** Saving result files ***", 0)
             saved_files, failed_files = self.copy_output(result_path)
             if len(saved_files) == 0:
@@ -229,7 +228,8 @@ class ToolInstance(QObject):
                 anchor = "<a href='file:///" + result_path + "'>Click here to open result folder</a>"
                 self.ui.add_link_signal.emit(anchor)
             if tool_failed:
-                # Add anchor where user can go directly to GAMS
+                # TODO: If Tool fails, either don't copy output files or copy them to [FAILED] folder
+                #  Add anchor where user can go directly to GAMS
                 configs = ConfigurationParser(CONFIGURATION_FILE)
                 configs.load()
                 # Get selected GAMS version from settings
@@ -239,10 +239,10 @@ class ToolInstance(QObject):
                 if not gams_path == '':
                     gamside_exe_path = os.path.join(gams_path, GAMSIDE_EXECUTABLE)
                 # Make GAMS project file
-                if not make_gams_project_file(result_path, self.tool):
+                if not make_gams_project_file(self.basedir, self.tool):
                     self.ui.add_msg_signal.emit("Failed to make GAMS project file", 2)
                 else:
-                    prj_file_path = os.path.join(result_path, self.tool.short_name + ".gpr")
+                    prj_file_path = os.path.join(self.basedir, self.tool.short_name + "AutoCreated.gpr")
                     gams_cmd = gamside_exe_path + " " + prj_file_path
                     gams_anchor = "<a href='file:///" + gams_cmd + "'>Click here to debug Tool in GAMS</a>"
                     self.ui.add_link_signal.emit(gams_anchor)

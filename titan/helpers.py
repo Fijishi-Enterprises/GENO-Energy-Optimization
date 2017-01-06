@@ -254,7 +254,7 @@ def make_gams_project_file(path, tool):
     Returns:
         Boolean variable depending on operation success
     """
-    prj_file_path = os.path.join(path, tool.short_name + ".gpr")
+    prj_file_path = os.path.join(path, tool.short_name + "AutoCreated.gpr")
     lst_file_path = os.path.join(path, os.path.splitext(tool.main_prgm)[0] + ".lst")
     # logging.debug("List file path: {0}".format(lst_file_path))
     # logging.debug("Project file path: {0}".format(prj_file_path))
