@@ -279,9 +279,12 @@ class SceletonProject(MetaObject):
             ui (TitanUI): Titan user interface
         """
         sheet_names = wb.sheet_names()
+        n_data_sheets = 0
+        excel_fname = os.path.split(wb.path)[1]
         for sheet in sheet_names:
             if sheet.lower() == 'project' or sheet.lower() == 'setups' or sheet.lower() == 'recipes':
                 continue
+            n_data_sheets += 1
             try:
                 ui.add_msg_signal.emit("<br/>Processing sheet '{0}'".format(sheet), 0)
                 [headers, filename, setup, set1, set2, value, n_rows] = wb.read_data_sheet(sheet)
@@ -313,7 +316,7 @@ class SceletonProject(MetaObject):
                     continue
                 input_dir = index.internalPointer().input_dir
                 d_file = os.path.join(input_dir, list(filename)[0])
-                ui.add_msg_signal.emit("Writing file:{0}".format(d_file), 0)
+                ui.add_msg_signal.emit("Writing file: {0}".format(d_file), 0)
                 try:
                     with open(d_file, 'w') as d:
                         d.write("$offlisting\n")
@@ -321,3 +324,8 @@ class SceletonProject(MetaObject):
                 except OSError:
                     ui.add_msg_signal.emit("OSError: Writing to file '{0}' failed".format(d_file), 2)
             ui.add_msg_signal.emit("Processing sheet '{0}' done".format(sheet), 1)
+        if n_data_sheets == 0:
+            ui.add_msg_signal.emit("No data sheets found", 0)
+        else:
+            ui.add_msg_signal.emit("Processed {0} data sheets in file {1}".format(n_data_sheets, excel_fname), 0)
+        ui.add_msg_signal.emit("Done", 1)

@@ -323,6 +323,7 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("Done", 1)
             return True
         elif load_path.lower().endswith('.xlsx'):
+            excel_fname = os.path.split(load_path)[1]
             # Load project from MS Excel file
             wb = ExcelHandler(load_path)
             try:
@@ -331,7 +332,12 @@ class TitanUI(QMainWindow):
                 self.add_msg_signal.emit("OSError while loading project file: {0}".format(load_path), 2)
                 return
             proj_details = wb.read_project_sheet()
-            # # Initialize UI
+            if not proj_details:
+                # Not a valid project Excel
+                self.add_msg_signal.emit("<br/>{0} is not a valid project file. 'Project' sheet not found"
+                                         .format(excel_fname), 2)
+                return False
+            # Initialize UI
             self.clear_ui()
             if not proj_details[0]:
                 self.add_msg_signal.emit("Project name not found in Excel file. "
@@ -353,7 +359,7 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("Done", 1)
             return True
         else:
-            self.add_msg_signal.emit("Project file format not recognized", 2)
+            self.add_msg_signal.emit("Not a valid project file format. (.xlsx and .json supported)", 2)
 
     def add_tool(self):
         """Method to add a new tool from a JSON tool definition file to the
@@ -1004,11 +1010,11 @@ class TitanUI(QMainWindow):
         answer = QFileDialog.getOpenFileName(self, 'Import Input Data', PROJECT_DIR, 'MS Excel (*.xlsx)')
         load_path = answer[0]
         if load_path == '':  # Cancel button clicked
-            return False
-        self.add_msg_signal.emit("Importing data from file: {0}".format(load_path), 0)
+            return
+        self.add_msg_signal.emit("<br/>Importing data from file: {0}".format(load_path), 0)
         if not os.path.isfile(load_path):
             self.add_msg_signal.emit("File not found '{0}'".format(load_path), 2)
-            return False
+            return
         # Load project from MS Excel file
         wb = ExcelHandler(load_path)
         try:
@@ -1220,6 +1226,7 @@ class TitanUI(QMainWindow):
 
     def show_delete_work_dirs_prompt(self):
         """Shows the delete work directories message box when exiting Sceleton."""
+        # TODO: Show some kind of dialog that let's the user know when deleting is in progress
         del_dirs = self._config.get('settings', 'delete_work_dirs')
         if del_dirs == '0':
             # Don't delete work directories and don't show message box

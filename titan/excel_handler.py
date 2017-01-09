@@ -8,6 +8,7 @@ Module for MS Excel file handling.
 import logging
 import os
 import openpyxl
+from openpyxl import load_workbook
 
 
 class ExcelHandler:
@@ -20,7 +21,7 @@ class ExcelHandler:
         """Load Excel workbook."""
         logging.debug("Opening Excel Workbook {0}".format(self.path))
         try:
-            self.wb = openpyxl.load_workbook(self.path)
+            self.wb = load_workbook(filename=self.path)
         except:
             raise
 
@@ -30,7 +31,11 @@ class ExcelHandler:
 
     def read_project_sheet(self):
         """Read Project details from Project sheet."""
-        project_sheet = self.wb['Project']
+        try:
+            project_sheet = self.wb.get_sheet_by_name('Project')
+        except KeyError:
+            logging.error("Project sheet not found")
+            return False
         name = project_sheet['B1'].value
         desc = project_sheet['B2'].value
         return [name, desc]
