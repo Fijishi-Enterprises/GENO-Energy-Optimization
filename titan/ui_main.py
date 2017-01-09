@@ -1007,7 +1007,7 @@ class TitanUI(QMainWindow):
     def import_data(self):
         """Open selected Excel file for creating text data files for Setups."""
         # noinspection PyCallByClass, PyTypeChecker
-        answer = QFileDialog.getOpenFileName(self, 'Import Input Data', PROJECT_DIR, 'MS Excel (*.xlsx)')
+        answer = QFileDialog.getOpenFileName(self, 'Select Input Data File', PROJECT_DIR, 'MS Excel (*.xlsx)')
         load_path = answer[0]
         if load_path == '':  # Cancel button clicked
             return

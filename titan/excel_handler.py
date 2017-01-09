@@ -53,19 +53,19 @@ class ExcelHandler:
         descriptions = [v[0].value for v in setup_sheet['E2':'E' + rows]]
         return [parents, currents, tools, tool_args, descriptions]
 
-    def read_data_sheet(self, sheet):
+    def read_data_sheet(self, sheet_name):
         """Read data from the given sheet.
 
         Args:
-            sheet (str): Name of sheet with data
+            sheet_name (str): Name of sheet with data
 
         Returns:
             List of lists including filename, Setups and other data
         """
-        sheet = self.wb[sheet]
+        sheet = self.wb.get_sheet_by_name(sheet_name)
         n_rows = sheet.max_row
         n_columns = sheet.max_column
-        logging.debug("Processing {2}. Includes {0} rows and {1} columns".format(n_rows, n_columns, sheet))
+        logging.debug("Processing {0}. Includes {1} rows and {2} columns".format(sheet, n_rows, n_columns))
         # Get all data on the sheet
         data = list(sheet.rows)
         # Get header row
@@ -73,22 +73,22 @@ class ExcelHandler:
         if n_columns == 1 and n_rows == 1 and not header[0].value:
             logging.debug("No data found on {0}".format(sheet))
             return []
-        if not n_columns == 5:
-            logging.error("Sheet should contain 5 columns: Filename, Setup, Set, Set, and Value")
+        if n_columns < 4:
+            logging.error("Sheet should have at least 4 columns: Filename, Setup, Set, and Value")
             return []
-        headers = list()
-        # Put header values into list
-        for item in header:
-            a = item.value
-            headers.append(a)
-            # logging.debug("Header: {0}".format(a))
+        headers = [item.value for item in header]  # Append header values into list
+        # Number of Set columns
+        n_sets = n_columns - 3  # n_columns - filename column - setup column - value column
+        sets = list()
         # All data
         filename = [v[0].value for v in data]
         setup = [v[1].value for v in data]
-        set1 = [v[2].value for v in data]
-        set2 = [v[3].value for v in data]
-        value = [v[4].value for v in data]
-        return [headers, filename, setup, set1, set2, value, n_rows]
+        # Get all sets into one list
+        for i in range(n_sets):
+            set_i = [v[i+2].value for v in data]
+            sets.append(set_i)
+        value = [v[-1].value for v in data]
+        return [headers, filename, setup, sets, value, n_rows]
 
     def export_to_excel(self):
         """Exports the selected data to the defined excel file.

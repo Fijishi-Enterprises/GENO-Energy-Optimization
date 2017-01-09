@@ -287,9 +287,9 @@ class SceletonProject(MetaObject):
             n_data_sheets += 1
             try:
                 ui.add_msg_signal.emit("<br/>Processing sheet '{0}'".format(sheet), 0)
-                [headers, filename, setup, set1, set2, value, n_rows] = wb.read_data_sheet(sheet)
+                [headers, filename, setup, sets, value, n_rows] = wb.read_data_sheet(sheet)
             except ValueError:  # No data found
-                ui.add_msg_signal.emit("No data found on sheet:{0}".format(sheet), 0)
+                ui.add_msg_signal.emit("No data found on sheet: {0}".format(sheet), 0)
                 continue
             # Get the file name found on this sheet
             filename = set(filename)
@@ -303,9 +303,26 @@ class SceletonProject(MetaObject):
             setups = Counter(setup).keys()
             for setup_name in setups:
                 data[setup_name] = list()
+            n_sets = len(sets)
             # Collect data into dictionary
             for i in range(n_rows-1):  # subtract header row
-                line = set1[i] + '.' + set2[i] + '=' + str(value[i]) + '\n'
+                if not sets[0][i]:  # Check that first set is not '' or None
+                    line = ''
+                else:
+                    line = sets[0][i]
+                if n_sets > 1:
+                    for j in range(n_sets-1):  # Subtract first set
+                        if sets[j+1][i]:  # Skip '' and None sets
+                            if line == '':  # This happens when first set is empty
+                                line = sets[j+1][i]
+                            else:
+                                line += '.' + sets[j+1][i]  # Append new set on line
+                # Add '=' and value to line
+                # Do not use if not value[i]: because if value is 0, it will not be written
+                if value[i] == '' or value[i] == None:
+                    line += '=\n'
+                else:
+                    line += '=' + str(value[i]) + '\n'
                 data[setup[i]].append(line)
             # Write values from dictionary to files
             for key, value in data.items():
@@ -315,12 +332,14 @@ class SceletonProject(MetaObject):
                     ui.add_msg_signal.emit("Setup '{0}' not found".format(key), 2)
                     continue
                 input_dir = index.internalPointer().input_dir
-                d_file = os.path.join(input_dir, list(filename)[0])
-                ui.add_msg_signal.emit("Writing file: {0}".format(d_file), 0)
+                fname = list(filename)[0]
+                d_file = os.path.join(input_dir, fname)
                 try:
                     with open(d_file, 'w') as d:
                         d.write("$offlisting\n")
                         d.writelines(value)
+                    ui.add_msg_signal.emit("File {0} written to Setup '{1}' input directory ({2} lines) "
+                                           .format(fname, key, len(value)+1), 0)
                 except OSError:
                     ui.add_msg_signal.emit("OSError: Writing to file '{0}' failed".format(d_file), 2)
             ui.add_msg_signal.emit("Processing sheet '{0}' done".format(sheet), 1)
