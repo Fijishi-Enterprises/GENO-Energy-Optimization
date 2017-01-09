@@ -20,6 +20,7 @@ equations
     q_stateUpwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_stateDownwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_boundState(grid, node, node, mType, f, t) "Node state variables bounded by other nodes"
+    q_boundCyclic(grid, node, mType, f, t, t_) "Cyclic bound for the first and the last state"
 ;
 
 
@@ -480,5 +481,13 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
       )
         / (p_gn(grid, node_, 'energyStoredPerUnitOfState') )                                    // Divide by the stored energy in the node per unit of v_state to obtain same unit as the v_state
         * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiply with time step to obtain change in state over the step
+;
+* -----------------------------------------------------------------------------
+q_boundCyclic(gn_state(grid, node), mf(m, f), t, t_)${  p_gn(grid, node, 'boundCyclic')
+                                                        AND mftStart(m, f, t)
+                                                        AND mftLastSteps(m, f, t_)  } ..
+    + v_state(grid, node, f, t)
+    =E=
+    + v_state(grid, node, f, t_)
 ;
 

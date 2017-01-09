@@ -79,6 +79,7 @@ param_gn  "Possible parameters for grid, node" /
     boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
     boundAll      "A flag to bound the state to the reference in all time steps"
     boundStartToEnd  "Force the last states to equal the first state"
+    boundCyclic   "A flag to impose cyclic bounds for the first and the last states"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /

@@ -23,6 +23,7 @@ $offOrder
                 p_stepLength(mf(mSolve, fSolve), t)$tInterval(t) = 1;  // p_stepLength will hold the length of the interval in model equations
                 p_stepLengthNoReset(mSolve, fSolve, t)$tInterval(t) = 1;
                 pt(t + 1)$tInterval(t) = -1;
+                mftLastSteps(mf(mSolve,fSolve),t)$[ord(t)-1 = mInterval(mSolve,'intervalEnd',counter)] = yes;
             elseif mInterval(mSolve, 'intervalLength', counter) > 1, // intervalLength > 1 (not defined if intervalLength < 1)
                 loop(t$[ord(t) >= tSolveFirst + tCounter and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast + 1)],  // Loop t relevant for each interval (interval borders defined by intervalEnd) - but do not go beyond tSolveLast
                     if (not mod(tCounter - mInterval(mSolve, 'intervalEnd', counter), mInterval(mSolve, 'intervalLength', counter)),  // Skip those t's that are not at the start of any interval
