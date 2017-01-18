@@ -180,27 +180,27 @@ class SceletonProject(MetaObject):
                     tool_name = v['tool']
                     cmdline_args = v['cmdline_args']
                     logging.info("Loading Setup '%s'" % name)
-                    ui.add_msg_signal.emit("Loading Setup '{0}'".format(name), 0)
+                    ui.add_msg_signal.emit("Loading Setup <b>{0}</b>".format(name), 0)
                     if parent_name == 'root':
                         if not setup_model.insert_setup(name, desc, self, 0):
                             logging.error("Inserting base Setup %s failed" % name)
-                            ui.add_msg_signal.emit("Loading Setup '%s' failed. Parent Setup: '%s'"
-                                                   % (name, parent_name), 2)
+                            ui.add_msg_signal.emit("Loading Setup <b>{0}</b> failed. Parent Setup: <b>{1}</b>"
+                                                   .format(name, parent_name), 2)
                     else:
                         parent_index = setup_model.find_index(parent_name)
                         parent_row = parent_index.row()
                         if not setup_model.insert_setup(name, desc, self, parent_row, parent_index):
                             logging.error("Inserting child Setup %s failed" % name)
-                            ui.add_msg_signal.emit("Loading Setup '%s' failed. Parent Setup: '%s'"
-                                                   % (name, parent_name), 2)
+                            ui.add_msg_signal.emit("Loading Setup <b>{0}</b> failed. Parent Setup: <b>{1}</b>"
+                                                   .format(name, parent_name), 2)
                     if tool_name is not None:
                         # Get tool from ToolModel
                         tool = tool_model.find_tool(tool_name)
                         if not tool:
                             logging.error("Could not add Tool to Setup. Tool '%s' not found" % tool_name)
-                            ui.add_msg_signal.emit("Could not find Tool '%s' for Setup '%s'."
+                            ui.add_msg_signal.emit("Could not find Tool <b>{0}</b> for Setup <b>{1}</b>."
                                                    " Add Tool and reload project."
-                                                   % (tool_name, name), 2)
+                                                   .format(tool_name, name), 2)
                         else:
                             # Add tool to Setup
                             setup_index = setup_model.find_index(name)
@@ -236,33 +236,34 @@ class SceletonProject(MetaObject):
                 ui.add_msg_signal.emit("Could not load Setup. Name missing.", 2)
                 continue
             logging.info("Loading Setup '%s'" % name)
-            ui.add_msg_signal.emit("Loading Setup '{0}'".format(name), 0)
+            ui.add_msg_signal.emit("Loading Setup <b>{0}</b>".format(name), 0)
             if not parent_name or parent_name.lower() == 'root':
                 if not setup_model.insert_setup(name, desc, self, 0):
                     logging.error("Inserting base Setup %s failed" % name)
-                    ui.add_msg_signal.emit("Loading Setup '%s' failed. Parent Setup: '%s'"
-                                           % (name, parent_name), 2)
+                    ui.add_msg_signal.emit("Loading Setup <b>{0}</b> failed. Parent Setup: <b>{1}</b>"
+                                           .format(name, parent_name), 2)
             else:
                 parent_index = setup_model.find_index(parent_name)
                 if not parent_index:
                     # Parent not found
-                    ui.add_msg_signal.emit("Parent '{0}' of Setup '{1}' not found".format(parent_name, name), 2)
+                    ui.add_msg_signal.emit("Parent <b>{0}</b> of Setup <b>{1}</b> not found"
+                                           .format(parent_name, name), 2)
                     continue
                 parent_row = parent_index.row()
                 # logging.debug("parent index:{0} parent row:{1} parent name:{2}"
                 #               .format(parent_index, parent_row, parent_index.internalPointer().name))
                 if not setup_model.insert_setup(name, desc, self, parent_row, parent_index):
                     logging.error("Inserting child Setup %s failed" % name)
-                    ui.add_msg_signal.emit("Loading Setup '%s' failed. Parent Setup: '%s'"
-                                           % (name, parent_name), 2)
+                    ui.add_msg_signal.emit("Loading Setup <b>{0}</b> failed. Parent Setup: <b>{1}</b>"
+                                           .format(name, parent_name), 2)
             if tool_name is not None:
                 # Get tool from ToolModel
                 tool = tool_model.find_tool(tool_name)
                 if not tool:
                     logging.error("Could not add Tool to Setup. Tool '%s' not found" % tool_name)
-                    ui.add_msg_signal.emit("Could not find Tool '%s' for Setup '%s'."
+                    ui.add_msg_signal.emit("Could not find Tool <b>{0}</b> for Setup <b>{1}</b>."
                                            " Add Tool and reload project."
-                                           % (tool_name, name), 2)
+                                           .format(tool_name, name), 2)
                 else:
                     # Add tool to Setup
                     setup_index = setup_model.find_index(name)
@@ -289,7 +290,7 @@ class SceletonProject(MetaObject):
                 ui.add_msg_signal.emit("<br/>Processing sheet '{0}'".format(sheet), 0)
                 [headers, filename, setup, sets, value, n_rows] = wb.read_data_sheet(sheet)
             except ValueError:  # No data found
-                ui.add_msg_signal.emit("No data found on sheet: {0}".format(sheet), 0)
+                ui.add_msg_signal.emit("No data found on sheet '{0}'".format(sheet), 0)
                 continue
             # Get the file name found on this sheet
             filename = set(filename)
@@ -329,7 +330,7 @@ class SceletonProject(MetaObject):
                 index = setup_model.find_index(key)
                 # Skip if Setup does not exist
                 if not index:
-                    ui.add_msg_signal.emit("Setup '{0}' not found".format(key), 2)
+                    ui.add_msg_signal.emit("Setup <b>{0}</b> not found".format(key), 2)
                     continue
                 input_dir = index.internalPointer().input_dir
                 fname = list(filename)[0]
@@ -338,7 +339,7 @@ class SceletonProject(MetaObject):
                     with open(d_file, 'w') as d:
                         d.write("$offlisting\n")
                         d.writelines(value)
-                    ui.add_msg_signal.emit("File {0} written to Setup '{1}' input directory ({2} lines) "
+                    ui.add_msg_signal.emit("File {0} written to Setup <b>{1}</b> input directory ({2} lines) "
                                            .format(fname, key, len(value)+1), 0)
                 except OSError:
                     ui.add_msg_signal.emit("OSError: Writing to file '{0}' failed".format(d_file), 2)

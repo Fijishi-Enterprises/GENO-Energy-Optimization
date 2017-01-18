@@ -125,7 +125,7 @@ class ToolInstance(QObject):
     def _checkout(self):
         """Copy Tool files to work directory."""
         logging.info("Copying Tool '{}' to work directory".format(self.tool.name))
-        self.ui.add_msg_signal.emit("*** Copying Tool '{}' to work directory ***".format(self.tool.name), 0)
+        self.ui.add_msg_signal.emit("*** Copying Tool <b>{}</b> to work directory ***".format(self.tool.name), 0)
         for filepath in self.tool.files:
             dirname, file_pattern = os.path.split(filepath)
             src_dir = os.path.join(self.tool.path, dirname)
@@ -172,20 +172,26 @@ class ToolInstance(QObject):
         Args:
             ret (int): Return code given by tool
         """
+        self.tool_process = None
         tool_failed = True
+        user_terminated = False
         try:
             return_msg = self.tool.return_codes[ret]
             logging.debug("Tool '%s' finished. GAMS Return code:%d. Message: %s" % (self.tool.name, ret, return_msg))
             if ret == 0:
-                ret_color = 0
                 tool_failed = False
+                self.ui.add_msg_signal.emit("GAMS return code: {0}. Message: '{1}'".format(ret, return_msg), 0)
             else:
-                ret_color = 2
-            self.ui.add_msg_signal.emit("GAMS return code: {0}. Return message: '{1}'".format(ret, return_msg),
-                                        ret_color)
+                self.ui.add_msg_signal.emit("GAMS return code: {0}. Message: '{1}'".format(ret, return_msg), 2)
         except KeyError:
-            logging.error("Unknown return code")
+            logging.error("Unknown return code: {0}".format(ret))
+            self.ui.add_msg_signal.emit("Unknown return code from GAMS ({0})".format(ret), 2)
         finally:
+            if ret == 62097:
+                # If user terminated execution
+                self.ui.add_msg_signal.emit("Tool <b>{0}</b> execution stopped".format(self.tool.name), 0)
+                self.instance_finished_signal.emit(ret)
+                return
             # Get timestamp when tool finished
             output_dir_timestamp = create_output_dir_timestamp()
             # Create an output folder with timestamp and copy output directly there
@@ -212,13 +218,15 @@ class ToolInstance(QObject):
                 logging.debug("Saved result files:{0}".format(saved_files))
                 self.ui.add_msg_signal.emit("The following result files were saved successfully", 0)
                 for i in range(len(saved_files)):
-                    self.ui.add_msg_signal.emit("{0}".format(saved_files[i]), 0)
+                    fname = os.path.split(saved_files[i])[1]
+                    self.ui.add_msg_signal.emit("{0}".format(fname), 0)
             if len(failed_files) > 0:
                 # If some files failed
                 logging.error("These files were not found:{0}".format(failed_files))
                 self.ui.add_msg_signal.emit("The following result files were not found", 2)
                 for i in range(len(failed_files)):
-                    self.ui.add_msg_signal.emit("{0}".format(failed_files[i]), 2)
+                    failed_fname = os.path.split(failed_files[i])[1]
+                    self.ui.add_msg_signal.emit("{0}".format(failed_fname), 2)
             if len(failed_files) == 0:
                 logging.debug("All result files saved successfully to <{0}>".format(result_path))
                 self.ui.add_msg_signal.emit("All result files saved successfully to '{0}'".format(result_path), 0)
@@ -249,6 +257,12 @@ class ToolInstance(QObject):
             self.ui.add_msg_signal.emit("Done", 1)
             # Emit signal to Setup that tool instance has finished with GAMS return code
             self.instance_finished_signal.emit(ret)
+
+    def terminate_instance(self):
+        """Terminate tool process execution."""
+        if not self.tool_process:
+            return
+        self.tool_process.terminate_process()
 
     def remove(self):
         """Remove the tool instance files."""

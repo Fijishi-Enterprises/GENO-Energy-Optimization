@@ -88,7 +88,7 @@ class TitanUI(QMainWindow):
         """
         if level == '2':
             logging.getLogger().setLevel(level=logging.DEBUG)
-            logging.debug("Logging level: All messages ")
+            logging.debug("Logging level: All messages")
         else:
             logging.debug("Logging level: Error messages only")
             logging.getLogger().setLevel(level=logging.ERROR)
@@ -117,6 +117,10 @@ class TitanUI(QMainWindow):
         self.ui.actionAdd_Tool.triggered.connect(self.add_tool)
         self.ui.actionRefresh_Tools.triggered.connect(self.refresh_tools)
         self.ui.actionRemove_Tool.triggered.connect(self.remove_tool)
+        self.ui.actionExecuteSingle.triggered.connect(self.execute_single)
+        self.ui.actionExecuteBranch.triggered.connect(self.execute_branch)
+        self.ui.actionExecuteProject.triggered.connect(self.execute_all)
+        self.ui.actionStop_Execution.triggered.connect(self.terminate_execution)
         # Widgets
         self.ui.pushButton_execute_all.clicked.connect(self.execute_all)
         self.ui.pushButton_execute_branch.clicked.connect(self.execute_branch)
@@ -134,6 +138,7 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_import_data.clicked.connect(self.import_data)
         self.ui.pushButton_inspect_data.clicked.connect(self.open_inspect_form)
         self.ui.textBrowser_main.anchorClicked.connect(self.open_anchor)
+        self.ui.pushButton_terminate_execution.clicked.connect(self.terminate_execution)
 
     def init_models(self):
         """Create data models for GUI views."""
@@ -225,7 +230,7 @@ class TitanUI(QMainWindow):
         self._project = SceletonProject(name, description)
         self.init_models()
         self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
-        self.add_msg_signal.emit("Started project '{0}'".format(self._project.name), 0)
+        self.add_msg_signal.emit("Started project <b>{0}</b>".format(self._project.name), 0)
         # Create and save project file to disk
         self.save_project()
 
@@ -311,7 +316,8 @@ class TitanUI(QMainWindow):
             # Setup models and views
             self.init_models()
             self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
-            self.add_msg_signal.emit("Loading project '{0}' from file: {1}".format(self._project.name, load_path), 0)
+            self.add_msg_signal.emit("Loading project <b>{0}</b> from file: {1}"
+                                     .format(self._project.name, load_path), 0)
             # Parse Setups
             setup_dict = dicts['setups']
             if len(setup_dict) == 0:
@@ -341,17 +347,18 @@ class TitanUI(QMainWindow):
             self.clear_ui()
             if not proj_details[0]:
                 self.add_msg_signal.emit("Project name not found in Excel file. "
-                                         "It should be located on sheet 'Project' in Cell 'B1'.", 2)
+                                         "Add it to cell B1 on 'Project' sheet and try again.", 2)
                 return
             if not proj_details[1]:
-                self.add_msg_signal.emit("Project description missing (Sheet: 'Project'. Cell: B2)", 0)
+                self.add_msg_signal.emit("Project description missing. "
+                                         "You can add it to cell B2 on 'Project' sheet (optional).", 0)
                 proj_details[1] = ''
             # Create project
             self._project = SceletonProject(proj_details[0], proj_details[1])
             # Setup models and views
             self.init_models()
             self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
-            self.add_msg_signal.emit("Loading project '{0}'".format(self._project.name), 0)
+            self.add_msg_signal.emit("Loading project <b>{0}</b>".format(self._project.name), 0)
             # Parse Setups from Excel and add them to the project
             self._project.parse_excel_setups(self.setup_model, self.tool_model, wb, self)
             msg = "Project '%s' loaded" % self._project.name
@@ -397,7 +404,7 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("Done", 1)
         else:
             # Tool already in model
-            self.add_msg_signal.emit("Tool '{0}' already available".format(tool.name), 0)
+            self.add_msg_signal.emit("Tool <b>{0}</b> already available".format(tool.name), 0)
             return
 
     def refresh_tools(self):
@@ -405,7 +412,7 @@ class TitanUI(QMainWindow):
         if not self._project:
             self.add_msg_signal.emit("No project open", 0)
             return
-        self.add_msg_signal.emit("Refreshing tools", 0)
+        self.add_msg_signal.emit("Refreshing Tools", 0)
         self.init_tool_model()
         # Reattach all Tools to Setups because the tool model has changed.
 
@@ -417,7 +424,7 @@ class TitanUI(QMainWindow):
                     old_tool_name = setup.tool.name
                     new_tool = self.tool_model.find_tool(old_tool_name)
                     if not new_tool:
-                        self.add_msg_signal.emit("Refreshing tool '{0}' failed for Setup '{1}'".format(
+                        self.add_msg_signal.emit("Refreshing Tool <b>{0}</b> failed for Setup <b>{1}</b>".format(
                             old_tool_name, setup.name), 2)
                         setup.tool = None
                     else:
@@ -459,12 +466,12 @@ class TitanUI(QMainWindow):
         # noinspection PyCallByClass, PyTypeChecker
         answer = QMessageBox.question(self, 'Remove Tool', msg, QMessageBox.Yes, QMessageBox.No)
         if answer == QMessageBox.Yes:
-            self.add_msg_signal.emit("Removing tool: {0}<br/>Definition file path: {1}"
+            self.add_msg_signal.emit("Removing Tool <b>{0}</b><br/>Definition file path: {1}"
                                      .format(sel_tool.name, tool_def_path), 0)
             old_tool_paths = self._config.get('general', 'tools')
             if tool_def_path in old_tool_paths:
                 if not self.tool_model.removeRow(index.row()):
-                    self.add_msg_signal.emit("Error in removing Tool {0}".format(sel_tool.name), 2)
+                    self.add_msg_signal.emit("Error in removing Tool <b>{0}</b>".format(sel_tool.name), 2)
                     return
                 new_tool_paths = old_tool_paths.replace('\n' + tool_def_path, '')
                 # self.add_msg_signal.emit("Old tools string:{0}".format(old_tool_paths), 0)
@@ -492,11 +499,11 @@ class TitanUI(QMainWindow):
         """
         # Add tool to Setup
         if tool is not None:
-            self.add_msg_signal.emit("Changing Tool '%s' for Setup '%s'" % (tool.name, setup.name), 0)
+            self.add_msg_signal.emit("Changing Tool <b>{0}</b> for Setup <b>{1}</b>".format(tool.name, setup.name), 0)
             setup.detach_tool()
             setup.attach_tool(tool, cmdline_args=cmdline_args)
         else:
-            self.add_msg_signal.emit("Removing Tool from Setup '%s'" % setup.name, 0)
+            self.add_msg_signal.emit("Removing Tool from Setup <b>{0}</b>" % setup.name, 0)
             setup.detach_tool()
         self.setup_model.emit_data_changed()
         return True
@@ -558,7 +565,7 @@ class TitanUI(QMainWindow):
         # Open the tool def file in editor (only windows supported)
         if not sys.platform == 'win32':
             logging.error("This feature is not supported by your OS: ({0})".format(sys.platform))
-            self.add_msg_signal.emit("This feature is not supported by your OS: ({0})".format(sys.platform), 2)
+            self.add_msg_signal.emit("This feature is not supported by your OS [{0}]".format(sys.platform), 2)
             return
         os.system('start {0}'.format(tool_def_path))
         return
@@ -720,7 +727,7 @@ class TitanUI(QMainWindow):
         # noinspection PyCallByClass, PyTypeChecker
         answer = QMessageBox.question(self, 'Deleting Setup', msg, QMessageBox.Yes, QMessageBox.No)
         if answer == QMessageBox.Yes:
-            self.add_msg_signal.emit("Setup '%s' deleted" % name, 0)
+            self.add_msg_signal.emit("Setup <b>{0}</b> deleted".format(name), 0)
             self.setup_model.remove_setup(row, parent)
             return
         else:
@@ -740,7 +747,7 @@ class TitanUI(QMainWindow):
         if answer == QMessageBox.Yes:
             for i in range(n_kids):
                 name = self._root.child(0).name
-                self.add_msg_signal.emit("Setup '{}' deleted".format(name), 0)
+                self.add_msg_signal.emit("Setup <b>{}</b> deleted".format(name), 0)
                 self.setup_model.remove_setup(0, root_index)
             return
         else:
@@ -808,12 +815,13 @@ class TitanUI(QMainWindow):
             if self._root.child_count() == 0:
                 self.add_msg_signal.emit("No Setups to execute", 0)
                 return
-            self.add_msg_signal.emit("<br/>Executing Project '{0}'. Algorithm: {1}".format(self._project.name, alg), 0)
+            self.add_msg_signal.emit("<br/>Executing Project <b>{0}</b>. Algorithm: {1}"
+                                     .format(self._project.name, alg), 0)
             # Get the first base that is not ready. Set the next one in setup_done()
             base_name = ''
             for i in range(self._root.child_count()):
                 if not self._root.child(i).is_ready:
-                    base_name = self._root.child(0).name
+                    base_name = self._root.child(i).name
                     break
             if base_name == '':
                 self.add_msg_signal.emit("All base Setups ready. Clear ready flags"
@@ -826,10 +834,12 @@ class TitanUI(QMainWindow):
         else:
             self.add_msg_signal.emit("Execution mode not recognized", 2)
             return
+        # Disable appropriate widgets during execution
+        self.toggle_gui(False)
         # Connect setup_finished_signal to setup_done slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
-        logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
-        self.add_msg_signal.emit("<br/>Starting Setup '%s'" % self._running_setup.name, 0)
+        logging.debug("Starting Setup '{0}'".format(self._running_setup.name))
+        self.add_msg_signal.emit("<br/>Starting Setup <b>{0}</b>".format(self._running_setup.name), 0)
         self._running_setup.execute(self)
 
     @pyqtSlot(name="setup_done")
@@ -845,15 +855,18 @@ class TitanUI(QMainWindow):
             # logging.warning("setup_finished_signal not connected")
             pass
         if not self._running_setup.is_ready:
-            self.add_msg_signal.emit("Setup '{0}' failed".format(self._running_setup.name), 2)
+            self.add_msg_signal.emit("Setup <b>{0}</b> failed".format(self._running_setup.name), 2)
+            self._running_setup = None
+            self.toggle_gui(True)
             return
         if not self._running_setup.tool:  # No Tool
             self.add_msg_signal.emit("No Tool. No results.", 0)
-        self.add_msg_signal.emit("Setup '%s' ready" % self._running_setup.name, 1)
+        self.add_msg_signal.emit("Setup <b>{0}</b> ready".format(self._running_setup.name), 1)
         # Clear running Setup
         self._running_setup = None
         if self.exec_mode == 'single':
             self.add_msg_signal.emit("Done", 1)
+            self.toggle_gui(True)
             return
         # Get next executed Setup
         next_setup = self.setup_model.get_next_setup(breadth_first=self.algorithm)
@@ -861,6 +874,7 @@ class TitanUI(QMainWindow):
             if self.exec_mode == 'branch':
                 logging.debug("All Setups ready")
                 self.add_msg_signal.emit("All Setups ready", 1)
+                self.toggle_gui(True)
                 return
             elif self.exec_mode == 'all':
                 # Get the first base Setup that is not ready
@@ -870,17 +884,52 @@ class TitanUI(QMainWindow):
                         new_base_index = self.setup_model.find_index(new_base_name)
                         self.setup_model.set_base(new_base_index)
                         next_setup = self.setup_model.get_base()
-                        self.add_msg_signal.emit("Found base Setup '{0}'".format(next_setup.internalPointer().name), 0)
+                        self.add_msg_signal.emit("Found base Setup <b>{0}</b>"
+                                                 .format(next_setup.internalPointer().name), 0)
                         break
                 if not next_setup:
                     self.add_msg_signal.emit("All Setups in Project ready", 1)
+                    self.toggle_gui(True)
                     return
         self._running_setup = next_setup.internalPointer()
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
-        self.add_msg_signal.emit("<br/>Starting Setup '%s'" % self._running_setup.name, 0)
+        self.add_msg_signal.emit("<br/>Starting Setup <b>{0}</b>".format(self._running_setup.name), 0)
         # Connect setup_finished_signal to this same slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         self._running_setup.execute(self)
+
+    @pyqtSlot(name='terminate_execution')
+    def terminate_execution(self):
+        """Stop current Setup execution by closing the Tool QProcess."""
+        # TODO: Test if sending a SIGINT (Ctrl-c) signal makes the solver return the current point
+        # and the appropriate model status, with a solution status of 8 (USER INTERRUPT), and
+        # the GAMS run will continue.
+        if not self._running_setup:
+            self.add_msg_signal.emit("No running Setup", 0)
+            return
+        self._running_setup.terminate_setup()
+        # Enable GUI after simulation has been stopped
+        self.toggle_gui(True)
+        return
+
+    def toggle_gui(self, bool):
+        """Enable or disable selected GUI elements that should not work when execution is in progress.
+
+        Args:
+            bool (boolean): False to disable GUI, True to enable GUI
+        """
+        self.ui.pushButton_execute_single.setEnabled(bool)
+        self.ui.pushButton_execute_branch.setEnabled(bool)
+        self.ui.pushButton_execute_all.setEnabled(bool)
+        self.ui.pushButton_delete_setup.setEnabled(bool)
+        self.ui.pushButton_delete_all.setEnabled(bool)
+        self.ui.pushButton_clear_ready_selected.setEnabled(bool)
+        self.ui.pushButton_clear_ready_all.setEnabled(bool)
+        self.ui.actionExecuteSingle.setEnabled(bool)
+        self.ui.actionExecuteBranch.setEnabled(bool)
+        self.ui.actionExecuteProject.setEnabled(bool)
+        self.ui.actionStop_Execution.setEnabled(not bool)
+        self.ui.pushButton_terminate_execution.setEnabled(not bool)
 
     def clear_selected_ready_flag(self):
         """Clears ready flag for the selected Setup."""
@@ -894,7 +943,7 @@ class TitanUI(QMainWindow):
             return
         setup.is_ready = False
         self.setup_model.emit_data_changed()
-        self.add_msg_signal.emit("Ready flag for Setup '{0}' cleared".format(setup.name), 0)
+        self.add_msg_signal.emit("Ready flag for Setup <b>{0}</b> cleared".format(setup.name), 0)
         return
 
     def clear_all_ready_flags(self):
@@ -976,9 +1025,9 @@ class TitanUI(QMainWindow):
         if not next_gen:
             self.add_msg_signal.emit("Next generation not found", 0)
             return None
-        self.add_msg_signal.emit("Finding next generation of Setup '%s'" % setup.name, 0)
+        self.add_msg_signal.emit("Finding next generation of Setup <b>{0}</b>".format(setup.name), 0)
         for ind in next_gen:
-            self.add_msg_signal.emit("Setup '%s' on next row" % ind.internalPointer().name, 0)
+            self.add_msg_signal.emit("Setup <b>{0}</b> on next row".format(ind.internalPointer().name), 0)
 
     def get_selected_setup_siblings(self):
         """Get selected Setup's siblings in the Setup QTreeView.
@@ -1114,7 +1163,7 @@ class TitanUI(QMainWindow):
             cmd = first_item + ' ' + ' '.join(split_cmd)
         if not sys.platform == 'win32':
             logging.error("This feature is not supported by your OS: ({0})".format(sys.platform))
-            self.add_msg_signal.emit("This feature is not supported by your OS: ({0})".format(sys.platform), 2)
+            self.add_msg_signal.emit("This feature is not supported by your OS [{0}]".format(sys.platform), 2)
             return
         logging.debug("start {}".format(cmd))
         os.system('start {}'.format(cmd))

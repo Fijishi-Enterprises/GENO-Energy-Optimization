@@ -301,7 +301,7 @@
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show Setup Input/Output Data&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
-                <string>Inspect</string>
+                <string>Inspect...</string>
                </property>
               </widget>
              </item>
@@ -531,7 +531,7 @@
              <number>2</number>
             </property>
             <property name="text">
-             <string>Titan Output</string>
+             <string>Command Output</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -561,6 +561,11 @@
               <height>17</height>
              </size>
             </property>
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>Clear</string>
             </property>
@@ -589,6 +594,42 @@
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="pushButton_terminate_execution">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>17</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>60</width>
+              <height>17</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Cancel</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QLabel" name="label_5">
             <property name="sizePolicy">
@@ -619,7 +660,7 @@
              <number>2</number>
             </property>
             <property name="text">
-             <string>GAMS Output</string>
+             <string>Tool Output</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -649,6 +690,11 @@
               <height>17</height>
              </size>
             </property>
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>Clear</string>
             </property>
@@ -675,6 +721,11 @@
             <width>200</width>
             <height>50</height>
            </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Segoe UI</family>
+           </font>
           </property>
          </widget>
         </item>
@@ -737,8 +788,18 @@
     <addaction name="actionRefresh_Tools"/>
     <addaction name="actionRemove_Tool"/>
    </widget>
+   <widget class="QMenu" name="menuExecute">
+    <property name="title">
+     <string>Execute</string>
+    </property>
+    <addaction name="actionExecuteSingle"/>
+    <addaction name="actionExecuteBranch"/>
+    <addaction name="actionExecuteProject"/>
+    <addaction name="actionStop_Execution"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuData"/>
+   <addaction name="menuExecute"/>
    <addaction name="menuTools"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -909,6 +970,38 @@
    </property>
    <property name="shortcut">
     <string>F9</string>
+   </property>
+  </action>
+  <action name="actionExecuteSingle">
+   <property name="text">
+    <string>Single</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="actionExecuteBranch">
+   <property name="text">
+    <string>Branch</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
+   </property>
+  </action>
+  <action name="actionExecuteProject">
+   <property name="text">
+    <string>Project</string>
+   </property>
+   <property name="shortcut">
+    <string>F7</string>
+   </property>
+  </action>
+  <action name="actionStop_Execution">
+   <property name="text">
+    <string>Cancel Execution</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
    </property>
   </action>
  </widget>

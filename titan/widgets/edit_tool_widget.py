@@ -6,8 +6,8 @@ Widget to change the Tool of a selected Setup.
 """
 
 import os
-from PyQt5.QtWidgets import QWidget, QStatusBar
-from PyQt5.QtCore import pyqtSlot, QModelIndex, Qt
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import pyqtSlot, Qt
 import ui.edit_tool_form
 import logging
 

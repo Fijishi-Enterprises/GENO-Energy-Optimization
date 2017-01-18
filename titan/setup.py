@@ -38,10 +38,8 @@ class Setup(MetaObject):
         self.project = project
         self.tool = None
         self.cmdline_args = ""
-        self.tool_instances = []
         self.is_ready = False
-        self._setup_process = None
-        self._running_tool = None
+        self.instance = None
         # Create path to setup input directory (except for root)
         if not self.is_root:
             self.input_dir = os.path.join(project.project_dir, INPUT_STORAGE_DIR,
@@ -275,32 +273,43 @@ class Setup(MetaObject):
             self.setup_finished(0)
             return
         try:
-            instance = self.tool.create_instance(ui, self.cmdline_args, self.output_dir, self.short_name)
-        except OSError:
+            self.instance = self.tool.create_instance(ui, self.cmdline_args, self.output_dir, self.short_name)
+        except OSError:  # TODO: Check if this actually happens
             logging.error("Tool instance creation failed")
             ui.add_msg_signal.emit("Creating a Tool instance failed", 2)
             return
-        # Connect instance_finished_signal to setup_finished() method
-        instance.instance_finished_signal.connect(self.setup_finished)
-        self.tool_instances.append(instance)
-        if not self.copy_input(self.tool, ui, instance):
-            ui.add_msg_signal.emit("Copying input files for Setup '{0}' failed".format(self.name), 2)
+        if not self.instance:  # TODO: Combine this with OSError
+            # Another check
+            logging.error("Tool instance creation failed")
+            ui.add_msg_signal.emit("Failed in creating Tool instance")
             return
-        instance.execute(ui)
+        # Connect instance_finished_signal to setup_finished() method
+        self.instance.instance_finished_signal.connect(self.setup_finished)
+        if not self.copy_input(self.tool, ui, self.instance):
+            self.instance = None
+            ui.add_msg_signal.emit("Copying input files for Setup <b>{0}</b> failed".format(self.name), 2)
+            return
+        self.instance.execute(ui)
         # Wait for instance_finished_signal to start setup_finished()
 
-    @pyqtSlot(int)
+    @pyqtSlot(int, name='setup_finished')
     def setup_finished(self, ret):
         """Executed when tool has finished processing.
 
         Args:
-            ret (int): Return code from sub-process
+            ret (int): Return code from subprocess
 
         Returns:
             True if tool was executed successfully, False otherwise
         """
         if ret == 0:
             self.is_ready = True
+        elif ret == 62097:
+            # User interrupt
+            logging.debug("Simulation is now stopped")
+            # TODO: Make a new flag for Setup interrupted and/or failed
+            self.is_ready = False
+            return
         else:
             logging.debug("Setup <%s> failed" % self.name)
             self.is_ready = False
@@ -319,14 +328,15 @@ class Setup(MetaObject):
         Returns:
             ret (bool): Operation success
         """
-        if tool is None:
+        if not tool:
             return True
-        if tool_instance:
-            input_dir = tool_instance.basedir  # Run tool in work directory
-        else:
+        if not tool_instance:
+            # TODO: This is not implemented yet
             input_dir = tool.path  # Run tool in /tools/ directory
-        ui.add_msg_signal.emit("*** Copying input files for Tool '{}' to work directory ***".format(tool.name), 0)
-        logging.info("Copying input files for Tool '{}' to work directory".format(tool.name))
+        else:
+            input_dir = tool_instance.basedir  # Run tool in work directory
+        ui.add_msg_signal.emit("*** Copying input files for Tool <b>{}</b> to work directory ***".format(tool.name), 0)
+        logging.info("Copying input files for Tool -- {} -- to work directory".format(tool.name))
         # Process required and optional input files
         for filepath in tool.infiles | tool.infiles_opt:
             prefix, filename = os.path.split(filepath)
@@ -363,8 +373,8 @@ class Setup(MetaObject):
         ui.add_msg_signal.emit("Done", 1)
         return True
 
-    def cleanup(self):
-        """Remove temporary files of the setup. Removes Tool instance directories."""
-        # TODO: Check if this is needed
-        for t in self.tool_instances:
-            t.remove()
+    def terminate_setup(self):
+        """Terminate Setup execution."""
+        if not self.instance:
+            return
+        self.instance.terminate_instance()

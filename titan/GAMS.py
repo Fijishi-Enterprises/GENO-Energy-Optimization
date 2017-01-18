@@ -61,7 +61,8 @@ class GAMSModel(Tool):
             8:  "there was a GAMS system error",
             9:  "GAMS could not be started",
             10: "out of memory",
-            11: "out of disk"
+            11: "out of disk",
+            62097: "simulation interrupted by user"  # Not official
         }
 
     def __repr__(self):
