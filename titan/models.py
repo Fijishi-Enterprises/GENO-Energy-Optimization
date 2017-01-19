@@ -10,6 +10,7 @@ import logging
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, \
     QAbstractListModel, QModelIndex, QSortFilterProxyModel
 from setup import Setup
+from helpers import AnimatedSpinningWheelIcon
 
 
 class SetupModel(QAbstractItemModel):
@@ -24,6 +25,7 @@ class SetupModel(QAbstractItemModel):
         self._root_setup = root
         self._base_index = None  # Used in tree traversal algorithms
         self.next_setup = None  # Used with depth-first algorithm
+        self.animated_icon = AnimatedSpinningWheelIcon()
 
     def get_root(self):
         """Returns root Setup."""
@@ -80,40 +82,50 @@ class SetupModel(QAbstractItemModel):
         """
         if not index.isValid():
             return None
-        if not role == Qt.DisplayRole:
+        if not role == Qt.DisplayRole and not role == Qt.DecorationRole:
             # logging.debug("index row:%d, role:%s" % (index.row(), role))
             return None
         setup = index.internalPointer()
-        if index.column() == 0:
-            # Show Setup name in the first column
-            if setup.is_ready:
-                return setup.name + " (Ready)"
-            return setup.name
-        elif index.column() == 1:
-            # Show Setup Tool in the second column
-            if not setup.tool:
-                return ''
+        if role == Qt.DecorationRole and index.column() == 0:
+            if setup.running:
+                # Return the current frame of the QMovie
+                return self.animated_icon.get_icon()
             else:
-                return setup.tool.name
-        elif index.column() == 2:
-            # Show cmdline_args in the third column
-            if not setup.tool:
-                return ''
-            else:
-                tool_args = setup.tool.cmdline_args
-                setup_args = setup.cmdline_args
-                if not tool_args:
-                    tool_args = ''
-                if not setup_args:
-                    setup_args = ''
-                if tool_args == '':
-                    return setup_args
-                elif setup_args == '':
-                    return tool_args
+                return None
+        if role == Qt.DisplayRole:
+            if index.column() == 0:
+                # Show Setup name in the first column
+                if setup.is_ready:
+                    return setup.name + " (Ready)"
+                elif setup.failed:
+                    return setup.name + " (Failed)"
                 else:
-                    return tool_args + ' ' + setup_args
-        else:
-            return None
+                    return setup.name
+            elif index.column() == 1:
+                # Show Setup Tool in the second column
+                if not setup.tool:
+                    return ''
+                else:
+                    return setup.tool.name
+            elif index.column() == 2:
+                # Show cmdline_args in the third column
+                if not setup.tool:
+                    return ''
+                else:
+                    tool_args = setup.tool.cmdline_args
+                    setup_args = setup.cmdline_args
+                    if not tool_args:
+                        tool_args = ''
+                    if not setup_args:
+                        setup_args = ''
+                    if tool_args == '':
+                        return setup_args
+                    elif setup_args == '':
+                        return tool_args
+                    else:
+                        return tool_args + ' ' + setup_args
+            else:
+                return None
 
     def flags(self, index):
         """Set flags for the item requested by view.

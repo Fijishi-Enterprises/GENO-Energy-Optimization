@@ -40,6 +40,8 @@ class Setup(MetaObject):
         self.cmdline_args = ""
         self.is_ready = False
         self.instance = None
+        self.running = False
+        self.failed = False
         # Create path to setup input directory (except for root)
         if not self.is_root:
             self.input_dir = os.path.join(project.project_dir, INPUT_STORAGE_DIR,
@@ -268,26 +270,35 @@ class Setup(MetaObject):
             logging.debug("Setup '{}' ready. Starting next Setup".format(self.name))
             self.setup_finished_signal.emit()
             return
+        # Set Setup running
+        self.running = True  # This is eg. to update UI to show the spinning wheel animation
+        self.failed = False
         # Get Setup tool and command line arguments
         if not self.tool:  # No tool in setup
             self.setup_finished(0)
             return
         try:
             self.instance = self.tool.create_instance(ui, self.cmdline_args, self.output_dir, self.short_name)
-        except OSError:  # TODO: Check if this actually happens
+        except OSError:  # _checkout raises this
             logging.error("Tool instance creation failed")
             ui.add_msg_signal.emit("Creating a Tool instance failed", 2)
+            self.failed = True
+            self.running = False
             return
         if not self.instance:  # TODO: Combine this with OSError
             # Another check
             logging.error("Tool instance creation failed")
             ui.add_msg_signal.emit("Failed in creating Tool instance")
+            self.failed = True
+            self.running = False
             return
         # Connect instance_finished_signal to setup_finished() method
         self.instance.instance_finished_signal.connect(self.setup_finished)
         if not self.copy_input(self.tool, ui, self.instance):
             self.instance = None
             ui.add_msg_signal.emit("Copying input files for Setup <b>{0}</b> failed".format(self.name), 2)
+            self.failed = True
+            self.running = False
             return
         self.instance.execute(ui)
         # Wait for instance_finished_signal to start setup_finished()
@@ -302,16 +313,20 @@ class Setup(MetaObject):
         Returns:
             True if tool was executed successfully, False otherwise
         """
+        self.running = False
         if ret == 0:
+            self.failed = False  # Not necessary
             self.is_ready = True
         elif ret == 62097:
             # User interrupt
             logging.debug("Simulation is now stopped")
             # TODO: Make a new flag for Setup interrupted and/or failed
+            self.failed = True
             self.is_ready = False
             return
         else:
             logging.debug("Setup <%s> failed" % self.name)
+            self.failed = True
             self.is_ready = False
         # Run next Setup
         self.setup_finished_signal.emit()

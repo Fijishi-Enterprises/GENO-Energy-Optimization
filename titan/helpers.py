@@ -6,49 +6,48 @@ General helper functions and classes.
 """
 
 import logging
-import subprocess
 import glob
 import shutil
 import os
 import datetime
 import time
 import collections
-from metaobject import MetaObject
-# from collections import OrderedDict
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QApplication
-from PyQt5.Qt import QCursor, Qt
-from config import WORK_DIR
+from PyQt5.Qt import Qt
+from PyQt5.QtGui import QIcon, QMovie, QCursor
+from config import WORK_DIR, ANIMATED_ICON_PATH
 
 
-def run(command):
-    """ Run a sub-process.
+class AnimatedSpinningWheelIcon:
+    """Class to handle a spinning wheel animated
+    icon used as an icon for the running Setup."""
+    def __init__(self):
+        """Class constructor."""
+        self.movie = QMovie(ANIMATED_ICON_PATH)
+        self.movie.setCacheMode(QMovie.CacheAll)
+        self.movie.start()
+        # noinspection PyUnresolvedReferences
+        self.movie.frameChanged.connect(self.update_icon)
+        self.icon = None
 
-    Args:
-        command (str): Sub-process command as string.
+    @pyqtSlot(int, name='update_icon')
+    def update_icon(self, current_frame):
+        """Save current frame as a QIcon."""
+        self.icon = QIcon()
+        self.icon.addPixmap(self.movie.currentPixmap())
 
-    Returns:
-        Normal and possible error output of the sub-process.
-    """
-    logging.debug("Starting sub-process: '{}'.".format(command))
-    return subprocess.call(command)
+    def get_icon(self):
+        """Get current movie frame as a QIcon."""
+        return self.icon
 
+    def start(self):
+        """Start the movie."""
+        self.movie.start()
 
-def run2(command):
-    """ Run a sub-process. Same as in Sceleton.
-
-    Args:
-        command (str): Sub-process command as string.
-
-    Returns:
-        Normal and possible error output of the sub-process.
-    """
-    logging.debug('Starting sub-process: <%s>.' % command)
-    proc = subprocess.Popen(command, stdout=subprocess.PIPE,
-                            stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                            shell=True)
-    out = proc.communicate()
-    return out
+    def stop(self):
+        """Stop the movie."""
+        self.movie.stop()
 
 
 def find_work_dirs():

@@ -31,10 +31,11 @@ INPUT_STORAGE_DIR = 'input'
 OUTPUT_STORAGE_DIR = 'output'
 # Work directory
 WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
-
 # GAMS
 GAMS_EXECUTABLE = 'gams.exe'
 GAMSIDE_EXECUTABLE = 'gamside.exe'
+# Random
+ANIMATED_ICON_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, 'ui', 'resources', 'spinningwheel.gif'))
 
 # Default options and settings
 GENERAL_OPTIONS = {'project_path': '',

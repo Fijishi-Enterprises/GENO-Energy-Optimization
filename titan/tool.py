@@ -160,7 +160,7 @@ class ToolInstance(QObject):
         """
         self.tool_process = qsubprocess.QSubProcess(ui, self.tool)
         self.tool_process.subprocess_finished_signal.connect(self.tool_finished)
-        logging.debug("Starting Tool: '%s'" % self.tool.name)
+        logging.debug("Starting Tool '%s'" % self.tool.name)
         # Start running model in sub-process
         self.tool_process.start_process(self.command)
 
@@ -174,7 +174,6 @@ class ToolInstance(QObject):
         """
         self.tool_process = None
         tool_failed = True
-        user_terminated = False
         try:
             return_msg = self.tool.return_codes[ret]
             logging.debug("Tool '%s' finished. GAMS Return code:%d. Message: %s" % (self.tool.name, ret, return_msg))
@@ -201,6 +200,7 @@ class ToolInstance(QObject):
                 self.ui.add_msg_signal.emit("Error creating timestamped result directory. "
                                             "Tool output files not copied. "
                                             "Check permissions of Setup folders", 2)
+                self.instance_finished_signal.emit(9999)
                 return
             self.ui.add_msg_signal.emit("*** Saving result files ***", 0)
             saved_files, failed_files = self.copy_output(result_path)
@@ -215,14 +215,12 @@ class ToolInstance(QObject):
                                                 "Check 'outfiles' parameter in tool definition file.", 2)
             if len(saved_files) > 0:
                 # If there are saved files
-                logging.debug("Saved result files:{0}".format(saved_files))
                 self.ui.add_msg_signal.emit("The following result files were saved successfully", 0)
                 for i in range(len(saved_files)):
                     fname = os.path.split(saved_files[i])[1]
                     self.ui.add_msg_signal.emit("{0}".format(fname), 0)
             if len(failed_files) > 0:
                 # If some files failed
-                logging.error("These files were not found:{0}".format(failed_files))
                 self.ui.add_msg_signal.emit("The following result files were not found", 2)
                 for i in range(len(failed_files)):
                     failed_fname = os.path.split(failed_files[i])[1]
@@ -254,7 +252,8 @@ class ToolInstance(QObject):
                     gams_cmd = gamside_exe_path + " " + prj_file_path
                     gams_anchor = "<a href='file:///" + gams_cmd + "'>Click here to debug Tool in GAMS</a>"
                     self.ui.add_link_signal.emit(gams_anchor)
-            self.ui.add_msg_signal.emit("Done", 1)
+            if not tool_failed:
+                self.ui.add_msg_signal.emit("Done", 1)
             # Emit signal to Setup that tool instance has finished with GAMS return code
             self.instance_finished_signal.emit(ret)
 

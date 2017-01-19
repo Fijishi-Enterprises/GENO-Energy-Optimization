@@ -44,6 +44,7 @@ class QSubProcess(QObject):
         self._process.stateChanged.connect(self.on_state_changed)
         self._process.start(command)
         if not self._process.waitForStarted(msecs=10000):
+            # TODO: Do something if process fails to start
             self._process_failed = True
             self._ui.add_msg_signal.emit('*** Launching subprocess failed ***', 2)
 

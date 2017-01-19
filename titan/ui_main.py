@@ -11,7 +11,7 @@ import os
 import sys
 import json
 import shutil
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt, QTimer
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QCheckBox, QTextBrowser
 from ui.main import Ui_MainWindow
 from project import SceletonProject
@@ -69,6 +69,7 @@ class TitanUI(QMainWindow):
         self.settings_form = None
         self.input_data_form = None
         self.tool_def_textbrowser = None  # QTextBrowser to show selected tool definition file
+        self.timer = QTimer(parent=self)
         # Initialize general things
         self.init_conf()
         # Set logging level according to settings
@@ -95,7 +96,7 @@ class TitanUI(QMainWindow):
 
     def connect_signals(self):
         """Connect PyQt signals."""
-        # Custom signals (Needs to be done before project and model initialization)
+        # Custom signals (Needs to be connected before initializing project and model)
         self.add_msg_signal.connect(self.add_msg)
         self.add_err_msg_signal.connect(self.add_err_msg)
         self.add_proc_msg_signal.connect(self.add_proc_msg)
@@ -139,6 +140,8 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_inspect_data.clicked.connect(self.open_inspect_form)
         self.ui.textBrowser_main.anchorClicked.connect(self.open_anchor)
         self.ui.pushButton_terminate_execution.clicked.connect(self.terminate_execution)
+        # noinspection PyUnresolvedReferences
+        self.timer.timeout.connect(self.update_setup_model)
 
     def init_models(self):
         """Create data models for GUI views."""
@@ -912,24 +915,39 @@ class TitanUI(QMainWindow):
         self.toggle_gui(True)
         return
 
-    def toggle_gui(self, bool):
+    def update_setup_model(self):
+        """Make all views connected to setup model update themselves."""
+        self.setup_model.emit_data_changed()
+
+    def toggle_gui(self, value):
         """Enable or disable selected GUI elements that should not work when execution is in progress.
 
         Args:
-            bool (boolean): False to disable GUI, True to enable GUI
+            value (boolean): False to disable GUI, True to enable GUI
         """
-        self.ui.pushButton_execute_single.setEnabled(bool)
-        self.ui.pushButton_execute_branch.setEnabled(bool)
-        self.ui.pushButton_execute_all.setEnabled(bool)
-        self.ui.pushButton_delete_setup.setEnabled(bool)
-        self.ui.pushButton_delete_all.setEnabled(bool)
-        self.ui.pushButton_clear_ready_selected.setEnabled(bool)
-        self.ui.pushButton_clear_ready_all.setEnabled(bool)
-        self.ui.actionExecuteSingle.setEnabled(bool)
-        self.ui.actionExecuteBranch.setEnabled(bool)
-        self.ui.actionExecuteProject.setEnabled(bool)
-        self.ui.actionStop_Execution.setEnabled(not bool)
-        self.ui.pushButton_terminate_execution.setEnabled(not bool)
+        self.ui.pushButton_execute_single.setEnabled(value)
+        self.ui.pushButton_execute_branch.setEnabled(value)
+        self.ui.pushButton_execute_all.setEnabled(value)
+        self.ui.pushButton_delete_setup.setEnabled(value)
+        self.ui.pushButton_delete_all.setEnabled(value)
+        self.ui.pushButton_clear_ready_selected.setEnabled(value)
+        self.ui.pushButton_clear_ready_all.setEnabled(value)
+        self.ui.actionExecuteSingle.setEnabled(value)
+        self.ui.actionExecuteBranch.setEnabled(value)
+        self.ui.actionExecuteProject.setEnabled(value)
+        self.ui.actionStop_Execution.setEnabled(not value)
+        self.ui.pushButton_terminate_execution.setEnabled(not value)
+        if value:
+            # Stop the animated icon QMovie
+            self.setup_model.animated_icon.stop()
+            # Stop timer when simulation stops
+            self.timer.stop()
+        else:
+            # Start the animated icon QMovie
+            self.setup_model.animated_icon.start()
+            # Start timer when simulation starts. Updates the animated icon.
+            self.timer.start(100)
+        self.update_setup_model()
 
     def clear_selected_ready_flag(self):
         """Clears ready flag for the selected Setup."""
