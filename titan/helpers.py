@@ -12,21 +12,21 @@ import os
 import datetime
 import time
 import collections
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtWidgets import QApplication
 from PyQt5.Qt import Qt
 from PyQt5.QtGui import QIcon, QMovie, QCursor
 from config import WORK_DIR, ANIMATED_ICON_PATH
 
 
-class AnimatedSpinningWheelIcon:
+class AnimatedSpinningWheelIcon(QObject):
     """Class to handle a spinning wheel animated
     icon used as an icon for the running Setup."""
     def __init__(self):
         """Class constructor."""
+        super().__init__()
         self.movie = QMovie(ANIMATED_ICON_PATH)
         self.movie.setCacheMode(QMovie.CacheAll)
-        self.movie.start()
         # noinspection PyUnresolvedReferences
         self.movie.frameChanged.connect(self.update_icon)
         self.icon = None
