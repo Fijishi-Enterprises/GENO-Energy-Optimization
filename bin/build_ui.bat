@@ -34,5 +34,10 @@ CALL pyuic5 ../titan/ui/input_data_form.ui -o ../titan/ui/input_data_form.py.o
 findstr /V /C:"# Created:" /C:"#      by:" ..\titan\ui\input_data_form.py.o > ..\titan\ui\input_data_form.py
 del ..\titan\ui\input_data_form.py.o
 
+ECHO input_explorer_form.py
+CALL pyuic5 ../titan/ui/input_explorer_form.ui -o ../titan/ui/input_explorer_form.py.o
+findstr /V /C:"# Created:" /C:"#      by:" ..\titan\ui\input_explorer_form.py.o > ..\titan\ui\input_explorer_form.py
+del ..\titan\ui\input_explorer_form.py.o
+
 ECHO --- Build completed ---
 PAUSE

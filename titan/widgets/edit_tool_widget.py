@@ -81,7 +81,6 @@ class EditToolWidget(QWidget):
         """Change Tool and command line parameters for selected Setup."""
         tool_text = self.ui.comboBox_tool.currentText()
         cmd_args = self.ui.lineEdit_cmdline_params.text()
-
         # self.cmdline_args = self.ui.lineEdit_cmdline_params.text()
         logging.debug("sel_tool:%s, args:%s" % (tool_text, cmd_args))
         c_index = self.ui.comboBox_tool.currentIndex()
@@ -89,7 +88,7 @@ class EditToolWidget(QWidget):
             selected_tool = None
         else:
             selected_tool = self._parent.tool_model.tool(c_index)
-
+        # TODO: If cmdline arguments are given with No Tool selected. Titan crashes.
         if self.cmdline_args == cmd_args and selected_tool == self.tool:
             # Tool and command line args did not change
             logging.debug("No changes in Tool or command line arguments")

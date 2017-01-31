@@ -14,7 +14,7 @@ from config import GAMS_EXECUTABLE, CONFIGURATION_FILE
 
 
 class GAMSModel(Tool):
-    """Class for GAMS models."""
+    """Class for GAMS Tools."""
     def __init__(self, name, description, path, files,
                  infiles=None, infiles_opt=None, outfiles=None,
                  short_name=None, cmdline_args=None):
@@ -44,7 +44,7 @@ class GAMSModel(Tool):
         # 1 LOG output to screen (default)
         # 2 send LOG output to file
         # 3 writes LOG output to standard output
-        # 4 writes LOG output to a file and standard output  [Not supported]
+        # 4 writes LOG output to a file and standard output  [Not supported in 24.0]
 
         # Add .log and .lst files to list of outputs
         self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.log')

@@ -273,3 +273,15 @@ def make_gams_project_file(path, tool):
         logging.error("Failed to write GAMS project file: {0}".format(prj_file_path))
         return False
     return True
+
+
+@busy_effect
+def remove_work_dirs(dirs):
+    """Used to remove work directories when exiting Sceleton.
+
+    Args:
+        dirs (list): List of paths to delete
+    """
+    for directory in dirs:
+        logging.debug("Deleting folder {0}".format(directory))
+        shutil.rmtree(directory, ignore_errors=True)

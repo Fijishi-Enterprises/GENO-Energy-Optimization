@@ -1,6 +1,6 @@
 """
 Classes to handle PyQt's model/view frameworks model part.
-Note: These models have nothing to do with Balmorel, WILMAR or PSS-E.
+Note: These models have nothing to do with Backbone, Balmorel, WILMAR, etc.
 
 :author: Pekka Savolainen <pekka.t.savolainen@vtt.fi>
 :date:   2.4.2016
@@ -426,6 +426,17 @@ class SetupModel(QAbstractItemModel):
         """Updates the view. Can be used when data (Setup) changes."""
         # noinspection PyUnresolvedReferences
         self.dataChanged.emit(QModelIndex(), QModelIndex())
+
+
+class SetupProxyModel(QSortFilterProxyModel):
+    """Proxy model to filter out other columns than the first one, which has the Setup hierarchy."""
+
+    def __init__(self):
+        super().__init__()
+
+    def columnCount(self, parent=None, *args, **kwargs):
+        """Get the number of hierarchy levels from the source model."""
+        return 1
 
 
 class ToolProxyModel(QSortFilterProxyModel):

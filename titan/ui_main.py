@@ -17,7 +17,7 @@ from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
 from setup import Setup
-from helpers import find_work_dirs
+from helpers import find_work_dirs, remove_work_dirs
 from GAMS import GAMSModel
 from config import ERROR_COLOR, BLACK_COLOR, PROJECT_DIR, \
                    WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS
@@ -28,6 +28,7 @@ from widgets.context_menu_widget import ContextMenuWidget
 from widgets.edit_tool_widget import EditToolWidget
 from widgets.settings_widget import SettingsWidget
 from widgets.input_data_widget import InputDataWidget
+from widgets.input_explorer_widget import InputExplorerWidget
 from modeltest.modeltest import ModelTest
 from excel_handler import ExcelHandler
 
@@ -68,6 +69,7 @@ class TitanUI(QMainWindow):
         self.edit_tool_form = None
         self.settings_form = None
         self.input_data_form = None
+        self.input_explorer = None
         self.tool_def_textbrowser = None  # QTextBrowser to show selected tool definition file
         self.timer = QTimer(parent=self)
         # Initialize general things
@@ -110,6 +112,7 @@ class TitanUI(QMainWindow):
         self.ui.actionSettings.triggered.connect(self.show_settings)
         self.ui.actionImportData.triggered.connect(self.import_data)
         self.ui.actionInspectData.triggered.connect(self.open_inspect_form)
+        self.ui.actionExplore.triggered.connect(self.show_explorer_form)
         self.ui.actionHelp.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionAbout.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionUnpack.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
@@ -118,14 +121,12 @@ class TitanUI(QMainWindow):
         self.ui.actionAdd_Tool.triggered.connect(self.add_tool)
         self.ui.actionRefresh_Tools.triggered.connect(self.refresh_tools)
         self.ui.actionRemove_Tool.triggered.connect(self.remove_tool)
-        self.ui.actionExecuteSingle.triggered.connect(self.execute_single)
         self.ui.actionExecuteBranch.triggered.connect(self.execute_branch)
         self.ui.actionExecuteProject.triggered.connect(self.execute_all)
         self.ui.actionStop_Execution.triggered.connect(self.terminate_execution)
         # Widgets
         self.ui.pushButton_execute_all.clicked.connect(self.execute_all)
         self.ui.pushButton_execute_branch.clicked.connect(self.execute_branch)
-        self.ui.pushButton_execute_single.clicked.connect(self.execute_single)
         self.ui.pushButton_delete_setup.clicked.connect(self.delete_selected_setup)
         self.ui.pushButton_delete_all.clicked.connect(self.delete_all)
         self.ui.pushButton_clear_titan_output.clicked.connect(lambda: self.ui.textBrowser_main.clear())
@@ -138,6 +139,7 @@ class TitanUI(QMainWindow):
         self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)
         self.ui.pushButton_import_data.clicked.connect(self.import_data)
         self.ui.pushButton_inspect_data.clicked.connect(self.open_inspect_form)
+        self.ui.pushButton_show_explorer.clicked.connect(self.show_explorer_form)
         self.ui.textBrowser_main.anchorClicked.connect(self.open_anchor)
         self.ui.pushButton_terminate_execution.clicked.connect(self.terminate_execution)
         # noinspection PyUnresolvedReferences
@@ -677,6 +679,18 @@ class TitanUI(QMainWindow):
         self.input_data_form = InputDataWidget(self, index, self.setup_model)
         self.input_data_form.show()
 
+    @pyqtSlot(name="show_explorer_form")
+    def show_explorer_form(self):
+        """Open input data directory explorer."""
+        if not self._project:
+            self.add_msg_signal.emit("No project found. Load a project or create a new project to continue.", 0)
+            return
+        if self._root.child_count() == 0:
+            self.add_msg_signal.emit("No Setups found", 0)
+            return
+        self.input_explorer = InputExplorerWidget(self, self.setup_model)
+        self.input_explorer.show()
+
     @pyqtSlot(name="show_settings")
     def show_settings(self):
         """Show settings window."""
@@ -925,7 +939,6 @@ class TitanUI(QMainWindow):
         Args:
             value (boolean): False to disable GUI, True to enable GUI
         """
-        self.ui.pushButton_execute_single.setEnabled(value)
         self.ui.pushButton_execute_branch.setEnabled(value)
         self.ui.pushButton_execute_all.setEnabled(value)
         self.ui.pushButton_delete_setup.setEnabled(value)
@@ -1321,9 +1334,7 @@ class TitanUI(QMainWindow):
             answer = msg.exec_()
             chk = chkbox.checkState()
             if answer == QMessageBox.Yes:
-                for directory in dirs:
-                    logging.debug("Deleting folder {0}".format(directory))
-                    shutil.rmtree(directory, ignore_errors=True)
+                remove_work_dirs(dirs)
                 logging.debug("Deleted {0} work directories".format(len(dirs)))
                 if chk == 2:
                     # Save preference into config file
@@ -1336,9 +1347,7 @@ class TitanUI(QMainWindow):
         elif del_dirs == '2':
             # Delete work directories without prompt
             dirs = find_work_dirs()
-            for directory in dirs:
-                logging.debug("Deleting folder {0}".format(directory))
-                shutil.rmtree(directory, ignore_errors=True)
+            remove_work_dirs(dirs)
             logging.debug("Deleted {0} work directories".format(len(dirs)))
         else:
             logging.debug("Unknown setting for delete_work_dirs. Writing default value")
