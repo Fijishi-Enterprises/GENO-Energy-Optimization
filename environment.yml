@@ -1,0 +1,4 @@
+dependencies:
+- python >=3.4
+- openpyxl >=2.4.0
+- pyqt >=5.4
