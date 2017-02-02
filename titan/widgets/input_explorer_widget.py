@@ -118,6 +118,7 @@ class InputExplorerWidget(QWidget):
             logging.debug("Executable file double-clicked")
             return
         logging.debug("Opening url: {}".format(url))
+        # TODO: Test QDesktopServices on Linux & Mac
         # Open directory in Explorer
         # noinspection PyTypeChecker, PyCallByClass, PyArgumentList
         res = QDesktopServices.openUrl(QUrl(url, QUrl.TolerantMode))

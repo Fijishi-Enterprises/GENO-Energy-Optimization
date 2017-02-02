@@ -10,17 +10,19 @@ import logging
 import os
 import sys
 import json
-import shutil
+import subprocess
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt, QTimer
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QCheckBox, QTextBrowser
+from PyQt5.Qt import QDesktopServices, QUrl
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
 from setup import Setup
-from helpers import find_work_dirs, remove_work_dirs
+from helpers import find_work_dirs, remove_work_dirs, busy_effect
 from GAMS import GAMSModel
 from config import ERROR_COLOR, BLACK_COLOR, PROJECT_DIR, \
-                   WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS
+                   WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS, \
+                   GAMSIDE_EXECUTABLE
 from configuration import ConfigurationParser
 from widgets.setup_form_widget import SetupFormWidget
 from widgets.project_form_widget import ProjectFormWidget
@@ -553,6 +555,7 @@ class TitanUI(QMainWindow):
             self.ui.label_5.setText("Tool Definition File")
             self.ui.textBrowser_process_output.hide()
 
+    @busy_effect
     def edit_tool_def(self):
         """Open the double-clicked Tools definition file in the default (.json) text-editor."""
         try:
@@ -566,13 +569,12 @@ class TitanUI(QMainWindow):
             # Do not do anything if No Tool option is double-clicked
             return
         sel_tool = self.tool_model.tool(index.row())
-        tool_def_path = sel_tool.def_file_path
-        # Open the tool def file in editor (only windows supported)
-        if not sys.platform == 'win32':
-            logging.error("This feature is not supported by your OS: ({0})".format(sys.platform))
-            self.add_msg_signal.emit("This feature is not supported by your OS [{0}]".format(sys.platform), 2)
-            return
-        os.system('start {0}'.format(tool_def_path))
+        tool_def_url = "file:///" + sel_tool.def_file_path
+        # Open Tool definition file in editor
+        # noinspection PyTypeChecker, PyCallByClass, PyArgumentList
+        res = QDesktopServices.openUrl(QUrl(tool_def_url, QUrl.TolerantMode))
+        if not res:
+            logging.error("Failed to open editor for {0}".format(tool_def_url))
         return
 
     def context_menu_configs(self, pos):
@@ -945,9 +947,11 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_delete_all.setEnabled(value)
         self.ui.pushButton_clear_ready_selected.setEnabled(value)
         self.ui.pushButton_clear_ready_all.setEnabled(value)
+        self.ui.pushButton_import_data.setEnabled(value)
         self.ui.actionExecuteSingle.setEnabled(value)
         self.ui.actionExecuteBranch.setEnabled(value)
         self.ui.actionExecuteProject.setEnabled(value)
+        self.ui.actionImportData.setEnabled(value)
         self.ui.actionStop_Execution.setEnabled(not value)
         self.ui.pushButton_terminate_execution.setEnabled(not value)
         if value:
@@ -1168,37 +1172,55 @@ class TitanUI(QMainWindow):
         """Add link as an HTML <a> tag to textbrowser.
 
         Args:
-            html_link (str): Link to the result folder embedded in a HTML <a> tag
+            html_link (str): Link to a file or folder embedded in a HTML <a> tag
         """
-        self.ui.textBrowser_main.append(html_link)
+        self.ui.textBrowser_main.insertHtml(html_link)
         # noinspection PyArgumentList
         QApplication.processEvents()
 
     @pyqtSlot("QUrl", name="open_anchor")
     def open_anchor(self, qurl):
-        """Starts Gamside or opens Windows Explorer in the given directory depending on the contents of qurl.
+        """Starts gamside.exe or opens file explorer in the given directory depending on the contents of qurl.
 
         Args:
-            qurl (QUrl): gamside.exe command or a result directory embedded into an anchor.
+            qurl (QUrl): Directory path or a file to open
         """
-        cmd = qurl.toLocalFile()  # Either a path to result folder or a command to open gamside.exe
-        if not os.path.isdir(cmd):
-            # cmd is a command to open gamside.exe with the included project file
-            # This all is just to remove '/' from the beginning of cmd
-            split_cmd = cmd.split(' ')  # Split command into a list
-            first_item = split_cmd.pop(0)  # Pop first part from list.
-            if first_item[0] == '/':
-                # first_item is '/gamside.exe'
-                first_item = os.path.basename(first_item)  # Get rid of extra '/' in front of gamside.exe
-            # Construct the cmd again
-            cmd = first_item + ' ' + ' '.join(split_cmd)
-        if not sys.platform == 'win32':
-            logging.error("This feature is not supported by your OS: ({0})".format(sys.platform))
-            self.add_msg_signal.emit("This feature is not supported by your OS [{0}]".format(sys.platform), 2)
-            return
-        logging.debug("start {}".format(cmd))
-        os.system('start {}'.format(cmd))
-        return
+        path = qurl.toLocalFile()  # Either a path to result folder or a command to open gamside.exe
+        file_ext = path[-4:]
+        if file_ext == '.gpr':  # Path points to a GAMSIDE project file
+            # Do not run GAMSIDE unless using Windows
+            if not sys.platform == 'win32':
+                logging.error("This feature is not supported by your OS: ({0})".format(sys.platform))
+                self.add_msg_signal.emit("This feature is not supported by your OS [{0}]".format(sys.platform), 2)
+                return
+            # Get selected GAMS version from settings
+            gams_path = self._config.get('general', 'gams_path')
+            # Make path to gamside.exe according to the selected GAMS directory in settings
+            gamside_exe_path = GAMSIDE_EXECUTABLE
+            if not gams_path == '':
+                gamside_exe_path = os.path.join(gams_path, GAMSIDE_EXECUTABLE)
+            # Set selected gamside.exe version to handle the file
+            cmd = [gamside_exe_path, path]
+            logging.debug("cmd: {}".format(cmd))
+            # Get all running processes
+            running_tasks = subprocess.check_output('tasklist')  # Returns bytes
+            # check if gamside.exe is running
+            if b'gamside.exe' in running_tasks:
+                logging.debug("gamside.exe is already running")
+                msg = "Close GAMSIDE.EXE and try again."
+                # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+                QMessageBox.information(self, "Application already running", msg)
+                return
+            else:
+                # Use PoPen() because call() and run() wait for the subprocess to return
+                subprocess.Popen(cmd)
+                return
+        # Open path in Explorer
+        # noinspection PyTypeChecker, PyCallByClass, PyArgumentList
+        res = QDesktopServices.openUrl(qurl)
+        if not res:
+            self.add_msg_signal.emit("Failed to open path {}".format(path), 2)
+            logging.error("Failed to open editor for QUrl {0}".format(qurl))
 
     def test_match(self):
         """Test method for finding an item based on a string."""

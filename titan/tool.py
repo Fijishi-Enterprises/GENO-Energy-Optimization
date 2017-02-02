@@ -194,8 +194,11 @@ class ToolInstance(QObject):
             # Get timestamp when tool finished
             output_dir_timestamp = create_output_dir_timestamp()
             # Create an output folder with timestamp and copy output directly there
-            result_path = create_dir(os.path.abspath(os.path.join(
-                self.tool_output_dir, output_dir_timestamp)))
+            if tool_failed:
+                result_path_str = os.path.abspath(os.path.join(self.tool_output_dir, 'failed', output_dir_timestamp))
+            else:
+                result_path_str = os.path.abspath(os.path.join(self.tool_output_dir, output_dir_timestamp))
+            result_path = create_dir(result_path_str)
             if not result_path:
                 self.ui.add_msg_signal.emit("Error creating timestamped result directory. "
                                             "Tool output files not copied. "
@@ -213,6 +216,8 @@ class ToolInstance(QObject):
                     logging.error("No failed files")
                     self.ui.add_msg_signal.emit("No failed files. "
                                                 "Check 'outfiles' parameter in tool definition file.", 2)
+                    # TODO: Test this
+                    self.instance_finished_signal.emit(ret)
             if len(saved_files) > 0:
                 # If there are saved files
                 self.ui.add_msg_signal.emit("The following result files were saved successfully", 0)
@@ -225,35 +230,19 @@ class ToolInstance(QObject):
                 for i in range(len(failed_files)):
                     failed_fname = os.path.split(failed_files[i])[1]
                     self.ui.add_msg_signal.emit("{0}".format(failed_fname), 2)
-            if len(failed_files) == 0:
-                logging.debug("All result files saved successfully to <{0}>".format(result_path))
-                self.ui.add_msg_signal.emit("All result files saved successfully to '{0}'".format(result_path), 0)
-            else:
-                logging.debug("Result files saved to <{0}>".format(result_path))
-                self.ui.add_msg_signal.emit("Result files saved to '{0}'".format(result_path), 0)
-                anchor = "<a href='file:///" + result_path + "'>Click here to open result folder</a>"
-                self.ui.add_link_signal.emit(anchor)
+            # Show result folder
+            logging.debug("Result files saved to <{0}>".format(result_path))
+            anchor = "<a href='file:///" + result_path + "'>" + result_path + "</a>"
+            self.ui.add_msg_signal.emit("Result files saved to {}".format(anchor), 0)
             if tool_failed:
-                # TODO: If Tool fails, either don't copy output files or copy them to [FAILED] folder
-                #  Add anchor where user can go directly to GAMS
-                configs = ConfigurationParser(CONFIGURATION_FILE)
-                configs.load()
-                # Get selected GAMS version from settings
-                gams_path = configs.get('general', 'gams_path')
-                # Make path to gamside.exe according to the selected GAMS directory in settings
-                gamside_exe_path = GAMSIDE_EXECUTABLE
-                if not gams_path == '':
-                    gamside_exe_path = os.path.join(gams_path, GAMSIDE_EXECUTABLE)
                 # Make GAMS project file
                 if not make_gams_project_file(self.basedir, self.tool):
                     self.ui.add_msg_signal.emit("Failed to make GAMS project file", 2)
                 else:
                     prj_file_path = os.path.join(self.basedir, self.tool.short_name + "AutoCreated.gpr")
-                    gams_cmd = gamside_exe_path + " " + prj_file_path
-                    gams_anchor = "<a href='file:///" + gams_cmd + "'>Click here to debug Tool in GAMS</a>"
-                    self.ui.add_link_signal.emit(gams_anchor)
-            if not tool_failed:
-                self.ui.add_msg_signal.emit("Done", 1)
+                    # Add anchor where user can go directly to GAMS
+                    gams_anchor = "<a href='file:///" + prj_file_path + "'>Click here to debug Tool in GAMS</a>"
+                    self.ui.add_msg_signal.emit(gams_anchor, 0)
             # Emit signal to Setup that tool instance has finished with GAMS return code
             self.instance_finished_signal.emit(ret)
 
