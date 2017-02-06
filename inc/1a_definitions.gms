@@ -160,6 +160,7 @@ param_nu "Set of possible data parameters for node, unit" /
     section00   "Input (fuel) consumption at min. load (or at zero)"
     slope00 * slope12  "Additive input (fuel) consumption slope"
     level1 * level9 "Level of simplification in the part-load efficiency representation"
+    useTimeseries "Uses time series form input for unit parameters whenever possible"
 /
 
 param_fuel "Parameters for fuels" /

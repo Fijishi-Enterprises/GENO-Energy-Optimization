@@ -263,12 +263,12 @@ q_conversionDirectInputOutput(sufts(effGroup, unit, f, t, effSelector))$effDirec
       + v_fuelUse(fuel, unit, f, t)
     )
   =E=
-  + p_effUnit(effSelector, unit, 'section00')$suft('directOn', unit, f, t)
-      * v_online(unit, f, t) / p_unit(unit, 'unitCount')
+  + (p_effUnit(effSelector, unit, 'section00')${not ts_effUnit(effSelector, unit, 'section00', f, t)} + ts_effUnit(effSelector, unit, 'section00', f, t))$suft('directOn', unit, f, t)
+      * v_online(unit, f, t) / (p_unit(unit, 'unitCount')${not(p_unit(unit, 'useTimeseries') AND ts_unit(unit, 'unitCount', f, t))} + ts_unit(unit, 'unitCount', f, t))
       * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
   + sum(gnu_output(grid, node, unit),
       + v_gen(grid, node, unit, f, t)
-          * p_effUnit(effSelector, unit, 'slope')
+          * (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))
 *          * [ + 1
 *$(not unit_withConstrainedOutputRatio(unit_noSlope) or nu(node,unit_noSlope))   // not a backpressure or extraction unit, expect for the primary grid (where cV has to be 1)
 *              + p_gnu(grid, node, unit, 'cV')$(unit_withConstrainedOutputRatio(unit) and not nu(node, unit)) // for secondary outputs with cV
@@ -283,12 +283,12 @@ q_conversionSOS1InputIntermediate(suft(effGroup, unit, f, t))$effSlope(effGroup)
       + v_fuelUse(fuel, unit, f, t)
     )
   =E=
-  + p_unit(unit, 'section00')
-      * v_online(unit, f, t) / p_unit(unit, 'unitCount')
+  + (p_unit(unit, 'section00')${not (p_unit(unit, 'useTimeseries') AND ts_unit(unit, 'section00', f, t))} + ts_unit(unit, 'section00', f, t)${p_unit(unit, 'useTimeseries')})
+      * v_online(unit, f, t) / (p_unit(unit, 'unitCount')${not(p_unit(unit, 'useTimeseries') AND ts_unit(unit, 'unitCount', f, t))} + ts_unit(unit, 'unitCount', f, t))
       * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
   + sum(effGroupSelectorUnit(effGroup, unit, effSelector),
       + v_sos1(effGroup, unit, f, t, effSelector)
-          * p_effUnit(effSelector, unit, 'slope')
+          * (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))
 *          * [ + 1$(not unit_withConstrainedOutputRatio(unit))   // not a backpressure or extraction unit, expect for the primary grid (where cV has to be 1)
 *              + p_gnu(grid, node, unit, 'cV')$(unit_withConstrainedOutputRatio(unit) and not nu(node, unit)) // for secondary outputs with cV
 *            ]
@@ -317,9 +317,11 @@ q_conversionSOS2InputIntermediate(suft(effGroup, unit, f, t))$effLambda(effGroup
     )
   =E=
   + sum(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector),
-      + v_sos2(unit, f, t, effSelector) * p_effUnit(effSelector, unit, 'rb') * p_effUnit(effSelector, unit, 'slope')
+      + v_sos2(unit, f, t, effSelector)
+        * (p_effUnit(effSelector, unit, 'rb')${not ts_effUnit(effSelector, unit, 'rb', f, t)} + ts_effUnit(effSelector, unit, 'rb', f, t))
+        * (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))
     )
-  / p_unit(unit, 'unitCount')
+  / (p_unit(unit, 'unitCount')${not (p_unit(unit, 'useTimeseries') AND ts_unit(unit, 'unitCount', f, t))} + ts_unit(unit, 'unitCount', f, t)${p_unit(unit, 'useTimeseries')})
   * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))
 ;
 * -----------------------------------------------------------------------------
@@ -334,9 +336,9 @@ q_conversionSOS2Constraint(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
 q_conversionSOS2IntermediateOutput(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
   + sum(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector),
       + v_sos2(unit, f, t, effSelector)
-      * p_effUnit(effSelector, unit, 'rb')
+      * (p_effUnit(effSelector, unit, 'rb')${not ts_effUnit(effSelector, unit, 'rb', f, t)} + ts_effUnit(effSelector, unit, 'rb', f, t))
     )
-  / p_unit(unit, 'unitCount')
+  / (p_unit(unit, 'unitCount')${not (p_unit(unit, 'useTimeseries') AND ts_unit(unit, 'unitCount', f, t))} + ts_unit(unit, 'unitCount', f, t)${p_unit(unit, 'useTimeseries')})
   * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))
   =E=
   + sum(gnu_output(grid, node, unit),
