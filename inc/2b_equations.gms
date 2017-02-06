@@ -266,7 +266,7 @@ q_conversionDirectInputOutput(sufts(effGroup, unit, f, t, effSelector))$effDirec
     )
   =E=
   + (p_effUnit(effSelector, unit, 'section00')${not ts_effUnit(effSelector, unit, 'section00', f, t)} + ts_effUnit(effSelector, unit, 'section00', f, t))$suft('directOn', unit, f, t)
-      * v_online(unit, f, t) / (p_unit(unit, 'unitCount')${not(p_unit(unit, 'useTimeseries') AND ts_unit(unit, 'unitCount', f, t))} + ts_unit(unit, 'unitCount', f, t))
+      * v_online(unit, f, t) / p_unit(unit, 'unitCount')
       * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
   + sum(gnu_output(grid, node, unit),
       + v_gen(grid, node, unit, f, t)
@@ -286,7 +286,7 @@ q_conversionSOS1InputIntermediate(suft(effGroup, unit, f, t))$effSlope(effGroup)
     )
   =E=
   + (p_unit(unit, 'section00')${not (p_unit(unit, 'useTimeseries') AND ts_unit(unit, 'section00', f, t))} + ts_unit(unit, 'section00', f, t)${p_unit(unit, 'useTimeseries')})
-      * v_online(unit, f, t) / (p_unit(unit, 'unitCount')${not(p_unit(unit, 'useTimeseries') AND ts_unit(unit, 'unitCount', f, t))} + ts_unit(unit, 'unitCount', f, t))
+      * v_online(unit, f, t) / p_unit(unit, 'unitCount')
       * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
   + sum(effGroupSelectorUnit(effGroup, unit, effSelector),
       + v_sos1(effGroup, unit, f, t, effSelector)
@@ -323,7 +323,7 @@ q_conversionSOS2InputIntermediate(suft(effGroup, unit, f, t))$effLambda(effGroup
         * (p_effUnit(effSelector, unit, 'rb')${not ts_effUnit(effSelector, unit, 'rb', f, t)} + ts_effUnit(effSelector, unit, 'rb', f, t))
         * (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))
     )
-  / (p_unit(unit, 'unitCount')${not (p_unit(unit, 'useTimeseries') AND ts_unit(unit, 'unitCount', f, t))} + ts_unit(unit, 'unitCount', f, t)${p_unit(unit, 'useTimeseries')})
+  / p_unit(unit, 'unitCount')
   * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))
 ;
 * -----------------------------------------------------------------------------
@@ -340,7 +340,7 @@ q_conversionSOS2IntermediateOutput(suft(effGroup, unit, f, t))$effLambda(effGrou
       + v_sos2(unit, f, t, effSelector)
       * (p_effUnit(effSelector, unit, 'rb')${not ts_effUnit(effSelector, unit, 'rb', f, t)} + ts_effUnit(effSelector, unit, 'rb', f, t))
     )
-  / (p_unit(unit, 'unitCount')${not (p_unit(unit, 'useTimeseries') AND ts_unit(unit, 'unitCount', f, t))} + ts_unit(unit, 'unitCount', f, t)${p_unit(unit, 'useTimeseries')})
+  / p_unit(unit, 'unitCount')
   * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))
   =E=
   + sum(gnu_output(grid, node, unit),
@@ -396,13 +396,13 @@ q_stateUpwardLimit(gn_state(grid, node), m, ft(f, t))$(    sum(gn2gnu(grid, node
       + sum(gn2gnu(grid_, node_input, grid, node, unit),
           + sum(restype$nuRescapable(restype, 'resDown', node_input, unit), // downward reserves from units that output energy from the node
               + v_reserve(restype, 'resDown', node_input, unit, f, t)
-                  * p_unit(unit, 'eff00')                                                        // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+                  / smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
             )
         )
       + sum(gn2gnu(grid, node, grid_, node_output, unit),
           + sum(restype$nuRescapable(restype, 'resDown', node_output, unit), // downward reserves from units that use the node as an input energy
               + v_reserve(restype, 'resDown', node_output, unit, f, t)
-                  / p_unit(unit, 'eff00')                                                        // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+                  * smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
             )
         )
       // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
@@ -421,13 +421,13 @@ q_stateDownwardLimit(gn_state(grid, node), m, ft(f, t))$(    sum(gn2gnu(grid, no
       + sum(gn2gnu(grid_, node_input, grid, node, unit),
           + sum(restype$nuRescapable(restype, 'resUp', node_input, unit), // downward reserves from units that output energy from the node
               + v_reserve(restype, 'resUp', node_input, unit, f, t)
-                  * p_unit(unit, 'eff00')                                                        // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+                  / smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
             )
         )
       + sum(gn2gnu(grid, node, grid_, node_output, unit),
           + sum(restype$nuRescapable(restype, 'resUp', node_output, unit), // downward reserves from units that use the node as an input energy
               + v_reserve(restype, 'resUp', node_output, unit, f, t)
-                  / p_unit(unit, 'eff00')                                                        // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+                  * smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
             )
         )
       // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
@@ -446,7 +446,7 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
           )
         - sum(nuRescapable(restype, 'resUp', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and gnu_output(grid, node, unit) },
             + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))                 // Upwards reserve provided by input units
-                * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+                / smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
           )
         - sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
             + sum(restype${ restypeDirectionNode(restype, 'resDown', node) },
@@ -470,7 +470,7 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
           )
         + sum(nuRescapable(restype, 'resDown', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and gnu_output(grid, node_, unit) }, // Possible reserve by input node
             + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
-                * p_unit(unit, 'eff00')                                                       // NOTE! This is not correct, slope will change depending on the operating point. Maybe use maximum slope...
+                / smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
           )
         + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
             + sum(restype${ restypeDirectionNode(restype, 'resUp', node) },
