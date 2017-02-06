@@ -220,7 +220,9 @@ q_maxDownward(gnuft(grid, node, unit, f, t))${     [unit_minLoad(unit) and p_gnu
     )
   =G=                                                                                                                // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
   + sum(effGroupSelector(effGroup, effSelector)$sufts(effGroup, unit, f, t, effSelector),
-      + v_online(unit, f, t) / p_unit(unit, 'unitCount') * p_effUnit(effSelector, unit, 'lb') * p_gnu(grid, node, unit, 'maxGen')$[unit_minload(unit) and p_gnu(grid, node, unit, 'maxGen')]
+      + v_online(unit, f, t) / p_unit(unit, 'unitCount')
+        * (p_effUnit(effSelector, unit, 'lb')${not ts_effUnit(effSelector, unit, 'lb', f, t)} + ts_effUnit(effSelector, unit, 'lb', f, t))
+        * p_gnu(grid, node, unit, 'maxGen')$[unit_minload(unit) and p_gnu(grid, node, unit, 'maxGen')]
     )
   + v_gen.lo(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$unit_minload(unit) + 1$(not unit_minload(unit)) ]         // notice: v_gen.lo for consuming units is negative
 ;

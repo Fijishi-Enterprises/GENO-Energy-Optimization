@@ -44,7 +44,10 @@ v_gen.up(gnuft(grid, node, unit_flow, f, t))      // Should only be about variab
       );
 
 *v_sos1.lo(effSelector, uft(unit, f, t))$(sum(effLevelSelectorUnit(effLevel, effSelector, unit), 1)) = p_effUnit(effSelector, unit, 'lb') * sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));
-v_sos1.up(sufts(effGroup, unit, f, t, effSelector))$effSlope(effGroup) = p_effUnit(effSelector, unit, 'rb') * sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));
+v_sos1.up(sufts(effGroup, unit, f, t, effSelector))$effSlope(effGroup) =
+    + (p_effUnit(effSelector, unit, 'rb')${not ts_effUnit(effSelector, unit, 'rb', f, t)} + ts_effUnit(effSelector, unit, 'rb', f, t))
+    * sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))
+;
 
 // Min. generation to zero for units without consumption
 v_gen.lo(gnuft(grid, node, unit, f, t))$(not p_gnu(grid, node, unit, 'maxCons')) = 0;
