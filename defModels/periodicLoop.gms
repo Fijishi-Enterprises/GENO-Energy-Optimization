@@ -36,10 +36,12 @@ $offOrder
                             ) = yes;   // Set of t's within the interval (right border defined by intervalEnd) - but do not go beyond tSolveLast
                             ft_new(f,t_)$(mf(mSolve, f) and tInterval(t_)) = yes;
                             p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength;
-                            // Calculate averages for the interval time series data
-                            ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t_))};
-                            ts_absolute_(node, fSolve, t) = sum{t_$tInterval(t_), ts_absolute(node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);
-                            ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);
+                            // Aggregates the interval time series data
+                            ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t_))};    // Sums the total energy demand over the interval
+                            ts_absolute_(node, fSolve, t) = sum{t_$tInterval(t_), ts_absolute(node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the absolute power terms over the interval
+                            ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the capacity factor over the inverval
+                            ts_nodeState(gn(grid, node), param_gnBoundaryTypes, fSolve, t) = sum(t_${tInterval(t_)}, ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t); // Averages the time-dependent node state boundary conditions over the interval
+                            ts_unit(unit, param_nu, fSolve, t) = sum(t_${tInterval(t_)}, ts_unit(unit, param_nu, fSolve, t_+ct(t_))) / p_steplength(mSolve, fSolve, t); // Averages the time-dependent unit parameters over the interval
                             // Set the previous time step displacement
                             pt(t+intervalLength) = -intervalLength;
                         );
@@ -151,7 +153,7 @@ loop(unit${p_unit(unit, 'useTimeseries')},
 //            ts_effUnit(effSelector, unit, 'slope')$(not p_unit(unit, 'eff01')) = 1 / p_unit(unit, 'eff00');
             ts_effUnit(effSelector, unit, 'section', ft(f, t))$ts_unit(unit, 'eff01', f, t) =
               + 1 / ts_unit(unit, 'eff01', f, t)
-              - [p_unit(unit, 'rb01')${not ts_unit(unit, 'rb01', f, t)} + ts_unit(unit, 'rb01', f, t) - 0]  // CAUTION! Does this and the following cause ts_unit to exists even though it isn't defined?
+              - [p_unit(unit, 'rb01')${not ts_unit(unit, 'rb01', f, t)} + ts_unit(unit, 'rb01', f, t) - 0]
                   / [p_unit(unit, 'rb01')${not ts_unit(unit, 'rb01', f, t)} + ts_unit(unit, 'rb01', f, t)
                         - p_unit(unit, 'rb00')${not ts_unit(unit, 'rb00', f, t)} - ts_unit(unit, 'rb00', f, t)]
                   * [(p_unit(unit, 'rb01')${not ts_unit(unit, 'rb01', f, t)} + ts_unit(unit, 'rb01', f, t))
