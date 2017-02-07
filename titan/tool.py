@@ -13,8 +13,7 @@ import json
 import tempfile
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 import qsubprocess
-from config import WORK_DIR, GAMSIDE_EXECUTABLE, CONFIGURATION_FILE
-from configuration import ConfigurationParser
+from config import WORK_DIR
 from metaobject import MetaObject
 from helpers import create_dir, create_output_dir_timestamp, make_gams_project_file
 
@@ -51,8 +50,6 @@ class Tool(MetaObject):
         self.infiles = set(infiles) if infiles else set()
         self.infiles_opt = set(infiles_opt) if infiles_opt else set()
         self.outfiles = set(outfiles) if outfiles else set()
-        if logfile is not None:
-            self.outfiles.add(logfile)
         self.return_codes = {}
         self.def_file_path = ''  # Tool definition file path (JSON)
 

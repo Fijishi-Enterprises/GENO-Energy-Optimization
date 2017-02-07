@@ -8,6 +8,7 @@ GAMSModel class.
 import os.path
 import json
 import logging
+from collections import OrderedDict
 from tool import Tool
 from configuration import ConfigurationParser
 from config import GAMS_EXECUTABLE, CONFIGURATION_FILE
@@ -37,17 +38,8 @@ class GAMSModel(Tool):
         # Split main_prgm to main_dir and main_prgm
         # because GAMS needs to run in the directory of the main program
         self.main_dir, self.main_prgm = os.path.split(self.main_prgm)
-        self.GAMS_parameters = ['Cerr=1',  # Stop on first compilation error
-                                'Logoption=3']  # Send LOG output to STDOUT
-        # Logoption options
-        # 0 suppress LOG output
-        # 1 LOG output to screen (default)
-        # 2 send LOG output to file
-        # 3 writes LOG output to standard output
-        # 4 writes LOG output to a file and standard output  [Not supported in 24.0]
-
-        # Add .log and .lst files to list of outputs
-        self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.log')
+        self.gams_options = OrderedDict()
+        # Add .lst file to list of output files
         self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.lst')
         self.return_codes = {
             0: "normal return",
@@ -68,6 +60,21 @@ class GAMSModel(Tool):
     def __repr__(self):
         return "GAMSModel('{}')".format(self.name)
 
+    def update_gams_options(self, key, value):
+        """Update GAMS command line options. 'cerr and 'logoption' keywords supported.
+
+        Args:
+            key: Option name
+            value: Option value
+        """
+        # Supported GAMS logoption values
+        # 3 writes LOG output to standard output
+        # 4 writes LOG output to a file and standard output  [Not supported in GAMS v24.0]
+        if key == 'logoption' or key == 'cerr':
+            self.gams_options[key] = "{0}={1}".format(key, value)
+        else:
+            logging.error("Updating GAMS options failed. Unknown key: {}".format(key))
+
     def create_instance(self, ui, setup_cmdline_args, tool_output_dir, setup_name):
         """Create an instance of the GAMS model
 
@@ -82,15 +89,35 @@ class GAMSModel(Tool):
         # Use gams.exe according to the selected GAMS directory in settings
         configs = ConfigurationParser(CONFIGURATION_FILE)
         configs.load()
+        # Read needed settings from config file
         gams_path = configs.get('general', 'gams_path')
+        logoption_value = configs.get('settings', 'logoption')
+        cerr_value = configs.get('settings', 'cerr')
         gams_exe_path = GAMS_EXECUTABLE
         if not gams_path == '':
             gams_exe_path = os.path.join(gams_path, GAMS_EXECUTABLE)
-        # Create the run command for GAMS
+        # General GAMS options
+        self.update_gams_options('logoption', logoption_value)
+        self.update_gams_options('cerr', cerr_value)
+        gams_option_list = list(self.gams_options.values())
+        # Update logfile to instance outfiles
+        logfile = os.path.splitext(self.main_prgm)[0] + '.log'
+        if logoption_value == '3':
+            # Remove <TOOLNAME>.log from outfiles if present
+            try:
+                instance.outfiles.remove(logfile)
+            except ValueError:
+                pass
+        elif logoption_value == '4':
+            # Add <TOOLNAME>.log file to outfiles
+            instance.outfiles.append(logfile)  # TODO: Instance outfiles is a list, tool outfiles is a set
+        else:
+            logging.error("Unknown value for logoption: {}".format(logoption_value))
+        # Create run command for GAMS
         command = '{} "{}" Curdir="{}" {}'.format(gams_exe_path,
                                                   self.main_prgm,
                                                   os.path.join(instance.basedir, self.main_dir),
-                                                  ' '.join(self.GAMS_parameters))
+                                                  ' '.join(gams_option_list))
         if (setup_cmdline_args is not None) and (not setup_cmdline_args == ''):
             if (self.cmdline_args is not None) and (not self.cmdline_args == ''):
                 command += ' ' + self.cmdline_args + ' ' + setup_cmdline_args
@@ -99,7 +126,7 @@ class GAMSModel(Tool):
         else:
             if (self.cmdline_args is not None) and (not self.cmdline_args == ''):
                 command += ' ' + self.cmdline_args
-
+        # Update instance command
         instance.command = command
         return instance
 

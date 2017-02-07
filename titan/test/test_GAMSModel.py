@@ -2,7 +2,7 @@
 Unit tests for GAMSModel class.
 
 @author: Pekka Savolainen <pekka.t.savolainen@vtt.fi>
-@date: 28.2..2016
+@date: 28.2.2016
 """
 
 from unittest import TestCase, mock

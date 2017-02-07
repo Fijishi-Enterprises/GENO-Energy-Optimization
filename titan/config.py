@@ -45,4 +45,6 @@ GENERAL_OPTIONS = {'project_path': '',
 SETTINGS = {'save_at_exit': '1',
             'confirm_exit': '2',
             'delete_work_dirs': '1',
-            'debug_messages': '2'}
+            'debug_messages': '2',
+            'logoption': '3',
+            'cerr': '1'}

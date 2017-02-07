@@ -72,6 +72,8 @@ class SettingsWidget(QWidget):
         b = self._configs.get('settings', 'confirm_exit')
         c = self._configs.get('settings', 'delete_work_dirs')
         d = self._configs.get('settings', 'debug_messages')
+        e = self._configs.get('settings', 'logoption')
+        f = self._configs.get('settings', 'cerr')
         gamsdir = self._configs.get('general', 'gams_path')
         if a == '1':
             self.ui.checkBox_save_at_exit.setCheckState(Qt.PartiallyChecked)
@@ -85,26 +87,35 @@ class SettingsWidget(QWidget):
             self.ui.checkBox_del_work_dirs.setCheckState(Qt.Checked)
         if d == '2':
             self.ui.checkBox_debug.setCheckState(Qt.Checked)
+        if e == '4':
+            self.ui.checkBox_logoption.setCheckState(Qt.Checked)
+        self.ui.spinBox_cerr.setValue(int(f))
         # Set saved GAMS directory to lineEdit
         self.ui.lineEdit_gamside_path.setText(gamsdir)
-        # logging.debug("save at exit:{0}. confirm exit:{1}. delete work dirs:{2}.".format(a, b, c))
 
-    @pyqtSlot()
+    @pyqtSlot(name='ok_clicked')
     def ok_clicked(self):
         """Get selections and save them to conf file."""
         a = str(self.ui.checkBox_save_at_exit.checkState())
         b = str(self.ui.checkBox_exit_dialog.checkState())
         c = str(self.ui.checkBox_del_work_dirs.checkState())
         d = str(self.ui.checkBox_debug.checkState())
+        e = self.ui.checkBox_logoption.checkState()
+        if e == Qt.Unchecked:
+            logoption_value = '3'
+        else:
+            logoption_value = '4'
+        f = self.ui.spinBox_cerr.value()
         self._configs.set('settings', 'save_at_exit', a)
         self._configs.set('settings', 'confirm_exit', b)
         self._configs.set('settings', 'delete_work_dirs', c)
         self._configs.set('settings', 'debug_messages', d)
+        self._configs.set('settings', 'cerr', str(f))
+        self._configs.set('settings', 'logoption', logoption_value)
         self._configs.set('general', 'gams_path', self.ui.lineEdit_gamside_path.text())
         self._configs.save()
         # Set logging level
         self._parent.set_debug_level(d)
-        # logging.debug("save at exit:{0}. confirm exit:{1}. delete work dirs:{2}.".format(a, b, c))
         self.close()
 
     def keyPressEvent(self, e):

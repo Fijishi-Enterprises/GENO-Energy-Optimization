@@ -310,6 +310,9 @@
              </item>
              <item>
               <widget class="QPushButton" name="pushButton_show_explorer">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open Setup input file explorer tool&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Explore (F4)</string>
                </property>
@@ -1034,11 +1037,17 @@
   <tabstop>pushButton_clear_ready_all</tabstop>
   <tabstop>pushButton_import_data</tabstop>
   <tabstop>pushButton_inspect_data</tabstop>
+  <tabstop>pushButton_show_explorer</tabstop>
   <tabstop>treeView_setups</tabstop>
   <tabstop>listView_tools</tabstop>
+  <tabstop>toolButton_add_tool</tabstop>
+  <tabstop>toolButton_refresh_tools</tabstop>
+  <tabstop>toolButton_remove_tool</tabstop>
   <tabstop>textBrowser_main</tabstop>
-  <tabstop>textBrowser_process_output</tabstop>
+  <tabstop>pushButton_clear_titan_output</tabstop>
+  <tabstop>pushButton_terminate_execution</tabstop>
   <tabstop>pushButton_clear_gams_output</tabstop>
+  <tabstop>textBrowser_process_output</tabstop>
  </tabstops>
  <resources/>
  <connections/>
