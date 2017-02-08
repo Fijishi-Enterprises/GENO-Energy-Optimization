@@ -184,8 +184,14 @@ class TitanUI(QMainWindow):
         self.ui.listView_tools.setModel(self.tool_model)
         # Connect currentChanged and doubleClicked signals to Tool QListView
         # This method creates a new Tool model, so it's signals must be reconnected
-        self.ui.listView_tools.selectionModel().currentChanged.connect(self.view_tool_def)
-        self.ui.listView_tools.doubleClicked.connect(self.edit_tool_def)
+        try:
+            self.ui.listView_tools.selectionModel().currentChanged.connect(self.view_tool_def, Qt.UniqueConnection)
+        except TypeError:
+            pass
+        try:
+            self.ui.listView_tools.doubleClicked.connect(self.edit_tool_def, Qt.UniqueConnection)
+        except TypeError:
+            pass
 
     def init_conf(self):
         """Initialize configuration file."""
@@ -279,7 +285,6 @@ class TitanUI(QMainWindow):
             else:
                 return
         # Use project name as file name
-        # file_path = os.path.join(PROJECT_DIR, '{}.json'.format(self._project.short_name))
         file_path = os.path.join(PROJECT_DIR, '{}'.format(self._project.filename))
         self.add_msg_signal.emit("Saving project -> {0}".format(file_path), 0)
         self._project.save(file_path, self._root)
@@ -563,17 +568,10 @@ class TitanUI(QMainWindow):
         Args:
             clicked_index (QModelIndex): Index of the double clicked item
         """
-        try:
-            index = self.ui.listView_tools.selectedIndexes()[0]
-        except IndexError:
-            # Nothing selected
-            return
-        if not index.isValid():
-            return
-        if index.row() == 0:
+        if clicked_index.row() == 0:
             # Do not do anything if No Tool option is double-clicked
             return
-        sel_tool = self.tool_model.tool(index.row())
+        sel_tool = self.tool_model.tool(clicked_index.row())
         tool_def_url = "file:///" + sel_tool.def_file_path
         # Open Tool definition file in editor
         # noinspection PyTypeChecker, PyCallByClass, PyArgumentList
@@ -936,6 +934,7 @@ class TitanUI(QMainWindow):
         self.toggle_gui(True)
         return
 
+    @pyqtSlot(name='update_setup_model')
     def update_setup_model(self):
         """Make all views connected to setup model update themselves."""
         self.setup_model.emit_data_changed()
