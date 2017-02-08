@@ -102,15 +102,19 @@ class GAMSModel(Tool):
         gams_option_list = list(self.gams_options.values())
         # Update logfile to instance outfiles
         logfile = os.path.splitext(self.main_prgm)[0] + '.log'
+        logfile_path = os.path.join(instance.basedir, logfile)
         if logoption_value == '3':
-            # Remove <TOOLNAME>.log from outfiles if present
-            try:
-                instance.outfiles.remove(logfile)
-            except ValueError:
-                pass
+            # Remove path for <TOOLNAME>.log from outfiles if present
+            for out in instance.outfiles:
+                if os.path.basename(out) == logfile:
+                    try:
+                        instance.outfiles.remove(out)
+                        logging.debug("Removed path '{}' from outfiles".format(out))
+                    except ValueError:
+                        logging.exception("Tried to remove path '{}' but failed".format(out))
         elif logoption_value == '4':
             # Add <TOOLNAME>.log file to outfiles
-            instance.outfiles.append(logfile)  # TODO: Instance outfiles is a list, tool outfiles is a set
+            instance.outfiles.append(logfile_path)  # TODO: Instance outfiles is a list, tool outfiles is a set
         else:
             logging.error("Unknown value for logoption: {}".format(logoption_value))
         # Create run command for GAMS

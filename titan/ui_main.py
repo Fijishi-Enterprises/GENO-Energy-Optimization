@@ -556,8 +556,13 @@ class TitanUI(QMainWindow):
             self.ui.textBrowser_process_output.hide()
 
     @busy_effect
-    def edit_tool_def(self):
-        """Open the double-clicked Tools definition file in the default (.json) text-editor."""
+    @pyqtSlot("QModelIndex", name='edit_tool_def')
+    def edit_tool_def(self, clicked_index):
+        """Open the double-clicked Tools definition file in the default (.json) text-editor.
+
+        Args:
+            clicked_index (QModelIndex): Index of the double clicked item
+        """
         try:
             index = self.ui.listView_tools.selectedIndexes()[0]
         except IndexError:
