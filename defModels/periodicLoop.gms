@@ -19,8 +19,8 @@ $offOrder
                 ts_energyDemand_(gn(grid, node), fSolve, t)$tInterval(t) = ts_energyDemand(grid, node, fSolve, t+ct(t));
                 ts_absolute_(node, fSolve, t)$tInterval(t) = ts_absolute(node, fSolve, t+ct(t));
                 ts_cf_(flow, node, fSolve, t)$tInterval(t) = ts_cf(flow, node, fSolve, t+ct(t));
-                ts_nodeState(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)$tInterval(t) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
-                ts_unit(unit, param_nu, fSolve, t)$tInterval(t) = ts_unit(unit, param_nu, fSolve, t+ct(t));
+                ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)$tInterval(t) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
+                ts_unit_(unit, param_nu, fSolve, t)$tInterval(t) = ts_unit(unit, param_nu, fSolve, t+ct(t));
                 tCounter = mInterval(mSolve, 'intervalEnd', counter); // move tCounter to the next interval setting
                 p_stepLength(mf(mSolve, fSolve), t)$tInterval(t) = 1;  // p_stepLength will hold the length of the interval in model equations
                 p_stepLengthNoReset(mSolve, fSolve, t)$tInterval(t) = 1;
@@ -39,11 +39,11 @@ $offOrder
                             ft_new(f,t_)$(mf(mSolve, f) and tInterval(t_)) = yes;
                             p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength;
                             // Aggregates the interval time series data
-                            ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t_))};    // Sums the total energy demand over the interval
-                            ts_absolute_(node, fSolve, t) = sum{t_$tInterval(t_), ts_absolute(node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the absolute power terms over the interval
-                            ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the capacity factor over the inverval
-                            ts_nodeState(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t) = sum(t_${tInterval(t_)}, ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t); // Averages the time-dependent node state boundary conditions over the interval
-                            ts_unit(unit, param_nu, fSolve, t) = sum(t_${tInterval(t_)}, ts_unit(unit, param_nu, fSolve, t_+ct(t_))) / p_steplength(mSolve, fSolve, t); // Averages the time-dependent unit parameters over the interval
+                            ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t))};    // Sums the total energy demand over the interval
+                            ts_absolute_(node, fSolve, t) = sum{t_$tInterval(t_), ts_absolute(node, fSolve, t_+ct(t))} / p_stepLength(mSolve, fSolve, t);  // Averages the absolute power terms over the interval
+                            ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t))} / p_stepLength(mSolve, fSolve, t);  // Averages the capacity factor over the inverval
+                            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t) = sum(t_${tInterval(t_)}, ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t))) / p_stepLength(mSolve, fSolve, t); // Averages the time-dependent node state boundary conditions over the interval
+                            ts_unit_(unit, param_nu, fSolve, t) = sum(t_${tInterval(t_)}, ts_unit(unit, param_nu, fSolve, t_+ct(t))) / p_steplength(mSolve, fSolve, t); // Averages the time-dependent unit parameters over the interval
                             // Set the previous time step displacement
                             pt(t+intervalLength) = -intervalLength;
                         );
@@ -149,21 +149,21 @@ loop(unit${p_unit(unit, 'useTimeseries')},
     loop(effLevel${mSettingsEff(mSolve, effLevel)},
         // Calculate time series for unit parameters using direct input output conversion with online variable
         loop(effSelector$sum(effDirectOn$effGroupSelector(effDirectOn, effSelector), 1),
-            ts_effUnit(effSelector, unit, 'lb', ft(f, t))$ts_unit(unit, 'rb00', f, t) = ts_unit(unit, 'rb00', f, t);
-            ts_effUnit(effSelector, unit, 'rb', ft(f, t))$ts_unit(unit, 'rb01', f, t) = ts_unit(unit, 'rb01', f, t);
+            ts_effUnit(effSelector, unit, 'lb', ft(f, t))$ts_unit_(unit, 'rb00', f, t) = ts_unit_(unit, 'rb00', f, t);
+            ts_effUnit(effSelector, unit, 'rb', ft(f, t))$ts_unit_(unit, 'rb01', f, t) = ts_unit_(unit, 'rb01', f, t);
 //            ts_effUnit(effSelector, unit, 'section', ft(f, t))$(not ts_unit(unit, 'eff01')) = 0;
 //            ts_effUnit(effSelector, unit, 'slope')$(not p_unit(unit, 'eff01')) = 1 / p_unit(unit, 'eff00');
-            ts_effUnit(effSelector, unit, 'section', ft(f, t))$ts_unit(unit, 'eff01', f, t) =
-              + 1 / ts_unit(unit, 'eff01', f, t)
-              - [p_unit(unit, 'rb01')${not ts_unit(unit, 'rb01', f, t)} + ts_unit(unit, 'rb01', f, t) - 0]
-                  / [p_unit(unit, 'rb01')${not ts_unit(unit, 'rb01', f, t)} + ts_unit(unit, 'rb01', f, t)
-                        - p_unit(unit, 'rb00')${not ts_unit(unit, 'rb00', f, t)} - ts_unit(unit, 'rb00', f, t)]
-                  * [(p_unit(unit, 'rb01')${not ts_unit(unit, 'rb01', f, t)} + ts_unit(unit, 'rb01', f, t))
-                        / (p_unit(unit, 'eff01')${not ts_unit(unit, 'eff01', f, t)} + ts_unit(unit, 'eff01', f, t))
-                        - (p_unit(unit, 'rb00')${not ts_unit(unit, 'rb00', f, t)} + ts_unit(unit, 'rb00', f, t))
-                        / (p_unit(unit, 'eff00')${not ts_unit(unit, 'eff00', f, t)} + ts_unit(unit, 'eff00', f, t))];
-            ts_effUnit(effSelector, unit, 'slope', ft(f, t))$ts_unit(unit, 'eff01', f, t) =
-              + 1 / ts_unit(unit, 'eff01', f, t) - ts_effUnit(effSelector, unit, 'section', f, t);
+            ts_effUnit(effSelector, unit, 'section', ft(f, t))$ts_unit_(unit, 'eff01', f, t) =
+              + 1 / ts_unit_(unit, 'eff01', f, t)
+              - [p_unit(unit, 'rb01')${not ts_unit_(unit, 'rb01', f, t)} + ts_unit_(unit, 'rb01', f, t) - 0]
+                  / [p_unit(unit, 'rb01')${not ts_unit_(unit, 'rb01', f, t)} + ts_unit_(unit, 'rb01', f, t)
+                        - p_unit(unit, 'rb00')${not ts_unit_(unit, 'rb00', f, t)} - ts_unit_(unit, 'rb00', f, t)]
+                  * [(p_unit(unit, 'rb01')${not ts_unit_(unit, 'rb01', f, t)} + ts_unit_(unit, 'rb01', f, t))
+                        / (p_unit(unit, 'eff01')${not ts_unit_(unit, 'eff01', f, t)} + ts_unit_(unit, 'eff01', f, t))
+                        - (p_unit(unit, 'rb00')${not ts_unit_(unit, 'rb00', f, t)} + ts_unit_(unit, 'rb00', f, t))
+                        / (p_unit(unit, 'eff00')${not ts_unit_(unit, 'eff00', f, t)} + ts_unit_(unit, 'eff00', f, t))];
+            ts_effUnit(effSelector, unit, 'slope', ft(f, t))$ts_unit_(unit, 'eff01', f, t) =
+              + 1 / ts_unit_(unit, 'eff01', f, t) - ts_effUnit(effSelector, unit, 'section', f, t);
         );
 
         // Calculate time series for unit parameters using direct input output conversion without online variable
@@ -171,29 +171,29 @@ loop(unit${p_unit(unit, 'useTimeseries')},
 //            p_effUnit(effSelector, unit, 'rb') = 1;
 //            p_effUnit(effSelector, unit, 'lb') = 0;
 //            p_effUnit(effSelector, unit, 'section')$(not p_unit(unit, 'eff01')) = 0;
-            ts_effUnit(effSelector, unit, 'slope', ft(f, t))${ts_unit(unit, 'eff00', f, t)} = 1 / ts_unit(unit, 'eff00', f, t);
+            ts_effUnit(effSelector, unit, 'slope', ft(f, t))${ts_unit_(unit, 'eff00', f, t)} = 1 / ts_unit_(unit, 'eff00', f, t);
 //            p_effUnit(effSelector, unit, 'section')${p_unit(unit, 'eff01')} = 0;
-            ts_effUnit(effSelector, unit, 'slope', ft(f, t))${ts_unit(unit, 'eff01', f, t)} = 1 / ts_unit(unit, 'eff01', f, t);
+            ts_effUnit(effSelector, unit, 'slope', ft(f, t))${ts_unit_(unit, 'eff01', f, t)} = 1 / ts_unit_(unit, 'eff01', f, t);
         );
 
         // Make calculations for different parts of the piecewise curve in the case of using slope
         count_slope2 = 0;
         loop(effSelector$(effSlope(effSelector) and effLevelSelectorUnit(effLevel, effSelector, unit)),
-            ts_effUnit(effSelector, unit, 'rb', ft(f, t))${ts_unit(unit, 'rb00', f, t) OR ts_unit(unit, 'rb01', f, t)} =
-                + ((count_slope - count_slope2 - 1) * (p_unit(unit, 'rb00')${not ts_unit(unit, 'rb00', f, t)} + ts_unit(unit, 'rb00', f, t))
-                    + (count_slope2 + 1) * (p_unit(unit, 'rb01')${not ts_unit(unit, 'rb01', f, t)} + ts_unit(unit, 'rb01', f, t)))
+            ts_effUnit(effSelector, unit, 'rb', ft(f, t))${ts_unit_(unit, 'rb00', f, t) OR ts_unit_(unit, 'rb01', f, t)} =
+                + ((count_slope - count_slope2 - 1) * (p_unit(unit, 'rb00')${not ts_unit_(unit, 'rb00', f, t)} + ts_unit_(unit, 'rb00', f, t))
+                    + (count_slope2 + 1) * (p_unit(unit, 'rb01')${not ts_unit_(unit, 'rb01', f, t)} + ts_unit_(unit, 'rb01', f, t)))
                 / count_slope;
-            ts_effUnit(effSelector, unit, 'lb', ft(f, t))${ts_unit(unit, 'rb00', f, t) OR ts_unit(unit, 'rb01', f, t)} =
-                + ((count_slope - count_slope2) * (p_unit(unit, 'rb00')${not ts_unit(unit, 'rb00', f, t)} + ts_unit(unit, 'rb00', f, t))
-                    + count_slope2 * (p_unit(unit, 'rb01')${not ts_unit(unit, 'rb01', f, t)} + ts_unit(unit, 'rb01', f, t)))
+            ts_effUnit(effSelector, unit, 'lb', ft(f, t))${ts_unit_(unit, 'rb00', f, t) OR ts_unit_(unit, 'rb01', f, t)} =
+                + ((count_slope - count_slope2) * (p_unit(unit, 'rb00')${not ts_unit_(unit, 'rb00', f, t)} + ts_unit_(unit, 'rb00', f, t))
+                    + count_slope2 * (p_unit(unit, 'rb01')${not ts_unit_(unit, 'rb01', f, t)} + ts_unit_(unit, 'rb01', f, t)))
                 / count_slope;
             //if(count_slope2 = 0,
                 //p_effUnit(effSelector, unit, 'slope') = ((count_slope-1 - count_slope2) * (1 / p_unit(unit, 'eff00')) + count_slope2 * (1 / p_unit(unit, 'eff01'))) / (count_slope - 1);
                 //tmp = p_effUnit(effSelector, unit, 'slope');
             //else
-                ts_effUnit(effSelector, unit, 'slope', ft(f, t))${ts_unit(unit, 'eff00', f, t) OR ts_unit(unit, 'eff01', f, t)} =
-                    + ((count_slope-1 - count_slope2) * (1 / (p_unit(unit, 'eff00')${not ts_unit(unit, 'eff00', f, t)} + ts_unit(unit, 'eff00', f, t)))
-                        + (count_slope2 + 1) * (1 / (p_unit(unit, 'eff01')${not ts_unit(unit, 'eff01', f, t)} + ts_unit(unit, 'eff01', f, t))))
+                ts_effUnit(effSelector, unit, 'slope', ft(f, t))${ts_unit_(unit, 'eff00', f, t) OR ts_unit_(unit, 'eff01', f, t)} =
+                    + ((count_slope-1 - count_slope2) * (1 / (p_unit(unit, 'eff00')${not ts_unit_(unit, 'eff00', f, t)} + ts_unit_(unit, 'eff00', f, t)))
+                        + (count_slope2 + 1) * (1 / (p_unit(unit, 'eff01')${not ts_unit_(unit, 'eff01', f, t)} + ts_unit_(unit, 'eff01', f, t))))
                     / count_slope;
             //        - tmp;
             //);
@@ -203,14 +203,14 @@ loop(unit${p_unit(unit, 'useTimeseries')},
         // Calculate lambdas
         count_lambda2 = 0;
         loop(effSelector$(effLambda(effSelector) and effLevelSelectorUnit(effLevel, effSelector, unit)),
-            ts_effUnit(effSelector, unit, 'rb', ft(f, t))${ts_unit(unit, 'rb00', f, t) OR ts_unit(unit, 'rb01', f, t)} =
-                + ((count_lambda-1 - count_lambda2) * (p_unit(unit, 'rb00')${not ts_unit(unit, 'rb00', f, t)} + ts_unit(unit, 'rb00', f, t))
-                    + count_lambda2 * (p_unit(unit, 'rb01')${not ts_unit(unit, 'rb01', f ,t)} + ts_unit(unit, 'rb01', f, t)))
+            ts_effUnit(effSelector, unit, 'rb', ft(f, t))${ts_unit_(unit, 'rb00', f, t) OR ts_unit_(unit, 'rb01', f, t)} =
+                + ((count_lambda-1 - count_lambda2) * (p_unit(unit, 'rb00')${not ts_unit_(unit, 'rb00', f, t)} + ts_unit_(unit, 'rb00', f, t))
+                    + count_lambda2 * (p_unit(unit, 'rb01')${not ts_unit_(unit, 'rb01', f ,t)} + ts_unit_(unit, 'rb01', f, t)))
                 / (count_lambda - 1);
             //no lb for lambdas, since number of borders same as number of slopes   p_effUnit(effSelector, unit, 'lb') = ((count_lambda-1 - count_lambda2 + 1) * p_unit(unit, 'rb00') + (count_lambda2 - 1) * p_unit(unit, 'rb01')) / (count_lambda - 1);
-            ts_effUnit(effSelector, unit, 'slope', ft(f, t))${effLevelSelectorUnit(effLevel, effSelector, unit) AND (ts_unit(unit, 'eff00', f, t) OR ts_unit(unit, 'eff01', f, t))} =
-                + ((count_lambda-1 - count_lambda2) * (1 / (p_unit(unit, 'eff00')${not ts_unit(unit, 'eff00', f, t)} + ts_unit(unit, 'eff00', f, t)))
-                    + count_lambda2 * (1 / (p_unit(unit, 'eff01')${not ts_unit(unit, 'eff01', f, t)} + ts_unit(unit, 'eff01', f, t))))
+            ts_effUnit(effSelector, unit, 'slope', ft(f, t))${effLevelSelectorUnit(effLevel, effSelector, unit) AND (ts_unit_(unit, 'eff00', f, t) OR ts_unit_(unit, 'eff01', f, t))} =
+                + ((count_lambda-1 - count_lambda2) * (1 / (p_unit(unit, 'eff00')${not ts_unit_(unit, 'eff00', f, t)} + ts_unit_(unit, 'eff00', f, t)))
+                    + count_lambda2 * (1 / (p_unit(unit, 'eff01')${not ts_unit_(unit, 'eff01', f, t)} + ts_unit_(unit, 'eff01', f, t))))
                 / (count_lambda - 1);
             count_lambda2 = count_lambda2 + 1;
         );

@@ -5,9 +5,9 @@ v_state.up(gn_state(grid, node), ft_full(f, t))$p_gnBoundaryPropertiesForStates(
 v_state.lo(gn_state(grid, node), ft_full(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant') = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
 v_state.fx(gn_state(grid, node), ft_full(f, t))$(p_gn(grid, node, 'boundAll') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')) = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
   // When using time series
-v_state.up(gn_state(grid, node), ft_full(f, t))$p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries') = ts_nodeState(grid, node,   'upwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
-v_state.lo(gn_state(grid, node), ft_full(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries') = ts_nodeState(grid, node, 'downwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
-v_state.fx(gn_state(grid, node), ft_full(f, t))$(p_gn(grid, node, 'boundAll') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')) = ts_nodeState(grid, node, 'reference', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+v_state.up(gn_state(grid, node), ft_full(f, t))$p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries') = ts_nodeState_(grid, node,   'upwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
+v_state.lo(gn_state(grid, node), ft_full(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries') = ts_nodeState_(grid, node, 'downwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
+v_state.fx(gn_state(grid, node), ft_full(f, t))$(p_gn(grid, node, 'boundAll') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')) = ts_nodeState_(grid, node, 'reference', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
 * Bound state variables for the first solve if required
 loop(ft(f, tSolve),
@@ -15,7 +15,7 @@ loop(ft(f, tSolve),
     v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and p_gn(grid, node, 'boundStart') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant') and tSolveFirst = mSettings(mSolve, 't_start'))
       = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
     v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and p_gn(grid, node, 'boundStart') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') and tSolveFirst = mSettings(mSolve, 't_start'))
-      = ts_nodeState(grid, node, 'reference', f, tSolve) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+      = ts_nodeState_(grid, node, 'reference', f, tSolve) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
     // Remaining solves will use bound start value for v_state once it has been established
     v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and not tSolveFirst = mSettings(mSolve, 't_start'))
       = v_state.l(grid, node, f, tSolve);
@@ -77,11 +77,11 @@ v_online.up(unit, f, t)$(sum[effSelector$(not effDirectOff(effSelector)), suft(e
 v_spill.lo(gn(grid, node), ft(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useConstant')
     = p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
 v_spill.lo(gn(grid, node), ft(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useTimeSeries')
-    = ts_nodeState(grid, node, 'minSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    = ts_nodeState_(grid, node, 'minSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
 v_spill.up(gn(grid, node), ft(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'useConstant')
     = p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier') * p_stepLength(mSolve, f, t);
 v_spill.up(gn(grid, node), ft(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'useTimeSeries')
-    = ts_nodeState(grid, node, 'maxSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    = ts_nodeState_(grid, node, 'maxSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier') * p_stepLength(mSolve, f, t);
 
 // Restrictions on transferring energy between nodes
 v_transfer.up(gn2n(grid, from_node, to_node), ft(f, t))

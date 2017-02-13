@@ -285,7 +285,7 @@ q_conversionSOS1InputIntermediate(suft(effGroup, unit, f, t))$effSlope(effGroup)
       + v_fuelUse(fuel, unit, f, t)
     )
   =E=
-  + (p_unit(unit, 'section00')${not (p_unit(unit, 'useTimeseries') AND ts_unit(unit, 'section00', f, t))} + ts_unit(unit, 'section00', f, t)${p_unit(unit, 'useTimeseries')})
+  + (p_unit(unit, 'section00')${not (p_unit(unit, 'useTimeseries') AND ts_unit_(unit, 'section00', f, t))} + ts_unit_(unit, 'section00', f, t)${p_unit(unit, 'useTimeseries')})
       * v_online(unit, f, t) / p_unit(unit, 'unitCount')
       * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
   + sum(effGroupSelectorUnit(effGroup, unit, effSelector),
