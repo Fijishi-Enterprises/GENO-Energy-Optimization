@@ -31,9 +31,10 @@ loop(m,
 
 * Calculate the length of the time series
 continueLoop = 1;
+ts_length = 0;
 loop(m$(continueLoop),
     loop(gn(grid, node),
-        ts_length = sum(t$ts_energyDemand(grid, node, 'f00', t), 1);
+        ts_length = max(sum(t$ts_energyDemand(grid, node, 'f00', t), 1), ts_length); // Find the maximum length of the given time series
     );
     ct(t)$(
             ord(t) > ts_length
