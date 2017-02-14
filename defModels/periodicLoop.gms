@@ -64,6 +64,12 @@ $offOrder
     // ...otherwise use all time periods with equal weight
         p_stepLength(mSolve, f, t)$(ord(t) >= tSolveFirst and ord(t) < tSolveLast and fRealization(f)) = 1;
     );
+    // Determine the time-series values for the last time step of the simulation, necessary for the state variables due to different indexing... NOTE! Doesn't aggregate in any way, uses raw data
+    ts_energyDemand_(gn(grid, node), fSolve, t)${ord(t) = tSolveLast} = ts_energyDemand(grid, node, fSolve, t+ct(t));
+    ts_absolute_(node, fSolve, t)${ord(t) = tSolveLast} = ts_absolute(node, fSolve, t+ct(t));
+    ts_cf_(flow, node, fSolve, t)${ord(t) = tSolveLast} = ts_cf(flow, node, fSolve, t+ct(t));
+    ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)${ord(t) = tSolveLast} = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
+    ts_unit_(unit, param_nu, fSolve, t)${ord(t) = tSolveLast} = ts_unit(unit, param_nu, fSolve, t+ct(t));
 $onOrder
 
     // Set mft for the modelling period and model forecasts
