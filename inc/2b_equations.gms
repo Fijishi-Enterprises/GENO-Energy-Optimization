@@ -181,10 +181,11 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
       $$ifi '%rampSched%' == 'yes' + ts_absolute_(node, f, t)
       - ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))   // Energy demand from the node
       $$ifi '%rampSched%' == 'yes' - ts_energyDemand_(grid, node, f, t)
+      // Dummy generation variables, for feasibility purposes
       + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
       $$ifi '%rampSched%' == 'yes' + vq_gen('increase', grid, node, f, t)
       - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-      $$ifi '%rampSched%' == 'yes' - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t))
+      $$ifi '%rampSched%' == 'yes' - vq_gen('decrease', grid, node, f, t)
     )
   $$ifi '%rampSched%' == 'yes' / 2    // Averaging all the terms on the right side of the equation over the timestep here.
 ;
@@ -487,9 +488,11 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
         * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiply with time step to obtain change in state over the step
 ;
 * -----------------------------------------------------------------------------
-q_boundCyclic(gn_state(grid, node), mf(m, f), t, t_)${  p_gn(grid, node, 'boundCyclic')
-                                                        AND mftStart(m, f, t)
-                                                        AND mftLastSteps(m, f, t_)  } ..
+q_boundCyclic(gn_state(grid, node), mf(m, f), t, t_)${  p_gn(grid, node, 'boundCyclic')         // Bind variables if parameter found
+                                                        AND tSolveFirst = mSettings(m, 't_start') // For the very first model solve only
+                                                        AND mftStart(m, f, t)                   // Use only the starting time step of the model solve
+                                                        AND mftLastSteps(m, f, t_)              // Use only the ending time step of the model solve
+                                                        }..
     + v_state(grid, node, f, t)
     =E=
     + v_state(grid, node, f, t_)
