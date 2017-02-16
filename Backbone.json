@@ -7,5 +7,5 @@
     "infiles": ["input/InputData.gdx"],
     "infiles_opt": ["input/*.gms", 
                     "input/*.inc"],
-    "outfiles": ["output/debug.gdx", "results.gdx", "info.txt"]
+    "outfiles": ["output/debug.gdx", "output/results.gdx", "output/info.txt"]
 }
