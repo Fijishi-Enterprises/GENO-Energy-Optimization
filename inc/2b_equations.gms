@@ -176,16 +176,17 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
           // Spilling energy out of the endogenous grids in the model
           - v_spill(grid, node, f+pf(f,t), t+pt(t))$node_spill(node)
           $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, f+pf(f,t), t+pt(t))$node_spill(node)
+          // Power inflow and outflow timeseries to/from the node
+          + ts_absolute_(node, f+pf(f,t), t+pt(t))   // Incoming (positive) and outgoing (negative) absolute value time series
+          $$ifi '%rampSched%' == 'yes' + ts_absolute_(node, f, t)
+          - ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))   // Energy demand from the node
+          $$ifi '%rampSched%' == 'yes' - ts_energyDemand_(grid, node, f, t)
+          // Dummy generation variables, for feasibility purposes
+          + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+          $$ifi '%rampSched%' == 'yes' + vq_gen('increase', grid, node, f, t)
+          - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+          $$ifi '%rampSched%' == 'yes' - vq_gen('decrease', grid, node, f, t)
         ) * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiply by time step to get energy terms
-      + ts_absolute_(node, f+pf(f,t), t+pt(t))   // Incoming (positive) and outgoing (negative) absolute value time series
-      $$ifi '%rampSched%' == 'yes' + ts_absolute_(node, f, t)
-      - ts_energyDemand_(grid, node, f+pf(f,t), t+pt(t))   // Energy demand from the node
-      $$ifi '%rampSched%' == 'yes' - ts_energyDemand_(grid, node, f, t)
-      // Dummy generation variables, for feasibility purposes
-      + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-      $$ifi '%rampSched%' == 'yes' + vq_gen('increase', grid, node, f, t)
-      - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-      $$ifi '%rampSched%' == 'yes' - vq_gen('decrease', grid, node, f, t)
     )
   $$ifi '%rampSched%' == 'yes' / 2    // Averaging all the terms on the right side of the equation over the timestep here.
 ;

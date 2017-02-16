@@ -31,9 +31,10 @@ Parameters
     p_effGroupUnit(effSelector, unit, *) "Unit data specific to a efficiency group (e.g. left border of the unit)"
 // Time dependent unit & fuel parameters
     ts_unit(unit, *, f, t) "Time dependent unit data, where energy type doesn't matter"
-    ts_unit_(unit, *, f, t) "Alias used for time aggregation"
     ts_effUnit(effSelector, unit, *, f, t) "Time dependent data for piece-wise linear efficiency blocks"
     ts_effGroupUnit(effSelector, unit, *, f, t) "Time dependent efficiency group unit data"
+// Alias used for interval aggregation
+    ts_unit_(unit, *, f, t)
 ;
 
 * --- Probability -------------------------------------------------------------
@@ -59,22 +60,20 @@ Parameters
 
 * --- Stochastic data parameters ----------------------------------------------
 Parameters
-    ts_energyDemand(grid, node, f, t) "Fixed energy demand of a time period/slice divided by average demand"
-    ts_energyDemand_(grid, node, f, t)
-    ts_absolute(*, f, t) "External energy inflow during a time period (MWh)"
-    ts_absolute_(*, f, t) "Alias used for time aggregation"
+    ts_energyDemand(grid, node, f, t) "Fixed power demand of a time period/slice divided by average demand"
+    ts_absolute(*, f, t) "External power inflow/outflow during a time period (MWh/h)"
     ts_cf(flow, node, f, t) "Available capacity factor time series (per unit)"
-    ts_cf_(flow, node, f, t) "Alias used for time aggregation"
-    ts_import(grid, node, t) "Energy import from locations outside the model scope (MW)"
-    ts_import_(grid, node, t) "Alias used for time aggregation"
     ts_reserveDemand(restype, resdirection, node, f, t) "Reserve demand in region in the time period/slice (MW)"
-    ts_reserveDemand_(restype, resdirection, node, f, t) "Alias used for time aggregation"
-
+    ts_reserveDemand_(restype, resdirection, node, f, t)
     ts_nodeState(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input"
-    ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t) "Alias used for time aggregation"
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (€/MWh)"
     ts_fuelPriceChangenode(fuel, node, t) "Initial fuel price and consequent changes in fuel price in model nodegraphies (€/MWh)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time period/slice (p.u.)"
+// Aliases used for interval aggregation
+    ts_energyDemand_(grid, node, f, t)
+    ts_absolute_(*, f, t)
+    ts_cf_(flow, node, f, t)
+    ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
 ;
 
 * --- Other time dependent parameters -----------------------------------------

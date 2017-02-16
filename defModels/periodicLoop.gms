@@ -39,7 +39,7 @@ $offOrder
                             ft_new(f,t_)$(mf(mSolve, f) and tInterval(t_)) = yes;
                             p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength;
                             // Aggregates the interval time series data
-                            ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t_))};    // Sums the total energy demand over the interval
+                            ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);    // Averages the power demand over the interval
                             ts_absolute_(node, fSolve, t) = sum{t_$tInterval(t_), ts_absolute(node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the absolute power terms over the interval
                             ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the capacity factor over the inverval
                             ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t) = sum(t_${tInterval(t_)}, ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t); // Averages the time-dependent node state boundary conditions over the interval
