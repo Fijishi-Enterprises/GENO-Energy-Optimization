@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>500</width>
     <height>300</height>
    </rect>
   </property>
@@ -21,13 +21,13 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>400</width>
+    <width>500</width>
     <height>300</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>400</width>
+    <width>500</width>
     <height>300</height>
    </size>
   </property>
@@ -64,79 +64,67 @@
      <property name="title">
       <string>General</string>
      </property>
-     <widget class="QCheckBox" name="checkBox_exit_dialog">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>23</y>
-        <width>173</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unchecked: Exit Sceleton without prompt&lt;/p&gt;&lt;p&gt;Checked: Show confirm exit prompt&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string>Show confirm exit dialog at exit</string>
-      </property>
-      <property name="tristate">
-       <bool>false</bool>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox_save_at_exit">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>46</y>
-        <width>174</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unchecked: Does not save project &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;Partially checked: Shows message box (default)&lt;/p&gt;&lt;p&gt;Checked: Saves project &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string>Save changes to project at exit</string>
-      </property>
-      <property name="tristate">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox_del_work_dirs">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>69</y>
-        <width>167</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unchecked: Does not delete work directories &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;Partially checked: Shows message box (default)&lt;/p&gt;&lt;p&gt;Checked: Deletes work directories &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string>Delete work directories at exit</string>
-      </property>
-      <property name="tristate">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox_debug">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>92</y>
-        <width>133</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows Sceleton debug messages in console. Error messages are always shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string>Show Debug messages</string>
-      </property>
-     </widget>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="2" column="0">
+       <widget class="QCheckBox" name="checkBox_del_work_dirs">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unchecked: Does not delete work directories &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;Partially checked: Shows message box (default)&lt;/p&gt;&lt;p&gt;Checked: Deletes work directories &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Delete work directories at exit</string>
+        </property>
+        <property name="tristate">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="checkBox_exit_dialog">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unchecked: Exit Sceleton without prompt&lt;/p&gt;&lt;p&gt;Checked: Show confirm exit prompt&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Show confirm exit dialog at exit</string>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="checkBox_save_at_exit">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unchecked: Does not save project &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;Partially checked: Shows message box (default)&lt;/p&gt;&lt;p&gt;Checked: Saves project &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Save changes to project at exit</string>
+        </property>
+        <property name="tristate">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="checkBox_clear_flags">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Setup &lt;span style=&quot; font-weight:600;&quot;&gt;ready&lt;/span&gt; and &lt;span style=&quot; font-weight:600;&quot;&gt;failed&lt;/span&gt; flags at startup and when a project is loaded&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Clear setup flags at startup</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QCheckBox" name="checkBox_debug">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows Sceleton debug messages in console. Error messages are always shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Show Debug messages</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

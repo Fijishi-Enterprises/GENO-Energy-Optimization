@@ -284,6 +284,7 @@ class Setup(MetaObject):
             ui.add_msg_signal.emit("Creating a Tool instance failed", 2)
             self.failed = True
             self.running = False
+            ui.toggle_gui(True)
             return
         if not self.instance:  # TODO: Combine this with OSError
             # Another check
@@ -291,6 +292,7 @@ class Setup(MetaObject):
             ui.add_msg_signal.emit("Failed in creating Tool instance")
             self.failed = True
             self.running = False
+            ui.toggle_gui(True)
             return
         # Connect instance_finished_signal to setup_finished() method
         self.instance.instance_finished_signal.connect(self.setup_finished)
@@ -299,6 +301,7 @@ class Setup(MetaObject):
             ui.add_msg_signal.emit("Copying input files for Setup <b>{0}</b> failed".format(self.name), 2)
             self.failed = True
             self.running = False
+            ui.toggle_gui(True)
             return
         self.instance.execute(ui)
         # Wait for instance_finished_signal to start setup_finished()
@@ -320,7 +323,6 @@ class Setup(MetaObject):
         elif ret == 62097:
             # User interrupt
             logging.debug("Simulation is now stopped")
-            # TODO: Make a new flag for Setup interrupted and/or failed
             self.failed = True
             self.is_ready = False
             return

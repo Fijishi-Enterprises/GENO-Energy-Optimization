@@ -52,6 +52,22 @@ class ConfigurationParser(object):
             self.parser[section] = {}
         return self.parser.get(section, option)
 
+    def getboolean(self, section, option):
+        """Get configuration option boolean value.
+        Supported values: true, false, yes, no, 1, 0, etc.
+
+        Args:
+            section: Selected configuration section.
+            option: Configuration option to get.
+
+        Returns:
+            Value of the option as a boolean or default if the option was
+            not found.
+        """
+        if not self.parser.has_section(section):
+            self.parser[section] = {}
+        return self.parser.getboolean(section, option)
+
     def set(self, section, option, value):
         """Set configuration option value.
 

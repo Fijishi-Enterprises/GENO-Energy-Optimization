@@ -49,7 +49,7 @@ class SettingsWidget(QWidget):
 
     def open_gamside_browser(self):
         """Open dialog where user can select the desired GAMS version."""
-        # noinspection PyCallByClass, PyTypeChecker
+        # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
         answer = QFileDialog.getExistingDirectory(self, 'Select GAMS Directory', os.path.abspath('C:\\'))
         if answer == '':  # Cancel button clicked
             return
@@ -74,6 +74,7 @@ class SettingsWidget(QWidget):
         d = self._configs.get('settings', 'debug_messages')
         e = self._configs.get('settings', 'logoption')
         f = self._configs.get('settings', 'cerr')
+        g = self._configs.getboolean('settings', 'clear_flags')
         gamsdir = self._configs.get('general', 'gams_path')
         if a == '1':
             self.ui.checkBox_save_at_exit.setCheckState(Qt.PartiallyChecked)
@@ -89,6 +90,8 @@ class SettingsWidget(QWidget):
             self.ui.checkBox_debug.setCheckState(Qt.Checked)
         if e == '4':
             self.ui.checkBox_logoption.setCheckState(Qt.Checked)
+        if g:  # should be True or False
+            self.ui.checkBox_clear_flags.setCheckState(Qt.Checked)
         self.ui.spinBox_cerr.setValue(int(f))
         # Set saved GAMS directory to lineEdit
         self.ui.lineEdit_gamside_path.setText(gamsdir)
@@ -112,6 +115,11 @@ class SettingsWidget(QWidget):
         self._configs.set('settings', 'debug_messages', d)
         self._configs.set('settings', 'cerr', str(f))
         self._configs.set('settings', 'logoption', logoption_value)
+        g = self.ui.checkBox_clear_flags.checkState()
+        if g == Qt.Unchecked:
+            self._configs.set('settings', 'clear_flags', 'false')
+        else:
+            self._configs.set('settings', 'clear_flags', 'true')
         self._configs.set('general', 'gams_path', self.ui.lineEdit_gamside_path.text())
         self._configs.save()
         # Set logging level

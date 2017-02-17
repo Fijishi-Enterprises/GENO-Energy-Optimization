@@ -24,6 +24,7 @@ from config import ERROR_COLOR, BLACK_COLOR, PROJECT_DIR, \
                    WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS, \
                    GAMSIDE_EXECUTABLE
 from configuration import ConfigurationParser
+from delegates import SetupStyledItemDelegate
 from widgets.setup_form_widget import SetupFormWidget
 from widgets.project_form_widget import ProjectFormWidget
 from widgets.context_menu_widget import ContextMenuWidget
@@ -64,6 +65,7 @@ class TitanUI(QMainWindow):
         self.modeltest = None
         self.exec_mode = ''
         self.algorithm = True  # Tree-traversal algorithm (True=Breadth-first, False=Depth-first)
+        self.setup_delegate = None
         # References for widgets
         self.setup_form = None
         self.project_form = None
@@ -133,8 +135,12 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_delete_all.clicked.connect(self.delete_all)
         self.ui.pushButton_clear_titan_output.clicked.connect(lambda: self.ui.textBrowser_main.clear())
         self.ui.pushButton_clear_gams_output.clicked.connect(lambda: self.ui.textBrowser_process_output.clear())
-        self.ui.pushButton_clear_ready_selected.clicked.connect(self.clear_selected_ready_flag)
-        self.ui.pushButton_clear_ready_all.clicked.connect(self.clear_all_ready_flags)
+        self.ui.toolButton_clear_ready_branch.clicked.connect(self.clear_branch_ready_flags)
+        self.ui.toolButton_clear_failed_branch.clicked.connect(self.clear_branch_failed_flags)
+        self.ui.toolButton_clear_flags_branch.clicked.connect(self.clear_branch_flags)
+        self.ui.toolButton_clear_ready.clicked.connect(self.clear_ready_flags)
+        self.ui.toolButton_clear_failed.clicked.connect(self.clear_failed_flags)
+        self.ui.toolButton_clear_flags.clicked.connect(self.clear_flags)
         self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
         self.ui.toolButton_add_tool.clicked.connect(self.add_tool)
         self.ui.toolButton_refresh_tools.clicked.connect(self.refresh_tools)
@@ -153,10 +159,14 @@ class TitanUI(QMainWindow):
         self._root = Setup('root', 'root node for Setups,', self._project)
         # Create model for Setups
         self.setup_model = SetupModel(self._root)
+        # Set custom item delegate for QTreeView
+        self.setup_delegate = SetupStyledItemDelegate(self)
+        self.ui.treeView_setups.setItemDelegateForColumn(0, self.setup_delegate)
         # Set SetupModel to QTreeView
         self.ui.treeView_setups.setModel(self.setup_model)
-        self.ui.treeView_setups.setColumnWidth(0, 150)
-        self.ui.treeView_setups.setColumnWidth(1, 125)
+        self.ui.treeView_setups.setColumnWidth(0, 160)
+        self.ui.treeView_setups.setColumnWidth(1, 115)
+        self.ui.treeView_setups.setColumnWidth(2, 115)
         # Initialize Tool model
         self.init_tool_model()
         # Start model test for SetupModel
@@ -184,6 +194,7 @@ class TitanUI(QMainWindow):
         self.ui.listView_tools.setModel(self.tool_model)
         # Connect currentChanged and doubleClicked signals to Tool QListView
         # This method creates a new Tool model, so it's signals must be reconnected
+        # Qt.UniqueConnection makes sure that the signal is connected only once
         try:
             self.ui.listView_tools.selectionModel().currentChanged.connect(self.view_tool_def, Qt.UniqueConnection)
         except TypeError:
@@ -208,7 +219,6 @@ class TitanUI(QMainWindow):
         if not os.path.isfile(project_file_path):
             msg = 'Could not load previous project. Project file {0} not found.'.format(project_file_path)
             self.ui.statusbar.showMessage(msg, 10000)
-            # logging.debug("Previous project not found")
             return
         if not self.load_project(project_file_path):
             logging.error("Loading project failed. File: %s" % project_file_path)
@@ -249,7 +259,7 @@ class TitanUI(QMainWindow):
 
     def save_project_as(self):
         """Save Setups in project to disk. Ask file name from user."""
-        # noinspection PyCallByClass, PyTypeChecker
+        # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
         dir_path = QFileDialog.getSaveFileName(self, 'Save project', PROJECT_DIR, 'JSON (*.json);;EXCEL (*.xlsx)')
         file_path = dir_path[0]
         if file_path == '':  # Cancel button clicked
@@ -300,7 +310,7 @@ class TitanUI(QMainWindow):
             previously opened project at start-up
         """
         if not load_path:
-            # noinspection PyCallByClass, PyTypeChecker
+            # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
             answer = QFileDialog.getOpenFileName(self, 'Load project', PROJECT_DIR, 'Projects (*.json *.xlsx)')
             load_path = answer[0]
             if load_path == '':  # Cancel button clicked
@@ -339,6 +349,8 @@ class TitanUI(QMainWindow):
             msg = "Project '%s' loaded" % self._project.name
             self.ui.statusbar.showMessage(msg, 10000)
             self.add_msg_signal.emit("Done", 1)
+            self.check_clear_flags()
+            self.ui.treeView_setups.expandAll()
             return True
         elif load_path.lower().endswith('.xlsx'):
             excel_fname = os.path.split(load_path)[1]
@@ -348,7 +360,7 @@ class TitanUI(QMainWindow):
                 wb.load_wb()
             except OSError:
                 self.add_msg_signal.emit("OSError while loading project file: {0}".format(load_path), 2)
-                return
+                return False
             proj_details = wb.read_project_sheet()
             if not proj_details:
                 # Not a valid project Excel
@@ -360,7 +372,7 @@ class TitanUI(QMainWindow):
             if not proj_details[0]:
                 self.add_msg_signal.emit("Project name not found in Excel file. "
                                          "Add it to cell B1 on 'Project' sheet and try again.", 2)
-                return
+                return False
             if not proj_details[1]:
                 self.add_msg_signal.emit("Project description missing. "
                                          "You can add it to cell B2 on 'Project' sheet (optional).", 0)
@@ -376,6 +388,8 @@ class TitanUI(QMainWindow):
             msg = "Project '%s' loaded" % self._project.name
             self.ui.statusbar.showMessage(msg, 10000)
             self.add_msg_signal.emit("Done", 1)
+            self.check_clear_flags()
+            self.ui.treeView_setups.expandAll()
             return True
         else:
             self.add_msg_signal.emit("Not a valid project file format. (.xlsx and .json supported)", 2)
@@ -387,7 +401,7 @@ class TitanUI(QMainWindow):
         definition file will be saved to titan.conf, so that it is found on
         the next startup.
         """
-        # noinspection PyCallByClass, PyTypeChecker
+        # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
         answer = QFileDialog.getOpenFileName(self, 'Select tool definition file',
                                              os.path.join(PROJECT_DIR, os.path.pardir),
                                              'JSON (*.json)')
@@ -520,6 +534,7 @@ class TitanUI(QMainWindow):
         self.setup_model.emit_data_changed()
         return True
 
+    # noinspection PyUnusedLocal
     def view_tool_def(self, current, previous):
         """Show selected Tool definition file in a QTextBrowser in main window.
 
@@ -609,8 +624,8 @@ class TitanUI(QMainWindow):
         elif option == "Execute Project":
             self.execute_all()
             return
-        elif option == "Clear Ready Flag":
-            self.clear_selected_ready_flag()
+        elif option == "Clear Flags":
+            self.clear_setup_flags()
             return
         elif option == "Inspect Setup Data":
             self.open_input_data_form(ind)
@@ -949,8 +964,12 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_execute_all.setEnabled(value)
         self.ui.pushButton_delete_setup.setEnabled(value)
         self.ui.pushButton_delete_all.setEnabled(value)
-        self.ui.pushButton_clear_ready_selected.setEnabled(value)
-        self.ui.pushButton_clear_ready_all.setEnabled(value)
+        self.ui.toolButton_clear_ready_branch.setEnabled(value)
+        self.ui.toolButton_clear_failed_branch.setEnabled(value)
+        self.ui.toolButton_clear_flags_branch.setEnabled(value)
+        self.ui.toolButton_clear_ready.setEnabled(value)
+        self.ui.toolButton_clear_failed.setEnabled(value)
+        self.ui.toolButton_clear_flags.setEnabled(value)
         self.ui.pushButton_import_data.setEnabled(value)
         self.ui.actionExecuteSingle.setEnabled(value)
         self.ui.actionExecuteBranch.setEnabled(value)
@@ -970,23 +989,52 @@ class TitanUI(QMainWindow):
             self.timer.start(100)
         self.update_setup_model()
 
-    def clear_selected_ready_flag(self):
-        """Clears ready flag for the selected Setup."""
-        index = self.get_selected_setup_index()
-        if not index:
-            self.add_msg_signal.emit("No Setup selected", 0)
+    def check_clear_flags(self):
+        """Clear flags from Setups if user has set this option in settings.
+        Used at Sceleton startup and when a project has been loaded.
+        """
+        clear_flags_setting = self._config.getboolean('settings', 'clear_flags')
+        if not clear_flags_setting:
             return
-        setup = index.internalPointer()
-        if not setup.is_ready:
-            self.add_msg_signal.emit("Selected Setup not ready", 0)
-            return
-        setup.is_ready = False
-        self.setup_model.emit_data_changed()
-        self.add_msg_signal.emit("Ready flag for Setup <b>{0}</b> cleared".format(setup.name), 0)
-        return
+        self.clear_given_flags(clear_ready=True, clear_failed=True)
 
-    def clear_all_ready_flags(self):
-        """Clear ready flag for all Setups in the project."""
+    @pyqtSlot(name='clear_branch_ready_flags')
+    def clear_branch_ready_flags(self):
+        """Clear ready flags for selected Setup and its children."""
+        self.clear_given_flags_branch(clear_ready=True, clear_failed=False)
+
+    @pyqtSlot(name='clear_branch_failed_flags')
+    def clear_branch_failed_flags(self):
+        """Clear failed flags for selected Setup and its children."""
+        self.clear_given_flags_branch(clear_ready=False, clear_failed=True)
+
+    @pyqtSlot(name='clear_branch_flags')
+    def clear_branch_flags(self):
+        """Clear flags for selected Setup and its children."""
+        self.clear_given_flags_branch(clear_ready=True, clear_failed=True)
+
+    @pyqtSlot(name='clear_ready_flags')
+    def clear_ready_flags(self):
+        """Clear ready flags for all Setups."""
+        self.clear_given_flags(clear_ready=True, clear_failed=False)
+
+    @pyqtSlot(name='clear_failed_flags')
+    def clear_failed_flags(self):
+        """Clear failed flags for all Setups."""
+        self.clear_given_flags(clear_ready=False, clear_failed=True)
+
+    @pyqtSlot(name='clear_flags')
+    def clear_flags(self):
+        """Clear flags for all Setups."""
+        self.clear_given_flags(clear_ready=True, clear_failed=True)
+
+    def clear_given_flags(self, clear_ready=True, clear_failed=True):
+        """Helper function to clear selected flags from all Setups in project.
+
+        Args:
+            clear_ready (bool): Clears Setup ready flags if True
+            clear_failed (bool): Clears Setup failed flags if True
+        """
         if not self._project:
             self.add_msg_signal.emit("No project open", 0)
             return
@@ -994,8 +1042,10 @@ class TitanUI(QMainWindow):
         def traverse(setup):
             # Helper function to traverse tree
             if not setup.name == 'root':
-                if setup.is_ready:
+                if clear_ready:
                     setup.is_ready = False
+                if clear_failed:
+                    setup.failed = False
             for kid in setup.children():
                 traverse.level += 1
                 traverse(kid)
@@ -1007,7 +1057,52 @@ class TitanUI(QMainWindow):
         else:
             traverse(self._root)
         self.setup_model.emit_data_changed()
-        self.add_msg_signal.emit("All ready flags cleared", 0)
+        return
+
+    def clear_given_flags_branch(self, clear_ready=True, clear_failed=True):
+        """Helper function to clear selected flags from the selected Setup and its children.
+
+        Args:
+            clear_ready (bool): Clears Setup ready flags if True
+            clear_failed (bool): Clears Setup failed flags if True
+        """
+        if not self._project:
+            self.add_msg_signal.emit("No project open", 0)
+            return
+        index = self.get_selected_setup_index()
+        if not index:
+            self.add_msg_signal.emit("No Setup selected", 0)
+            return
+
+        def traverse(setup):
+            # Helper function to traverse tree
+            if not setup.name == 'root':
+                # logging.debug("Clearing flags of Setup: {}".format(setup.name))
+                if clear_ready:
+                    setup.is_ready = False
+                if clear_failed:
+                    setup.failed = False
+            for kid in setup.children():
+                traverse.level += 1
+                traverse(kid)
+                traverse.level -= 1
+        traverse.level = 1
+        # Traverse tree starting from selected Setup
+        traverse(index.internalPointer())
+        self.setup_model.emit_data_changed()
+
+    def clear_setup_flags(self):
+        """Clears ready and failed flag for the selected Setup.
+        Used when context-menu command Clear Flags is selected.
+        """
+        index = self.get_selected_setup_index()
+        if not index:
+            self.add_msg_signal.emit("No Setup selected", 0)
+            return
+        setup = index.internalPointer()
+        setup.is_ready = False
+        setup.failed = False
+        self.setup_model.emit_data_changed()
         return
 
     def get_selected_setup_index(self):
@@ -1046,55 +1141,9 @@ class TitanUI(QMainWindow):
                 base_index = base_index.parent()
         return base_index
 
-    def print_next_generation(self):
-        """Get selected Setup's siblings in the Setup QTreeView.
-
-        Returns:
-            Setup and it's siblings pointed by the selected item or None if something went wrong.
-        """
-        try:
-            index = self.ui.treeView_setups.selectedIndexes()[0]
-        except IndexError:
-            # Nothing selected
-            return None
-        if not index.isValid():
-            return None
-        setup = index.internalPointer()
-        next_gen = self.get_next_generation(index)
-        if not next_gen:
-            self.add_msg_signal.emit("Next generation not found", 0)
-            return None
-        self.add_msg_signal.emit("Finding next generation of Setup <b>{0}</b>".format(setup.name), 0)
-        for ind in next_gen:
-            self.add_msg_signal.emit("Setup <b>{0}</b> on next row".format(ind.internalPointer().name), 0)
-
-    def get_selected_setup_siblings(self):
-        """Get selected Setup's siblings in the Setup QTreeView.
-
-        Returns:
-            Setup and it's siblings pointed by the selected item or None if something went wrong.
-        """
-        try:
-            index = self.ui.treeView_setups.selectedIndexes()[0]
-        except IndexError:
-            # Nothing selected
-            return None
-        if not index.isValid():
-            return None
-        row = index.row()
-        column = index.column()
-        setup = index.internalPointer()
-        self.add_msg_signal.emit("Pressed item row:%s column:%s setup name:%s" % (row, column, setup.name), 0)
-        siblings = self.setup_model.get_siblings(index)
-        if not siblings:
-            self.add_msg_signal.emit("No siblings found", 0)
-            return None
-        for ind in siblings:
-            self.add_msg_signal.emit("Setups on current row:%s" % ind.internalPointer().name, 0)
-
     def import_data(self):
         """Open selected Excel file for creating text data files for Setups."""
-        # noinspection PyCallByClass, PyTypeChecker
+        # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
         answer = QFileDialog.getOpenFileName(self, 'Select Input Data File', PROJECT_DIR, 'MS Excel (*.xlsx)')
         load_path = answer[0]
         if load_path == '':  # Cancel button clicked

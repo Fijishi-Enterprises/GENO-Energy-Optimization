@@ -16,7 +16,7 @@ from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtWidgets import QApplication
 from PyQt5.Qt import Qt
 from PyQt5.QtGui import QIcon, QMovie, QCursor
-from config import WORK_DIR, ANIMATED_ICON_PATH
+from config import WORK_DIR, UI_RESOURCES
 
 
 class AnimatedSpinningWheelIcon(QObject):
@@ -25,7 +25,7 @@ class AnimatedSpinningWheelIcon(QObject):
     def __init__(self):
         """Class constructor."""
         super().__init__()
-        self.movie = QMovie(ANIMATED_ICON_PATH)
+        self.movie = QMovie(os.path.join(UI_RESOURCES, 'spinningwheel.gif'))
         self.movie.setCacheMode(QMovie.CacheAll)
         # noinspection PyUnresolvedReferences
         self.movie.frameChanged.connect(self.update_icon)

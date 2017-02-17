@@ -35,7 +35,7 @@ WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'
 GAMS_EXECUTABLE = 'gams.exe'
 GAMSIDE_EXECUTABLE = 'gamside.exe'
 # Random
-ANIMATED_ICON_PATH = os.path.abspath(os.path.join(APPLICATION_PATH, 'ui', 'resources', 'spinningwheel.gif'))
+UI_RESOURCES = os.path.abspath(os.path.join(APPLICATION_PATH, 'ui', 'resources'))
 
 # Default options and settings
 GENERAL_OPTIONS = {'project_path': '',
@@ -47,4 +47,5 @@ SETTINGS = {'save_at_exit': '1',
             'delete_work_dirs': '1',
             'debug_messages': '2',
             'logoption': '3',
-            'cerr': '1'}
+            'cerr': '1',
+            'clear_flags': 'false'}

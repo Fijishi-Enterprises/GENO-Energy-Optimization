@@ -122,6 +122,7 @@ class SceletonProject(MetaObject):
             the_dict['tool'] = None
             the_dict['cmdline_args'] = ""
         the_dict['is_ready'] = setup.is_ready
+        the_dict['failed'] = setup.failed
         the_dict['n_child'] = setup.child_count()
         if setup.parent() is not None:
             the_dict['parent'] = parent_name
@@ -179,6 +180,16 @@ class SceletonProject(MetaObject):
                     parent_name = v['parent']
                     tool_name = v['tool']
                     cmdline_args = v['cmdline_args']
+                    is_ready = False
+                    failed = False
+                    try:
+                        is_ready = v['is_ready']
+                    except KeyError:
+                        logging.debug("is_ready not found")
+                    try:
+                        failed = v['failed']
+                    except KeyError:
+                        logging.debug("failed not found")
                     logging.info("Loading Setup '%s'" % name)
                     ui.add_msg_signal.emit("Loading Setup <b>{0}</b>".format(name), 0)
                     if parent_name == 'root':
@@ -193,6 +204,8 @@ class SceletonProject(MetaObject):
                             logging.error("Inserting child Setup %s failed" % name)
                             ui.add_msg_signal.emit("Loading Setup <b>{0}</b> failed. Parent Setup: <b>{1}</b>"
                                                    .format(name, parent_name), 2)
+                    setup_index = setup_model.find_index(name)
+                    setup = setup_model.get_setup(setup_index)
                     if tool_name is not None:
                         # Get tool from ToolModel
                         tool = tool_model.find_tool(tool_name)
@@ -203,9 +216,10 @@ class SceletonProject(MetaObject):
                                                    .format(tool_name, name), 2)
                         else:
                             # Add tool to Setup
-                            setup_index = setup_model.find_index(name)
-                            setup = setup_model.get_setup(setup_index)
                             setup.attach_tool(tool, cmdline_args=cmdline_args)
+                    # Set flags for Setup
+                    setup.is_ready = is_ready
+                    setup.failed = failed
                 self.parse_setups(v, setup_model, tool_model, ui)
 
     def parse_excel_setups(self, setup_model, tool_model, wb, ui):
@@ -232,6 +246,27 @@ class SceletonProject(MetaObject):
             tool_name = items[2][i]
             cmdline_args = items[3][i]
             desc = items[4][i]
+            is_ready = items[5][i]  # This might be a boolean already
+            failed = items[6][i]
+            logging.debug("{0} is_ready: {1} type: {2}".format(name, is_ready, type(is_ready)))
+            # Make is_ready a boolean
+            if not type(is_ready) == bool:
+                if not is_ready:  # is_ready can be None
+                    is_ready = False
+                elif is_ready.lower() == 'true' or is_ready.lower() == 'yes':
+                    is_ready = True
+                else:
+                    is_ready = False
+            logging.debug("{0} failed: {1} type: {2}".format(name, failed, type(failed)))
+            # Make failed a boolean
+            if not type(failed) == bool:
+                if not failed:  # is_ready can be None
+                    failed = False
+                elif failed.lower() == 'true' or failed.lower() == 'yes':
+                    failed = True
+                else:
+                    failed = False
+            # Continue from next Setup if name is missing
             if not name:
                 ui.add_msg_signal.emit("Could not load Setup. Name missing.", 2)
                 continue
@@ -250,12 +285,12 @@ class SceletonProject(MetaObject):
                                            .format(parent_name, name), 2)
                     continue
                 parent_row = parent_index.row()
-                # logging.debug("parent index:{0} parent row:{1} parent name:{2}"
-                #               .format(parent_index, parent_row, parent_index.internalPointer().name))
                 if not setup_model.insert_setup(name, desc, self, parent_row, parent_index):
                     logging.error("Inserting child Setup %s failed" % name)
                     ui.add_msg_signal.emit("Loading Setup <b>{0}</b> failed. Parent Setup: <b>{1}</b>"
                                            .format(name, parent_name), 2)
+            setup_index = setup_model.find_index(name)
+            setup = setup_model.get_setup(setup_index)
             if tool_name is not None:
                 # Get tool from ToolModel
                 tool = tool_model.find_tool(tool_name)
@@ -266,9 +301,12 @@ class SceletonProject(MetaObject):
                                            .format(tool_name, name), 2)
                 else:
                     # Add tool to Setup
-                    setup_index = setup_model.find_index(name)
-                    setup = setup_model.get_setup(setup_index)
+                    # setup_index = setup_model.find_index(name)
+                    # setup = setup_model.get_setup(setup_index)
                     setup.attach_tool(tool, cmdline_args=cmdline_args)
+            # Set flags for Setup
+            setup.is_ready = is_ready
+            setup.failed = failed
         return
 
     def make_data_files(self, setup_model, wb, ui):

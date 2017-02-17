@@ -86,21 +86,19 @@ class SetupModel(QAbstractItemModel):
             # logging.debug("index row:%d, role:%s" % (index.row(), role))
             return None
         setup = index.internalPointer()
-        if role == Qt.DecorationRole and index.column() == 0:
-            if setup.running:
-                # Return the current frame of the QMovie
-                return self.animated_icon.get_icon()
+        # Return DecorationRole
+        if role == Qt.DecorationRole:
+            if index.column() == 0:
+                if setup.running:
+                    # Return the current frame of the QMovie
+                    return self.animated_icon.get_icon()
             else:
                 return None
+        # Return DisplayRole
         if role == Qt.DisplayRole:
             if index.column() == 0:
-                # Show Setup name in the first column
-                if setup.is_ready:
-                    return setup.name + " (Ready)"
-                elif setup.failed:
-                    return setup.name + " (Failed)"
-                else:
-                    return setup.name
+                # Return Setup name in the first column. Overwritten by ItemDelegate.
+                return setup.name
             elif index.column() == 1:
                 # Show Setup Tool in the second column
                 if not setup.tool:
@@ -151,13 +149,13 @@ class SetupModel(QAbstractItemModel):
         """
         if role == Qt.DisplayRole:
             if section == 0:
-                return "Setup"
+                return "Name"
             elif section == 1:
                 return "Tool"
             elif section == 2:
                 return "Command Line Args"
         else:
-            return QVariant()
+            return None
 
     def parent(self, index=None):
         """Gives parent of the setup with the given QModelIndex.
@@ -435,7 +433,11 @@ class SetupProxyModel(QSortFilterProxyModel):
         super().__init__()
 
     def columnCount(self, parent=None, *args, **kwargs):
-        """Get the number of hierarchy levels from the source model."""
+        """Get the number of hierarchy levels from the source model.
+
+        Args:
+            parent (QModelIndex): Parent index
+        """
         return 1
 
 

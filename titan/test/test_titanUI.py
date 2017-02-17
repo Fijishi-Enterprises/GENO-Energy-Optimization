@@ -27,7 +27,3 @@ class TestTitanUI(TestCase):
     @skip("Not ready")
     def test_get_selected_setup_base_index(self):
         self.fail()
-
-    @skip("Not ready")
-    def test_get_selected_setup_siblings(self):
-        self.fail()

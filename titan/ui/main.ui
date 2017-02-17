@@ -23,19 +23,31 @@
    <layout class="QHBoxLayout" name="horizontalLayout_3">
     <item>
      <widget class="QSplitter" name="splitter">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="opaqueResize">
+       <bool>true</bool>
       </property>
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
-      <widget class="QWidget" name="verticalLayoutWidget">
-       <layout class="QVBoxLayout" name="verticalLayout_4">
+      <widget class="QWidget" name="">
+       <layout class="QVBoxLayout" name="verticalLayout_5">
         <property name="spacing">
          <number>0</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
+         <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetDefaultConstraint</enum>
+          </property>
           <item>
            <widget class="QGroupBox" name="groupBox_execute">
             <property name="sizePolicy">
@@ -192,70 +204,284 @@
            </widget>
           </item>
           <item>
-           <widget class="QGroupBox" name="groupBox_flags">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <property name="spacing">
+             <number>0</number>
             </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>160</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>100</width>
-              <height>160</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>Clear Ready Flag</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-            <property name="flat">
-             <bool>false</bool>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_5">
-             <item>
-              <spacer name="verticalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
+            <item>
+             <widget class="QGroupBox" name="groupBox_chain_flags">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>80</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>80</height>
+               </size>
+              </property>
+              <property name="title">
+               <string>Clear Flags (Chain)</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_2">
+               <property name="leftMargin">
+                <number>2</number>
                </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
+               <property name="topMargin">
+                <number>4</number>
                </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_clear_ready_selected">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear ready flag for the selected Setup&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <property name="rightMargin">
+                <number>2</number>
                </property>
-               <property name="text">
-                <string>Single</string>
+               <item row="0" column="0">
+                <widget class="QToolButton" name="toolButton_clear_ready_branch">
+                 <property name="minimumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Ready flag for the selected Setup and all its children&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="resources/toolbutton_icons.qrc">
+                   <normaloff>:/ui/resources/clear_all_ready_flags.png</normaloff>:/ui/resources/clear_all_ready_flags.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>36</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QToolButton" name="toolButton_clear_flags_branch">
+                 <property name="minimumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear flags for the selected Setup and all its children&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="resources/toolbutton_icons.qrc">
+                   <normaloff>:/ui/resources/clear_all_flags.png</normaloff>:/ui/resources/clear_all_flags.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>36</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QToolButton" name="toolButton_clear_failed_branch">
+                 <property name="minimumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Failed flag for the selected Setup and all its children&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="resources/toolbutton_icons.qrc">
+                   <normaloff>:/ui/resources/clear_all_failed_flags.png</normaloff>:/ui/resources/clear_all_failed_flags.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>36</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_flags">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>80</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>80</height>
+               </size>
+              </property>
+              <property name="title">
+               <string>Clear Flags</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+              </property>
+              <property name="flat">
+               <bool>false</bool>
+              </property>
+              <layout class="QGridLayout" name="gridLayout">
+               <property name="leftMargin">
+                <number>2</number>
                </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_clear_ready_all">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear ready flag for all Setups in the project&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <property name="topMargin">
+                <number>4</number>
                </property>
-               <property name="text">
-                <string>All</string>
+               <property name="rightMargin">
+                <number>2</number>
                </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
+               <property name="bottomMargin">
+                <number>9</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="QToolButton" name="toolButton_clear_ready">
+                 <property name="minimumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Ready flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="resources/toolbutton_icons.qrc">
+                   <normaloff>:/ui/resources/clear_all_ready_flags.png</normaloff>:/ui/resources/clear_all_ready_flags.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>36</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QToolButton" name="toolButton_clear_failed">
+                 <property name="minimumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Failed flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="resources/toolbutton_icons.qrc">
+                   <normaloff>:/ui/resources/clear_all_failed_flags.png</normaloff>:/ui/resources/clear_all_failed_flags.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>36</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0" colspan="2">
+                <widget class="QToolButton" name="toolButton_clear_flags">
+                 <property name="minimumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>42</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="resources/toolbutton_icons.qrc">
+                   <normaloff>:/ui/resources/clear_all_flags.png</normaloff>:/ui/resources/clear_all_flags.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>36</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QGroupBox" name="groupBox_data">
@@ -326,9 +552,6 @@
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
-            </property>
             <property name="sizeHint" stdset="0">
              <size>
               <width>0</width>
@@ -392,6 +615,15 @@
           </property>
           <property name="contextMenuPolicy">
            <enum>Qt::CustomContextMenu</enum>
+          </property>
+          <property name="textElideMode">
+           <enum>Qt::ElideRight</enum>
+          </property>
+          <property name="indentation">
+           <number>20</number>
+          </property>
+          <property name="uniformRowHeights">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -579,6 +811,9 @@
               <pointsize>8</pointsize>
              </font>
             </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear command output&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
              <string>Clear</string>
             </property>
@@ -637,6 +872,9 @@
              <font>
               <pointsize>8</pointsize>
              </font>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Cancel execution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>Cancel</string>
@@ -707,6 +945,9 @@
              <font>
               <pointsize>8</pointsize>
              </font>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear tool output&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>Clear</string>
@@ -1033,8 +1274,12 @@
   <tabstop>pushButton_execute_all</tabstop>
   <tabstop>pushButton_delete_setup</tabstop>
   <tabstop>pushButton_delete_all</tabstop>
-  <tabstop>pushButton_clear_ready_selected</tabstop>
-  <tabstop>pushButton_clear_ready_all</tabstop>
+  <tabstop>toolButton_clear_ready_branch</tabstop>
+  <tabstop>toolButton_clear_failed_branch</tabstop>
+  <tabstop>toolButton_clear_flags_branch</tabstop>
+  <tabstop>toolButton_clear_ready</tabstop>
+  <tabstop>toolButton_clear_failed</tabstop>
+  <tabstop>toolButton_clear_flags</tabstop>
   <tabstop>pushButton_import_data</tabstop>
   <tabstop>pushButton_inspect_data</tabstop>
   <tabstop>pushButton_show_explorer</tabstop>
@@ -1046,9 +1291,11 @@
   <tabstop>textBrowser_main</tabstop>
   <tabstop>pushButton_clear_titan_output</tabstop>
   <tabstop>pushButton_terminate_execution</tabstop>
-  <tabstop>pushButton_clear_gams_output</tabstop>
   <tabstop>textBrowser_process_output</tabstop>
+  <tabstop>pushButton_clear_gams_output</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="resources/toolbutton_icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

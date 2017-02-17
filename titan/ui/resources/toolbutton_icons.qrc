@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="/ui/resources">
+    <file>clear_all_ready_flags.png</file>
+    <file>clear_all_failed_flags.png</file>
+    <file>clear_all_flags.png</file>
+  </qresource>
+</RCC>

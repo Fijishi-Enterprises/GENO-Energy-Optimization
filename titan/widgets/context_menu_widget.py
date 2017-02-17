@@ -27,7 +27,7 @@ class ContextMenuWidget(QMenu):
             self.add_action("Execute")
             self.add_action("Execute Branch")
             self.add_action("Execute Project")
-            self.add_action("Clear Ready Flag")
+            self.add_action("Clear Flags")
             self.add_action("Inspect Setup Data")
         self.exec_(position)
 

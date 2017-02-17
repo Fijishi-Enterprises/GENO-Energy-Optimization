@@ -51,7 +51,9 @@ class ExcelHandler:
         tools = [v[0].value for v in setup_sheet['C2':'C' + rows]]
         tool_args = [v[0].value for v in setup_sheet['D2':'D' + rows]]
         descriptions = [v[0].value for v in setup_sheet['E2':'E' + rows]]
-        return [parents, currents, tools, tool_args, descriptions]
+        ready = [v[0].value for v in setup_sheet['F2':'F' + rows]]
+        failed = [v[0].value for v in setup_sheet['G2':'G' + rows]]
+        return [parents, currents, tools, tool_args, descriptions, ready, failed]
 
     def read_data_sheet(self, sheet_name):
         """Read data from the given sheet.
