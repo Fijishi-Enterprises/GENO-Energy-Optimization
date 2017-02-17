@@ -175,7 +175,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(
             )
           // Spilling energy out of the endogenous grids in the model
           - v_spill(grid, node, f+pf(f,t), t+pt(t))$node_spill(node)
-          $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, f+pf(f,t), t+pt(t))$node_spill(node)
+          $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, f, t)$node_spill(node)
           // Power inflow and outflow timeseries to/from the node
           + ts_absolute_(node, f+pf(f,t), t+pt(t))   // Incoming (positive) and outgoing (negative) absolute value time series
           $$ifi '%rampSched%' == 'yes' + ts_absolute_(node, f, t)
@@ -390,57 +390,81 @@ q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))$p_gnBoundaryPropertiesF
     )
 ;
 * -----------------------------------------------------------------------------
-q_stateUpwardLimit(gn_state(grid, node), m, ft(f, t))$(    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'resDown', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
+q_stateUpwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'resDown', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
                                                         or sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, nuRescapable(restype, 'resDown', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
                                                       ) ..
-  + v_state(grid, node, f, t)
-  + p_stepLength(m, f, t) * (
-      + sum(gn2gnu(grid_, node_input, grid, node, unit),
-          + sum(restype$nuRescapable(restype, 'resDown', node_input, unit), // downward reserves from units that output energy from the node
-              + v_reserve(restype, 'resDown', node_input, unit, f, t)
-                  / smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
-            )
+  ( // Utilizable headroom in the state variable
+      + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
+      + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'upwardLimit', f, t)
+      - v_state(grid, node, f, t)
+  )
+      * ( // Accounting for the energyStoredPerUnitOfState ...
+          + p_gn(grid, node, 'energyStoredPerUnitOfState')
+          + p_stepLength(m , f+pf(f,t), t+pt(t))
+              * ( // ... and the change in energy losses from the node
+                  + p_gn(grid, node, 'selfDischargeLoss')
+                  + sum(to_node, p_gnn(grid, node, to_node, 'diffCoeff'))
+                )
         )
-      + sum(gn2gnu(grid, node, grid_, node_output, unit),
-          + sum(restype$nuRescapable(restype, 'resDown', node_output, unit), // downward reserves from units that use the node as an input energy
-              + v_reserve(restype, 'resDown', node_output, unit, f, t)
-                  * smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
+  =G=
+  + p_stepLength(m, f+pf(f,t), t+pt(t))
+      * ( // Reserve provision from units that have output to this node
+          + sum(gn2gnu(grid_, node_input, grid, node, unit),
+              + sum(restype$nuRescapable(restype, 'resDown', node_input, unit), // Downward reserves from units that output energy to the node
+                  + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))
+                      / smax(effSelector${suft(effSelector, unit, f+pf(f,t), t+pt(t))}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
+                )
             )
-        )
+          // Reserve provision from units that take input from this node
+          + sum(gn2gnu(grid, node, grid_, node_output, unit),
+              + sum(restype$nuRescapable(restype, 'resDown', node_output, unit), // Downward reserves from units that use the node as energy input
+                  + v_reserve(restype, 'resDown', node_output, unit, f+pf(f,t), t+pt(t))
+                      * smax(effSelector${suft(effSelector, unit, f+pf(f,t), t+pt(t))}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
+                )
+            )
       // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
       // considered in power grids that do not have state variables, these terms are not needed. Earlier commit (29.11.2016) contains a draft of those terms.
-    )
-  =L=
-  + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
-  + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'upwardLimit', f, t)
+        )
 ;
 * -----------------------------------------------------------------------------
-q_stateDownwardLimit(gn_state(grid, node), m, ft(f, t))$(    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'resUp', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
+q_stateDownwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'resUp', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
                                                           or sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, nuRescapable(restype, 'resUp', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
                                                         ) ..
-  + v_state(grid, node, f, t)
-  + p_stepLength(m, f, t) * (
-      + sum(gn2gnu(grid_, node_input, grid, node, unit),
-          + sum(restype$nuRescapable(restype, 'resUp', node_input, unit), // downward reserves from units that output energy from the node
-              + v_reserve(restype, 'resUp', node_input, unit, f, t)
-                  / smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
-            )
+  ( // Utilizable headroom in the state variable
+      + v_state(grid, node, f, t)
+      - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
+      - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'downwardLimit', f, t)
+  )
+      * ( // Accounting for the energyStoredPerUnitOfState ...
+          + p_gn(grid, node, 'energyStoredPerUnitOfState')
+          + p_stepLength(m , f+pf(f,t), t+pt(t))
+              * ( // ... and the change in energy losses from the node
+                  + p_gn(grid, node, 'selfDischargeLoss')
+                  + sum(to_node, p_gnn(grid, node, to_node, 'diffCoeff'))
+                )
         )
-      + sum(gn2gnu(grid, node, grid_, node_output, unit),
-          + sum(restype$nuRescapable(restype, 'resUp', node_output, unit), // downward reserves from units that use the node as an input energy
-              + v_reserve(restype, 'resUp', node_output, unit, f, t)
-                  * smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
+  =G=
+  + p_stepLength(m, f+pf(f,t), t+pt(t))
+      * ( // Reserve provision from units that have output to this node
+          + sum(gn2gnu(grid_, node_input, grid, node, unit),
+              + sum(restype$nuRescapable(restype, 'resUp', node_input, unit), // Upward reserves from units that output energy to the node
+                  + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))
+                      / smax(effSelector${suft(effSelector, unit, f+pf(f,t), t+pt(t))}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
+                )
             )
-        )
+          // Reserve provision from units that take input from this node
+          + sum(gn2gnu(grid, node, grid_, node_output, unit),
+              + sum(restype$nuRescapable(restype, 'resUp', node_output, unit), // Upward reserves from units that use the node as energy input
+                  + v_reserve(restype, 'resUp', node_output, unit, f+pf(f,t), t+pt(t))
+                      * smax(effSelector${suft(effSelector, unit, f+pf(f,t), t+pt(t))}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
+                )
+            )
       // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
       // considered in power grids that do not have state variables, these terms are not needed. Earlier commit (29.11.2016) contains a draft of those terms.
-    )
-  =G=
-  + p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
-  + p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'downwardLimit', f, t)
+        )
 ;
 * -----------------------------------------------------------------------------
-q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
+q_boundState(gnn_boundState(grid, node, node_), m, ft_dynamic(f, t)) ..
     + v_state(grid, node, f, t)   // The state of the first node sets the upper limit of the second
     + (
         - sum(nuRescapable(restype, 'resDown', node, unit),
@@ -448,18 +472,10 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
           )
         - sum(nuRescapable(restype, 'resUp', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and gnu_output(grid, node, unit) },
             + v_reserve(restype, 'resUp', node_input, unit, f+pf(f,t), t+pt(t))                 // Upwards reserve provided by input units
-                / smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
+                / smax(effSelector${suft(effSelector, unit, f+pf(f,t), t+pt(t))}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
           )
-        - sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resDown', node) },
-                + v_resTransfer(restype, 'resDown', from_node, node, f+pf(f,t),t+pt(t))    // Reserved energy to be exported to from_node
-              )
-          )
-        - sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, to_node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resUp', to_node) },
-                + v_resTransfer(restype, 'resUp', node, to_node, f+pf(f,t),t+pt(t))        // Reserved energy to be exported to to_node
-              )
-          )
+        // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
+        // considered in power grids that do not have state variables, these terms are not needed. Earlier commit (16.2.2017) contains a draft of those terms.
       )
         / (p_gn(grid, node, 'energyStoredPerUnitOfState') )                                     // Divide by the stored energy in the node per unit of v_state to obtain same unit as the v_state
         * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiply with time step to obtain change in state over the step
@@ -472,18 +488,10 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft(f, t)) ..
           )
         + sum(nuRescapable(restype, 'resDown', node_input, unit)${ sum(grid_, gnu_input(grid_, node_input, unit)) and gnu_output(grid, node_, unit) }, // Possible reserve by input node
             + v_reserve(restype, 'resDown', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
-                / smax(effSelector${suft(effSelector, unit, f, t)}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))) // Efficiency approximated using maximum slope of effGroup?
+                / smax(effSelector${suft(effSelector, unit, f+pf(f,t), t+pt(t))}, (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effUnit(effSelector, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
           )
-        + sum(gn2n(grid, from_node, node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, node)) },
-            + sum(restype${ restypeDirectionNode(restype, 'resUp', node) },
-                + (1 - p_gnn(grid, from_node, node, 'transferLoss')) * v_resTransfer(restype, 'resUp', from_node, node, f+pf(f,t), t+pt(t)) // Reserved transfer capacity for importing energy from from_node
-              )
-          )
-        + sum(gn2n(grid, node, to_node)${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, to_node)) }, // Reserved transfer capacities from this node to another
-            + sum(restype${ restypeDirectionNode(restype, 'resDown', to_node) },
-                + (1 - p_gnn(grid, node, to_node, 'transferLoss')) * v_resTransfer(restype, 'resDown', node, to_node, f+pf(f,t), t+pt(t)) // Reserved transfer capacity for importing energy from to_node
-              )
-          )
+        // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
+        // considered in power grids that do not have state variables, these terms are not needed. Earlier commit (16.2.2017) contains a draft of those terms.
       )
         / (p_gn(grid, node_, 'energyStoredPerUnitOfState') )                                    // Divide by the stored energy in the node per unit of v_state to obtain same unit as the v_state
         * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiply with time step to obtain change in state over the step
