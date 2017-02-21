@@ -353,7 +353,7 @@ q_conversionSOS2IntermediateOutput(suft(effGroup, unit, f, t))$effLambda(effGrou
     )
 ;
 * -----------------------------------------------------------------------------
-q_outputRatioFixed(gngnu_fixedOutputRatio(grid, node, grid_, node_, unit), ft(f, t))${unit, f, t)} ..
+q_outputRatioFixed(gngnu_fixedOutputRatio(grid, node, grid_, node_, unit), ft(f, t))${uft(unit, f, t)} ..
   + v_gen(grid, node, unit, f, t)
       / p_gnu(grid, node, unit, 'cB')
   =E=
