@@ -427,7 +427,7 @@ class SetupModel(QAbstractItemModel):
 
 
 class SetupProxyModel(QSortFilterProxyModel):
-    """Proxy model to filter out other columns than the first one, which has the Setup hierarchy."""
+    """Proxy model to filter out other columns than the first one. Do not show decoration."""
 
     def __init__(self):
         super().__init__()
@@ -439,6 +439,21 @@ class SetupProxyModel(QSortFilterProxyModel):
             parent (QModelIndex): Parent index
         """
         return 1
+
+    def data(self, index, role=None):
+        """Reimplemented method to hide the decoration.
+
+        Args:
+            index (QModelIndex): Requested index
+            role (int): Requested role
+        """
+        if not role == Qt.DisplayRole:
+            return None
+        source_index = self.mapToSource(index)
+        if source_index.isValid():
+            return source_index.internalPointer().name
+        else:
+            return None
 
 
 class ToolProxyModel(QSortFilterProxyModel):

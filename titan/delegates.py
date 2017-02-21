@@ -8,7 +8,7 @@ Custom PyQt delegate classes.
 import os
 import logging
 from PyQt5.QtCore import Qt, QRect, QSize
-from PyQt5.Qt import QStyleOptionViewItem, QIcon, QStyle, QTextDocument, QPixmap
+from PyQt5.Qt import QStyleOptionViewItem, QIcon, QStyle, QPixmap, QFontMetrics, QApplication, QTextDocument
 from PyQt5.QtWidgets import QItemDelegate, QStyledItemDelegate
 from config import UI_RESOURCES
 
@@ -30,11 +30,18 @@ class SimpleSetupStyledItemDelegate(QStyledItemDelegate):
 
 
 class SetupStyledItemDelegate(QStyledItemDelegate):
-
+    """Class to overwrite painting of Setup name column."""
     def __init__(self, parent=None):
+        """Delegate constructor."""
         super().__init__(parent)
-        self.icon_widths = 0
-        self.decoration_width = 25
+        self.box_width = 20
+        self.box_height = 18
+        self.box_w_padding = 5  # Icon width padding
+        self.box_h_padding = 4  # Row height padding to leave a little breathing room
+        # Note about flag icon size: Original flag icon .png images are 75x70 pixels.
+        # Requested size of the icon is self.box_width x self.box_height.
+        self.box_widths = 2*self.box_width + 2*self.box_w_padding
+        self.decoration_width = 25  # Spinning wheel icon width
 
     def paint(self, painter, options, index):
         """Reimplemented paint method.
@@ -44,27 +51,24 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
             options (QStyleOptionViewItem): options
             index (QModelIndex): index
         """
+        # TODO: Draw also Setup name text here so maybe it is possible to fix elided text problem
         style = self.parent().style()
         icon_list = self.get_flag_icon(index.internalPointer())
         main_rect = options.rect  # The allotted rectangle to fill (size given by sizeHint)
-        box_width = 20
-        box_height = 18  # row height: 22, so this leaves a little breathing room
-        # Note about flag icon size: Original flag icon .png images are 75x70 pixels. Requested size of the icon
-        # is box_width x box_height.
         first_box = QRect()  # Rectangle for first box icon (Extra 10 pixels space for 1st and 2nd box padding)
-        first_box.setX(main_rect.x() + main_rect.width() - 2*box_width-10)
+        first_box.setX(main_rect.x() + main_rect.width() - 2*self.box_width-2*self.box_w_padding)
         first_box.setY(main_rect.y())
         # Added 5 pixels empty space after first icon
-        first_box.setWidth(box_width+5)
+        first_box.setWidth(self.box_width+self.box_w_padding)
         first_box.setHeight(main_rect.height())
         sec_box = QRect()  # Rectangle for the second box icon (Extra 5 pixels space for end padding)
-        sec_box.setX(main_rect.x() + main_rect.width() - box_width-5)
+        sec_box.setX(main_rect.x() + main_rect.width() - self.box_width-self.box_w_padding)
         sec_box.setY(main_rect.y())
         # Added 5 pixels empty space after second icon
-        sec_box.setWidth(box_width+5)
+        sec_box.setWidth(self.box_width+self.box_w_padding)
         sec_box.setHeight(main_rect.height())
         # Update item width for sizeHint
-        self.icon_widths = first_box.width() + sec_box.width()
+        self.box_widths = first_box.width() + sec_box.width()
         item_state = QIcon.On
         # Switch icon mode if item is selected and has focus
         if options.state & QStyle.State_Selected and options.state & QStyle.State_HasFocus:
@@ -75,25 +79,25 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
             super().paint(painter, options, index)
             # Add icons to column (Spinning wheel decoration is shown by the model)
             style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter,
-                                 icon_list[0].pixmap(QSize(first_box.width(), box_height), item_mode, item_state))
+                                 icon_list[0].pixmap(QSize(first_box.width(), self.box_height), item_mode, item_state))
             style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter,
-                                 icon_list[1].pixmap(QSize(sec_box.width(), box_height), item_mode, item_state))
+                                 icon_list[1].pixmap(QSize(sec_box.width(), self.box_height), item_mode, item_state))
         elif options.state & QStyle.State_Selected:
             # When item is selected but does not have focus
             item_mode = QIcon.Normal
             super().paint(painter, options, index)
             # Add icons to column (Spinning wheel decoration is shown by the model)
             style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter,
-                                 icon_list[0].pixmap(QSize(first_box.width(), box_height), item_mode, item_state))
+                                 icon_list[0].pixmap(QSize(first_box.width(), self.box_height), item_mode, item_state))
             style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter,
-                                 icon_list[1].pixmap(QSize(sec_box.width(), box_height), item_mode, item_state))
+                                 icon_list[1].pixmap(QSize(sec_box.width(), self.box_height), item_mode, item_state))
         else:
             item_mode = QIcon.Normal
             # Add icons to column (Spinning wheel decoration is shown by the model)
             style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter,
-                                 icon_list[0].pixmap(QSize(first_box.width(), box_height), item_mode, item_state))
+                                 icon_list[0].pixmap(QSize(first_box.width(), self.box_height), item_mode, item_state))
             style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter,
-                                 icon_list[1].pixmap(QSize(sec_box.width(), box_height), item_mode, item_state))
+                                 icon_list[1].pixmap(QSize(sec_box.width(), self.box_height), item_mode, item_state))
             # If item is not selected, DisplayRole is painted after the icons.
             # This makes the mouse hover effect show over icons.
             # if not item_mode == QIcon.Selected and not item_mode == QIcon.Disabled:
@@ -104,27 +108,23 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
         # style.drawItemText(painter, text_rect, Qt.AlignLeft | Qt.AlignVCenter,
         #                    QApplication.palette(), True, index.internalPointer().name)
         # style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter,
-        #                      icon_list[0].pixmap(QSize(first_box.width(), box_height)))
+        #                      icon_list[0].pixmap(QSize(first_box.width(), self.box_height)))
         # style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter,
-        #                      icon_list[1].pixmap(QSize(sec_box.width(), box_height)))
+        #                      icon_list[1].pixmap(QSize(sec_box.width(), self.box_height)))
 
     def sizeHint(self, options, index):
         """Reimplemented sizeHint method. Needed in order to
-        make view header handle double-clicking work.
+        make view column resizing work.
 
         Args:
             options (QStyleOptionViewItem): Style options
             index (QModelIndex): Index
         """
         if index.column() == 0:  # Not actually needed because the delegate is set only for the first column
-            text = index.model().data(index, Qt.DisplayRole)
-            document = QTextDocument(text)
-            document.setDefaultFont(options.font)
-            text_width = document.idealWidth()
-            w = text_width + self.icon_widths
-            if index.internalPointer().running:
-                w += self.decoration_width
-            return QSize(w, 22)
+            super_size = super().sizeHint(options, index)
+            w = super_size.width() + self.box_widths
+            h = self.box_height + self.box_h_padding
+            return QSize(w, h)
         else:
             super().sizeHint(options, index)
 

@@ -625,6 +625,9 @@
           <property name="uniformRowHeights">
            <bool>true</bool>
           </property>
+          <attribute name="headerStretchLastSection">
+           <bool>true</bool>
+          </attribute>
          </widget>
         </item>
         <item>

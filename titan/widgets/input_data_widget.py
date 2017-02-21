@@ -13,6 +13,7 @@ from PyQt5.QtCore import pyqtSlot, Qt, QModelIndex, QFileInfo
 from PyQt5.Qt import QStandardItem, QStandardItemModel, QFileIconProvider, QBrush, QColor
 import ui.input_data_form
 from helpers import busy_effect
+from models import SetupProxyModel
 
 
 class InputDataWidget(QWidget):
@@ -40,12 +41,12 @@ class InputDataWidget(QWidget):
         self.combo_tree_view = QTreeView(self)
         # Set QComboBox view as the new QTreeView
         self.ui.comboBox_setup.setView(self.combo_tree_view)
-        # Set SetupModel as the QComboBox model
-        self.ui.comboBox_setup.setModel(self.setup_model)
+        # Make proxy Setup model
+        self.proxy_setup_model = SetupProxyModel()
+        self.proxy_setup_model.setSourceModel(self.setup_model)
+        # Set ProxySetupModel as the QComboBox model
+        self.ui.comboBox_setup.setModel(self.proxy_setup_model)
         self.ui.comboBox_setup.view().expandAll()
-        # Hide cmdline args column
-        self.ui.comboBox_setup.view().hideColumn(2)
-        self.ui.comboBox_setup.view().setColumnWidth(0, 150)
         if not index:  # Show files of the first Setup if no Setup selected
             index = self.setup_model.index(0, 0, QModelIndex())
             if not index.isValid():  # If Setup model empty
@@ -223,7 +224,7 @@ class InputDataWidget(QWidget):
             return self.check_tool_output_files(req_files, setup.parent(), found_files)
         return found_files
 
-    @pyqtSlot(int)
+    @pyqtSlot(int, name='selection_changed')
     def selection_changed(self, ind):
         """Update shown input files when selected Setup changes.
 
