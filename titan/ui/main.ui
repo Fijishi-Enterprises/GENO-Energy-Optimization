@@ -38,7 +38,7 @@
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <property name="spacing">
          <number>0</number>
@@ -262,8 +262,8 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset resource="resources/toolbutton_icons.qrc">
-                   <normaloff>:/ui/resources/clear_all_ready_flags.png</normaloff>:/ui/resources/clear_all_ready_flags.png</iconset>
+                  <iconset resource="resources/resources.qrc">
+                   <normaloff>:/toolButtons/clear_all_ready_flags.png</normaloff>:/toolButtons/clear_all_ready_flags.png</iconset>
                  </property>
                  <property name="iconSize">
                   <size>
@@ -294,8 +294,8 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset resource="resources/toolbutton_icons.qrc">
-                   <normaloff>:/ui/resources/clear_all_flags.png</normaloff>:/ui/resources/clear_all_flags.png</iconset>
+                  <iconset resource="resources/resources.qrc">
+                   <normaloff>:/toolButtons/clear_all_flags.png</normaloff>:/toolButtons/clear_all_flags.png</iconset>
                  </property>
                  <property name="iconSize">
                   <size>
@@ -326,8 +326,8 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset resource="resources/toolbutton_icons.qrc">
-                   <normaloff>:/ui/resources/clear_all_failed_flags.png</normaloff>:/ui/resources/clear_all_failed_flags.png</iconset>
+                  <iconset resource="resources/resources.qrc">
+                   <normaloff>:/toolButtons/clear_all_failed_flags.png</normaloff>:/toolButtons/clear_all_failed_flags.png</iconset>
                  </property>
                  <property name="iconSize">
                   <size>
@@ -403,8 +403,8 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset resource="resources/toolbutton_icons.qrc">
-                   <normaloff>:/ui/resources/clear_all_ready_flags.png</normaloff>:/ui/resources/clear_all_ready_flags.png</iconset>
+                  <iconset resource="resources/resources.qrc">
+                   <normaloff>:/toolButtons/clear_all_ready_flags.png</normaloff>:/toolButtons/clear_all_ready_flags.png</iconset>
                  </property>
                  <property name="iconSize">
                   <size>
@@ -435,8 +435,8 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset resource="resources/toolbutton_icons.qrc">
-                   <normaloff>:/ui/resources/clear_all_failed_flags.png</normaloff>:/ui/resources/clear_all_failed_flags.png</iconset>
+                  <iconset resource="resources/resources.qrc">
+                   <normaloff>:/toolButtons/clear_all_failed_flags.png</normaloff>:/toolButtons/clear_all_failed_flags.png</iconset>
                  </property>
                  <property name="iconSize">
                   <size>
@@ -467,8 +467,8 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset resource="resources/toolbutton_icons.qrc">
-                   <normaloff>:/ui/resources/clear_all_flags.png</normaloff>:/ui/resources/clear_all_flags.png</iconset>
+                  <iconset resource="resources/resources.qrc">
+                   <normaloff>:/toolButtons/clear_all_flags.png</normaloff>:/toolButtons/clear_all_flags.png</iconset>
                  </property>
                  <property name="iconSize">
                   <size>
@@ -1295,7 +1295,7 @@
   <tabstop>pushButton_clear_gams_output</tabstop>
  </tabstops>
  <resources>
-  <include location="resources/toolbutton_icons.qrc"/>
+  <include location="resources/resources.qrc"/>
  </resources>
  <connections/>
 </ui>

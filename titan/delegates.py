@@ -8,7 +8,7 @@ Custom PyQt delegate classes.
 import os
 import logging
 from PyQt5.QtCore import Qt, QRect, QSize
-from PyQt5.Qt import QStyleOptionViewItem, QIcon, QStyle, QTextDocument
+from PyQt5.Qt import QStyleOptionViewItem, QIcon, QStyle, QTextDocument, QPixmap
 from PyQt5.QtWidgets import QItemDelegate, QStyledItemDelegate
 from config import UI_RESOURCES
 
@@ -34,9 +34,10 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.icon_widths = 0
+        self.decoration_width = 25
 
     def paint(self, painter, options, index):
-        """Overwritten paint method.
+        """Reimplemented paint method.
 
         Args:
             painter (QPainter): painter
@@ -44,59 +45,71 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
             index (QModelIndex): index
         """
         style = self.parent().style()
-        setup_model = index.model()
-        run_icon = setup_model.data(index, Qt.DecorationRole)
         icon_list = self.get_flag_icon(index.internalPointer())
         main_rect = options.rect  # The allotted rectangle to fill (size given by sizeHint)
-        run_rect_width = 25
         box_width = 20
         box_height = 18  # row height: 22, so this leaves a little breathing room
         # Note about flag icon size: Original flag icon .png images are 75x70 pixels. Requested size of the icon
         # is box_width x box_height.
-
-        run_rect = QRect()  # Rectangle for running icon
-        run_rect.setX(main_rect.x())
-        run_rect.setY(main_rect.y())
-        run_rect.setWidth(run_rect_width)
-        run_rect.setHeight(main_rect.height())
-
         first_box = QRect()  # Rectangle for first box icon (Extra 10 pixels space for 1st and 2nd box padding)
         first_box.setX(main_rect.x() + main_rect.width() - 2*box_width-10)
         first_box.setY(main_rect.y())
         # Added 5 pixels empty space after first icon
         first_box.setWidth(box_width+5)
         first_box.setHeight(main_rect.height())
-
         sec_box = QRect()  # Rectangle for the second box icon (Extra 5 pixels space for end padding)
         sec_box.setX(main_rect.x() + main_rect.width() - box_width-5)
         sec_box.setY(main_rect.y())
         # Added 5 pixels empty space after second icon
         sec_box.setWidth(box_width+5)
         sec_box.setHeight(main_rect.height())
-
-        # This paints the DisplayRole (Setup name) and hover and select backgrounds
-        super().paint(painter, options, index)
-        # Add icons to column
-        if run_icon:
-            style.drawItemPixmap(painter, run_rect, Qt.AlignLeft | Qt.AlignVCenter, run_icon.pixmap(QSize(run_rect_width, box_height)))
-            style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter, icon_list[0].pixmap(QSize(first_box.width(), box_height)))
-            style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter, icon_list[1].pixmap(QSize(sec_box.width(), box_height)))
-            self.icon_widths = run_rect.width() + first_box.width() + sec_box.width()
+        # Update item width for sizeHint
+        self.icon_widths = first_box.width() + sec_box.width()
+        item_state = QIcon.On
+        # Switch icon mode if item is selected and has focus
+        if options.state & QStyle.State_Selected and options.state & QStyle.State_HasFocus:
+            item_mode = QIcon.Selected
+            # Paint DisplayRole. Enables mouse hover and select background effects.
+            # If item is selected, DisplayRole is painted before the icons. This
+            # prevents the icons of appearing too dark.
+            super().paint(painter, options, index)
+            # Add icons to column (Spinning wheel decoration is shown by the model)
+            style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter,
+                                 icon_list[0].pixmap(QSize(first_box.width(), box_height), item_mode, item_state))
+            style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter,
+                                 icon_list[1].pixmap(QSize(sec_box.width(), box_height), item_mode, item_state))
+        elif options.state & QStyle.State_Selected:
+            # When item is selected but does not have focus
+            item_mode = QIcon.Normal
+            super().paint(painter, options, index)
+            # Add icons to column (Spinning wheel decoration is shown by the model)
+            style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter,
+                                 icon_list[0].pixmap(QSize(first_box.width(), box_height), item_mode, item_state))
+            style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter,
+                                 icon_list[1].pixmap(QSize(sec_box.width(), box_height), item_mode, item_state))
         else:
-            style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter, icon_list[0].pixmap(QSize(first_box.width(), box_height)))
-            style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter, icon_list[1].pixmap(QSize(sec_box.width(), box_height)))
-            self.icon_widths = first_box.width() + sec_box.width()
+            item_mode = QIcon.Normal
+            # Add icons to column (Spinning wheel decoration is shown by the model)
+            style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter,
+                                 icon_list[0].pixmap(QSize(first_box.width(), box_height), item_mode, item_state))
+            style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter,
+                                 icon_list[1].pixmap(QSize(sec_box.width(), box_height), item_mode, item_state))
+            # If item is not selected, DisplayRole is painted after the icons.
+            # This makes the mouse hover effect show over icons.
+            # if not item_mode == QIcon.Selected and not item_mode == QIcon.Disabled:
+            super().paint(painter, options, index)
 
         # This makes basically the same thing without super
         # style.drawControl(QStyle.CE_ItemViewItem, options, painter, options.widget)
-        # style.drawItemText(painter, text_rect, Qt.AlignLeft | Qt.AlignVCenter, QApplication.palette(), True, index.internalPointer().name)
-        # style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter, icon_list[0].pixmap(QSize(first_box.width(), box_height)))
-        # style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter, icon_list[1].pixmap(QSize(sec_box.width(), box_height)))
-        # This is where to do painting when mouse is hovering over an item or an item is selected
-        # if options.state & QStyle.State_MouseOver or options.state & QStyle.State_Selected:
+        # style.drawItemText(painter, text_rect, Qt.AlignLeft | Qt.AlignVCenter,
+        #                    QApplication.palette(), True, index.internalPointer().name)
+        # style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter,
+        #                      icon_list[0].pixmap(QSize(first_box.width(), box_height)))
+        # style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter,
+        #                      icon_list[1].pixmap(QSize(sec_box.width(), box_height)))
 
     def sizeHint(self, options, index):
-        """Overloaded sizeHint method. Needed in order to
+        """Reimplemented sizeHint method. Needed in order to
         make view header handle double-clicking work.
 
         Args:
@@ -109,27 +122,35 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
             document.setDefaultFont(options.font)
             text_width = document.idealWidth()
             w = text_width + self.icon_widths
+            if index.internalPointer().running:
+                w += self.decoration_width
             return QSize(w, 22)
         else:
             super().sizeHint(options, index)
 
     # noinspection PyMethodMayBeStatic
     def get_flag_icon(self, setup):
+        """Returns Setup icons according to set flags.
+        Note: Icons are loaded from a resource file embedded into the application.
+
+        Args:
+            setup (Setup): Setup for which the icons are being painted
+        """
+        icon1 = QIcon()
+        icon2 = QIcon()
         if setup.is_ready and setup.failed:
-            check_box = QIcon(os.path.join(UI_RESOURCES, 'check_mark.png'))
-            fail_box = QIcon(os.path.join(UI_RESOURCES, 'fail_box.png'))
-            return [check_box, fail_box]
+            icon1.addPixmap(QPixmap(":/flags/check_mark.png"))
+            icon2.addPixmap(QPixmap(":/flags/fail_box.png"))
         elif not setup.is_ready and setup.failed:
-            empty_box = QIcon(os.path.join(UI_RESOURCES, 'empty_box.png'))
-            fail_box = QIcon(os.path.join(UI_RESOURCES, 'fail_box.png'))
-            return [empty_box, fail_box]
+            icon1.addPixmap(QPixmap(":/flags/empty_box.png"))
+            icon2.addPixmap(QPixmap(":/flags/fail_box.png"))
         elif setup.is_ready and not setup.failed:
-            check_box = QIcon(os.path.join(UI_RESOURCES, 'check_mark.png'))
-            empty_box = QIcon(os.path.join(UI_RESOURCES, 'empty_box.png'))
-            return [check_box, empty_box]
+            icon1.addPixmap(QPixmap(":/flags/check_mark.png"))
+            icon2.addPixmap(QPixmap(":/flags/empty_box.png"))
         else:
-            empty_box = QIcon(os.path.join(UI_RESOURCES, 'empty_box.png'))
-            return [empty_box, empty_box]
+            icon1.addPixmap(QPixmap(":/flags/empty_box.png"))
+            icon2.addPixmap(QPixmap(":/flags/empty_box.png"))
+        return [icon1, icon2]
 
 
 class SetupItemDelegate(QItemDelegate):

@@ -1,0 +1,12 @@
+<RCC>
+  <qresource prefix="/flags">
+    <file>check_mark.png</file>
+    <file>empty_box.png</file>
+    <file>fail_box.png</file>
+  </qresource>
+  <qresource prefix="/toolButtons">
+    <file>clear_all_failed_flags.png</file>
+    <file>clear_all_flags.png</file>
+    <file>clear_all_ready_flags.png</file>
+  </qresource>
+</RCC>

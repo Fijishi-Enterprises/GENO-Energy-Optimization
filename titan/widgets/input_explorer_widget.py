@@ -9,7 +9,7 @@ import os
 import logging
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSlot, Qt, QModelIndex, QFileInfo, QItemSelectionModel
-from PyQt5.Qt import QStandardItem, QStandardItemModel, QFileIconProvider, QDesktopServices, QUrl
+from PyQt5.Qt import QStandardItem, QStandardItemModel, QFileIconProvider, QDesktopServices, QUrl, QTextCursor
 import ui.input_explorer_form
 from helpers import busy_effect
 from models import SetupProxyModel
@@ -81,6 +81,8 @@ class InputExplorerWidget(QWidget):
                 contents = f.read().splitlines()
                 for line in contents:
                     self.ui.textBrowser_preview.append(line)
+            # Rewind cursor to the beginning of the file
+            self.ui.textBrowser_preview.moveCursor(QTextCursor.Start)
         return
 
     @pyqtSlot(QModelIndex, QModelIndex, name="current_changed")

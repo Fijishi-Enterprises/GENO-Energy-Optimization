@@ -86,7 +86,7 @@ class SetupModel(QAbstractItemModel):
             # logging.debug("index row:%d, role:%s" % (index.row(), role))
             return None
         setup = index.internalPointer()
-        # Return DecorationRole
+        # Show DecorationRole
         if role == Qt.DecorationRole:
             if index.column() == 0:
                 if setup.running:
@@ -97,16 +97,16 @@ class SetupModel(QAbstractItemModel):
         # Return DisplayRole
         if role == Qt.DisplayRole:
             if index.column() == 0:
-                # Return Setup name in the first column. Overwritten by ItemDelegate.
+                # Show Setup name
                 return setup.name
             elif index.column() == 1:
-                # Show Setup Tool in the second column
+                # Show Tool name
                 if not setup.tool:
                     return ''
                 else:
                     return setup.tool.name
             elif index.column() == 2:
-                # Show cmdline_args in the third column
+                # Show cmdline_args
                 if not setup.tool:
                     return ''
                 else:

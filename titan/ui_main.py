@@ -618,7 +618,7 @@ class TitanUI(QMainWindow):
         elif option == "Execute":
             self.execute_single()
             return
-        elif option == "Execute Branch":
+        elif option == "Execute Chain":
             self.execute_branch()
             return
         elif option == "Execute Project":
@@ -629,6 +629,9 @@ class TitanUI(QMainWindow):
             return
         elif option == "Inspect Setup Data":
             self.open_input_data_form(ind)
+            return
+        elif option == "Explore Input Data":
+            self.show_explorer_form()
             return
         else:
             # No option selected
@@ -986,7 +989,7 @@ class TitanUI(QMainWindow):
             # Start the animated icon QMovie
             self.setup_model.animated_icon.start()
             # Start timer when simulation starts. Updates the animated icon.
-            self.timer.start(100)
+            self.timer.start(50)
         self.update_setup_model()
 
     def check_clear_flags(self):
