@@ -38,7 +38,7 @@ $offOrder
                             ) = yes;   // Set of t's within the interval (right border defined by intervalEnd) - but do not go beyond tSolveLast
                             ft_new(f,t_)$(mf(mSolve, f) and tInterval(t_)) = yes;
                             p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength;
-                            // Aggregates the interval time series data
+                            // Aggregates the interval time series data by averaging the power data
                             ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);    // Averages the power demand over the interval
                             ts_absolute_(node, fSolve, t) = sum{t_$tInterval(t_), ts_absolute(node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the absolute power terms over the interval
                             ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the capacity factor over the inverval
@@ -115,14 +115,15 @@ $onOrder
     ft_realizedLast(f,t) = no;
     ft_realizedLast(f,t)$[fRealization(f) and ord(t) = ord(tSolve) + mSettings(mSolve, 't_jump')] = yes;
 
+    // Defining unit aggregations
     uft(unit, f, t) = no;
     uft(unit, f, t)$[ ft(f, t)
-                        and ord(t) <= mSettings(mSolve, 't_aggregate')
+                        and ord(t) <= tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
                         and not unit_aggregate(unit)
                     ] = yes;
 
     uft(unit, f, t)$[ ft(f, t)
-                        and ord(t) > mSettings(mSolve, 't_aggregate')
+                        and ord(t) > tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
                         and (unit_aggregate(unit) or unit_noAggregate(unit))
                     ] = yes;
 
