@@ -9,7 +9,7 @@ $loaddc unitUnittype
 $loaddc fuel
 $loaddc unitUnit_aggregate
 $loaddc uFuel
-$loaddc gnuUnion
+*$loaddc gnuUnion
 $loaddc effLevelGroupUnit
 $loaddc p_gn
 $loaddc p_gnn

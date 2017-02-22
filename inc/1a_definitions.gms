@@ -70,8 +70,8 @@ $if set rampSched active('rampSched') = %rampSched%;
 Sets
 
 param_gn  "Possible parameters for grid, node" /
-    chargingEff   "Average charging efficiency (p.u)"
-    dischargingEff "Average discharging efficiency (p.u.)"
+    chargingEff   "Average charging efficiency (p.u)" // NOTE! This isn't actually used for anything at the moment! Probably needs to be removed at some point.
+    dischargingEff "Average discharging efficiency (p.u.)" // NOTE! This isn't actually used for anything at the moment! Probably needs to be removed at some point.
     selfDischargeLoss "Self discharge rate of the node (p.u.)"
     energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh"
     boundStart    "A flag to bound the first t in the run using reference constant or time series"
@@ -178,9 +178,9 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     emissionTax "Emission tax (€/tonne)"
 /
 
-param_union "Different ways inputs and outputs of energy conversion units can be combined" /
-    fixed "The ratio between different output forms is fixed"
-    unbound    "The ratio of this output is not constrained by other forms of energy"
-    constrained "The usage is limited by the output of free outputs - in relation to the efficiency limits"
-    substitute  "Inputs and outputs can be substituted"
-/
+*param_union "Different ways inputs and outputs of energy conversion units can be combined" /
+*    fixed "The ratio between different output forms is fixed"
+*    unbound    "The ratio of this output is not constrained by other forms of energy"
+*    constrained "The usage is limited by the output of free outputs - in relation to the efficiency limits"
+*    substitute  "Inputs and outputs can be substituted"
+*/

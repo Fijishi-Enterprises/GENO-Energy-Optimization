@@ -43,7 +43,7 @@ Sets
     gnu(grid, node, unit) "Units in specific nodes of particular energy grids"
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
     gnu_output(grid, node, unit) "Forms of energy the unit uses as endogenous outputs"
-    gnuUnion(grid, node, unit, param_union) "How inputs or outputs are related to each other"
+*    gnuUnion(grid, node, unit, param_union) "How inputs or outputs are related to each other"
     nu(node, unit) "Units attached to particular nodes"
     nnu(node, node, unit) "Units that link two nodes"
     gn_state(grid, node) "Nodes with a state variable"
