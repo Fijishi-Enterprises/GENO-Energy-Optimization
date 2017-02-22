@@ -92,6 +92,8 @@ class SetupModel(QAbstractItemModel):
                 if setup.running:
                     # Return the current frame of the QMovie
                     return self.animated_icon.get_icon()
+                else:
+                    return None
             else:
                 return None
         # Return DisplayRole

@@ -220,6 +220,7 @@ class Ui_MainWindow(object):
         self.treeView_setups.setIndentation(20)
         self.treeView_setups.setUniformRowHeights(True)
         self.treeView_setups.setObjectName("treeView_setups")
+        self.treeView_setups.header().setMinimumSectionSize(50)
         self.treeView_setups.header().setStretchLastSection(True)
         self.verticalLayout_5.addWidget(self.treeView_setups)
         self.label_2 = QtWidgets.QLabel(self.layoutWidget)

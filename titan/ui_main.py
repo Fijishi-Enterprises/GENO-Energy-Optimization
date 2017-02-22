@@ -352,6 +352,8 @@ class TitanUI(QMainWindow):
             self.check_clear_flags()
             self.ui.treeView_setups.expandAll()
             self.ui.treeView_setups.resizeColumnToContents(0)
+            # Add 25 to Setup column width to accommodate for decoration
+            self.ui.treeView_setups.setColumnWidth(0, self.ui.treeView_setups.columnWidth(0) + 25)
             return True
         elif load_path.lower().endswith('.xlsx'):
             excel_fname = os.path.split(load_path)[1]
@@ -392,6 +394,8 @@ class TitanUI(QMainWindow):
             self.check_clear_flags()
             self.ui.treeView_setups.expandAll()
             self.ui.treeView_setups.resizeColumnToContents(0)
+            # Add 25 to Setup column width to accommodate for decoration
+            self.ui.treeView_setups.setColumnWidth(0, self.ui.treeView_setups.columnWidth(0) + 25)
             return True
         else:
             self.add_msg_signal.emit("Not a valid project file format. (.xlsx and .json supported)", 2)
