@@ -18,7 +18,7 @@ from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
 from setup import Setup
-from helpers import find_work_dirs, remove_work_dirs, busy_effect
+from helpers import find_work_dirs, remove_work_dirs, erase_dir, busy_effect
 from GAMS import GAMSModel
 from config import ERROR_COLOR, BLACK_COLOR, PROJECT_DIR, \
                    WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS, \
@@ -756,30 +756,50 @@ class TitanUI(QMainWindow):
             setup.attach_tool(tool, cmdline_args=cmdline_args)
         return
 
+    @pyqtSlot(name='delete_selected_setup')
     def delete_selected_setup(self):
-        """Removes selected Setup (and all of it's children) from SetupModel."""
-        try:
-            index = self.ui.treeView_setups.selectedIndexes()[0]
-        except IndexError:
-            # Nothing selected
-            self.add_msg_signal.emit("No Setup selected", 0)
-            return
-        if not index.isValid():
+        """Removes selected Setup and all of it's children from SetupModel."""
+        index = self.get_selected_setup_index()
+        if not index:
+            self.add_msg_signal.emit("No Setup selected<br/>", 0)
             return
         row = index.row()
         parent = self.setup_model.parent(index)
-        name = index.internalPointer().name
-        msg = "You are about to delete Setup '%s' and all of its children.\nAre you sure?" % name
+        selected_setup = index.internalPointer()
+        name = selected_setup.name
+        del_input_dirs = self._config.getboolean('settings', 'delete_input_dirs')
+        if not del_input_dirs:
+            title = "Delete Setup?"
+            msg = "You are about to delete Setup <b>{0}</b> and all of its children.\nAre you sure?".format(name)
+        else:
+            title = "Delete Setup and input directory?"
+            msg = "You are about to delete Setup <b>{0}</b> and all of its children." \
+                  "\nInput directories will be deleted as well.\nAre you sure?".format(name)
         # noinspection PyCallByClass, PyTypeChecker
-        answer = QMessageBox.question(self, 'Deleting Setup', msg, QMessageBox.Yes, QMessageBox.No)
+        answer = QMessageBox.question(self, title, msg, QMessageBox.Yes, QMessageBox.No)
+        # Get deleted Setup's names and input dirs
+        [names, input_dirs] = self.get_deleted_setup_lists(selected_setup)
         if answer == QMessageBox.Yes:
-            self.add_msg_signal.emit("Setup <b>{0}</b> deleted".format(name), 0)
             self.setup_model.remove_setup(row, parent)
-            return
+            for n in names:
+                self.add_msg_signal.emit("Setup <b>{}</b> deleted".format(n), 0)
+            # Delete input directories if selected
+            if del_input_dirs:
+                for path in input_dirs:
+                    try:
+                        if not erase_dir(path):
+                            self.add_msg_signal.emit("Removing path <b>{0}</b> failed".format(path), 2)
+                            continue
+                    except OSError:
+                        logging.exception("OSError while removing directory {}".format(path))
+                        continue
+                    else:
+                        self.add_msg_signal.emit("Directory <b>{0}</b> removed".format(path), 0)
         else:
             logging.debug("Delete canceled")
-            return
+        return
 
+    @pyqtSlot(name='delete_all')
     def delete_all(self):
         """Delete all Setups from model. Ask user's permission first."""
         if not self._project:
@@ -787,18 +807,67 @@ class TitanUI(QMainWindow):
             return
         root_index = QModelIndex()
         n_kids = self._root.child_count()
-        msg = "You are about to delete all Setups in the project.\nAre you sure?"
+
+        del_input_dirs = self._config.getboolean('settings', 'delete_input_dirs')
+        if not del_input_dirs:
+            title = "Delete all Setups?"
+            msg = "You are about to delete all Setups in the project.\nAre you sure?"
+        else:
+            title = "Delete all Setups and input directories?"
+            msg = "You are about to delete all Setups and their input directories in the project.\nAre you sure?"
         # noinspection PyCallByClass, PyTypeChecker
-        answer = QMessageBox.question(self, 'Delete all Setups?', msg, QMessageBox.Yes, QMessageBox.No)
+        answer = QMessageBox.question(self, title, msg, QMessageBox.Yes, QMessageBox.No)
+        # Get deleted Setup's names and input dirs
+        [names, input_dirs] = self.get_deleted_setup_lists(self.setup_model.get_root())
         if answer == QMessageBox.Yes:
+            # This removes the Setups
             for i in range(n_kids):
-                name = self._root.child(0).name
-                self.add_msg_signal.emit("Setup <b>{}</b> deleted".format(name), 0)
                 self.setup_model.remove_setup(0, root_index)
-            return
+            # This is just for printing
+            for n in names:
+                self.add_msg_signal.emit("Setup <b>{}</b> deleted".format(n), 0)
+            # Delete input directories if selected
+            if del_input_dirs:
+                for path in input_dirs:
+                    try:
+                        if not erase_dir(path):
+                            self.add_msg_signal.emit("Removing path <b>{0}</b> failed".format(path), 2)
+                            continue
+                    except OSError:
+                        logging.exception("OSError while removing directory {}. Check permissions.".format(path))
+                        continue
+                    else:
+                        self.add_msg_signal.emit("Directory <b>{0}</b> removed".format(path), 0)
         else:
             logging.debug("Delete canceled")
             return
+
+    # noinspection PyMethodMayBeStatic
+    def get_deleted_setup_lists(self, start_setup):
+        """Returns two lists with deleted Setup names and input directories.
+
+        Args:
+            start_setup (Setup): Traverse tree from this Setup. Give root to traverse the whole tree.
+
+        Returns:
+            List that contains two lists: deleted Setup names and their input directories
+        """
+        names = list()
+        input_dirs = list()
+
+        def traverse(setup):
+            # Helper function to traverse tree
+            if not setup.name == 'root':
+                names.append(setup.name)
+                input_dirs.append(setup.input_dir)
+            for kid in setup.children():
+                traverse.level += 1
+                traverse(kid)
+                traverse.level -= 1
+        traverse.level = 1
+        # Traverse tree starting from selected Setup
+        traverse(start_setup)
+        return [names, input_dirs]
 
     def delete_all_no_confirmation(self):
         """Delete all Setups from model."""
@@ -1109,9 +1178,17 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("No Setup selected", 0)
             return
         setup = index.internalPointer()
-        setup.is_ready = False
-        setup.failed = False
-        self.setup_model.emit_data_changed()
+        # noinspection PyCallByClass, PyTypeChecker
+        answer = QMessageBox.question(self, "Clear flags", "Clear children's flags as well?",
+                                      QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+        if answer == QMessageBox.Yes:
+            self.clear_given_flags_branch(clear_ready=True, clear_failed=True)
+        elif answer == QMessageBox.No:
+            setup.is_ready = False
+            setup.failed = False
+            self.setup_model.emit_data_changed()
+        else:
+            logging.debug("Canceled")
         return
 
     def get_selected_setup_index(self):

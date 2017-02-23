@@ -276,6 +276,24 @@ def make_gams_project_file(path, tool):
 
 
 @busy_effect
+def erase_dir(path):
+    """Delete directory and all its contents without prompt.
+
+    Args:
+        path (str): Path to directory
+    """
+    if not os.path.exists(path):
+        logging.debug("Path does not exist: {}".format(path))
+        return False
+    logging.debug("Deleting directory {0}".format(path))
+    try:
+        shutil.rmtree(path, ignore_errors=True)
+    except OSError:
+        raise
+    return True
+
+
+@busy_effect
 def remove_work_dirs(dirs):
     """Used to remove work directories when exiting Sceleton.
 
@@ -283,5 +301,9 @@ def remove_work_dirs(dirs):
         dirs (list): List of paths to delete
     """
     for directory in dirs:
-        logging.debug("Deleting folder {0}".format(directory))
-        shutil.rmtree(directory, ignore_errors=True)
+        logging.debug("Deleting directory {0}".format(directory))
+        try:
+            shutil.rmtree(directory, ignore_errors=True)
+        except OSError:
+            logging.exception("OSError while removing directory {}".format(directory))
+            raise

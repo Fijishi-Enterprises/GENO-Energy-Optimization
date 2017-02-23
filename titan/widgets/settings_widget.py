@@ -29,7 +29,7 @@ class SettingsWidget(QWidget):
         # Ensure this window gets garbage-collected when closed
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.statusbar = QStatusBar(self)
-        self.ui.verticalLayout.addWidget(self.statusbar)
+        self.ui.verticalLayout_3.addWidget(self.statusbar)
         self.statusbar.setSizeGripEnabled(False)
         self.ui.pushButton_ok.setDefault(True)
         # Class attributes
@@ -75,6 +75,7 @@ class SettingsWidget(QWidget):
         e = self._configs.get('settings', 'logoption')
         f = self._configs.get('settings', 'cerr')
         g = self._configs.getboolean('settings', 'clear_flags')
+        h = self._configs.getboolean('settings', 'delete_input_dirs')
         gamsdir = self._configs.get('general', 'gams_path')
         if a == '1':
             self.ui.checkBox_save_at_exit.setCheckState(Qt.PartiallyChecked)
@@ -92,6 +93,8 @@ class SettingsWidget(QWidget):
             self.ui.checkBox_logoption.setCheckState(Qt.Checked)
         if g:  # should be True or False
             self.ui.checkBox_clear_flags.setCheckState(Qt.Checked)
+        if h:  # should be True or False
+            self.ui.checkBox_del_input_dirs.setCheckState(Qt.Checked)
         self.ui.spinBox_cerr.setValue(int(f))
         # Set saved GAMS directory to lineEdit
         self.ui.lineEdit_gamside_path.setText(gamsdir)
@@ -120,6 +123,11 @@ class SettingsWidget(QWidget):
             self._configs.set('settings', 'clear_flags', 'false')
         else:
             self._configs.set('settings', 'clear_flags', 'true')
+        h = self.ui.checkBox_del_input_dirs.checkState()
+        if h == Qt.Unchecked:
+            self._configs.set('settings', 'delete_input_dirs', 'false')
+        else:
+            self._configs.set('settings', 'delete_input_dirs', 'true')
         self._configs.set('general', 'gams_path', self.ui.lineEdit_gamside_path.text())
         self._configs.save()
         # Set logging level

@@ -48,4 +48,5 @@ SETTINGS = {'save_at_exit': '1',
             'debug_messages': '2',
             'logoption': '3',
             'cerr': '1',
-            'clear_flags': 'false'}
+            'clear_flags': 'false',
+            'delete_input_dirs': 'false'}
