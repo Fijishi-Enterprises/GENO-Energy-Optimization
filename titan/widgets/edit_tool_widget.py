@@ -5,7 +5,6 @@ Widget to change the Tool of a selected Setup.
 :date:   1.6.2016
 """
 
-import os
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSlot, Qt
 import ui.edit_tool_form
@@ -61,9 +60,13 @@ class EditToolWidget(QWidget):
         self.ui.pushButton_cancel.clicked.connect(self.close)
         self.ui.comboBox_tool.currentIndexChanged.connect(self.update)
 
-    @pyqtSlot(int)
+    @pyqtSlot(int, name='update')
     def update(self, row):
-        """Show Tool command line arguments in a line edit (read-only)."""
+        """Show Tool command line arguments in a line edit (read-only).
+
+        Args:
+            row (int): Selected row
+        """
         if row == 0:
             # No Tool selected
             self.ui.lineEdit_tool_args.setText("")
@@ -76,19 +79,17 @@ class EditToolWidget(QWidget):
         self.ui.lineEdit_tool_args.setText("{0}".format(args))
         return
 
-    @pyqtSlot()
+    @pyqtSlot(name='ok_clicked')
     def ok_clicked(self):
         """Change Tool and command line parameters for selected Setup."""
         tool_text = self.ui.comboBox_tool.currentText()
         cmd_args = self.ui.lineEdit_cmdline_params.text()
-        # self.cmdline_args = self.ui.lineEdit_cmdline_params.text()
         logging.debug("sel_tool:%s, args:%s" % (tool_text, cmd_args))
         c_index = self.ui.comboBox_tool.currentIndex()
         if c_index == 0:
             selected_tool = None
         else:
             selected_tool = self._parent.tool_model.tool(c_index)
-        # TODO: If cmdline arguments are given with No Tool selected. Titan crashes.
         if self.cmdline_args == cmd_args and selected_tool == self.tool:
             # Tool and command line args did not change
             logging.debug("No changes in Tool or command line arguments")

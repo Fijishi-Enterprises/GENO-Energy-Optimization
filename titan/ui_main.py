@@ -535,7 +535,7 @@ class TitanUI(QMainWindow):
             setup.detach_tool()
             setup.attach_tool(tool, cmdline_args=cmdline_args)
         else:
-            self.add_msg_signal.emit("Removing Tool from Setup <b>{0}</b>" % setup.name, 0)
+            self.add_msg_signal.emit("Removing Tool from Setup <b>{0}</b>".format(setup.name), 0)
             setup.detach_tool()
         self.setup_model.emit_data_changed()
         return True
