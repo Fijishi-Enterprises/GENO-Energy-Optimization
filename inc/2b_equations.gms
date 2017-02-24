@@ -369,12 +369,10 @@ q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, 
       / p_gnu(grid_, node_, unit, 'cB')
 ;
 * -----------------------------------------------------------------------------
-q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..                                    // NOTE! Currently generates identical equations for both directions unnecessarily, or does it?
+q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..                                    // NOTE! This needs to be thought over, whether it needs to account for transfers in the other direction as well, if permitted
   + v_transfer(grid, from_node, to_node, f, t)                                                  // Transfer from this node to the target node
-  + v_transfer(grid, to_node, from_node, f, t)${gn2n(grid, to_node, from_node)}           // Transfer from the target node to this one, only included if reverse transfer is possible
   + sum(restypeDirection(restype, resdirection)$(restypeDirectionNode(restype, resdirection, from_node) and restypeDirectionNode(restype, resdirection, to_node)),
         + v_resTransfer(restype, resdirection, from_node, to_node, f, t)
-        + v_resTransfer(restype, resdirection, to_node, from_node, f, t)${gn2n(grid, to_node, from_node)} // Only included if reverse transfer is possible
     )
   =L=
   + p_gnn(grid, from_node, to_node, 'transferCap')
