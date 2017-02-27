@@ -11,14 +11,14 @@ import os
 import sys
 import json
 import subprocess
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt, QTimer
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QCheckBox, QTextBrowser
-from PyQt5.Qt import QDesktopServices, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt, QTimer, QSize
+from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog, QCheckBox, QTextBrowser, QToolBar
+from PyQt5.Qt import QDesktopServices, QUrl, QAction, QIcon, QPixmap
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
 from setup import Setup
-from helpers import find_work_dirs, remove_work_dirs, erase_dir, busy_effect
+from helpers import find_work_dirs, remove_work_dirs, erase_dir, busy_effect, layout_widgets
 from GAMS import GAMSModel
 from config import ERROR_COLOR, BLACK_COLOR, PROJECT_DIR, \
                    WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS, \
@@ -54,7 +54,7 @@ class TitanUI(QMainWindow):
         # Setup the user interface from Qt Creator files
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.ui.splitter.setStretchFactor(1, 1)  # Set UI horizontal splitter to the left
+        self.ui.splitter_2.setStretchFactor(1, 1)  # Set UI horizontal splitter to the left
         # Class variables
         self._config = None
         self._project = None
@@ -74,7 +74,12 @@ class TitanUI(QMainWindow):
         self.settings_form = None
         self.input_data_form = None
         self.input_explorer = None
-        self.tool_def_textbrowser = None  # QTextBrowser to show selected tool definition file
+        self.tool_def_textbrowser = QTextBrowser(self)  # Shows selected Tool definition file
+        self.tool_def_textbrowser.setMinimumHeight(1)
+        self.ui.splitter_output.addWidget(self.tool_def_textbrowser)
+        self.tool_def_textbrowser.hide()
+        self.toolbar = self.init_toolbar()
+        self.addToolBar(Qt.RightToolBarArea, self.toolbar)
         self.timer = QTimer(parent=self)
         # Initialize general things
         self.init_conf()
@@ -99,6 +104,11 @@ class TitanUI(QMainWindow):
         else:
             logging.debug("Logging level: Error messages only")
             logging.getLogger().setLevel(level=logging.ERROR)
+
+    def init_conf(self):
+        """Initialize configuration file."""
+        self._config = ConfigurationParser(CONFIGURATION_FILE, defaults=GENERAL_OPTIONS)
+        self._config.load()
 
     def connect_signals(self):
         """Connect PyQt signals."""
@@ -153,6 +163,83 @@ class TitanUI(QMainWindow):
         # noinspection PyUnresolvedReferences
         self.timer.timeout.connect(self.update_setup_model)
 
+    def init_toolbar(self):
+        """Initialize Main window toolbar."""
+        tb = QToolBar("ToolBar", self)
+        max_icon = QIcon()
+        max_icon.addPixmap(QPixmap(":/toolButtons/down_arrow.png"), QIcon.Normal, QIcon.On)
+        maximize_action = QAction(max_icon, '', self)
+        min_icon = QIcon()
+        min_icon.addPixmap(QPixmap(":/toolButtons/up_arrow.png"), QIcon.Normal, QIcon.On)
+        minimize_action = QAction(min_icon, '', self)
+        split_icon = QIcon()
+        split_icon.addPixmap(QPixmap(":/toolButtons/restore_original.png"), QIcon.Normal, QIcon.On)
+        split_action = QAction(split_icon, '', self)
+        # Set tooltips for toolbar actions
+        maximize_action.setToolTip("Maximize Command Output View")
+        minimize_action.setToolTip("Maximize Tool Output View")
+        split_action.setToolTip("Split Command and Tool Output Views Evenly")
+        # Connect toolbar signals
+        # noinspection PyUnresolvedReferences
+        maximize_action.triggered.connect(self.max_textbrowser)
+        # noinspection PyUnresolvedReferences
+        minimize_action.triggered.connect(self.min_textbrowser)
+        # noinspection PyUnresolvedReferences
+        split_action.triggered.connect(self.split_textbrowsers)
+        # Add actions to toolbar
+        tb.addAction(maximize_action)
+        tb.addAction(minimize_action)
+        tb.addAction(split_action)
+        tb.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        tb.setIconSize(QSize(16, 16))
+        # Set stylesheet
+        tb.setStyleSheet("QToolBar{spacing: 5px;\n}"
+                         "QToolButton{background-color: rgb(255, 255, 255);\n"
+                         "border-width: 2px;\n"
+                         "border-style: outset;\n"
+                         "border-color: darkgray;\n"
+                         "border-radius: 4px;\n}")
+        return tb
+
+    @pyqtSlot(name='max_textbrowser')
+    def max_textbrowser(self):
+        """Maximize Command Output View."""
+        self.ui.splitter_output.setSizes([100000, 0, 0])
+        # TODO: check that these layouts exist
+        for w in layout_widgets(self.ui.horizontalLayout_cmd_output):
+            w.widget().show()
+        for w in layout_widgets(self.ui.horizontalLayout_tool_output):
+            w.widget().hide()
+
+    @pyqtSlot(name='min_textbrowser')
+    def min_textbrowser(self):
+        """Maximize Tool Output View."""
+        sizes = self.ui.splitter_output.sizes()  # Heights of all three text browsers in splitter
+        # If tool def text browser is visible
+        if sizes[2] > 0:
+            self.ui.splitter_output.setSizes([0, 0, 100000])  # Maximize tool def browser height
+        else:
+            self.ui.splitter_output.setSizes([0, 100000, 0])  # Maximize tool output browser height
+        for w in layout_widgets(self.ui.horizontalLayout_cmd_output):
+            w.widget().hide()
+        for w in layout_widgets(self.ui.horizontalLayout_tool_output):
+            w.widget().show()
+
+    @pyqtSlot(name='split_textbrowsers')
+    def split_textbrowsers(self):
+        """Split Command Output and Tool Output views evenly."""
+        sizes = self.ui.splitter_output.sizes()  # Heights of all three text browsers in splitter
+        s = sum(sizes)/2
+        # If tool def text browser is visible
+        if sizes[2] > 0:
+            self.ui.splitter_output.setSizes([s, 0, s])  # Split cmd and tool def browsers evenly
+        else:
+            self.ui.splitter_output.setSizes([s, s, 0])  # Split cmd and tool output browsers evenly
+        for w in layout_widgets(self.ui.horizontalLayout_tool_output):
+            w.widget().show()
+        for w in layout_widgets(self.ui.horizontalLayout_cmd_output):
+            w.widget().show()
+
     def init_models(self):
         """Create data models for GUI views."""
         # Root for SetupModel
@@ -203,11 +290,6 @@ class TitanUI(QMainWindow):
             self.ui.listView_tools.doubleClicked.connect(self.edit_tool_def, Qt.UniqueConnection)
         except TypeError:
             pass
-
-    def init_conf(self):
-        """Initialize configuration file."""
-        self._config = ConfigurationParser(CONFIGURATION_FILE, defaults=GENERAL_OPTIONS)
-        self._config.load()
 
     def init_project(self):
         """Initializes project at Sceleton start-up. Loads the last project that was open
@@ -540,7 +622,6 @@ class TitanUI(QMainWindow):
         self.setup_model.emit_data_changed()
         return True
 
-    # noinspection PyUnusedLocal
     def view_tool_def(self, current, previous):
         """Show selected Tool definition file in a QTextBrowser in main window.
 
@@ -550,15 +631,17 @@ class TitanUI(QMainWindow):
         """
         if not current.isValid():
             return
+        sizes = self.ui.splitter_output.sizes()  # Heights of all three text browsers in splitter
         if current.row() == 0:
-            if self.tool_def_textbrowser:
-                self.tool_def_textbrowser.hide()
-                self.ui.label_5.setText("GAMS Output")
-                self.ui.textBrowser_process_output.show()
+            if previous.row() == -1:  # If no previous selection
+                return
+            self.tool_def_textbrowser.hide()
+            self.ui.textBrowser_process_output.show()
+            self.ui.label_5.setText("Tool Output")
+            self.ui.splitter_output.setSizes([sizes[0], sizes[2], 0])
             return
         current_tool = self.tool_model.tool(current.row())
         tool_def_file_path = current_tool.def_file_path
-        json_data = ''
         with open(tool_def_file_path, 'r') as fp:
             try:
                 json_data = json.load(fp)
@@ -566,20 +649,14 @@ class TitanUI(QMainWindow):
                 self.add_msg_signal.emit("Tool definition file not valid: '{0}'".format(tool_def_file_path), 2)
                 logging.exception("Loading JSON data failed")
                 return
-        # Add QTextBrowser below GAMS output QTextBrowser
-        if not self.tool_def_textbrowser:
-            self.tool_def_textbrowser = QTextBrowser(self)
-            self.ui.verticalLayout.addWidget(self.tool_def_textbrowser)
-            self.tool_def_textbrowser.append(json.dumps(json_data, sort_keys=True, indent=4))
-            # Edit label
-            self.ui.label_5.setText("Tool Definition File")
-            self.ui.textBrowser_process_output.hide()
-        else:
-            self.tool_def_textbrowser.clear()
-            self.tool_def_textbrowser.append(json.dumps(json_data, sort_keys=True, indent=4))
-            self.tool_def_textbrowser.show()
-            self.ui.label_5.setText("Tool Definition File")
-            self.ui.textBrowser_process_output.hide()
+        # Show Tool definition text browser
+        self.ui.textBrowser_process_output.hide()
+        self.tool_def_textbrowser.clear()
+        self.tool_def_textbrowser.append(json.dumps(json_data, sort_keys=True, indent=4))
+        self.tool_def_textbrowser.show()
+        self.ui.label_5.setText("Tool Definition File")
+        if previous.row() == 0 or previous.row() == -1:
+            self.ui.splitter_output.setSizes([sizes[0], 0, sizes[1]])
 
     @busy_effect
     @pyqtSlot("QModelIndex", name='edit_tool_def')

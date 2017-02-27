@@ -5,7 +5,8 @@ Unit tests for ToolInstance class.
 @date: 19.12.2016
 """
 
-from unittest import TestCase, mock, skip
+import unittest
+from unittest import mock
 import logging as log
 import os
 import sys
@@ -14,7 +15,7 @@ from GAMS import GAMSModel
 from config import APPLICATION_PATH
 
 
-class TestToolInstance(TestCase):
+class TestToolInstance(unittest.TestCase):
     """NOTE: This class is a work in progress and doesn't actually test anything yet."""
 
     def setUp(self):
@@ -47,22 +48,25 @@ class TestToolInstance(TestCase):
         if os.path.exists(work_dir):
             shutil.rmtree(work_dir)
 
-    @skip("Not ready")
+    @unittest.skip("Not ready")
     def test__checkout(self):
         self.fail()
 
-    @skip("Not ready")
+    @unittest.skip("Not ready")
     def test_execute(self):
         self.fail()
 
-    @skip("Not ready")
+    @unittest.skip("Not ready")
     def test_tool_finished(self):
         self.fail()
 
-    @skip("Not ready")
+    @unittest.skip("Not ready")
     def test_remove(self):
         self.fail()
 
-    @skip("Not ready")
+    @unittest.skip("Not ready")
     def test_copy_output(self):
         self.fail()
+
+if __name__ == '__main__':
+    unittest.main()

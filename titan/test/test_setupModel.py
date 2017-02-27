@@ -5,7 +5,8 @@ Unit tests for SetupModel class.
 @date: 7.4.2016
 """
 
-from unittest import TestCase, skip
+import unittest
+from unittest import mock
 import sys
 import logging as log
 from PyQt5.Qt import QModelIndex
@@ -14,7 +15,7 @@ from models import SetupModel
 from project import SceletonProject
 
 
-class TestSetupModel(TestCase):
+class TestSetupModel(unittest.TestCase):
     def setUp(self):
         log.basicConfig(stream=sys.stderr, level=log.DEBUG,
                         format='%(asctime)s %(levelname)s: %(message)s',
@@ -22,12 +23,19 @@ class TestSetupModel(TestCase):
         log.info("Setting up")
         self._project = SceletonProject('Unittest Project', 'a project for unit tests')
         self._root = Setup('root', 'root node for Setups,', self._project)
-        self.test_model = SetupModel(self._root)
+        self.test_model = self.make_test_model()
 
     def tearDown(self):
         log.info("Tearing down")
         self.test_model = None
         # TODO: Remove Setup input directories (and maybe the whole unittest_project directory)
+
+    @mock.patch('models.AnimatedSpinningWheelIcon')
+    def make_test_model(self, anim_icon):
+        """Mock spinning wheel icon class."""
+        SetupModel.animated_icon = anim_icon
+        test_model = SetupModel(self._root)
+        return test_model
 
     def test_get_siblings(self):
         """Test if get_siblings returns indices a, b, c if given index a."""
@@ -44,7 +52,7 @@ class TestSetupModel(TestCase):
         #     log.debug("%s" % self.test_model.get_setup(ind).name)
         self.assertEqual(expected_output, actual_output)
 
-    @skip("Not ready")
+    @unittest.skip("Not ready")
     def test_get_next_setup(self):
         self.fail()
 
@@ -258,7 +266,7 @@ class TestSetupModel(TestCase):
             ret = self.test_model.get_next_setup(breadth_first=breadth_first)
         self.assertEqual(act_output, exp_output)
 
-    @skip("Not ready")
+    @unittest.skip("Not ready")
     def test_get_next_generation(self):
         self.fail()
 
@@ -554,3 +562,6 @@ class TestSetupModel(TestCase):
             out.append(self.c_ind.internalPointer().name)
             out.append(self.d_ind.internalPointer().name)
         return out
+
+if __name__ == '__main__':
+    unittest.main()

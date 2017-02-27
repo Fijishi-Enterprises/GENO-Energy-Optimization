@@ -6,7 +6,8 @@ Note: PyCharm did not like filename test_setup.py so this was renamed to test_Se
 @date: 26.2.2016
 """
 
-from unittest import TestCase, SkipTest, mock, skip
+import unittest
+from unittest import mock
 import os
 import sys
 import shutil
@@ -18,12 +19,12 @@ from GAMS import GAMSModel
 from config import APPLICATION_PATH, CONFIGURATION_FILE, GENERAL_OPTIONS
 from helpers import copy_files, create_dir, create_output_dir_timestamp
 from project import SceletonProject
-from models import SetupModel
-from models import ToolModel
+from models import SetupModel, ToolModel
 from configuration import ConfigurationParser
 
 
-class TestSetup(TestCase):
+# noinspection PyUnusedLocal
+class TestSetup(unittest.TestCase):
     # TODO: Mock create_dir so that directories are not actually created
 
     # add_msg_signal = mock.Mock()  # Example of a mock signal
@@ -37,7 +38,7 @@ class TestSetup(TestCase):
         self._project = SceletonProject('Unittest Project', '')
         # Make SetupModel
         self._root = Setup('root', 'root node for Setups,', self._project)
-        self._setup_model = SetupModel(self._root)
+        self._setup_model = self.make_test_model()
         # Add a few Setups into SetupModel
         self._setup_model.insert_setup('Base', 'Base Setup for unit tests', self._project, 0)
         base_index = self._setup_model.find_index('Base')
@@ -79,6 +80,13 @@ class TestSetup(TestCase):
         self._setup_model = None
         if self._tool_model:
             self._tool_model = None
+
+    @mock.patch('models.AnimatedSpinningWheelIcon')
+    def make_test_model(self, anim_icon):
+        """Mock spinning wheel icon class."""
+        SetupModel.animated_icon = anim_icon
+        test_model = SetupModel(self._root)
+        return test_model
 
     @mock.patch('ui_main.TitanUI')
     def init_tool_model(self, mock_ui):
@@ -355,25 +363,25 @@ class TestSetup(TestCase):
         src_dummy_b_f = os.path.join(src_f, 'dummy_b')
 
         if not self._project:
-            raise SkipTest("Test skipped. No project found")
+            raise unittest.SkipTest("Test skipped. No project found")
         dst_base_f = os.path.join(self._project.project_dir, 'input', 'base')
         dst_dummy_a_f = os.path.join(self._project.project_dir, 'input', 'dummy_a')
         dst_dummy_b_f = os.path.join(self._project.project_dir, 'input', 'dummy_b')
 
         # Check that source test input folders exist
         if not os.path.exists(src_base_f):
-            raise SkipTest("Test skipped. Base (src) input folder missing <{0}>\n".format(src_base_f))
+            raise unittest.SkipTest("Test skipped. Base (src) input folder missing <{0}>\n".format(src_base_f))
         if not os.path.exists(src_dummy_a_f):
-            raise SkipTest("Test skipped. Child (src) input folder missing <{0}>\n".format(src_dummy_a_f))
+            raise unittest.SkipTest("Test skipped. Child (src) input folder missing <{0}>\n".format(src_dummy_a_f))
         if not os.path.exists(src_dummy_b_f):
-            raise SkipTest("Test skipped. Child (src) input folder missing <{0}>\n".format(src_dummy_b_f))
+            raise unittest.SkipTest("Test skipped. Child (src) input folder missing <{0}>\n".format(src_dummy_b_f))
         # Check that destination project input folders exist (created by SceletonProject())
         if not os.path.exists(dst_base_f):
-            raise SkipTest("Test skipped. Base (dst) input folder not found <{0}>\n".format(dst_base_f))
+            raise unittest.SkipTest("Test skipped. Base (dst) input folder not found <{0}>\n".format(dst_base_f))
         if not os.path.exists(dst_dummy_a_f):
-            raise SkipTest("Test skipped. Child (dst) input folder not found <{0}>\n".format(dst_dummy_a_f))
+            raise unittest.SkipTest("Test skipped. Child (dst) input folder not found <{0}>\n".format(dst_dummy_a_f))
         if not os.path.exists(dst_dummy_b_f):
-            raise SkipTest("Test skipped. Child (dst) input folder not found <{0}>\n".format(dst_dummy_b_f))
+            raise unittest.SkipTest("Test skipped. Child (dst) input folder not found <{0}>\n".format(dst_dummy_b_f))
         # Copy files from test input folders to appropriate test setup folders
         base_count = copy_files(src_base_f, dst_base_f)
         dummy_a_count = copy_files(src_dummy_a_f, dst_dummy_a_f)
@@ -462,3 +470,6 @@ class TestSetup(TestCase):
         # log.debug("MockQProcessClass class dir:%s" % dir(mock_qprocess_class))
         assert mock_qprocess_class is tool.qsubprocess.QProcess
         assert mock_qprocess_class.called
+
+if __name__ == '__main__':
+    unittest.main()

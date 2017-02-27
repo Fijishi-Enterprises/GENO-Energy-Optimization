@@ -5,23 +5,26 @@ Unit tests for Tool class.
 @date: 7.4.2016
 """
 
-from unittest import TestCase, skip
+import unittest
 
 
-class TestTool(TestCase):
+class TestTool(unittest.TestCase):
 
-    @skip("Not ready")
+    @unittest.skip("Not ready")
     def test_set_return_code(self):
         self.fail()
 
-    @skip("Not ready")
+    @unittest.skip("Not ready")
     def test_set_def_path(self):
         self.fail()
 
-    @skip("Not ready")
+    @unittest.skip("Not ready")
     def test_get_def_path(self):
         self.fail()
 
-    @skip("Not ready")
+    @unittest.skip("Not ready")
     def test_create_instance(self):
         self.fail()
+
+if __name__ == '__main__':
+    unittest.main()

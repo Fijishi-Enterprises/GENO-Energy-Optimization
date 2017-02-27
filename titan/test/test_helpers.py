@@ -5,7 +5,7 @@ Unit tests for helper functions in helpers.py file.
 @date: 26.9.2016
 """
 
-from unittest import TestCase
+import unittest
 import sys
 import os
 import shutil
@@ -13,8 +13,7 @@ import logging as log
 from helpers import create_dir, copy_files
 
 
-class TestHelpers(TestCase):
-
+class TestHelpers(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         log.basicConfig(stream=sys.stderr, level=log.DEBUG,
@@ -125,3 +124,6 @@ class TestHelpers(TestCase):
             if os.path.isfile(file_path):
                 os.remove(file_path)
                 log.debug("Deleted file: {0}".format(file_path))
+
+if __name__ == '__main__':
+    unittest.main()

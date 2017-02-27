@@ -307,3 +307,12 @@ def remove_work_dirs(dirs):
         except OSError:
             logging.exception("OSError while removing directory {}".format(directory))
             raise
+
+
+def layout_widgets(layout):
+    """Return a generator containing all widgets in the given layout.
+
+    Args:
+        layout (QLayout): Layout containing widgets
+    """
+    return (layout.itemAt(i) for i in range(layout.count()))
