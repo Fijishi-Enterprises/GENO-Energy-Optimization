@@ -414,6 +414,39 @@ class SetupModel(QAbstractItemModel):
             sibling_list.append(sib)
         return sibling_list
 
+    def get_next_setup_selected(self, selected_index):
+        """Get next Setup when executing a Setup chain.
+        Returns the first parent of selected index that
+        is not ready. Returns None if all parents and the
+        selected index have been executed.
+
+        Args:
+            selected_index (QModelIndex): Selected Setup index
+        """
+        if not selected_index:
+            return None  # Happens if user deselects Setup while simulation is running
+        # If base has no children, return None
+        n_children = self._base_index.internalPointer().child_count()
+        # Stop execution if Base has no children
+        if n_children == 0:
+            return None
+        # Get all parents of selected index into a list
+        exec_list = list()
+        exec_list.append(selected_index)
+        parent = self.parent(selected_index)
+        while parent.isValid():
+            exec_list.append(parent)
+            parent = self.parent(parent)
+        # Remove base Setup from list because it has already been executed
+        exec_list.pop(-1)
+        # Reverse list so execution starts from the bottom
+        exec_list.reverse()
+        # Return first index from list that is not ready
+        for index in exec_list:
+            if not index.internalPointer().is_ready:
+                return index
+        return None
+
     def get_next_setup(self, breadth_first=True):
         """Get next Setup depending on the tree traversal algorithm in use.
 

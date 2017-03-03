@@ -72,7 +72,7 @@
              </size>
             </property>
             <property name="title">
-             <string>Execute</string>
+             <string>Execution</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -118,17 +118,17 @@
               </spacer>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_execute_branch">
+              <widget class="QPushButton" name="pushButton_execute_selected">
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute selected Setup and its parents. Execution starts from selected Setups' base Setup and traverses from the base until the selected Setup.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
-                <string>Chain (F6)</string>
+                <string>Execute (F6)</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_execute_all">
+              <widget class="QPushButton" name="pushButton_execute_project">
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute all Setups in the project by using the selected tree traversal algorithm.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
@@ -1080,7 +1080,7 @@
     <property name="title">
      <string>Execute</string>
     </property>
-    <addaction name="actionExecuteBranch"/>
+    <addaction name="actionExecuteSelected"/>
     <addaction name="actionExecuteProject"/>
     <addaction name="actionStop_Execution"/>
    </widget>
@@ -1267,9 +1267,9 @@
     <string>F5</string>
    </property>
   </action>
-  <action name="actionExecuteBranch">
+  <action name="actionExecuteSelected">
    <property name="text">
-    <string>Chain</string>
+    <string>Execute</string>
    </property>
    <property name="shortcut">
     <string>F6</string>
@@ -1277,7 +1277,7 @@
   </action>
   <action name="actionExecuteProject">
    <property name="text">
-    <string>Project</string>
+    <string>Execute Project</string>
    </property>
    <property name="shortcut">
     <string>F7</string>
@@ -1303,8 +1303,8 @@
  <tabstops>
   <tabstop>radioButton_breadth_first</tabstop>
   <tabstop>radioButton_depth_first</tabstop>
-  <tabstop>pushButton_execute_branch</tabstop>
-  <tabstop>pushButton_execute_all</tabstop>
+  <tabstop>pushButton_execute_selected</tabstop>
+  <tabstop>pushButton_execute_project</tabstop>
   <tabstop>pushButton_delete_setup</tabstop>
   <tabstop>pushButton_delete_all</tabstop>
   <tabstop>toolButton_clear_ready_branch</tabstop>

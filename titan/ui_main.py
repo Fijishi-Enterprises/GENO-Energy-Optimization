@@ -135,12 +135,12 @@ class TitanUI(QMainWindow):
         self.ui.actionAdd_Tool.triggered.connect(self.add_tool)
         self.ui.actionRefresh_Tools.triggered.connect(self.refresh_tools)
         self.ui.actionRemove_Tool.triggered.connect(self.remove_tool)
-        self.ui.actionExecuteBranch.triggered.connect(self.execute_branch)
-        self.ui.actionExecuteProject.triggered.connect(self.execute_all)
+        self.ui.actionExecuteSelected.triggered.connect(self.execute_selected)
+        self.ui.actionExecuteProject.triggered.connect(self.execute_project)
         self.ui.actionStop_Execution.triggered.connect(self.terminate_execution)
         # Widgets
-        self.ui.pushButton_execute_all.clicked.connect(self.execute_all)
-        self.ui.pushButton_execute_branch.clicked.connect(self.execute_branch)
+        self.ui.pushButton_execute_project.clicked.connect(self.execute_project)
+        self.ui.pushButton_execute_selected.clicked.connect(self.execute_selected)
         self.ui.pushButton_delete_setup.clicked.connect(self.delete_selected_setup)
         self.ui.pushButton_delete_all.clicked.connect(self.delete_all)
         self.ui.pushButton_clear_titan_output.clicked.connect(lambda: self.ui.textBrowser_main.clear())
@@ -700,14 +700,14 @@ class TitanUI(QMainWindow):
         elif option == "Edit Tool":
             self.open_edit_tool_form(ind)
             return
-        elif option == "Execute":
+        elif option == "Execute Single":
             self.execute_single()
             return
-        elif option == "Execute Chain":
-            self.execute_branch()
+        elif option == "Execute Selected":
+            self.execute_selected()
             return
         elif option == "Execute Project":
-            self.execute_all()
+            self.execute_project()
             return
         elif option == "Clear Flags":
             self.clear_setup_flags()
@@ -961,14 +961,14 @@ class TitanUI(QMainWindow):
         self.exec_mode = 'single'
         self.execute_setup()
 
-    def execute_branch(self):
+    def execute_selected(self):
         """Starts executing a Setup branch."""
-        self.exec_mode = 'branch'
+        self.exec_mode = 'selected'
         self.execute_setup()
 
-    def execute_all(self):
+    def execute_project(self):
         """Starts executing all Setups in the project."""
-        self.exec_mode = 'all'
+        self.exec_mode = 'project'
         self.execute_setup()
 
     def execute_setup(self):
@@ -991,7 +991,7 @@ class TitanUI(QMainWindow):
                 return
             self.add_msg_signal.emit("<br/>Executing a single Setup", 0)
             self._running_setup = selected_setup.internalPointer()
-        elif self.exec_mode == 'branch':
+        elif self.exec_mode == 'selected':
             # Set index of base Setup for the model
             base = self.get_selected_setup_base_index()
             # Check if no Setup selected
@@ -1002,7 +1002,7 @@ class TitanUI(QMainWindow):
             self.setup_model.set_base(base)
             # Set Base Setup as the first running Setup
             self._running_setup = self.setup_model.get_base().internalPointer()
-        elif self.exec_mode == 'all':
+        elif self.exec_mode == 'project':
             if not self._project:
                 self.add_msg_signal.emit("Open a Project to execute Setups<br/>", 0)
                 return
@@ -1048,7 +1048,7 @@ class TitanUI(QMainWindow):
         except TypeError:  # Just in case
             # logging.warning("setup_finished_signal not connected")
             pass
-        if not self._running_setup.is_ready:
+        if not self._running_setup.is_ready:  # TODO: Check failed flag instead
             self.add_msg_signal.emit("Setup <b>{0}</b> failed".format(self._running_setup.name), 2)
             self._running_setup = None
             self.toggle_gui(True)
@@ -1062,30 +1062,34 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("Done", 1)
             self.toggle_gui(True)
             return
-        # Get next executed Setup
-        next_setup = self.setup_model.get_next_setup(breadth_first=self.algorithm)
-        if not next_setup:
-            if self.exec_mode == 'branch':
+
+        if self.exec_mode == 'selected':
+            # Get next executed Setup
+            next_setup = self.setup_model.get_next_setup_selected(self.get_selected_setup_index())
+            if not next_setup:
                 logging.debug("All Setups ready")
                 self.add_msg_signal.emit("All Setups ready", 1)
                 self.toggle_gui(True)
                 return
-            elif self.exec_mode == 'all':
-                # Get the first base Setup that is not ready
-                for i in range(self._root.child_count()):
-                    if not self._root.child(i).is_ready:
-                        new_base_name = self._root.child(i).name
-                        new_base_index = self.setup_model.find_index(new_base_name)
-                        self.setup_model.set_base(new_base_index)
-                        next_setup = self.setup_model.get_base()
-                        # self.add_msg_signal.emit("Found base Setup <b>{0}</b>"
-                        #                          .format(next_setup.internalPointer().name), 0)
-                        break
-                if not next_setup:
-                    self.add_msg_signal.emit("All Setups in Project ready", 1)
-                    self.toggle_gui(True)
-                    return
-        self._running_setup = next_setup.internalPointer()
+            self._running_setup = next_setup.internalPointer()
+        elif self.exec_mode == 'project':
+            # Get next executed Setup
+            next_setup = self.setup_model.get_next_setup(breadth_first=self.algorithm)
+            # Get the first base Setup that is not ready
+            for i in range(self._root.child_count()):
+                if not self._root.child(i).is_ready:
+                    new_base_name = self._root.child(i).name
+                    new_base_index = self.setup_model.find_index(new_base_name)
+                    self.setup_model.set_base(new_base_index)
+                    next_setup = self.setup_model.get_base()
+                    # self.add_msg_signal.emit("Found base Setup <b>{0}</b>"
+                    #                          .format(next_setup.internalPointer().name), 0)
+                    break
+            if not next_setup:
+                self.add_msg_signal.emit("All Setups in Project ready", 1)
+                self.toggle_gui(True)
+                return
+            self._running_setup = next_setup.internalPointer()
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
         self.add_msg_signal.emit("<br/>Starting Setup <b>{0}</b>".format(self._running_setup.name), 0)
         # Connect setup_finished_signal to this same slot
@@ -1117,8 +1121,8 @@ class TitanUI(QMainWindow):
         Args:
             value (boolean): False to disable GUI, True to enable GUI
         """
-        self.ui.pushButton_execute_branch.setEnabled(value)
-        self.ui.pushButton_execute_all.setEnabled(value)
+        self.ui.pushButton_execute_selected.setEnabled(value)
+        self.ui.pushButton_execute_project.setEnabled(value)
         self.ui.pushButton_delete_setup.setEnabled(value)
         self.ui.pushButton_delete_all.setEnabled(value)
         self.ui.toolButton_clear_ready_branch.setEnabled(value)
@@ -1129,7 +1133,7 @@ class TitanUI(QMainWindow):
         self.ui.toolButton_clear_flags.setEnabled(value)
         self.ui.pushButton_import_data.setEnabled(value)
         self.ui.actionExecuteSingle.setEnabled(value)
-        self.ui.actionExecuteBranch.setEnabled(value)
+        self.ui.actionExecuteSelected.setEnabled(value)
         self.ui.actionExecuteProject.setEnabled(value)
         self.ui.actionImportData.setEnabled(value)
         self.ui.actionStop_Execution.setEnabled(not value)

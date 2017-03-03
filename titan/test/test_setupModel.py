@@ -20,13 +20,11 @@ class TestSetupModel(unittest.TestCase):
         log.basicConfig(stream=sys.stderr, level=log.DEBUG,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-        log.info("Setting up")
         self._project = SceletonProject('Unittest Project', 'a project for unit tests')
         self._root = Setup('root', 'root node for Setups,', self._project)
         self.test_model = self.make_test_model()
 
     def tearDown(self):
-        log.info("Tearing down")
         self.test_model = None
         # TODO: Remove Setup input directories (and maybe the whole unittest_project directory)
 
@@ -52,9 +50,112 @@ class TestSetupModel(unittest.TestCase):
         #     log.debug("%s" % self.test_model.get_setup(ind).name)
         self.assertEqual(expected_output, actual_output)
 
-    @unittest.skip("Not ready")
-    def test_get_next_setup(self):
-        self.fail()
+    def test_execute_selected_1(self):
+        """Test chain execution with a selected Setup (a).
+        All parent's and the selected Setup should be executed.
+        No siblings of selected Setup should be executed.
+        Ignore algorithm.
+        """
+        # Add Setups to model
+        self.create_setups_1()
+        # Create expected output
+        exp_output = self.expected_output_for_setups_1_a_selected()
+        # List for actual output
+        act_output = list()
+        # Get first Setup
+        next_setup = self.test_model.get_next_setup_selected(self.a_ind)
+        # Get next Setup until None is returned
+        while next_setup is not None:
+            # Set Setup ready
+            self.test_model.get_setup(next_setup).is_ready = True
+            act_output.append(next_setup.internalPointer().name)
+            next_setup = self.test_model.get_next_setup_selected(self.a_ind)
+        self.assertEqual(act_output, exp_output)
+
+    def test_execute_selected_2(self):
+        """Test chain execution with a selected Setup (d).
+        All parent's and the selected Setup should be executed.
+        No siblings of selected Setup should be executed.
+        Ignore algorithm.
+        """
+        # Add Setups to model
+        self.create_setups_1()
+        # Create expected output
+        exp_output = self.expected_output_for_setups_1_d_selected()
+        # List for actual output
+        act_output = list()
+        # Get first Setup
+        next_setup = self.test_model.get_next_setup_selected(self.d_ind)
+        # Get next Setup until None is returned
+        while next_setup is not None:
+            # Set Setup ready
+            self.test_model.get_setup(next_setup).is_ready = True
+            act_output.append(next_setup.internalPointer().name)
+            next_setup = self.test_model.get_next_setup_selected(self.d_ind)
+        self.assertEqual(act_output, exp_output)
+
+    def test_execute_selected_3(self):
+        """Test chain execution with a selected Setup (e).
+        All parent's and the selected Setup should be executed.
+        No siblings of selected Setup should be executed.
+        """
+        # Add Setups to model
+        self.create_setups_1()
+        # Create expected output
+        exp_output = self.expected_output_for_setups_1_e_selected()
+        # List for actual output
+        act_output = list()
+        # Get first Setup
+        next_setup = self.test_model.get_next_setup_selected(self.e_ind)
+        # Get next Setup until None is returned
+        while next_setup is not None:
+            # Set Setup ready
+            self.test_model.get_setup(next_setup).is_ready = True
+            act_output.append(next_setup.internalPointer().name)
+            next_setup = self.test_model.get_next_setup_selected(self.e_ind)
+        self.assertEqual(act_output, exp_output)
+
+    def test_execute_selected_4(self):
+        """Test chain execution with a selected Setup (e).
+        All parent's and the selected Setup should be executed.
+        No siblings of selected Setup should be executed.
+        """
+        # Add Setups to model
+        self.create_setups_2()
+        # Create expected output
+        exp_output = self.expected_output_for_setups_2_e_selected()
+        # List for actual output
+        act_output = list()
+        # Get first Setup
+        next_setup = self.test_model.get_next_setup_selected(self.e_ind)
+        # Get next Setup until None is returned
+        while next_setup is not None:
+            # Set Setup ready
+            self.test_model.get_setup(next_setup).is_ready = True
+            act_output.append(next_setup.internalPointer().name)
+            next_setup = self.test_model.get_next_setup_selected(self.e_ind)
+        self.assertEqual(act_output, exp_output)
+
+    def test_execute_selected_5(self):
+        """Test chain execution with a selected Setup (g).
+        All parent's and the selected Setup should be executed.
+        No siblings of selected Setup should be executed.
+        """
+        # Add Setups to model
+        self.create_setups_2()
+        # Create expected output
+        exp_output = self.expected_output_for_setups_2_g_selected()
+        # List for actual output
+        act_output = list()
+        # Get first Setup
+        next_setup = self.test_model.get_next_setup_selected(self.g_ind)
+        # Get next Setup until None is returned
+        while next_setup is not None:
+            # Set Setup ready
+            self.test_model.get_setup(next_setup).is_ready = True
+            act_output.append(next_setup.internalPointer().name)
+            next_setup = self.test_model.get_next_setup_selected(self.g_ind)
+        self.assertEqual(act_output, exp_output)
 
     def test_breadth_first_setups_1(self):
         """get_next_setup is called the first time when Base Setup has already finished.
@@ -266,10 +367,6 @@ class TestSetupModel(unittest.TestCase):
             ret = self.test_model.get_next_setup(breadth_first=breadth_first)
         self.assertEqual(act_output, exp_output)
 
-    @unittest.skip("Not ready")
-    def test_get_next_generation(self):
-        self.fail()
-
     def create_setups_1(self):
         """Creates Setups:
         base
@@ -324,6 +421,56 @@ class TestSetupModel(unittest.TestCase):
             out.append(self.b_ind.internalPointer().name)
             out.append(self.c_ind.internalPointer().name)
             out.append(self.e_ind.internalPointer().name)
+        return out
+
+    def expected_output_for_setups_1_a_selected(self):
+        """Returns expected output for setups_1 when Setup a is selected.
+        Expected output:
+        a
+        """
+        out = list()
+        out.append(self.a_ind.internalPointer().name)
+        return out
+
+    def expected_output_for_setups_1_d_selected(self):
+        """Returns expected output for setups_1 when Setup d is selected.
+        Expected output:
+        a, d
+        """
+        out = list()
+        out.append(self.a_ind.internalPointer().name)
+        out.append(self.d_ind.internalPointer().name)
+        return out
+
+    def expected_output_for_setups_1_e_selected(self):
+        """Returns expected output for setups_1 when Setup e is selected.
+        Expected output:
+        c, e
+        """
+        out = list()
+        out.append(self.c_ind.internalPointer().name)
+        out.append(self.e_ind.internalPointer().name)
+        return out
+
+    def expected_output_for_setups_2_e_selected(self):
+        """Returns expected output for setups_2 when Setup e is selected.
+        Expected output:
+        a, e
+        """
+        out = list()
+        out.append(self.a_ind.internalPointer().name)
+        out.append(self.e_ind.internalPointer().name)
+        return out
+
+    def expected_output_for_setups_2_g_selected(self):
+        """Returns expected output for setups_2 when Setup g is selected.
+        Expected output:
+        a, e, g
+        """
+        out = list()
+        out.append(self.a_ind.internalPointer().name)
+        out.append(self.e_ind.internalPointer().name)
+        out.append(self.g_ind.internalPointer().name)
         return out
 
     def create_setups_2(self):
