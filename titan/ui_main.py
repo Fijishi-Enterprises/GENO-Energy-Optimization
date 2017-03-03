@@ -193,12 +193,14 @@ class TitanUI(QMainWindow):
         tb.setToolButtonStyle(Qt.ToolButtonIconOnly)
         tb.setIconSize(QSize(16, 16))
         # Set stylesheet
-        tb.setStyleSheet("QToolBar{spacing: 5px;\n}"
+        tb.setStyleSheet("QToolBar{spacing: 5px;\n"
+                         "background-color: 'darksalmon';\n"
+                         "padding: 4px;\n}"
                          "QToolButton{background-color: rgb(255, 255, 255);\n"
                          "border-width: 2px;\n"
                          "border-style: outset;\n"
                          "border-color: darkgray;\n"
-                         "border-radius: 4px;\n}")
+                         "border-radius: 6px;\n}")
         return tb
 
     @pyqtSlot(name='max_textbrowser')
@@ -1076,8 +1078,8 @@ class TitanUI(QMainWindow):
                         new_base_index = self.setup_model.find_index(new_base_name)
                         self.setup_model.set_base(new_base_index)
                         next_setup = self.setup_model.get_base()
-                        self.add_msg_signal.emit("Found base Setup <b>{0}</b>"
-                                                 .format(next_setup.internalPointer().name), 0)
+                        # self.add_msg_signal.emit("Found base Setup <b>{0}</b>"
+                        #                          .format(next_setup.internalPointer().name), 0)
                         break
                 if not next_setup:
                     self.add_msg_signal.emit("All Setups in Project ready", 1)

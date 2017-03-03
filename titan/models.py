@@ -8,7 +8,7 @@ Note: These models have nothing to do with Backbone, Balmorel, WILMAR, etc.
 
 import logging
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, \
-    QAbstractListModel, QModelIndex, QSortFilterProxyModel
+    QAbstractListModel, QModelIndex, QSortFilterProxyModel, QMimeData
 from setup import Setup
 from helpers import AnimatedSpinningWheelIcon
 
@@ -136,7 +136,11 @@ class SetupModel(QAbstractItemModel):
         Returns:
             Flags
         """
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled
+
+    def supportedDropActions(self):
+        """Enable item moving."""
+        return Qt.MoveAction
 
     def headerData(self, section, orientation, role=None):
         """Set data for header.
@@ -217,8 +221,6 @@ class SetupModel(QAbstractItemModel):
         self.beginInsertRows(parent, row, row)
         new_setup = Setup(name, description, project)
         retval = parent_setup.insert_child(position=row, child=new_setup)
-        # position = parent_setup.child_count()  # Add new child as the last item in children list
-        # retval = parent_setup.insert_child(position=position, child=new_setup)
         self.endInsertRows()
         return retval
 
@@ -237,6 +239,121 @@ class SetupModel(QAbstractItemModel):
         retval = parent_setup.remove_child(row)
         self.endRemoveRows()
         return retval
+
+    def mimeTypes(self):
+        return ['text/plain']
+
+    def mimeData(self, indexes):
+        """Reimplemented mimeData.
+
+        Args:
+            indexes (list): Probably includes three indexes because model has 3 columns
+        """
+        names = [a.internalPointer().name for a in indexes]
+        data = QMimeData()
+        data.setText(names[0])
+        return data
+
+    def dropMimeData(self, data, action, row, column, parent):
+        """Reimplemented dropMimeData.
+
+        Args:
+            data (QMimeData): Data of the dropped item
+            action (DropAction): Action (Qt.DropAction)
+            row (int): Row
+            column (int): Column
+            parent (QModelIndex): Parent index
+        """
+        if action == Qt.MoveAction:  # :2
+            setup_name = data.text()
+            setup_index = self.find_index(setup_name)  # Index of dropped Setup
+            # Check that dropped Setup index was found successfully
+            if not setup_index:
+                logging.error("Setup corresponding to name {} not found".format(setup_name))
+                return False
+            # Get source parent and row
+            source_parent = setup_index.parent()
+            source_row = setup_index.row()
+            # Get destination Setup parent name
+            if not parent:
+                logging.error("Parent is None")
+                return False
+            elif not parent.isValid():
+                parent_name = 'root'
+            else:
+                parent_name = parent.internalPointer().name
+            if row == -1 and column == -1:
+                # Item dropped on item at index parent. Make dropped item the first child of parent.
+                if parent_name == 'root':
+                    # Item dropped in invalid spot
+                    logging.debug("Invalid index")
+                    return False
+                if not self.moveRow(source_parent, source_row, parent, 0):
+                    logging.debug("Move dismissed")
+                    return False
+                return True
+            else:
+                # Item dropped between items. Move dropped item on row row and set parent as parent, ignore column
+                if parent_name == 'root':
+                    parent = QModelIndex()
+                if not self.moveRow(source_parent, source_row, parent, row):
+                    logging.debug("Move dismissed")
+                    return False
+                return True
+        else:
+            logging.error("Unsupported action ({}) in dropMimeData".format(action))
+            return False
+
+    def moveRow(self, src_parent, src_row, dst_parent, dst_row):
+        """Reimplemented moveRow method. Move Setups in the model.
+
+        Args:
+            src_parent (QModelIndex): Source Setup parent index
+            src_row (int): Source row
+            dst_parent (QModelIndex): Destination Setup parent index
+            dst_row (int): Destination row
+        """
+        # Move Setup within same parent
+        if src_parent == dst_parent:
+            if not src_parent.isValid():
+                # Move base Setup
+                begin_move_success = self.beginMoveRows(QModelIndex(), src_row, src_row, QModelIndex(), dst_row)
+                if not begin_move_success:
+                    return False
+                self._root_setup.move_child(src_row, self._root_setup, dst_row)
+                self.endMoveRows()
+            else:
+                # Move within same parent (not root)
+                begin_move_success = self.beginMoveRows(src_parent, src_row, src_row, dst_parent, dst_row)
+                if not begin_move_success:
+                    return False
+                src_parent.internalPointer().move_child(src_row, dst_parent.internalPointer(), dst_row)
+                self.endMoveRows()
+            return True
+        # Move Setup from one parent to another
+        else:
+            if not src_parent.isValid():
+                # Move base Setup to another parent
+                begin_move_success = self.beginMoveRows(QModelIndex(), src_row, src_row, dst_parent, dst_row)
+                if not begin_move_success:
+                    return False
+                self._root_setup.move_child(src_row, dst_parent.internalPointer(), dst_row)
+                self.endMoveRows()
+            elif not dst_parent.isValid():
+                # Move Setup from a parent to be a base Setup
+                begin_move_success = self.beginMoveRows(src_parent, src_row, src_row, QModelIndex(), dst_row)
+                if not begin_move_success:
+                    return False
+                src_parent.internalPointer().move_child(src_row, self._root_setup, dst_row)
+                self.endMoveRows()
+            else:
+                # Move Setup from one parent to another
+                begin_move_success = self.beginMoveRows(src_parent, src_row, src_row, dst_parent, dst_row)
+                if not begin_move_success:
+                    return False
+                src_parent.internalPointer().move_child(src_row, dst_parent.internalPointer(), dst_row)
+                self.endMoveRows()
+            return True
 
     def get_setup(self, index):
         """Get setup with the given index.

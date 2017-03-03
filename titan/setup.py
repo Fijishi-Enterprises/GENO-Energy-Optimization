@@ -90,6 +90,20 @@ class Setup(MetaObject):
         child._parent = None
         return True
 
+    def move_child(self, src_row, dst_parent, dst_row):
+        """Move child of this Setup as the child of destination parent.
+
+        Args:
+            src_row (int): Source row of moved Setup
+            dst_parent (Setup): Destination parent
+            dst_row (int): Destination row
+        """
+        if dst_parent == self:
+            self._children.insert(dst_row, self._children.pop(src_row))
+        else:
+            popped_setup = self._children.pop(src_row)
+            dst_parent.insert_child(dst_row, popped_setup)
+
     def child(self, row):
         """Returns child Setup on given row.
 
