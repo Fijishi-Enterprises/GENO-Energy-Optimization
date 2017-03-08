@@ -528,12 +528,12 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_inspect_data">
+              <widget class="QPushButton" name="pushButton_show_verifier">
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show Setup Input/Output Data&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
-                <string>Inspect (F3)</string>
+                <string>Verify (F3)</string>
                </property>
               </widget>
              </item>
@@ -1065,7 +1065,7 @@
      <string>Data</string>
     </property>
     <addaction name="actionImportData"/>
-    <addaction name="actionInspectData"/>
+    <addaction name="actionVerifyData"/>
     <addaction name="actionExplore"/>
    </widget>
    <widget class="QMenu" name="menuTools">
@@ -1224,9 +1224,9 @@
     <string>F2</string>
    </property>
   </action>
-  <action name="actionInspectData">
+  <action name="actionVerifyData">
    <property name="text">
-    <string>Inspect</string>
+    <string>Verify</string>
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show Setup Input/Output Data&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1314,7 +1314,7 @@
   <tabstop>toolButton_clear_failed</tabstop>
   <tabstop>toolButton_clear_flags</tabstop>
   <tabstop>pushButton_import_data</tabstop>
-  <tabstop>pushButton_inspect_data</tabstop>
+  <tabstop>pushButton_show_verifier</tabstop>
   <tabstop>pushButton_show_explorer</tabstop>
   <tabstop>treeView_setups</tabstop>
   <tabstop>listView_tools</tabstop>

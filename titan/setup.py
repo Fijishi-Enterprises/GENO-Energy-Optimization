@@ -42,6 +42,7 @@ class Setup(MetaObject):
         self.instance = None
         self.running = False
         self.failed = False
+        self.ready_to_run = None  # Used to draw background color when verifying input data
         # Create path to setup input directory (except for root)
         if not self.is_root:
             self.input_dir = os.path.join(project.project_dir, INPUT_STORAGE_DIR,

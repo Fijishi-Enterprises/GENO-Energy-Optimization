@@ -90,8 +90,8 @@ class InputExplorerWidget(QWidget):
         """Update shown input files when selected Setup changes.
 
         Args:
-            previous (QModelIndex): Previously selected item
             current (QModelIndex): Current selected item
+            previous (QModelIndex): Previously selected item
         """
         if not current:
             logging.debug("Nothing selected")

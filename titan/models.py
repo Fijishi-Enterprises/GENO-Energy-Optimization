@@ -9,6 +9,7 @@ Note: These models have nothing to do with Backbone, Balmorel, WILMAR, etc.
 import logging
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, \
     QAbstractListModel, QModelIndex, QSortFilterProxyModel, QMimeData
+from PyQt5.Qt import QBrush, QColor
 from setup import Setup
 from helpers import AnimatedSpinningWheelIcon
 
@@ -580,7 +581,6 @@ class SetupModel(QAbstractItemModel):
 
 class SetupProxyModel(QSortFilterProxyModel):
     """Proxy model to filter out other columns than the first one. Do not show decoration."""
-
     def __init__(self):
         super().__init__()
 
@@ -606,6 +606,56 @@ class SetupProxyModel(QSortFilterProxyModel):
             return source_index.internalPointer().name
         else:
             return None
+
+
+class SetupAndToolProxyModel(QSortFilterProxyModel):
+    """Proxy model to show the name and tool columns from the Setup model."""
+    def __init__(self):
+        super().__init__()
+        self.green_brush = QBrush(QColor('lightgreen'))
+        self.red_brush = QBrush(QColor('salmon'))
+
+    def columnCount(self, parent=None, *args, **kwargs):
+        """Get the number of hierarchy levels from the source model.
+
+        Args:
+            parent (QModelIndex): Parent index
+        """
+        return 2
+
+    def data(self, index, role=None):
+        """Reimplemented method to hide the decoration.
+
+        Args:
+            index (QModelIndex): Requested index
+            role (int): Requested role
+        """
+        if role == Qt.BackgroundRole:
+            source_index = self.mapToSource(index)
+            if not source_index.internalPointer().ready_to_run:
+                return None
+            elif source_index.internalPointer().ready_to_run == 1:
+                return self.green_brush
+            elif source_index.internalPointer().ready_to_run == 2:
+                return self.red_brush
+        if role == Qt.DisplayRole:
+            source_index = self.mapToSource(index)
+            if not source_index.isValid():
+                return None
+            if index.column() == 0:
+                return source_index.internalPointer().name
+            elif index.column() == 1:
+                if not source_index.internalPointer().tool:
+                    return None
+                else:
+                    return source_index.internalPointer().tool.name
+        else:
+            return None
+
+    def emit_data_changed(self):
+        """Updates the view. Can be used when data (Setup) changes."""
+        # noinspection PyUnresolvedReferences
+        self.dataChanged.emit(QModelIndex(), QModelIndex())
 
 
 class ToolProxyModel(QSortFilterProxyModel):

@@ -19,7 +19,7 @@ class ContextMenuWidget(QMenu):
         if not ind.isValid():
             self.add_action("Add New Base")
             self.add_action("Execute Project")
-            self.add_action("Inspect Setup Data")
+            self.add_action("Verify Input Data")
             self.add_action("Explore Input Data")
         else:
             self.add_action("Add New Base")
@@ -29,7 +29,7 @@ class ContextMenuWidget(QMenu):
             self.add_action("Execute Selected")
             self.add_action("Execute Project")
             self.add_action("Clear Flags")
-            self.add_action("Inspect Setup Data")
+            self.add_action("Verify Input Data")
             self.add_action("Explore Input Data")
         self.exec_(position)
 

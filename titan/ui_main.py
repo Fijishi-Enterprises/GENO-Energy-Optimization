@@ -30,7 +30,7 @@ from widgets.project_form_widget import ProjectFormWidget
 from widgets.context_menu_widget import ContextMenuWidget
 from widgets.edit_tool_widget import EditToolWidget
 from widgets.settings_widget import SettingsWidget
-from widgets.input_data_widget import InputDataWidget
+from widgets.input_verifier_widget import InputVerifierWidget
 from widgets.input_explorer_widget import InputExplorerWidget
 from modeltest.modeltest import ModelTest
 from excel_handler import ExcelHandler
@@ -72,7 +72,7 @@ class TitanUI(QMainWindow):
         self.context_menu = None
         self.edit_tool_form = None
         self.settings_form = None
-        self.input_data_form = None
+        self.input_verifier_form = None
         self.input_explorer = None
         self.tool_def_textbrowser = QTextBrowser(self)  # Shows selected Tool definition file
         self.tool_def_textbrowser.setMinimumHeight(1)
@@ -125,7 +125,7 @@ class TitanUI(QMainWindow):
         self.ui.actionLoad.triggered.connect(self.load_project)
         self.ui.actionSettings.triggered.connect(self.show_settings)
         self.ui.actionImportData.triggered.connect(self.import_data)
-        self.ui.actionInspectData.triggered.connect(self.open_inspect_form)
+        self.ui.actionVerifyData.triggered.connect(self.open_verifier_form)
         self.ui.actionExplore.triggered.connect(self.show_explorer_form)
         self.ui.actionHelp.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionAbout.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
@@ -156,7 +156,7 @@ class TitanUI(QMainWindow):
         self.ui.toolButton_refresh_tools.clicked.connect(self.refresh_tools)
         self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)
         self.ui.pushButton_import_data.clicked.connect(self.import_data)
-        self.ui.pushButton_inspect_data.clicked.connect(self.open_inspect_form)
+        self.ui.pushButton_show_verifier.clicked.connect(self.open_verifier_form)
         self.ui.pushButton_show_explorer.clicked.connect(self.show_explorer_form)
         self.ui.textBrowser_main.anchorClicked.connect(self.open_anchor)
         self.ui.pushButton_terminate_execution.clicked.connect(self.terminate_execution)
@@ -712,8 +712,8 @@ class TitanUI(QMainWindow):
         elif option == "Clear Flags":
             self.clear_setup_flags()
             return
-        elif option == "Inspect Setup Data":
-            self.open_input_data_form(ind)
+        elif option == "Verify Input Data":
+            self.open_verify_data_form(ind)
             return
         elif option == "Explore Input Data":
             self.show_explorer_form()
@@ -762,13 +762,13 @@ class TitanUI(QMainWindow):
         self.edit_tool_form = EditToolWidget(self, index)
         self.edit_tool_form.show()
 
-    @pyqtSlot(name="open_inspect_form")
-    def open_inspect_form(self):
+    @pyqtSlot(name="open_verifier_form")
+    def open_verifier_form(self):
         """PyqtSlot for QMenu and QPushButton Widgets."""
-        self.open_input_data_form(QModelIndex())
+        self.open_verify_data_form(QModelIndex())
 
-    def open_input_data_form(self, index):
-        """Show Input Data form.
+    def open_verify_data_form(self, index):
+        """Show verify data form.
 
         Args:
             index (QModelIndex): Selected Setup Index
@@ -777,15 +777,15 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("No project found. Load a project or create a new project to continue.", 0)
             return
         if self._root.child_count() == 0:
-            self.add_msg_signal.emit("No Setups to inspect", 0)
+            self.add_msg_signal.emit("No Setups in project", 0)
             return
         if not index:
-            self.input_data_form = InputDataWidget(self, index, self.setup_model)
-            self.input_data_form.show()
+            self.input_verifier_form = InputVerifierWidget(self, index, self.setup_model)
+            self.input_verifier_form.show()
         elif not index.isValid():
             index = False
-        self.input_data_form = InputDataWidget(self, index, self.setup_model)
-        self.input_data_form.show()
+        self.input_verifier_form = InputVerifierWidget(self, index, self.setup_model)
+        self.input_verifier_form.show()
 
     @pyqtSlot(name="show_explorer_form")
     def show_explorer_form(self):
@@ -1048,7 +1048,7 @@ class TitanUI(QMainWindow):
         except TypeError:  # Just in case
             # logging.warning("setup_finished_signal not connected")
             pass
-        if not self._running_setup.is_ready:  # TODO: Check failed flag instead
+        if self._running_setup.failed:
             self.add_msg_signal.emit("Setup <b>{0}</b> failed".format(self._running_setup.name), 2)
             self._running_setup = None
             self.toggle_gui(True)
@@ -1062,7 +1062,6 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("Done", 1)
             self.toggle_gui(True)
             return
-
         if self.exec_mode == 'selected':
             # Get next executed Setup
             next_setup = self.setup_model.get_next_setup_selected(self.get_selected_setup_index())
@@ -1073,18 +1072,20 @@ class TitanUI(QMainWindow):
                 return
             self._running_setup = next_setup.internalPointer()
         elif self.exec_mode == 'project':
-            # Get next executed Setup
+            # Get next executed Setup in the current branch
             next_setup = self.setup_model.get_next_setup(breadth_first=self.algorithm)
-            # Get the first base Setup that is not ready
-            for i in range(self._root.child_count()):
-                if not self._root.child(i).is_ready:
-                    new_base_name = self._root.child(i).name
-                    new_base_index = self.setup_model.find_index(new_base_name)
-                    self.setup_model.set_base(new_base_index)
-                    next_setup = self.setup_model.get_base()
-                    # self.add_msg_signal.emit("Found base Setup <b>{0}</b>"
-                    #                          .format(next_setup.internalPointer().name), 0)
-                    break
+            # Find a new base Setup if no more Setups left descending from the current base Setup
+            if not next_setup:
+                for i in range(self._root.child_count()):
+                    if not self._root.child(i).is_ready:
+                        new_base_name = self._root.child(i).name
+                        new_base_index = self.setup_model.find_index(new_base_name)
+                        self.setup_model.set_base(new_base_index)
+                        next_setup = self.setup_model.get_base()
+                        # self.add_msg_signal.emit("Found base Setup <b>{0}</b>"
+                        #                          .format(next_setup.internalPointer().name), 0)
+                        break
+            # End execution if no more base Setups left
             if not next_setup:
                 self.add_msg_signal.emit("All Setups in Project ready", 1)
                 self.toggle_gui(True)
@@ -1092,7 +1093,7 @@ class TitanUI(QMainWindow):
             self._running_setup = next_setup.internalPointer()
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
         self.add_msg_signal.emit("<br/>Starting Setup <b>{0}</b>".format(self._running_setup.name), 0)
-        # Connect setup_finished_signal to this same slot
+        # Connect setup_finished_signal to this slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         self._running_setup.execute(self)
 

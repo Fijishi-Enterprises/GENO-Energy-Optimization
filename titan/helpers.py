@@ -202,7 +202,7 @@ def find_latest_output_folder(base_output_path, folders):
         try:
             date_obj = datetime.datetime.strptime(folder_name, '%Y-%m-%dT%H.%M.%S')
         except ValueError:
-            logging.debug("Tried to get time stamp from folder: {0}".format(folder_name))
+            # logging.debug("Tried to get time stamp from folder: {0}".format(folder_name))
             continue
         # Populate dictionary with parsed datetime object as key and folder name as value
         f_dict[date_obj] = folder_name
