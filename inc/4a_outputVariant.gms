@@ -1,6 +1,8 @@
     // Deterministic stage
     loop(fRealization(f),
         r_gen(grid, unit, t)$ft_realized(f,t) = sum(node$(gnu(grid, node, unit) or gnu_input(grid, node, unit)), v_gen.l(grid, node, unit, f, t));
+        r_state(gn_state(grid, node), t)${ft_realized(f,t)} = v_state.l(grid, node, f, t);
+        r_transfer(gn2n(grid, from_node, to_node), t)${ft_realized(f,t)} = v_transfer.l(grid, from_node, to_node, f, t);
         loop(fuel,
             r_genFuel(gn(grid, node), fuel, t)$ft_realized(f,t) = sum(unit$uFuel(unit, 'main', fuel), v_gen.l(grid, node, unit, f, t));
         );

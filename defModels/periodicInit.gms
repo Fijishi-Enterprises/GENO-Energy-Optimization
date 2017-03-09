@@ -29,7 +29,7 @@ loop(m,
 );
 
 
-* Calculate the length of the time series
+* Calculate the length of the time series !!! THIS IS DONE USING ONLY THE ENERGY DEMAND TIME SERIES ONLY, WHICH IS NOT REQUIRED TO HAVE ANY VALUES AT ALL !!!
 continueLoop = 1;
 ts_length = 0;
 loop(m$(continueLoop),
