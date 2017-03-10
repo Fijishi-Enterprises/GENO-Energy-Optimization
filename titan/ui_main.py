@@ -22,7 +22,7 @@ from helpers import find_work_dirs, remove_work_dirs, erase_dir, busy_effect, la
 from GAMS import GAMSModel
 from config import ERROR_COLOR, BLACK_COLOR, PROJECT_DIR, \
                    WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS, \
-                   GAMSIDE_EXECUTABLE
+                   GAMSIDE_EXECUTABLE, SCELETON_VERSION
 from configuration import ConfigurationParser
 from delegates import SetupStyledItemDelegate
 from widgets.setup_form_widget import SetupFormWidget
@@ -32,6 +32,7 @@ from widgets.edit_tool_widget import EditToolWidget
 from widgets.settings_widget import SettingsWidget
 from widgets.input_verifier_widget import InputVerifierWidget
 from widgets.input_explorer_widget import InputExplorerWidget
+from widgets.about_widget import AboutWidget
 from modeltest.modeltest import ModelTest
 from excel_handler import ExcelHandler
 
@@ -74,6 +75,7 @@ class TitanUI(QMainWindow):
         self.settings_form = None
         self.input_verifier_form = None
         self.input_explorer = None
+        self.about_form = None
         self.tool_def_textbrowser = QTextBrowser(self)  # Shows selected Tool definition file
         self.tool_def_textbrowser.setMinimumHeight(1)
         self.ui.splitter_output.addWidget(self.tool_def_textbrowser)
@@ -128,7 +130,7 @@ class TitanUI(QMainWindow):
         self.ui.actionVerifyData.triggered.connect(self.open_verifier_form)
         self.ui.actionExplore.triggered.connect(self.show_explorer_form)
         self.ui.actionHelp.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
-        self.ui.actionAbout.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
+        self.ui.actionAbout.triggered.connect(self.show_about)
         self.ui.actionUnpack.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionPack.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionQuit.triggered.connect(self.closeEvent)
@@ -165,7 +167,7 @@ class TitanUI(QMainWindow):
 
     def init_toolbar(self):
         """Initialize Main window toolbar."""
-        tb = QToolBar("ToolBar", self)
+        tb = QToolBar("View Resize Toolbar", self)
         max_icon = QIcon()
         max_icon.addPixmap(QPixmap(":/toolButtons/down_arrow.png"), QIcon.Normal, QIcon.On)
         maximize_action = QAction(max_icon, '', self)
@@ -194,12 +196,12 @@ class TitanUI(QMainWindow):
         tb.setIconSize(QSize(16, 16))
         # Set stylesheet
         tb.setStyleSheet("QToolBar{spacing: 5px;\n"
-                         "background-color: 'darksalmon';\n"
+                         "background-color: 'lightsalmon';\n"
                          "padding: 4px;\n}"
                          "QToolButton{background-color: rgb(255, 255, 255);\n"
                          "border-width: 2px;\n"
                          "border-style: outset;\n"
-                         "border-color: darkgray;\n"
+                         "border-color: gray;\n"
                          "border-radius: 6px;\n}")
         return tb
 
@@ -1598,6 +1600,11 @@ class TitanUI(QMainWindow):
             logging.debug("Unknown setting for delete_work_dirs. Writing default value")
             self._config.set('settings', 'delete_work_dirs', '1')
         return
+
+    def show_about(self):
+        """Show About Sceleton form."""
+        self.about_form = AboutWidget(self, SCELETON_VERSION)
+        self.about_form.show()
 
     def closeEvent(self, event):
         """Method for handling application exit.

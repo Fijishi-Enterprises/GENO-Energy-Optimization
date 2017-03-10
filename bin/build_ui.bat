@@ -39,6 +39,11 @@ CALL pyuic5 ../titan/ui/input_explorer_form.ui -o ../titan/ui/input_explorer_for
 findstr /V /C:"# Created:" /C:"#      by:" ..\titan\ui\input_explorer_form.py.o > ..\titan\ui\input_explorer_form.py
 del ..\titan\ui\input_explorer_form.py.o
 
+ECHO about.py
+CALL pyuic5 ../titan/ui/about.ui -o ../titan/ui/about.py.o
+findstr /V /C:"# Created:" /C:"#      by:" ..\titan\ui\about.py.o > ..\titan\ui\about.py
+del ..\titan\ui\about.py.o
+
 ECHO resources_rc.py
 CALL pyrcc5 -o ../titan/resources_rc.py ../titan/ui/resources/resources.qrc
 

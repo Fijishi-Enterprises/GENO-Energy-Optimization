@@ -10,7 +10,7 @@ import os
 from PyQt5.QtGui import QColor
 
 # General
-SCELETON_VERSION = '0.1'
+SCELETON_VERSION = '0.1.9'
 ERROR_COLOR = QColor('red')
 SUCCESS_COLOR = QColor('green')
 NEUTRAL_COLOR = QColor('blue')
