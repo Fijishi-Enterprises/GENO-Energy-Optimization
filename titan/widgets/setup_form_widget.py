@@ -19,7 +19,7 @@ class SetupFormWidget(QWidget):
     """
     def __init__(self, parent, index):
         """ Initialize class. """
-        super().__init__()
+        super().__init__(flags=Qt.Window)
         self._parent = parent  # QWidget parent
         #  Set up the user interface from Designer.
         self.ui = ui.setup_form.Ui_Form()
@@ -51,9 +51,13 @@ class SetupFormWidget(QWidget):
         self.ui.pushButton_cancel.clicked.connect(self.close)
         self.ui.comboBox_tool.currentIndexChanged.connect(self.update_args)
 
-    @pyqtSlot(int)
+    @pyqtSlot(int, name='update_args')
     def update_args(self, row):
-        """Show Tool command line arguments in text input."""
+        """Show Tool command line arguments in text input.
+
+        Args:
+            row (int): Selected row number
+        """
         if row == 0:
             # No Tool selected
             self.ui.lineEdit_tool_args.setText("")
@@ -66,7 +70,7 @@ class SetupFormWidget(QWidget):
         self.ui.lineEdit_tool_args.setText("{0}".format(args))
         return
 
-    @pyqtSlot()
+    @pyqtSlot(name='name_changed')
     def name_changed(self):
         """Update label to show upcoming folder name."""
         setup_name = self.ui.lineEdit_name.text()
@@ -78,7 +82,7 @@ class SetupFormWidget(QWidget):
             msg = default + " " + folder_name
             self.ui.label_setup_folder.setText(msg)
 
-    @pyqtSlot()
+    @pyqtSlot(name='ok_clicked')
     def ok_clicked(self):
         """Check that Setup name is valid and create Setup."""
         self.setupname = self.ui.lineEdit_name.text()

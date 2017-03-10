@@ -24,10 +24,10 @@ class Setup(MetaObject):
         """Class constructor.
 
         Args:
-            name (str): Name of tool setup
-            description (str): Description
+            name (str): Setup name
+            description (str): Setup description
             project (SceletonProject): The project this setup belongs to
-            parent (Setup): Parent setup of this setup
+            parent (Setup): Parent setup
         """
         super().__init__(name, description)
         self._parent = parent
@@ -134,6 +134,67 @@ class Setup(MetaObject):
         if self._parent is not None:
             return self._parent._children.index(self)
         return 0
+
+    def rename(self, new_name):
+        """Change Setup name and short name.
+        NOTE: Check conflicts before using this method.
+
+        Args:
+            new_name (str): New name for this Setup
+        """
+        self.set_name(new_name)
+
+    def rename_input_dir(self, dir_name):
+        """Rename input directory.
+        NOTE: Check conflicts before using this method.
+
+        Args:
+            dir_name (str): Name of new input directory.
+            Should be the same as Setup short name.
+        """
+        new_input_dir = os.path.join(os.path.split(self.input_dir)[0], dir_name)
+        try:
+            os.rename(self.input_dir, new_input_dir)
+        except FileExistsError:
+            logging.error("Directory already exists")
+            raise FileExistsError
+        except PermissionError:
+            logging.error("Permission denied")
+            raise PermissionError
+        except OSError:
+            logging.exception("General OSError")
+            raise OSError
+        logging.debug("Renamed path: {0} -> {1}".format(self.input_dir, new_input_dir))
+        self.input_dir = new_input_dir
+        return True
+
+    def rename_output_dir(self, dir_name):
+        """Rename output directory.
+        NOTE: Check conflicts before using this method.
+
+        Args:
+            dir_name (str): Name of new output directory.
+            Should be the same as Setup short name.
+        """
+        if not self.tool:
+            # Do this after setting a new input dir or this does not work
+            self.output_dir = self.input_dir
+            return True
+        new_output_dir = os.path.join(os.path.split(self.output_dir)[0], dir_name)
+        try:
+            os.rename(self.output_dir, new_output_dir)
+        except FileExistsError:
+            logging.error("Directory already exists")
+            raise FileExistsError
+        except PermissionError:
+            logging.error("Permission denied")
+            raise PermissionError
+        except OSError:
+            logging.exception("General OSError")
+            raise OSError
+        logging.debug("Renamed path: {0} -> {1}".format(self.output_dir, new_output_dir))
+        self.output_dir = new_output_dir
+        return True
 
     def log(self, tab_level=-1):
         """[OBSOLETE] Returns Setup structure as a string.

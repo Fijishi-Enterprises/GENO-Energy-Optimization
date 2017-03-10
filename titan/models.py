@@ -7,6 +7,8 @@ Note: These models have nothing to do with Backbone, Balmorel, WILMAR, etc.
 """
 
 import logging
+import os
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, \
     QAbstractListModel, QModelIndex, QSortFilterProxyModel, QMimeData
 from PyQt5.Qt import QBrush, QColor
@@ -23,6 +25,7 @@ class SetupModel(QAbstractItemModel):
     """
     def __init__(self, root, parent=None):
         super().__init__(parent)
+        self._parent = parent
         self._root_setup = root
         self._base_index = None  # Used in tree traversal algorithms
         self.next_setup = None  # Used with depth-first algorithm
@@ -83,7 +86,7 @@ class SetupModel(QAbstractItemModel):
         """
         if not index.isValid():
             return None
-        if not role == Qt.DisplayRole and not role == Qt.DecorationRole:
+        if not role == Qt.DisplayRole and not role == Qt.DecorationRole and not role == Qt.EditRole:
             # logging.debug("index row:%d, role:%s" % (index.row(), role))
             return None
         setup = index.internalPointer()
@@ -127,6 +130,8 @@ class SetupModel(QAbstractItemModel):
                         return tool_args + ' ' + setup_args
             else:
                 return None
+        if role == Qt.EditRole:
+            return setup.name
 
     def flags(self, index):
         """Set flags for the item requested by view.
@@ -137,7 +142,9 @@ class SetupModel(QAbstractItemModel):
         Returns:
             Flags
         """
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable \
+               | Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled \
+               | Qt.ItemIsEditable
 
     def supportedDropActions(self):
         """Enable item moving."""
@@ -241,7 +248,125 @@ class SetupModel(QAbstractItemModel):
         self.endRemoveRows()
         return retval
 
+    def setData(self, index, value, role=None):
+        """Reimplemented method to allow Setup renaming.
+
+        Args:
+            index (QModelIndex): Index to edit
+            value (Any): New value for index
+            role (int): Role to edit
+        """
+        if role == Qt.EditRole:
+            setup = index.internalPointer()
+            old_name = setup.name
+            if value.strip() == '' or value == setup.name:
+                return False
+            # Check that new name is legal
+            invalid_chars = ["<", ">", ":", "\"", "/", "\\", "|", "?", "*", "."]
+            if any(True for x in value if x in invalid_chars):
+                msg = "<b>{0}</b> not valid for a Setup name.".format(value)
+                # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+                QMessageBox.information(self._parent, "Illegal action", msg)
+                return False
+            # Check that Setup name is not 'root'
+            if value.lower() == 'root':
+                # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+                QMessageBox.information(self._parent, "Illegal action", "Root is a reserved Setup name. Try again.")
+                return False
+            # Check if Setup with the same name already exists
+            start_index = self.index(0, 0, QModelIndex())
+            if start_index.isValid():
+                matching_index = self.match(
+                    start_index, Qt.DisplayRole, value, 1, Qt.MatchFixedString | Qt.MatchRecursive)
+                if len(matching_index) > 0:
+                    # Match found
+                    msg = "Setup <b>{0}</b> already exists".format(value)
+                    # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+                    QMessageBox.information(self._parent, "Illegal action", msg)
+                    return False
+            # Check that no existing Setup short name matches the new Setup's short name.
+            # This is to prevent two Setups of using the same folder.
+            all_setups = self.match(
+                start_index, Qt.DisplayRole, '.*', -1, Qt.MatchRegExp | Qt.MatchRecursive)
+            new_setup_short_name = value.lower().replace(' ', '_')
+            for ind in all_setups:
+                setup_short_name = ind.internalPointer().short_name
+                if setup_short_name == new_setup_short_name:
+                    msg = "Setup using folder <b>{0}</b> already exists".format(setup_short_name)
+                    # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+                    QMessageBox.information(self._parent, "Illegal action", msg)
+                    return False
+            # Rename Setup input directory
+            new_input_path = os.path.join(os.path.split(setup.input_dir)[0], new_setup_short_name)
+            try:
+                setup.rename_input_dir(new_setup_short_name)
+            except FileExistsError:
+                msg = "Directory<br/><b>{0}</b><br/>already exists".format(new_input_path)
+                # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+                QMessageBox.information(self._parent, "Failed to rename input directory", msg)
+                return False
+            except PermissionError:
+                msg = "Access to directory <br/><b>{0}</b><br/>denied." \
+                      "<br/><br/>Possible reasons:" \
+                      "<br/>1. Windows Explorer is open in the directory" \
+                      "<br/>2. Permission error" \
+                      "<br/><br/>Check these and try again.".format(new_input_path)
+                # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+                QMessageBox.information(self._parent, "Failed to rename input directory", msg)
+                return False
+            except OSError:
+                msg = "Renaming input directory failed. OSError in" \
+                      "<br/><b>{0}</b><br/>Possibly because Windows " \
+                      "Explorer is open in the directory".format(new_input_path)
+                # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+                QMessageBox.information(self._parent, "Failed to rename input directory", msg)
+                return False
+            # Rename Setup output directory
+            new_output_path = os.path.join(os.path.split(setup.output_dir)[0], new_setup_short_name)
+            try:
+                setup.rename_output_dir(new_setup_short_name)
+            except FileExistsError:
+                msg = "Directory<br/><b>{0}</b><br/>already exists".format(new_output_path)
+                # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+                QMessageBox.information(self._parent, "Failed to rename output directory", msg)
+                # If this failed then input dir has been renamed. Rename input dir back to original.
+                if not setup.rename_input_dir(setup.short_name):
+                    logging.error("Failed to rollback input dir name.")
+                return False
+            except PermissionError:
+                msg = "Access to directory <br/><b>{0}</b><br/>denied." \
+                      "<br/><br/>Possible reasons:" \
+                      "<br/>1. Windows Explorer is open in the directory" \
+                      "<br/>2. Permission error" \
+                      "<br/><br/>Check these and try again.".format(new_output_path)
+                # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+                QMessageBox.information(self._parent, "Failed to rename output directory", msg)
+                # If this failed then input dir has been renamed. Rename input dir back to original.
+                if not setup.rename_input_dir(setup.short_name):
+                    logging.error("Failed to rollback input dir name.")
+                return False
+            except OSError:
+                msg = "Renaming output directory failed. OSError in" \
+                      "<br/><b>{0}</b><br/>Possibly because Windows " \
+                      "Explorer is open in the directory".format(new_output_path)
+                # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+                QMessageBox.information(self._parent, "Failed to rename output directory", msg)
+                # If this failed then input dir has been renamed. Rename input dir back to original.
+                if not setup.rename_input_dir(setup.short_name):
+                    logging.error("Failed to rollback input dir name.")
+                return False
+            # Set a new name for the Setup
+            setup.rename(value)
+            self.emit_data_changed()
+            self._parent.add_msg_signal.emit("Setup <b>{0}</b> renamed to <b>{1}</b>".format(old_name, value), 0)
+            # Force save project
+            self._parent.save_project()
+            return True
+        else:
+            return False
+
     def mimeTypes(self):
+        """Returns mime type of dragged/dropped item in a list."""
         return ['text/plain']
 
     def mimeData(self, indexes):

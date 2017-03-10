@@ -632,6 +632,9 @@
               <property name="contextMenuPolicy">
                <enum>Qt::CustomContextMenu</enum>
               </property>
+              <property name="editTriggers">
+               <set>QAbstractItemView::DoubleClicked</set>
+              </property>
               <property name="dragEnabled">
                <bool>true</bool>
               </property>
@@ -649,6 +652,9 @@
               </property>
               <property name="uniformRowHeights">
                <bool>true</bool>
+              </property>
+              <property name="expandsOnDoubleClick">
+               <bool>false</bool>
               </property>
               <attribute name="headerMinimumSectionSize">
                <number>50</number>

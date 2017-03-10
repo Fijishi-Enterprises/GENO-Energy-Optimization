@@ -249,7 +249,7 @@ class TitanUI(QMainWindow):
         # Root for SetupModel
         self._root = Setup('root', 'root node for Setups,', self._project)
         # Create model for Setups
-        self.setup_model = SetupModel(self._root)
+        self.setup_model = SetupModel(self._root, self)
         # Set custom item delegate for QTreeView
         self.setup_delegate = SetupStyledItemDelegate(self)
         self.ui.treeView_setups.setItemDelegateForColumn(0, self.setup_delegate)
