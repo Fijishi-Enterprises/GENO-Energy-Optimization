@@ -63,4 +63,5 @@ Model schedule /
     q_stateUpwardLimit
     q_stateDownwardLimit
     q_boundState
+    q_boundCyclic
 /;
