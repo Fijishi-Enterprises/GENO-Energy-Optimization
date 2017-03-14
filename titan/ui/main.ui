@@ -1062,6 +1062,12 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuToolbars">
+     <property name="title">
+      <string>Toolbars</string>
+     </property>
+     <addaction name="actionResizeViews"/>
+    </widget>
     <addaction name="actionNew"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
@@ -1070,6 +1076,7 @@
     <addaction name="actionUnpack"/>
     <addaction name="actionPack"/>
     <addaction name="separator"/>
+    <addaction name="menuToolbars"/>
     <addaction name="actionSettings"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
@@ -1318,6 +1325,25 @@
    </property>
    <property name="shortcut">
     <string>F4</string>
+   </property>
+  </action>
+  <action name="actionShow_ToolBar">
+   <property name="text">
+    <string>Show ToolBar</string>
+   </property>
+  </action>
+  <action name="actionResizeViews">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Resize Views</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
    </property>
   </action>
  </widget>

@@ -112,6 +112,7 @@ class TitanUI(QMainWindow):
         self._config = ConfigurationParser(CONFIGURATION_FILE, defaults=GENERAL_OPTIONS)
         self._config.load()
 
+    # noinspection PyUnresolvedReferences
     def connect_signals(self):
         """Connect PyQt signals."""
         # Custom signals (Needs to be connected before initializing project and model)
@@ -140,6 +141,8 @@ class TitanUI(QMainWindow):
         self.ui.actionExecuteSelected.triggered.connect(self.execute_selected)
         self.ui.actionExecuteProject.triggered.connect(self.execute_project)
         self.ui.actionStop_Execution.triggered.connect(self.terminate_execution)
+        self.ui.actionResizeViews.triggered.connect(self.toggle_tb)
+        self.toolbar.visibilityChanged.connect(self.handle_tb_context_menu)
         # Widgets
         self.ui.pushButton_execute_project.clicked.connect(self.execute_project)
         self.ui.pushButton_execute_selected.clicked.connect(self.execute_selected)
@@ -162,12 +165,11 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_show_explorer.clicked.connect(self.show_explorer_form)
         self.ui.textBrowser_main.anchorClicked.connect(self.open_anchor)
         self.ui.pushButton_terminate_execution.clicked.connect(self.terminate_execution)
-        # noinspection PyUnresolvedReferences
         self.timer.timeout.connect(self.update_setup_model)
 
     def init_toolbar(self):
         """Initialize Main window toolbar."""
-        tb = QToolBar("View Resize Toolbar", self)
+        tb = QToolBar("Resize Views Toolbar", self)
         max_icon = QIcon()
         max_icon.addPixmap(QPixmap(":/toolButtons/down_arrow.png"), QIcon.Normal, QIcon.On)
         maximize_action = QAction(max_icon, '', self)
@@ -204,6 +206,21 @@ class TitanUI(QMainWindow):
                          "border-color: gray;\n"
                          "border-radius: 6px;\n}")
         return tb
+
+    @pyqtSlot(name='toggle_tb')
+    def toggle_tb(self):
+        """Show or hide Resize Views Toolbar."""
+        if self.ui.actionResizeViews.isChecked():
+            self.toolbar.show()
+        else:
+            self.toolbar.hide()
+
+    @pyqtSlot(name='handle_tb_context_menu')
+    def handle_tb_context_menu(self):
+        """Makes toolbar context menu check button
+        flip the menu action check button."""
+        if not self.toolbar.isVisible():
+            self.ui.actionResizeViews.setChecked(False)
 
     @pyqtSlot(name='max_textbrowser')
     def max_textbrowser(self):
@@ -384,7 +401,7 @@ class TitanUI(QMainWindow):
         file_path = os.path.join(PROJECT_DIR, '{}'.format(self._project.filename))
         self.add_msg_signal.emit("Saving project -> {0}".format(file_path), 0)
         self._project.save(file_path, self._root)
-        msg = "Project '%s' saved to file'%s'" % (self._project.name, file_path)
+        msg = "Project '%s' saved to file '%s'" % (self._project.name, file_path)
         self.ui.statusbar.showMessage(msg, 7000)
         self.add_msg_signal.emit("Done", 1)
 
