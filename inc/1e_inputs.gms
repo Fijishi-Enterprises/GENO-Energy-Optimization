@@ -83,9 +83,9 @@ unit_heat(unit)$sum(gnu(grid, node, unit), p_gnu('heat', node, unit, 'maxGen')) 
 unit_fuel(unit)$sum[ (fuel, node)$sum(t, ts_fuelPriceChangenode(fuel, node, t)), uFuel(unit, 'main', fuel) ] = yes;
 unit_flow(unit)$sum(flow, flowUnit(flow, unit)) = yes;
 unit_withConstrainedOutputRatio(unit)$(sum(gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit), 1)) = yes;
-p_gnu(gnu(grid, node, unit), 'eff00')$(not p_gnu(grid, node, unit, 'eff00')) = 1; // If the unit does not have efficiency set, it is 1
-p_gnu(gnu(grid, node, unit), 'rb00')$(not p_gnu(grid, node, unit, 'rb00')) = 0;   // If there is no right border for the first efficiency point, there will be no section
-unit_minload(unit)$[sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'rb00') > 0 and p_gnu(grid, node, unit, 'rb00') < 1)] = yes;   // If the first point is between 0 and 1, then the unit has a min load limit
+p_unit(unit, 'eff00')$(not p_unit(unit, 'eff00')) = 1; // If the unit does not have efficiency set, it is 1
+p_unit(unit, 'rb00')$(not p_unit(unit, 'rb00')) = 0;   // If there is no right border for the first efficiency point, there will be no section
+unit_minload(unit)$[p_unit(unit, 'rb00') > 0 and p_unit(unit, 'rb00') < 1] = yes;   // If the first point is between 0 and 1, then the unit has a min load limit
 *unit_hydro(unit)$sum(unitFuelParam(unit,'WATER','main'), 1) = yes;
 *node_reservoir(node)$sum(unit_hydro, unitStorage(unit_hydro, storage)) = yes;
 nuRescapable(restype, resdirection, node, unit)$p_nuReserves(node, unit, restype, resdirection) = yes;

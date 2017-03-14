@@ -20,7 +20,7 @@ $offOrder
                 ts_absolute_(node, fSolve, t)$tInterval(t) = ts_absolute(node, fSolve, t+ct(t));
                 ts_cf_(flow, node, fSolve, t)$tInterval(t) = ts_cf(flow, node, fSolve, t+ct(t));
                 ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)$tInterval(t) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
-                ts_unit_(unit, param_nu, fSolve, t)$tInterval(t) = ts_unit(unit, param_nu, fSolve, t+ct(t));
+                ts_unit_(unit, param_unit, fSolve, t)$tInterval(t) = ts_unit(unit, param_unit, fSolve, t+ct(t));
                 tCounter = mInterval(mSolve, 'intervalEnd', counter); // move tCounter to the next interval setting
                 p_stepLength(mf(mSolve, fSolve), t)$tInterval(t) = 1;  // p_stepLength will hold the length of the interval in model equations
                 p_stepLengthNoReset(mSolve, fSolve, t)$tInterval(t) = 1;
@@ -43,7 +43,7 @@ $offOrder
                             ts_absolute_(node, fSolve, t) = sum{t_$tInterval(t_), ts_absolute(node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the absolute power terms over the interval
                             ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the capacity factor over the inverval
                             ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t) = sum(t_${tInterval(t_)}, ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t); // Averages the time-dependent node state boundary conditions over the interval
-                            ts_unit_(unit, param_nu, fSolve, t) = sum(t_${tInterval(t_)}, ts_unit(unit, param_nu, fSolve, t_+ct(t_))) / p_steplength(mSolve, fSolve, t); // Averages the time-dependent unit parameters over the interval
+                            ts_unit_(unit, param_unit, fSolve, t) = sum(t_${tInterval(t_)}, ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_steplength(mSolve, fSolve, t); // Averages the time-dependent unit parameters over the interval
                             // Set the previous time step displacement
                             pt(t+intervalLength) = -intervalLength;
                         );
@@ -69,7 +69,7 @@ $offOrder
     $$ifi '%rampSched%' == 'yes' ts_energyDemand_(gn(grid, node), fSolve, t)${ord(t) = tSolveLast} = ts_energyDemand(grid, node, fSolve, t+ct(t));
     $$ifi '%rampSched%' == 'yes' ts_absolute_(node, fSolve, t)${ord(t) = tSolveLast} = ts_absolute(node, fSolve, t+ct(t));
     $$ifi '%rampSched%' == 'yes' ts_cf_(flow, node, fSolve, t)${ord(t) = tSolveLast} = ts_cf(flow, node, fSolve, t+ct(t));
-    $$ifi '%rampSched%' == 'yes' ts_unit_(unit, param_nu, fSolve, t)${ord(t) = tSolveLast} = ts_unit(unit, param_nu, fSolve, t+ct(t));
+    $$ifi '%rampSched%' == 'yes' ts_unit_(unit, param_unit, fSolve, t)${ord(t) = tSolveLast} = ts_unit(unit, param_unit, fSolve, t+ct(t));
 $onOrder
 
     // Set mft for the modelling period and model forecasts

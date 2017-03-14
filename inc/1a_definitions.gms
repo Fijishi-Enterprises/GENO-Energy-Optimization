@@ -70,8 +70,8 @@ $if set rampSched active('rampSched') = %rampSched%;
 Sets
 
 param_gn  "Possible parameters for grid, node" /
-    chargingEff   "Average charging efficiency (p.u)" // NOTE! This isn't actually used for anything at the moment! Probably needs to be removed at some point.
-    dischargingEff "Average discharging efficiency (p.u.)" // NOTE! This isn't actually used for anything at the moment! Probably needs to be removed at some point.
+*    chargingEff   "Average charging efficiency (p.u)" // NOTE! This isn't actually used for anything at the moment! Probably needs to be removed at some point.
+*    dischargingEff "Average discharging efficiency (p.u.)" // NOTE! This isn't actually used for anything at the moment! Probably needs to be removed at some point.
     selfDischargeLoss "Self discharge rate of the node (p.u.)"
     energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh"
     boundStart    "A flag to bound the first t in the run using reference constant or time series"
@@ -128,13 +128,13 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     maxCons     "Maximum loading capacity (MW)"
     cB          "Share of output"
     cV          "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
-    eff00 * eff12    "Efficiency of the unit to convert to certain output or from certain input at different operating points"
-    rb00 * rb12     "Right border of the efficiency point"
-    section00   "Input (fuel) consumption at min. load (or at zero)"
-    slope00 * slope12  "Additive input (fuel) consumption slope"
+*    eff00 * eff12    "Efficiency of the unit to convert to certain output or from certain input at different operating points" \\ NOTE! Not currently used in p_gnu
+*    rb00 * rb12     "Right border of the efficiency point" \\ NOTE! Not currently used in p_gnu
+*    section00   "Input (fuel) consumption at min. load (or at zero)" \\ NOTE! Not currently used in p_gnu
+*    slope00 * slope12  "Additive input (fuel) consumption slope" \\ NOTE! Not currently used in p_gnu
 /
 
-param_nu "Set of possible data parameters for node, unit" /
+param_unit "Set of possible data parameters for units" /
     unitCount   "Number of units if aggregated"
     unitCapacity "A proxy for the unit size in case the maxGens cannot be just added up by default"
     omCosts     "Variable operation and maintenance costs (€/MWh)"
