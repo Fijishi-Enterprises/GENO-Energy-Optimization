@@ -69,6 +69,7 @@ loop(unit,
                 if(effLevelGroupUnit(effLevel, effSelector, unit),
                     effGroup(effSelector) = yes;
                     effGroupSelector(effSelector, effSelector) = yes;
+                    effGroupSelectorUnit(effSelector, unit, effSelector) = yes;
                     effLevelSelectorUnit(effLevel, effSelector, unit) = yes;
                 );
             );
@@ -79,6 +80,7 @@ loop(unit,
                 if(effLevelGroupUnit(effLevel, effSelector, unit),
                     effGroup(effSelector) = yes;
                     effGroupSelector(effSelector, effSelector) = yes;
+                    effGroupSelectorUnit(effSelector, unit, effSelector) = yes;
                     effLevelSelectorUnit(effLevel, effSelector, unit) = yes;
                 );
             );
