@@ -190,7 +190,7 @@ loop(unit,
         count_lambda2 = 0;
         loop(effSelector$(effLambda(effSelector) and effLevelSelectorUnit(effLevel, effSelector, unit)),
             p_effUnit(effSelector, unit, 'rb') = ((count_lambda-1 - count_lambda2) * p_unit(unit, 'rb00') + count_lambda2 * p_unit(unit, 'rb01')) / (count_lambda - 1);
-            //no lb for lambdas, since number of borders same as number of slopes   p_effUnit(effSelector, unit, 'lb') = ((count_lambda-1 - count_lambda2 + 1) * p_unit(unit, 'rb00') + (count_lambda2 - 1) * p_unit(unit, 'rb01')) / (count_lambda - 1);
+            p_effUnit(effSelector, unit, 'lb') = p_effUnit(effSelector, unit, 'rb'); // Required for p_effGroupUnit and q_maxDownward
             p_effUnit(effSelector, unit, 'slope')$effLevelSelectorUnit(effLevel, effSelector, unit)
               = ((count_lambda-1 - count_lambda2) * (1 / p_unit(unit, 'eff00')) + count_lambda2 * (1 / p_unit(unit, 'eff01'))) / (count_lambda - 1);
             count_lambda2 = count_lambda2 + 1;
