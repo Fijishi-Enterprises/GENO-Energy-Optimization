@@ -75,7 +75,7 @@ p_gn(gn(grid, node), 'energyStoredPerUnitOfState')$(not p_gn(grid, node, 'energy
 
 ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 
-unit_online(unit)$[ p_unit(unit, 'startupCost') or p_unit(unit, 'startupFuelCons') or p_unit(unit, 'coldStart') ] = yes;
+unit_online(unit)$[p_unit(unit, 'rb00') > 0 or p_unit(unit, 'startupCost') or p_unit(unit, 'startupFuelCons') or p_unit(unit, 'coldStart') ] = yes;
 unit_flow(unit)$sum(flow, flowUnit(flow, unit)) = yes;
 *unitConversion(unit)$sum(gn(grid, node), gnu_input(grid, node, unit)) = yes;
 unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) = yes;

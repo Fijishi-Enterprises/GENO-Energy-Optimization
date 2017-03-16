@@ -221,7 +221,8 @@ q_maxDownward(gnuft(grid, node, unit, f, t))${     [unit_minLoad(unit) and p_gnu
         v_reserve(restype, 'resDown', node, unit, f, t)                                                              // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
   =G=                                                                                                                // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
-  + v_online(unit, f, t) / p_unit(unit, 'unitCount')
+  + v_online(unit, f, t)${unit_online(unit)} // Online variables should only be generated for units with restrictions
+    / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxGen')$[unit_minload(unit) and p_gnu(grid, node, unit, 'maxGen')]
     * sum(suft(effSelector, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
         + (p_effGroupUnit(effSelector, unit, 'lb')${not ts_effGroupUnit(effSelector, unit, 'lb', f, t)} + ts_effGroupUnit(effSelector, unit, 'lb', f, t))
