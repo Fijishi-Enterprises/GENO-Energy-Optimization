@@ -2,7 +2,7 @@ Sets
 * --- Geography ---------------------------------------------------------------
     grid "Forms of energy endogenously presented in the model"
     node "Nodes where different types of energy are converted"
-    node_to_node(node, node) "Transmission links"
+*    node_to_node(node, node) "Transmission links" // NOT USED ATM
 
 * --- Fuels & resources -------------------------------------------------------
     emission "Emissions"
@@ -12,10 +12,10 @@ Sets
 * --- Energy generation and consumption ---------------------------------------
     unit "Set of generators, storages and loads"
     unit_elec(unit) "Units that generate and/or consume electricity"
-    unit_heat(unit) "Units that produce and/or consume unit_heat"
+*    unit_heat(unit) "Units that produce and/or consume unit_heat" // NOT USED ATM
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
-    unit_withConstrainedOutputRatio(unit) "Units that use cV factor for their secondary output(s)"
-*    unit_hydro(unit) "Hydropower generators"
+*    unit_withConstrainedOutputRatio(unit) "Units that use cV factor for their secondary output(s)" // NOT USED ATM
+*    unit_hydro(unit) "Hydropower generators" // NOT USED ATM
     unit_fuel(unit) "Units using a commercial fuel"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
     unit_online(unit) "Units that have an online variable"
@@ -43,9 +43,9 @@ Sets
     gnu(grid, node, unit) "Units in specific nodes of particular energy grids"
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
     gnu_output(grid, node, unit) "Forms of energy the unit uses as endogenous outputs"
-*    gnuUnion(grid, node, unit, param_union) "How inputs or outputs are related to each other"
+*    gnuUnion(grid, node, unit, param_union) "How inputs or outputs are related to each other" // NOT USED ATM
     nu(node, unit) "Units attached to particular nodes"
-    nnu(node, node, unit) "Units that link two nodes"
+*    nnu(node, node, unit) "Units that link two nodes" // NOT USED ATM
     gn_state(grid, node) "Nodes with a state variable"
     gn_stateSlack(grid, node) "Nodes with a state slack variable"
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
