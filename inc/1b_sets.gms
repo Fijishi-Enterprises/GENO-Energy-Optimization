@@ -95,6 +95,7 @@ Sets
     mftStart(mType, f, t) "Start point of simulation"
     mftBind(mType, f, t) "Time periods/slices where forecasts/samples are coupled, note: t couples samples"
     uft(unit, f, t) "Enables aggregation of units for later time periods"
+    uft_online(unit, f, t) "Units with online and startup variables on time periods"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     suft(effSelector, unit, f, t) "Selecting conversion efficiency equations"

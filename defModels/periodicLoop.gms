@@ -146,6 +146,8 @@ $onOrder
     );
     sufts(effGroup, unit, f, t, effSelector) = no;
     sufts(effGroup, unit, f, t, effSelector)$(effGroupSelector(effGroup, effSelector) and suft(effGroup, unit, f, t)) = yes;
+    uft_online(unit, ft(f, t))${unit_online(unit)} = yes;
+    uft_online(unit, ft(f, t))$suft('directOff', unit, f, t) = no;
 
     pf(ft(f,t))$(ord(t) eq ord(tSolve) + 1) = 1 - ord(f);
 

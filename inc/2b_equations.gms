@@ -63,11 +63,11 @@ q_obj ..
                      )
            )
            // Start-up costs
-         + sum(unit_online,
+         + sum(uft_online(unit_online, f, t),
              + {
-                 + v_startup(unit_online, f, t)$uft(unit_online, f, t)               // Cost of starting up
-                 - sum(t_$(uft(unit_online, f, t_) and mftStart(m, f, t_)), 0.5 * v_online(unit_online, f, t_))     // minus value of avoiding startup costs before
-                 - sum(t_$(uft(unit_online, f, t_) and mftLastSteps(m, f, t_)), 0.5 * v_online(unit_online, f, t_)) // or after the model solve
+                 + v_startup(unit_online, f, t) // Cost of starting up
+                 - sum(t_${mftStart(m, f, t_)}, 0.5 * v_online(unit_online, f, t_))     // minus value of avoiding startup costs before
+                 - sum(t_${mftLastSteps(m, f, t_)}, 0.5 * v_online(unit_online, f, t_)) // or after the model solve
                } / p_unit(unit_online, 'unitCount')
              * {
                   // Startup variable costs
@@ -221,13 +221,13 @@ q_maxDownward(gnuft(grid, node, unit, f, t))${     [unit_minLoad(unit) and p_gnu
         v_reserve(restype, 'resDown', node, unit, f, t)                                                              // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
   =G=                                                                                                                // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
-  + v_online(unit, f, t)${unit_online(unit)} // Online variables should only be generated for units with restrictions
+  + v_online(unit, f, t)${uft_online(unit, f, t)} // Online variables should only be generated for units with restrictions
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxGen')$[unit_minload(unit) and p_gnu(grid, node, unit, 'maxGen')]
     * sum(suft(effSelector, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
         + (p_effGroupUnit(effSelector, unit, 'lb')${not ts_effGroupUnit(effSelector, unit, 'lb', f, t)} + ts_effGroupUnit(effSelector, unit, 'lb', f, t))
     )
-  + v_gen.lo(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$unit_minload(unit) + 1$(not unit_minload(unit)) ]         // notice: v_gen.lo for consuming units is negative
+  + v_gen.lo(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$uft_online(unit, f, t) + 1$(not uft_online(unit, f, t)) ]         // notice: v_gen.lo for consuming units is negative
 ;
 * -----------------------------------------------------------------------------
 q_maxUpward(gnuft(grid, node, unit, f, t))${      [unit_minLoad(unit) and p_gnu(grid, node, unit, 'maxCons')]    // consuming units with min_load
@@ -241,23 +241,20 @@ q_maxUpward(gnuft(grid, node, unit, f, t))${      [unit_minLoad(unit) and p_gnu(
         v_reserve(restype, 'resUp', node, unit, f, t)                                                                // (v_reserve can be used only if the unit can provide a particular reserve)
     )
   =L=                                                                         // must be less than available/online capacity
-*  + sum(effGroup$suft(effGroup, unit, f, t),
-*      - v_online(unit, f, t) / p_unit(unit, 'unitCount') * p_effGroupUnit(effGroup, unit, 'lb') * p_gnu(grid, node, unit, 'maxCons')$[unit_minload(unit) and p_gnu(grid, node, unit, 'maxCons')]
-*    )
-  + v_gen.up(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$unit_minload(unit) + 1$(not unit_minload(unit)) ]
+  + v_gen.up(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$uft_online(unit, f, t) + 1$(not uft_online(unit, f, t)) ]
 ;
 * -----------------------------------------------------------------------------
-q_startup(unit_online, ft_dynamic(f, t)) ..
-  + v_startup(unit_online, f+pf(f,t), t+pt(t))$uft(unit_online, f+pf(f,t), t+pt(t))
+q_startup(uft_online(unit_online, f, t))$ft_dynamic(f, t) ..
+  + v_startup(unit_online, f+pf(f,t), t+pt(t))
   =G=
-  + v_online(unit_online, f, t)$uft(unit_online, f, t)
-  - v_online(unit_online, f+pf(f,t), t+pt(t))$uft(unit_online, f+pf(f,t), t+pt(t))  // This reaches to tFirstSolve when pt = -1
+  + v_online(unit_online, f, t)
+  - v_online(unit_online, f+pf(f,t), t+pt(t)) // This reaches to tFirstSolve when pt = -1
 ;
 * -----------------------------------------------------------------------------
-q_bindOnline(unit_online, mftBind(m, f, t)) ..
-  + v_online(unit_online, f, t)$uft(unit_online, f, t)
+q_bindOnline(unit_online, mftBind(m, f, t))${uft_online(unit_online, f, t)} ..
+  + v_online(unit_online, f, t)
   =E=
-  + v_online(unit_online, f+mft_bind(m,f,t), t+mt_bind(m,t))$uft(unit_online, f+mft_bind(m,f,t), t+mt_bind(m,t))
+  + v_online(unit_online, f+mft_bind(m,f,t), t+mt_bind(m,t))$uft_online(unit_online, f+mft_bind(m,f,t), t+mt_bind(m,t))
 ;
 * -----------------------------------------------------------------------------
 q_conversionDirectInputOutput(sufts(effGroup, unit, f, t, effSelector))$effDirect(effGroup) ..
@@ -269,7 +266,8 @@ q_conversionDirectInputOutput(sufts(effGroup, unit, f, t, effSelector))$effDirec
     )
   =E=
   + (p_effUnit(effSelector, unit, 'section00')${not ts_effUnit(effSelector, unit, 'section00', f, t)} + ts_effUnit(effSelector, unit, 'section00', f, t))$suft('directOn', unit, f, t)
-      * v_online(unit, f, t) / p_unit(unit, 'unitCount')
+      * v_online(unit, f, t)${uft_online(unit, f, t)}
+      / p_unit(unit, 'unitCount')
       * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
   + sum(gnu_output(grid, node, unit),
       + v_gen(grid, node, unit, f, t)
@@ -289,7 +287,8 @@ q_conversionSOS1InputIntermediate(suft(effGroup, unit, f, t))$effSlope(effGroup)
     )
   =E=
   + (p_unit(unit, 'section00')${not (p_unit(unit, 'useTimeseries') AND ts_unit_(unit, 'section00', f, t))} + ts_unit_(unit, 'section00', f, t)${p_unit(unit, 'useTimeseries')})
-      * v_online(unit, f, t) / p_unit(unit, 'unitCount')
+      * v_online(unit, f, t)${uft_online(unit, f, t)}
+      / p_unit(unit, 'unitCount')
       * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
   + sum(effGroupSelectorUnit(effGroup, unit, effSelector),
       + v_sos1(effGroup, unit, f, t, effSelector)
@@ -335,7 +334,8 @@ q_conversionSOS2Constraint(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
       + v_sos2(unit, f, t, effSelector)
     )
   =E=
-  + v_online(unit, f, t)
+  + v_online(unit, f, t)${uft_online(unit, f, t)}
+  + 1${not uft_online(unit, f, t)}
 ;
 * -----------------------------------------------------------------------------
 q_conversionSOS2IntermediateOutput(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
