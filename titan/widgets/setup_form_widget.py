@@ -5,10 +5,11 @@ Widget to ask the user for created Setup details.
 :date:   5.4.2016
 """
 
+import logging
 from PyQt5.QtWidgets import QWidget, QStatusBar
 from PyQt5.QtCore import pyqtSlot, QModelIndex, Qt
 import ui.setup_form
-import logging
+from config import STATUSBAR_STYLESHEET
 
 
 class SetupFormWidget(QWidget):
@@ -24,10 +25,12 @@ class SetupFormWidget(QWidget):
         #  Set up the user interface from Designer.
         self.ui = ui.setup_form.Ui_Form()
         self.ui.setupUi(self)
-        # Add Status Bar to widget
+        # Add status bar to form
         self.statusbar = QStatusBar(self)
-        self.ui.verticalLayout.addWidget(self.statusbar)
+        self.statusbar.setFixedHeight(20)
         self.statusbar.setSizeGripEnabled(False)
+        self.statusbar.setStyleSheet(STATUSBAR_STYLESHEET)
+        self.ui.horizontalLayout_statusbar_placeholder.addWidget(self.statusbar)
         # Class attributes
         self.create_base = True
         self.parent_index = index  # Parent Setup index

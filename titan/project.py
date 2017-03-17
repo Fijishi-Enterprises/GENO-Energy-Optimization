@@ -10,14 +10,13 @@ import logging
 import json
 from collections import Counter
 from metaobject import MetaObject
-from config import PROJECT_DIR
-from helpers import find_duplicates
+from helpers import find_duplicates, project_dir
 
 
 class SceletonProject(MetaObject):
     """Class for Sceleton projects."""
 
-    def __init__(self, name, description, ext='.json'):
+    def __init__(self, name, description, configs, ext='.json'):
         """Class constructor.
 
         Args:
@@ -26,10 +25,11 @@ class SceletonProject(MetaObject):
             ext (str): Project save file extension (.json or .xlsx)
         """
         super().__init__(name, description)
-        self.project_dir = os.path.join(PROJECT_DIR, self.short_name)
+        self._configs = configs
+        self.project_dir = os.path.join(project_dir(self._configs), self.short_name)
         self.filename = self.short_name + ext
-        self.path = os.path.join(PROJECT_DIR, self.filename)
-        self.dirty = False  # TODO: Indicates if the project has changed since loading
+        self.path = os.path.join(project_dir(self._configs), self.filename)
+        self.dirty = False  # TODO: Indicates if project has changed since loading
         self.setup_dict = dict()
         if not os.path.exists(self.project_dir):
             try:
@@ -56,7 +56,7 @@ class SceletonProject(MetaObject):
         """
         # TODO: Add checks for file extension (.json or .xlsx supported)
         self.filename = new_filename
-        self.path = os.path.join(PROJECT_DIR, self.filename)
+        self.path = os.path.join(project_dir(self._configs), self.filename)
 
     def save(self, filepath, root):
         """Project information and Setups are collected to their own dictionaries.
@@ -78,7 +78,7 @@ class SceletonProject(MetaObject):
 
         def traverse(item):
             # Helper function to traverse tree
-            logging.debug("\t" * traverse.level + item.name)
+            # logging.debug("\t" * traverse.level + item.name)
             if not item.name == 'root':
                 self.update_json_dict(item)
             for kid in item.children():
@@ -127,7 +127,7 @@ class SceletonProject(MetaObject):
         if setup.parent() is not None:
             the_dict['parent'] = parent_name
         else:
-            logging.debug("Setup '%s' parent is None" % setup_name)
+            logging.debug("Setup {0} parent is None".format(setup_name))
             the_dict['parent'] = None
         the_dict['.kids'] = dict()  # Note: '.' is because it is not allowed as a Setup name
         # Add this Setup under the appropriate Setups children
@@ -235,7 +235,7 @@ class SceletonProject(MetaObject):
         # logging.debug("setups:\n%s" % items)
         duplicates = find_duplicates(items[1])
         if len(duplicates) > 0:
-            ui.add_msg_signal.emit("There are more than one Setups with the same name."
+            ui.add_msg_signal.emit("File contains more than one Setup with the same name."
                                    " Remove duplicates and try loading again. List of duplicates: {0}"
                                    .format(duplicates), 2)
             return

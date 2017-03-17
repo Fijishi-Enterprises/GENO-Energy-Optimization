@@ -16,7 +16,7 @@ from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtWidgets import QApplication
 from PyQt5.Qt import Qt
 from PyQt5.QtGui import QIcon, QMovie, QCursor
-from config import WORK_DIR, UI_RESOURCES
+from config import WORK_DIR, UI_RESOURCES, DEFAULT_PROJECT_DIR
 
 
 class AnimatedSpinningWheelIcon(QObject):
@@ -73,15 +73,15 @@ def create_dir(base_path, folder=''):
     """
     directory = os.path.join(base_path, folder)
     if os.path.exists(directory):
-        logging.debug("Found directory: %s" % directory)
+        # logging.debug("Found directory: {0}".format(directory))
         return directory
     else:
         try:
             os.makedirs(directory, exist_ok=True)
         except OSError as e:
-            logging.error("Could not create directory: %s\nReason: %s" % (directory, e))
+            logging.error("Could not create directory: {0}\nReason: {1}".format(directory, e))
             return None
-        logging.debug("Created directory: %s" % directory)
+        logging.debug("Created directory: {0}".format(directory))
         return directory
 
 
@@ -104,11 +104,9 @@ def copy_files(src_dir, dst_dir, includes=None, excludes=None):
     src_files = []
     for pattern in includes:
         src_files += glob.glob(os.path.join(src_dir, pattern))
-
     exclude_files = []
     for pattern in excludes:
         exclude_files += glob.glob(os.path.join(src_dir, pattern))
-
     count = 0
     for filename in src_files:
         if os.path.isdir(filename):
@@ -158,9 +156,9 @@ def create_results_dir(path, name, simulation_failed=False):
                             str(counter))
             counter += 1
             if counter >= 1000:
-                logging.error('Unable to create results folder.')
+                logging.error('Unable to create result folder')
                 return None
-    logging.debug('Created results directory: %s' % results_path)
+    logging.debug('Created result directory: %s' % results_path)
     return results_path
 
 
@@ -219,7 +217,12 @@ def find_latest_output_folder(base_output_path, folders):
 
 
 def find_duplicates(a):
-    """Finds duplicates in a list. Returns a list with the duplicates or an empty list if none found."""
+    """Finds duplicates in a list. Returns a list with the duplicates or an empty list if none found.
+
+    Args:
+        a (list): List
+    """
+    # noinspection PyArgumentList
     return [item for item, count in collections.Counter(a).items() if count > 1]
 
 
@@ -316,3 +319,18 @@ def layout_widgets(layout):
         layout (QLayout): Layout containing widgets
     """
     return (layout.itemAt(i) for i in range(layout.count()))
+
+
+def project_dir(configs=None):
+    """Returns current project directory.
+
+    Args:
+        configs (ConfigurationParser): Configuration parser object. Default value is for unit tests.
+    """
+    if not configs:
+        return DEFAULT_PROJECT_DIR
+    proj_dir = configs.get('settings', 'project_dir')
+    if not proj_dir:
+        return DEFAULT_PROJECT_DIR
+    else:
+        return proj_dir

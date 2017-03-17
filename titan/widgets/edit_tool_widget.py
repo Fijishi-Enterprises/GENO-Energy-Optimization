@@ -19,9 +19,9 @@ class EditToolWidget(QWidget):
     """
     def __init__(self, parent, index):
         """ Initialize class. """
-        super().__init__()
+        super().__init__(flags=Qt.Window)
         self._parent = parent  # QWidget parent
-        #  Set up the user interface from Designer.
+        # Set up the user interface from Designer.
         self.ui = ui.edit_tool_form.Ui_Form()
         self.ui.setupUi(self)
         # Ensure this window gets garbage-collected when closed

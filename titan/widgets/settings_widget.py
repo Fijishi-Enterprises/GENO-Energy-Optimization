@@ -7,21 +7,26 @@ Widget for configuring user settings.
 
 import logging
 import os
-from PyQt5.QtWidgets import QWidget, QFileDialog, QStatusBar
+from PyQt5.QtWidgets import QWidget, QFileDialog, QStatusBar, QMessageBox
 from PyQt5.QtCore import pyqtSlot, Qt
 import ui.settings
-from config import GAMS_EXECUTABLE, GAMSIDE_EXECUTABLE
+from config import GAMS_EXECUTABLE, GAMSIDE_EXECUTABLE, STATUSBAR_STYLESHEET
 
 
 class SettingsWidget(QWidget):
     """ A widget to query user's preferred settings.
 
     Attributes:
-        parent: PyQt parent widget.
+        parent (QObject): PyQt parent widget.
+        configs (ConfigurationParser): Configuration object
     """
     def __init__(self, parent, configs):
         """ Initialize class. """
-        super().__init__()
+        super().__init__(flags=Qt.Window)
+        self._parent = parent  # QWidget parent
+        self._configs = configs
+        self._project = parent.current_project()
+        self.orig_project_dir = ''
         # Set up the user interface from Designer.
         self.ui = ui.settings.Ui_SettingsForm()
         self.ui.setupUi(self)
@@ -29,15 +34,14 @@ class SettingsWidget(QWidget):
         # Ensure this window gets garbage-collected when closed
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.statusbar = QStatusBar(self)
-        self.ui.verticalLayout_3.addWidget(self.statusbar)
+        self.statusbar.setFixedHeight(20)
         self.statusbar.setSizeGripEnabled(False)
+        self.statusbar.setStyleSheet(STATUSBAR_STYLESHEET)
+        self.ui.horizontalLayout_statusbar_placeholder.addWidget(self.statusbar)
         self.ui.pushButton_ok.setDefault(True)
-        # Class attributes
-        self._parent = parent  # QWidget parent
         self._mousePressPos = None
         self._mouseReleasePos = None
         self._mouseMovePos = None
-        self._configs = configs
         self.connect_signals()
         self.read_settings()
 
@@ -45,8 +49,26 @@ class SettingsWidget(QWidget):
         """ Connect PyQt signals. """
         self.ui.pushButton_ok.clicked.connect(self.ok_clicked)
         self.ui.pushButton_cancel.clicked.connect(self.close)
+        self.ui.pushButton_browse_project_dir.clicked.connect(self.select_project_dir)
+        self.ui.pushButton_browse_work_dir.clicked.connect(self.select_work_dir)
         self.ui.pushButton_browse_gamside.clicked.connect(self.open_gamside_browser)
 
+    @pyqtSlot(name='select_project_dir')
+    def select_project_dir(self):
+        """Open dialog to select project directory location."""
+        # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
+        answer = QFileDialog.getExistingDirectory(self, 'Select Project Directory Location', os.path.abspath('C:\\'))
+        if answer == '':  # Cancel button clicked
+            return
+        selected_path = os.path.abspath(answer)
+        self.ui.lineEdit_project_dir_location.setText(selected_path)
+
+    @pyqtSlot(name='select_work_dir')
+    def select_work_dir(self):
+        """Open dialog to select work directory location."""
+        self.statusbar.showMessage("Sorry, not available yet.", 6000)
+
+    @pyqtSlot(name='open_gamside_browser')
     def open_gamside_browser(self):
         """Open dialog where user can select the desired GAMS version."""
         # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
@@ -76,6 +98,7 @@ class SettingsWidget(QWidget):
         f = self._configs.get('settings', 'cerr')
         g = self._configs.getboolean('settings', 'clear_flags')
         h = self._configs.getboolean('settings', 'delete_input_dirs')
+        project_dir = self._configs.get('settings', 'project_dir')
         gamsdir = self._configs.get('general', 'gams_path')
         if a == '1':
             self.ui.checkBox_save_at_exit.setCheckState(Qt.PartiallyChecked)
@@ -98,6 +121,8 @@ class SettingsWidget(QWidget):
         self.ui.spinBox_cerr.setValue(int(f))
         # Set saved GAMS directory to lineEdit
         self.ui.lineEdit_gamside_path.setText(gamsdir)
+        self.ui.lineEdit_project_dir_location.setText(project_dir)
+        self.orig_project_dir = project_dir
 
     @pyqtSlot(name='ok_clicked')
     def ok_clicked(self):
@@ -128,10 +153,40 @@ class SettingsWidget(QWidget):
             self._configs.set('settings', 'delete_input_dirs', 'false')
         else:
             self._configs.set('settings', 'delete_input_dirs', 'true')
+        new_project_dir = self.ui.lineEdit_project_dir_location.text()
         self._configs.set('general', 'gams_path', self.ui.lineEdit_gamside_path.text())
-        self._configs.save()
         # Set logging level
         self._parent.set_debug_level(d)
+        # Check if project directory has been changed
+        if not self.orig_project_dir == new_project_dir:
+            if not self._project:
+                logging.debug("No Project Available")
+            else:
+                # Project is available
+                msg = "Project directory has changed. In order to complete the " \
+                      "request, Sceleton needs to save the current project " \
+                      "to the new location and reload the project. " \
+                      "<br/><br/>Continue?"
+                # noinspection PyCallByClass, PyTypeChecker
+                answer = QMessageBox.question(self, "Reload project?", msg,
+                                              QMessageBox.Yes, QMessageBox.No)
+                if answer == QMessageBox.Yes:
+                    # Update project dir to configs
+                    self._configs.set('settings', 'project_dir', new_project_dir)
+                    # Update path of current project file to configs
+                    self._configs.set('general', 'previous_project', self._project.path)
+                    # Update path of the project file in order to save the file to the new project directory
+                    self._project.change_filename(self._project.filename)
+                    # Save project to new project directory
+                    self._parent.save_project()
+                    # Reload project from the new project directory
+                    if not self._parent.load_project(self._project.path):
+                        logging.error("Loading project failed. File: {}".format(self._project.path))
+                else:
+                    logging.debug("Reloading project cancelled")
+                    self.ui.lineEdit_project_dir_location.setText(self.orig_project_dir)
+                    return
+        self._configs.save()
         self.close()
 
     def keyPressEvent(self, e):

@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>300</height>
+    <height>430</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -22,13 +22,13 @@
   <property name="minimumSize">
    <size>
     <width>500</width>
-    <height>300</height>
+    <height>430</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>500</width>
-    <height>300</height>
+    <height>430</height>
    </size>
   </property>
   <property name="mouseTracking">
@@ -47,8 +47,38 @@
    <bool>false</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="spacing">
+      <number>6</number>
+     </property>
+     <property name="leftMargin">
+      <number>9</number>
+     </property>
+     <property name="topMargin">
+      <number>9</number>
+     </property>
+     <property name="rightMargin">
+      <number>9</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
      <item>
       <widget class="QGroupBox" name="groupBox_general">
        <property name="sizePolicy">
@@ -72,21 +102,8 @@
        <property name="flat">
         <bool>false</bool>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QCheckBox" name="checkBox_exit_dialog">
-          <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unchecked: Exit Sceleton without prompt&lt;/p&gt;&lt;p&gt;Checked: Show confirm exit prompt&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <property name="text">
-           <string>Show confirm exit dialog at exit</string>
-          </property>
-          <property name="tristate">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="1" column="0">
          <widget class="QCheckBox" name="checkBox_save_at_exit">
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unchecked: Does not save project &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;Partially checked: Shows message box (default)&lt;/p&gt;&lt;p&gt;Checked: Saves project &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -99,7 +116,17 @@
           </property>
          </widget>
         </item>
-        <item>
+        <item row="4" column="1">
+         <widget class="QPushButton" name="pushButton_browse_project_dir">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select project directory&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Browse</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
          <widget class="QCheckBox" name="checkBox_del_work_dirs">
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unchecked: Does not delete work directories &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;Partially checked: Shows message box (default)&lt;/p&gt;&lt;p&gt;Checked: Deletes work directories &amp;amp; does not show message box&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -112,13 +139,104 @@
           </property>
          </widget>
         </item>
-        <item>
+        <item row="3" column="0">
          <widget class="QCheckBox" name="checkBox_debug">
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows Sceleton debug messages in console. Error messages are always shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
            <string>Show Debug messages</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLineEdit" name="lineEdit_project_dir_location">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>ArrowCursor</cursorShape>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Project directory location. Leave this empty to use default.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Project directory</string>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="checkBox_exit_dialog">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unchecked: Exit Sceleton without prompt&lt;/p&gt;&lt;p&gt;Checked: Show confirm exit prompt&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Show confirm exit dialog at exit</string>
+          </property>
+          <property name="tristate">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLineEdit" name="lineEdit_work_dir_location">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>ArrowCursor</cursorShape>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Work directory location. Leave this empty to use default.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Work directory</string>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QPushButton" name="pushButton_browse_work_dir">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select work directory&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Browse</string>
           </property>
          </widget>
         </item>
@@ -163,197 +281,234 @@
           </property>
          </widget>
         </item>
-        <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_gams">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>56</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>GAMS</string>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="checkBox_logoption">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls the GAMS &lt;span style=&quot; font-weight:600;&quot;&gt;logoption&lt;/span&gt; keyword value.&lt;/p&gt;&lt;p&gt;If unchecked (logoption=3). LOG output is written to standard output. &lt;/p&gt;&lt;p&gt;If checked (logoption=4). LOG output is written to standard output and to &amp;lt;TOOLNAME&amp;gt;.log file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
-          <property name="sizeHint" stdset="0">
+          <property name="text">
+           <string>Write output to log file (logoption)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLineEdit" name="lineEdit_gamside_path">
+          <property name="minimumSize">
            <size>
-            <width>20</width>
-            <height>40</height>
+            <width>0</width>
+            <height>20</height>
            </size>
           </property>
-         </spacer>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>ArrowCursor</cursorShape>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter directory where gams.exe and gamside.exe reside.&lt;/p&gt;&lt;p&gt;Note: Leave this empty to use GAMS defined in the system PATH variable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+          <property name="readOnly">
+           <bool>false</bool>
+          </property>
+          <property name="placeholderText">
+           <string>GAMS directory</string>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QPushButton" name="pushButton_browse_gamside">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>23</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select GAMS directory&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Browse</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls the compile time error limit (&lt;span style=&quot; font-weight:600;&quot;&gt;cerr&lt;/span&gt;). The compilation will be stopped after n errors have occurred.&lt;/p&gt;&lt;p&gt;0: No error limit (default)&lt;/p&gt;&lt;p&gt;n: Stop after n errors&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Compile error limit (cerr)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="spinBox_cerr">
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls the compile time error limit (&lt;span style=&quot; font-weight:600;&quot;&gt;cerr&lt;/span&gt;). The compilation will be stopped after n errors have occurred.&lt;/p&gt;&lt;p&gt;0: No error limit (default)&lt;/p&gt;&lt;p&gt;n: Stop after n errors&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="frame">
+           <bool>true</bool>
+          </property>
+          <property name="showGroupSeparator" stdset="0">
+           <bool>false</bool>
+          </property>
+          <property name="value">
+           <number>1</number>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
      </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <property name="bottomMargin">
+        <number>6</number>
+       </property>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_ok">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Saves changes and closes the window&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Ok</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_cancel">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Closes the window without saving changes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Cancel</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
     </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_gams">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>56</height>
-      </size>
+    <layout class="QHBoxLayout" name="horizontalLayout_statusbar_placeholder">
+     <property name="spacing">
+      <number>0</number>
      </property>
-     <property name="title">
-      <string>GAMS</string>
+     <property name="leftMargin">
+      <number>0</number>
      </property>
-     <property name="flat">
-      <bool>false</bool>
+     <property name="topMargin">
+      <number>0</number>
      </property>
-     <property name="checkable">
-      <bool>false</bool>
+     <property name="rightMargin">
+      <number>0</number>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="2" column="0">
-       <widget class="QCheckBox" name="checkBox_logoption">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls the GAMS &lt;span style=&quot; font-weight:600;&quot;&gt;logoption&lt;/span&gt; keyword value.&lt;/p&gt;&lt;p&gt;If unchecked (logoption=3). LOG output is written to standard output. &lt;/p&gt;&lt;p&gt;If checked (logoption=4). LOG output is written to standard output and to &amp;lt;TOOLNAME&amp;gt;.log file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>Write output to log file (logoption)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLineEdit" name="lineEdit_gamside_path">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>20</height>
-         </size>
-        </property>
-        <property name="cursor">
-         <cursorShape>ArrowCursor</cursorShape>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter directory where gams.exe and gamside.exe reside.&lt;/p&gt;&lt;p&gt;Note: Leave this empty to use GAMS defined in the system PATH variable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="autoFillBackground">
-         <bool>false</bool>
-        </property>
-        <property name="frame">
-         <bool>false</bool>
-        </property>
-        <property name="readOnly">
-         <bool>false</bool>
-        </property>
-        <property name="placeholderText">
-         <string>GAMS directory</string>
-        </property>
-        <property name="clearButtonEnabled">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QPushButton" name="pushButton_browse_gamside">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>23</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select GAMS directory&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>Browse</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls the compile time error limit (&lt;span style=&quot; font-weight:600;&quot;&gt;cerr&lt;/span&gt;). The compilation will be stopped after n errors have occurred.&lt;/p&gt;&lt;p&gt;0: No error limit (default)&lt;/p&gt;&lt;p&gt;n: Stop after n errors&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>Compile error limit (cerr)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QSpinBox" name="spinBox_cerr">
-        <property name="maximumSize">
-         <size>
-          <width>40</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls the compile time error limit (&lt;span style=&quot; font-weight:600;&quot;&gt;cerr&lt;/span&gt;). The compilation will be stopped after n errors have occurred.&lt;/p&gt;&lt;p&gt;0: No error limit (default)&lt;/p&gt;&lt;p&gt;n: Stop after n errors&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="frame">
-         <bool>true</bool>
-        </property>
-        <property name="showGroupSeparator" stdset="0">
-         <bool>false</bool>
-        </property>
-        <property name="value">
-         <number>1</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
      <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
+      <widget class="QWidget" name="widget_invisible_dummy" native="true">
+       <property name="minimumSize">
         <size>
-         <width>40</width>
+         <width>0</width>
          <height>20</height>
         </size>
        </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_ok">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Saves changes and closes the window&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="text">
-        <string>Ok</string>
+       <property name="maximumSize">
+        <size>
+         <width>0</width>
+         <height>20</height>
+        </size>
        </property>
       </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_cancel">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Closes the window without saving changes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="text">
-        <string>Cancel</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>
@@ -364,6 +519,8 @@
   <tabstop>checkBox_save_at_exit</tabstop>
   <tabstop>checkBox_del_work_dirs</tabstop>
   <tabstop>checkBox_debug</tabstop>
+  <tabstop>pushButton_browse_project_dir</tabstop>
+  <tabstop>pushButton_browse_work_dir</tabstop>
   <tabstop>checkBox_clear_flags</tabstop>
   <tabstop>checkBox_del_input_dirs</tabstop>
   <tabstop>spinBox_cerr</tabstop>

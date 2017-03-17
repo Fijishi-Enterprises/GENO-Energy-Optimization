@@ -142,9 +142,9 @@ class SetupModel(QAbstractItemModel):
         Returns:
             Flags
         """
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable \
-               | Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled \
-               | Qt.ItemIsEditable
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | \
+            Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled | \
+            Qt.ItemIsEditable
 
     def supportedDropActions(self):
         """Enable item moving."""
@@ -747,6 +747,25 @@ class SetupAndToolProxyModel(QSortFilterProxyModel):
             parent (QModelIndex): Parent index
         """
         return 2
+
+    def headerData(self, section, orientation, role=None):
+        """Proxy model header names.
+
+        Args:
+            section (int): Section to edit
+            orientation (Orientation): Orientation (Rows or columns)
+            role (int): Role to edit
+
+        Returns:
+            QVariant depending on role.
+        """
+        if role == Qt.DisplayRole:
+            if section == 0:
+                return "Name"
+            elif section == 1:
+                return "Tool"
+        else:
+            return None
 
     def data(self, index, role=None):
         """Reimplemented method to hide the decoration.

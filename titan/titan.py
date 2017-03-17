@@ -13,15 +13,20 @@ from ui_main import TitanUI
 
 
 def main(argv):
-    """Launch application."""
+    """Launch application.
+
+    Args:
+        argv (list): Command line arguments
+    """
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-    # GUI
     app = QApplication(argv)
     window = TitanUI()
     window.show()
-    sys.exit(app.exec_())
+    # Enter main event loop and wait until exit() is called
+    return_code = app.exec_()
+    return return_code
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

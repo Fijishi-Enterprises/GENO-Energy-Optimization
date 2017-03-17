@@ -35,7 +35,7 @@ class TestSetup(unittest.TestCase):
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
         log.disable(level=log.ERROR)
-        self._project = SceletonProject('Unittest Project', '')
+        self._project = SceletonProject('Unittest Project', '', None)
         # Make SetupModel
         self._root = Setup('root', 'root node for Setups,', self._project)
         self._setup_model = self.make_test_model()

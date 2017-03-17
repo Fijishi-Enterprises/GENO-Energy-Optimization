@@ -20,7 +20,7 @@ class TestSetupModel(unittest.TestCase):
         log.basicConfig(stream=sys.stderr, level=log.DEBUG,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-        self._project = SceletonProject('Unittest Project', 'a project for unit tests')
+        self._project = SceletonProject('Unittest Project', 'a project for unit tests', None)
         self._root = Setup('root', 'root node for Setups,', self._project)
         self.test_model = self.make_test_model()
 

@@ -35,7 +35,7 @@ class TestGAMSModel(unittest.TestCase):
         self.tool_def = os.path.abspath(os.path.join(APPLICATION_PATH,
                                                      'test', 'resources',
                                                      'test_tool', 'testtool.json'))
-        self.project = SceletonProject('Unittest Project', 'a project for unit tests')
+        self.project = SceletonProject('Unittest Project', 'a project for unit tests', None)
         self._root = setup.Setup('root', 'root node for Setups,', self.project)
         self.setup_model = self.make_test_model()
         self.config = ConfigurationParser(CONFIGURATION_FILE)

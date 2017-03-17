@@ -474,6 +474,7 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.actionPack)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.menuToolbars.menuAction())
+        self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionSettings)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionQuit)

@@ -149,7 +149,7 @@ class InputExplorerWidget(QWidget):
         self.file_item_model.setHorizontalHeaderItem(0, header)
         # If no files in input directory
         if not files:
-            self.file_item_model.appendRow(QStandardItem(".."))
+            self.file_item_model.appendRow(QStandardItem("..."))
             return
         # Make an 'open directory' item
         folder_item = QStandardItem("Open Directory")

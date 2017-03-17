@@ -25,7 +25,7 @@ else:
 # Sceleton configuration file
 CONFIGURATION_FILE = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'conf', 'titan.conf'))
 # Project directory
-PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'projects'))
+DEFAULT_PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'projects'))
 # Project input/output directory names
 INPUT_STORAGE_DIR = 'input'
 OUTPUT_STORAGE_DIR = 'output'
@@ -37,8 +37,22 @@ GAMSIDE_EXECUTABLE = 'gamside.exe'
 # Random
 UI_RESOURCES = os.path.abspath(os.path.join(APPLICATION_PATH, 'ui', 'resources'))
 
+STATUSBAR_STYLESHEET = "QStatusBar{border-width: 2px;\n" \
+                       "border-color: 'gainsboro';\n" \
+                       "border-style: groove;\n" \
+                       "border-radius: 2px;\n}"
+
+TOOLBAR_STYLESHEET = "QToolBar{spacing: 5px;\n" \
+                     "background-color: 'lightsalmon';\n" \
+                     "padding: 4px;\n}" \
+                     "QToolButton{background-color: rgb(255, 255, 255);\n" \
+                     "border-width: 2px;\n" \
+                     "border-style: outset;\n" \
+                     "border-color: gray;\n" \
+                     "border-radius: 6px;\n}"
+
 # Default options and settings
-GENERAL_OPTIONS = {'project_path': '',
+GENERAL_OPTIONS = {'previous_project': '',
                    'tools': '',
                    'gams_path': ''}
 
@@ -49,4 +63,5 @@ SETTINGS = {'save_at_exit': '1',
             'logoption': '3',
             'cerr': '1',
             'clear_flags': 'false',
-            'delete_input_dirs': 'false'}
+            'delete_input_dirs': 'false',
+            'project_dir': ''}

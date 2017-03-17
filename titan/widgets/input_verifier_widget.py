@@ -22,7 +22,7 @@ class InputVerifierWidget(QWidget):
     Attributes:
         parent: PyQt parent widget.
     """
-    def __init__(self, parent, index, setup_model):
+    def __init__(self, parent, setup_model, project_dir):
         """ Initialize class. """
         super().__init__(flags=Qt.Window)
         self._parent = parent  # QWidget parent
@@ -44,6 +44,7 @@ class InputVerifierWidget(QWidget):
         self.ui.treeView_setuptree.setModel(self.proxy_setup_model)
         self.ui.treeView_setuptree.setColumnWidth(0, 264)
         self.ui.treeView_setuptree.expandAll()
+        self.ui.label_project_dir.setText("Project directory: <b>{0}</b>".format(project_dir))
 
         # Reset all ready_to_run attributes and check all Setups
         def traverse(setup):

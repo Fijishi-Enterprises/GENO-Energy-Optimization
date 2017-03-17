@@ -1077,6 +1077,7 @@
     <addaction name="actionPack"/>
     <addaction name="separator"/>
     <addaction name="menuToolbars"/>
+    <addaction name="separator"/>
     <addaction name="actionSettings"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
