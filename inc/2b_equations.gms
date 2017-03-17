@@ -6,6 +6,7 @@ equations
     q_maxUpward(grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
     q_bindOnline(unit, mType, f, t) "Couple online variable when joining forecasts or when joining sample time periods"
     q_startup(unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
+    q_onlineGeneration(effSelector, unit, f, t, effSelector) "Enforces minimum generation constraints on units with online variables"
     q_conversionDirectInputOutput(effSelector, unit, f, t, effSelector)          "Direct conversion of inputs to outputs (no piece-wise linear part-load efficiencies)"
     q_conversionSOS1InputIntermediate(effSelector, unit, f, t)    "Conversion of input to intermediates restricted by piece-wise linear part-load efficiency represented with SOS1 sections"
     q_conversionSOS1Constraint(effSelector, unit, f, t)   "Constrain piece-wise linear intermediate variables"
@@ -257,7 +258,22 @@ q_bindOnline(unit_online, mftBind(m, f, t))${uft_online(unit_online, f, t)} ..
   + v_online(unit_online, f+mft_bind(m,f,t), t+mt_bind(m,t))$uft_online(unit_online, f+mft_bind(m,f,t), t+mt_bind(m,t))
 ;
 * -----------------------------------------------------------------------------
-q_conversionDirectInputOutput(sufts(effGroup, unit, f, t, effSelector))$effDirect(effGroup) ..
+q_onlineGeneration(sufts(effGroup, uft_online(unit_online, f, t), effSelector)) ..
+  + sum(gnu_output(grid, node, unit_online),
+    + v_gen(grid, node, unit_online, f, t)
+    )
+  - sum(gnu_input(grid, node, unit_online),
+    + v_gen(grid, node, unit_online, f, t)
+    )
+  =G=
+  + v_online(unit_online, f, t)
+    / p_unit(unit_online, 'unitCount')
+    * (p_effGroupUnit(effSelector, unit_online, 'lb')${not ts_effGroupUnit(effSelector, unit_online, 'lb', f, t)} + ts_effGroupUnit(effSelector, unit_online, 'lb', f, t))
+    * sum(gnu_output(grid, node, unit_online), p_gnu(grid, node, unit_online, 'maxGen'))
+    * sum(gnu_input(grid, node, unit_online), p_gnu(grid, node, unit_online, 'maxCons'))
+;
+* -----------------------------------------------------------------------------
+q_conversionDirectInputOutput(sufts(effDirect, unit, f, t, effSelector)) ..
   - sum(gnu_input(grid, node, unit),
       + v_gen(grid, node, unit, f, t)
     )
@@ -265,17 +281,9 @@ q_conversionDirectInputOutput(sufts(effGroup, unit, f, t, effSelector))$effDirec
       + v_fuelUse(fuel, unit, f, t)
     )
   =E=
-  + (p_effUnit(effSelector, unit, 'section00')${not ts_effUnit(effSelector, unit, 'section00', f, t)} + ts_effUnit(effSelector, unit, 'section00', f, t))$suft('directOn', unit, f, t)
-      * v_online(unit, f, t)${uft_online(unit, f, t)}
-      / p_unit(unit, 'unitCount')
-      * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
   + sum(gnu_output(grid, node, unit),
       + v_gen(grid, node, unit, f, t)
           * (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))
-*          * [ + 1
-*$(not unit_withConstrainedOutputRatio(unit_noSlope) or nu(node,unit_noSlope))   // not a backpressure or extraction unit, expect for the primary grid (where cV has to be 1)
-*              + p_gnu(grid, node, unit, 'cV')$(unit_withConstrainedOutputRatio(unit) and not nu(node, unit)) // for secondary outputs with cV
-*            ]
     );
 * -----------------------------------------------------------------------------
 q_conversionSOS1InputIntermediate(suft(effGroup, unit, f, t))$effSlope(effGroup) ..
@@ -286,7 +294,7 @@ q_conversionSOS1InputIntermediate(suft(effGroup, unit, f, t))$effSlope(effGroup)
       + v_fuelUse(fuel, unit, f, t)
     )
   =E=
-  + (p_unit(unit, 'section00')${not (p_unit(unit, 'useTimeseries') AND ts_unit_(unit, 'section00', f, t))} + ts_unit_(unit, 'section00', f, t)${p_unit(unit, 'useTimeseries')})
+  + (p_effGroupUnit(effGroup, unit, 'lb')${not (p_unit(unit, 'useTimeseries') AND ts_effGroupUnit(effGroup, unit, 'lb', f, t))} + ts_effGroupUnit(effGroup, unit, 'lb', f, t)${p_unit(unit, 'useTimeseries')})
       * v_online(unit, f, t)${uft_online(unit, f, t)}
       / p_unit(unit, 'unitCount')
       * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist

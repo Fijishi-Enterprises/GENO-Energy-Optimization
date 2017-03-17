@@ -157,7 +157,7 @@ param_unit "Set of possible data parameters for units" /
     resTimelim  "How long should a storage be able to provide reserve (h)"
     eff00 * eff12    "Efficiency of the unit to convert input to output/intermediate product"
     rb00 * rb12     "Right border of the efficiency point"
-    section00   "Input (fuel) consumption at min. load (or at zero)"
+*    section00   "Input (fuel) consumption at min. load (or at zero)"   // NOT USED ATM!
     slope00 * slope12  "Additive input (fuel) consumption slope"
     level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "Uses time series form input for unit parameters whenever possible"
