@@ -16,7 +16,7 @@ from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtWidgets import QApplication
 from PyQt5.Qt import Qt
 from PyQt5.QtGui import QIcon, QMovie, QCursor
-from config import WORK_DIR, UI_RESOURCES, DEFAULT_PROJECT_DIR
+from config import DEFAULT_WORK_DIR, UI_RESOURCES, DEFAULT_PROJECT_DIR
 
 
 class AnimatedSpinningWheelIcon(QObject):
@@ -50,12 +50,12 @@ class AnimatedSpinningWheelIcon(QObject):
         self.movie.stop()
 
 
-def find_work_dirs():
+def find_work_dirs(project):
     """Returns a list of work directory paths."""
     work_dirs = list()
-    entries = os.listdir(WORK_DIR)
+    entries = os.listdir(project.work_dir)
     for entry in entries:
-        dir_path = os.path.join(WORK_DIR, entry)
+        dir_path = os.path.join(project.work_dir, entry)
         if os.path.isdir(dir_path):
             work_dirs.append(dir_path)
     return work_dirs

@@ -13,7 +13,7 @@ import json
 import tempfile
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 import qsubprocess
-from config import WORK_DIR
+from config import DEFAULT_WORK_DIR
 from metaobject import MetaObject
 from helpers import create_dir, create_output_dir_timestamp, make_gams_project_file
 
@@ -105,7 +105,8 @@ class ToolInstance(QObject):
         self.ui = ui
         self.tool_process = None
         self.tool_output_dir = tool_output_dir
-        self.basedir = tempfile.mkdtemp(dir=WORK_DIR,
+        wrk_dir = ui.current_project().work_dir
+        self.basedir = tempfile.mkdtemp(dir=wrk_dir,
                                         prefix=self.tool.short_name + '__')
         self.setup_name = setup_name
         self.command = ''  # command is created after ToolInstance is initialized

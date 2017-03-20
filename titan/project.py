@@ -10,7 +10,8 @@ import logging
 import json
 from collections import Counter
 from metaobject import MetaObject
-from helpers import find_duplicates, project_dir
+from helpers import find_duplicates, project_dir, create_dir
+from config import DEFAULT_WORK_DIR
 
 
 class SceletonProject(MetaObject):
@@ -27,6 +28,7 @@ class SceletonProject(MetaObject):
         super().__init__(name, description)
         self._configs = configs
         self.project_dir = os.path.join(project_dir(self._configs), self.short_name)
+        self.work_dir = DEFAULT_WORK_DIR
         self.filename = self.short_name + ext
         self.path = os.path.join(project_dir(self._configs), self.filename)
         self.dirty = False  # TODO: Indicates if project has changed since loading
@@ -41,12 +43,20 @@ class SceletonProject(MetaObject):
             pass
 
     def set_name(self, name):
-        # TODO: Do something smarter here when Save Project As... is pressed.
-        self.short_name = name
-        self.name = name
+        """Change project name. Calls superclass method.
+
+        Args:
+            name (str): Project name
+        """
+        super().set_name(name)
 
     def set_description(self, desc):
-        self.description = desc
+        """Change project description. Calls superclass method.
+
+        Args:
+            desc (str): Project description
+        """
+        super().set_description(desc)
 
     def change_filename(self, new_filename):
         """Change the save filename associated with this project.
@@ -57,6 +67,21 @@ class SceletonProject(MetaObject):
         # TODO: Add checks for file extension (.json or .xlsx supported)
         self.filename = new_filename
         self.path = os.path.join(project_dir(self._configs), self.filename)
+
+    def change_work_dir(self, work_path):
+        """Change project work directory.
+
+        Args:
+            work_path (str): Absolute path to work directory
+        """
+        if not work_path:
+            self.work_dir = DEFAULT_WORK_DIR
+            return
+        if not create_dir(work_path):
+            logging.error("Could not change project work directory")
+            return
+        self.work_dir = work_path
+        return
 
     def save(self, filepath, root):
         """Project information and Setups are collected to their own dictionaries.
@@ -73,6 +98,7 @@ class SceletonProject(MetaObject):
         dic = dict()  # This is an intermediate dictionary to hold project info
         dic['name'] = self.name
         dic['desc'] = self.description
+        dic['work_dir'] = self.work_dir
         # Save project stuff
         project_dict['project'] = dic
 

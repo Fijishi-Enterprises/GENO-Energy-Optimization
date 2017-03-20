@@ -14,7 +14,7 @@ SCELETON_VERSION = '0.1.9'
 ERROR_COLOR = QColor('red')
 SUCCESS_COLOR = QColor('green')
 NEUTRAL_COLOR = QColor('blue')
-BLACK_COLOR = QColor('black')  # Default text color
+BLACK_COLOR = QColor('black')
 
 # Application path
 if getattr(sys, 'frozen', False):
@@ -30,13 +30,13 @@ DEFAULT_PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.par
 INPUT_STORAGE_DIR = 'input'
 OUTPUT_STORAGE_DIR = 'output'
 # Work directory
-WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
+DEFAULT_WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
 # GAMS
 GAMS_EXECUTABLE = 'gams.exe'
 GAMSIDE_EXECUTABLE = 'gamside.exe'
-# Random
+# Others
 UI_RESOURCES = os.path.abspath(os.path.join(APPLICATION_PATH, 'ui', 'resources'))
-
+# Style sheets
 STATUSBAR_STYLESHEET = "QStatusBar{border-width: 2px;\n" \
                        "border-color: 'gainsboro';\n" \
                        "border-style: groove;\n" \
@@ -50,6 +50,16 @@ TOOLBAR_STYLESHEET = "QToolBar{spacing: 5px;\n" \
                      "border-style: outset;\n" \
                      "border-color: gray;\n" \
                      "border-radius: 6px;\n}"
+
+SETTINGS_GROUPBOX_STYLESHEET = "QGroupBox{border: 1px solid gray; " \
+                               "border-radius: 9px; " \
+                               "margin-top: 0.5em}" \
+                               "QGroupBox:title{subcontrol-origin: margin; " \
+                               "left: 10px; " \
+                               "padding-top: 0px; " \
+                               "padding-bottom: 0px; " \
+                               "padding- right: 2px; " \
+                               "padding-left: 2px;}"
 
 # Default options and settings
 GENERAL_OPTIONS = {'previous_project': '',

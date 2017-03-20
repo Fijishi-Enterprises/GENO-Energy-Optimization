@@ -38,7 +38,8 @@ class ExcelHandler:
             return False
         name = project_sheet['B1'].value
         desc = project_sheet['B2'].value
-        return [name, desc]
+        work_dir = project_sheet['B3'].value
+        return [name, desc, work_dir]
 
     def import_setups(self):
         """Read Setups sheet."""

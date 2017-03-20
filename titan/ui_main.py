@@ -22,9 +22,10 @@ from helpers import find_work_dirs, remove_work_dirs, erase_dir, \
                     busy_effect, layout_widgets, project_dir
 from GAMS import GAMSModel
 from config import ERROR_COLOR, BLACK_COLOR, \
-                   WORK_DIR, CONFIGURATION_FILE, GENERAL_OPTIONS, \
-                   GAMSIDE_EXECUTABLE, SCELETON_VERSION, \
-                   STATUSBAR_STYLESHEET, TOOLBAR_STYLESHEET
+                   DEFAULT_WORK_DIR, CONFIGURATION_FILE,\
+                   GENERAL_OPTIONS, GAMSIDE_EXECUTABLE, \
+                   SCELETON_VERSION, STATUSBAR_STYLESHEET,\
+                   TOOLBAR_STYLESHEET
 from configuration import ConfigurationParser
 from delegates import SetupStyledItemDelegate
 from widgets.setup_form_widget import SetupFormWidget
@@ -439,8 +440,14 @@ class TitanUI(QMainWindow):
             project_dict = dicts['project']
             proj_name = project_dict['name']
             proj_desc = project_dict['desc']
+            try:
+                proj_work_dir = project_dict['work_dir']
+            except KeyError:
+                logging.debug("Work dir not found in project file. Using default work directory")
+                proj_work_dir = DEFAULT_WORK_DIR
             # Create project
             self._project = SceletonProject(proj_name, proj_desc, self._config)
+            self._project.change_work_dir(proj_work_dir)
             # Setup models and views
             self.init_models()
             self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
@@ -452,7 +459,7 @@ class TitanUI(QMainWindow):
                 self.add_msg_signal.emit("No Setups in project", 0)
                 return True
             self._project.parse_setups(setup_dict, self.setup_model, self.tool_model, self)
-            msg = "Project '%s' loaded" % self._project.name
+            msg = "Project {0} loaded".format(self._project.name)
             self.ui.statusbar.showMessage(msg, 10000)
             self.add_msg_signal.emit("Done", 1)
             self.check_clear_flags()
@@ -486,15 +493,20 @@ class TitanUI(QMainWindow):
                 self.add_msg_signal.emit("Project description missing. "
                                          "You can add it to cell B2 on <b>Project</b> sheet (optional).", 0)
                 proj_details[1] = ''
+            if not proj_details[2]:
+                self.add_msg_signal.emit("Project work directory missing. "
+                                         "You can add it to cell B3 on <b>Project</b> sheet. (optional).", 0)
+                proj_details[2] = DEFAULT_WORK_DIR
             # Create project
             self._project = SceletonProject(proj_details[0], proj_details[1], self._config)
+            self._project.change_work_dir(proj_details[2])
             # Setup models and views
             self.init_models()
             self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
             self.add_msg_signal.emit("Loading project <b>{0}</b>".format(self._project.name), 0)
             # Parse Setups from Excel and add them to the project
             self._project.parse_excel_setups(self.setup_model, self.tool_model, wb, self)
-            msg = "Project '%s' loaded" % self._project.name
+            msg = "Project {0} loaded".format(self._project.name)
             self.ui.statusbar.showMessage(msg, 10000)
             self.add_msg_signal.emit("Done", 1)
             self.check_clear_flags()
@@ -1575,18 +1587,18 @@ class TitanUI(QMainWindow):
             return
         elif del_dirs == '1':  # Default
             # Find work directories
-            dirs = find_work_dirs()
+            dirs = find_work_dirs(self._project)
             dirs_str = '\n'.join(dirs)
             if len(dirs) == 0:
                 # No work directories found, skip message box
-                logging.debug("No work directories found in path {0}".format(WORK_DIR))
+                logging.debug("No work directories found in path {0}".format(self._project.work_dir))
                 return
             # Show message box
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Question)
             msg.setWindowTitle("Emptying work directory")
             msg.setText("There are {0} work directories in path {1}. Would you like to delete them? "
-                        "Click show details to see the paths.".format(len(dirs), WORK_DIR))
+                        "Click show details to see the paths.".format(len(dirs), self._project.work_dir))
             msg.setDetailedText("These directories will be deleted:\n{0}".format(dirs_str))
             msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             chkbox = QCheckBox()
@@ -1607,7 +1619,7 @@ class TitanUI(QMainWindow):
                     self._config.set('settings', 'delete_work_dirs', '0')
         elif del_dirs == '2':
             # Delete work directories without prompt
-            dirs = find_work_dirs()
+            dirs = find_work_dirs(self._project)
             remove_work_dirs(dirs)
             logging.debug("Deleted {0} work directories".format(len(dirs)))
         else:
@@ -1632,13 +1644,13 @@ class TitanUI(QMainWindow):
             if event:
                 event.ignore()
             return
-        # Show save project message box
-        self.show_save_project_prompt()
-        # Show delete work directories message box
-        self.show_delete_work_dirs_prompt()
-        logging.debug("See you later.")
         if self._project:
+            # Show save project message box
+            self.show_save_project_prompt()
+            # Show delete work directories message box
+            self.show_delete_work_dirs_prompt()
             self._config.set('general', 'previous_project', self._project.path)
+        logging.debug("See you later.")
         self._config.save()
         # noinspection PyArgumentList
         QApplication.quit()  # same as QApplication.exit(0)

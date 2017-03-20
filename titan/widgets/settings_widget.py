@@ -10,7 +10,9 @@ import os
 from PyQt5.QtWidgets import QWidget, QFileDialog, QStatusBar, QMessageBox
 from PyQt5.QtCore import pyqtSlot, Qt
 import ui.settings
-from config import GAMS_EXECUTABLE, GAMSIDE_EXECUTABLE, STATUSBAR_STYLESHEET
+from config import GAMS_EXECUTABLE, GAMSIDE_EXECUTABLE, \
+    STATUSBAR_STYLESHEET, SETTINGS_GROUPBOX_STYLESHEET, \
+    DEFAULT_PROJECT_DIR, DEFAULT_WORK_DIR
 
 
 class SettingsWidget(QWidget):
@@ -26,7 +28,8 @@ class SettingsWidget(QWidget):
         self._parent = parent  # QWidget parent
         self._configs = configs
         self._project = parent.current_project()
-        self.orig_project_dir = ''
+        self.orig_project_dir = ''  # Variable for project dir at widget startup
+        self.orig_work_dir = ''  # Variable for work dir at widget startup
         # Set up the user interface from Designer.
         self.ui = ui.settings.Ui_SettingsForm()
         self.ui.setupUi(self)
@@ -38,12 +41,17 @@ class SettingsWidget(QWidget):
         self.statusbar.setSizeGripEnabled(False)
         self.statusbar.setStyleSheet(STATUSBAR_STYLESHEET)
         self.ui.horizontalLayout_statusbar_placeholder.addWidget(self.statusbar)
+        self.ui.groupBox_general.setStyleSheet(SETTINGS_GROUPBOX_STYLESHEET)
+        self.ui.groupBox_setup.setStyleSheet(SETTINGS_GROUPBOX_STYLESHEET)
+        self.ui.groupBox_gams.setStyleSheet(SETTINGS_GROUPBOX_STYLESHEET)
+        self.ui.groupBox_project.setStyleSheet(SETTINGS_GROUPBOX_STYLESHEET)
         self.ui.pushButton_ok.setDefault(True)
         self._mousePressPos = None
         self._mouseReleasePos = None
         self._mouseMovePos = None
         self.connect_signals()
         self.read_settings()
+        self.read_project_settings()
 
     def connect_signals(self):
         """ Connect PyQt signals. """
@@ -57,7 +65,7 @@ class SettingsWidget(QWidget):
     def select_project_dir(self):
         """Open dialog to select project directory location."""
         # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
-        answer = QFileDialog.getExistingDirectory(self, 'Select Project Directory Location', os.path.abspath('C:\\'))
+        answer = QFileDialog.getExistingDirectory(self, 'Select Projects Directory Location', os.path.abspath('C:\\'))
         if answer == '':  # Cancel button clicked
             return
         selected_path = os.path.abspath(answer)
@@ -66,7 +74,12 @@ class SettingsWidget(QWidget):
     @pyqtSlot(name='select_work_dir')
     def select_work_dir(self):
         """Open dialog to select work directory location."""
-        self.statusbar.showMessage("Sorry, not available yet.", 6000)
+        # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
+        answer = QFileDialog.getExistingDirectory(self, 'Select Work Directory Location', os.path.abspath('C:\\'))
+        if answer == '':  # Cancel button clicked
+            return
+        selected_path = os.path.abspath(answer)
+        self.ui.lineEdit_work_dir_location.setText(selected_path)
 
     @pyqtSlot(name='open_gamside_browser')
     def open_gamside_browser(self):
@@ -89,7 +102,7 @@ class SettingsWidget(QWidget):
         return
 
     def read_settings(self):
-        """Read current settings from config file and update UI to show them."""
+        """Read current settings from config object and update UI to show them."""
         a = self._configs.get('settings', 'save_at_exit')
         b = self._configs.get('settings', 'confirm_exit')
         c = self._configs.get('settings', 'delete_work_dirs')
@@ -121,8 +134,20 @@ class SettingsWidget(QWidget):
         self.ui.spinBox_cerr.setValue(int(f))
         # Set saved GAMS directory to lineEdit
         self.ui.lineEdit_gamside_path.setText(gamsdir)
+        if not project_dir:
+            project_dir = DEFAULT_PROJECT_DIR
         self.ui.lineEdit_project_dir_location.setText(project_dir)
         self.orig_project_dir = project_dir
+
+    def read_project_settings(self):
+        """Read project settings from config object and update settings widgets accordingly."""
+        work_dir = DEFAULT_WORK_DIR
+        if self._project:
+            self.ui.lineEdit_project_name.setText(self._project.name)
+            self.ui.textEdit_project_description.setText(self._project.description)
+            work_dir = self._project.work_dir
+        self.ui.lineEdit_work_dir_location.setText(work_dir)
+        self.orig_work_dir = work_dir
 
     @pyqtSlot(name='ok_clicked')
     def ok_clicked(self):
@@ -153,10 +178,14 @@ class SettingsWidget(QWidget):
             self._configs.set('settings', 'delete_input_dirs', 'false')
         else:
             self._configs.set('settings', 'delete_input_dirs', 'true')
-        new_project_dir = self.ui.lineEdit_project_dir_location.text()
         self._configs.set('general', 'gams_path', self.ui.lineEdit_gamside_path.text())
         # Set logging level
         self._parent.set_debug_level(d)
+        # Update project settings
+        self.update_project_settings()
+        new_project_dir = self.ui.lineEdit_project_dir_location.text()
+        if not new_project_dir:
+            new_project_dir = DEFAULT_PROJECT_DIR
         # Check if project directory has been changed
         if not self.orig_project_dir == new_project_dir:
             if not self._project:
@@ -188,6 +217,29 @@ class SettingsWidget(QWidget):
                     return
         self._configs.save()
         self.close()
+
+    def update_project_settings(self):
+        """Update project settings when Ok has been clicked."""
+        if not self._project:
+            return
+        save = False
+        new_work_dir = self.ui.lineEdit_work_dir_location.text()
+        if not new_work_dir:
+            new_work_dir = DEFAULT_WORK_DIR
+        # Check if work directory has been changed
+        if not self.orig_work_dir == new_work_dir:
+            if not self._project:
+                logging.debug("No Project Available")
+            else:
+                self._project.change_work_dir(new_work_dir)
+                save = True
+        if not self._project.description == self.ui.textEdit_project_description.toPlainText():
+            # Set new project description
+            self._project.set_description(self.ui.textEdit_project_description.toPlainText())
+            save = True
+        if save:
+            self._parent.add_msg_signal.emit("Project settings changed", 0)
+            self._parent.save_project()
 
     def keyPressEvent(self, e):
         """Close settings form when escape key is pressed.
