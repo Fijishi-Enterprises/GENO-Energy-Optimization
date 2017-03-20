@@ -6,8 +6,8 @@ equations
     q_maxUpward(grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
     q_bindOnline(unit, mType, f, t) "Couple online variable when joining forecasts or when joining sample time periods"
     q_startup(unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
-    q_onlineGeneration(effSelector, unit, f, t, effSelector) "Enforces minimum generation constraints on units with online variables"
-    q_conversionDirectInputOutput(effSelector, unit, f, t, effSelector)          "Direct conversion of inputs to outputs (no piece-wise linear part-load efficiencies)"
+    q_onlineGeneration(grid, node, effSelector, unit, f, t, effSelector) "Enforces minimum generation constraints on units with online variables"
+    q_conversionDirectInputOutput(effSelector, unit, f, t, effSelector) "Direct conversion of inputs to outputs (no piece-wise linear part-load efficiencies)"
     q_conversionSOS1InputIntermediate(effSelector, unit, f, t)    "Conversion of input to intermediates restricted by piece-wise linear part-load efficiency represented with SOS1 sections"
     q_conversionSOS1Constraint(effSelector, unit, f, t)   "Constrain piece-wise linear intermediate variables"
     q_conversionSOS1IntermediateOutput(effSelector, unit, f, t)   "Conversion of intermediates to output"
@@ -245,7 +245,7 @@ q_maxUpward(gnuft(grid, node, unit, f, t))${      [unit_minLoad(unit) and p_gnu(
   + v_gen.up(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$uft_online(unit, f, t) + 1$(not uft_online(unit, f, t)) ]
 ;
 * -----------------------------------------------------------------------------
-q_startup(uft_online(unit_online, f, t))$ft_dynamic(f, t) ..
+q_startup(uft_online(unit_online, ft_dynamic(f, t))) ..
   + v_startup(unit_online, f+pf(f,t), t+pt(t))
   =G=
   + v_online(unit_online, f, t)
@@ -258,19 +258,16 @@ q_bindOnline(unit_online, mftBind(m, f, t))${uft_online(unit_online, f, t)} ..
   + v_online(unit_online, f+mft_bind(m,f,t), t+mt_bind(m,t))$uft_online(unit_online, f+mft_bind(m,f,t), t+mt_bind(m,t))
 ;
 * -----------------------------------------------------------------------------
-q_onlineGeneration(sufts(effGroup, uft_online(unit_online, f, t), effSelector)) ..
-  + sum(gnu_output(grid, node, unit_online),
-    + v_gen(grid, node, unit_online, f, t)
-    )
-  - sum(gnu_input(grid, node, unit_online),
-    + v_gen(grid, node, unit_online, f, t)
-    )
+q_onlineGeneration(gn(grid, node), sufts(effGroup, uft_online(unit_online, f, t), effSelector))${gnu(grid, node, unit_online)} ..
+  + v_gen(grid, node, unit_online, f, t)${gnu_output(grid, node, unit_online)}
+  - v_gen(grid, node, unit_online, f, t)${gnu_input(grid, node, unit_online)}
   =G=
   + v_online(unit_online, f, t)
     / p_unit(unit_online, 'unitCount')
+    * ( + p_gnu(grid, node, unit_online, 'maxGen')${gnu_output(grid, node, unit_online)}
+        + p_gnu(grid, node, unit_online, 'maxCons')${gnu_input(grid, node, unit_online)}
+      )
     * (p_effGroupUnit(effSelector, unit_online, 'lb')${not ts_effGroupUnit(effSelector, unit_online, 'lb', f, t)} + ts_effGroupUnit(effSelector, unit_online, 'lb', f, t))
-    * sum(gnu_output(grid, node, unit_online), p_gnu(grid, node, unit_online, 'maxGen'))
-    * sum(gnu_input(grid, node, unit_online), p_gnu(grid, node, unit_online, 'maxCons'))
 ;
 * -----------------------------------------------------------------------------
 q_conversionDirectInputOutput(sufts(effDirect, unit, f, t, effSelector)) ..
