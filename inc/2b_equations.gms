@@ -6,7 +6,6 @@ equations
     q_maxUpward(grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
     q_bindOnline(unit, mType, f, t) "Couple online variable when joining forecasts or when joining sample time periods"
     q_startup(unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
-    q_onlineGeneration(grid, node, effSelector, unit, f, t) "Enforces minimum generation constraints on units with online variables"
     q_conversionDirectInputOutput(effSelector, unit, f, t) "Direct conversion of inputs to outputs (no piece-wise linear part-load efficiencies)"
     q_conversionSOS1InputIntermediate(effSelector, unit, f, t)    "Conversion of input to intermediates restricted by piece-wise linear part-load efficiency represented with SOS1 sections"
     q_conversionSOS1Constraint(effSelector, unit, f, t)   "Constrain piece-wise linear intermediate variables"
@@ -211,9 +210,9 @@ q_resDemand(restypeDirectionNode(restype, resdirection, node), ft(f, t)) ..
     )
 ;
 * -----------------------------------------------------------------------------
-q_maxDownward(gnuft(grid, node, unit, f, t))${     [unit_minLoad(unit) and p_gnu(grid, node, unit, 'maxGen')]        // generators with min_load
+q_maxDownward(gnuft(grid, node, unit, f, t))${     [uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')]    // generators with online variables
                                                   or sum(restype, nuRescapable(restype, 'resDown', node, unit))      // all units with downward reserve provision
-                                                  or [p_gnu(grid, node, unit, 'maxCons') and unit_online(unit)]  // consuming units with an online variable
+                                                  or [p_gnu(grid, node, unit, 'maxCons') and uft_online(unit, f, t)] // consuming units with an online variable
                                                 }..
   + v_gen(grid, node, unit, f, t)                                                                                    // energy generation/consumption
   + sum( gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit),
@@ -224,16 +223,16 @@ q_maxDownward(gnuft(grid, node, unit, f, t))${     [unit_minLoad(unit) and p_gnu
   =G=                                                                                                                // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
   + v_online(unit, f, t)${uft_online(unit, f, t)} // Online variables should only be generated for units with restrictions
     / p_unit(unit, 'unitCount')
-    * p_gnu(grid, node, unit, 'maxGen')$[unit_minload(unit) and p_gnu(grid, node, unit, 'maxGen')]
-    * sum(suft(effSelector, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
-        + (p_effGroupUnit(effSelector, unit, 'lb')${not ts_effGroupUnit(effSelector, unit, 'lb', f, t)} + ts_effGroupUnit(effSelector, unit, 'lb', f, t))
-    )
+    * p_gnu(grid, node, unit, 'maxGen')
+    * sum(effGroup, // Uses the minimum 'lb' for the current efficiency approximation
+        + (p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)} + ts_effGroupUnit(effGroup, unit, 'lb', f, t))
+      )
   + v_gen.lo(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$uft_online(unit, f, t) + 1$(not uft_online(unit, f, t)) ]         // notice: v_gen.lo for consuming units is negative
 ;
 * -----------------------------------------------------------------------------
-q_maxUpward(gnuft(grid, node, unit, f, t))${      [unit_minLoad(unit) and p_gnu(grid, node, unit, 'maxCons')]    // consuming units with min_load
+q_maxUpward(gnuft(grid, node, unit, f, t))${      [uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxCons')]    // consuming units with online variables
                                                  or sum(restype, nuRescapable(restype, 'resUp', node, unit))         // all units with upward reserve provision
-                                                 or [p_gnu(grid, node, unit, 'maxGen') and unit_online(unit)]        // generators with an online variable
+                                                 or [p_gnu(grid, node, unit, 'maxGen') and uft_online(unit, f, t)]   // generators with an online variable
                                                }..
   + v_gen(grid, node, unit, f, t)                                                                                    // energy generation/consumption
   + sum( gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit),
@@ -242,6 +241,12 @@ q_maxUpward(gnuft(grid, node, unit, f, t))${      [unit_minLoad(unit) and p_gnu(
         v_reserve(restype, 'resUp', node, unit, f, t)                                                                // (v_reserve can be used only if the unit can provide a particular reserve)
     )
   =L=                                                                         // must be less than available/online capacity
+  - v_online(unit, f, t)${uft_online(unit, f, t)} // Online variables should only be generated for units with restrictions
+    / p_unit(unit, 'unitCount')
+    * p_gnu(grid, node, unit, 'maxCons')
+    * sum(effGroup, // Uses the minimum 'lb' for the current efficiency approximation
+        + (p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)} + ts_effGroupUnit(effGroup, unit, 'lb', f, t))
+      )
   + v_gen.up(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$uft_online(unit, f, t) + 1$(not uft_online(unit, f, t)) ]
 ;
 * -----------------------------------------------------------------------------
@@ -256,18 +261,6 @@ q_bindOnline(unit_online, mftBind(m, f, t))${uft_online(unit_online, f, t)} ..
   + v_online(unit_online, f, t)
   =E=
   + v_online(unit_online, f+mft_bind(m,f,t), t+mt_bind(m,t))$uft_online(unit_online, f+mft_bind(m,f,t), t+mt_bind(m,t))
-;
-* -----------------------------------------------------------------------------
-q_onlineGeneration(gn(grid, node), suft(effGroup, uft_online(unit_online, f, t)))${gnu(grid, node, unit_online)} ..
-  + v_gen(grid, node, unit_online, f, t)${gnu_output(grid, node, unit_online)}
-  - v_gen(grid, node, unit_online, f, t)${gnu_input(grid, node, unit_online)}
-  =G=
-  + v_online(unit_online, f, t)
-    / p_unit(unit_online, 'unitCount')
-    * ( + p_gnu(grid, node, unit_online, 'maxGen')${gnu_output(grid, node, unit_online)}
-        + p_gnu(grid, node, unit_online, 'maxCons')${gnu_input(grid, node, unit_online)}
-      )
-    * (p_effGroupUnit(effGroup, unit_online, 'lb')${not ts_effGroupUnit(effGroup, unit_online, 'lb', f, t)} + ts_effGroupUnit(effGroup, unit_online, 'lb', f, t))
 ;
 * -----------------------------------------------------------------------------
 q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..

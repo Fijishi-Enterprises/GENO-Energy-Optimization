@@ -49,7 +49,6 @@ Model schedule /
     q_maxUpward
     q_startup
     q_bindOnline
-    q_onlineGeneration
     q_conversionDirectInputOutput
     q_conversionSOS1InputIntermediate
     q_conversionSOS1Constraint
