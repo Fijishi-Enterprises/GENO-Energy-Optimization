@@ -24,7 +24,7 @@ equations
 ;
 
 
-$setlocal def_penalty 10e6
+$setlocal def_penalty 1e6
 Scalars
     PENALTY "Default equation violation penalty" / %def_penalty% /
 ;
@@ -33,7 +33,7 @@ Parameters
     PENALTY_RES(restype, resdirection) "Penalty on violating a reserve (€/MW)"
 ;
 PENALTY_BALANCE(grid) = %def_penalty%;
-PENALTY_RES(restype, resdirection) =  %def_penalty%;
+PENALTY_RES(restype, resdirection) =  1e-2*%def_penalty%;
 
 * -----------------------------------------------------------------------------
 q_obj ..
@@ -106,7 +106,7 @@ q_obj ..
         sum(inc_dec,
             sum( gn(grid, node), vq_gen(inc_dec, grid, node, f, t) * (p_stepLength(m, f, t) + p_stepLength(m, f+pf(f,t), t+pt(t))${not p_stepLength(m, f, t)}) * PENALTY_BALANCE(grid) )
         )
-        + sum((restype, resdirection, node),
+        + sum(restypeDirectionNode(restype, resdirection, node),
               vq_resDemand(restype, resdirection, node, f, t)
             * p_stepLength(m, f, t)
             * PENALTY_RES(restype, resdirection)
