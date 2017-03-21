@@ -24,7 +24,7 @@ equations
 ;
 
 
-$setlocal def_penalty 10e12
+$setlocal def_penalty 10e6
 Scalars
     PENALTY "Default equation violation penalty" / %def_penalty% /
 ;
@@ -66,8 +66,8 @@ q_obj ..
          + sum(uft_online(unit_online, f, t),
              + {
                  + v_startup(unit_online, f, t) // Cost of starting up
-                 - sum(t_${mftStart(m, f, t_)}, 0.5 * v_online(unit_online, f, t_))     // minus value of avoiding startup costs before
-                 - sum(t_${mftLastSteps(m, f, t_)}, 0.5 * v_online(unit_online, f, t_)) // or after the model solve
+                 - sum(t_${mftStart(m, f, t_) and uft_online(unit_online, f, t_)}, 0.5 * v_online(unit_online, f, t_))     // minus value of avoiding startup costs before
+                 - sum(t_${mftLastSteps(m, f, t_) and uft_online(unit_online, f, t_)}, 0.5 * v_online(unit_online, f, t_)) // or after the model solve
                } / p_unit(unit_online, 'unitCount')
              * {
                   // Startup variable costs
