@@ -24,7 +24,7 @@ equations
 ;
 
 
-$setlocal def_penalty 1e6
+$setlocal def_penalty 1e9
 Scalars
     PENALTY "Default equation violation penalty" / %def_penalty% /
 ;
@@ -33,7 +33,7 @@ Parameters
     PENALTY_RES(restype, resdirection) "Penalty on violating a reserve (€/MW)"
 ;
 PENALTY_BALANCE(grid) = %def_penalty%;
-PENALTY_RES(restype, resdirection) =  1e-2*%def_penalty%;
+PENALTY_RES(restype, resdirection) =  1e-3*%def_penalty%;
 
 * -----------------------------------------------------------------------------
 q_obj ..
@@ -274,7 +274,14 @@ q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..
   + sum(gnu_output(grid, node, unit),
       + v_gen(grid, node, unit, f, t)
           * (p_effUnit(effDirect, unit, 'slope')${not ts_effUnit(effDirect, unit, 'slope', f, t)} + ts_effUnit(effDirect, unit, 'slope', f, t))
-    );
+    )
+  + v_online(unit, f, t)${uft_online(unit, f, t)}
+    / p_unit(unit, 'unitCount')
+    * sum(gnu_output(grid, node, unit),
+        + p_gnu(grid, node, unit, 'maxGen')
+      )
+    * (p_effUnit(effDirect, unit, 'section')${not ts_effUnit(effDirect, unit, 'section', f, t)} + ts_effUnit(effDirect, unit, 'section', f, t))
+;
 * -----------------------------------------------------------------------------
 q_conversionSOS1InputIntermediate(suft(effGroup, unit, f, t))$effSlope(effGroup) ..
   - sum(gnu_input(grid, node, unit),
