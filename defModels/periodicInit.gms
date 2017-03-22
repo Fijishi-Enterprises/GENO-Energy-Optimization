@@ -152,7 +152,7 @@ loop(unit,
             p_effUnit(effSelector, unit, 'section')$(not p_unit(unit, 'eff01')) = 0;
             p_effUnit(effSelector, unit, 'slope')$(not p_unit(unit, 'eff01')) = 1 / p_unit(unit, 'eff00');
             p_effUnit(effSelector, unit, 'section')$p_unit(unit, 'eff01') =
-              + 1 / p_unit(unit, 'eff01')
+              + p_unit(unit, 'rb01') / p_unit(unit, 'eff01')
               - [p_unit(unit, 'rb01') - 0]
                   / [p_unit(unit, 'rb01') - p_unit(unit, 'rb00')]
                   * [1 / p_unit(unit, 'eff01') * p_unit(unit, 'rb01') - 1 / p_unit(unit, 'eff00') * p_unit(unit, 'rb00')];
