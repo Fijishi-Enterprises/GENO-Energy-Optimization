@@ -76,7 +76,7 @@ unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) 
 * Assume values for critical unit related parameters, if not provided by input data
 p_unit(unit, 'eff00')$(not p_unit(unit, 'eff00')) = 1; // If the unit does not have efficiency set, it is 1
 p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount')) = 1;  // In case number of units has not been defined it is 1.
-p_unit(unit, 'unitCapacity')$p_unit(unit, 'unitCapacity') = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));  // By default add outputs in order to get the total capacity of the unit
+p_unit(unit, 'unitCapacity')$(not p_unit(unit, 'unitCapacity')) = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));  // By default add outputs in order to get the total capacity of the unit
 *p_unit(unit, 'rb00')$(not p_unit(unit, 'rb00')) = 0;   // If there is no right border for the first efficiency point, there will be no section, NOTE! This is what GAMS assumes anyway, right?
 
 * Generate node related sets based on input data
