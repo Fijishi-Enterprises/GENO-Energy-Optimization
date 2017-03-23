@@ -3,8 +3,6 @@ Free variables
     v_gen(grid, node, unit, f, t) "Energy generation or consumption in a time step (MW)";
 Integer variable
     v_online(unit, f, t) "Number of units online for units with unit commitment restrictions";
-SOS1 variable
-    v_sos1(effSelector, unit, f, t, effSelector) "Intermediate variable for SOS1 based piece-wise linear efficiency curve";
 SOS2 variable
     v_sos2(unit, f, t, effSelector) "Intermediate lambda variable for SOS2 based piece-wise linear efficiency curve";
 Positive variables

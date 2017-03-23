@@ -1,25 +1,19 @@
 * --- Model parameters, features and switches ---------------------------------
 Sets  // Model related selections
-    mType "model types in the Backbone" /invest, storage, schedule, realtime/
+    mType "model types in the Backbone" /invest, storage, schedule, realtime, building/
     mSetting "setting categories for models" /t_start, t_jump, t_horizon, t_forecastLength, t_end, samples, forecasts, intervalEnd, intervalLength, t_aggregate/
     counter "general counter set" /c000*c999/
 
-    slope "Part-load efficiency"
-        /slope00*slope12/
     rb "Right borders of efficiency curves"
         /rb00*rb12/
-    lb "Left borders of efficiency curves"
-        /lb00*lb12/
     effSelector "Select equations and lambdas/slope for efficiency calculations"
-        / directOff, directOn, slope01*slope12, lambda01*lambda12 /
+        / directOff, directOn, lambda01*lambda12 /
     effDirect(effSelector) "Using direct input to output equation"
         / directOff, directOn /
     effDirectOff(effSelector) "Using direct input to output equation without online variable, i.e. constant efficiency"
         / directOff /
     effDirectOn(effSelector) "Using direct input to output equation with online variable"
         / directOn /
-    effSlope(effSelector) "Slope in use for part-load efficiency representation"
-        / slope01*slope12 /
     effLambda(effSelector) "Lambdas in use for part-load efficiency representation"
         / lambda01*lambda12 /
     effLevel "Pre-defined levels for efficiency representation that can start from t_solve + x"
@@ -70,8 +64,6 @@ $if set rampSched active('rampSched') = %rampSched%;
 Sets
 
 param_gn  "Possible parameters for grid, node" /
-*    chargingEff   "Average charging efficiency (p.u)" // NOTE! This isn't actually used for anything at the moment! Probably needs to be removed at some point.
-*    dischargingEff "Average discharging efficiency (p.u.)" // NOTE! This isn't actually used for anything at the moment! Probably needs to be removed at some point.
     selfDischargeLoss "Self discharge rate of the node (p.u.)"
     energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh"
     boundStart    "A flag to bound the first t in the run using reference constant or time series"
@@ -128,10 +120,6 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     maxCons     "Maximum loading capacity (MW)"
     cB          "Share of output"
     cV          "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
-*    eff00 * eff12    "Efficiency of the unit to convert to certain output or from certain input at different operating points" \\ NOTE! Not currently used in p_gnu
-*    rb00 * rb12     "Right border of the efficiency point" \\ NOTE! Not currently used in p_gnu
-*    section00   "Input (fuel) consumption at min. load (or at zero)" \\ NOTE! Not currently used in p_gnu
-*    slope00 * slope12  "Additive input (fuel) consumption slope" \\ NOTE! Not currently used in p_gnu
 /
 
 param_unit "Set of possible data parameters for units" /
@@ -157,8 +145,6 @@ param_unit "Set of possible data parameters for units" /
     resTimelim  "How long should a storage be able to provide reserve (h)"
     eff00 * eff12    "Efficiency of the unit to convert input to output/intermediate product"
     rb00 * rb12     "Right border of the efficiency point"
-*    section00   "Input (fuel) consumption at min. load (or at zero)"   // NOT USED ATM!
-    slope00 * slope12  "Additive input (fuel) consumption slope"
     level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "Uses time series form input for unit parameters whenever possible"
 /
@@ -178,9 +164,4 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     emissionTax "Emission tax (€/tonne)"
 /
 
-*param_union "Different ways inputs and outputs of energy conversion units can be combined" /
-*    fixed "The ratio between different output forms is fixed"
-*    unbound    "The ratio of this output is not constrained by other forms of energy"
-*    constrained "The usage is limited by the output of free outputs - in relation to the efficiency limits"
-*    substitute  "Inputs and outputs can be substituted"
-*/
+; // End parameter set declarations

@@ -7,9 +7,6 @@ equations
     q_bindOnline(unit, mType, f, t) "Couple online variable when joining forecasts or when joining sample time periods"
     q_startup(unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
     q_conversionDirectInputOutput(effSelector, unit, f, t) "Direct conversion of inputs to outputs (no piece-wise linear part-load efficiencies)"
-    q_conversionSOS1InputIntermediate(effSelector, unit, f, t)    "Conversion of input to intermediates restricted by piece-wise linear part-load efficiency represented with SOS1 sections"
-    q_conversionSOS1Constraint(effSelector, unit, f, t)   "Constrain piece-wise linear intermediate variables"
-    q_conversionSOS1IntermediateOutput(effSelector, unit, f, t)   "Conversion of intermediates to output"
     q_conversionSOS2InputIntermediate(effSelector, unit, f, t)   "Intermediate output when using SOS2 variable based part-load piece-wise linearization"
     q_conversionSOS2Constraint(effSelector, unit, f, t)          "Sum of v_sos2 has to equal v_online"
     q_conversionSOS2IntermediateOutput(effSelector, unit, f, t)  "Output is forced equal with v_sos2 output"
@@ -283,40 +280,6 @@ q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..
     * (p_effUnit(effDirect, unit, 'section')${not ts_effUnit(effDirect, unit, 'section', f, t)} + ts_effUnit(effDirect, unit, 'section', f, t))
 ;
 * -----------------------------------------------------------------------------
-q_conversionSOS1InputIntermediate(suft(effGroup, unit, f, t))$effSlope(effGroup) ..
-  - sum(gnu_input(grid, node, unit),
-      + v_gen(grid, node, unit, f, t)
-    )
-  + sum(uFuel(unit, 'main', fuel),
-      + v_fuelUse(fuel, unit, f, t)
-    )
-  =E=
-  + (p_effGroupUnit(effGroup, unit, 'lb')${not (p_unit(unit, 'useTimeseries') AND ts_effGroupUnit(effGroup, unit, 'lb', f, t))} + ts_effGroupUnit(effGroup, unit, 'lb', f, t)${p_unit(unit, 'useTimeseries')})
-      * v_online(unit, f, t)${uft_online(unit, f, t)}
-      / p_unit(unit, 'unitCount')
-      * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // for some unit types (e.g. backpressure and extraction) only single v_online and therefore single 'section' should exist
-  + sum(effGroupSelectorUnit(effGroup, unit, effSelector),
-      + v_sos1(effGroup, unit, f, t, effSelector)
-          * (p_effUnit(effSelector, unit, 'slope')${not ts_effUnit(effSelector, unit, 'slope', f, t)} + ts_effUnit(effSelector, unit, 'slope', f, t))
-*          * [ + 1$(not unit_withConstrainedOutputRatio(unit))   // not a backpressure or extraction unit, expect for the primary grid (where cV has to be 1)
-*              + p_gnu(grid, node, unit, 'cV')$(unit_withConstrainedOutputRatio(unit) and not nu(node, unit)) // for secondary outputs with cV
-*            ]
-    );
-* -----------------------------------------------------------------------------
-q_conversionSOS1Constraint(suft(effGroup, unit, f, t))$effSlope(effGroup) ..
-  + sum(effGroupSelectorUnit(effGroup, unit, effSelector), v_sos1(effGroup, unit, f, t, effSelector))
-*  + sum(effSelector_$effSelectorFirstSlope(effSelector, effSelector_), v_sos1(effSelector_, unit, f, t))
-  =L=
-  + sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))
-;
-* -----------------------------------------------------------------------------
-q_conversionSOS1IntermediateOutput(suft(effGroup, unit, f, t))$effSlope(effGroup) ..
-  + sum(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), v_sos1(effGroup, unit, f, t, effSelector))
-  =E=
-  + sum(gnu_output(grid, node, unit),
-      + v_gen(grid, node, unit, f, t)
-    );
-* -----------------------------------------------------------------------------
 q_conversionSOS2InputIntermediate(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
   - sum(gnu_input(grid, node, unit),
       + v_gen(grid, node, unit, f, t)
@@ -353,9 +316,6 @@ q_conversionSOS2IntermediateOutput(suft(effGroup, unit, f, t))$effLambda(effGrou
   =E=
   + sum(gnu_output(grid, node, unit),
       + v_gen(grid, node, unit, f, t)
-*      + sum(gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit)$unit_withConstrainedOutputRatio(unit),
-*          + p_gnu(grid_, node_, unit, 'cv') * v_gen(grid_, node_, unit, f, t)
-*        )
     )
 ;
 * -----------------------------------------------------------------------------

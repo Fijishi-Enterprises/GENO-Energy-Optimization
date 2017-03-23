@@ -50,9 +50,6 @@ Model schedule /
     q_startup
     q_bindOnline
     q_conversionDirectInputOutput
-    q_conversionSOS1InputIntermediate
-    q_conversionSOS1Constraint
-    q_conversionSOS1IntermediateOutput
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput

@@ -185,30 +185,6 @@ loop(unit${p_unit(unit, 'useTimeseries')},
             ts_effUnit(effSelector, unit, 'slope', ft(f, t))${ts_unit_(unit, 'eff01', f, t)} = 1 / ts_unit_(unit, 'eff01', f, t);
         );
 
-        // Make calculations for different parts of the piecewise curve in the case of using slope
-        count_slope2 = 0;
-        loop(effSelector$(effSlope(effSelector) and effLevelSelectorUnit(effLevel, effSelector, unit)),
-            ts_effUnit(effSelector, unit, 'rb', ft(f, t))${ts_unit_(unit, 'rb00', f, t) OR ts_unit_(unit, 'rb01', f, t)} =
-                + ((count_slope - count_slope2 - 1) * (p_unit(unit, 'rb00')${not ts_unit_(unit, 'rb00', f, t)} + ts_unit_(unit, 'rb00', f, t))
-                    + (count_slope2 + 1) * (p_unit(unit, 'rb01')${not ts_unit_(unit, 'rb01', f, t)} + ts_unit_(unit, 'rb01', f, t)))
-                / count_slope;
-            ts_effUnit(effSelector, unit, 'lb', ft(f, t))${ts_unit_(unit, 'rb00', f, t) OR ts_unit_(unit, 'rb01', f, t)} =
-                + ((count_slope - count_slope2) * (p_unit(unit, 'rb00')${not ts_unit_(unit, 'rb00', f, t)} + ts_unit_(unit, 'rb00', f, t))
-                    + count_slope2 * (p_unit(unit, 'rb01')${not ts_unit_(unit, 'rb01', f, t)} + ts_unit_(unit, 'rb01', f, t)))
-                / count_slope;
-            //if(count_slope2 = 0,
-                //p_effUnit(effSelector, unit, 'slope') = ((count_slope-1 - count_slope2) * (1 / p_unit(unit, 'eff00')) + count_slope2 * (1 / p_unit(unit, 'eff01'))) / (count_slope - 1);
-                //tmp = p_effUnit(effSelector, unit, 'slope');
-            //else
-                ts_effUnit(effSelector, unit, 'slope', ft(f, t))${ts_unit_(unit, 'eff00', f, t) OR ts_unit_(unit, 'eff01', f, t)} =
-                    + ((count_slope-1 - count_slope2) * (1 / (p_unit(unit, 'eff00')${not ts_unit_(unit, 'eff00', f, t)} + ts_unit_(unit, 'eff00', f, t)))
-                        + (count_slope2 + 1) * (1 / (p_unit(unit, 'eff01')${not ts_unit_(unit, 'eff01', f, t)} + ts_unit_(unit, 'eff01', f, t))))
-                    / count_slope;
-            //        - tmp;
-            //);
-            count_slope2 = count_slope2 + 1;
-        );
-
         // Calculate lambdas
         count_lambda2 = 0;
         loop(effSelector$(effLambda(effSelector) and effLevelSelectorUnit(effLevel, effSelector, unit)),

@@ -28,11 +28,6 @@ loop(ft(f, tSolve),
 
 v_state.fx(grid, node, f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'boundStartToEnd')) = v_state.l(grid, node, f, tSolve);
 
-
-// v_stateSlack absolute boundaries determined by the slack data in p_gnSlack
-*v_stateSlack.up(gn_stateSlack(grid, node), slack, ft_full(f, t))$param_gnBoundaryTypes(grid, node, slack, 'useConstant') = p_gnSlack(grid, node, slack, 'constant') * param_gnBoundaryTypes(grid, node, slack, 'multiplier');
-*v_stateSlack.up(gn_stateSlack(grid, node), slack, ft_full(f, t))$param_gnBoundaryTypes(grid, node, slack, 'useTimeSeries') = ts_nodeState(grid, node, slack, f, t) * param_gnBoundaryTypes(grid, node, slack, 'multiplier');
-
 * Other time dependent parameters and variable limits
     // Max. energy generation
 v_gen.up(gnuft(grid, node, unit, f, t))$(not unit_flow(unit)) = p_gnu(grid, node, unit, 'maxGen') * p_unit(unit, 'availability');
@@ -43,35 +38,15 @@ v_gen.up(gnuft(grid, node, unit_flow, f, t))      // Should only be about variab
           p_unit(unit_flow, 'availability')
       );
 
-*v_sos1.lo(effSelector, uft(unit, f, t))$(sum(effLevelSelectorUnit(effLevel, effSelector, unit), 1)) = p_effUnit(effSelector, unit, 'lb') * sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));
-v_sos1.up(sufts(effGroup, unit, f, t, effSelector))$effSlope(effGroup) =
-    + (p_effUnit(effSelector, unit, 'rb')${not ts_effUnit(effSelector, unit, 'rb', f, t)} + ts_effUnit(effSelector, unit, 'rb', f, t))
-    * sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))
-;
-
 // Min. generation to zero for units without consumption
 v_gen.lo(gnuft(grid, node, unit, f, t))$(not p_gnu(grid, node, unit, 'maxCons')) = 0;
 // Max. consumption capacity for chargable storages
 v_gen.lo(gnuft(grid, node, unit, f, t))$gnu_input(grid, node, unit) = -p_gnu(grid, node, unit, 'maxCons');
-// Max. consumption for units that convert endogenous inputs to endogenous outputs  !!This doesn't work well with different effSelectors and ways to calculate efficiency
-*v_gen.lo(gnuft(grid_, node_input, unit, f, t))$gnu_input(grid_, node_input, unit) = sum(gn(grid, node)$nu(node, unit), -p_gnu(grid, node, unit, 'maxGen') * p_unit(unit, 'slope'));
 
 // v_online cannot exceed unit count
 v_online.up(uft(unit, f, t))${sum(effSelector$(not effDirectOff(effSelector)), suft(effSelector, unit, f, t)) and unit_online(unit)} = p_unit(unit, 'unitCount');
 // Restrict v_online also in the last dynamic time step
 v_online.up(unit, f, t)${sum[effSelector$(not effDirectOff(effSelector)), suft(effSelector, unit, f, t)] and unit_online(unit) and mftLastSteps(mSolve, f, t)} = p_unit(unit, 'unitCount');
-
-
-// Free storage control ...
-*    if(currentStage('scheduling'),
-*        v_stoCharge.up(longStorage, ft(f, t)) = inf;
-*        v_stoCharge.lo(longStorage, ft(f, t)) = -inf;
-*    );
-    // ... or fixed if not using storage value link
-*    if(currentStage('dispatch') and not active('storageValue'),
-*        v_stoCharge.fx(longStorage, ft(f, t))
-*            = v_stoCharge.l(longStorage, f, t);
-*    );
 
 // Max. & min. spilling
 v_spill.lo(gn(grid, node), ft(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useConstant')

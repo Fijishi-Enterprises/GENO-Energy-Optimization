@@ -115,36 +115,6 @@ loop(unit,
                 );
             );
         );
-        // effSelectors using Slope
-        if (sum(effSelector_$effSlope(effSelector_), effLevelGroupUnit(effLevel, effSelector_, unit)),
-            count = 0;
-            loop(effSelector$effSlope(effSelector),
-                count = count + 1;
-                if(effLevelGroupUnit(effLevel, effSelector, unit),
-                    count_slope = count;
-                    cum_slope = cum_slope + count_slope;
-                    effGroup(effSelector) = yes;
-                );
-            );
-            count = 0;
-            loop(effSelector$effSlope(effSelector),
-                count = count + 1;
-                if( count > cum_slope - count_slope and count <= cum_slope,
-                    effLevelSelectorUnit(effLevel, effSelector, unit) = yes;
-                    effGroupSelectorUnit(effGroup, unit, effSelector)$effLevelGroupUnit(effLevel, effGroup, unit) = yes;
-                );
-                if (count = count_slope,
-                    count_slope2 = 0;
-                    loop(effSelector_$effSlope(effSelector_),
-                        count_slope2 = count_slope2 + 1;
-                        if( count_slope2 > cum_slope - count_slope and count_slope2 <= cum_slope,
-                            //effSelectorFirstSlope(effSelector, effSelector_) = yes;
-                            effGroupSelector(effSelector, effSelector_) = yes;
-                        );
-                    );
-                );
-            );
-        );
         // Calculate parameters for units using direct input output conversion with online variable
         loop(effSelector$sum(effDirectOn$effGroupSelector(effDirectOn, effSelector), 1),
             p_effUnit(effSelector, unit, 'lb') = p_unit(unit, 'rb00');
@@ -168,22 +138,6 @@ loop(unit,
             p_effUnit(effSelector, unit, 'slope')$(not p_unit(unit, 'eff01')) = 1 / p_unit(unit, 'eff00');
             p_effUnit(effSelector, unit, 'section')$p_unit(unit, 'eff01') = 0;
             p_effUnit(effSelector, unit, 'slope')$p_unit(unit, 'eff01') = 1 / p_unit(unit, 'eff01');
-        );
-
-        // Make calculations for different parts of the piecewise curve in the case of using slope
-        count_slope2 = 0;
-        loop(effSelector$(effSlope(effSelector) and effLevelSelectorUnit(effLevel, effSelector, unit)),
-            p_effUnit(effSelector, unit, 'rb') = ((count_slope - count_slope2 - 1) * p_unit(unit, 'rb00') + (count_slope2 + 1) * p_unit(unit, 'rb01')) / count_slope;
-            p_effUnit(effSelector, unit, 'lb') = ((count_slope - count_slope2) * p_unit(unit, 'rb00') + count_slope2 * p_unit(unit, 'rb01')) / count_slope;
-            //if(count_slope2 = 0,
-                //p_effUnit(effSelector, unit, 'slope') = ((count_slope-1 - count_slope2) * (1 / p_unit(unit, 'eff00')) + count_slope2 * (1 / p_unit(unit, 'eff01'))) / (count_slope - 1);
-                //tmp = p_effUnit(effSelector, unit, 'slope');
-            //else
-                p_effUnit(effSelector, unit, 'slope')
-                  = ((count_slope-1 - count_slope2) * (1 / p_unit(unit, 'eff00')) + (count_slope2 + 1) * (1 / p_unit(unit, 'eff01'))) / count_slope;
-            //        - tmp;
-            //);
-            count_slope2 = count_slope2 + 1;
         );
 
         // Calculate lambdas
