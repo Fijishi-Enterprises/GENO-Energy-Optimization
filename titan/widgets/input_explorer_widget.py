@@ -16,14 +16,15 @@ from models import SetupProxyModel
 
 
 class InputExplorerWidget(QWidget):
-    """ A widget to show the files in Setup's input directory.
+    """Class constructor.
 
     Attributes:
-        parent: PyQt parent widget.
+        parent (QWidget): PyQt parent widget.
+        setup_model (QAbstractItemModel): Setup model
     """
     def __init__(self, parent, setup_model):
         """ Initialize class. """
-        super().__init__()
+        super().__init__(flags=Qt.Window)
         self._parent = parent  # QWidget parent
         #  Set up the user interface from Designer.
         self.ui = ui.input_explorer_form.Ui_Form()
@@ -45,7 +46,7 @@ class InputExplorerWidget(QWidget):
             return
         self.ui.treeView_setups.expandAll()
         self.ui.treeView_setups.selectionModel().select(index, QItemSelectionModel.SelectCurrent)
-        # Get selected Setup from model (No mapping needed because index is source model)
+        # Get selected Setup from model (No mapping needed because index is in source model)
         s = index.internalPointer()
         files = self.input_files(index)
         # Show files of the first Setup
@@ -75,14 +76,24 @@ class InputExplorerWidget(QWidget):
         if not item_data:
             return
         ext = item_data[-4:]
-        supported_extensions = ['.inc', '.txt', '.bat', '.csv', '.gms', '.gpr']
+        supported_extensions = ['.inc', '.txt', '.bat', '.csv', '.gms', '.gpr', '.lst']
         if ext in supported_extensions:
-            with open(item_data, 'r') as f:
-                contents = f.read().splitlines()
-                for line in contents:
-                    self.ui.textBrowser_preview.append(line)
-            # Rewind cursor to the beginning of the file
-            self.ui.textBrowser_preview.moveCursor(QTextCursor.Start)
+            too_big = 50*1024  # 50kB
+            try:
+                file_size = os.path.getsize(item_data)
+            except OSError:
+                logging.error("Could not determine file size: {}".format(item_data))
+                return
+            if file_size < too_big:
+                with open(item_data, 'r') as f:
+                    contents = f.read().splitlines()
+                    for line in contents:
+                        self.ui.textBrowser_preview.append(line)
+                # Rewind cursor to the beginning of the file
+                self.ui.textBrowser_preview.moveCursor(QTextCursor.Start)
+            else:
+                file_size_kb = int(file_size/1024 + 0.5)
+                self.ui.textBrowser_preview.append("File too big for preview (>50kB)".format(file_size_kb))
         return
 
     @pyqtSlot(QModelIndex, QModelIndex, name="current_changed")
@@ -135,7 +146,7 @@ class InputExplorerWidget(QWidget):
         """Show found files.
 
         Args:
-            files (list): List of abs. paths to found files
+            files (list): Found file names in a list
             setup (Setup): Selected Setup
         """
         self.file_item_model.clear()

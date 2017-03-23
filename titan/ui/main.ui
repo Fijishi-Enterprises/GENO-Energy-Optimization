@@ -117,7 +117,7 @@
              <item>
               <widget class="QPushButton" name="pushButton_execute_selected">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute selected Setup and its parents. Execution starts from selected Setups' base Setup and traverses from the base until the selected Setup.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Starts executing selected Setup and its parents. Execution starts from selected Setups' base Setup and traverses from the base until the selected Setup.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Execute (F6)</string>
@@ -127,7 +127,7 @@
              <item>
               <widget class="QPushButton" name="pushButton_execute_project">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute all Setups in the project by using the selected tree traversal algorithm.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Starts executing all Setups in the project using the selected tree traversal algorithm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Project (F7)</string>
@@ -183,7 +183,7 @@
              <item>
               <widget class="QPushButton" name="pushButton_delete_setup">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Delete selected Setup and all of it's children&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Deletes selected Setup and all of it's children. Deletes input folders as well if the option is enabled in the settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Single</string>
@@ -193,7 +193,7 @@
              <item>
               <widget class="QPushButton" name="pushButton_delete_all">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Delete all Setups in the project&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Deletes all Setups in the project. Deletes input folders as well if the option is enabled in the settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>All</string>
@@ -527,7 +527,7 @@
              <item>
               <widget class="QPushButton" name="pushButton_show_verifier">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show Setup Input/Output Data&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open input verifier tool&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Verify (F3)</string>
@@ -537,10 +537,20 @@
              <item>
               <widget class="QPushButton" name="pushButton_show_explorer">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open Setup input file explorer tool&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open input explorer tool&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Explore (F4)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButton_show_results">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open result explorer tool&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Results (F5)</string>
                </property>
               </widget>
              </item>
@@ -1096,6 +1106,7 @@
     <addaction name="actionImportData"/>
     <addaction name="actionVerifyData"/>
     <addaction name="actionExplore"/>
+    <addaction name="actionResults"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -1347,6 +1358,14 @@
     <bool>false</bool>
    </property>
   </action>
+  <action name="actionResults">
+   <property name="text">
+    <string>Results</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>radioButton_breadth_first</tabstop>
@@ -1364,14 +1383,17 @@
   <tabstop>pushButton_import_data</tabstop>
   <tabstop>pushButton_show_verifier</tabstop>
   <tabstop>pushButton_show_explorer</tabstop>
+  <tabstop>pushButton_show_results</tabstop>
+  <tabstop>treeView_setups</tabstop>
+  <tabstop>listView_tools</tabstop>
   <tabstop>toolButton_add_tool</tabstop>
   <tabstop>toolButton_refresh_tools</tabstop>
   <tabstop>toolButton_remove_tool</tabstop>
   <tabstop>textBrowser_main</tabstop>
   <tabstop>pushButton_clear_titan_output</tabstop>
   <tabstop>pushButton_terminate_execution</tabstop>
-  <tabstop>textBrowser_process_output</tabstop>
   <tabstop>pushButton_clear_gams_output</tabstop>
+  <tabstop>textBrowser_process_output</tabstop>
  </tabstops>
  <resources>
   <include location="resources/resources.qrc"/>

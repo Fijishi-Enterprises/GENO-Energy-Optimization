@@ -17,10 +17,12 @@ from models import SetupAndToolProxyModel
 
 
 class InputVerifierWidget(QWidget):
-    """ A widget to show the input of a Setup.
+    """Class constructor.
 
     Attributes:
-        parent: PyQt parent widget.
+        parent (QWidget): PyQt parent widget.
+        setup_model (QAbstractItemModel): Setup model
+        project_dir (str): Path to current project directory
     """
     def __init__(self, parent, setup_model, project_dir):
         """ Initialize class. """

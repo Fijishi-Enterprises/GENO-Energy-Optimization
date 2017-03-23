@@ -33,7 +33,7 @@ class Ui_Form(object):
         self.treeView_setups.setAlternatingRowColors(True)
         self.treeView_setups.setObjectName("treeView_setups")
         self.textBrowser_preview = QtWidgets.QTextBrowser(self.splitter)
-        self.textBrowser_preview.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.textBrowser_preview.setFocusPolicy(QtCore.Qt.NoFocus)
         self.textBrowser_preview.setAutoFillBackground(False)
         self.textBrowser_preview.setStyleSheet(":focus {border: 2px groove;}")
         self.textBrowser_preview.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
@@ -76,7 +76,7 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Explore Input Directories"))
+        Form.setWindowTitle(_translate("Form", "Input Explorer"))
         self.textBrowser_preview.setPlaceholderText(_translate("Form", "No preview available"))
         self.pushButton_close.setText(_translate("Form", "Close"))
 

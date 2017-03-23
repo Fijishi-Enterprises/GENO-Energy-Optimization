@@ -26,7 +26,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Explore Input Directories</string>
+   <string>Input Explorer</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -51,7 +51,7 @@
       </widget>
       <widget class="QTextBrowser" name="textBrowser_preview">
        <property name="focusPolicy">
-        <enum>Qt::StrongFocus</enum>
+        <enum>Qt::NoFocus</enum>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>

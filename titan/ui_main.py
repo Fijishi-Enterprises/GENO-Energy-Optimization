@@ -35,6 +35,7 @@ from widgets.edit_tool_widget import EditToolWidget
 from widgets.settings_widget import SettingsWidget
 from widgets.input_verifier_widget import InputVerifierWidget
 from widgets.input_explorer_widget import InputExplorerWidget
+from widgets.output_explorer_widget import OutputExplorerWidget
 from widgets.about_widget import AboutWidget
 from modeltest.modeltest import ModelTest
 from excel_handler import ExcelHandler
@@ -78,6 +79,7 @@ class TitanUI(QMainWindow):
         self.settings_form = None
         self.input_verifier_form = None
         self.input_explorer = None
+        self.results_form = None
         self.about_form = None
         # Setup tool definition file browser
         self.tool_def_textbrowser = QTextBrowser(self)
@@ -135,6 +137,7 @@ class TitanUI(QMainWindow):
         self.ui.actionImportData.triggered.connect(self.import_data)
         self.ui.actionVerifyData.triggered.connect(self.open_verifier_form)
         self.ui.actionExplore.triggered.connect(self.show_explorer_form)
+        self.ui.actionResults.triggered.connect(self.show_results_form)
         self.ui.actionHelp.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
         self.ui.actionAbout.triggered.connect(self.show_about)
         self.ui.actionUnpack.triggered.connect(lambda: self.add_msg_signal.emit("Not implemented", 0))
@@ -168,6 +171,7 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_import_data.clicked.connect(self.import_data)
         self.ui.pushButton_show_verifier.clicked.connect(self.open_verifier_form)
         self.ui.pushButton_show_explorer.clicked.connect(self.show_explorer_form)
+        self.ui.pushButton_show_results.clicked.connect(self.show_results_form)
         self.ui.textBrowser_main.anchorClicked.connect(self.open_anchor)
         self.ui.pushButton_terminate_execution.clicked.connect(self.terminate_execution)
         self.timer.timeout.connect(self.update_setup_model)
@@ -747,7 +751,7 @@ class TitanUI(QMainWindow):
             self.clear_setup_flags()
             return
         elif option == "Verify Input Data":
-            self.open_verify_data_form(ind)
+            self.open_verify_data_form()
             return
         elif option == "Explore Input Data":
             self.show_explorer_form()
@@ -796,25 +800,16 @@ class TitanUI(QMainWindow):
     @pyqtSlot(name="open_verifier_form")
     def open_verifier_form(self):
         """PyqtSlot for QMenu and QPushButton Widgets."""
-        self.open_verify_data_form(QModelIndex())
+        self.open_verify_data_form()
 
-    def open_verify_data_form(self, index):
-        """Show verify data form.
-
-        Args:
-            index (QModelIndex): Selected Setup Index
-        """
+    def open_verify_data_form(self):
+        """Show verify data form."""
         if not self._project:
             self.add_msg_signal.emit("No project found. Load or create a project to open this tool", 0)
             return
         if self._root.child_count() == 0:
             self.add_msg_signal.emit("No Setups in project", 0)
             return
-        if not index:
-            self.input_verifier_form = InputVerifierWidget(self, self.setup_model, self._project.project_dir)
-            self.input_verifier_form.show()
-        elif not index.isValid():
-            index = False
         self.input_verifier_form = InputVerifierWidget(self, self.setup_model, self._project.project_dir)
         self.input_verifier_form.show()
 
@@ -825,10 +820,22 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("No project found. Load or create a project to explore Setup input data.", 0)
             return
         if self._root.child_count() == 0:
-            self.add_msg_signal.emit("No Setups found", 0)
+            self.add_msg_signal.emit("No Setups in project", 0)
             return
         self.input_explorer = InputExplorerWidget(self, self.setup_model)
         self.input_explorer.show()
+
+    @pyqtSlot(name="show_results_form")
+    def show_results_form(self):
+        """Open output data (results) explorer."""
+        if not self._project:
+            self.add_msg_signal.emit("No project found. Load or create a project to open this tool.", 0)
+            return
+        if self._root.child_count() == 0:
+            self.add_msg_signal.emit("No Setups in project", 0)
+            return
+        self.results_form = OutputExplorerWidget(self, self.setup_model, self._project.project_dir)
+        self.results_form.show()
 
     @pyqtSlot(name="show_settings")
     def show_settings(self):
