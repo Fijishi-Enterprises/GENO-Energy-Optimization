@@ -32,8 +32,12 @@ OUTPUT_STORAGE_DIR = 'output'
 # Work directory
 DEFAULT_WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
 # GAMS
-GAMS_EXECUTABLE = 'gams.exe'
-GAMSIDE_EXECUTABLE = 'gamside.exe'
+if not sys.platform == 'win32':
+    GAMS_EXECUTABLE = 'gams'
+    GAMSIDE_EXECUTABLE = 'gamside'
+else:
+    GAMS_EXECUTABLE = 'gams.exe'
+    GAMSIDE_EXECUTABLE = 'gamside.exe'
 # Others
 UI_RESOURCES = os.path.abspath(os.path.join(APPLICATION_PATH, 'ui', 'resources'))
 # Style sheets
