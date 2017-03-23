@@ -87,3 +87,13 @@ node_spill(node)$(sum((grid, spillLimits, useConstantOrTimeSeries)$gn(grid, node
 p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multiplier')$(not p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'multiplier')) = 1; // If multiplier has not been set, set it to 1 by default
 p_gn(gn(grid, node), 'energyStoredPerUnitOfState')$(not p_gn(grid, node, 'energyStoredPerUnitOfState') and not p_gn(grid, node, 'boundAll')) = 1; // If unitConversion has not been set, default to 1; If the state is bound, there is no need for the term
 
+* --- Perform various data checks, and abort if errors are detected -----------
+* Check the integrity of efficiency approximation related data
+loop( unit,
+    count = 0; // Initialize the previous rb to zero
+    loop( rb,
+        abort${p_unit(unit, rb) + 1${not p_unit(unit, rb)} < count} "param_unit 'rb's must be defined as zero or positive and increasing!";
+        count = p_unit(unit, rb);
+    );
+);
+
