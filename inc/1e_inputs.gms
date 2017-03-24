@@ -24,10 +24,9 @@ $loaddc gngnu_fixedOutputRatio
 $loaddc gngnu_constrainedOutputRatio
 $loaddc emission
 $loaddc p_fuelEmission
-$loaddc ts_energyDemand
 $loaddc ts_cf
 $loaddc ts_fuelPriceChange
-$loaddc ts_absolute
+$loaddc ts_influx
 $loaddc ts_nodeState
 $gdxin
 

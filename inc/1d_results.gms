@@ -8,7 +8,7 @@ Parameters
     r_genNodeType(grid, node, unitType, t) "Energy generation/consumption based on unittypes (MW)"
     r_genType(grid, unitType, t) "Energy generation/consumption based on unittypes (MW)"
     r_elec_type(unittype, t) "Average electricity generation rate of generator type (MW)"
-    r_demand(grid, node, t) "Average energy demand (MW)"
+*    r_demand(grid, node, t) "Average energy demand (MW)"
     r_transfer(grid, node, node, t) "Energy transfer (MW)"
     r_capacity_type(unittype) "Available generation capacity by type (MW)"
     r_elecConsumption(unit, t) "Average electricity consumption rate during hour (MW)"

@@ -60,8 +60,7 @@ Parameters
 
 * --- Stochastic data parameters ----------------------------------------------
 Parameters
-    ts_energyDemand(grid, node, f, t) "Fixed power demand of a time period/slice divided by average demand"
-    ts_absolute(*, f, t) "External power inflow/outflow during a time period (MWh/h)"
+    ts_influx(grid, node, f, t) "External power inflow/outflow during a time period (MWh/h)"
     ts_cf(flow, node, f, t) "Available capacity factor time series (per unit)"
     ts_reserveDemand(restype, resdirection, node, f, t) "Reserve demand in region in the time period/slice (MW)"
     ts_reserveDemand_(restype, resdirection, node, f, t)
@@ -70,8 +69,7 @@ Parameters
     ts_fuelPriceChangenode(fuel, node, t) "Initial fuel price and consequent changes in fuel price in model nodegraphies (€/MWh)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time period/slice (p.u.)"
 // Aliases used for interval aggregation
-    ts_energyDemand_(grid, node, f, t)
-    ts_absolute_(*, f, t)
+    ts_influx_(grid, node, f, t)
     ts_cf_(flow, node, f, t)
     ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
 ;

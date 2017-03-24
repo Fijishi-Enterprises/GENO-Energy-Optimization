@@ -16,8 +16,7 @@ $offOrder
                 tInterval(t)$(    ord(t) >= tSolveFirst + tCounter
                            and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)
                 ) = yes;   // Set of t's where the interval is 1 (right border defined by intervalEnd) - but do not go beyond tSolveLast
-                ts_energyDemand_(gn(grid, node), fSolve, t)$tInterval(t) = ts_energyDemand(grid, node, fSolve, t+ct(t));
-                ts_absolute_(node, fSolve, t)$tInterval(t) = ts_absolute(node, fSolve, t+ct(t));
+                ts_influx_(grid, node, fSolve, t)$tInterval(t) = ts_influx(grid, node, fSolve, t+ct(t));
                 ts_cf_(flow, node, fSolve, t)$tInterval(t) = ts_cf(flow, node, fSolve, t+ct(t));
                 ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)$tInterval(t) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
                 ts_unit_(unit, param_unit, fSolve, t)$tInterval(t) = ts_unit(unit, param_unit, fSolve, t+ct(t));
@@ -39,8 +38,7 @@ $offOrder
                             ft_new(f,t_)$(mf(mSolve, f) and tInterval(t_)) = yes;
                             p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength;
                             // Aggregates the interval time series data by averaging the power data
-                            ts_energyDemand_(gn(grid, node), fSolve, t) = sum{t_$tInterval(t_), ts_energyDemand(grid, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);    // Averages the power demand over the interval
-                            ts_absolute_(node, fSolve, t) = sum{t_$tInterval(t_), ts_absolute(node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the absolute power terms over the interval
+                            ts_influx_(grid, node, fSolve, t) = sum{t_$tInterval(t_), ts_influx(grid, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the absolute power terms over the interval
                             ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the capacity factor over the inverval
                             ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t) = sum(t_${tInterval(t_)}, ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t); // Averages the time-dependent node state boundary conditions over the interval
                             ts_unit_(unit, param_unit, fSolve, t) = sum(t_${tInterval(t_)}, ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_steplength(mSolve, fSolve, t); // Averages the time-dependent unit parameters over the interval
@@ -66,8 +64,7 @@ $offOrder
     );
     // Determine the time-series values for the last time step of the simulation, necessary for the state variables due to different indexing... NOTE! Doesn't aggregate in any way, uses raw data
     ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)${ord(t) = tSolveLast} = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
-    $$ifi '%rampSched%' == 'yes' ts_energyDemand_(gn(grid, node), fSolve, t)${ord(t) = tSolveLast} = ts_energyDemand(grid, node, fSolve, t+ct(t));
-    $$ifi '%rampSched%' == 'yes' ts_absolute_(node, fSolve, t)${ord(t) = tSolveLast} = ts_absolute(node, fSolve, t+ct(t));
+    $$ifi '%rampSched%' == 'yes' ts_influx_(grid, node, fSolve, t)${ord(t) = tSolveLast} = ts_influx(grid, node, fSolve, t+ct(t));
     $$ifi '%rampSched%' == 'yes' ts_cf_(flow, node, fSolve, t)${ord(t) = tSolveLast} = ts_cf(flow, node, fSolve, t+ct(t));
     $$ifi '%rampSched%' == 'yes' ts_unit_(unit, param_unit, fSolve, t)${ord(t) = tSolveLast} = ts_unit(unit, param_unit, fSolve, t+ct(t));
 $onOrder

@@ -29,12 +29,12 @@ loop(m,
 );
 
 
-* Calculate the length of the time series !!! THIS IS DONE USING ONLY THE ENERGY DEMAND TIME SERIES ONLY, WHICH IS NOT REQUIRED TO HAVE ANY VALUES AT ALL !!!
+* Calculate the length of the time series
 continueLoop = 1;
 ts_length = 0;
 loop(m$(continueLoop),
     loop(gn(grid, node),
-        ts_length = max(sum(t$ts_energyDemand(grid, node, 'f00', t), 1), ts_length); // Find the maximum length of the given time series
+        ts_length = max(sum(t$ts_influx(grid, node, 'f00', t), 1), ts_length); // Find the maximum length of the given time series
     );
     ct(t)$(
             ord(t) > ts_length

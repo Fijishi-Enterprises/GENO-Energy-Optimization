@@ -10,8 +10,8 @@
                                           v_gen.l(grid, node, unit, f, t));
         r_genType(grid, unittype, t)$ft_realized(f,t) = sum(nu(node, unit)$unitUnittype(unit, unittype),
                                           v_gen.l(grid, node, unit, f, t));
-        r_demand(grid, node, t)$ft_realized(f,t)
-             = sum(gn(grid, node), ts_energyDemand(grid, node, f, t));
+*        r_demand(grid, node, t)$ft_realized(f,t)
+*             = sum(gn(grid, node), ts_energyDemand(grid, node, f, t));
 $ontext
             r_transmission(h, from_node, to_node, t)
                 = v_transmission(from_node, to_node, t);

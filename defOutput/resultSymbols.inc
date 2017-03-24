@@ -5,7 +5,7 @@ r_gen
 r_transfer
 r_genFuel
 r_elec_type
-r_demand
+*r_demand
 *r_transmission
 *r_heat
 *r_capacity_type
