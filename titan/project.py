@@ -258,7 +258,6 @@ class SceletonProject(MetaObject):
             ui (TitanUI): Titan user interface
         """
         items = wb.import_setups()
-        # logging.debug("setups:\n%s" % items)
         duplicates = find_duplicates(items[1])
         if len(duplicates) > 0:
             ui.add_msg_signal.emit("File contains more than one Setup with the same name."
@@ -279,6 +278,11 @@ class SceletonProject(MetaObject):
             if not type(is_ready) == bool:
                 if not is_ready:  # is_ready can be None
                     is_ready = False
+                elif type(is_ready) == int:
+                    if is_ready == 1:
+                        is_ready = True
+                    else:
+                        is_ready = False
                 elif is_ready.lower() == 'true' or is_ready.lower() == 'yes':
                     is_ready = True
                 else:
@@ -288,6 +292,11 @@ class SceletonProject(MetaObject):
             if not type(failed) == bool:
                 if not failed:  # is_ready can be None
                     failed = False
+                elif type(failed) == int:
+                    if failed == 1:
+                        failed = True
+                    else:
+                        failed = False
                 elif failed.lower() == 'true' or failed.lower() == 'yes':
                     failed = True
                 else:

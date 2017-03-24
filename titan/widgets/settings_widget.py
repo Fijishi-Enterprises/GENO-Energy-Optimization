@@ -109,6 +109,8 @@ class SettingsWidget(QWidget):
         d = self._configs.get('settings', 'debug_messages')
         e = self._configs.get('settings', 'logoption')
         f = self._configs.get('settings', 'cerr')
+        if not f:  # If cerr value is missing
+            f = 1
         g = self._configs.getboolean('settings', 'clear_flags')
         h = self._configs.getboolean('settings', 'delete_input_dirs')
         project_dir = self._configs.get('settings', 'project_dir')

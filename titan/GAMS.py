@@ -87,6 +87,7 @@ class GAMSModel(Tool):
         # Let Tool class create the ToolInstance
         instance = super().create_instance(ui, setup_cmdline_args, tool_output_dir, setup_name)
         # Use gams.exe according to the selected GAMS directory in settings
+        # TODO: Use config object loaded in TitanUI instead of making a new ConfigurationParser
         configs = ConfigurationParser(CONFIGURATION_FILE)
         configs.load()
         # Read needed settings from config file
@@ -97,6 +98,10 @@ class GAMSModel(Tool):
         if not gams_path == '':
             gams_exe_path = os.path.join(gams_path, GAMS_EXECUTABLE)
         # General GAMS options
+        if logoption_value == '':  # If logoption is missing from .conf file
+            logoption_value = 3
+        if cerr_value == '':  # If cerr is missing from .conf file
+            cerr_value = 1
         self.update_gams_options('logoption', logoption_value)
         self.update_gams_options('cerr', cerr_value)
         gams_option_list = list(self.gams_options.values())

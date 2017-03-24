@@ -50,7 +50,12 @@ class ConfigurationParser(object):
         """
         if not self.parser.has_section(section):
             self.parser[section] = {}
-        return self.parser.get(section, option)
+        try:
+            value = self.parser.get(section, option)
+        except configparser.NoOptionError:
+            logging.debug("Option '{}' not found in conf file".format(option))
+            value = ''
+        return value
 
     def getboolean(self, section, option):
         """Get configuration option boolean value.
@@ -66,7 +71,12 @@ class ConfigurationParser(object):
         """
         if not self.parser.has_section(section):
             self.parser[section] = {}
-        return self.parser.getboolean(section, option)
+        try:
+            value = self.parser.getboolean(section, option)
+        except ValueError:
+            # value not a boolean
+            return False
+        return value
 
     def set(self, section, option, value):
         """Set configuration option value.
