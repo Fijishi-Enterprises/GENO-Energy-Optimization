@@ -58,108 +58,113 @@ loop(m,
 );
 
 
-* Parse through effLevelSelectorUnit and convert selected effSelectors into sets representing those selections
+* Parse through effLevelGroupUnit and convert selected effSelectors into sets representing those selections
 loop(unit,
-    cum_lambda = 0;
-    cum_slope = 0;
     loop(effLevel$sum(m, mSettingsEff(m, effLevel)),
-        // effSelector using DirectOn
-        if (sum(effSelector$effDirectOn(effSelector), effLevelGroupUnit(effLevel, effSelector, unit)),
-            loop(effSelector$effDirectOn(effSelector),
-                if(effLevelGroupUnit(effLevel, effSelector, unit),
-                    effGroup(effSelector) = yes;
-                    effGroupSelector(effSelector, effSelector) = yes;
-                    effGroupSelectorUnit(effSelector, unit, effSelector) = yes;
-                    effLevelSelectorUnit(effLevel, effSelector, unit) = yes;
-                );
+        // effSelector using DirectOff
+        if (sum(effDirectOff, effLevelGroupUnit(effLevel, effDirectOff, unit)),
+            loop(effDirectOff${effLevelGroupUnit(effLevel, effDirectOff, unit)},
+                    effGroup(effDirectOff) = yes;
+                    effGroupSelector(effDirectOff, effDirectOff) = yes;
+                    effGroupSelectorUnit(effDirectOff, unit, effDirectOff) = yes;
             );
         );
-        // effSelector using DirectOff
-        if (sum(effSelector$effDirectOff(effSelector), effLevelGroupUnit(effLevel, effSelector, unit)),
-            loop(effSelector$effDirectOff(effSelector),
-                if(effLevelGroupUnit(effLevel, effSelector, unit),
-                    effGroup(effSelector) = yes;
-                    effGroupSelector(effSelector, effSelector) = yes;
-                    effGroupSelectorUnit(effSelector, unit, effSelector) = yes;
-                    effLevelSelectorUnit(effLevel, effSelector, unit) = yes;
-                );
+
+        // effSelector using DirectOn
+        if (sum(effDirectOn, effLevelGroupUnit(effLevel, effDirectOn, unit)),
+            loop(effDirectOn${effLevelGroupUnit(effLevel, effDirectOn, unit)},
+                    effGroup(effDirectOn) = yes;
+                    effGroupSelector(effDirectOn, effDirectOn) = yes;
+                    effGroupSelectorUnit(effDirectOn, unit, effDirectOn) = yes;
             );
         );
 
         // effSelectors using Lambda
-        if (sum(effSelector_$effLambda(effSelector_), effLevelGroupUnit(effLevel, effSelector_, unit)),
-            count = 0;
-            loop(effSelector$effLambda(effSelector),
-                count = count + 1;
-                if(effLevelGroupUnit(effLevel, effSelector, unit),
-                    count_lambda = count;
-                    cum_lambda = cum_lambda + count_lambda;
-                    effGroup(effSelector) = yes;
-                );
+        if (sum(effLambda, effLevelGroupUnit(effLevel, effLambda, unit)),
+            loop(effLambda${effLevelGroupUnit(effLevel, effLambda, unit)},
+                    effGroup(effLambda) = yes;
+                    loop(effLambda_${ord(effLambda_) <= ord(effLambda)},
+                            effGroupSelector(effLambda, effLambda_) = yes;
+                            effGroupSelectorUnit(effLambda, unit, effLambda_) = yes;
+                    );
             );
-            count = 0;
-            loop(effSelector$effLambda(effSelector),
-                count = count + 1;
-                if( count > cum_lambda - count_lambda and count <= cum_lambda,
-                    effLevelSelectorUnit(effLevel, effSelector, unit) = yes;
-                    effGroupSelectorUnit(effGroup, unit, effSelector)$effLevelGroupUnit(effLevel, effGroup, unit) = yes;
-                );
-                if ( count = count_lambda,
-                    count_lambda2 = 0;
-                    loop(effSelector_$effLambda(effSelector_),
-                        count_lambda2 = count_lambda2 + 1;
-                        if (count_lambda2 > cum_lambda - count_lambda and count_lambda2 <= cum_lambda,
-                            effGroupSelector(effSelector, effSelector_) = yes;
+        );
+
+        // Calculate parameters for units using direct input output conversion without online variable
+        loop(effGroupSelectorUnit(effDirectOff, unit, effDirectOff_),
+            p_effUnit(effDirectOff, unit, effDirectOff_, 'lb') = 0; // No min load for the DirectOff approximation
+            p_effUnit(effDirectOff, unit, effDirectOff_, 'rb') = 1; // No max load for the DirectOff approximation
+            p_effUnit(effDirectOff, unit, effDirectOff_, 'slope') = 1 / smax(eff, p_unit(unit, eff)); // Uses maximum found efficiency.
+            p_effUnit(effDirectOff, unit, effDirectOff_, 'section') = 0; // No section for the DirectOff approximation
+        );
+
+        // Calculate parameters for units using direct input output conversion with online variable
+        loop(effGroupSelectorUnit(effDirectOn, unit, effDirectOn_),
+            p_effUnit(effDirectOn, unit, effDirectOn_, 'lb') = p_unit(unit, 'rb00'); // rb00 contains the possible min load of the unit
+            p_effUnit(effDirectOn, unit, effDirectOn_, 'rb') = smax(rb, p_unit(unit, rb)); // Maximum load determined by the largest 'rb' parameter found in data
+            loop(rb__${p_unit(unit, rb__) = smax(rb, p_unit(unit, rb))}, // Find the maximum defined 'rb'.
+                loop(eff__${ord(eff__) = ord(rb__)},                     // ...  and the corresponding 'eff'.
+                    loop(rb_${p_unit(unit, rb_) = smin(rb${p_unit(unit, rb)}, p_unit(unit, rb))}, // Find the minimum defined nonzero 'rb'.
+                        loop(eff_${ord(eff_) = ord(rb_)},                      // ... and the corresponding 'eff'.
+                            // Calculating the slope based on the first nonzero and the last defined data points.
+                            p_effUnit(effDirectOn, unit, effDirectOn_, 'slope') =
+                                + (p_unit(unit, rb__) / p_unit(unit, eff__) - p_unit(unit, rb_) / p_unit(unit, eff_))
+                                    / (p_unit(unit, rb__) - p_unit(unit, rb_));
+                            // Calculating the section based on the slope and the last defined point.
+                            p_effUnit(effDirectOn, unit, effDirectOn_, 'section') =
+                                ( 1 / p_unit(unit, eff__) - p_effUnit(effDirectOn, unit, effDirectOn_, 'slope') )
+                                    * p_unit(unit, rb__);
                         );
                     );
                 );
             );
         );
-        // Calculate parameters for units using direct input output conversion with online variable
-        loop(effSelector$sum(effDirectOn$effGroupSelector(effDirectOn, effSelector), 1),
-            p_effUnit(effSelector, unit, 'lb') = p_unit(unit, 'rb00');
-            p_effUnit(effSelector, unit, 'rb') = p_unit(unit, 'rb01');
-            p_effUnit(effSelector, unit, 'section')$(not p_unit(unit, 'eff01')) = 0;
-            p_effUnit(effSelector, unit, 'slope')$(not p_unit(unit, 'eff01')) = 1 / p_unit(unit, 'eff00');
-            p_effUnit(effSelector, unit, 'section')$p_unit(unit, 'eff01') =
-              + p_unit(unit, 'rb01') / p_unit(unit, 'eff01')
-              - [p_unit(unit, 'rb01') - 0]
-                  / [p_unit(unit, 'rb01') - p_unit(unit, 'rb00')]
-                  * [1 / p_unit(unit, 'eff01') * p_unit(unit, 'rb01') - 1 / p_unit(unit, 'eff00') * p_unit(unit, 'rb00')];
-            p_effUnit(effSelector, unit, 'slope')$p_unit(unit, 'eff01') =
-              + 1 / p_unit(unit, 'eff01') - p_effUnit(effSelector, unit, 'section');
-        );
-
-        // Calculate parameters for units using direct input output conversion without online variable
-        loop(effSelector$sum(effDirectOff$effGroupSelector(effDirectOff, effSelector), 1),
-            p_effUnit(effSelector, unit, 'rb') = 1;
-            p_effUnit(effSelector, unit, 'lb') = 0;
-            p_effUnit(effSelector, unit, 'section')$(not p_unit(unit, 'eff01')) = 0;
-            p_effUnit(effSelector, unit, 'slope')$(not p_unit(unit, 'eff01')) = 1 / p_unit(unit, 'eff00');
-            p_effUnit(effSelector, unit, 'section')$p_unit(unit, 'eff01') = 0;
-            p_effUnit(effSelector, unit, 'slope')$p_unit(unit, 'eff01') = 1 / p_unit(unit, 'eff01');
-        );
 
         // Calculate lambdas
-        count_lambda2 = 0;
-        loop(effSelector$(effLambda(effSelector) and effLevelSelectorUnit(effLevel, effSelector, unit)),
-            p_effUnit(effSelector, unit, 'rb') = ((count_lambda-1 - count_lambda2) * p_unit(unit, 'rb00') + count_lambda2 * p_unit(unit, 'rb01')) / (count_lambda - 1);
-            p_effUnit(effSelector, unit, 'lb') = p_effUnit(effSelector, unit, 'rb'); // Required for p_effGroupUnit and q_maxDownward
-            p_effUnit(effSelector, unit, 'slope')$effLevelSelectorUnit(effLevel, effSelector, unit)
-              = ((count_lambda-1 - count_lambda2) * (1 / p_unit(unit, 'eff00')) + count_lambda2 * (1 / p_unit(unit, 'eff01'))) / (count_lambda - 1);
-            count_lambda2 = count_lambda2 + 1;
+        loop(effGroupSelectorUnit(effLambda, unit, effLambda_),
+            p_effUnit(effLambda, unit, effLambda_, 'lb') = p_unit(unit, 'rb00'); // 'rb00' contains the possible minload of the unit, recorded for every lambda for p_effGroupUnit.
+            // For the first lambda, simply use the first data point
+            if(ord(effLambda_) = 1,
+                p_effUnit(effLambda, unit, effLambda_, 'rb') = p_unit(unit, 'rb00'); // 'rb00' also works as the lowest lambda point.
+                p_effUnit(effLambda, unit, effLambda_, 'slope') = 1 / p_unit(unit, 'eff00'); // eff00 works as the lowest lambda slope.
+            // For the last lambda, use the last data point
+            elseif ord(effLambda_) = ord(effLambda),
+                loop(rb__${p_unit(unit, rb__) = smax(rb, p_unit(unit, rb))}, // Find the maximum defined 'rb'.
+                    loop(eff__${ord(eff__) = ord(rb__)},                     // ...  and the corresponding 'eff'.
+                        p_effUnit(effLambda, unit, effLambda_, 'rb') = p_unit(unit, rb__); // Last defined 'rb'.
+                        p_effUnit(effLambda, unit, effLambda_, 'slope') = 1 / p_unit(unit, eff__); // Last defined 'eff'.
+                    );
+                );
+            // For the intermediary lambdas, use averages of the data points on each side.
+            else
+                count = sum(rb${p_unit(unit, rb)}, 1) + 1${not p_unit(unit, 'rb00')}; // Count the data points to correctly establish the lambda intervals, have to separately account for the possibility of 'rb00' = 0.
+                tmp = (ord(effLambda_) - 1) / (ord(effLambda) - 1 ) * count; // Determines the lambda interval.
+                count_lambda = floor(tmp); // Determine the data point index before the lambda
+                count_lambda2 = ceil(tmp); // Determine the data point index after the lambda
+                loop(rb__${ord(rb__) = count_lambda2}, // Find the ceiling data point 'rb'.
+                    loop(eff__${ord(eff__) = count_lambda2}, // ... and the corresponding 'eff'.
+                        loop(rb_${ord(rb_) = count_lambda}, // Find the floor data point 'rb'.
+                            loop(eff_${ord(eff_) = count_lambda}, // .. and the corresponding 'eff'.
+                                p_effUnit(effLambda, unit, effLambda_, 'rb') = (tmp - count_lambda) * p_unit(unit, rb__) + (count_lambda2 - tmp) * p_unit(unit, rb_); // Average the 'rb' between the found data points, weighted by tmp.
+                                p_effUnit(effLambda, unit, effLambda_, 'slope') = (tmp - count_lambda) / p_unit(unit, eff__) + (count_lambda2 - tmp) / p_unit(unit, eff_); // Average the 'eff' between the found data points, weighed by tmp.
+                            );
+                        );
+                    );
+                );
+            );
         );
 
-    );
-);
+    ); // END LOOP OVER effLevel
+); // END LOOP OVER unit
 
 
 // Calculate unit wide parameters for each efficiency group
 loop(unit,
     loop(effLevel$sum(m, mSettingsEff(m, effLevel)),
         loop(effLevelGroupUnit(effLevel, effGroup, unit),
-            p_effGroupUnit(effGroup, unit, 'rb') = smax(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effSelector, unit, 'rb'));
-            p_effGroupUnit(effGroup, unit, 'lb') = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effSelector, unit, 'lb'));
+            p_effGroupUnit(effGroup, unit, 'rb') = smax(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'rb'));
+            p_effGroupUnit(effGroup, unit, 'lb') = smin(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, p_effUnit(effGroup, unit, effSelector, 'lb'));
+            p_effGroupUnit(effGroup, unit, 'slope') = smax(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, p_effUnit(effGroup, unit, effSelector, 'slope')); // NOTE! This is a worst case scenario.
         );
     );
 );

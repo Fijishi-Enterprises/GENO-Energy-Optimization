@@ -5,7 +5,11 @@ Sets  // Model related selections
     counter "general counter set" /c000*c999/
 
     rb "Right borders of efficiency curves"
-        /rb00*rb12/
+        /rb00*rb12/ // IMPORTANT! Has to equal the same param_unit!
+    eff "Effiency data indeces"
+        /eff00*eff12/ // IMPORTANT! Has to equal the same param_unit!
+    lambda "Lambda approximation indeces"
+        /lambda01*lambda12/ // IMPORTANT! Has to equal effLambda!
     effSelector "Select equations and lambdas/slope for efficiency calculations"
         / directOff, directOn, lambda01*lambda12 /
     effDirect(effSelector) "Using direct input to output equation"
@@ -16,6 +20,8 @@ Sets  // Model related selections
         / directOn /
     effLambda(effSelector) "Lambdas in use for part-load efficiency representation"
         / lambda01*lambda12 /
+    effOnline(effSelector) "Efficiency selectors that use online variables"
+        / directOn, lambda01*lambda12 / // IMPORTANT! Online variables are generated based on this, so keep it up to date!
     effLevel "Pre-defined levels for efficiency representation that can start from t_solve + x"
         / level1*level9 /
 ;

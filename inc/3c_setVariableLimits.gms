@@ -21,9 +21,9 @@ loop(ft(f, tSolve),
       = v_state.l(grid, node, f, tSolve);
 
     // First solve, online variables
-    v_online.up(uft(unit, f, tSolve))$(tSolveFirst = mSettings(mSolve, 't_start') and unit_online(unit)) = p_unit(unit, 'unitCount');
+    v_online.up(uft_online(unit, f, tSolve))${tSolveFirst = mSettings(mSolve, 't_start')} = p_unit(unit, 'unitCount');
     // Remaining solves
-    v_online.fx(uft(unit, f, tSolve))$(not tSolveFirst = mSettings(mSolve, 't_start') and unit_online(unit)) = round(v_online.l(unit, f, tSolve));
+    v_online.fx(uft_online(unit, f, tSolve))${not tSolveFirst = mSettings(mSolve, 't_start')} = round(v_online.l(unit, f, tSolve));
 );
 
 v_state.fx(grid, node, f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'boundStartToEnd')) = v_state.l(grid, node, f, tSolve);
@@ -44,9 +44,9 @@ v_gen.lo(gnuft(grid, node, unit, f, t))$(not p_gnu(grid, node, unit, 'maxCons'))
 v_gen.lo(gnuft(grid, node, unit, f, t))$gnu_input(grid, node, unit) = -p_gnu(grid, node, unit, 'maxCons');
 
 // v_online cannot exceed unit count
-v_online.up(uft(unit, f, t))${sum(effSelector$(not effDirectOff(effSelector)), suft(effSelector, unit, f, t)) and unit_online(unit)} = p_unit(unit, 'unitCount');
+v_online.up(uft_online(unit, f, t)) = p_unit(unit, 'unitCount');
 // Restrict v_online also in the last dynamic time step
-v_online.up(unit, f, t)${sum[effSelector$(not effDirectOff(effSelector)), suft(effSelector, unit, f, t)] and unit_online(unit) and mftLastSteps(mSolve, f, t)} = p_unit(unit, 'unitCount');
+v_online.up(uft_online(unit, f, t))${mftLastSteps(mSolve, f, t)} = p_unit(unit, 'unitCount');
 
 // Max. & min. spilling
 v_spill.lo(gn(grid, node), ft(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useConstant')

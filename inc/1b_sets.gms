@@ -15,7 +15,6 @@ Sets
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
     unit_fuel(unit) "Units using a commercial fuel"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
-    unit_online(unit) "Units that have an online variable"
     unit_aggregate(unit) "Aggregate units aggragating several units"
     unit_noAggregate(unit) "Units that are not aggregated at all"
     unit_slope(unit) "Units with piecewise linear efficiency constraints"
@@ -25,7 +24,6 @@ Sets
     unitUnittype(unit, *) "Link generation technologies to types"
     uFuel(unit, param_fuel, fuel) "Units linked with fuels"
     unittype "Unit technology types"
-
 
 * --- Nodes -----------------------------------------------------------------
 *    node_reservoir(node)  "Hydropower reservoirs"
@@ -88,17 +86,6 @@ Sets
     msft(mType, s, f, t) "Combination of samples, forecasts and time periods in the models"
     mftStart(mType, f, t) "Start point of simulation"
     mftBind(mType, f, t) "Time periods/slices where forecasts/samples are coupled, note: t couples samples"
-    uft(unit, f, t) "Enables aggregation of units for later time periods"
-    uft_online(unit, f, t) "Units with online and startup variables on time periods"
-    nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
-    gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
-    suft(effSelector, unit, f, t) "Selecting conversion efficiency equations"
-    sufts(effSelector, unit, f, t, effSelector) "Selecting conversion efficiency equations"
-    effGroup(effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
-    effGroupSelector(effSelector, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
-    effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
-    effLevelSelectorUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
-    effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
     fRealization(f) "fRealization of the forecasts"
     fCentral(f) "Forecast that continues as sample(s) after the forecast horizon ends"
     sInitial(s) "Sample that presents the realized/forecasted period"
@@ -107,9 +94,19 @@ Sets
     mftLastSteps(mType, f, t) "Last time periods of the model (can be end of forecasts or end of samples)"
     modelSolves(mType, t) "when different models are to be solved"
     fSolve(f) "forecasts in the model to be solved next"
+
+* --- Sets used for the changing unit aggregation and efficiency approximations
+    uft(unit, f, t) "Enables aggregation of units for later time periods"
+    uft_online(unit, f, t) "Units with online and startup variables on time periods"
+    nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
+    gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
+    suft(effSelector, unit, f, t) "Selecting conversion efficiency equations"
+    sufts(effSelector, unit, f, t, effSelector) "Selecting conversion efficiency equations"
+    effGroup(effSelector) "Group name for efficiency selector set, e.g. DirectOff and Lambda02"
+    effGroupSelector(effSelector, effSelector) "Efficiency selectors included in efficiency groups, e.g. Lambda02 contains Lambda01 and Lambda02."
+    effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
+    effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
 ;
-
-
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 fRealization('f00') = yes;
 ms(mType, s) = no;
@@ -124,6 +121,13 @@ alias(unit, unit_);
 alias(node, from_node, to_node, node_, node_input, node_output);
 alias(node, from_node, to_node);
 alias(effSelector, effSelector_);
+alias(effDirect, effDirect_);
+alias(effDirectOff, effDirectOff_);
+alias(effDirectOn, effDirectOn_);
+alias(effLambda, effLambda_);
+alias(lambda, lambda_, lambda__);
+alias(rb, rb_, rb__);
+alias(eff, eff_, eff__);
 
 
 *if(active('rampSched'),

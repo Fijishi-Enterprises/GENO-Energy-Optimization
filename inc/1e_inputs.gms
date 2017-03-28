@@ -59,7 +59,6 @@ gn2gnu(grid_, node_input, grid, node, unit)$(gnu_input(grid_, node_input, unit) 
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
 nuRescapable(restype, resdirection, node, unit)$p_nuReserves(node, unit, restype, resdirection) = yes;
 unit_minload(unit)$[p_unit(unit, 'rb00') > 0 and p_unit(unit, 'rb00') < 1] = yes;   // If the first point is between 0 and 1, then the unit has a min load limit
-unit_online(unit)$[p_unit(unit, 'rb00') > 0 or p_unit(unit, 'startupCost') or p_unit(unit, 'startupFuelCons') or p_unit(unit, 'coldStart') ] = yes; // How does this differ from unit_minLoad, exactly?
 unit_flow(unit)$sum(flow, flowUnit(flow, unit)) = yes;
 unit_fuel(unit)$sum[ (fuel, node)$sum(t, ts_fuelPriceChangenode(fuel, node, t)), uFuel(unit, 'main', fuel) ] = yes;
 unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) = yes;
@@ -88,11 +87,29 @@ p_gn(gn(grid, node), 'energyStoredPerUnitOfState')$(not p_gn(grid, node, 'energy
 
 * --- Perform various data checks, and abort if errors are detected -----------
 * Check the integrity of efficiency approximation related data
+tmp = 0; // Log the unit index for finding the error easier.
 loop( unit,
+    tmp = tmp + 1; // Increase the unit counter
+    // Check that 'rb' is defined correctly
     count = 0; // Initialize the previous rb to zero
     loop( rb,
         abort${p_unit(unit, rb) + 1${not p_unit(unit, rb)} < count} "param_unit 'rb's must be defined as zero or positive and increasing!";
         count = p_unit(unit, rb);
+    );
+    // Check that efficiency approximations have sufficient data
+    loop( effLevelGroupUnit(effLevel, effSelector, unit),
+        loop( rb__${p_unit(unit, rb__) = smax(rb, p_unit(unit, rb))}, // Loop over the 'rb's to find the last defined data point.
+            // Lambda
+            loop( lambda${sameas(lambda, effSelector)}, // Loop over the lambdas to find the 'magnitude' of the approximation
+                if(ord(lambda) > ord(rb__), put log '!!! Error occurred on unit #' tmp); // Display unit that causes error, NEEDS WORK
+                abort${ord(lambda) > ord(rb__)} "Order of the lambda approximation cannot exceed the number of efficiency data points!"
+            );
+            // DirectOn
+            loop( rb_${p_unit(unit, rb_) = smin(rb${p_unit(unit, rb)}, p_unit(unit, rb))}, // Loop over the 'rb's to find the first nonzero 'rb' data point.
+                if(effDirectOn(effSelector) AND ord(rb__) = ord(rb_), put log '!!! Error occurred on unit #' tmp); // Display unit that causes error, NEEDS WORK
+                abort${effDirectOn(effSelector) AND ord(rb__) = ord(rb_)} "directOn requires two efficiency data points with nonzero 'rb'!"
+            );
+        );
     );
 );
 

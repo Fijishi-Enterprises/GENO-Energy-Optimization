@@ -27,11 +27,11 @@ Parameters
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
     p_fuelEmission(fuel, emission) "Fuel emission content"
     p_uFuel(unit, param_fuel, fuel, param_unitFuel) "Parameters interacting between units and fuels"
-    p_effUnit(effSelector, unit, *)  "Data for piece-wise linear efficiency blocks"
+    p_effUnit(effSelector, unit, effSelector, *)  "Data for piece-wise linear efficiency blocks"
     p_effGroupUnit(effSelector, unit, *) "Unit data specific to a efficiency group (e.g. left border of the unit)"
 // Time dependent unit & fuel parameters
     ts_unit(unit, *, f, t) "Time dependent unit data, where energy type doesn't matter"
-    ts_effUnit(effSelector, unit, *, f, t) "Time dependent data for piece-wise linear efficiency blocks"
+    ts_effUnit(effSelector, unit, effSelector, *, f, t) "Time dependent data for piece-wise linear efficiency blocks"
     ts_effGroupUnit(effSelector, unit, *, f, t) "Time dependent efficiency group unit data"
 // Alias used for interval aggregation
     ts_unit_(unit, *, f, t)
