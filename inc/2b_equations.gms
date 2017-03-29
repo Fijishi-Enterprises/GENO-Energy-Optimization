@@ -2,6 +2,7 @@ equations
     q_obj "Objective function"
     q_balance(grid, node, mType, f, t) "Energy demand must be satisfied at each node"
     q_resDemand(restype, resdirection, node, f, t) "Procurement for each reserve type is greater than demand"
+    q_resTransfer(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
     q_maxDownward(grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
     q_bindOnline(unit, mType, f, t) "Couple online variable when joining forecasts or when joining sample time periods"
@@ -12,7 +13,6 @@ equations
     q_conversionSOS2IntermediateOutput(effSelector, unit, f, t)  "Output is forced equal with v_sos2 output"
     q_outputRatioFixed(grid, node, grid, node, unit, f, t) "Force fixed ratio between two energy outputs into different energy grids"
     q_outputRatioConstrained(grid, node, grid, node, unit, f, t) "Constrained ratio between two grids of energy output; e.g. electricity generation is greater than cV times unit_heat generation in extraction plants"
-    q_transferLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
     q_stateSlack(grid, node, slack, f, t) "Slack variable greater than the difference between v_state and the slack boundary"
     q_stateUpwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_stateDownwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
@@ -206,6 +206,17 @@ q_resDemand(restypeDirectionNode(restype, resdirection, node), ft(f, t)) ..
     )
 ;
 * -----------------------------------------------------------------------------
+q_resTransfer(gn2n(grid, from_node, to_node), ft(f, t))${ sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, from_node))
+                                                            OR sum(restypeDirection(restype, resdirection), restypeDirectionNode(restype, resdirection, to_node))
+                                                            } ..
+  + v_transfer(grid, from_node, to_node, f, t)
+  + sum(restypeDirection(restype, resdirection)$(restypeDirectionNode(restype, resdirection, from_node) and restypeDirectionNode(restype, resdirection, to_node)),
+        + v_resTransfer(restype, resdirection, from_node, to_node, f, t)
+    )
+  =L=
+  + p_gnn(grid, from_node, to_node, 'transferCap')
+;
+* -----------------------------------------------------------------------------
 q_maxDownward(gnuft(grid, node, unit, f, t))${     [uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')]    // generators with online variables
                                                   or sum(restype, nuRescapable(restype, 'resDown', node, unit))      // all units with downward reserve provision
                                                   or [p_gnu(grid, node, unit, 'maxCons') and uft_online(unit, f, t)] // consuming units with an online variable
@@ -332,15 +343,6 @@ q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, 
   =G=
   + v_gen(grid_, node_, unit, f, t)
       / p_gnu(grid_, node_, unit, 'cB')
-;
-* -----------------------------------------------------------------------------
-q_transferLimit(gn2n(grid, from_node, to_node), ft(f, t)) ..                                    // NOTE! This needs to be thought over, whether it needs to account for transfers in the other direction as well, if permitted
-  + v_transfer(grid, from_node, to_node, f, t)                                                  // Transfer from this node to the target node
-  + sum(restypeDirection(restype, resdirection)$(restypeDirectionNode(restype, resdirection, from_node) and restypeDirectionNode(restype, resdirection, to_node)),
-        + v_resTransfer(restype, resdirection, from_node, to_node, f, t)
-    )
-  =L=
-  + p_gnn(grid, from_node, to_node, 'transferCap')
 ;
 * -----------------------------------------------------------------------------
 q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))$p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost') ..

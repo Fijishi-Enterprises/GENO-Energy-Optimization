@@ -45,6 +45,7 @@ Model schedule /
     q_obj
     q_balance
     q_resDemand
+    q_resTransfer
     q_maxDownward
     q_maxUpward
     q_startup
@@ -55,7 +56,6 @@ Model schedule /
     q_conversionSOS2IntermediateOutput
     q_outputRatioFixed
     q_outputRatioConstrained
-    q_transferLimit
     q_stateSlack
     q_stateUpwardLimit
     q_stateDownwardLimit
