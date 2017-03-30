@@ -68,8 +68,9 @@ p_unit(unit, 'eff00')$(not p_unit(unit, 'eff00')) = 1; // If the unit does not h
 p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount')) = 1;  // In case number of units has not been defined it is 1.
 p_unit(unit, 'unitCapacity')$(not p_unit(unit, 'unitCapacity')) = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));  // By default add outputs in order to get the total capacity of the unit
 
-* Generate node related sets based on input data
-gn2n(grid, from_node, to_node)$p_gnn(grid, from_node, to_node, 'transferCap') = yes;
+* Generate node related sets based on input data // NOTE! These will need to change if p_gnn is required to work with only one row per link.
+gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCap') OR p_gnn(grid, from_node, to_node, 'transferLoss')} = yes;
+gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCapBidirectional') OR p_gnn(grid, to_node, from_node, 'transferCapBidirectional')} = yes;
 gnn_boundState(grid, node, node_)$(p_gnn(grid, node, node_, 'boundStateOffset')) = yes;
 gnn_state(grid, node, node_)$(p_gnn(grid, node, node_, 'diffCoeff') or gnn_boundState(grid, node, node_)) = yes;
 gn_stateSlack(grid, node)$(sum((upwardSlack,   useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node,   upwardSlack, useConstantOrTimeSeries))) = yes;
@@ -81,11 +82,50 @@ gn_state(grid, node)$(sum(useConstantOrTimeSeries, p_gnBoundaryPropertiesForStat
 gn(grid, node)$(sum(unit, gnu(grid, node, unit) or gn_state(grid, node))) = yes;
 node_spill(node)$(sum((grid, spillLimits, useConstantOrTimeSeries)$gn(grid, node), p_gnBoundaryPropertiesForStates(grid, node, spillLimits, useConstantOrTimeSeries))) = yes;
 
+* Generate the set of unique, symmetric transfer links
+gn2n_bidirectional(grid, node, node_) = no;
+gn2n_bidirectional(grid, node, node_)${p_gnn(grid, node, node_, 'transferCapBidirectional')} = yes;
+loop(gn(grid, node),
+    loop(gn2n(grid, node, node_)${gn2n(grid, node_,node)},
+        gn2n_bidirectional(grid, node, node_)${not gn2n_bidirectional(grid, node_, node)} = yes;
+    );
+);
+* Assume lacking parameters for bidirectional links, if input data found lacking.
+loop(gn2n_bidirectional(grid, node, node_)${p_gnn(grid, node, node_, 'transferCapBidirectional')},
+    // Replicate the bidirectional transfer capacity for the other direction as well for clarity, in case it's undefined. This affects the related data integrity check later.
+    p_gnn(grid, node_, node, 'transferCapBidirectional')${not p_gnn(grid, node_, node, 'transferCapBidirectional')} = p_gnn(grid, node, node_, 'transferCapBidirectional');
+    // Limit individual directional transfer capacities to the bidirectional capacity if not defined otherwise.
+    p_gnn(grid, node, node_, 'transferCap')${not p_gnn(grid, node, node_, 'transferCap')} = p_gnn(grid, node, node_, 'transferCapBidirectional');
+    p_gnn(grid, node_, node, 'transferCap')${not p_gnn(grid, node_, node, 'transferCap')} = p_gnn(grid, node, node_, 'transferCapBidirectional');
+    // Fill in missing transfer losses
+    // NOTE! One has to define 'transferCapBidirectional' for the direction with zero 'transferLoss', if asymmetric losses are desired.
+    p_gnn(grid, node_, node, 'transferLoss')${not p_gnn(grid, node_, node, 'transferLoss')} = p_gnn(grid, node, node_, 'transferLoss');
+);
+
 * Assume values for critical node related parameters, if not provided by input data
 p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multiplier')$(not p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'multiplier')) = 1; // If multiplier has not been set, set it to 1 by default
 p_gn(gn(grid, node), 'energyStoredPerUnitOfState')$(not p_gn(grid, node, 'energyStoredPerUnitOfState') and not p_gn(grid, node, 'boundAll')) = 1; // If unitConversion has not been set, default to 1; If the state is bound, there is no need for the term
 
 * --- Perform various data checks, and abort if errors are detected -----------
+* Check the integrity of node connection related data
+count = 0;
+loop(gn2n(grid, node, node_),
+    count = count + 1; // Count the gn2n indeces to make finding the errors easier.
+    // Check if the bidirectional transfer parameter exists for this link.
+    if(p_gnn(grid, node, node_, 'transferCapBidirectional'),
+        // Check for conflicting bidirectional transfer capacities.
+        if(p_gnn(grid, node, node_, 'transferCapBidirectional') <> p_gnn(grid, node_, node, 'transferCapBidirectional'),
+            put log '!!! Error occurred on gn2n link #' count;
+            abort "Conflicting 'transferCapBidirectional' parameters!"
+        );
+        // Check for conflicting one-directional and bidirectional transfer capacities.
+        if(p_gnn(grid, node, node_, 'transferCapBidirectional') < p_gnn(grid, node, node_, 'transferCap') OR (p_gnn(grid, node, node_, 'transferCapBidirectional') < p_gnn(grid, node_, node, 'transferCap')),
+            put log '!!! Error occurred on gn2n link #' count;
+            abort "Parameter 'transferCapBidirectional' must be greater than or equal to defined one-directional transfer capacities!"
+        );
+    );
+);
+
 * Check the integrity of efficiency approximation related data
 tmp = 0; // Log the unit index for finding the error easier.
 loop( unit,

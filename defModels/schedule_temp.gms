@@ -61,4 +61,5 @@ Model schedule /
     q_stateDownwardLimit
     q_boundState
     q_boundCyclic
+    q_bidirectionalTransfer
 /;

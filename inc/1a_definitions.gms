@@ -116,6 +116,7 @@ useConstantOrTimeSeries(param_gnBoundaryProperties) "useTimeSeries and useConsta
 
 param_gnn "Set of possible data parameters for grid, node, node (nodal interconnections)" /
     transferCap "Transfer capacity limits"
+    transferCapBidirectional "Total bidirectional transfer capacity limit"
     transferLoss "Transfer losses"
     diffCoeff   "Coefficients for energy diffusion between nodes"
     boundStateOffset "Offset parameter for relatively bound node states"

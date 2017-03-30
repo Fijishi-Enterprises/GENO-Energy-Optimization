@@ -18,6 +18,7 @@ equations
     q_stateDownwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_boundState(grid, node, node, mType, f, t) "Node state variables bounded by other nodes"
     q_boundCyclic(grid, node, mType, f, t, t_) "Cyclic bound for the first and the last state"
+    q_bidirectionalTransfer(grid, node, node, f, t) "Possible common transfer capacity constraint for interconnected transfer variables"
 ;
 
 
@@ -482,5 +483,16 @@ q_boundCyclic(gn_state(grid, node), mf(m, f), t, t_)${  p_gn(grid, node, 'boundC
     + v_state(grid, node, f, t)
     =E=
     + v_state(grid, node, f, t_)
+;
+* -----------------------------------------------------------------------------
+q_bidirectionalTransfer(gn2n_bidirectional(grid, node, node_), ft(f, t))${p_gnn(grid, node, node_, 'transferCapBidirectional')} ..
+    + v_transfer(grid, node, node_, f, t) // Transfers in one direction
+    + v_transfer(grid, node_, node, f, t) // Transfers in the other direction
+    + sum(restypeDirection(restype, resdirection)${restypeDirectionNode(restype, resdirection, node) AND restypeDirectionNode(restype, resdirection, node_)},
+        + v_resTransfer(restype, resdirection, node, node_, f, t) // Reserve transfers in one direction
+        + v_resTransfer(restype, resdirection, node_, node, f, t) // Reserve transfers in the other direction
+      )
+    =L=
+    p_gnn(grid, node, node_, 'transferCapBidirectional')
 ;
 
