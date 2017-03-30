@@ -131,7 +131,7 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
 
 param_unit "Set of possible data parameters for units" /
     unitCount   "Number of units if aggregated"
-    unitCapacity "A proxy for the unit size in case the maxGens cannot be just added up by default"
+    outputCapacityTotal "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"
     omCosts     "Variable operation and maintenance costs (€/MWh)"
     startupCost "Variable start-up costs excluding energy costs (€/MWh)"
     startupFuelCons "Consumption of start-up fuel per capacity started up (MWh_fuel/MW)"

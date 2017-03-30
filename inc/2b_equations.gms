@@ -70,11 +70,11 @@ q_obj ..
              * {
                   // Startup variable costs
                  + p_unit(unit, 'startupCost')
-                 * p_unit(unit, 'unitCapacity')
+                 * p_unit(unit, 'outputCapacityTotal')
                   // Start-up fuel and emission costs
                  + sum(uFuel(unit_fuel, 'startup', fuel),
                      + p_unit(unit, 'startupFuelCons')
-                     * p_unit(unit, 'unitCapacity')
+                     * p_unit(unit, 'outputCapacityTotal')
                      * sum(gnu_output(grid, node, unit),
                            // Fuel costs for start-up fuel use
                          + ( + sum{tFuel$[ord(tFuel) <= ord(t)],

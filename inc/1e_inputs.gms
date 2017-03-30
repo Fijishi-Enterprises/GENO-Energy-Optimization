@@ -66,7 +66,7 @@ unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) 
 * Assume values for critical unit related parameters, if not provided by input data
 p_unit(unit, 'eff00')$(not p_unit(unit, 'eff00')) = 1; // If the unit does not have efficiency set, it is 1
 p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount')) = 1;  // In case number of units has not been defined it is 1.
-p_unit(unit, 'unitCapacity')$(not p_unit(unit, 'unitCapacity')) = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));  // By default add outputs in order to get the total capacity of the unit
+p_unit(unit, 'outputCapacityTotal')$(not p_unit(unit, 'outputCapacityTotal')) = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));  // By default add outputs in order to get the total capacity of the unit
 
 * Generate node related sets based on input data // NOTE! These will need to change if p_gnn is required to work with only one row per link.
 gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCap') OR p_gnn(grid, from_node, to_node, 'transferLoss')} = yes;
