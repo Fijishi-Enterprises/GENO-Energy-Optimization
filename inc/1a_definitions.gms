@@ -119,6 +119,7 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     transferLoss "Transfer losses"
     diffCoeff   "Coefficients for energy diffusion between nodes"
     boundStateOffset "Offset parameter for relatively bound node states"
+    boundStateMaxDiff "Maximum difference of node state pairs"
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /
