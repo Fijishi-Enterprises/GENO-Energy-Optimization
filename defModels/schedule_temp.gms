@@ -1,18 +1,8 @@
 if (mType('schedule'),
-    m('schedule') = yes;
-    mSettings('schedule', 't_start') = 1;  // Ord of first solve (i.e. >0)
-    mSettings('schedule', 't_horizon') = 8760;
-    mSettings('schedule', 't_jump') = 48;
-    mSettings('schedule', 't_forecastLength') = 8760;
-    mSettings('schedule', 't_end') = 80;
-    mSettings('schedule', 'samples') = 1;
-    mSettings('schedule', 'forecasts') = 0;
-    mSettings('schedule', 't_aggregate') = 72;
-    mSettingsEff('schedule', 'level1') = 1;
-    mSettingsEff('schedule', 'level2') = 24;
-    mSettingsEff('schedule', 'level3') = 48;
-    mSettingsEff('schedule', 'level4') = 168;
-    mf('schedule', f)$[ord(f)-1 <= mSettings('schedule', 'forecasts')] = yes;
+    m('schedule') = yes; // Definition, that the model exists by its name
+
+    // Define the temporal structure of the model in time indeces
+    mSettings('schedule', 'intervalInHours') = 1; // Define the duration of a single time-step in hours
     mInterval('schedule', 'intervalLength', 'c000') = 1;
     mInterval('schedule', 'intervalEnd', 'c000') = 168;
     mInterval('schedule', 'intervalLength', 'c001') = 3;
@@ -23,8 +13,28 @@ if (mType('schedule'),
     mInterval('schedule', 'intervalEnd', 'c003') = 4392;
     mInterval('schedule', 'intervalLength', 'c004') = 168;
     mInterval('schedule', 'intervalEnd', 'c004') = 8760;
+
+    // Define the model execution parameters in time indeces
+    mSettings('schedule', 't_start') = 1;  // Ord of first solve (i.e. >0)
+    mSettings('schedule', 't_horizon') = 8760;
+    mSettings('schedule', 't_jump') = 48;
+    mSettings('schedule', 't_forecastLength') = 8760;
+    mSettings('schedule', 't_end') = 80;
+
+    //
+    mSettings('schedule', 't_aggregate') = 72;
+    mSettingsEff('schedule', 'level1') = 1;
+    mSettingsEff('schedule', 'level2') = 24;
+    mSettingsEff('schedule', 'level3') = 48;
+    mSettingsEff('schedule', 'level4') = 168;
+
+    // Define active model features
     active('storageValue') = yes;
 
+    // Define model stochastic parameters
+    mSettings('schedule', 'samples') = 1;
+    mSettings('schedule', 'forecasts') = 0;
+    mf('schedule', f)$[ord(f)-1 <= mSettings('schedule', 'forecasts')] = yes;
     fRealization(f) = no;
     fRealization('f00') = yes;
     fCentral(f) = no;

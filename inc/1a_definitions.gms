@@ -1,12 +1,16 @@
 * --- Model parameters, features and switches ---------------------------------
 Sets  // Model related selections
-    mType "model types in the Backbone" /invest, storage, schedule, realtime, building/
-    mSetting "setting categories for models" /t_start, t_jump, t_horizon, t_forecastLength, t_end, samples, forecasts, intervalEnd, intervalLength, t_aggregate/
-    counter "general counter set" /c000*c999/
+    mType "model types in the Backbone"
+        /invest, storage, schedule, realtime, building/
+    mSetting "setting categories for models"
+        /t_start, t_jump, t_horizon, t_forecastLength, t_end, samples, forecasts, intervalEnd, intervalLength, IntervalInHours, t_aggregate/
+    counter "general counter set"
+        /c000*c999/
 
-    rb "Right borders of efficiency curves"
+    // Efficiency approximation related sets
+    rb "Right borders of efficiency curves, also functions as index for data points"
         /rb00*rb12/ // IMPORTANT! Has to equal the same param_unit!
-    eff "Effiency data indeces"
+    eff "Effiency data for corresponding sections ('rb') of the efficiency curves, also used for data indexing"
         /eff00*eff12/ // IMPORTANT! Has to equal the same param_unit!
     lambda "Lambda approximation indeces"
         /lambda01*lambda12/ // IMPORTANT! Has to equal effLambda!
@@ -24,6 +28,12 @@ Sets  // Model related selections
         / directOn, lambda01*lambda12 / // IMPORTANT! Online variables are generated based on this, so keep it up to date!
     effLevel "Pre-defined levels for efficiency representation that can start from t_solve + x"
         / level1*level9 /
+
+    // Variable direction related sets
+    up_down "Direction set used by some variables, e.g. reserve provisions and generation ramps"
+        / up, down /
+    inc_dec "Increase or decrease in dummy, or slack variables"
+       / increase, decrease /
 ;
 
 
@@ -105,8 +115,6 @@ upwardSlack(slack) "Set of upward slacks"
        / upwardSlack01*upwardSlack20 /
 downwardSlack(slack) "Set of downward slacks"
        / downwardSlack01*downwardSlack20 /
-inc_dec "Increase or decrease in dummy or slack variables"
-       / increase, decrease /
 stateLimits(param_gnBoundaryTypes) "set of upward and downward state limits"
        / upwardLimit, downwardLimit /
 spillLimits(param_gnBoundaryTypes) "set of upward and downward state limits"
@@ -139,9 +147,9 @@ param_unit "Set of possible data parameters for units" /
     coldStart   "Start-up time from cold to warm (h)"
     warmStart   "Start-up time from warm to hot (h)"
     hotStart    "Start-up time from hot to minLoad (h)"
-    minOperation "Minimum operation time (h)"
-    minShutDown "Minimum shut down time (h)"
     rampUp      "Speed to ramp up (p.u. / min)"
+    minOperationTime "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
+    minShutDownTime "Minimum shut down time (h), prevents starting up again after the defined amount of time has passed"
     SO2         "SO2 emissions (tonne per MWh_fuel)"
     NOx         "NOx emissions (tonne per MWh_fuel)"
     CH4         "CH4 emissions (tonne per MWh_fuel)"

@@ -21,22 +21,22 @@ $offOrder
                 ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)$tInterval(t) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
                 ts_unit_(unit, param_unit, fSolve, t)$tInterval(t) = ts_unit(unit, param_unit, fSolve, t+ct(t));
                 tCounter = mInterval(mSolve, 'intervalEnd', counter); // move tCounter to the next interval setting
-                p_stepLength(mf(mSolve, fSolve), t)$tInterval(t) = 1;  // p_stepLength will hold the length of the interval in model equations
-                p_stepLengthNoReset(mSolve, fSolve, t)$tInterval(t) = 1;
+                p_stepLength(mf(mSolve, fSolve), t)$tInterval(t) = mSettings(mSolve, 'intervalInHours');  // p_stepLength will hold the length of the interval in hours in model equations
+                p_stepLengthNoReset(mSolve, fSolve, t)$tInterval(t) = mSettings(mSolve, 'intervalInHours');
                 pt(t + 1)$tInterval(t) = -1;
                 mftLastSteps(mf(mSolve,fSolve),t)$[ord(t)-1 = mInterval(mSolve,'intervalEnd',counter)] = yes;
             elseif mInterval(mSolve, 'intervalLength', counter) > 1, // intervalLength > 1 (not defined if intervalLength < 1)
                 loop(t$[ord(t) >= tSolveFirst + tCounter and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)],  // Loop t relevant for each interval (interval borders defined by intervalEnd) - but do not go beyond tSolveLast
                     if (not mod(tCounter - mInterval(mSolve, 'intervalEnd', counter), mInterval(mSolve, 'intervalLength', counter)),  // Skip those t's that are not at the start of any interval
                         intervalLength = min(mInterval(mSolve, 'intervalLength', counter), max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon')) - tCounter);
-                        p_stepLength(mf(mSolve, fSolve), t) = intervalLength;  // p_stepLength will hold the length of the interval in model equations
-                        if (p_stepLengthNoReset(mSolve, 'f00', t) <> mInterval(mSolve, 'intervalLength', counter),  // and skip those t's that have been calculated for the right interval previously
+                        p_stepLength(mf(mSolve, fSolve), t) = intervalLength * mSettings(mSolve, 'IntervalInHours');  // p_stepLength will hold the length of the interval in model equations
+                        if (p_stepLengthNoReset(mSolve, 'f00', t) <> mInterval(mSolve, 'intervalLength', counter) * mSettings(mSolve, 'IntervalInHours'),  // and skip those t's that have been calculated for the right interval previously
                             tInterval(t_) = no;
                             tInterval(t_)$(    ord(t_) >= ord(t)
                                            and ord(t_) < ord(t) + intervalLength
                             ) = yes;   // Set of t's within the interval (right border defined by intervalEnd) - but do not go beyond tSolveLast
                             ft_new(f,t_)$(mf(mSolve, f) and tInterval(t_)) = yes;
-                            p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength;
+                            p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength * mSettings(mSolve, 'IntervalInHours');
                             // Aggregates the interval time series data by averaging the power data
                             ts_influx_(grid, node, fSolve, t) = sum{t_$tInterval(t_), ts_influx(grid, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the absolute power terms over the interval
                             ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the capacity factor over the inverval
@@ -60,7 +60,7 @@ $offOrder
         ) // end loop for set intervals
     else
     // ...otherwise use all time periods with equal weight
-        p_stepLength(mSolve, f, t)$(ord(t) >= tSolveFirst and ord(t) < tSolveLast and fRealization(f)) = 1;
+        p_stepLength(mSolve, f, t)$(ord(t) >= tSolveFirst and ord(t) < tSolveLast and fRealization(f)) = mSettings(mSolve, 'IntervalInHours');
     );
     // Determine the time-series values for the last time step of the simulation, necessary for the state variables due to different indexing... NOTE! Doesn't aggregate in any way, uses raw data
     ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)${ord(t) = tSolveLast} = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
