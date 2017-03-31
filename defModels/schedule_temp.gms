@@ -21,7 +21,7 @@ if (mType('schedule'),
     mSettings('schedule', 't_forecastLength') = 8760;
     mSettings('schedule', 't_end') = 80;
 
-    //
+    // Define unit aggregation and efficiency levels starting indeces
     mSettings('schedule', 't_aggregate') = 72;
     mSettingsEff('schedule', 'level1') = 1;
     mSettingsEff('schedule', 'level2') = 24;
