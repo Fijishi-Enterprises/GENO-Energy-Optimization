@@ -112,7 +112,7 @@ $onOrder
     ft_realizedLast(f,t) = no;
     ft_realizedLast(f,t)$[fRealization(f) and ord(t) = ord(tSolve) + mSettings(mSolve, 't_jump')] = yes;
 
-    // Defining unit aggregations
+    // Defining unit aggregations and ramps
     uft(unit, f, t) = no;
     uft(unit, f, t)$[ ft(f, t)
                         and ord(t) <= tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
@@ -128,7 +128,12 @@ $onOrder
     nuft(node, unit, f, t)$(nu(node, unit) and uft(unit, f, t)) = yes;
 
     gnuft(grid, node, unit, f, t) = no;
+    gnuft_ramp(grid, node, unit, f, t) = no;
     gnuft(grid, node, unit, f, t)$(gn(grid, node) and nuft(node, unit, f, t)) = yes;
+    gnuft_ramp(gnuft(grid, node, unit, f, t))${ p_gnu(grid, node, unit, 'maxRampUp')
+                                                OR p_gnu(grid, node, unit, 'maxRampDown')
+                                                OR p_gnu(grid, node, unit, 'rampUpCost')
+                                                OR p_gnu(grid, node, unit, 'rampDownCost') } = yes;
 
     // Defining unit efficiency groups etc.
     suft(effGroup, unit, f, t) = no;

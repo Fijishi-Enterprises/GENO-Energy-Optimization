@@ -9,7 +9,6 @@ Scalars
     continueLoop "Helper to stop the looping early"
     intervalLength "Legnth of the interval to be calculated, considering end of modelling period"
     count "General counter"
-    count_slope, count_slope2 "Counter for slope"
     count_lambda, count_lambda2 "Counter for lambdas"
     cum_slope "Cumulative for slope"
     cum_lambda "Cumulative for lambda"
@@ -62,8 +61,8 @@ Parameters
 Parameters
     ts_influx(grid, node, f, t) "External power inflow/outflow during a time period (MWh/h)"
     ts_cf(flow, node, f, t) "Available capacity factor time series (per unit)"
-    ts_reserveDemand(restype, resdirection, node, f, t) "Reserve demand in region in the time period/slice (MW)"
-    ts_reserveDemand_(restype, resdirection, node, f, t)
+    ts_reserveDemand(restype, up_down, node, f, t) "Reserve demand in region in the time period/slice (MW)"
+    ts_reserveDemand_(restype, up_down, node, f, t)
     ts_nodeState(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input"
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (€/MWh)"
     ts_fuelPriceChangenode(fuel, node, t) "Initial fuel price and consequent changes in fuel price in model nodegraphies (€/MWh)"

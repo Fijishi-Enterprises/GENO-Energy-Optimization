@@ -48,6 +48,10 @@ v_online.up(uft_online(unit, f, t)) = p_unit(unit, 'unitCount');
 // Restrict v_online also in the last dynamic time step
 v_online.up(uft_online(unit, f, t))${mftLastSteps(mSolve, f, t)} = p_unit(unit, 'unitCount');
 
+// Possible constraints for generator ramping speeds
+v_genRamp.up(gnu(grid, node, unit), ft(f, t))${gnuft_ramp(grid, node, unit, f, t) AND p_gnu(grid, node, unit, 'maxRampUp')} = p_gnu(grid, node, unit, 'maxRampUp');
+v_genRamp.lo(gnu(grid, node, unit), ft(f, t))${gnuft_ramp(grid, node, unit, f, t) AND p_gnu(grid, node, unit, 'maxRampDown')} = -p_gnu(grid, node, unit, 'maxRampDown');
+
 // Max. & min. spilling
 v_spill.lo(gn(grid, node), ft(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useConstant')
     = p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
@@ -61,16 +65,16 @@ v_spill.up(gn(grid, node), ft(f, t))$p_gnBoundaryPropertiesForStates(grid, node,
 // Restrictions on transferring energy between nodes
 v_transfer.up(gn2n(grid, from_node, to_node), ft(f, t))
     = p_gnn(grid, from_node, to_node, 'transferCap');
-v_resTransfer.up(restype, 'resUp', from_node, to_node, ft(f, t))$(restypeDirectionNode(restype, 'resUp', from_node) and restypeDirectionNode(restype, 'resUp', to_node))
+v_resTransfer.up(restype, 'up', from_node, to_node, ft(f, t))$(restypeDirectionNode(restype, 'up', from_node) and restypeDirectionNode(restype, 'up', to_node))
     = p_gnn('elec', from_node, to_node, 'transferCap');
 
 // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
-v_reserve.up(nuRescapable(restype, 'resUp', node, unit_elec), ft(f, t))$nuft(node, unit_elec, f, t)
-    = min { p_nuReserves(node, unit_elec, restype, 'resUp') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
+v_reserve.up(nuRescapable(restype, 'up', node, unit_elec), ft(f, t))$nuft(node, unit_elec, f, t)
+    = min { p_nuReserves(node, unit_elec, restype, 'up') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
             v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
           };
-v_reserve.up(nuRescapable(restype, 'resDown', node, unit_elec), ft(f, t))$nuft(node, unit_elec, f, t)
-    = min { p_nuReserves(node, unit_elec, restype, 'resDown') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
+v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), ft(f, t))$nuft(node, unit_elec, f, t)
+    = min { p_nuReserves(node, unit_elec, restype, 'down') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
              v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
            };
 

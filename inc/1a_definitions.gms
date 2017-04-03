@@ -135,6 +135,10 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     maxCons     "Maximum loading capacity (MW)"
     cB          "Share of output"
     cV          "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
+    maxRampUp   "Speed to ramp up (p.u. / min)"
+    maxRampDown "Speed to ramp down (p.u. / min)"
+    rampUpCost  "Wear and tear cost of ramping up (€/MW/h)"
+    rampDownCost "Wear and tear cost of ramping up (€/MW/h)"
 /
 
 param_unit "Set of possible data parameters for units" /
@@ -147,13 +151,11 @@ param_unit "Set of possible data parameters for units" /
     coldStart   "Start-up time from cold to warm (h)"
     warmStart   "Start-up time from warm to hot (h)"
     hotStart    "Start-up time from hot to minLoad (h)"
-    rampUp      "Speed to ramp up (p.u. / min)"
     minOperationTime "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
     minShutDownTime "Minimum shut down time (h), prevents starting up again after the defined amount of time has passed"
     SO2         "SO2 emissions (tonne per MWh_fuel)"
     NOx         "NOx emissions (tonne per MWh_fuel)"
     CH4         "CH4 emissions (tonne per MWh_fuel)"
-    rampCost    "Wear and tear cost of ramping (€/MW)"
     resTimelim  "How long should a storage be able to provide reserve (h)"
     eff00 * eff12    "Efficiency of the unit to convert input to output/intermediate product"
     rb00 * rb12     "Right border of the efficiency point"

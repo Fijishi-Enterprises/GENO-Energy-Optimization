@@ -29,7 +29,6 @@ Sets
 *    node_reservoir(node)  "Hydropower reservoirs"
     node_spill(node)      "Nodes that can spill; used to remove v_spill variables where not relevant"
 
-
 * --- Sets bounding geography and units -------------------------------------
     gn(grid, node) "Grids and their nodes"
 * NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
@@ -53,20 +52,16 @@ Sets
           secondary "Fast frequency restoration reserves"
           tertiary "Replacement reserves"
         /
-    resdirection "Reserve direction"
-        / resUp       "Capacity available for upward reserves (p.u.)"
-          resDown     "Capacity available for downward reserves (p.u.)"
+    restypeDirection(restype, up_down) "Different combinations of reserve types and directions"
+        / primary.up
+          primary.down
+          secondary.up
+          secondary.down
+          tertiary.up
+          tertiary.down
         /
-    restypeDirection(restype, resdirection) "Different combinations of reserve types and directions"
-        / primary.resUp
-          primary.resDown
-          secondary.resUp
-          secondary.resDown
-          tertiary.resUp
-          tertiary.resDown
-        /
-    restypeDirectionNode(restype, resdirection, node) "Nodes with reserve requirements"
-    nuRescapable(restype, resdirection, node, unit) "Units capable and available to provide particular reserves"
+    restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
+    nuRescapable(restype, up_down, node, unit) "Units capable and available to provide particular reserves"
 
 * --- Sets to define time, forecasts and samples -----------------------------------------------
     $$include 'input/timeAndSamples.inc'
@@ -101,6 +96,7 @@ Sets
     uft_online(unit, f, t) "Units with online and startup variables on time periods"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
+    gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"
     suft(effSelector, unit, f, t) "Selecting conversion efficiency equations"
     sufts(effSelector, unit, f, t, effSelector) "Selecting conversion efficiency equations"
     effGroup(effSelector) "Group name for efficiency selector set, e.g. DirectOff and Lambda02"

@@ -59,6 +59,8 @@ Model schedule /
     q_maxDownward
     q_maxUpward
     q_startup
+    q_genRamp
+    q_genRampChange
     q_bindOnline
     q_conversionDirectInputOutput
     q_conversionSOS2InputIntermediate
