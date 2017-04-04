@@ -9,25 +9,6 @@ v_state.up(gn_state(grid, node), ft_full(f, t))$p_gnBoundaryPropertiesForStates(
 v_state.lo(gn_state(grid, node), ft_full(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries') = ts_nodeState_(grid, node, 'downwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
 v_state.fx(gn_state(grid, node), ft_full(f, t))$(p_gn(grid, node, 'boundAll') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')) = ts_nodeState_(grid, node, 'reference', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
-* Bound state variables for the first solve if required
-loop(ft(f, tSolve),
-    // First solve, state variables (only if boundStart flag is true)
-    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and p_gn(grid, node, 'boundStart') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant') and tSolveFirst = mSettings(mSolve, 't_start'))
-      = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
-    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and p_gn(grid, node, 'boundStart') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') and tSolveFirst = mSettings(mSolve, 't_start'))
-      = ts_nodeState_(grid, node, 'reference', f, tSolve) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
-    // Remaining solves will use bound start value for v_state once it has been established
-    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and not tSolveFirst = mSettings(mSolve, 't_start'))
-      = v_state.l(grid, node, f, tSolve);
-
-    // First solve, online variables
-    v_online.up(uft_online(unit, f, tSolve))${tSolveFirst = mSettings(mSolve, 't_start')} = p_unit(unit, 'unitCount');
-    // Remaining solves
-    v_online.fx(uft_online(unit, f, tSolve))${not tSolveFirst = mSettings(mSolve, 't_start')} = round(v_online.l(unit, f, tSolve));
-);
-
-v_state.fx(grid, node, f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'boundStartToEnd')) = v_state.l(grid, node, f, tSolve);
-
 * Other time dependent parameters and variable limits
     // Max. energy generation
 v_gen.up(gnuft(grid, node, unit, f, t))$(not unit_flow(unit)) = p_gnu(grid, node, unit, 'maxGen') * p_unit(unit, 'availability');
@@ -77,4 +58,23 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), ft(f, t))$nuft(node
     = min { p_nuReserves(node, unit_elec, restype, 'down') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
              v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
            };
+
+* --- Bounds overwritten for the first solve when required --------------------
+loop(ft(f, tSolve),
+    // First solve, state variables (only if boundStart flag is true)
+    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and p_gn(grid, node, 'boundStart') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant') and tSolveFirst = mSettings(mSolve, 't_start'))
+      = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and p_gn(grid, node, 'boundStart') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') and tSolveFirst = mSettings(mSolve, 't_start'))
+      = ts_nodeState_(grid, node, 'reference', f, tSolve) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+    // Remaining solves will use bound start value for v_state once it has been established
+    v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and not tSolveFirst = mSettings(mSolve, 't_start'))
+      = v_state.l(grid, node, f, tSolve);
+
+    // First solve, online variables
+    v_online.up(uft_online(unit, f, tSolve))${tSolveFirst = mSettings(mSolve, 't_start')} = p_unit(unit, 'unitCount');
+    // Remaining solves
+    v_online.fx(uft_online(unit, f, tSolve))${not tSolveFirst = mSettings(mSolve, 't_start')} = round(v_online.l(unit, f, tSolve));
+);
+
+v_state.fx(grid, node, f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'boundStartToEnd')) = v_state.l(grid, node, f, tSolve);
 

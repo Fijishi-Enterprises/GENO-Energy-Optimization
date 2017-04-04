@@ -275,8 +275,8 @@ q_startup(uft_online(unit, ft_dynamic(f, t))) ..
   - v_online(unit, f+pf(f,t), t+pt(t)) // This reaches to tFirstSolve when pt = -1
 ;
 * -----------------------------------------------------------------------------
-q_genRamp(gn(grid, node), m, uft(unit, f, t))${gnuft_ramp(grid, node, unit, f, t)} ..
-    + v_genRamp(grid, node, unit, f, t)
+q_genRamp(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node, unit, f, t)} ..
+    + v_genRamp(grid, node, unit, f+pf(f,t), t+pt(t))
     * ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )  * 60 / 100 // Unit conversion from [p.u./min] to [MW/h]
     * p_stepLength(m, f+pf(f,t), t+pt(t))
     =E=
@@ -290,10 +290,10 @@ q_genRamp(gn(grid, node), m, uft(unit, f, t))${gnuft_ramp(grid, node, unit, f, t
       )
         / p_unit(unit, 'unitCount')
         * ( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )
-        * sum(suft(effGroup, unit, f, t), p_effGroupUnit(effGroup, unit, 'lb'))
+        * sum(suft(effGroup, unit, f, t), p_effGroupUnit(effGroup, unit, 'lb')) // Newly started units are assumed to start to their minload.
 ;
 * -----------------------------------------------------------------------------
-q_genRampChange(gn(grid, node), m, uft(unit, f, t))${ gnuft_ramp(grid, node, unit, f, t) AND [ p_gnu(grid, node, unit, 'rampUpCost') OR p_gnu(grid, node, unit, 'rampDownCost') ]} ..
+q_genRampChange(gn(grid, node), m, unit, ft_dynamic(f, t))${ gnuft_ramp(grid, node, unit, f, t) AND [ p_gnu(grid, node, unit, 'rampUpCost') OR p_gnu(grid, node, unit, 'rampDownCost') ]} ..
     + v_genRampChange(grid, node, unit, 'up', f, t)
     - v_genRampChange(grid, node, unit, 'down', f, t)
     =E=

@@ -149,8 +149,8 @@ $onOrder
     );
     sufts(effGroup, unit, f, t, effSelector) = no;
     sufts(effGroup, unit, f, t, effSelector)$(effGroupSelector(effGroup, effSelector) and suft(effGroup, unit, f, t)) = yes;
-    uft_online(unit, ft(f, t)) = no; // Initialize the 'uft_online' set so that no units use online variables by default.
-    loop(suft(effOnline, unit, ft(f, t)), // Determine the time steps when units need to have online variables.
+    uft_online(unit, f, t) = no; // Initialize the 'uft_online' set so that no units use online variables by default.
+    loop(suft(effOnline, uft(unit, f, t)), // Determine the time steps when units need to have online variables.
         uft_online(unit, f, t) = yes;
     );
 
