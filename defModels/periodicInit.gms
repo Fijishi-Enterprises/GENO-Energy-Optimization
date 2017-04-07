@@ -94,7 +94,7 @@ loop(unit,
         loop(effGroupSelectorUnit(effDirectOff, unit, effDirectOff_),
             p_effUnit(effDirectOff, unit, effDirectOff_, 'lb') = 0; // No min load for the DirectOff approximation
             p_effUnit(effDirectOff, unit, effDirectOff_, 'rb') = 1; // No max load for the DirectOff approximation
-            p_effUnit(effDirectOff, unit, effDirectOff_, 'slope') = 1 / smax(eff, p_unit(unit, eff)); // Uses maximum found efficiency.
+            p_effUnit(effDirectOff, unit, effDirectOff_, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
             p_effUnit(effDirectOff, unit, effDirectOff_, 'section') = 0; // No section for the DirectOff approximation
         );
 
