@@ -21,8 +21,12 @@ v_gen.up(gnuft(grid, node, unit_flow, f, t))      // Should only be about variab
 
 // Min. generation to zero for units without consumption
 v_gen.lo(gnuft(grid, node, unit, f, t))$(not p_gnu(grid, node, unit, 'maxCons')) = 0;
-// Max. consumption capacity for chargable storages
+// Max. consumption capacity
 v_gen.lo(gnuft(grid, node, unit, f, t))$gnu_input(grid, node, unit) = -p_gnu(grid, node, unit, 'maxCons');
+
+// In the case of negative generation (currently only used for cooling equipment)
+v_gen.lo(gnuft(grid, node, unit, f, t))${p_gnu(grid, node, unit, 'maxGen') < 0} = p_gnu(grid, node, unit, 'maxGen');
+v_gen.up(gnuft(grid, node, unit, f, t))${p_gnu(grid, node, unit, 'maxGen') < 0} = 0;
 
 // v_online cannot exceed unit count
 v_online.up(uft_online(unit, f, t)) = p_unit(unit, 'unitCount');
@@ -59,7 +63,7 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), ft(f, t))$nuft(node
              v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
            };
 
-* --- Bounds overwritten for the first solve when required --------------------
+* --- Bounds overwritten for the first solve -----------------------------------
 loop(ft(f, tSolve),
     // First solve, state variables (only if boundStart flag is true)
     v_state.fx(grid, node, f, tSolve)$(gn_state(grid,node) and p_gn(grid, node, 'boundStart') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant') and tSolveFirst = mSettings(mSolve, 't_start'))
