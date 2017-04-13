@@ -337,8 +337,8 @@ q_conversionSOS2InputIntermediate(suft(effGroup, unit, f, t))$effLambda(effGroup
   =E=
   + sum(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector),
       + v_sos2(unit, f, t, effSelector)
-        * (p_effUnit(effGroup, unit, effSelector, 'rb')${not ts_effUnit(effGroup, unit, effSelector, 'rb', f, t)} + ts_effUnit(effGroup, unit, effSelector, 'rb', f, t))
-        * (p_effUnit(effGroup, unit, effSelector, 'slope')${not ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)} + ts_effUnit(effGroup, unit, effSelector, 'slope', f, t))
+      * ( p_effUnit(effGroup, unit, effSelector, 'rb')${not ts_effUnit(effGroup, unit, effSelector, 'rb', f, t)} + ts_effUnit(effGroup, unit, effSelector, 'rb', f, t) + p_effUnit(effGroup, unit, effSelector, 'section') )
+      * ( p_effUnit(effGroup, unit, effSelector, 'slope')${not ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)} + ts_effUnit(effGroup, unit, effSelector, 'slope', f, t) )
     )
   / p_unit(unit, 'unitCount')
   * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))
@@ -350,7 +350,7 @@ q_conversionSOS2Constraint(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
     )
   =E=
   + v_online(unit, f, t)${uft_online(unit, f, t)}
-  + 1${not uft_online(unit, f, t)}
+*  + 1${not uft_online(unit, f, t)} // Should not be required, as effLambda implies online variables
 ;
 * -----------------------------------------------------------------------------
 q_conversionSOS2IntermediateOutput(suft(effGroup, unit, f, t))$effLambda(effGroup) ..

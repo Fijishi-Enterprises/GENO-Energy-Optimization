@@ -127,6 +127,7 @@ loop(unit,
             if(ord(effLambda_) = 1,
                 p_effUnit(effLambda, unit, effLambda_, 'rb') = p_unit(unit, 'rb00'); // 'rb00' also works as the lowest lambda point.
                 p_effUnit(effLambda, unit, effLambda_, 'slope') = 1 / p_unit(unit, 'eff00'); // eff00 works as the lowest lambda slope.
+                p_effUnit(effLambda, unit, effLambda_, 'section')${not p_unit(unit, 'rb00')} = p_unit(unit, 'rb01') * ( 1 / p_unit(unit, 'eff00') - 1 / p_unit(unit, 'eff01') ) / (ord(effLambda) - 1)**2; // Dummy section if scalable from zero.
             // For the last lambda, use the last data point
             elseif ord(effLambda_) = ord(effLambda),
                 loop(rb__${p_unit(unit, rb__) = smax(rb, p_unit(unit, rb))}, // Find the maximum defined 'rb'.
@@ -135,7 +136,7 @@ loop(unit,
                         p_effUnit(effLambda, unit, effLambda_, 'slope') = 1 / p_unit(unit, eff__); // Last defined 'eff'.
                     );
                 );
-            // For the intermediary lambdas, use averages of the data points on each side.
+            // For the intermediary lambdas, use interpolation of the data points on each side.
             else
                 count = sum(rb${p_unit(unit, rb)}, 1) + 1${not p_unit(unit, 'rb00')}; // Count the data points to correctly establish the lambda intervals, have to separately account for the possibility of 'rb00' = 0.
                 tmp = (ord(effLambda_) - 1) / (ord(effLambda) - 1 ) * count; // Determines the lambda interval.
@@ -164,7 +165,7 @@ loop(unit,
         loop(effLevelGroupUnit(effLevel, effGroup, unit),
             p_effGroupUnit(effGroup, unit, 'rb') = smax(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'rb'));
             p_effGroupUnit(effGroup, unit, 'lb') = smin(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, p_effUnit(effGroup, unit, effSelector, 'lb'));
-            p_effGroupUnit(effGroup, unit, 'slope') = smax(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, p_effUnit(effGroup, unit, effSelector, 'slope')); // NOTE! This is a worst case scenario.
+            p_effGroupUnit(effGroup, unit, 'slope') = smin(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, p_effUnit(effGroup, unit, effSelector, 'slope')); // NOTE! Uses maximum efficiency for the group.
         );
     );
 );
