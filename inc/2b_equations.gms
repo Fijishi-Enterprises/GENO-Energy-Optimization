@@ -321,10 +321,8 @@ q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..
     )
   + v_online(unit, f, t)${uft_online(unit, f, t)}
     / p_unit(unit, 'unitCount')
-    * sum(gnu_output(grid, node, unit),
-        + p_gnu(grid, node, unit, 'maxGen')
-      )
-    * (p_effUnit(effDirect, unit, effDirect, 'section')${not ts_effUnit(effDirect, unit, effDirect, 'section', f, t)} + ts_effUnit(effDirect, unit, effDirect, 'section', f, t))
+    * sum( gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen') )
+    * (p_effGroupUnit(effDirect, unit, 'section')${not ts_effUnit(effDirect, unit, effDirect, 'section', f, t)} + ts_effUnit(effDirect, unit, effDirect, 'section', f, t))
 ;
 * -----------------------------------------------------------------------------
 q_conversionSOS2InputIntermediate(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
@@ -335,13 +333,16 @@ q_conversionSOS2InputIntermediate(suft(effGroup, unit, f, t))$effLambda(effGroup
       + v_fuelUse(fuel, unit, f, t)
     )
   =E=
-  + sum(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector),
-      + v_sos2(unit, f, t, effSelector)
-      * ( p_effUnit(effGroup, unit, effSelector, 'rb')${not ts_effUnit(effGroup, unit, effSelector, 'rb', f, t)} + ts_effUnit(effGroup, unit, effSelector, 'rb', f, t) + p_effUnit(effGroup, unit, effSelector, 'section') )
-      * ( p_effUnit(effGroup, unit, effSelector, 'slope')${not ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)} + ts_effUnit(effGroup, unit, effSelector, 'slope', f, t) )
+  + ( + sum(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector),
+          + v_sos2(unit, f, t, effSelector)
+              * ( p_effUnit(effGroup, unit, effSelector, 'op')${not ts_effUnit(effGroup, unit, effSelector, 'op', f, t)} + ts_effUnit(effGroup, unit, effSelector, 'op', f, t))
+              * ( p_effUnit(effGroup, unit, effSelector, 'slope')${not ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)} + ts_effUnit(effGroup, unit, effSelector, 'slope', f, t) )
+        )
+      + v_online(unit, f, t)
+          * p_effGroupUnit(effGroup, unit, 'section')
     )
-  / p_unit(unit, 'unitCount')
-  * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))
+      / p_unit(unit, 'unitCount')
+      * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))
 ;
 * -----------------------------------------------------------------------------
 q_conversionSOS2Constraint(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
@@ -356,7 +357,7 @@ q_conversionSOS2Constraint(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
 q_conversionSOS2IntermediateOutput(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
   + sum(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector),
       + v_sos2(unit, f, t, effSelector)
-      * (p_effUnit(effGroup, unit, effSelector, 'rb')${not ts_effUnit(effGroup, unit, effSelector, 'rb', f, t)} + ts_effUnit(effGroup, unit, effSelector, 'rb', f, t))
+      * (p_effUnit(effGroup, unit, effSelector, 'op')${not ts_effUnit(effGroup, unit, effSelector, 'op', f, t)} + ts_effUnit(effGroup, unit, effSelector, 'op', f, t))
     )
   / p_unit(unit, 'unitCount')
   * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))

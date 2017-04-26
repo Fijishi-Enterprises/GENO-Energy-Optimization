@@ -123,7 +123,7 @@ alias(effDirectOff, effDirectOff_);
 alias(effDirectOn, effDirectOn_);
 alias(effLambda, effLambda_);
 alias(lambda, lambda_, lambda__);
-alias(rb, rb_, rb__);
+alias(op, op_, op__);
 alias(eff, eff_, eff__);
 
 

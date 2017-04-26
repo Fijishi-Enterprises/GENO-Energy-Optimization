@@ -12,7 +12,11 @@ Scalars
     count_lambda, count_lambda2 "Counter for lambdas"
     cum_slope "Cumulative for slope"
     cum_lambda "Cumulative for lambda"
+    heat_rate "Heat rate temporary parameter"
     tmp "General temporary parameter"
+    tmp_dist "Temporary parameter for calculating the distance between operating points"
+    tmp_op "Temporary parameter for operating point"
+    tmp_count_op "Counting the number of valid operating points in the unit data"
 ;
 
 * --- Power plant and fuel data -----------------------------------------------

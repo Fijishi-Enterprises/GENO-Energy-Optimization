@@ -8,9 +8,9 @@ Sets  // Model related selections
         /c000*c999/
 
     // Efficiency approximation related sets
-    rb "Right borders of efficiency curves, also functions as index for data points"
-        /rb00*rb12/ // IMPORTANT! Has to equal the same param_unit!
-    eff "Effiency data for corresponding sections ('rb') of the efficiency curves, also used for data indexing"
+    op "Operating points in the efficiency curves, also functions as index for data points"
+        /op00*op12/ // IMPORTANT! Has to equal the same param_unit!
+    eff "Effiency for the corresponding operating point ('op') in the efficiency curves, also used for data indexing"
         /eff00*eff12/ // IMPORTANT! Has to equal the same param_unit!
     lambda "Lambda approximation indeces"
         /lambda01*lambda12/ // IMPORTANT! Has to equal effLambda!
@@ -137,20 +137,23 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     cV          "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
     maxRampUp   "Speed to ramp up (p.u. / min)"
     maxRampDown "Speed to ramp down (p.u. / min)"
-    rampUpCost  "Wear and tear cost of ramping up (€/MW/h)"
-    rampDownCost "Wear and tear cost of ramping up (€/MW/h)"
+    rampUpCost  "Wear and tear cost of ramping up (€/MW)"
+    rampDownCost "Wear and tear cost of ramping up (€/MW)"
 /
 
 param_unit "Set of possible data parameters for units" /
     unitCount   "Number of units if aggregated"
     outputCapacityTotal "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"
-    omCosts     "Variable operation and maintenance costs (€/MWh)"
-    startupCost "Variable start-up costs excluding energy costs (€/MWh)"
-    startupFuelCons "Consumption of start-up fuel per capacity started up (MWh_fuel/MW)"
     availability "Availability of given energy conversion technology (p.u.)"
-    coldStart   "Start-up time from cold to warm (h)"
-    warmStart   "Start-up time from warm to hot (h)"
-    hotStart    "Start-up time from hot to minLoad (h)"
+    omCosts     "Variable operation and maintenance costs (€/MWh)"
+    startCostCold "Variable start-up costs for cold starts excluding fuel costs (€/MWh) NOT IN USE"
+    startCostWarm "Variable start-up costs for warm starts excluding fuel costs (€/MWh) NOT IN USE"
+    startCost "Variable start-up costs for starts excluding fuel costs (€/MWh)"
+    startFuelConsCold "Consumption of start-up fuel per capacity started up (MWh_fuel/MW) NOT IN USE"
+    startFuelConsWarm "Consumption of start-up fuel per capacity started up (MWh_fuel/MW) NOT IN USE"
+    startFuelCons "Consumption of start-up fuel per capacity started up (MWh_fuel/MW)"
+    startCold   "Offline hours after which the start-up will be a cold start (h) NOT IN USE"
+    startWarm   "Offline hours after which the start-up will be a warm start (h) NOT IN USE"
     minOperationTime "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
     minShutDownTime "Minimum shut down time (h), prevents starting up again after the defined amount of time has passed"
     SO2         "SO2 emissions (tonne per MWh_fuel)"
@@ -158,9 +161,11 @@ param_unit "Set of possible data parameters for units" /
     CH4         "CH4 emissions (tonne per MWh_fuel)"
     resTimelim  "How long should a storage be able to provide reserve (h)"
     eff00 * eff12    "Efficiency of the unit to convert input to output/intermediate product"
-    rb00 * rb12     "Right border of the efficiency point"
+    opFirstCross "The operating point where the real efficiency curve and approximated efficiency curve cross"
+    op00 * op12     "Right border of the efficiency point"
     level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "Uses time series form input for unit parameters whenever possible"
+    section     "Possibility to define a no load fuel use for units with zero minimum output"
 /
 
 param_fuel "Parameters for fuels" /

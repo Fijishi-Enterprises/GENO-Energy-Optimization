@@ -58,7 +58,7 @@ gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'maxCons') = yes;
 gn2gnu(grid_, node_input, grid, node, unit)$(gnu_input(grid_, node_input, unit) and gnu_output(grid, node, unit)) = yes;
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
 nuRescapable(restype, up_down, node, unit)$p_nuReserves(node, unit, restype, up_down) = yes;
-unit_minload(unit)$[p_unit(unit, 'rb00') > 0 and p_unit(unit, 'rb00') < 1] = yes;   // If the first point is between 0 and 1, then the unit has a min load limit
+unit_minload(unit)$[p_unit(unit, 'op00') > 0 and p_unit(unit, 'op00') < 1] = yes;   // If the first point is between 0 and 1, then the unit has a min load limit
 unit_flow(unit)$sum(flow, flowUnit(flow, unit)) = yes;
 unit_fuel(unit)$sum[ (fuel, node)$sum(t, ts_fuelPriceChangenode(fuel, node, t)), uFuel(unit, 'main', fuel) ] = yes;
 unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) = yes;
@@ -130,24 +130,27 @@ loop(gn2n(grid, node, node_),
 tmp = 0; // Log the unit index for finding the error easier.
 loop( unit,
     tmp = tmp + 1; // Increase the unit counter
-    // Check that 'rb' is defined correctly
-    count = 0; // Initialize the previous rb to zero
-    loop( rb,
-        abort${p_unit(unit, rb) + 1${not p_unit(unit, rb)} < count} "param_unit 'rb's must be defined as zero or positive and increasing!";
-        count = p_unit(unit, rb);
+    // Check that 'op' is defined correctly
+    count = 0; // Initialize the previous op to zero
+    loop( op,
+        abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!";
+        count = p_unit(unit, op);
     );
     // Check that efficiency approximations have sufficient data
     loop( effLevelGroupUnit(effLevel, effSelector, unit),
-        loop( rb__${p_unit(unit, rb__) = smax(rb, p_unit(unit, rb))}, // Loop over the 'rb's to find the last defined data point.
-            // Lambda
-            loop( lambda${sameas(lambda, effSelector)}, // Loop over the lambdas to find the 'magnitude' of the approximation
-                if(ord(lambda) > ord(rb__), put log '!!! Error occurred on unit #' tmp); // Display unit that causes error, NEEDS WORK
-                abort${ord(lambda) > ord(rb__)} "Order of the lambda approximation cannot exceed the number of efficiency data points!"
-            );
+        loop( op__${p_unit(unit, op__) = smax(op, p_unit(unit, op))}, // Loop over the 'op's to find the last defined data point.
+            // Lambda  - Has been commented out, since it is ok to improve the efficiency curve by using extra lambda points.
+            //loop( lambda${sameas(lambda, effSelector)}, // Loop over the lambdas to find the 'magnitude' of the approximation
+                //display count_lambda, count_lambda2, unit.tl;
+            //    if(ord(lambda) > ord(op__), put log '!!! Error occurred on unit ' unit.tl:25 ' with effLevel ' effLevel.tl:10 ' with effSelector ' lambda.tl:8); // Display unit that causes error
+            //    abort${ord(lambda) > ord(op__)} "Order of the lambda approximation cannot exceed the number of efficiency data points!"
+            // );
             // DirectOn
-            loop( rb_${p_unit(unit, rb_) = smin(rb${p_unit(unit, rb)}, p_unit(unit, rb))}, // Loop over the 'rb's to find the first nonzero 'rb' data point.
-                if(effDirectOn(effSelector) AND ord(rb__) = ord(rb_), put log '!!! Error occurred on unit #' tmp); // Display unit that causes error, NEEDS WORK
-                abort${effDirectOn(effSelector) AND ord(rb__) = ord(rb_)} "directOn requires two efficiency data points with nonzero 'rb'!"
+            loop( op_${p_unit(unit, op_) = smin(op${p_unit(unit, op)}, p_unit(unit, op))}, // Loop over the 'op's to find the first nonzero 'op' data point.
+                if(effDirectOn(effSelector) AND ord(op__) = ord(op_) AND not p_unit(unit, 'section') AND not p_unit(unit, 'opFirstCross'),
+                    put log '!!! Error occurred on unit #' tmp; // Display unit that causes error, NEEDS WORK
+                    abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!";
+                );
             );
         );
     );
