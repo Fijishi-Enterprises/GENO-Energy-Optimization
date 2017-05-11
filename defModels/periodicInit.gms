@@ -31,11 +31,13 @@ loop(m,
 
 * Calculate the length of the time series
 continueLoop = 1;
-ts_length = 0;
+tmp = 0;
 loop(m$(continueLoop),
     loop(gn(grid, node),
-        ts_length = max(sum(t$ts_influx(grid, node, 'f00', t), 1), ts_length); // Find the maximum length of the given time series
+        tmp = max(sum(t${ts_influx(grid, node, 'f00', t)}, 1), tmp); // Find the maximum length of the given influx time series
+        tmp = max(sum(t${ts_nodeState(grid, node, 'reference', 'f00', t)}, 1), tmp); // Find the maximum length of the given node state time series
     );
+    ts_length = tmp;
     ct(t)$(
             ord(t) > ts_length
         and ord(t) <= ts_length + max(mSettings(m, 't_forecastLength'), mSettings(m, 't_horizon'))
