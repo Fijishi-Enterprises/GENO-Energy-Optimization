@@ -128,7 +128,7 @@ loop(unit,
                            + (p_unit(unit, op__) / p_unit(unit, eff__) - p_unit(unit, 'op00') / p_unit(unit, 'eff00'))
                                 / (p_unit(unit, op__) - p_unit(unit, 'op00'));
                          // Calculating the section based on the slope and the last defined point.
-                         p_effUnit(effDirectOn, unit, effDirectOn_, 'section') =
+                         p_effGroupUnit(effDirectOn, unit, 'section') =
                              ( 1 / p_unit(unit, eff__) - p_effUnit(effDirectOn, unit, effDirectOn_, 'slope') )
                                 * p_unit(unit, op__);
                      );

@@ -317,12 +317,12 @@ q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..
   =E=
   + sum(gnu_output(grid, node, unit),
       + v_gen(grid, node, unit, f, t)
-          * (p_effUnit(effDirect, unit, effDirect, 'slope')${not ts_effUnit(effDirect, unit, effDirect, 'slope', f, t)} + ts_effUnit(effDirect, unit, effDirect, 'slope', f, t))
+          * (p_effUnit(effDirect, unit, 'directOn', 'slope')${not ts_effUnit(effDirect, unit, effDirect, 'slope', f, t)} + ts_effUnit(effDirect, unit, effDirect, 'slope', f, t))
     )
   + v_online(unit, f, t)${uft_online(unit, f, t)}
-    / p_unit(unit, 'unitCount')
-    * sum( gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen') )
-    * (p_effGroupUnit(effDirect, unit, 'section')${not ts_effUnit(effDirect, unit, effDirect, 'section', f, t)} + ts_effUnit(effDirect, unit, effDirect, 'section', f, t))
+      / p_unit(unit, 'unitCount')
+      * sum( gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen') )
+      * (p_effGroupUnit(effDirect, unit, 'section')${not ts_effUnit(effDirect, unit, effDirect, 'section', f, t)} + ts_effUnit(effDirect, unit, effDirect, 'section', f, t))
 ;
 * -----------------------------------------------------------------------------
 q_conversionSOS2InputIntermediate(suft(effGroup, unit, f, t))$effLambda(effGroup) ..
