@@ -10,6 +10,7 @@
                                           v_gen.l(grid, node, unit, f, t));
         r_genType(grid, unittype, t)$ft_realized(f,t) = sum(nu(node, unit)$unitUnittype(unit, unittype),
                                           v_gen.l(grid, node, unit, f, t));
+        r_fuelUse(fuel, unit, t)${ft_realized(f,t)} = v_fuelUse.l(fuel, unit, f, t);
 *        r_demand(grid, node, t)$ft_realized(f,t)
 *             = sum(gn(grid, node), ts_energyDemand(grid, node, f, t));
 $ontext
@@ -41,5 +42,12 @@ $ontext
                = sum(load_in_hub(load, node), ts_elecLoad(h, load));
         );
 $offtext
-    );
+    ); // END LOOP fRealization
     r_totalCost = r_totalCost + v_obj.l;
+
+* --- Diagnostics Results -----------------------------------------------------
+d_cop(unit, t)${sum(gnu_input(grid, node, unit), 1)} = sum(gnu_output(grid, node, unit), r_gen(grid, unit, t)) / ( sum(gnu_input(grid_, node_, unit), -r_gen(grid_, unit, t)) + 1${not sum(gnu_input(grid_, node_, unit), -r_gen(grid_, unit, t))} );
+d_eff(unit_fuel, t) = sum(gnu_output(grid, node, unit_fuel), r_gen(grid, unit_fuel, t)) / ( sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, t)) + 1${not sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, t))} );
+
+
+
