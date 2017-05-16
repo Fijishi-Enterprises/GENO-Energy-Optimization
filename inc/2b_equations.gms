@@ -19,6 +19,7 @@ equations
     q_stateUpwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_stateDownwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_boundState(grid, node, node, mType, f, t) "Node state variables bounded by other nodes"
+    q_boundStateMaxDiff(grid, node, node, mType, f, t) "Node state variables bounded by other nodes (maximum state difference)"
     q_boundCyclic(grid, node, mType, f, t, t_) "Cyclic bound for the first and the last state"
     q_bidirectionalTransfer(grid, node, node, f, t) "Possible common transfer capacity constraint for interconnected transfer variables"
 ;
@@ -135,7 +136,7 @@ q_obj ..
 ;
 
 * -----------------------------------------------------------------------------
-q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t)) and not p_gn(grid, node, 'boundAll')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
+q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t)) ) .. //and not p_gn(grid, node, 'boundAll')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
   // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
   + p_gn(grid, node, 'energyStoredPerUnitOfState')$gn_state(grid, node) // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
       * ( + v_state(grid, node, f, t)                                   // The difference between current
@@ -510,6 +511,13 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft_dynamic(f, t)) ..
       )
         / (p_gn(grid, node_, 'energyStoredPerUnitOfState') )                                    // Divide by the stored energy in the node per unit of v_state to obtain same unit as the v_state
         * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiply with time step to obtain change in state over the step
+;
+* -----------------------------------------------------------------------------
+q_boundStateMaxDiff(gnn_state(grid, node, node_), m, ft_dynamic(f, t))$p_gnn(grid, node, node_, 'boundStateMaxDiff') ..
+    + v_state(grid, node, f, t)   // The state of the first node sets the lower limit of the second
+    =L=
+    + v_state(grid, node_, f, t)
+    + p_gnn(grid, node, node_, 'boundStateMaxDiff')                                              // Affected by the maximum difference parameter
 ;
 * -----------------------------------------------------------------------------
 q_boundCyclic(gn_state(grid, node), mf(m, f), t, t_)${  p_gn(grid, node, 'boundCyclic')         // Bind variables if parameter found
