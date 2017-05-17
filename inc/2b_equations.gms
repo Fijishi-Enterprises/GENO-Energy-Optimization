@@ -136,7 +136,7 @@ q_obj ..
 ;
 
 * -----------------------------------------------------------------------------
-q_balance(gn(grid, node), m, ft_dynamic(f, t))$(p_stepLength(m, f+pf(f,t), t+pt(t)) ) .. //and not p_gn(grid, node, 'boundAll')) ..   // Energy/power balance dynamics solved using implicit Euler discretization
+q_balance(gn(grid, node), m, ft_dynamic(f, t))${p_stepLength(m, f+pf(f,t), t+pt(t)) and not p_gn(grid, node, 'boundAll')} .. // Energy/power balance dynamics solved using implicit Euler discretization
   // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
   + p_gn(grid, node, 'energyStoredPerUnitOfState')$gn_state(grid, node) // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
       * ( + v_state(grid, node, f, t)                                   // The difference between current
