@@ -12,6 +12,8 @@ from collections import Counter
 from metaobject import MetaObject
 from helpers import find_duplicates, project_dir, create_dir
 from config import DEFAULT_WORK_DIR
+from tool import ExecutableTool
+from GAMS import GAMSModel
 
 
 class SceletonProject(MetaObject):
@@ -422,3 +424,41 @@ class SceletonProject(MetaObject):
         else:
             ui.add_msg_signal.emit("Processed {0} data sheets in file {1}".format(n_data_sheets, excel_fname), 0)
         ui.add_msg_signal.emit("Done", 1)
+
+    # TODO: Is this the right place for this function?
+    @staticmethod
+    def load_tool(jsonfile, ui):
+            """Create a Tool instance according to a tool definition file.
+
+                    Args:
+                        jsonfile (str): Path of the tool definition file
+                        ui (TitanUI): Titan GUI instance
+
+                    Returns:
+                        Instance of a subclass if Tool
+                    """
+            with open(jsonfile, 'r') as fp:
+                try:
+                    definition = json.load(fp)
+                except ValueError:
+                    ui.add_msg_signal.emit("Tool definition file not valid", 2)
+                    logging.exception("Loading JSON data failed")
+                    return None
+            try:
+                type = definition['type'].lower()
+            except KeyError:
+                ui.add_msg_signal.emit(
+                    "No type defined in tool definition file", 2)  # TODO: Is 2 right?
+                logging.exception("Loading JSON data failed")
+                return None
+            # Infer path from JSON file
+            path = os.path.dirname(jsonfile)
+            if type == 'gams':
+                return GAMSModel.load(path, definition, ui)
+            elif type == 'executable':
+                return ExecutableTool.load(path, definition, ui)
+            else:
+                ui.add_msg_signal.emit(
+                    "Tool type '{}' not implemented".format(type), 0)
+                return None
+

@@ -20,7 +20,6 @@ from models import SetupModel, ToolModel
 from setup import Setup
 from helpers import find_work_dirs, remove_work_dirs, erase_dir, \
                     busy_effect, layout_widgets, project_dir
-from GAMS import GAMSModel
 from config import ERROR_COLOR, BLACK_COLOR, \
                    DEFAULT_WORK_DIR, CONFIGURATION_FILE,\
                    GENERAL_OPTIONS, GAMSIDE_EXECUTABLE, \
@@ -116,7 +115,8 @@ class TitanUI(QMainWindow):
 
     def init_conf(self):
         """Initialize configuration file."""
-        self._config = ConfigurationParser(CONFIGURATION_FILE, defaults=GENERAL_OPTIONS)
+        self._config = ConfigurationParser(CONFIGURATION_FILE,
+                                           defaults=GENERAL_OPTIONS)
         self._config.load()
 
     # noinspection PyUnresolvedReferences
@@ -291,7 +291,7 @@ class TitanUI(QMainWindow):
             if tool_def == '':
                 continue
             # Load tool definition
-            tool = GAMSModel.load(tool_def, self)
+            tool = SceletonProject.load_tool(tool_def, self)
             # logging.debug("{0} cmdline_args: {1}".format(tool.name, tool.cmdline_args))
             if not tool:
                 logging.error("Failed to load Tool from path '{0}'".format(tool_def))
@@ -541,7 +541,7 @@ class TitanUI(QMainWindow):
             return
         self.add_msg_signal.emit("Adding Tool from file: <b>{0}</b>".format(open_path), 0)
         # Load tool definition
-        tool = GAMSModel.load(open_path, self)
+        tool = SceletonProject.load_tool(open_path, self)
         if not tool:
             self.add_msg_signal.emit("Adding Tool failed".format(open_path), 2)
             return

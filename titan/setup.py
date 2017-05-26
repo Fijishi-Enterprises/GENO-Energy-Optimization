@@ -431,7 +431,7 @@ class Setup(MetaObject):
         ui.add_msg_signal.emit("*** Copying input files for Tool <b>{}</b> to work directory ***".format(tool.name), 0)
         logging.info("Copying input files for Tool -- {} -- to work directory".format(tool.name))
         # Process required and optional input files
-        for filepath in tool.infiles | tool.infiles_opt:
+        for filepath in tool.datafiles | tool.datafiles_opt:
             prefix, filename = os.path.split(filepath)
             dst_dir = os.path.join(input_dir, prefix)
             # Create the destination directory
@@ -446,7 +446,7 @@ class Setup(MetaObject):
             else:
                 found_file = self.find_input_file(filename)
                 # Required file not found
-                if filepath in tool.infiles and not found_file:
+                if filepath in tool.datafiles and not found_file:
                     logging.error("Could not find required input file '{}'".format(filename))
                     ui.add_msg_signal.emit("Required input file '{0}' not found".format(filename), 2)
                     return False

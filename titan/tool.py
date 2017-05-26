@@ -15,13 +15,14 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 import qsubprocess
 from config import DEFAULT_WORK_DIR
 from metaobject import MetaObject
-from helpers import create_dir, create_output_dir_timestamp, make_gams_project_file
+from helpers import create_dir, create_output_dir_timestamp
 
 
 class Tool(MetaObject):
     """Class for defining a tool"""
+
     def __init__(self, name, description, path, files,
-                 infiles=None, infiles_opt=None,
+                 datafiles=None, datafiles_opt=None,
                  outfiles=None, short_name=None,
                  logfile=None, cmdline_args=None):
         """Class constructor.
@@ -29,11 +30,10 @@ class Tool(MetaObject):
         Args:
             name (str): Name of the tool
             description (str): Short description of the tool
-            path (str): Path to tool or Git repository
+            path (str): Path to tool
             files (str): List of files belonging to the tool (relative to 'path')
-                         First file in the list is the main program file.
-            infiles (list, optional): List of required input files
-            infiles_opt (list, optional): List of optional input files (wildcards may be used)
+            datafiles (list, optional): List of required data files
+            datafiles_opt (list, optional): List of optional data files (wildcards may be used)
             outfiles (list, optional): List of output files (wildcards may be used)
             short_name (str, optional): Short name for the tool
             logfile (str, optional): Log file name (relative to 'path')
@@ -45,10 +45,9 @@ class Tool(MetaObject):
         else:
             self.path = path
         self.files = files
-        self.main_prgm = files[0]
         self.cmdline_args = cmdline_args
-        self.infiles = set(infiles) if infiles else set()
-        self.infiles_opt = set(infiles_opt) if infiles_opt else set()
+        self.datafiles = set(datafiles) if datafiles else set()
+        self.datafiles_opt = set(datafiles_opt) if datafiles_opt else set()
         self.outfiles = set(outfiles) if outfiles else set()
         self.return_codes = {}
         self.def_file_path = ''  # Tool definition file path (JSON)
@@ -85,6 +84,142 @@ class Tool(MetaObject):
         """
         return ToolInstance(self, ui, tool_output_dir, setup_name)
 
+    def append_cmdline_args(self, command, setup_cmdline_args):
+        """Append command line arguments to a command"""
+        if (setup_cmdline_args is not None) and (not setup_cmdline_args == ''):
+            if (self.cmdline_args is not None) and (not self.cmdline_args == ''):
+                command += ' ' + self.cmdline_args + ' ' + setup_cmdline_args
+            else:
+                command += ' ' + setup_cmdline_args
+        else:
+            if (self.cmdline_args is not None) and (not self.cmdline_args == ''):
+                command += ' ' + self.cmdline_args
+        return command
+
+    def debug(self, *args, **kwargs):
+        """Debug method to be implemented in subclasses"""
+        pass
+
+    @staticmethod
+    def check_definition(data, ui,
+                         required=None, optional=None, list_required=None):
+        """Check a dict containing tool definition
+
+        Args:
+            data (dict): Dictionary of tool definitions
+            ui (TitanUI): Titan GUI instance
+            required (list): required keys
+            optional  (list): optional keys
+            list_required (list): keys that need to be lists
+
+        Returns:
+            dict or None if there was a problem in the tool definition file
+        """
+
+        # Required and optional keys in definition file
+        if required is None:
+            required = Tool.required_keys
+        if optional is None:
+            optional = Tool.optional_keys
+        if list_required is None:
+            list_required = Tool.list_required_keys
+
+        kwargs = {}
+        for p in required + optional:
+            try:
+                kwargs[p] = data[p]
+            except KeyError:
+                if p in required:
+                    ui.add_msg_signal.emit(
+                        "Required keyword '{0}' missing".format(p), 2)
+                    logging.error("Required keyword '{0}' missing".format(p))
+                    return None
+                else:
+                    # logging.info("Optional keyword '{0}' missing".format(p))
+                    pass
+            # Check that some variables are lists
+            if p in list_required:
+                try:
+                    if not isinstance(data[p], list):
+                        ui.add_msg_signal.emit(
+                            "Keyword '{0}' value must be a list".format(p), 2)
+                        logging.error(
+                            "Keyword '{0}' value must be a list".format(p))
+                        return None
+                except KeyError:
+                    pass
+        return kwargs
+
+    # Required and optional keys in definition
+    required_keys = ['name', 'description', 'files']
+    optional_keys = ['short_name', 'datafiles', 'datafiles_opt',
+                     'outfiles', 'cmdline_args']
+    list_required_keys = ['cmdline_args', 'files',  # These should be lists
+                          'datafiles', 'datafiles_opt', 'outfiles']
+
+
+class ExecutableTool(Tool):
+    """Class for any executable tools"""
+
+    def __init__(self, name, description, path, files, command=None,
+                 datafiles=None, datafiles_opt=None, outfiles=None,
+                 short_name=None, logfile=None, cmdline_args=None):
+
+        super().__init__(name, description, path, files, datafiles,
+                         datafiles_opt, outfiles, short_name, logfile,
+                         cmdline_args)
+        self.command = command
+        self.return_codes = {0: "Normal return"}
+
+
+    def create_instance(self, ui, setup_cmdline_args, tool_output_dir, setup_name):
+        """Create an instance of the ExecutableTool
+
+        Args:
+            ui (TitanUI): Titan GUI window
+            setup_cmdline_args (str): Extra Setup command line arguments
+            tool_output_dir (str): Tool output directory
+            setup_name (str): Short name of Setup that owns this Tool
+        """
+        # Let Tool class create the ToolInstance
+        instance = super().create_instance(ui, setup_cmdline_args,
+                                           tool_output_dir, setup_name)
+
+        # Get command
+        if self.command is not None:
+            command = self.command
+        else:
+            if os.name == 'nt':
+                command = 'CMD /C {}'.format(self.files[0])
+            else:
+                command = './{}'.format(self.files[0])
+
+        # Update instance command
+        instance.command = self.append_cmdline_args(command, setup_cmdline_args)
+        return instance
+
+    @staticmethod
+    def load(path, data, ui):
+        """Create a ExectutableTools according to a tool definition.
+
+        Args:
+            path (str): Base path to tool files
+            data (dict): Dictionary of tool definitions
+            ui (TitanUI): Titan GUI instance
+
+        Returns:
+            ExecutableTool instance or None if there was a problem in the tool definition file.
+        """
+
+        kwargs = ExecutableTool.check_definition(data, ui,
+                                                 optional=Tool.optional_keys + ['command'])
+        if kwargs is not None:
+            # Return a Executable model instance
+            return ExecutableTool(path=path, **kwargs)
+        else:
+            return None
+
+
 
 class ToolInstance(QObject):
     """Class for Tool instances."""
@@ -110,8 +245,8 @@ class ToolInstance(QObject):
                                         prefix=self.tool.short_name + '__')
         self.setup_name = setup_name
         self.command = ''  # command is created after ToolInstance is initialized
-        self.infiles = [os.path.join(self.basedir, f) for f in tool.infiles]
-        self.infiles_opt = [os.path.join(self.basedir, f) for f in tool.infiles_opt]
+        self.datafiles = [os.path.join(self.basedir, f) for f in tool.datafiles]
+        self.datafiles_opt = [os.path.join(self.basedir, f) for f in tool.datafiles_opt]
         self.outfiles = [os.path.join(self.basedir, f) for f in tool.outfiles]
         # Check that required output directories are created
         self.make_work_output_dirs()
@@ -160,7 +295,10 @@ class ToolInstance(QObject):
         self.tool_process.subprocess_finished_signal.connect(self.tool_finished)
         logging.debug("Starting Tool '%s'" % self.tool.name)
         # Start running model in sub-process
-        self.tool_process.start_process(self.command)
+        self.tool_process.start_process(self.command, workdir=self.basedir)
+
+    def debug(self, *args, **kwargs):
+        self.tool.debug(*args, **kwargs)
 
     @pyqtSlot(int, name="tool_finished")
     def tool_finished(self, ret):
@@ -174,15 +312,15 @@ class ToolInstance(QObject):
         tool_failed = True
         try:
             return_msg = self.tool.return_codes[ret]
-            logging.debug("Tool '%s' finished. GAMS Return code:%d. Message: %s" % (self.tool.name, ret, return_msg))
+            logging.debug("Tool '%s' finished. Return code:%d. Message: %s" % (self.tool.name, ret, return_msg))
             if ret == 0:
                 tool_failed = False
-                self.ui.add_msg_signal.emit("GAMS return code: {0}. Message: '{1}'".format(ret, return_msg), 0)
+                self.ui.add_msg_signal.emit("Return code: {0}. Message: '{1}'".format(ret, return_msg), 0)
             else:
-                self.ui.add_msg_signal.emit("GAMS return code: {0}. Message: '{1}'".format(ret, return_msg), 2)
+                self.ui.add_msg_signal.emit("Return code: {0}. Message: '{1}'".format(ret, return_msg), 2)
         except KeyError:
             logging.error("Unknown return code: {0}".format(ret))
-            self.ui.add_msg_signal.emit("Unknown return code from GAMS ({0})".format(ret), 2)
+            self.ui.add_msg_signal.emit("Unknown return code ({0})".format(ret), 2)
         finally:
             if ret == 62097:
                 # If user terminated execution
@@ -233,15 +371,8 @@ class ToolInstance(QObject):
             anchor = "<a href='file:///" + result_path + "'>" + result_path + "</a>"
             self.ui.add_msg_signal.emit("Result files saved to {}".format(anchor), 0)
             if tool_failed:
-                # Make GAMS project file
-                if not make_gams_project_file(self.basedir, self.tool):
-                    self.ui.add_msg_signal.emit("Failed to make GAMS project file", 2)
-                else:
-                    prj_file_path = os.path.join(self.basedir, self.tool.short_name + "AutoCreated.gpr")
-                    # Add anchor where user can go directly to GAMS
-                    gams_anchor = "<a href='file:///" + prj_file_path + "'>Click here to debug Tool in GAMS</a>"
-                    self.ui.add_msg_signal.emit(gams_anchor, 0)
-            # Emit signal to Setup that tool instance has finished with GAMS return code
+                self.tool.debug(self.ui, self.basedir)
+            # Emit signal to Setup that tool instance has finished with return code
             self.instance_finished_signal.emit(ret)
 
     def terminate_instance(self):

@@ -17,44 +17,47 @@ from config import GAMS_EXECUTABLE, CONFIGURATION_FILE
 class GAMSModel(Tool):
     """Class for GAMS Tools."""
     def __init__(self, name, description, path, files,
-                 infiles=None, infiles_opt=None, outfiles=None,
+                 datafiles=None, datafiles_opt=None, outfiles=None,
                  short_name=None, cmdline_args=None):
         """Class constructor.
 
         Args:
             name (str): GAMS Tool name
             description (str): GAMS Tool description
+            path (str): Path
             files (str): List of files belonging to the tool (relative to 'path')
                          First file in the list is the main GAMS program.
-            infiles (list, optional): List of required input files
-            infiles_opt (list, optional): List of optional input files (wildcards may be used)
+            datafiles (list, optional): List of required data files
+            datafiles_opt (list, optional): List of optional data files (wildcards may be used)
             outfiles (list, optional): List of output files (wildcards may be used)
             short_name (str, optional): Short name for the GAMS tool
             cmdline_args (str, optional): GAMS tool command line arguments (read from tool definition file)
         """
         super().__init__(name, description, path, files,
-                         infiles, infiles_opt, outfiles, short_name,
+                         datafiles, datafiles_opt, outfiles, short_name,
                          cmdline_args=cmdline_args)
+        self.main_prgm = files[0]
+        # Add .lst file to list of output files
+        self.lst_file = os.path.splitext(self.main_prgm)[0] + '.lst'
+        self.outfiles.add(self.lst_file)
         # Split main_prgm to main_dir and main_prgm
         # because GAMS needs to run in the directory of the main program
         self.main_dir, self.main_prgm = os.path.split(self.main_prgm)
         self.gams_options = OrderedDict()
-        # Add .lst file to list of output files
-        self.outfiles.add(os.path.splitext(self.main_prgm)[0] + '.lst')
         self.return_codes = {
-            0: "normal return",
-            1: "solver is to be called the system should never return this number",
-            2: "there was a compilation error",
-            3: "there was an execution error",
-            4: "system limits were reached",
-            5:  "there was a file error",
-            6:  "there was a parameter error",
-            7:  "there was a licensing error",
-            8:  "there was a GAMS system error",
-            9:  "GAMS could not be started",
-            10: "out of memory",
-            11: "out of disk",
-            62097: "simulation interrupted by user"  # Not official
+            0: "Normal return",
+            1: "Solver is to be called the system should never return this number",  # ??
+            2: "There was a compilation error",
+            3: "There was an execution error",
+            4: "System limits were reached",
+            5: "There was a file error",
+            6: "There was a parameter error",
+            7: "There was a licensing error",
+            8: "There was a GAMS system error",
+            9: "GAMS could not be started",
+            10: "Out of memory",
+            11: "Out of disk",
+            62097: "Simulation interrupted by user"  # Not official
         }
 
     def __repr__(self):
@@ -106,7 +109,7 @@ class GAMSModel(Tool):
         self.update_gams_options('cerr', cerr_value)
         gams_option_list = list(self.gams_options.values())
         # Update logfile to instance outfiles
-        logfile = os.path.splitext(self.main_prgm)[0] + '.log'
+        logfile = os.path.splitext(self.files[0])[0] + '.log'
         logfile_path = os.path.join(instance.basedir, logfile)
         if logoption_value == '3':
             # Remove path for <TOOLNAME>.log from outfiles if present
@@ -125,66 +128,68 @@ class GAMSModel(Tool):
         # Create run command for GAMS
         command = '{} "{}" Curdir="{}" {}'.format(gams_exe_path,
                                                   self.main_prgm,
-                                                  os.path.join(instance.basedir, self.main_dir),
+                                                  self.main_dir,
                                                   ' '.join(gams_option_list))
-        if (setup_cmdline_args is not None) and (not setup_cmdline_args == ''):
-            if (self.cmdline_args is not None) and (not self.cmdline_args == ''):
-                command += ' ' + self.cmdline_args + ' ' + setup_cmdline_args
-            else:
-                command += ' ' + setup_cmdline_args
-        else:
-            if (self.cmdline_args is not None) and (not self.cmdline_args == ''):
-                command += ' ' + self.cmdline_args
         # Update instance command
-        instance.command = command
+        instance.command = self.append_cmdline_args(command, setup_cmdline_args)
         return instance
 
+    def debug(self, ui, path):
+        """"""
+        # Make GAMS project file
+        prj_file_path = os.path.join(path,
+                                     self.tool.short_name + "AutoCreated.gpr")
+        if not self.make_gams_project_file(prj_file_path):
+            ui.add_msg_signal.emit("Failed to make GAMS project file", 2)
+        else:
+            # Add anchor where user can go directly to GAMS
+            gams_anchor = "<a href='file:///" + prj_file_path + "'>Click here to debug Tool in GAMS</a>"
+            ui.add_msg_signal.emit(gams_anchor, 0)
+
     @staticmethod
-    def load(jsonfile, ui):
-        """Create a GAMSModel according to a tool definition file.
+    def load(path, data, ui):
+        """Create a GAMSModel according to a tool definition.
 
         Args:
-            jsonfile (str): Path of the tool definition file
+            path (str): Base path to tool files
+            data (dict): Dictionary of tool definitions
             ui (TitanUI): Titan GUI instance
 
         Returns:
             GAMSModel instance or None if there was a problem in the tool definition file.
         """
-        with open(jsonfile, 'r') as fp:
-            try:
-                json_data = json.load(fp)
-            except ValueError:
-                ui.add_msg_signal.emit("Tool definition file not valid", 2)
-                logging.exception("Loading JSON data failed")
-                return None
-        # Find required and optional arguments
-        required = ['name', 'description', 'files']
-        optional = ['short_name', 'infiles', 'infiles_opt',
-                    'outfiles', 'cmdline_args']
-        list_required = ['files', 'infiles', 'infiles_opt', 'outfiles']
-        # Construct keyword arguments
-        kwargs = {}
-        for p in required + optional:
-            try:
-                kwargs[p] = json_data[p]
-            except KeyError:
-                if p in required:
-                    ui.add_msg_signal.emit("Required keyword '{0}' missing".format(p), 2)
-                    logging.error("Required keyword '{0}' missing".format(p))
-                    return None
-                else:
-                    # logging.info("Optional keyword '{0}' missing".format(p))
-                    pass
-            # Check that some variables are lists
-            if p in list_required:
-                try:
-                    if not isinstance(json_data[p], list):
-                        ui.add_msg_signal.emit("Keyword '{0}' value must be a list".format(p), 2)
-                        logging.error("Keyword '{0}' value must be a list".format(p))
-                        return None
-                except KeyError:
-                    pass
-        # Infer path from JSON file
-        kwargs['path'] = os.path.dirname(jsonfile)
-        # Return a GAMSModel instance
-        return GAMSModel(**kwargs)
+        kwargs = GAMSModel.check_definition(data, ui)
+        if kwargs is not None:
+            # Return a Executable model instance
+            return GAMSModel(path=path, **kwargs)
+        else:
+            return None
+
+    def make_gams_project_file(self, filepath):
+        """Make a GAMS project file for debugging that opens GAMSIDE with the .lst file open.
+
+        Args:
+            path (str): Path where to store the project file
+
+        Returns:
+            Boolean variable depending on operation success
+        """
+        # logging.debug("List file path: {0}".format(self.lst_file))
+        # logging.debug("Project file path: {0}".format(filepath))
+        # Write GAMS project file
+        try:
+            with open(filepath, 'w') as f:
+                f.write('[PROJECT]\n\n')
+                f.write('[OPENWINDOW_1]\n')
+                f.write("FILE0=" + self.lst_file + '\n')
+                f.write('MAXIM=0\n')
+                f.write('TOP=0\n')
+                f.write('LEFT=0\n')
+                f.write('HEIGHT=600\n')
+                f.write('WIDTH=1000\n')
+        except OSError:
+            logging.error("Failed to write GAMS project file: {0}".format(filepath))
+            return False
+        return True
+
+

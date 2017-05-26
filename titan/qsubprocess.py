@@ -29,12 +29,15 @@ class QSubProcess(QObject):
         self._process = QProcess(self)
 
     # noinspection PyUnresolvedReferences
-    def start_process(self, command):
+    def start_process(self, command, workdir=None):
         """Start the execution of a tool in a QProcess.
 
         Args:
             command: Run command
         """
+
+        if workdir is not None:
+            self._process.setWorkingDirectory(workdir)
         self._ui.add_msg_signal.emit("Command: <i>{0}</i>".format(command), 0)
         self._process.started.connect(self.process_started)
         self._process.readyReadStandardOutput.connect(self.on_ready_stdout)
@@ -74,7 +77,7 @@ class QSubProcess(QObject):
 
     def terminate_process(self):
         """Shutdown simulation in a QProcess."""
-        # self._ui.add_msg_signal.emit("<br/>Stopping GAMS process nr. {0}".format(self._process.processId()), 0)
+        # self._ui.add_msg_signal.emit("<br/>Stopping process nr. {0}".format(self._process.processId()), 0)
         logging.debug("Terminating QProcess nr.{0}. ProcessState:{1} and ProcessError:{2}"
                       .format(self._process.processId(), self._process.state(), self._process.error()))
         self._user_stopped = True
@@ -90,23 +93,23 @@ class QSubProcess(QObject):
             out = str(self._process.readAllStandardOutput(), 'utf-8')
             if out is not None:
                 self._ui.add_proc_msg_signal.emit(out.strip())
-            # Get GAMS exit status (Normal or crash)
-            gams_exit_status = self._process.exitStatus()
-            # Get GAMS exit code (return code)
-            gams_exit_code = self._process.exitCode()
-            # Delete GAMS QProcess
+            # Get exit status (Normal or crash)
+            exit_status = self._process.exitStatus()
+            # Get exit code (return code)
+            exit_code = self._process.exitCode()
+            # Delete QProcess
             self._process.deleteLater()
             self._process = None
-            self._ui.add_msg_signal.emit("*** Subprocess finished -- Exit status: {0} ***".format(gams_exit_status), 0)
-            self.subprocess_finished_signal.emit(gams_exit_code)
+            self._ui.add_msg_signal.emit("*** Subprocess finished -- Exit status: {0} ***".format(exit_status), 0)
+            self.subprocess_finished_signal.emit(exit_code)
         else:
-            # Get GAMS exit code (return code)
-            gams_exit_code = self._process.exitCode()
+            # Get exit code (return code)
+            exit_code = self._process.exitCode()
             # Delete QProcess
             self._process.deleteLater()
             self._process = None
             self._ui.add_msg_signal.emit("*** Stopping subprocess ***", 0)
-            self.subprocess_finished_signal.emit(gams_exit_code)
+            self.subprocess_finished_signal.emit(exit_code)
 
     @pyqtSlot(name='on_ready_stdout')
     def on_ready_stdout(self):

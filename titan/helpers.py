@@ -246,38 +246,6 @@ def busy_effect(function):
     return new_function
 
 
-def make_gams_project_file(path, tool):
-    """Make a GAMS project file for debugging that opens GAMSIDE with the .lst file open.
-
-    Args:
-        path (str): Path where to store the project path
-        tool (Tool): Tool for which this project file is done
-
-    Returns:
-        Boolean variable depending on operation success
-    """
-    prj_file_path = os.path.join(path, tool.short_name + "AutoCreated.gpr")
-    lst_file_path = os.path.join(path, os.path.splitext(tool.main_prgm)[0] + ".lst")
-    # logging.debug("List file path: {0}".format(lst_file_path))
-    # logging.debug("Project file path: {0}".format(prj_file_path))
-    file0_str = "FILE0=" + lst_file_path + '\n'
-    # Write GAMS project file
-    try:
-        with open(prj_file_path, 'w') as f:
-            f.write('[PROJECT]\n\n')
-            f.write('[OPENWINDOW_1]\n')
-            f.write(file0_str)
-            f.write('MAXIM=0\n')
-            f.write('TOP=0\n')
-            f.write('LEFT=0\n')
-            f.write('HEIGHT=600\n')
-            f.write('WIDTH=1000\n')
-    except OSError:
-        logging.error("Failed to write GAMS project file: {0}".format(prj_file_path))
-        return False
-    return True
-
-
 @busy_effect
 def erase_dir(path):
     """Delete directory and all its contents without prompt.
@@ -334,3 +302,4 @@ def project_dir(configs=None):
         return DEFAULT_PROJECT_DIR
     else:
         return proj_dir
+
