@@ -1,18 +1,17 @@
-Backbone.gpr
-Backbone.lst
-Backbone.lxi
-Backbone.txt
-equations.lst
-equations.lxi
+# GAMS specific
+*.gpr
+*.lst
+*.lxi
 *.~gm
+*.~*
+225?/
+*.put
+
+# Backbone
+Backbone.txt
 input/
 output/
-225a/
-*.~in
-stosschver
 EnsemblesAndYears.xlsx
-225*
-Backbone 2016_05_29.pptx
 Backbone.dat
 diffile.gdx
 defModels/schedule.gms
