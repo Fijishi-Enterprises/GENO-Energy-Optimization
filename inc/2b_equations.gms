@@ -94,7 +94,7 @@ q_obj ..
            )
          // Ramping costs
          + sum(gnuft_ramp(grid, node, unit, f, t)${ p_gnu(grid, node, unit, 'rampUpCost') OR p_gnu(grid, node, unit, 'rampDownCost') },
-            + (p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons')) // NOTE! Doens't work correctly if a gnu has both! Is that even possible, though?
+            + (p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons')) // NOTE! Doesn't work correctly if a gnu has both! Is that even possible, though?
             * ( // Changes in ramp rates
                 + p_gnu(grid, node, unit, 'rampUpCost') * v_genRampChange(grid, node, unit, 'up', f, t)
                 + p_gnu(grid, node, unit, 'rampDownCost') * v_genRampChange(grid, node, unit, 'down', f, t)
@@ -291,7 +291,7 @@ q_genRamp(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node, uni
       )
         / p_unit(unit, 'unitCount')
         * ( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )
-        * sum(suft(effGroup, unit, f, t), p_effGroupUnit(effGroup, unit, 'lb')) // Newly started units are assumed to start to their minload.
+        * sum(suft(effGroup, unit, f, t), p_effGroupUnit(effGroup, unit, 'lb')) // Units are assumed to start to their minload.
 ;
 * -----------------------------------------------------------------------------
 q_genRampChange(gn(grid, node), m, unit, ft_dynamic(f, t))${ gnuft_ramp(grid, node, unit, f, t) AND [ p_gnu(grid, node, unit, 'rampUpCost') OR p_gnu(grid, node, unit, 'rampDownCost') ]} ..
