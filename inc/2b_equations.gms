@@ -302,10 +302,10 @@ q_genRampChange(gn(grid, node), m, unit, ft_dynamic(f, t))${ gnuft_ramp(grid, no
     - v_genRamp(grid, node, unit, f+pf(f,t), t+pt(t))
 ;
 * -----------------------------------------------------------------------------
-q_bindOnline(unit, mftBind(m, f, t))${uft_online(unit, f, t)} ..
+q_bindOnline(unit, mftBind(m, f, t))${uft_online(unit, f, t) and uft_online(unit, f+mft_bind(m,f,t), t+mt_bind(m,t))} ..
   + v_online(unit, f, t)
   =E=
-  + v_online(unit, f+mft_bind(m,f,t), t+mt_bind(m,t))$uft_online(unit, f+mft_bind(m,f,t), t+mt_bind(m,t))
+  + v_online(unit, f+mft_bind(m,f,t), t+mt_bind(m,t))
 ;
 * -----------------------------------------------------------------------------
 q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..
