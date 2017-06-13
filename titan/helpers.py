@@ -12,11 +12,12 @@ import os
 import datetime
 import time
 import collections
+import json
 from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtWidgets import QApplication
 from PyQt5.Qt import Qt
 from PyQt5.QtGui import QIcon, QMovie, QCursor
-from config import DEFAULT_WORK_DIR, UI_RESOURCES, DEFAULT_PROJECT_DIR
+from config import UI_RESOURCES, DEFAULT_PROJECT_DIR
 
 
 class AnimatedSpinningWheelIcon(QObject):
@@ -48,6 +49,16 @@ class AnimatedSpinningWheelIcon(QObject):
     def stop(self):
         """Stop the movie."""
         self.movie.stop()
+
+
+class MyEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, set):
+            return list(o)
+        try:
+            return o.__dict__
+        except AttributeError:
+            pass
 
 
 def find_work_dirs(project):

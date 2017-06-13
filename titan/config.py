@@ -22,15 +22,17 @@ if getattr(sys, 'frozen', False):
 else:
     APPLICATION_PATH = os.path.realpath(os.path.dirname(__file__))
 
-# Sceleton configuration file
+# Sceleton configuration file and default project directory paths
 CONFIGURATION_FILE = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'conf', 'titan.conf'))
-# Project directory
 DEFAULT_PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'projects'))
+
 # Project input/output directory names
 INPUT_STORAGE_DIR = 'input'
 OUTPUT_STORAGE_DIR = 'output'
+
 # Work directory
 DEFAULT_WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
+
 # GAMS
 if not sys.platform == 'win32':
     GAMS_EXECUTABLE = 'gams'
@@ -38,8 +40,14 @@ if not sys.platform == 'win32':
 else:
     GAMS_EXECUTABLE = 'gams.exe'
     GAMSIDE_EXECUTABLE = 'gamside.exe'
+
 # Others
 UI_RESOURCES = os.path.abspath(os.path.join(APPLICATION_PATH, 'ui', 'resources'))
+# Required and optional keywords for Tool definition files
+REQUIRED_KEYS = ['name', 'description', 'files']
+OPTIONAL_KEYS = ['short_name', 'datafiles', 'datafiles_opt', 'outfiles', 'cmdline_args']
+LIST_REQUIRED_KEYS = ['files', 'datafiles', 'datafiles_opt', 'outfiles']  # These should be lists
+
 # Style sheets
 STATUSBAR_STYLESHEET = "QStatusBar{border-width: 2px;\n" \
                        "border-color: 'gainsboro';\n" \

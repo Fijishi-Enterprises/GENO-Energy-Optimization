@@ -12,7 +12,7 @@ from collections import Counter
 from metaobject import MetaObject
 from helpers import find_duplicates, project_dir, create_dir
 from config import DEFAULT_WORK_DIR
-from tool import ExecutableTool
+from executable_tool import ExecutableTool
 from GAMS import GAMSModel
 
 
