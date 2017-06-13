@@ -365,7 +365,7 @@ class Setup(MetaObject):
         if not self.instance:  # TODO: Combine this with OSError
             # Another check
             logging.error("Tool instance creation failed")
-            ui.add_msg_signal.emit("Failed in creating Tool instance")
+            ui.add_msg_signal.emit("Failed in creating a Tool instance", 2)
             self.failed = True
             self.running = False
             ui.toggle_gui(True)
@@ -416,7 +416,7 @@ class Setup(MetaObject):
             tool (Tool): The tool
             ui (TitanUI): Titan UI
             tool_instance (ToolInstance): Tool instance. If not
-                none, execution is done in tool directory.
+                None, execution is done in tool directory.
 
         Returns:
             ret (bool): Operation success
@@ -430,6 +430,7 @@ class Setup(MetaObject):
             input_dir = tool_instance.basedir  # Run tool in work directory
         ui.add_msg_signal.emit("*** Copying input files for Tool <b>{}</b> to work directory ***".format(tool.name), 0)
         logging.info("Copying input files for Tool -- {} -- to work directory".format(tool.name))
+        n_copied_files = 0
         # Process required and optional input files
         for filepath in tool.datafiles | tool.datafiles_opt:
             prefix, filename = os.path.split(filepath)
@@ -457,12 +458,17 @@ class Setup(MetaObject):
                 try:
                     ret = shutil.copy(src_file, dst_dir)
                     logging.debug("File '{}' copied to '{}'".format(src_file, ret))
+                    n_copied_files += 1
                 except OSError:
                     logging.error("Copying file '{}' to directory '{}' failed".format(src_file, dst_dir))
                     ui.add_msg_signal.emit("Copying file '{0}' to directory '{1}' failed."
                                            " Check directory permissions.".format(src_file, dst_dir), 2)
                     return False
         logging.info("Finished copying input files for Tool '{}'".format(tool.name))
+        if n_copied_files == 0:
+            ui.add_msg_signal.emit("Warning: No input files copied for tool <b>{0}</b>".format(tool.name), 3)
+        else:
+            ui.add_msg_signal.emit("\tCopied <b>{0}</b> file(s)".format(n_copied_files), 0)
         ui.add_msg_signal.emit("Done", 1)
         return True
 

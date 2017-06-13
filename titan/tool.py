@@ -13,7 +13,6 @@ import json
 import tempfile
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 import qsubprocess
-from config import DEFAULT_WORK_DIR
 from metaobject import MetaObject
 from helpers import create_dir, create_output_dir_timestamp
 
@@ -70,7 +69,7 @@ class Tool(MetaObject):
         self.def_file_path = path
 
     def get_def_path(self):
-        """Get definition file path of tool."""
+        """Returns tool definition file path."""
         return self.def_file_path
 
     def create_instance(self, ui, setup_cmdline_args, tool_output_dir, setup_name):
@@ -85,7 +84,12 @@ class Tool(MetaObject):
         return ToolInstance(self, ui, tool_output_dir, setup_name)
 
     def append_cmdline_args(self, command, setup_cmdline_args):
-        """Append command line arguments to a command"""
+        """Append command line arguments to a command.
+
+        Args:
+            command (str): Tool command
+            setup_cmdline_args (str): Extra Setup command line args
+        """
         if (setup_cmdline_args is not None) and (not setup_cmdline_args == ''):
             if (self.cmdline_args is not None) and (not self.cmdline_args == ''):
                 command += ' ' + self.cmdline_args + ' ' + setup_cmdline_args
@@ -97,13 +101,13 @@ class Tool(MetaObject):
         return command
 
     def debug(self, *args, **kwargs):
-        """Debug method to be implemented in subclasses"""
+        """Debug method to be implemented in subclasses."""
         pass
 
     @staticmethod
     def check_definition(data, ui,
                          required=None, optional=None, list_required=None):
-        """Check a dict containing tool definition
+        """Check a dict containing tool definition.
 
         Args:
             data (dict): Dictionary of tool definitions
@@ -154,8 +158,8 @@ class Tool(MetaObject):
     required_keys = ['name', 'description', 'files']
     optional_keys = ['short_name', 'datafiles', 'datafiles_opt',
                      'outfiles', 'cmdline_args']
-    list_required_keys = ['cmdline_args', 'files',  # These should be lists
-                          'datafiles', 'datafiles_opt', 'outfiles']
+    list_required_keys = ['files', 'datafiles',
+                          'datafiles_opt', 'outfiles']  # These should be lists
 
 
 class ExecutableTool(Tool):
@@ -170,7 +174,6 @@ class ExecutableTool(Tool):
                          cmdline_args)
         self.command = command
         self.return_codes = {0: "Normal return"}
-
 
     def create_instance(self, ui, setup_cmdline_args, tool_output_dir, setup_name):
         """Create an instance of the ExecutableTool
@@ -200,7 +203,7 @@ class ExecutableTool(Tool):
 
     @staticmethod
     def load(path, data, ui):
-        """Create a ExectutableTools according to a tool definition.
+        """Create ExecutableTool according to a tool definition.
 
         Args:
             path (str): Base path to tool files
@@ -214,11 +217,10 @@ class ExecutableTool(Tool):
         kwargs = ExecutableTool.check_definition(data, ui,
                                                  optional=Tool.optional_keys + ['command'])
         if kwargs is not None:
-            # Return a Executable model instance
+            # Return an Executable Tool instance
             return ExecutableTool(path=path, **kwargs)
         else:
             return None
-
 
 
 class ToolInstance(QObject):
@@ -257,6 +259,7 @@ class ToolInstance(QObject):
     @property
     def _checkout(self):
         """Copy Tool files to work directory."""
+        n_copied_files = 0
         logging.info("Copying Tool '{}' to work directory".format(self.tool.name))
         self.ui.add_msg_signal.emit("*** Copying Tool <b>{}</b> to work directory ***".format(self.tool.name), 0)
         for filepath in self.tool.files:
@@ -268,7 +271,7 @@ class ToolInstance(QObject):
                 os.makedirs(dst_dir, exist_ok=True)
             except OSError as e:
                 logging.error(e)
-                self.ui.add_msg_signal.emit("Making directory '{}' failed".format(dst_dir), 2)
+                self.ui.add_msg_signal.emit("Making directory <b>{0}</b> failed".format(dst_dir), 2)
                 return False
             # Copy file if necessary
             if file_pattern:
@@ -277,11 +280,16 @@ class ToolInstance(QObject):
                     logging.debug("Copying file {} to {}".format(src_file, dst_file))
                     try:
                         shutil.copyfile(src_file, dst_file)
+                        n_copied_files += 1
                     except OSError as e:
                         logging.error(e)
-                        self.ui.add_msg_signal.emit("Copying file '{}' failed".format(src_file), 2)
+                        self.ui.add_msg_signal.emit("Copying file <b>{0}</b> to <b>{1}</b> failed"
+                                                    .format(src_file, dst_file), 2)
                         return False
-        logging.info("Finished copying Tool '{}'".format(self.tool.name))
+        if n_copied_files == 0:
+            self.ui.add_msg_signal.emit("Warning: No files copied", 3)
+        else:
+            self.ui.add_msg_signal.emit("\tCopied <b>{0}</b> file(s)".format(n_copied_files), 0)
         self.ui.add_msg_signal.emit("Done", 1)
         return True
 
@@ -293,7 +301,7 @@ class ToolInstance(QObject):
         """
         self.tool_process = qsubprocess.QSubProcess(ui, self.tool)
         self.tool_process.subprocess_finished_signal.connect(self.tool_finished)
-        logging.debug("Starting Tool '%s'" % self.tool.name)
+        logging.debug("Starting Tool '{0}'".format(self.tool.name))
         # Start running model in sub-process
         self.tool_process.start_process(self.command, workdir=self.basedir)
 
@@ -312,21 +320,22 @@ class ToolInstance(QObject):
         tool_failed = True
         try:
             return_msg = self.tool.return_codes[ret]
-            logging.debug("Tool '%s' finished. Return code:%d. Message: %s" % (self.tool.name, ret, return_msg))
+            logging.debug("Tool '{0}' finished. Return code:{1}. Message: {2}".format(self.tool.name, ret, return_msg))
             if ret == 0:
                 tool_failed = False
-                self.ui.add_msg_signal.emit("Return code: {0}. Message: '{1}'".format(ret, return_msg), 0)
+                self.ui.add_msg_signal.emit("\tReturn code: {0}. Message: '{1}'".format(ret, return_msg), 0)
             else:
-                self.ui.add_msg_signal.emit("Return code: {0}. Message: '{1}'".format(ret, return_msg), 2)
+                self.ui.add_msg_signal.emit("\tReturn code: {0}. Message: '{1}'".format(ret, return_msg), 2)
         except KeyError:
             logging.error("Unknown return code: {0}".format(ret))
-            self.ui.add_msg_signal.emit("Unknown return code ({0})".format(ret), 2)
+            self.ui.add_msg_signal.emit("\tUnknown return code ({0})".format(ret), 2)
         finally:
             if ret == 62097:
                 # If user terminated execution
-                self.ui.add_msg_signal.emit("Tool <b>{0}</b> execution stopped".format(self.tool.name), 0)
+                self.ui.add_msg_signal.emit("\tTool <b>{0}</b> execution stopped".format(self.tool.name), 0)
                 self.instance_finished_signal.emit(ret)
                 return
+            self.ui.add_msg_signal.emit("Done", 1)
             # Get timestamp when tool finished
             output_dir_timestamp = create_output_dir_timestamp()
             # Create an output folder with timestamp and copy output directly there
@@ -350,8 +359,7 @@ class ToolInstance(QObject):
                 if len(failed_files) == 0:
                     # If there were no failed files either
                     logging.error("No failed files")
-                    self.ui.add_msg_signal.emit("No failed files. "
-                                                "Check 'outfiles' parameter in tool definition file.", 2)
+                    self.ui.add_msg_signal.emit("Warning: Check 'outfiles' parameter in tool definition file.", 3)
                     # TODO: Test this
                     self.instance_finished_signal.emit(ret)
             if len(saved_files) > 0:
@@ -359,19 +367,22 @@ class ToolInstance(QObject):
                 self.ui.add_msg_signal.emit("The following result files were saved successfully", 0)
                 for i in range(len(saved_files)):
                     fname = os.path.split(saved_files[i])[1]
-                    self.ui.add_msg_signal.emit("{0}".format(fname), 0)
+                    self.ui.add_msg_signal.emit("\t{0}".format(fname), 0)
             if len(failed_files) > 0:
                 # If some files failed
                 self.ui.add_msg_signal.emit("The following result files were not found", 2)
                 for i in range(len(failed_files)):
                     failed_fname = os.path.split(failed_files[i])[1]
-                    self.ui.add_msg_signal.emit("{0}".format(failed_fname), 2)
+                    self.ui.add_msg_signal.emit("\t{0}".format(failed_fname), 2)
+            self.ui.add_msg_signal.emit("Done", 1)
             # Show result folder
             logging.debug("Result files saved to <{0}>".format(result_path))
-            anchor = "<a href='file:///" + result_path + "'>" + result_path + "</a>"
-            self.ui.add_msg_signal.emit("Result files saved to {}".format(anchor), 0)
+            result_anchor = "<a href='file:///" + result_path + "'>" + result_path + "</a>"
+            work_anchor = "<a href='file:///" + self.basedir + "'>" + self.basedir + "</a>"
+            self.ui.add_msg_signal.emit("Result Directory: {}".format(result_anchor), 0)
+            self.ui.add_msg_signal.emit("Work Directory: {}".format(work_anchor), 0)
             if tool_failed:
-                self.tool.debug(self.ui, self.basedir)
+                self.tool.debug(self.ui, self.basedir, self.tool.short_name)
             # Emit signal to Setup that tool instance has finished with return code
             self.instance_finished_signal.emit(ret)
 
@@ -431,7 +442,7 @@ class ToolInstance(QObject):
                     os.makedirs(dst_dir, exist_ok=True)
                 except OSError as e:
                     logging.error(e)
-                    self.ui.add_msg_signal.emit("Making directory '{}' failed".format(dst_dir), 2)
+                    self.ui.add_msg_signal.emit("Creating directory '{}' failed".format(dst_dir), 2)
                     return False
                 logging.debug("Created output directory <{0}>".format(dst_dir))
         return True

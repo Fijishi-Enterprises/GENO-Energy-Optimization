@@ -52,7 +52,7 @@ class TitanUI(QMainWindow):
 
     def __init__(self):
         """ Initialize GUI."""
-        super().__init__()
+        super().__init__(flags=Qt.Window)
         # Set number formatting to use user's default settings
         locale.setlocale(locale.LC_NUMERIC, '')
         # Setup the user interface from Qt Creator files
@@ -96,8 +96,7 @@ class TitanUI(QMainWindow):
         # Set logging level according to settings
         self.set_debug_level(level=self._config.get("settings", "debug_messages"))
         self.connect_signals()
-        self.init_tool_model()  # Init tool model
-        self.init_project()  # Init project
+        self.init_project()
 
     # noinspection PyMethodMayBeStatic
     def set_debug_level(self, level):
@@ -263,8 +262,12 @@ class TitanUI(QMainWindow):
         for w in layout_widgets(self.ui.horizontalLayout_cmd_output):
             w.widget().show()
 
-    def init_models(self):
-        """Create data models for GUI views."""
+    def init_models(self, tools):
+        """Create data models for GUI views.
+
+        Args:
+            tools (list): List of tool definition file paths
+        """
         # Root for SetupModel
         self._root = Setup('root', 'root node for Setups,', self._project)
         # Create model for Setups
@@ -278,29 +281,34 @@ class TitanUI(QMainWindow):
         self.ui.treeView_setups.setColumnWidth(1, 115)
         self.ui.treeView_setups.setColumnWidth(2, 115)
         # Initialize Tool model
-        self.init_tool_model()
+        self.init_tool_model(tools)
         # Start model test for SetupModel
         # self.modeltest = ModelTest(self.setup_model, self._root)
 
-    def init_tool_model(self):
-        """Create model for tools"""
+    def init_tool_model(self, tool_def_list):
+        """Initialize Tool model.
+
+        Args:
+            tool_def_list (list): List of tool definition file paths used in this project
+        """
         self.tool_model = ToolModel()
-        tool_defs = self._config.get('general', 'tools').split('\n')
+        n_tools = 0
         logging.debug("Initializing Tool model")
-        for tool_def in tool_defs:
-            if tool_def == '':
+        self.add_msg_signal.emit("Loading Tools...", 0)
+        for tool_def in tool_def_list:
+            if tool_def == '' or not tool_def:
                 continue
             # Load tool definition
             tool = SceletonProject.load_tool(tool_def, self)
-            # logging.debug("{0} cmdline_args: {1}".format(tool.name, tool.cmdline_args))
+            n_tools += 1
             if not tool:
                 logging.error("Failed to load Tool from path '{0}'".format(tool_def))
-                self.add_msg_signal.emit("Failed to load Tool from path '{0}'".format(tool_def), 2)
                 continue
             # Add tool definition file path to tool instance variable
             tool.set_def_path(tool_def)
             # Insert tool into model
             self.tool_model.insertRow(tool)
+            self.add_msg_signal.emit("Tool <b>{0}</b> ready".format(tool.name), 0)
         # Set ToolModel to available Tools view
         self.ui.listView_tools.setModel(self.tool_model)
         # Connect currentChanged and doubleClicked signals to Tool QListView
@@ -314,6 +322,9 @@ class TitanUI(QMainWindow):
             self.ui.listView_tools.doubleClicked.connect(self.edit_tool_def, Qt.UniqueConnection)
         except TypeError:
             pass
+        if n_tools == 0:
+            self.add_msg_signal.emit("Project has no Tools", 3)
+        self.add_msg_signal.emit("Done", 1)
 
     def init_project(self):
         """Initializes project at Sceleton start-up. Loads the last project that was open
@@ -361,7 +372,8 @@ class TitanUI(QMainWindow):
         """
         self.clear_ui()
         self._project = SceletonProject(name, description, self._config)
-        self.init_models()
+        tools = list()  # Start project with no Tools
+        self.init_models(tools)
         self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
         self.add_msg_signal.emit("Started project <b>{0}</b>".format(self._project.name), 0)
         # Create and save project file to disk
@@ -403,12 +415,17 @@ class TitanUI(QMainWindow):
                 return
             else:
                 return
+        # Put tool definition files of all Tools used in this project into a list
+        tool_list = list()
+        for i in range(self.tool_model.rowCount()):
+            if i > 0:
+                tool_list.append(self.tool_model.tool(i).get_def_path())
         # Use project name as file name
         file_path = os.path.join(project_dir(self._config), '{}'.format(self._project.filename))
         self.add_msg_signal.emit("Saving project -> <b>{0}</b>".format(file_path), 0)
         logging.debug("Saving project -> {0}".format(file_path))
-        self._project.save(file_path, self._root)
-        msg = "Project '%s' saved to file '%s'" % (self._project.name, file_path)
+        self._project.save(file_path, self._root, tool_list)
+        msg = "Project {0} saved -> {1}".format(self._project.name, file_path)
         self.ui.statusbar.showMessage(msg, 7000)
         self.add_msg_signal.emit("Done", 1)
         return
@@ -420,6 +437,7 @@ class TitanUI(QMainWindow):
             load_path (str): If not None, this method is used to load the
             previously opened project at start-up
         """
+        tools = list()  # For Tool definition file paths
         if not load_path:
             # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
             answer = QFileDialog.getOpenFileName(self, 'Load project', project_dir(self._config),
@@ -449,18 +467,23 @@ class TitanUI(QMainWindow):
             except KeyError:
                 logging.debug("Work dir not found in project file. Using default work directory")
                 proj_work_dir = DEFAULT_WORK_DIR
+            try:
+                tools = project_dict['tools']
+            except KeyError:
+                logging.debug("tools keyword not found in project file")
             # Create project
             self._project = SceletonProject(proj_name, proj_desc, self._config)
             self._project.change_work_dir(proj_work_dir)
             # Setup models and views
-            self.init_models()
             self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
-            self.add_msg_signal.emit("Loading project <b>{0}</b> from file: <b>{1}</b>"
-                                     .format(self._project.name, load_path), 0)
+            self.add_msg_signal.emit("Loading project <b>{0}</b>".format(self._project.name), 0)
+            self.init_models(tools)
             # Parse Setups
+            self.add_msg_signal.emit("Loading Setups...", 0)
             setup_dict = dicts['setups']
             if len(setup_dict) == 0:
-                self.add_msg_signal.emit("No Setups in project", 0)
+                self.add_msg_signal.emit("Project has no Setups", 3)
+                self.add_msg_signal.emit("Done", 1)
                 return True
             self._project.parse_setups(setup_dict, self.setup_model, self.tool_model, self)
             msg = "Project {0} loaded".format(self._project.name)
@@ -495,20 +518,26 @@ class TitanUI(QMainWindow):
                 return False
             if not proj_details[1]:
                 self.add_msg_signal.emit("Project description missing. "
-                                         "You can add it to cell B2 on <b>Project</b> sheet (optional).", 0)
+                                         "You can add it to cell B2 on <b>Project</b> sheet (optional).", 3)
                 proj_details[1] = ''
             if not proj_details[2]:
                 self.add_msg_signal.emit("Project work directory missing. "
-                                         "You can add it to cell B3 on <b>Project</b> sheet. (optional).", 0)
+                                         "You can add it to cell B3 on <b>Project</b> sheet. (optional).", 3)
                 proj_details[2] = DEFAULT_WORK_DIR
+            if not proj_details[3]:
+                self.add_msg_signal.emit("Project Tool definition file paths missing. "
+                                         "You can add them to row 4 (starting from column B) on "
+                                         "<b>Project</b> sheet.", 3)
+                proj_details[3] = tools
             # Create project
             self._project = SceletonProject(proj_details[0], proj_details[1], self._config)
             self._project.change_work_dir(proj_details[2])
             # Setup models and views
-            self.init_models()
             self.setWindowTitle("Sceleton Titan    -- {} --".format(self._project.name))
             self.add_msg_signal.emit("Loading project <b>{0}</b>".format(self._project.name), 0)
+            self.init_models(proj_details[3])
             # Parse Setups from Excel and add them to the project
+            self.add_msg_signal.emit("Loading Setups...", 0)
             self._project.parse_excel_setups(self.setup_model, self.tool_model, wb, self)
             msg = "Project {0} loaded".format(self._project.name)
             self.ui.statusbar.showMessage(msg, 10000)
@@ -526,36 +555,65 @@ class TitanUI(QMainWindow):
         """Method to add a new tool from a JSON tool definition file to the
         ToolModel instance (available tools). Opens a load dialog
         where user can select the wanted tool definition file. The path of the
-        definition file will be saved to titan.conf, so that it is found on
-        the next startup.
+        definition file is saved to project settings.
         """
+        if not self._project:
+            self.add_msg_signal.emit("Make a new project or load a project to add tools", 0)
+            return
         # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
         answer = QFileDialog.getOpenFileName(self, 'Select tool definition file',
                                              os.path.join(project_dir(self._config), os.path.pardir),
                                              'JSON (*.json)')
         if answer[0] == '':  # Cancel button clicked
             return
-        open_path = os.path.abspath(answer[0])
-        if not os.path.isfile(open_path):
-            self.add_msg_signal.emit("Tool definition file path not valid <b>{0}</b>".format(open_path), 2)
+        def_file = os.path.abspath(answer[0])
+        if not os.path.isfile(def_file):
+            self.add_msg_signal.emit("Tool definition file path not valid <b>{0}</b>".format(def_file), 2)
             return
-        self.add_msg_signal.emit("Adding Tool from file: <b>{0}</b>".format(open_path), 0)
+        self.add_msg_signal.emit("Adding Tool -> <b>{0}</b>".format(def_file), 0)
         # Load tool definition
-        tool = SceletonProject.load_tool(open_path, self)
+        tool = SceletonProject.load_tool(def_file, self)
         if not tool:
-            self.add_msg_signal.emit("Adding Tool failed".format(open_path), 2)
+            self.add_msg_signal.emit("Adding Tool failed".format(def_file), 2)
             return
         if not self.tool_model.find_tool(tool.name):
             # Add definition file path into tool
-            tool.set_def_path(open_path)
+            tool.set_def_path(def_file)
             # Insert tool into model
             self.tool_model.insertRow(tool)
-            # Add path to config file
-            old_string = self._config.get('general', 'tools')
-            new_string = old_string + '\n' + open_path
-            self._config.set('general', 'tools', new_string)
-            self._config.save()
-            self.add_msg_signal.emit("Done", 1)
+            # Save Tool def file path to project file
+            project_file = self._project.path  # Path to project file
+            if project_file.lower().endswith('.json'):
+                # Load project from JSON file
+                try:
+                    with open(project_file, 'r') as fh:
+                        dicts = json.load(fh)
+                except OSError:
+                    self.add_msg_signal.emit("OSError: Could not load file <b>{0}</b>".format(project_file), 2)
+                    return
+                # Get project settings
+                project_dict = dicts['project']
+                setup_dict = dicts['setups']
+                try:
+                    tools = project_dict['tools']
+                    tools.append(def_file)
+                    # logging.debug("tools list:{}".format(tools))
+                    project_dict['tools'] = tools
+                except KeyError:
+                    logging.debug("tools keyword not found in project file")
+                    project_dict['tools'] = [def_file]
+                    # logging.debug("tools list:{}".format(project_dict['tools']))
+                # Save dictionaries back to JSON file
+                dicts['project'] = project_dict
+                dicts['setups'] = setup_dict
+                with open(project_file, 'w') as fp:
+                    json.dump(dicts, fp, indent=4)
+                self.add_msg_signal.emit("Tool <b>{0}</b> added. Reload project to refresh Setups".format(tool.name), 3)
+                self.add_msg_signal.emit("Done", 1)
+            else:
+                self.add_msg_signal.emit("This feature is not supported with Excel project files. "
+                                         "Save project into JSON file and try again", 0)
+                return
         else:
             # Tool already in model
             self.add_msg_signal.emit("Tool <b>{0}</b> already available".format(tool.name), 0)
@@ -567,74 +625,143 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("No project open", 0)
             return
         self.add_msg_signal.emit("Refreshing Tools", 0)
-        self.init_tool_model()
-        # Reattach all Tools to Setups because the tool model has changed.
+        project_file = self._project.path  # Path to project file
+        if project_file.lower().endswith('.json'):
+            # Load project from JSON file
+            try:
+                with open(project_file, 'r') as fh:
+                    dicts = json.load(fh)
+            except OSError:
+                self.add_msg_signal.emit("OSError: Could not load file <b>{0}</b>".format(project_file), 2)
+                return
+            # Get project settings
+            project_dict = dicts['project']
+            try:
+                tools = project_dict['tools']
+            except KeyError:
+                logging.debug("tools keyword not found in project file")
+                self.add_msg_signal.emit("No Tools in project", 0)
+                return
+            self.init_tool_model(tools)
 
-        def traverse(setup):
-            # Helper function to traverse tree
-            if not setup.name == 'root':
-                if setup.tool:
-                    # Find the Tool with a same name from the tool model
-                    old_tool_name = setup.tool.name
-                    new_tool = self.tool_model.find_tool(old_tool_name)
-                    if not new_tool:
-                        self.add_msg_signal.emit("Refreshing Tool <b>{0}</b> failed for Setup <b>{1}</b>".format(
-                            old_tool_name, setup.name), 2)
-                        setup.tool = None
-                    else:
-                        setup.attach_tool(new_tool, setup.cmdline_args)
-            for kid in setup.children():
-                traverse.level += 1
-                traverse(kid)
-                traverse.level -= 1
-        traverse.level = 1
-        # Traverse tree starting from root
-        if not self._root:
-            self.add_msg_signal.emit("No Setups in project", 0)
+            # Reattach all Tools to Setups because the tool model may have changed.
+            def traverse(setup):
+                # Helper function to traverse tree
+                if not setup.name == 'root':
+                    if setup.tool:
+                        # Find the Tool with a same name from the tool model
+                        old_tool_name = setup.tool.name
+                        new_tool = self.tool_model.find_tool(old_tool_name)
+                        if not new_tool:
+                            self.add_msg_signal.emit("Refreshing Tool <b>{0}</b> failed for Setup <b>{1}</b>".format(
+                                old_tool_name, setup.name), 2)
+                            setup.tool = None
+                        else:
+                            setup.attach_tool(new_tool, setup.cmdline_args)
+                for kid in setup.children():
+                    traverse.level += 1
+                    traverse(kid)
+                    traverse.level -= 1
+            traverse.level = 1
+            # Traverse tree starting from root
+            if not self._root:
+                pass
+                # self.add_msg_signal.emit("No Setups in project", 0)
+            else:
+                traverse(self._root)
+            self.setup_model.emit_data_changed()
         else:
-            traverse(self._root)
-        self.setup_model.emit_data_changed()
-        self.add_msg_signal.emit("Done", 1)
+            self.add_msg_signal.emit("This feature is not supported with Excel project files. "
+                                     "Save project into JSON file and try again", 0)
+            return
 
     def remove_tool(self):
-        """Removes a tool from the ToolModel. Also removes the JSON
-        tool definition file path from the configuration file.
+        """Removes a tool from the ToolModel and the tool
+        definition file path from the project file.
         """
         try:
             index = self.ui.listView_tools.selectedIndexes()[0]
         except IndexError:
             # Nothing selected
-            self.add_msg_signal.emit("No Tool selected", 0)
+            self.add_msg_signal.emit("Select a Tool to remove", 0)
             return
         if not index.isValid():
             return
         if index.row() == 0:
             # Do not remove No Tool option
-            self.add_msg_signal.emit("'No Tool' cannot be removed", 0)
+            self.add_msg_signal.emit("<b>No Tool</b> cannot be removed", 0)
             return
         sel_tool = self.tool_model.tool(index.row())
         tool_def_path = sel_tool.def_file_path
-        msg = "Removing Tool '{0}'. Are you sure?".format(sel_tool.name)
+        msg = "Removing Tool <b>{0}</b>. Are you sure?".format(sel_tool.name)
         # noinspection PyCallByClass, PyTypeChecker
         answer = QMessageBox.question(self, 'Remove Tool', msg, QMessageBox.Yes, QMessageBox.No)
         if answer == QMessageBox.Yes:
-            self.add_msg_signal.emit("Removing Tool <b>{0}</b><br/>Definition file path: {1}"
-                                     .format(sel_tool.name, tool_def_path), 0)
-            old_tool_paths = self._config.get('general', 'tools')
-            if tool_def_path in old_tool_paths:
-                if not self.tool_model.removeRow(index.row()):
-                    self.add_msg_signal.emit("Error in removing Tool <b>{0}</b>".format(sel_tool.name), 2)
-                    return
-                new_tool_paths = old_tool_paths.replace('\n' + tool_def_path, '')
-                # self.add_msg_signal.emit("Old tools string:{0}".format(old_tool_paths), 0)
-                # self.add_msg_signal.emit("New tools string:{0}".format(new_tool_paths), 0)
-                self._config.set('general', 'tools', new_tool_paths)
-                self._config.save()
-                self.add_msg_signal.emit("Done", 1)
-            else:
-                self.add_msg_signal.emit("Path ({0}) not found in configuration file."
-                                         " Remove the path manually and restart Sceleton".format(tool_def_path), 0)
+            self.add_msg_signal.emit("Removing Tool <b>{0}</b> -> <b>{1}</b>".format(sel_tool.name, tool_def_path), 0)
+            # Remove tool def file path from the project file (only JSON supported)
+            project_file = self._project.path  # Path to project file
+            if not project_file.lower().endswith('.json'):
+                self.add_msg_signal.emit("This feature is not supported with Excel project files. "
+                                         "Save project into JSON file and try again", 0)
                 return
+            # Read project data from JSON file
+            try:
+                with open(project_file, 'r') as fh:
+                    dicts = json.load(fh)
+            except OSError:
+                self.add_msg_signal.emit("OSError: Could not load file <b>{0}</b>".format(project_file), 2)
+                return
+            # Get project settings
+            project_dict = dicts['project']
+            setup_dict = dicts['setups']
+            if not self.tool_model.removeRow(index.row()):
+                self.add_msg_signal.emit("Error in removing Tool <b>{0}</b>".format(sel_tool.name), 2)
+                return
+            try:
+                tools = project_dict['tools']
+                tools.remove(tool_def_path)
+                # logging.debug("tools list after removal:{}".format(tools))
+                project_dict['tools'] = tools
+            except KeyError:
+                self.add_msg_signal.emit("This is odd. Tools dictionary not found in project file <b>{0}</b>"
+                                         .format(project_file), 2)
+                return
+            except ValueError:
+                self.add_msg_signal.emit("This is odd. Tool definition file path <b>{0}</b> not found "
+                                         "in project file <b>{1}</b>".format(tool_def_path, project_file), 2)
+                return
+            # Save dictionaries back to JSON file
+            dicts['project'] = project_dict
+            dicts['setups'] = setup_dict
+            with open(project_file, 'w') as fp:
+                json.dump(dicts, fp, indent=4)
+
+            # Go through all Setups and remove Tool if not found
+            def traverse(setup):
+                # Helper function to traverse tree
+                if not setup.name == 'root':
+                    if setup.tool:
+                        # Check if Setup's Tool still exists
+                        tool_instance = self.tool_model.find_tool(setup.tool.name)
+                        if not tool_instance:
+                            self.add_msg_signal.emit("Removing Tool from Setup <b>{0}</b>".format(setup.name), 3)
+                            setup.tool = None
+                for kid in setup.children():
+                    traverse.level += 1
+                    traverse(kid)
+                    traverse.level -= 1
+            traverse.level = 1
+            # Traverse tree starting from root
+            if not self._root:
+                self.add_msg_signal.emit("No Setups in project", 0)
+            else:
+                traverse(self._root)
+            self.setup_model.emit_data_changed()
+            self.add_msg_signal.emit("Done", 1)
+            # Set No Tool selected
+            # no_tool_index = self.tool_model.index(0)
+            # self.ui.listView_tools.selectionModel().select(no_tool_index, QItemSelectionModel.SelectCurrent)
+            # self.view_tool_def(no_tool_index, no_tool_index)
         else:
             return
 
@@ -692,7 +819,7 @@ class TitanUI(QMainWindow):
         self.tool_def_textbrowser.clear()
         self.tool_def_textbrowser.append(json.dumps(json_data, sort_keys=True, indent=4))
         self.tool_def_textbrowser.show()
-        self.ui.label_5.setText("Tool Definition File")
+        self.ui.label_5.setText("{0} Tool Definition File".format(current_tool.name))
         if previous.row() == 0 or previous.row() == -1:
             self.ui.splitter_output.setSizes([sizes[0], 0, sizes[1]])
 
@@ -805,7 +932,7 @@ class TitanUI(QMainWindow):
     def open_verify_data_form(self):
         """Show verify data form."""
         if not self._project:
-            self.add_msg_signal.emit("No project found. Load or create a project to open this tool", 0)
+            self.add_msg_signal.emit("No project found. Load or create a project to use this tool", 0)
             return
         if self._root.child_count() == 0:
             self.add_msg_signal.emit("No Setups in project", 0)
@@ -1066,8 +1193,12 @@ class TitanUI(QMainWindow):
         self.toggle_gui(False)
         # Connect setup_finished_signal to setup_done slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
-        logging.debug("Starting Setup '{0}'".format(self._running_setup.name))
-        self.add_msg_signal.emit("<br/>Starting Setup <b>{0}</b>".format(self._running_setup.name), 0)
+        logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
+        start_msg = "*** Starting Setup <b>{0}</b> ***".format(self._running_setup.name)
+        star_line = "\t\t" + "*" * (len(start_msg) - 10)  # Deduct <b> tag space
+        self.add_msg_signal.emit("<br/>" + star_line, 0)
+        self.add_msg_signal.emit("\t\t" + start_msg, 0)
+        self.add_msg_signal.emit(star_line + "<br/>", 0)
         self._running_setup.execute(self)
 
     @pyqtSlot(name="setup_done")
@@ -1089,7 +1220,7 @@ class TitanUI(QMainWindow):
             return
         if not self._running_setup.tool:  # No Tool
             self.add_msg_signal.emit("No Tool. No results.", 0)
-        self.add_msg_signal.emit("Setup <b>{0}</b> ready".format(self._running_setup.name), 1)
+        self.add_msg_signal.emit("Setup <b>{0}</b> Done".format(self._running_setup.name), 1)
         # Clear running Setup
         self._running_setup = None
         if self.exec_mode == 'single':
@@ -1100,8 +1231,8 @@ class TitanUI(QMainWindow):
             # Get next executed Setup
             next_setup = self.setup_model.get_next_setup_selected(self.get_selected_setup_index())
             if not next_setup:
-                logging.debug("All Setups ready")
-                self.add_msg_signal.emit("All Setups ready", 1)
+                logging.debug("Selected Setups Completed")
+                self.add_msg_signal.emit("Selected Setups Completed", 1)
                 self.toggle_gui(True)
                 return
             self._running_setup = next_setup.internalPointer()
@@ -1116,17 +1247,19 @@ class TitanUI(QMainWindow):
                         new_base_index = self.setup_model.find_index(new_base_name)
                         self.setup_model.set_base(new_base_index)
                         next_setup = self.setup_model.get_base()
-                        # self.add_msg_signal.emit("Found base Setup <b>{0}</b>"
-                        #                          .format(next_setup.internalPointer().name), 0)
                         break
             # End execution if no more base Setups left
             if not next_setup:
-                self.add_msg_signal.emit("All Setups in Project ready", 1)
+                self.add_msg_signal.emit("All Setups Completed", 1)
                 self.toggle_gui(True)
                 return
             self._running_setup = next_setup.internalPointer()
         logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
-        self.add_msg_signal.emit("<br/>Starting Setup <b>{0}</b>".format(self._running_setup.name), 0)
+        start_msg = "*** Starting Setup <b>{0}</b> ***".format(self._running_setup.name)
+        star_line = "\t\t" + "*" * (len(start_msg) - 10)  # Deduct <b> tag space
+        self.add_msg_signal.emit("<br/>" + star_line, 0)
+        self.add_msg_signal.emit("\t\t" + start_msg, 0)
+        self.add_msg_signal.emit(star_line + "<br/>", 0)
         # Connect setup_finished_signal to this slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
         self._running_setup.execute(self)
@@ -1347,6 +1480,9 @@ class TitanUI(QMainWindow):
 
     def import_data(self):
         """Open selected Excel file for creating text data files for Setups."""
+        if not self._project:
+            self.add_msg_signal.emit("No project open", 0)
+            return
         # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
         answer = QFileDialog.getOpenFileName(self, 'Import Data', project_dir(self._config),
                                              'MS Excel (*.xlsx)')
@@ -1376,12 +1512,14 @@ class TitanUI(QMainWindow):
             msg (str): String written to QTextBrowser
             code (int): Code for text color, 0: black, 1=green, 2=red
         """
-        if code == 1:
-            open_tag = "<span style='color:green'>"
-        elif code == 2:
-            open_tag = "<span style='color:red'>"
+        if code == 1:  # SUCCESS
+            open_tag = "<span style='color:green;white-space: pre-wrap;'>"
+        elif code == 2:  # ERROR
+            open_tag = "<span style='color:red;white-space: pre-wrap;'>"
+        elif code == 3:  # WARNING
+            open_tag = "<span style='color:goldenrod;white-space: pre-wrap;'>"
         else:
-            open_tag = "<span style='color:black'>"
+            open_tag = "<span style='color:black;white-space: pre-wrap;'>"
         message = open_tag + msg + "</span>"
         self.ui.textBrowser_main.append(message)
         # noinspection PyArgumentList

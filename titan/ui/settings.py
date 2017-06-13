@@ -2,7 +2,6 @@
 
 # Form implementation generated from reading ui file '../titan/ui/settings.ui'
 #
-# Created by: PyQt5 UI code generator 5.7.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -25,12 +24,12 @@ class Ui_SettingsForm(object):
         SettingsForm.setContextMenuPolicy(QtCore.Qt.NoContextMenu)
         SettingsForm.setAutoFillBackground(False)
         self.verticalLayout_7 = QtWidgets.QVBoxLayout(SettingsForm)
-        self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setSpacing(0)
+        self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setContentsMargins(9, 9, 9, 0)
         self.horizontalLayout_2.setSpacing(6)
+        self.horizontalLayout_2.setContentsMargins(9, 9, 9, 0)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
@@ -250,8 +249,8 @@ class Ui_SettingsForm(object):
         self.horizontalLayout_2.addLayout(self.verticalLayout_3)
         self.verticalLayout_7.addLayout(self.horizontalLayout_2)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setContentsMargins(-1, 6, -1, 6)
         self.horizontalLayout.setSpacing(0)
+        self.horizontalLayout.setContentsMargins(-1, 6, -1, 6)
         self.horizontalLayout.setObjectName("horizontalLayout")
         spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem2)
@@ -267,8 +266,8 @@ class Ui_SettingsForm(object):
         self.horizontalLayout.addItem(spacerItem4)
         self.verticalLayout_7.addLayout(self.horizontalLayout)
         self.horizontalLayout_statusbar_placeholder = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_statusbar_placeholder.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_statusbar_placeholder.setSpacing(0)
+        self.horizontalLayout_statusbar_placeholder.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_statusbar_placeholder.setObjectName("horizontalLayout_statusbar_placeholder")
         self.widget_invisible_dummy = QtWidgets.QWidget(SettingsForm)
         self.widget_invisible_dummy.setMinimumSize(QtCore.QSize(0, 20))

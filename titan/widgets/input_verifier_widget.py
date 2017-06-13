@@ -115,6 +115,18 @@ class InputVerifierWidget(QWidget):
             self.ui.textBrowser_output.append("<br/>Setup <b>{}</b> ready".format(setup.name))
             setup.ready_to_run = 1
             return
+        elif req_files[0] == "datafiles keyword not found in Tool definition file":
+            item = QStandardItem("Error in Tool {0} definition file".format(tool.name))
+            item.setFlags(Qt.ItemIsEnabled)
+            self.req_files_model.appendRow(item)
+            self.ui.textBrowser_output.append("datafiles keyword not found in Tool definition file")
+            setup.ready_to_run = 2
+            return
+        elif req_files[0] == "Loading JSON data failed":
+            self.ui.textBrowser_output.append("Loading JSON data from Tool '{0}' definition file failed"
+                                              .format(tool.name))
+            setup.ready_to_run = 2
+            return
         # Print required files
         for file in req_files:
             item = QStandardItem("{0}".format(file))
@@ -216,11 +228,16 @@ class InputVerifierWidget(QWidget):
                 json_data = json.load(fp)
             except ValueError:
                 logging.exception("Loading JSON data failed")
-                return []
-        infiles = json_data['infiles']
+                return ["Loading JSON data failed"]
+        try:
+            datafiles = json_data['datafiles']
+            # infiles = json_data['infiles']  # OBSOLETE
+        except KeyError:
+            logging.error("datafiles keyword not found in Tool definition file")
+            return ["datafiles keyword not found in Tool definition file"]
         str_files = list()
         # TODO: What if required file is in a sub-folder?
-        for file in infiles:
+        for file in datafiles:
             # Just return the file names in a list
             head, tail = os.path.split(file)
             str_files.append(tail)

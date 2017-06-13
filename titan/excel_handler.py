@@ -39,7 +39,15 @@ class ExcelHandler:
         name = project_sheet['B1'].value
         desc = project_sheet['B2'].value
         work_dir = project_sheet['B3'].value
-        return [name, desc, work_dir]
+        try:  # Try to read tool def file paths from row 4
+            tools_row_cells = list(project_sheet.rows)[3]
+            tools_row = [cell.value for cell in tools_row_cells]
+            tools_row.pop(0)  # Remove first element 'Tools' or whatever it is
+            if not tools_row:
+                tools_row = list()
+        except IndexError:
+            tools_row = list()
+        return [name, desc, work_dir, tools_row]
 
     def import_setups(self):
         """Read Setups sheet."""

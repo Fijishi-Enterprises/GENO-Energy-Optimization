@@ -85,7 +85,7 @@ class SceletonProject(MetaObject):
         self.work_dir = work_path
         return
 
-    def save(self, filepath, root):
+    def save(self, filepath, root, tool_list):
         """Project information and Setups are collected to their own dictionaries.
         These dictionaries are then saved into another dictionary, which is saved to a
         JSON file.
@@ -93,6 +93,7 @@ class SceletonProject(MetaObject):
         Args:
             filepath (str): Path to the save file
             root (Setup): Root Setup of SetupModel
+            tool_list (list): List of Tool definition files used in this project
         """
         # Clear Setup dictionary
         self.setup_dict.clear()
@@ -101,6 +102,7 @@ class SceletonProject(MetaObject):
         dic['name'] = self.name
         dic['desc'] = self.description
         dic['work_dir'] = self.work_dir
+        dic['tools'] = tool_list
         # Save project stuff
         project_dict['project'] = dic
 
@@ -425,18 +427,18 @@ class SceletonProject(MetaObject):
             ui.add_msg_signal.emit("Processed {0} data sheets in file {1}".format(n_data_sheets, excel_fname), 0)
         ui.add_msg_signal.emit("Done", 1)
 
-    # TODO: Is this the right place for this function?
     @staticmethod
     def load_tool(jsonfile, ui):
-            """Create a Tool instance according to a tool definition file.
+        """Create a Tool instance according to a tool definition file.
 
-                    Args:
-                        jsonfile (str): Path of the tool definition file
-                        ui (TitanUI): Titan GUI instance
+        Args:
+            jsonfile (str): Path of the tool definition file
+            ui (TitanUI): Titan GUI instance
 
-                    Returns:
-                        Instance of a subclass if Tool
-                    """
+        Returns:
+            Instance of a subclass if Tool
+        """
+        try:
             with open(jsonfile, 'r') as fp:
                 try:
                     definition = json.load(fp)
@@ -444,21 +446,23 @@ class SceletonProject(MetaObject):
                     ui.add_msg_signal.emit("Tool definition file not valid", 2)
                     logging.exception("Loading JSON data failed")
                     return None
-            try:
-                type = definition['type'].lower()
-            except KeyError:
-                ui.add_msg_signal.emit(
-                    "No type defined in tool definition file", 2)  # TODO: Is 2 right?
-                logging.exception("Loading JSON data failed")
-                return None
-            # Infer path from JSON file
-            path = os.path.dirname(jsonfile)
-            if type == 'gams':
-                return GAMSModel.load(path, definition, ui)
-            elif type == 'executable':
-                return ExecutableTool.load(path, definition, ui)
-            else:
-                ui.add_msg_signal.emit(
-                    "Tool type '{}' not implemented".format(type), 0)
-                return None
-
+        except FileNotFoundError:
+            ui.add_msg_signal.emit("Tool definition file <b>{0}</b> not found".format(jsonfile), 2)
+            return None
+        try:
+            _type = definition['type'].lower()
+        except KeyError:
+            ui.add_msg_signal.emit(
+                "No type defined in tool definition file", 2)
+            logging.exception("Loading JSON data failed")
+            return None
+        # Infer path from JSON file
+        path = os.path.dirname(jsonfile)
+        if _type == 'gams':
+            return GAMSModel.load(path, definition, ui)
+        elif _type == 'executable':
+            return ExecutableTool.load(path, definition, ui)
+        else:
+            ui.add_msg_signal.emit(
+                "Tool type '{}' not implemented".format(_type), 0)
+            return None

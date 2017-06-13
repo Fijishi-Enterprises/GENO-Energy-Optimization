@@ -10,7 +10,7 @@ import os
 from PyQt5.QtGui import QColor
 
 # General
-SCELETON_VERSION = '0.1.9'
+SCELETON_VERSION = '0.1.10'
 ERROR_COLOR = QColor('red')
 SUCCESS_COLOR = QColor('green')
 NEUTRAL_COLOR = QColor('blue')
@@ -67,7 +67,6 @@ SETTINGS_GROUPBOX_STYLESHEET = "QGroupBox{border: 1px solid gray; " \
 
 # Default options and settings
 GENERAL_OPTIONS = {'previous_project': '',
-                   'tools': '',
                    'gams_path': ''}
 
 SETTINGS = {'save_at_exit': '1',

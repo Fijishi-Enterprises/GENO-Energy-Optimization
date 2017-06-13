@@ -2,7 +2,6 @@
 
 # Form implementation generated from reading ui file '../titan/ui/main.ui'
 #
-# Created by: PyQt5 UI code generator 5.7.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,8 +25,8 @@ class Ui_MainWindow(object):
         self.layoutWidget = QtWidgets.QWidget(self.splitter_2)
         self.layoutWidget.setObjectName("layoutWidget")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.layoutWidget)
-        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_5.setSpacing(0)
+        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
@@ -201,8 +200,8 @@ class Ui_MainWindow(object):
         self.verticalLayoutWidget = QtWidgets.QWidget(self.splitter)
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
         self.verticalLayout_7 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
-        self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setSpacing(0)
+        self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.label_4 = QtWidgets.QLabel(self.verticalLayoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
@@ -286,8 +285,8 @@ class Ui_MainWindow(object):
         self.layoutWidget1 = QtWidgets.QWidget(self.splitter_output)
         self.layoutWidget1.setObjectName("layoutWidget1")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.layoutWidget1)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setSpacing(0)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout_cmd_output = QtWidgets.QHBoxLayout()
         self.horizontalLayout_cmd_output.setSpacing(0)
@@ -304,6 +303,7 @@ class Ui_MainWindow(object):
         self.label.setFrameShadow(QtWidgets.QFrame.Raised)
         self.label.setLineWidth(2)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
+        self.label.setContentsMargins(0, 0, 0, 0)
         self.label.setObjectName("label")
         self.horizontalLayout_cmd_output.addWidget(self.label)
         self.pushButton_clear_titan_output = QtWidgets.QPushButton(self.layoutWidget1)
@@ -327,12 +327,13 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.textBrowser_main.sizePolicy().hasHeightForWidth())
         self.textBrowser_main.setSizePolicy(sizePolicy)
         self.textBrowser_main.setMinimumSize(QtCore.QSize(150, 1))
+        self.textBrowser_main.setTabStopWidth(40)
         self.textBrowser_main.setOpenLinks(False)
         self.textBrowser_main.setObjectName("textBrowser_main")
         self.verticalLayout.addWidget(self.textBrowser_main)
         self.horizontalLayout_tool_output = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_tool_output.setContentsMargins(0, -1, 0, -1)
         self.horizontalLayout_tool_output.setSpacing(0)
+        self.horizontalLayout_tool_output.setContentsMargins(0, -1, 0, -1)
         self.horizontalLayout_tool_output.setObjectName("horizontalLayout_tool_output")
         self.pushButton_terminate_execution = QtWidgets.QPushButton(self.layoutWidget1)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -359,6 +360,7 @@ class Ui_MainWindow(object):
         self.label_5.setFrameShadow(QtWidgets.QFrame.Raised)
         self.label_5.setLineWidth(2)
         self.label_5.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_5.setContentsMargins(0, 0, 0, 0)
         self.label_5.setObjectName("label_5")
         self.horizontalLayout_tool_output.addWidget(self.label_5)
         self.pushButton_clear_gams_output = QtWidgets.QPushButton(self.layoutWidget1)
@@ -565,12 +567,20 @@ class Ui_MainWindow(object):
         self.pushButton_show_results.setText(_translate("MainWindow", "Results (F5)"))
         self.label_4.setText(_translate("MainWindow", "Setups"))
         self.label_2.setText(_translate("MainWindow", "Tools"))
+        self.toolButton_add_tool.setToolTip(_translate("MainWindow", "Add Tool to this project"))
         self.toolButton_add_tool.setText(_translate("MainWindow", "Add Tool"))
+        self.toolButton_refresh_tools.setToolTip(_translate("MainWindow", "Refresh Tools"))
         self.toolButton_refresh_tools.setText(_translate("MainWindow", "Refresh Tools"))
+        self.toolButton_remove_tool.setToolTip(_translate("MainWindow", "Remove selected Tool from this project"))
         self.toolButton_remove_tool.setText(_translate("MainWindow", "Remove Tool"))
         self.label.setText(_translate("MainWindow", "Command Output"))
         self.pushButton_clear_titan_output.setToolTip(_translate("MainWindow", "<html><head/><body><p>Clear command output</p></body></html>"))
         self.pushButton_clear_titan_output.setText(_translate("MainWindow", "Clear"))
+        self.textBrowser_main.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"))
         self.pushButton_terminate_execution.setToolTip(_translate("MainWindow", "<html><head/><body><p>Cancel execution</p></body></html>"))
         self.pushButton_terminate_execution.setText(_translate("MainWindow", "Cancel"))
         self.label_5.setText(_translate("MainWindow", "Tool Output"))

@@ -876,7 +876,8 @@ class ToolModel(QAbstractListModel):
         self._parent = parent
 
     def rowCount(self, parent=None, *args, **kwargs):
-        """Must be reimplemented when subclassing.
+        """Must be reimplemented when subclassing. Returns
+        the number of Tools in the model.
 
         Args:
             parent (QModelIndex): Not used (because this is a list)
@@ -900,14 +901,18 @@ class ToolModel(QAbstractListModel):
         """
         if not index.isValid() or self.rowCount() == 0:
             return QVariant()
-
+        row = index.row()
         if role == Qt.DisplayRole:
-            row = index.row()
             if row == 0:
                 return self._tools[0]
             else:
                 toolname = self._tools[row].name
                 return toolname
+        elif role == Qt.ToolTipRole:
+            if row == 0 or row >= self.rowCount():
+                return ""
+            else:
+                return self._tools[row].def_file_path
 
     def flags(self, index):
         """Returns enabled flags for the given index.
@@ -928,7 +933,7 @@ class ToolModel(QAbstractListModel):
             **kwargs:
 
         Returns:
-            Nothing
+            Void
         """
         self.beginInsertRows(parent, row, row)
         self._tools.append(tool)
@@ -944,7 +949,7 @@ class ToolModel(QAbstractListModel):
             **kwargs:
 
         Returns:
-            Nothing
+            Boolean variable
         """
         if row < 0 or row > self.rowCount():
             logging.error("Invalid row number")
@@ -955,7 +960,7 @@ class ToolModel(QAbstractListModel):
         return True
 
     def tool(self, row):
-        """Returns tool located at row
+        """Returns tool on given row.
 
         Args:
             row (int): Row of tool

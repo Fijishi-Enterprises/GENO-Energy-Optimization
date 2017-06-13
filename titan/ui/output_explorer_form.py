@@ -2,7 +2,6 @@
 
 # Form implementation generated from reading ui file '../titan/ui/output_explorer_form.ui'
 #
-# Created by: PyQt5 UI code generator 5.7.1
 #
 # WARNING! All changes made in this file will be lost!
 

@@ -6,7 +6,6 @@ GAMSModel class.
 """
 
 import os.path
-import json
 import logging
 from collections import OrderedDict
 from tool import Tool
@@ -126,6 +125,10 @@ class GAMSModel(Tool):
         else:
             logging.error("Unknown value for logoption: {}".format(logoption_value))
         # Create run command for GAMS
+        # command = '{} "{}" {}'.format(gams_exe_path,
+        #                                           self.main_prgm,
+        #                                           ' '.join(gams_option_list))
+        self.main_dir = instance.basedir  # TODO: Get rid of self.main_dir
         command = '{} "{}" Curdir="{}" {}'.format(gams_exe_path,
                                                   self.main_prgm,
                                                   self.main_dir,
@@ -134,11 +137,15 @@ class GAMSModel(Tool):
         instance.command = self.append_cmdline_args(command, setup_cmdline_args)
         return instance
 
-    def debug(self, ui, path):
-        """"""
-        # Make GAMS project file
-        prj_file_path = os.path.join(path,
-                                     self.tool.short_name + "AutoCreated.gpr")
+    def debug(self, ui, path, tool_short_name):
+        """Make GAMS project file.
+
+        Args:
+            ui (TitanUI): Titan GUI instance
+            path (str): Base path to tool files
+            tool_short_name (str): Tool short name
+        """
+        prj_file_path = os.path.join(path, tool_short_name + "AutoCreated.gpr")
         if not self.make_gams_project_file(prj_file_path):
             ui.add_msg_signal.emit("Failed to make GAMS project file", 2)
         else:
@@ -166,22 +173,23 @@ class GAMSModel(Tool):
             return None
 
     def make_gams_project_file(self, filepath):
-        """Make a GAMS project file for debugging that opens GAMSIDE with the .lst file open.
+        """Make a GAMS project file for debugging, which opens GAMSIDE with the .lst file open.
 
         Args:
-            path (str): Path where to store the project file
+            filepath (str): Path where the project file is stored
 
         Returns:
             Boolean variable depending on operation success
         """
-        # logging.debug("List file path: {0}".format(self.lst_file))
+        lst_file_path = os.path.join(os.path.split(filepath)[0], self.lst_file)
+        # logging.debug("List file path: {0}".format(lst_file_path))
         # logging.debug("Project file path: {0}".format(filepath))
         # Write GAMS project file
         try:
             with open(filepath, 'w') as f:
                 f.write('[PROJECT]\n\n')
                 f.write('[OPENWINDOW_1]\n')
-                f.write("FILE0=" + self.lst_file + '\n')
+                f.write("FILE0=" + lst_file_path + '\n')
                 f.write('MAXIM=0\n')
                 f.write('TOP=0\n')
                 f.write('LEFT=0\n')
@@ -191,5 +199,3 @@ class GAMSModel(Tool):
             logging.error("Failed to write GAMS project file: {0}".format(filepath))
             return False
         return True
-
-

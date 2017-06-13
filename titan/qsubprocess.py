@@ -38,7 +38,8 @@ class QSubProcess(QObject):
 
         if workdir is not None:
             self._process.setWorkingDirectory(workdir)
-        self._ui.add_msg_signal.emit("Command: <i>{0}</i>".format(command), 0)
+        self._ui.add_msg_signal.emit("*** Starting Tool <b>{0}</b> ***".format(self._running_tool.name), 0)
+        self._ui.add_msg_signal.emit("\t<i>{0}</i>".format(command), 0)
         self._process.started.connect(self.process_started)
         self._process.readyReadStandardOutput.connect(self.on_ready_stdout)
         self._process.readyReadStandardError.connect(self.on_ready_stderr)
@@ -49,13 +50,13 @@ class QSubProcess(QObject):
         if not self._process.waitForStarted(msecs=10000):  # TODO: Check if waitForStarted() returns boolean?
             # TODO: Do something if process fails to start
             self._process_failed = True
-            self._ui.add_msg_signal.emit('*** Launching subprocess failed ***', 2)
+            self._ui.add_msg_signal.emit("\tStarting Tool failed", 2)
 
     @pyqtSlot(name='process_started')
     def process_started(self):
         """Run when subprocess has started."""
-        self._ui.add_msg_signal.emit("*** Subprocess for Tool <b>{0}</b> started ***"
-                                     .format(self._running_tool.name), 0)
+        logging.debug("Subprocess for Tool {0} started".format(self._running_tool.name))
+        self._ui.add_msg_signal.emit("\tSubprocess started", 0)
 
     @pyqtSlot('QProcess::ProcessState', name='on_state_changed')
     def on_state_changed(self, new_state):
@@ -100,7 +101,7 @@ class QSubProcess(QObject):
             # Delete QProcess
             self._process.deleteLater()
             self._process = None
-            self._ui.add_msg_signal.emit("*** Subprocess finished -- Exit status: {0} ***".format(exit_status), 0)
+            logging.debug("Subprocess finished -- Exit status: {0}".format(exit_status))
             self.subprocess_finished_signal.emit(exit_code)
         else:
             # Get exit code (return code)
@@ -108,7 +109,7 @@ class QSubProcess(QObject):
             # Delete QProcess
             self._process.deleteLater()
             self._process = None
-            self._ui.add_msg_signal.emit("*** Stopping subprocess ***", 0)
+            self._ui.add_msg_signal.emit("*** Terminating subprocess ***", 0)
             self.subprocess_finished_signal.emit(exit_code)
 
     @pyqtSlot(name='on_ready_stdout')
