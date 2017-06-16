@@ -5,7 +5,6 @@ equations
     q_resTransfer(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
     q_maxDownward(grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
-    q_bindOnline(unit, mType, f, t) "Couple online variable when joining forecasts or when joining sample time periods"
     q_startup(unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
     q_genRamp(grid, node, mType, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
     q_genRampChange(grid, node, mType, unit, f, t) "Record the ramp rates of units with ramping costs"
@@ -139,7 +138,7 @@ q_obj ..
 q_balance(gn(grid, node), m, ft_dynamic(f, t))${p_stepLength(m, f+pf(f,t), t+pt(t)) and not p_gn(grid, node, 'boundAll')} .. // Energy/power balance dynamics solved using implicit Euler discretization
   // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
   + p_gn(grid, node, 'energyStoredPerUnitOfState')$gn_state(grid, node) // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
-      * ( + v_state(grid, node, f, t)                                   // The difference between current
+      * ( + v_state(grid, node, f+cf(f,t), t)                           // The difference between current
           - v_state(grid, node, f+pf(f,t), t+pt(t))                     // ... and previous state of the node
         )
   =E=
@@ -148,20 +147,20 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))${p_stepLength(m, f+pf(f,t), t+pt(
       + (
           // Self discharge out of the model boundaries
           - p_gn(grid, node, 'selfDischargeLoss')$gn_state(grid, node) * (
-              + v_state(grid, node, f, t)                                               // The current state of the node
+              + v_state(grid, node, f+cf(f,t), t)                                               // The current state of the node
               $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+pf(f,t), t+pt(t))    // and possibly averaging with the previous state of the node
             )
           // Energy diffusion from this node to neighbouring nodes
           - sum(to_node$(gnn_state(grid, node, to_node)),
               + p_gnn(grid, node, to_node, 'diffCoeff') * (
-                  + v_state(grid, node, f, t)
+                  + v_state(grid, node, f+cf(f,t), t)
                   $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+pf(f,t), t+pt(t))
                 )
             )
           // Energy diffusion from neighbouring nodes to this node
           + sum(from_node$(gnn_state(grid, from_node, node)),
               + p_gnn(grid, from_node, node, 'diffCoeff') * (
-                  + v_state(grid, from_node, f, t)                                             // Incoming diffusion based on the state of the neighbouring node
+                  + v_state(grid, from_node, f+cf(f,t), t)                                             // Incoming diffusion based on the state of the neighbouring node
                   $$ifi '%rampSched%' == 'yes' + v_state(grid, from_node, f+pf(f,t), t+pt(t))  // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
                 )
             )
@@ -169,31 +168,31 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))${p_stepLength(m, f+pf(f,t), t+pt(
           + sum(from_node$(gn2n(grid, from_node, node)),
               + (1 - p_gnn(grid, from_node, node, 'transferLoss')) * (    // Include transfer losses
                   + v_transfer(grid, from_node, node, f+pf(f,t), t+pt(t))
-                  $$ifi '%rampSched%' == 'yes' + v_transfer(grid, from_node, node, f, t)    // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
+                  $$ifi '%rampSched%' == 'yes' + v_transfer(grid, from_node, node, f+cf(f,t), t)    // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
                 )
             )
           // Controlled energy transfer to other nodes from this one
           - sum(to_node$(gn2n(grid, node, to_node)),
               + v_transfer(grid, node, to_node, f+pf(f,t), t+pt(t))   // Transfer losses accounted for in the previous term
-              $$ifi '%rampSched%' == 'yes' + v_transfer(grid, node, to_node, f, t)    // Ramp schedule averaging
+              $$ifi '%rampSched%' == 'yes' + v_transfer(grid, node, to_node, f+cf(f,t), t)    // Ramp schedule averaging
             )
           // Interactions between the node and its units
           + sum(gnuft(grid, node, unit, f+pf(f,t), t+pt(t)),
               + v_gen(grid, node, unit, f+pf(f,t), t+pt(t)) // Unit energy generation and consumption
-              $$ifi '%rampSched%' == 'yes' + v_gen(grid, node, unit, f, t)
+              $$ifi '%rampSched%' == 'yes' + v_gen(grid, node, unit, f+cf(f,t), t)
             )
           // Spilling energy out of the endogenous grids in the model
           - v_spill(grid, node, f+pf(f,t), t+pt(t))$node_spill(node)
-          $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, f, t)$node_spill(node)
+          $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, f+cf(f,t), t)$node_spill(node)
           // Power inflow and outflow timeseries to/from the node
           + ts_influx_(grid, node, f+pf(f,t), t+pt(t))   // Incoming (positive) and outgoing (negative) absolute value time series
-          $$ifi '%rampSched%' == 'yes' + ts_influx_(grid, node, f, t)
+          $$ifi '%rampSched%' == 'yes' + ts_influx_(grid, node, f+cf(f,t), t)
 
           // Dummy generation variables, for feasibility purposes
           + vq_gen('increase', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-          $$ifi '%rampSched%' == 'yes' + vq_gen('increase', grid, node, f, t)
+          $$ifi '%rampSched%' == 'yes' + vq_gen('increase', grid, node, f+cf(f,t), t)
           - vq_gen('decrease', grid, node, f+pf(f,t), t+pt(t)) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-          $$ifi '%rampSched%' == 'yes' - vq_gen('decrease', grid, node, f, t)
+          $$ifi '%rampSched%' == 'yes' - vq_gen('decrease', grid, node, f+cf(f,t), t)
         ) * p_stepLength(m, f+pf(f,t), t+pt(t))   // Multiply by time step to get energy terms
     )
   $$ifi '%rampSched%' == 'yes' / 2    // Averaging all the terms on the right side of the equation over the timestep here.
@@ -272,7 +271,7 @@ q_maxUpward(gnuft(grid, node, unit, f, t))${      [uft_online(unit, f, t) and p_
 q_startup(uft_online(unit, ft_dynamic(f, t))) ..
   + v_startup(unit, f+pf(f,t), t+pt(t))
   =G=
-  + v_online(unit, f, t)
+  + v_online(unit, f+cf(f,t), t)
   - v_online(unit, f+pf(f,t), t+pt(t)) // This reaches to tFirstSolve when pt = -1
 ;
 * -----------------------------------------------------------------------------
@@ -282,30 +281,24 @@ q_genRamp(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node, uni
     * p_stepLength(m, f+pf(f,t), t+pt(t))
     =E=
     // Change in generation over the time step
-    + v_gen(grid, node, unit, f, t)
+    + v_gen(grid, node, unit, f+cf(f,t), t)
     - v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
     // Correction term to account for online variables and min loads
     - (
-        + v_online(unit, f, t)${uft_online(unit, f, t)}
+        + v_online(unit, f+cf(f,t), t)${uft_online(unit, f, t)}
         - v_online(unit, f+pf(f,t), t+pt(t))${uft_online(unit, f+pf(f,t), t+pt(t))}
       )
         / p_unit(unit, 'unitCount')
         * ( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )
-        * sum(suft(effGroup, unit, f, t), p_effGroupUnit(effGroup, unit, 'lb')) // Newly started units are assumed to start to their minload.
+        * sum(suft(effGroup, unit, f+cf(f,t), t), p_effGroupUnit(effGroup, unit, 'lb')) // Newly started units are assumed to start to their minload.
 ;
 * -----------------------------------------------------------------------------
 q_genRampChange(gn(grid, node), m, unit, ft_dynamic(f, t))${ gnuft_ramp(grid, node, unit, f, t) AND [ p_gnu(grid, node, unit, 'rampUpCost') OR p_gnu(grid, node, unit, 'rampDownCost') ]} ..
-    + v_genRampChange(grid, node, unit, 'up', f, t)
-    - v_genRampChange(grid, node, unit, 'down', f, t)
+    + v_genRampChange(grid, node, unit, 'up', f+cf(f,t), t)
+    - v_genRampChange(grid, node, unit, 'down', f+cf(f,t), t)
     =E=
-    + v_genRamp(grid, node, unit, f, t)
+    + v_genRamp(grid, node, unit, f+cf(f,t), t)
     - v_genRamp(grid, node, unit, f+pf(f,t), t+pt(t))
-;
-* -----------------------------------------------------------------------------
-q_bindOnline(unit, mftBind(m, f, t))${uft_online(unit, f, t) and uft_online(unit, f+mft_bind(m,f,t), t+mt_bind(m,t))} ..
-  + v_online(unit, f, t)
-  =E=
-  + v_online(unit, f+mft_bind(m,f,t), t+mt_bind(m,t))
 ;
 * -----------------------------------------------------------------------------
 q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..

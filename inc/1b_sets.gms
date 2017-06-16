@@ -73,9 +73,11 @@ Sets
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
     ft_dynamic(f, t) "ft without first t and with tLast+1 (moved right)"
+    //fft_dynamic(f, f, t) "ft without first t and with tLast+1 (moved right) and additional forecasts when decreasing the number of scenarios in the forecast tree"
     ft_full(f, t) "ft with all t's in the solve including tSolve and tLast+1"
     ft_realized(f, t) "Realized ft"
     ft_realizedLast(f, t) "Last realized ft"
+    ft_limits(f, t) "All ft for which variable limits are set within the tSolve loop"
     ft_new(f, t) "Newly introduced f,t to be used in calculating parameter/variable values"
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     mft_(mType, f, t) "Combination of forecasts and time periods in the models"
@@ -90,10 +92,13 @@ Sets
     mftLastSteps(mType, f, t) "Last time periods of the model (can be end of forecasts or end of samples)"
     modelSolves(mType, t) "when different models are to be solved"
     fSolve(f) "forecasts in the model to be solved next"
+    tSolveDispatch(t)
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Enables aggregation of units for later time periods"
     uft_online(unit, f, t) "Units with online and startup variables on time periods"
+    uft_limits(unit, f, t) "Used to set limits in the tSolve loop"
+    uft_limits_online(unit, f, t) "Used to set limits in the tSolve loop"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"

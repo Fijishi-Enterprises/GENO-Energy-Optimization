@@ -3,7 +3,7 @@ Sets  // Model related selections
     mType "model types in the Backbone"
         /invest, storage, schedule, realtime, building/
     mSetting "setting categories for models"
-        /t_start, t_jump, t_horizon, t_forecastLength, t_end, samples, forecasts, intervalEnd, intervalLength, IntervalInHours, t_aggregate/
+        /t_start, t_jump, t_horizon, t_forecastStart, t_forecastLength, t_forecastJump, t_end, samples, forecasts, readForecastsInTheLoop, intervalEnd, intervalLength, IntervalInHours, t_aggregate/
     counter "general counter set"
         /c000*c999/
 
@@ -88,6 +88,7 @@ param_gn  "Possible parameters for grid, node" /
     boundAll      "A flag to bound the state to the reference in all time steps"
     boundStartToEnd  "Force the last states to equal the first state"
     boundCyclic   "A flag to impose cyclic bounds for the first and the last states"
+    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /

@@ -3,6 +3,7 @@ Scalars
     errorcount /0/
     tSolveFirst "counter (ord) for the first t in the solve"
     tSolveLast "counter for the last t in the solve"
+    tDispatchCurrent "counter for the current t in the dispatch loop" /0/
     tCounter "counter for t" /0/
     lastCounter "last member in use of the general counter"
     ts_length "Length of time series (t)"
@@ -53,12 +54,14 @@ Scalar p_sWeightSum "Sum of sample weights";
 Parameters
     pt(t) "Displacement needed to reach the previous time period (in time periods)"
     pf(f, t) "Displacement needed to reach the previous forecast (in forecasts)"
+    cf(f, t) "Displacement needed to reach the current forecast (in forecasts) - this is needed when the forecast tree gets reduced in dynamic equations"
     ct(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
     t_bind(t) "Displacement to reach the binding time period in the parent sample (in time periods). Can skip with aggregated steps as well as when connecting samples."
     ft_bind(f, t) "Displacement to reach the binding forecast (in forecasts) in the current model"
     mt_bind(mType, t) "Displacement to reach the binding time period in the parent sample (in time periods) in the models"
     mft_bind(mType, f, t) "Displacement to reach the binding forecast (in forecasts) in the models"
     p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
+    tForecastNext(mType) "When the next forecast will be availalbe (ord time)"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------
@@ -75,6 +78,7 @@ Parameters
     ts_influx_(grid, node, f, t)
     ts_cf_(flow, node, f, t)
     ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
+    ts_forecast(flow, node, t, f, t)
 ;
 
 * --- Other time dependent parameters -----------------------------------------
