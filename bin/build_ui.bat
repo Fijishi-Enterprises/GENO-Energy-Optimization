@@ -2,6 +2,10 @@
 @TITLE Build Sceleton Titan GUI
 
 PAUSE
+ECHO --- pyuic5 version ---
+CALL pyuic5 --version
+ECHO --- pyrcc5 version ---
+CALL pyrcc5 -version
 ECHO --- Building Sceleton Titan GUI ---
 
 ECHO main.py

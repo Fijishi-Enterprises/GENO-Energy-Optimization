@@ -2,6 +2,7 @@
 
 # Form implementation generated from reading ui file '../titan/ui/about.ui'
 #
+# Created by: PyQt5 UI code generator 5.7.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -58,7 +59,6 @@ class Ui_Form(object):
         self.label_version_str.setTextFormat(QtCore.Qt.RichText)
         self.label_version_str.setScaledContents(True)
         self.label_version_str.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-        self.label_version_str.setContentsMargins(0, 0, 0, 0)
         self.label_version_str.setIndent(75)
         self.label_version_str.setObjectName("label_version_str")
         self.widget_2 = QtWidgets.QWidget(Form)
@@ -82,7 +82,6 @@ class Ui_Form(object):
         self.label.setStyleSheet("color: rgb(255, 255, 255);")
         self.label.setTextFormat(QtCore.Qt.RichText)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
-        self.label.setContentsMargins(0, 0, 0, 0)
         self.label.setIndent(-1)
         self.label.setObjectName("label")
         self.label_3 = QtWidgets.QLabel(self.widget_2)
@@ -101,7 +100,6 @@ class Ui_Form(object):
         self.label_3.setStyleSheet("")
         self.label_3.setTextFormat(QtCore.Qt.RichText)
         self.label_3.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_3.setContentsMargins(0, 0, 0, 0)
         self.label_3.setOpenExternalLinks(True)
         self.label_3.setObjectName("label_3")
 

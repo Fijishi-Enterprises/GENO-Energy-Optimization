@@ -2,6 +2,7 @@
 
 # Form implementation generated from reading ui file '../titan/ui/project_form.ui'
 #
+# Created by: PyQt5 UI code generator 5.7.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -15,12 +16,12 @@ class Ui_Form(object):
         Form.setMinimumSize(QtCore.QSize(500, 400))
         Form.setMaximumSize(QtCore.QSize(500, 400))
         self.verticalLayout = QtWidgets.QVBoxLayout(Form)
-        self.verticalLayout.setSpacing(0)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setSpacing(6)
         self.verticalLayout_2.setContentsMargins(9, 9, 9, 0)
+        self.verticalLayout_2.setSpacing(6)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.lineEdit_project_name = QtWidgets.QLineEdit(Form)
         self.lineEdit_project_name.setObjectName("lineEdit_project_name")
@@ -40,8 +41,8 @@ class Ui_Form(object):
         self.label_folder.setObjectName("label_folder")
         self.verticalLayout_2.addWidget(self.label_folder)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setContentsMargins(-1, 6, -1, 6)
+        self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName("horizontalLayout")
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)

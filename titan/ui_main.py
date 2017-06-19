@@ -53,7 +53,6 @@ class TitanUI(QMainWindow):
 
     def __init__(self):
         """ Initialize GUI."""
-        # TODO: Make sure the right version of pyuic5 and pyrcc5 are used
         super().__init__(flags=Qt.Window)
         # Set number formatting to use user's default settings
         locale.setlocale(locale.LC_NUMERIC, '')
