@@ -261,6 +261,7 @@ class Ui_MainWindow(object):
         self.listView_tools.setSizePolicy(sizePolicy)
         self.listView_tools.setMinimumSize(QtCore.QSize(0, 0))
         self.listView_tools.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.listView_tools.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.listView_tools.setObjectName("listView_tools")
         self.verticalLayout_12.addWidget(self.listView_tools)
         self.tabWidget.addTab(self.tab_tools, "")

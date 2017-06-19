@@ -724,6 +724,9 @@
                  <height>16777215</height>
                 </size>
                </property>
+               <property name="contextMenuPolicy">
+                <enum>Qt::CustomContextMenu</enum>
+               </property>
               </widget>
              </item>
             </layout>

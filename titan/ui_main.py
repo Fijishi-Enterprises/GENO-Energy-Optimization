@@ -30,13 +30,14 @@ from configuration import ConfigurationParser
 from delegates import SetupStyledItemDelegate
 from widgets.setup_form_widget import SetupFormWidget
 from widgets.project_form_widget import ProjectFormWidget
-from widgets.context_menu_widget import ContextMenuWidget
+from widgets.setup_context_menu_widget import SetupContextMenuWidget
 from widgets.edit_tool_widget import EditToolWidget
 from widgets.settings_widget import SettingsWidget
 from widgets.input_verifier_widget import InputVerifierWidget
 from widgets.input_explorer_widget import InputExplorerWidget
 from widgets.output_explorer_widget import OutputExplorerWidget
 from widgets.about_widget import AboutWidget
+from widgets.tool_context_menu_widget import ToolContextMenuWidget
 from modeltest.modeltest import ModelTest
 from excel_handler import ExcelHandler
 
@@ -75,7 +76,8 @@ class TitanUI(QMainWindow):
         # References for widgets
         self.setup_form = None
         self.project_form = None
-        self.context_menu = None
+        self.setup_context_menu = None
+        self.tool_context_menu = None
         self.edit_tool_form = None
         self.settings_form = None
         self.input_verifier_form = None
@@ -156,7 +158,8 @@ class TitanUI(QMainWindow):
         self.ui.toolButton_clear_ready.clicked.connect(self.clear_ready_flags)
         self.ui.toolButton_clear_failed.clicked.connect(self.clear_failed_flags)
         self.ui.toolButton_clear_flags.clicked.connect(self.clear_flags)
-        self.ui.treeView_setups.customContextMenuRequested.connect(self.context_menu_configs)
+        self.ui.treeView_setups.customContextMenuRequested.connect(self.show_setup_context_menu)
+        self.ui.listView_tools.customContextMenuRequested.connect(self.show_tool_context_menu)
         self.ui.toolButton_add_tool.clicked.connect(self.add_tool)
         self.ui.toolButton_refresh_tools.clicked.connect(self.refresh_tools)
         self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)
@@ -837,17 +840,43 @@ class TitanUI(QMainWindow):
         else:
             return
 
-    def context_menu_configs(self, pos):
-        """Context menu for Setup QTreeView.
+    @pyqtSlot("QPoint", name="show_tool_context_menu")
+    def show_tool_context_menu(self, pos):
+        """Context menu for Tool QTreeView.
 
         Args:
             pos (int): Received from the customContextMenuRequested
             signal. Contains mouse position.
         """
+        global_pos = self.ui.listView_tools.mapToGlobal(pos)
+        self.tool_context_menu = ToolContextMenuWidget(self, global_pos)
+        option = self.tool_context_menu.get_action()
+        if option == "Add Tool":
+            self.add_tool()
+            return
+        elif option == "Refresh Tools":
+            self.refresh_tools()
+            return
+        elif option == "Remove Tool":
+            self.remove_tool()
+        else:
+            # No option selected
+            pass
+        self.tool_context_menu.deleteLater()
+        self.tool_context_menu = None
+
+    @pyqtSlot("QPoint", name="show_setup_context_menu")
+    def show_setup_context_menu(self, pos):
+        """Context menu for Setup QTreeView.
+
+        Args:
+            pos (QPoint): Received from the customContextMenuRequested
+            signal. Contains mouse position.
+        """
         ind = self.ui.treeView_setups.indexAt(pos)
         global_pos = self.ui.treeView_setups.mapToGlobal(pos)
-        self.context_menu = ContextMenuWidget(self, global_pos, ind)
-        option = self.context_menu.get_action()
+        self.setup_context_menu = SetupContextMenuWidget(self, global_pos, ind)
+        option = self.setup_context_menu.get_action()
         if option == "Add Child":
             self.open_setup_form(ind)
             return
@@ -878,8 +907,8 @@ class TitanUI(QMainWindow):
         else:
             # No option selected
             pass
-        self.context_menu.deleteLater()
-        self.context_menu = None
+        self.setup_context_menu.deleteLater()
+        self.setup_context_menu = None
 
     @pyqtSlot("QModelIndex", name="open_setup_form")
     def open_setup_form(self, index=QModelIndex()):

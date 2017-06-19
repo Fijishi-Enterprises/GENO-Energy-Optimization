@@ -1,36 +1,23 @@
 """
-Class for a custom context menu.
+Class for a custom context menu for tool listView.
 
 :author: Pekka Savolainen <pekka.t.savolainen@vtt.fi>
-:date:   5.4.2016
+:date:   19.6.2017
 """
 
 from PyQt5.QtWidgets import QMenu
 
 
-class ContextMenuWidget(QMenu):
+class ToolContextMenuWidget(QMenu):
     """ Main class for a context menu."""
 
-    def __init__(self, parent, position, ind):
+    def __init__(self, parent, position):
         super().__init__()
         self._parent = parent
-        self.ind = ind
         self.option = "None"
-        if not ind.isValid():
-            self.add_action("Add New Base")
-            self.add_action("Execute Project")
-            self.add_action("Verify Input Data")
-            self.add_action("Explore Input Data")
-        else:
-            self.add_action("Add New Base")
-            self.add_action("Add Child")
-            self.add_action("Edit Tool")
-            self.add_action("Execute Single")
-            self.add_action("Execute Selected")
-            self.add_action("Execute Project")
-            self.add_action("Clear Flags")
-            self.add_action("Verify Input Data")
-            self.add_action("Explore Input Data")
+        self.add_action("Add Tool")
+        self.add_action("Refresh Tools")
+        self.add_action("Remove Tool")
         self.exec_(position)
 
     def add_action(self, text):
