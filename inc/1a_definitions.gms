@@ -3,7 +3,7 @@ Sets  // Model related selections
     mType "model types in the Backbone"
         /invest, storage, schedule, realtime, building/
     mSetting "setting categories for models"
-        /t_start, t_jump, t_horizon, t_forecastStart, t_forecastLength, t_forecastJump, t_end, samples, forecasts, readForecastsInTheLoop, intervalEnd, intervalLength, IntervalInHours, t_aggregate/
+        /t_start, t_jump, t_horizon, t_forecastStart, t_forecastLength, t_forecastJump, t_end, t_reserveLength, samples, forecasts, readForecastsInTheLoop, intervalEnd, intervalLength, IntervalInHours, t_aggregate/
     counter "general counter set"
         /c000*c999/
 
@@ -36,9 +36,25 @@ Sets  // Model related selections
        / increase, decrease /
 ;
 
+Sets //Reserve type sets
+    restype "Reserve types"
+        / primary "Automatic frequency containment reserves"
+          secondary "Fast frequency restoration reserves"
+          tertiary "Replacement reserves"
+        /
+    restypeDirection(restype, up_down) "Different combinations of reserve types and directions"
+        / primary.up
+          primary.down
+          secondary.up
+          secondary.down
+          tertiary.up
+          tertiary.down
+        /
+;
 
 * Numeric parameters
 Parameter
+    settings(mSetting)
     mSettings(mType, mSetting)
     mSettingsEff(mtype, effLevel)
     mInterval(mType, mSetting, counter)
@@ -184,5 +200,6 @@ param_unitFuel "Parameters for fuel limits in units" /
 param_policy "Set of possible data parameters for grid, node, regulation" /
     emissionTax "Emission tax (€/tonne)"
 /
+
 
 ; // End parameter set declarations

@@ -47,19 +47,6 @@ Sets
     gngnu_constrainedOutputRatio(grid, node, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
 
 * --- Reserve types -----------------------------------------------------------
-    restype "Reserve types"
-        / primary "Automatic frequency containment reserves"
-          secondary "Fast frequency restoration reserves"
-          tertiary "Replacement reserves"
-        /
-    restypeDirection(restype, up_down) "Different combinations of reserve types and directions"
-        / primary.up
-          primary.down
-          secondary.up
-          secondary.down
-          tertiary.up
-          tertiary.down
-        /
     restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
     nuRescapable(restype, up_down, node, unit) "Units capable and available to provide particular reserves"
 
