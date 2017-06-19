@@ -198,7 +198,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))${p_stepLength(m, f+pf(f,t), t+pt(
   $$ifi '%rampSched%' == 'yes' / 2    // Averaging all the terms on the right side of the equation over the timestep here.
 ;
 * -----------------------------------------------------------------------------
-q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t)) ..
+q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))$(ord(t) le tSolveFirst + sum(mf(m, f), mSettings(m, 't_reserveLength'))) ..
   + sum(nuft(node, unit, f, t)$nuRescapable(restype, up_down, node, unit),   // Reserve capable units on this node
         v_reserve(restype, up_down, node, unit, f, t)
     )
@@ -210,7 +210,8 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t)) ..
         ) * v_resTransfer(restype, up_down, from_node, node, f, t)             // Reserves from another node - reduces the need for reserves in the node
     )
   =G=
-  + ts_reserveDemand_(restype, up_down, node, f, t)
+  + ts_reserveDemand_(restype, up_down, node, f, t)$p_nReserves(node, restype, 'use_time_series')
+  + p_nReserves(node, restype, up_down)${not p_nReserves(node, restype, 'use_time_series')}
   - vq_resDemand(restype, up_down, node, f, t)
   + sum(gn2n(grid, node, to_node)$restypeDirectionNode(restype, up_down, to_node),   // If trasferring reserves to another node, increase your own reserves by same amount
         v_resTransfer(restype, up_down, node, to_node, f, t)
@@ -228,10 +229,16 @@ q_resTransfer(gn2n(grid, from_node, to_node), ft(f, t))${ sum(restypeDirection(r
   + p_gnn(grid, from_node, to_node, 'transferCap')
 ;
 * -----------------------------------------------------------------------------
-q_maxDownward(gnuft(grid, node, unit, f, t))${     [uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')]    // generators with online variables
-                                                  or sum(restype, nuRescapable(restype, 'down', node, unit))      // all units with downward reserve provision
-                                                  or [p_gnu(grid, node, unit, 'maxCons') and uft_online(unit, f, t)] // consuming units with an online variable
-                                                }..
+q_maxDownward(gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + settings('t_reserveLength')               // Unit is either providing
+                                               and sum(restype, nuRescapable(restype, 'down', node, unit))            // downward reserves
+                                             ] or
+                                             [ uft_online(unit, f, t) and                                             // or the unit has an online varaible
+                                                 (
+                                                      [unit_minLoad(unit) and p_gnu(grid, node, unit, 'maxGen')]      // generators with a min. load
+                                                   or [p_gnu(grid, node, unit, 'maxCons')]                        // or consuming units with an online variable
+                                                 )
+                                             ]
+                                           }..
   + v_gen(grid, node, unit, f, t)                                                                                    // energy generation/consumption
   + sum( gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit),
         p_gnu(grid_, node_, unit, 'cV') * v_gen(grid_, node_, unit, f, t) )                              // considering output constraints (e.g. cV line)
@@ -239,33 +246,45 @@ q_maxDownward(gnuft(grid, node, unit, f, t))${     [uft_online(unit, f, t) and p
         v_reserve(restype, 'down', node, unit, f, t)                                                              // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
   =G=                                                                                                                // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
-  + v_online(unit, f, t)${uft_online(unit, f, t)} // Online variables should only be generated for units with restrictions
+  + v_online(unit, f, t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')} // Online variables should only be generated for units with restrictions
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxGen')
     * sum(effGroup, // Uses the minimum 'lb' for the current efficiency approximation
         + (p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)} + ts_effGroupUnit(effGroup, unit, 'lb', f, t))
       )
-  + v_gen.lo(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$uft_online(unit, f, t) + 1$(not uft_online(unit, f, t)) ]         // notice: v_gen.lo for consuming units is negative
+  + v_gen.lo(grid, node, unit, f, t)$p_gnu(grid, node, unit, 'maxCons')           // notice: v_gen.lo for consuming units is negative
+  - v_online(unit, f, t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxCons')} // Online variables should only be generated for units with restrictions
+    / p_unit(unit, 'unitCount')
+    * p_gnu(grid, node, unit, 'maxGen')
 ;
 * -----------------------------------------------------------------------------
-q_maxUpward(gnuft(grid, node, unit, f, t))${      [uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxCons')]    // consuming units with online variables
-                                                 or sum(restype, nuRescapable(restype, 'up', node, unit))         // all units with upward reserve provision
-                                                 or [p_gnu(grid, node, unit, 'maxGen') and uft_online(unit, f, t)]   // generators with an online variable
-                                               }..
-  + v_gen(grid, node, unit, f, t)                                                                                    // energy generation/consumption
-  + sum( gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit),
-         p_gnu(grid_, node_, unit, 'cV') * v_gen(grid_, node_, unit, f, t) )                             // considering output constraints (e.g. cV line)
-  + sum(nuRescapable(restype, 'up', node, unit),                                                                  // plus upward reserve participation
-        v_reserve(restype, 'up', node, unit, f, t)                                                                // (v_reserve can be used only if the unit can provide a particular reserve)
+q_maxUpward(gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + settings('t_reserveLength')               // Unit is either providing
+                                               and sum(restype, nuRescapable(restype, 'up', node, unit))         // upward reserves
+                                             ] or
+                                             [ uft_online(unit, f, t) and                                           // or the unit has an online varaible
+                                                 (
+                                                      [unit_minLoad(unit) and p_gnu(grid, node, unit, 'maxCons')]  // consuming units with min_load
+                                                   or [p_gnu(grid, node, unit, 'maxGen')]                          // generators with an online variable
+                                                 )
+                                             ]
+                                           }..
+  + v_gen(grid, node, unit, f, t)                                                                                   // energy generation/consumption
+  + sum( gngnu_constrainedOutputRatio(grid, node, grid_output, node_, unit),
+         p_gnu(grid_output, node_, unit, 'cV') * v_gen(grid_output, node_, unit, f, t) )                            // considering output constraints (e.g. cV line)
+  + sum(nuRescapable(restype, 'up', node, unit)$unit_elec(unit),                                                    // plus upward reserve participation
+        v_reserve(restype, 'up', node, unit, f, t)                                                                  // (v_reserve can be used only if the unit can provide a particular reserve)
     )
-  =L=                                                                         // must be less than available/online capacity
-  - v_online(unit, f, t)${uft_online(unit, f, t)} // Online variables should only be generated for units with restrictions
+  =L=                                                                                                               // must be less than available/online capacity
+  - v_online(unit, f, t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxCons')}       // Consuming units are restricted by their min. load (consuming is negative)
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxCons')
     * sum(effGroup, // Uses the minimum 'lb' for the current efficiency approximation
         + (p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)} + ts_effGroupUnit(effGroup, unit, 'lb', f, t))
       )
-  + v_gen.up(grid, node, unit, f, t) * [ (v_online(unit, f, t) / p_unit(unit, 'unitCount'))$uft_online(unit, f, t) + 1$(not uft_online(unit, f, t)) ]
+  + v_gen.up(grid, node, unit, f, t)${not uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')}            // Generation units are restricted by their (online) capacity
+  + v_online(unit, f, t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')}       // Consuming units are restricted by their min. load (consuming is negative)
+    / p_unit(unit, 'unitCount')
+    * p_gnu(grid, node, unit, 'maxGen')
 ;
 * -----------------------------------------------------------------------------
 q_startup(uft_online(unit, ft_dynamic(f, t))) ..

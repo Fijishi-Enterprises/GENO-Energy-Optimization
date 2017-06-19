@@ -130,3 +130,36 @@ $offOrder
     );
 $onOrder;
 
+
+// Rough approximation
+loop(m,
+    ts_reserveDemand_(restypeDirection('tertiary', 'up'), node, ft(f, t))$[     gn('elec', node)
+                                                           and ord(t) >= tSolveFirst and ord(t) <= tSolveFirst + mSettings(m, 't_reserveLength')
+                                                           and mf(m, f)
+                                                         ] = max(p_nReserves(node, 'tertiary', 'up'),
+                                                                 sqrt{sum((grid, flowUnit(flow, unit_flow), fCentral)$(gnu(grid, node, unit_flow)),
+                                                                       { ts_cf_(flow, node, fCentral, t)
+                                                                         * p_gnu(grid, node, unit_flow, 'maxGen')
+                                                                         * p_unit(unit_flow, 'availability')
+                                                                         * 0.2
+                                                                       }
+                                                                      ) ** 2 }
+                                                             );
+    ts_reserveDemand_(restypeDirection('tertiary', 'down'), node, ft(f, t))$[     gn('elec', node)
+                                                           and ord(t) >= tSolveFirst and ord(t) <= tSolveFirst + mSettings(m, 't_reserveLength')
+                                                           and mf(m, f)
+                                                         ] = max(p_nReserves(node, 'tertiary', 'down'),
+                                                                 sqrt{sum((grid, flowUnit(flow, unit_flow), fCentral)$(gnu(grid, node, unit_flow)),
+                                                                       { (1 - ts_cf_(flow, node, fCentral, t))
+                                                                         * p_gnu(grid, node, unit_flow, 'maxGen')
+                                                                         * p_unit(unit_flow, 'availability')
+                                                                         * 0.2
+                                                                       }
+                                                                      ) ** 2 }
+                                                             );
+);
+loop(gn(grid, node),
+    restypeDirectionNode(restypeDirection(restype, up_down), node)$(p_nReserves(node, restype, 'use_time_series') and sum((f,t), ts_reserveDemand_(restype, up_down, node, f, t))) = yes;
+    restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
+);
+

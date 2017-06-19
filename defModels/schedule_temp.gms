@@ -17,11 +17,12 @@ if (mType('schedule'),
     // Define the model execution parameters in time indeces
     mSettings('schedule', 't_start') = 1;  // Ord of first solve (i.e. >0)
     mSettings('schedule', 't_horizon') = 168;
-    mSettings('schedule', 't_jump') = 12;
+    mSettings('schedule', 't_jump') = 3;
     mSettings('schedule', 't_forecastStart') = 1; // Ord of first forecast available
     mSettings('schedule', 't_forecastLength') = 72;
     mSettings('schedule', 't_forecastJump') = 24;
     mSettings('schedule', 't_end') = 30;
+    mSettings('schedule', 't_reserveLength') = 36;
 
     // Define unit aggregation and efficiency levels starting indeces
     mSettings('schedule', 't_aggregate') = 72;
