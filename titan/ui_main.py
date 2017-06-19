@@ -568,7 +568,8 @@ class TitanUI(QMainWindow):
                 setup_dict = dicts['setups']
                 try:
                     tools = project_dict['tools']
-                    tools.append(def_file)
+                    if not def_file in tools:
+                        tools.append(def_file)
                     # logging.debug("tools list:{}".format(tools))
                     project_dict['tools'] = tools
                 except KeyError:
