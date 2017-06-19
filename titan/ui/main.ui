@@ -236,284 +236,149 @@
            </widget>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_4">
-            <property name="spacing">
-             <number>0</number>
+           <widget class="QGroupBox" name="groupBox_flags">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <item>
-             <widget class="QGroupBox" name="groupBox_chain_flags">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>100</width>
-                <height>80</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>80</height>
-               </size>
-              </property>
-              <property name="title">
-               <string>Clear Flags (sel.)</string>
-              </property>
-              <layout class="QGridLayout" name="gridLayout_2">
-               <property name="leftMargin">
-                <number>2</number>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>160</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>160</height>
+             </size>
+            </property>
+            <property name="title">
+             <string>Clear Flags</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <property name="leftMargin">
+              <number>30</number>
+             </property>
+             <item>
+              <spacer name="verticalSpacer_4">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
                </property>
-               <property name="topMargin">
-                <number>4</number>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
                </property>
-               <property name="rightMargin">
-                <number>2</number>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButton_clear_failed">
+               <property name="minimumSize">
+                <size>
+                 <width>42</width>
+                 <height>23</height>
+                </size>
                </property>
-               <item row="0" column="0">
-                <widget class="QToolButton" name="toolButton_clear_ready_branch">
-                 <property name="minimumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Ready flag for the selected Setup and all its children&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="icon">
-                  <iconset resource="resources/resources.qrc">
-                   <normaloff>:/toolButtons/clear_all_ready_flags.png</normaloff>:/toolButtons/clear_all_ready_flags.png</iconset>
-                 </property>
-                 <property name="iconSize">
-                  <size>
-                   <width>36</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="0">
-                <widget class="QToolButton" name="toolButton_clear_flags_branch">
-                 <property name="minimumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear flags for the selected Setup and all its children&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="icon">
-                  <iconset resource="resources/resources.qrc">
-                   <normaloff>:/toolButtons/clear_all_flags.png</normaloff>:/toolButtons/clear_all_flags.png</iconset>
-                 </property>
-                 <property name="iconSize">
-                  <size>
-                   <width>36</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QToolButton" name="toolButton_clear_failed_branch">
-                 <property name="minimumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Failed flag for the selected Setup and all its children&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="icon">
-                  <iconset resource="resources/resources.qrc">
-                   <normaloff>:/toolButtons/clear_all_failed_flags.png</normaloff>:/toolButtons/clear_all_failed_flags.png</iconset>
-                 </property>
-                 <property name="iconSize">
-                  <size>
-                   <width>36</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox_flags">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>100</width>
-                <height>80</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>80</height>
-               </size>
-              </property>
-              <property name="title">
-               <string>Clear Flags</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-              </property>
-              <property name="flat">
-               <bool>false</bool>
-              </property>
-              <layout class="QGridLayout" name="gridLayout">
-               <property name="leftMargin">
-                <number>2</number>
+               <property name="maximumSize">
+                <size>
+                 <width>42</width>
+                 <height>23</height>
+                </size>
                </property>
-               <property name="topMargin">
-                <number>4</number>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Failed flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
-               <property name="rightMargin">
-                <number>2</number>
+               <property name="text">
+                <string/>
                </property>
-               <property name="bottomMargin">
-                <number>9</number>
+               <property name="icon">
+                <iconset resource="resources/resources.qrc">
+                 <normaloff>:/toolButtons/clear_failed_flags.png</normaloff>:/toolButtons/clear_failed_flags.png</iconset>
                </property>
-               <item row="0" column="0">
-                <widget class="QToolButton" name="toolButton_clear_ready">
-                 <property name="minimumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Ready flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="icon">
-                  <iconset resource="resources/resources.qrc">
-                   <normaloff>:/toolButtons/clear_all_ready_flags.png</normaloff>:/toolButtons/clear_all_ready_flags.png</iconset>
-                 </property>
-                 <property name="iconSize">
-                  <size>
-                   <width>36</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QToolButton" name="toolButton_clear_failed">
-                 <property name="minimumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Failed flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="icon">
-                  <iconset resource="resources/resources.qrc">
-                   <normaloff>:/toolButtons/clear_all_failed_flags.png</normaloff>:/toolButtons/clear_all_failed_flags.png</iconset>
-                 </property>
-                 <property name="iconSize">
-                  <size>
-                   <width>36</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0" colspan="2">
-                <widget class="QToolButton" name="toolButton_clear_flags">
-                 <property name="minimumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>42</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="icon">
-                  <iconset resource="resources/resources.qrc">
-                   <normaloff>:/toolButtons/clear_all_flags.png</normaloff>:/toolButtons/clear_all_flags.png</iconset>
-                 </property>
-                 <property name="iconSize">
-                  <size>
-                   <width>36</width>
-                   <height>23</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-           </layout>
+               <property name="iconSize">
+                <size>
+                 <width>36</width>
+                 <height>23</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButton_clear_ready">
+               <property name="minimumSize">
+                <size>
+                 <width>42</width>
+                 <height>23</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>42</width>
+                 <height>23</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Ready flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="resources/resources.qrc">
+                 <normaloff>:/toolButtons/clear_ready_flags.png</normaloff>:/toolButtons/clear_ready_flags.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>36</width>
+                 <height>23</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButton_clear_flags">
+               <property name="minimumSize">
+                <size>
+                 <width>42</width>
+                 <height>23</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>42</width>
+                 <height>23</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="resources/resources.qrc">
+                 <normaloff>:/toolButtons/clear_all_flags.png</normaloff>:/toolButtons/clear_all_flags.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>36</width>
+                 <height>23</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
           </item>
           <item>
            <widget class="QGroupBox" name="groupBox_data">
@@ -696,7 +561,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>0</width>
+              <width>13</width>
               <height>20</height>
              </size>
             </property>
@@ -706,6 +571,12 @@
         </item>
         <item>
          <widget class="QSplitter" name="splitter_vertical_left">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -1431,9 +1302,6 @@ color: rgb(255, 255, 255);</string>
   <tabstop>pushButton_execute_project</tabstop>
   <tabstop>pushButton_delete_setup</tabstop>
   <tabstop>pushButton_delete_all</tabstop>
-  <tabstop>toolButton_clear_ready_branch</tabstop>
-  <tabstop>toolButton_clear_failed_branch</tabstop>
-  <tabstop>toolButton_clear_flags_branch</tabstop>
   <tabstop>toolButton_clear_ready</tabstop>
   <tabstop>toolButton_clear_failed</tabstop>
   <tabstop>toolButton_clear_flags</tabstop>

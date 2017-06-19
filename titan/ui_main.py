@@ -60,7 +60,7 @@ class TitanUI(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.splitter_horizontal.setStretchFactor(1, 1)  # Set horizontal splitter to the left
-        self.ui.splitter_horizontal.setCollapsible(1, True)
+        self.ui.splitter_horizontal.setCollapsible(1, True)  # Enables hiding cmd and tool views completely
         # Class variables
         self._config = None
         self._project = None
@@ -153,9 +153,6 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_execute_selected.clicked.connect(self.execute_selected)
         self.ui.pushButton_delete_setup.clicked.connect(self.delete_selected_setup)
         self.ui.pushButton_delete_all.clicked.connect(self.delete_all)
-        self.ui.toolButton_clear_ready_branch.clicked.connect(self.clear_branch_ready_flags)
-        self.ui.toolButton_clear_failed_branch.clicked.connect(self.clear_branch_failed_flags)
-        self.ui.toolButton_clear_flags_branch.clicked.connect(self.clear_branch_flags)
         self.ui.toolButton_clear_ready.clicked.connect(self.clear_ready_flags)
         self.ui.toolButton_clear_failed.clicked.connect(self.clear_failed_flags)
         self.ui.toolButton_clear_flags.clicked.connect(self.clear_flags)
@@ -1289,9 +1286,6 @@ class TitanUI(QMainWindow):
         self.ui.pushButton_execute_project.setEnabled(value)
         self.ui.pushButton_delete_setup.setEnabled(value)
         self.ui.pushButton_delete_all.setEnabled(value)
-        self.ui.toolButton_clear_ready_branch.setEnabled(value)
-        self.ui.toolButton_clear_failed_branch.setEnabled(value)
-        self.ui.toolButton_clear_flags_branch.setEnabled(value)
         self.ui.toolButton_clear_ready.setEnabled(value)
         self.ui.toolButton_clear_failed.setEnabled(value)
         self.ui.toolButton_clear_flags.setEnabled(value)
@@ -1322,21 +1316,6 @@ class TitanUI(QMainWindow):
         if not clear_flags_setting:
             return
         self.clear_given_flags(clear_ready=True, clear_failed=True)
-
-    @pyqtSlot(name='clear_branch_ready_flags')
-    def clear_branch_ready_flags(self):
-        """Clear ready flags for selected Setup and its children."""
-        self.clear_given_flags_branch(clear_ready=True, clear_failed=False)
-
-    @pyqtSlot(name='clear_branch_failed_flags')
-    def clear_branch_failed_flags(self):
-        """Clear failed flags for selected Setup and its children."""
-        self.clear_given_flags_branch(clear_ready=False, clear_failed=True)
-
-    @pyqtSlot(name='clear_branch_flags')
-    def clear_branch_flags(self):
-        """Clear flags for selected Setup and its children."""
-        self.clear_given_flags_branch(clear_ready=True, clear_failed=True)
 
     @pyqtSlot(name='clear_ready_flags')
     def clear_ready_flags(self):

@@ -39,15 +39,15 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
         self.box_w_padding = 5  # Flag icon width padding
         self.box_h_padding = 4  # Row height padding to leave a little breathing room
         self.padding = 3  # Padding for decoration and text
-        self.box_widths = 2*self.box_width + 2*self.box_w_padding  # Flag icons + padding
+        self.box_widths = self.box_width + self.box_w_padding  # Flag icons + padding
 
     # noinspection PyArgumentList, PyUnresolvedReferences
     def paint(self, painter, options, index):
-        """Reimplemented paint method. Reimplement also displayText if
-        super().paint() is called.
+        """Reimplemented paint method. Remenber to reimplement also
+        displayText method if super().paint() is called.
 
         Paints item with the following contents:
-        padding + decoration + padding + text + box + box_padding + box + box_padding
+        padding + decoration + padding + text + box + box_padding
 
         Args:
             painter (QPainter): painter
@@ -59,7 +59,7 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
         font = QApplication.font()
         deco = index.model().data(index, Qt.DecorationRole)
         text = index.internalPointer().name
-        icon_list = self.get_flag_icon(index.internalPointer())
+        icon = self.get_flag_icon(index.internalPointer())
         main_rect = options.rect  # The allotted rectangle to fill (size given by sizeHint)
         deco_width = 0
         if deco:
@@ -76,18 +76,12 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
         text_box.setY(main_rect.y())
         text_box.setWidth(main_rect.width() - self.box_widths - deco_box.width() - self.padding)
         text_box.setHeight(main_rect.height())
-        # Rectangle where ready flag is drawn
-        first_box = QRect()  # Rectangle for first box icon (Extra 10 pixels space for 1st and 2nd box padding)
-        first_box.setX(main_rect.x() + main_rect.width() - 2*self.box_width - 2*self.box_w_padding)
+        # Rectangle where flag icon is drawn
+        first_box = QRect()  # Rectangle for box icon (Extra 10 pixels space for 1st and 2nd box padding)
+        first_box.setX(main_rect.x() + main_rect.width() - self.box_width - self.box_w_padding)
         first_box.setY(main_rect.y())
         first_box.setWidth(self.box_width+self.box_w_padding)
         first_box.setHeight(main_rect.height())
-        # Rectangle where failed flag is drawn
-        sec_box = QRect()  # Rectangle for the second box icon (Extra 5 pixels space for end padding)
-        sec_box.setX(main_rect.x() + main_rect.width() - self.box_width-self.box_w_padding)
-        sec_box.setY(main_rect.y())
-        sec_box.setWidth(self.box_width+self.box_w_padding)
-        sec_box.setHeight(main_rect.height())
         # Compact text when allotted space is too short for the whole text
         metrics = QFontMetrics(font)
         elided_text = metrics.elidedText(text, Qt.ElideRight, text_box.width())
@@ -105,9 +99,7 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
         style.drawItemText(painter, text_box, Qt.AlignLeft | Qt.AlignVCenter,
                            palette, True, elided_text)
         style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter,
-                             icon_list[0].pixmap(QSize(first_box.width(), self.box_height), item_mode, item_state))
-        style.drawItemPixmap(painter, sec_box, Qt.AlignLeft | Qt.AlignVCenter,
-                             icon_list[1].pixmap(QSize(sec_box.width(), self.box_height), item_mode, item_state))
+                             icon.pixmap(QSize(first_box.width(), self.box_height), item_mode, item_state))
 
     def sizeHint(self, options, index):
         """Reimplemented sizeHint method. Needed in order to
@@ -133,18 +125,11 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
         Args:
             setup (Setup): Setup for which the icons are being painted
         """
-        icon1 = QIcon()
-        icon2 = QIcon()
-        if setup.is_ready and setup.failed:
-            icon1.addPixmap(QPixmap(":/flags/check_mark.png"))
-            icon2.addPixmap(QPixmap(":/flags/fail_box.png"))
-        elif not setup.is_ready and setup.failed:
-            icon1.addPixmap(QPixmap(":/flags/empty_box.png"))
-            icon2.addPixmap(QPixmap(":/flags/fail_box.png"))
+        icon = QIcon()
+        if setup.failed:
+            icon.addPixmap(QPixmap(":/flags/fail_box.png"))
         elif setup.is_ready and not setup.failed:
-            icon1.addPixmap(QPixmap(":/flags/check_mark.png"))
-            icon2.addPixmap(QPixmap(":/flags/empty_box.png"))
+            icon.addPixmap(QPixmap(":/flags/check_mark.png"))
         else:
-            icon1.addPixmap(QPixmap(":/flags/empty_box.png"))
-            icon2.addPixmap(QPixmap(":/flags/empty_box.png"))
-        return [icon1, icon2]
+            icon.addPixmap(QPixmap(":/flags/empty_box.png"))
+        return icon
