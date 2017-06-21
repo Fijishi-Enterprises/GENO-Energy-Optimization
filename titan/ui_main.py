@@ -848,7 +848,7 @@ class TitanUI(QMainWindow):
             pos (int): Received from the customContextMenuRequested
             signal. Contains mouse position.
         """
-        global_pos = self.ui.listView_tools.mapToGlobal(pos)
+        global_pos = self.ui.listView_tools.viewport().mapToGlobal(pos)
         self.tool_context_menu = ToolContextMenuWidget(self, global_pos)
         option = self.tool_context_menu.get_action()
         if option == "Add Tool":
@@ -874,7 +874,7 @@ class TitanUI(QMainWindow):
             signal. Contains mouse position.
         """
         ind = self.ui.treeView_setups.indexAt(pos)
-        global_pos = self.ui.treeView_setups.mapToGlobal(pos)
+        global_pos = self.ui.treeView_setups.viewport().mapToGlobal(pos)
         self.setup_context_menu = SetupContextMenuWidget(self, global_pos, ind)
         option = self.setup_context_menu.get_action()
         if option == "Add Child":
