@@ -35,8 +35,7 @@ class ToolInstance(QObject):
         self.tool_process = None
         self.tool_output_dir = tool_output_dir
         wrk_dir = ui.current_project().work_dir
-        self.basedir = tempfile.mkdtemp(dir=wrk_dir,
-                                        prefix=self.tool.short_name + '__')
+        self.basedir = tempfile.mkdtemp(suffix='__sceleton', prefix=self.tool.short_name + '__', dir=wrk_dir)
         self.setup_name = setup_name
         self.command = ''  # command is created after ToolInstance is initialized
         self.datafiles = [os.path.join(self.basedir, f) for f in tool.datafiles]

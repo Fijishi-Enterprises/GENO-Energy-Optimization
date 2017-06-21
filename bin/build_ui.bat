@@ -53,6 +53,11 @@ CALL pyuic5 ../titan/ui/about.ui -o ../titan/ui/about.py.o
 findstr /V /C:"# Created:" /C:"#      by:" ..\titan\ui\about.py.o > ..\titan\ui\about.py
 del ..\titan\ui\about.py.o
 
+ECHO progressbar_dialog.py
+CALL pyuic5 ../titan/ui/progressbar_dialog.ui -o ../titan/ui/progressbar_dialog.py.o
+findstr /V /C:"# Created:" /C:"#      by:" ..\titan\ui\progressbar_dialog.py.o > ..\titan\ui\progressbar_dialog.py
+del ..\titan\ui\progressbar_dialog.py.o
+
 ECHO resources_rc.py
 CALL pyrcc5 -o ../titan/resources_rc.py ../titan/ui/resources/resources.qrc
 

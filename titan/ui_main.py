@@ -19,7 +19,7 @@ from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
 from setup import Setup
-from helpers import find_work_dirs, remove_work_dirs, erase_dir, \
+from helpers import find_work_dirs, erase_dir, \
                     busy_effect, project_dir
 from config import ERROR_COLOR, BLACK_COLOR, \
                    DEFAULT_WORK_DIR, CONFIGURATION_FILE,\
@@ -38,6 +38,7 @@ from widgets.input_explorer_widget import InputExplorerWidget
 from widgets.output_explorer_widget import OutputExplorerWidget
 from widgets.about_widget import AboutWidget
 from widgets.tool_context_menu_widget import ToolContextMenuWidget
+from widgets.progressbar_dialog_widget import ProgressBarDialog
 from modeltest.modeltest import ModelTest
 from excel_handler import ExcelHandler
 
@@ -84,6 +85,7 @@ class TitanUI(QMainWindow):
         self.input_explorer = None
         self.results_form = None
         self.about_form = None
+        self.delete_progressbar = None
         # Setup status bar
         self.ui.statusbar.setStyleSheet(STATUSBAR_STYLESHEET)
         self.ui.statusbar.setFixedHeight(20)
@@ -571,14 +573,12 @@ class TitanUI(QMainWindow):
                 setup_dict = dicts['setups']
                 try:
                     tools = project_dict['tools']
-                    if not def_file in tools:
+                    if def_file not in tools:
                         tools.append(def_file)
-                    # logging.debug("tools list:{}".format(tools))
                     project_dict['tools'] = tools
                 except KeyError:
                     logging.debug("tools keyword not found in project file")
                     project_dict['tools'] = [def_file]
-                    # logging.debug("tools list:{}".format(project_dict['tools']))
                 # Save dictionaries back to JSON file
                 dicts['project'] = project_dict
                 dicts['setups'] = setup_dict
@@ -1290,6 +1290,7 @@ class TitanUI(QMainWindow):
     @pyqtSlot(name='terminate_execution')
     def terminate_execution(self):
         """Stop current Setup execution by closing the Tool QProcess."""
+        # TODO: Test this with other than GAMS Tools
         # TODO: Test if sending a SIGINT (Ctrl-c) signal makes the solver return the current point
         # and the appropriate model status, with a solution status of 8 (USER INTERRUPT), and
         # the GAMS run will continue.
@@ -1728,21 +1729,33 @@ class TitanUI(QMainWindow):
         return
 
     def show_delete_work_dirs_prompt(self):
-        """Shows the delete work directories message box when exiting Sceleton."""
-        # TODO: Show some kind of dialog that let's the user know when deleting is in progress
+        """Shows the delete work directories message box when exiting Sceleton.
+        If progress bar dialog is shown, it emits a signal to quit_application()
+        method when finished.
+
+        Returns:
+            True if progress bar dialog is shown,
+            False otherwise.
+        """
         del_dirs = self._config.get('settings', 'delete_work_dirs')
         if del_dirs == '0':
             # Don't delete work directories and don't show message box
             logging.debug("Work directories not deleted")
-            return
+            return False
         elif del_dirs == '1':  # Default
             # Find work directories
-            dirs = find_work_dirs(self._project)
+            all_dirs = find_work_dirs(self._project)  # All directories in work directory
+            dirs = list()  # Directory paths to remove
+            # Get all directories that contain '__sceleton' suffix
+            for entry in all_dirs:
+                d = os.path.split(entry)[1]
+                if '__sceleton' in d:
+                    dirs.append(entry)
             dirs_str = '\n'.join(dirs)
             if len(dirs) == 0:
                 # No work directories found, skip message box
                 logging.debug("No work directories found in path {0}".format(self._project.work_dir))
-                return
+                return False
             # Show message box
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Question)
@@ -1757,25 +1770,45 @@ class TitanUI(QMainWindow):
             answer = msg.exec_()
             chk = chkbox.checkState()
             if answer == QMessageBox.Yes:
-                remove_work_dirs(dirs)
-                logging.debug("Deleted {0} work directories".format(len(dirs)))
                 if chk == 2:
                     # Save preference into config file
                     self._config.set('settings', 'delete_work_dirs', '2')
+                logging.debug("Deleting {0} directories".format(len(dirs)))
+                self.show_delete_dialog(dirs)
+                return True
             else:
                 logging.debug("Work directories not deleted")
                 if chk == 2:
                     # Save preference into config file
                     self._config.set('settings', 'delete_work_dirs', '0')
+                return False
         elif del_dirs == '2':
             # Delete work directories without prompt
-            dirs = find_work_dirs(self._project)
-            remove_work_dirs(dirs)
-            logging.debug("Deleted {0} work directories".format(len(dirs)))
+            all_dirs = find_work_dirs(self._project)  # All directories in work directory
+            dirs = list()  # Directory paths to remove
+            # Get all directories that contain '__sceleton' suffix
+            for entry in all_dirs:
+                d = os.path.split(entry)[1]
+                if '__sceleton' in d:
+                    dirs.append(entry)
+            logging.debug("Deleting {0} directories".format(len(dirs)))
+            self.show_delete_dialog(dirs)
+            return True
         else:
             logging.debug("Unknown setting for delete_work_dirs. Writing default value")
             self._config.set('settings', 'delete_work_dirs', '1')
-        return
+        return False
+
+    def show_delete_dialog(self, dirs):
+        """Show delete dialog with progressbar. Continues
+        to quit_application() when finished.
+
+        Args:
+            dirs (list): List of directory paths to delete
+        """
+        self.delete_progressbar = ProgressBarDialog(self, dirs)
+        self.delete_progressbar.show()
+        self.delete_progressbar.remove_work_dirs()
 
     def show_about(self):
         """Show About Sceleton form."""
@@ -1795,11 +1828,16 @@ class TitanUI(QMainWindow):
                 event.ignore()
             return
         if self._project:
+            self._config.set('general', 'previous_project', self._project.path)
             # Show save project message box
             self.show_save_project_prompt()
             # Show delete work directories message box
-            self.show_delete_work_dirs_prompt()
-            self._config.set('general', 'previous_project', self._project.path)
+            if self.show_delete_work_dirs_prompt(): # Returns True if delete work directories progress bar is shown
+                return
+        self.quit_application()
+
+    def quit_application(self):
+        """This is needed in order to make delete work directories dialog work during exit."""
         logging.debug("See you later.")
         self._config.save()
         # noinspection PyArgumentList

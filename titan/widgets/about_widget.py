@@ -31,7 +31,7 @@ class AboutWidget(QWidget):
         self.ui.label_version_str.setText("Version {0}".format(version))
 
     def keyPressEvent(self, e):
-        """Close form when escape key is pressed.
+        """Close form when Escape, Enter, Return, or Space bar keys are pressed.
 
         Args:
             e (QKeyEvent): Received key press event.

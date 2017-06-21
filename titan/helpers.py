@@ -62,7 +62,15 @@ class MyEncoder(json.JSONEncoder):
 
 
 def find_work_dirs(project):
-    """Returns a list of work directory paths."""
+    """Returns a list of work directory paths. Note: Contains
+    also non Sceleton related directories.
+
+    Args:
+        project (SceletonProject): Current project
+
+    Returns:
+        List of all directories in the project work path
+    """
     work_dirs = list()
     entries = os.listdir(project.work_dir)
     for entry in entries:
@@ -269,26 +277,10 @@ def erase_dir(path):
         return False
     logging.debug("Deleting directory {0}".format(path))
     try:
-        shutil.rmtree(path, ignore_errors=True)
+        shutil.rmtree(path)
     except OSError:
         raise
     return True
-
-
-@busy_effect
-def remove_work_dirs(dirs):
-    """Used to remove work directories when exiting Sceleton.
-
-    Args:
-        dirs (list): List of paths to delete
-    """
-    for directory in dirs:
-        logging.debug("Deleting directory {0}".format(directory))
-        try:
-            shutil.rmtree(directory, ignore_errors=True)
-        except OSError:
-            logging.exception("OSError while removing directory {}".format(directory))
-            raise
 
 
 def layout_widgets(layout):
