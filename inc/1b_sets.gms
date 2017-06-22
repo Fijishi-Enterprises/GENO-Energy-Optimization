@@ -64,6 +64,7 @@ Sets
     ft_full(f, t) "ft with all t's in the solve including tSolve and tLast+1"
     ft_realized(f, t) "Realized ft"
     ft_realizedLast(f, t) "Last realized ft"
+    ft_fix(f,t) "ft where variable values are fixed after the solve, so that dynamic equations cannot alter them" 
     ft_limits(f, t) "All ft for which variable limits are set within the tSolve loop"
     ft_new(f, t) "Newly introduced f,t to be used in calculating parameter/variable values"
     mft(mType, f, t) "Combination of forecasts and time periods in the models"

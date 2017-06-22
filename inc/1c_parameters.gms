@@ -47,6 +47,7 @@ Parameters
     p_sWeight(s) "Weight of sample"
     p_sProbability(s) "Probability to reach sample conditioned on anchestor samples"
     p_fProbability(f) "Probability of forecast"
+    p_sft_probability(s, f, t) "Probability of forecast"
 ;
 
 Scalar p_sWeightSum "Sum of sample weights";
@@ -63,6 +64,8 @@ Parameters
     mft_bind(mType, f, t) "Displacement to reach the binding forecast (in forecasts) in the models"
     p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
     tForecastNext(mType) "When the next forecast will be availalbe (ord time)"
+    aaSolveInfo(mType, t, solveInfoAttributes) "stores information about the solve status"
+    p_uft_online_last(unit, f, t) "Ord of last t where unit is online"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------

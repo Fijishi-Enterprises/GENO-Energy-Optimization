@@ -1,7 +1,7 @@
 * --- Variable limits ---------------------------------------------------------
 // v_state absolute boundaries set according to p_gn parameters;
   // When using constant values and to supplement time series with constant values (time series will override when data available)
-v_state.up(gn_state(grid, node), ft_limits(f, t))$p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant') = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
+v_state.up(gn_state(grid, node), ft_limits(f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant') and not ft_fix(f,t)} = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
 v_state.lo(gn_state(grid, node), ft_limits(f, t))$p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant') = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
 v_state.fx(gn_state(grid, node), ft_limits(f, t))$(p_gn(grid, node, 'boundAll') and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')) = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
   // When using time series

@@ -1,11 +1,27 @@
 * --- Model parameters, features and switches ---------------------------------
 Sets  // Model related selections
     mType "model types in the Backbone"
-        /invest, storage, schedule, realtime, building/
+        /invest, storage, schedule, realtime, building, schedule_dispatch/
     mSetting "setting categories for models"
         /t_start, t_jump, t_horizon, t_forecastStart, t_forecastLength, t_forecastJump, t_end, t_reserveLength, samples, forecasts, readForecastsInTheLoop, intervalEnd, intervalLength, IntervalInHours, t_aggregate/
     counter "general counter set"
         /c000*c999/
+
+    solveInfoAttributes
+        /
+          modelStat
+          solveStat
+          totalTime
+          iterations
+          nodes
+          numEqu
+          numDVar
+          numVar
+          numNZ
+          sumInfes
+          objEst
+          objVal
+        /
 
     // Efficiency approximation related sets
     op "Operating points in the efficiency curves, also functions as index for data points"
