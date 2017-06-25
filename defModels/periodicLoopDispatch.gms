@@ -6,7 +6,7 @@
               or
             [ ord(f) > 1 and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength') and ord(t) >= tSolveFirst + tDispatchCurrent ]
               or
-            [ fCentral(f) and ord(t) > mSettings(mSolve, 't_forecastLength') ]
+            [ fCentral(f) and ord(t) > tSolveFirst + mSettings(mSolve, 't_forecastLength') ]
         } ) = yes;
 *    mft(mSolve, f, t)${ [ord(t) >= ord(tSolve)]
 *                         $$ifi     '%rampSched%' == 'yes' and [ord(t) <=
@@ -141,6 +141,7 @@ $onOrder;
 
 
 // Rough approximation
+$ontext
 loop(m,
     ts_reserveDemand_(restypeDirection('tertiary', 'up'), node, ft(f, t))$[     gn('elec', node)
                                                            and ord(t) >= tSolveFirst and ord(t) <= tSolveFirst + mSettings(m, 't_reserveLength')
@@ -167,8 +168,13 @@ loop(m,
                                                                       ) ** 2 }
                                                              );
 );
+$offtext
 loop(gn(grid, node),
-    restypeDirectionNode(restypeDirection(restype, up_down), node)$(p_nReserves(node, restype, 'use_time_series') and sum((f,t), ts_reserveDemand_(restype, up_down, node, f, t))) = yes;
+    restypeDirectionNode(restypeDirection(restype, up_down), node)$(p_nReserves(node, restype, 'use_time_series') and sum((f,t), ts_reserveDemand(restype, up_down, node, f, t))) = yes;
     restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
 );
 
+  ts_cf_(flow,'FI_R',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst and ord(t) < tSolveFirst + f_improve )
+    = ts_cf(flow,'FI_R',f,t) + [ts_cf(flow,'FI_R','f00',t) - ts_cf(flow,'FI_R',f,t)] * [1 - log10( {ord(t) - tSolveFirst + 1.7} / 1.47 ) ];
+  ts_cf_(flow,'SE_N',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst and ord(t) < tSolveFirst + f_improve )
+    = ts_cf(flow,'SE_N',f,t) + [ts_cf(flow,'SE_N','f00',t) - ts_cf(flow,'SE_N',f,t)] * [1 - log10( {ord(t) - tSolveFirst + 1.7} / 1.47 ) ];

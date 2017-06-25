@@ -18,6 +18,7 @@ Scalars
     tmp_dist "Temporary parameter for calculating the distance between operating points"
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
+    f_improve /12/;
 ;
 
 * --- Power plant and fuel data -----------------------------------------------
@@ -80,9 +81,11 @@ Parameters
     ts_unavailability(unit, t) "Unavailability of a unit in the time period/slice (p.u.)"
 // Aliases used for interval aggregation
     ts_influx_(grid, node, f, t)
+    ts_influx_temp(grid, node, f, t)
     ts_cf_(flow, node, f, t)
     ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
     ts_forecast(flow, node, t, f, t)
+    ts_tertiary(*,node,t,*,t)
 ;
 
 * --- Other time dependent parameters -----------------------------------------

@@ -64,11 +64,12 @@ Sets
     ft_full(f, t) "ft with all t's in the solve including tSolve and tLast+1"
     ft_realized(f, t) "Realized ft"
     ft_realizedLast(f, t) "Last realized ft"
-    ft_fix(f,t) "ft where variable values are fixed after the solve, so that dynamic equations cannot alter them" 
+    ft_fix(f,t) "ft where variable values are fixed after the solve, so that dynamic equations cannot alter them"
     ft_limits(f, t) "All ft for which variable limits are set within the tSolve loop"
     ft_new(f, t) "Newly introduced f,t to be used in calculating parameter/variable values"
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     mft_(mType, f, t) "Combination of forecasts and time periods in the models"
+    msf(mType, s, f) "Model, sample, forecast"
     msft(mType, s, f, t) "Combination of samples, forecasts and time periods in the models"
     mftStart(mType, f, t) "Start point of simulation"
     mftBind(mType, f, t) "Time periods/slices where forecasts/samples are coupled, note: t couples samples"
@@ -81,6 +82,7 @@ Sets
     modelSolves(mType, t) "when different models are to be solved"
     fSolve(f) "forecasts in the model to be solved next"
     tSolveDispatch(t)
+    tLatestForecast(t) "t for the latest forecast that is available"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Enables aggregation of units for later time periods"

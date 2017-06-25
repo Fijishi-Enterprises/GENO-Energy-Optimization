@@ -31,6 +31,7 @@ loop(m,
     if (not sum(f, mf(m, f)),  // unless they have been provided as input
         mf(m, f)$(ord(f) <= 1 + mSettings(m, 'forecasts')) = yes;  // realization needs one f, therefore 1 + number of forecasts
     );
+    msf(m, s, f)$(ms(m, s) and mf(m, f)) = yes;
 );
 
 

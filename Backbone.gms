@@ -54,7 +54,7 @@ files log /''/, gdx, f_info /'output\info.txt'/;
 
 options
     optca = 0
-    optcr = 0.00001
+    optcr = 0.0001
 *    profile = 8
     solvelink = %Solvelink.Loadlibrary%
     bratio = 1

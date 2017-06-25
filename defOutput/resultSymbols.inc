@@ -5,7 +5,8 @@ r_gen
 r_transfer
 r_genFuel
 r_elec_type
-*r_demand
+r_demand
+r_onlineCap
 *r_transmission
 *r_heat
 *r_capacity_type
@@ -14,5 +15,9 @@ r_elec_type
 *r_storageControl
 *r_elecPrice
 r_totalCost
+r_cost
+r_qGen
+r_qResDemand
 metadata
 mSettings
+
