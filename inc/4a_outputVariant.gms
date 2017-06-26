@@ -43,11 +43,11 @@
                } / p_unit(unit, 'unitCount')
              * {
                   // Startup variable costs
-                 + p_unit(unit, 'startupCost')
+                 + p_unit(unit, 'startCost')
                  * p_unit(unit, 'outputCapacityTotal')
                   // Start-up fuel and emission costs
                  + sum(uFuel(unit_fuel, 'startup', fuel),
-                     + p_unit(unit, 'startupFuelCons')
+                     + p_unit(unit, 'startFuelCons')
                      * p_unit(unit, 'outputCapacityTotal')
                      * sum(gnu_output(grid, node, unit),
                            // Fuel costs for start-up fuel use
