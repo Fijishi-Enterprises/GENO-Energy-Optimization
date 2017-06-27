@@ -10,9 +10,9 @@
     tForecastNext(mSolve)$(ord(tSolve) >= tForecastNext(mSolve)) = tForecastNext(mSolve) + mSettings(mSolve, 't_ForecastJump');
 
     loop(tLatestForecast,  // There should be only one latest forecast
-        ts_cf(flow,'FI_R',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst + f_improve and ord(t) <= tSolveFirst + mSettings('schedule', 't_forecastLength'))
+        ts_cf(flow,'FI_R',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst and ord(t) <= tSolveFirst + mSettings('schedule', 't_forecastLength'))
           = ts_forecast(flow,'74FI',tLatestForecast,f,t);
-        ts_cf(flow,'SE_N',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst + f_improve and ord(t) <= tSolveFirst + mSettings('schedule', 't_forecastLength'))
+        ts_cf(flow,'SE_N',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst and ord(t) <= tSolveFirst + mSettings('schedule', 't_forecastLength'))
           = ts_forecast(flow,'86SE',tLatestForecast,f,t);
     );
 
