@@ -1,5 +1,10 @@
 * иии Generate model rules from basic patterns defined in the model definition files ииииииииииииииииииииииииииииииииииииииииииииииииииии
 
+* Set the time for the next available forecast unless it has been preset.
+loop(m,
+    tForecastNext(m) = mSettings(m, 't_forecastStart');
+);
+
 * Check the modelSolves for preset patterns for model solve timings
 * If not found, then use mSettings to set the model solve timings
 loop(m,
@@ -26,6 +31,7 @@ loop(m,
     if (not sum(f, mf(m, f)),  // unless they have been provided as input
         mf(m, f)$(ord(f) <= 1 + mSettings(m, 'forecasts')) = yes;  // realization needs one f, therefore 1 + number of forecasts
     );
+    msf(m, s, f)$(ms(m, s) and mf(m, f)) = yes;
 );
 
 
@@ -116,7 +122,6 @@ loop(unit,
                                   + p_unit(unit, 'eff00') * [ p_unit(unit, op__) - p_unit(unit, 'opFirstCross') ] / [ p_unit(unit, op__) - p_unit(unit, 'op00') ]
                                   + p_unit(unit, eff__) * [ p_unit(unit, 'opFirstCross') - p_unit(unit, 'op00') ] / [ p_unit(unit, op__) - p_unit(unit, 'op00') ]
                                 };
-                         put log unit.tl:20, heat_rate /;
                          p_effGroupUnit(effDirectOn, unit, 'section') = p_unit(unit, 'section');
                          p_effGroupUnit(effDirectOn, unit, 'section')$(not p_effGroupUnit(effDirectOn, unit, 'section')) =  // Unless section has been defined, it is calculated based on the opFirstCross
                               p_unit(unit, 'opFirstCross')

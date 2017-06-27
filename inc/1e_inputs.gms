@@ -15,6 +15,7 @@ $loaddc p_gnn
 $loaddc p_gnu
 $loaddc p_unit
 $loaddc ts_unit
+$loaddc p_nReserves
 $loaddc p_nuReserves
 $loaddc p_gnBoundaryPropertiesForStates
 $loaddc p_gnPolicy
@@ -24,11 +25,27 @@ $loaddc gngnu_fixedOutputRatio
 $loaddc gngnu_constrainedOutputRatio
 $loaddc emission
 $loaddc p_fuelEmission
-$loaddc ts_cf
+*$loaddc ts_cf
 $loaddc ts_fuelPriceChange
 $loaddc ts_influx
 $loaddc ts_nodeState
 $gdxin
+
+$gdxin 'input/consumption_data.gdx'
+$loaddc ts_influx_temp = ts_influx
+$gdxin
+
+ts_influx(grid,'FI_R',f,t)=-ts_influx_temp(grid,'FI',f,t) * 14000;
+ts_influx(grid,'SE_N',f,t)=-ts_influx_temp(grid,'SE',f,t) * 5000;
+
+$gdxin 'input/windpower.gdx'
+$loaddc ts_cf
+$gdxin
+
+ts_cf(flow,'FI_R',f,t)=ts_cf(flow,'74FI',f,t);
+ts_cf(flow,'SE_N',f,t)=ts_cf(flow,'86SE',f,t);
+
+
 
 $ontext
  * Load stochastic scenarios
@@ -62,6 +79,7 @@ unit_minload(unit)$[p_unit(unit, 'op00') > 0 and p_unit(unit, 'op00') < 1] = yes
 unit_flow(unit)$sum(flow, flowUnit(flow, unit)) = yes;
 unit_fuel(unit)$sum[ (fuel, node)$sum(t, ts_fuelPriceChangenode(fuel, node, t)), uFuel(unit, 'main', fuel) ] = yes;
 unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) = yes;
+unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxCons')) = yes;
 
 * Assume values for critical unit related parameters, if not provided by input data
 p_unit(unit, 'eff00')$(not p_unit(unit, 'eff00')) = 1; // If the unit does not have efficiency set, it is 1

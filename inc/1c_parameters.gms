@@ -3,6 +3,7 @@ Scalars
     errorcount /0/
     tSolveFirst "counter (ord) for the first t in the solve"
     tSolveLast "counter for the last t in the solve"
+    tDispatchCurrent "counter for the current t in the dispatch loop" /0/
     tCounter "counter for t" /0/
     lastCounter "last member in use of the general counter"
     ts_length "Length of time series (t)"
@@ -17,6 +18,7 @@ Scalars
     tmp_dist "Temporary parameter for calculating the distance between operating points"
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
+    f_improve /12/;
 ;
 
 * --- Power plant and fuel data -----------------------------------------------
@@ -26,6 +28,7 @@ Parameters
     p_gnn(grid, node, node, param_gnn) "Data for interconnections between energy nodes"
     p_gnu(grid, node, unit, param_gnu) "Unit data where energy type matters"
     p_unit(unit, *) "Unit data where energy type does not matter"
+    p_nReserves(node, restype, *) "Data defining the reserve rules in each node"
     p_nuReserves(node, unit, restype, *) "Reserve provision data for units"
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
     p_fuelEmission(fuel, emission) "Fuel emission content"
@@ -45,6 +48,7 @@ Parameters
     p_sWeight(s) "Weight of sample"
     p_sProbability(s) "Probability to reach sample conditioned on anchestor samples"
     p_fProbability(f) "Probability of forecast"
+    p_sft_probability(s, f, t) "Probability of forecast"
 ;
 
 Scalar p_sWeightSum "Sum of sample weights";
@@ -53,12 +57,16 @@ Scalar p_sWeightSum "Sum of sample weights";
 Parameters
     pt(t) "Displacement needed to reach the previous time period (in time periods)"
     pf(f, t) "Displacement needed to reach the previous forecast (in forecasts)"
+    cf(f, t) "Displacement needed to reach the current forecast (in forecasts) - this is needed when the forecast tree gets reduced in dynamic equations"
     ct(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
     t_bind(t) "Displacement to reach the binding time period in the parent sample (in time periods). Can skip with aggregated steps as well as when connecting samples."
     ft_bind(f, t) "Displacement to reach the binding forecast (in forecasts) in the current model"
     mt_bind(mType, t) "Displacement to reach the binding time period in the parent sample (in time periods) in the models"
     mft_bind(mType, f, t) "Displacement to reach the binding forecast (in forecasts) in the models"
     p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
+    tForecastNext(mType) "When the next forecast will be availalbe (ord time)"
+    aaSolveInfo(mType, t, solveInfoAttributes) "stores information about the solve status"
+    p_uft_online_last(unit, f, t) "Ord of last t where unit is online"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------
@@ -73,8 +81,11 @@ Parameters
     ts_unavailability(unit, t) "Unavailability of a unit in the time period/slice (p.u.)"
 // Aliases used for interval aggregation
     ts_influx_(grid, node, f, t)
+    ts_influx_temp(grid, node, f, t)
     ts_cf_(flow, node, f, t)
     ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
+    ts_forecast(flow, node, t, f, t)
+    ts_tertiary(*,node,t,*,t)
 ;
 
 * --- Other time dependent parameters -----------------------------------------
