@@ -48,30 +48,51 @@ REQUIRED_KEYS = ['name', 'description', 'files']
 OPTIONAL_KEYS = ['short_name', 'datafiles', 'datafiles_opt', 'outfiles', 'cmdline_args']
 LIST_REQUIRED_KEYS = ['files', 'datafiles', 'datafiles_opt', 'outfiles']  # These should be lists
 
-# Style sheets
+# Stylesheets
 STATUSBAR_STYLESHEET = "QStatusBar{border-width: 2px;\n" \
                        "border-color: 'gainsboro';\n" \
                        "border-style: groove;\n" \
                        "border-radius: 2px;\n}"
 
-TOOLBAR_STYLESHEET = "QToolBar{spacing: 5px;\n" \
-                     "background-color: 'lightsalmon';\n" \
-                     "padding: 4px;\n}" \
-                     "QToolButton{background-color: rgb(255, 255, 255);\n" \
-                     "border-width: 2px;\n" \
-                     "border-style: outset;\n" \
-                     "border-color: gray;\n" \
-                     "border-radius: 6px;\n}"
+ICON_TOOLBAR_STYLESHEET = "QToolBar{spacing: 6px;" \
+                     "background-color: qlineargradient(" \
+                          "x1: 1, y1: 1, x2: 0, y2: 0, stop: 0 #E0E0E0, stop: 1 #A3AFFF);" \
+                     "padding: 6px;}" \
+                     "QToolButton{background-color: white;" \
+                     "border-width: 1px;" \
+                     "border-style: inset;" \
+                     "border-color: darkslategray;" \
+                     "border-radius: 2px;}"
 
-SETTINGS_GROUPBOX_STYLESHEET = "QGroupBox{border: 1px solid gray; " \
-                               "border-radius: 9px; " \
-                               "margin-top: 0.5em}" \
-                               "QGroupBox:title{subcontrol-origin: margin; " \
-                               "left: 10px; " \
+GENERAL_TOOLBAR_STYLESHEET = "QToolBar{spacing: 5px;" \
+                             "background-color: qlineargradient(" \
+                             "x1: 1, y1: 1, x2: 0, y2: 0, stop: 0 #E0E0E0, stop: 1 #A3AFFF);" \
+                             "padding: 4px;}" \
+                             "QToolButton{background-color: qlineargradient(" \
+                             "x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 white, stop: 1 gainsboro);" \
+                             "border-width: 1px;" \
+                             "border-style: outset;" \
+                             "border-color: gray;" \
+                             "border-radius: 2px;}" \
+                             "QComboBox{background-color: qlineargradient(" \
+                             "x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 white, stop: 1 gainsboro);" \
+                             "width: 5em;" \
+                             "border-width: 1px;" \
+                             "border-style: outset;" \
+                             "border-color: gray;" \
+                             "border-radius: 2px;}"
+
+SETTINGS_GROUPBOX_STYLESHEET = "QGroupBox{border: 2px solid gray;" \
+                               "background-color: qlineargradient(" \
+                               "x1: 1, y1: 0, x2: 0, y2: 0, stop: 0 #E0E0E0, stop: 1 #A3AFFF);" \
+                               "border-radius: 5px;" \
+                               "margin-top: 1.1em;}" \
+                               "QGroupBox:title{subcontrol-origin: margin;" \
+                               "subcontrol-position: top center;" \
                                "padding-top: 0px; " \
                                "padding-bottom: 0px; " \
-                               "padding- right: 2px; " \
-                               "padding-left: 2px;}"
+                               "padding-right: 3px; " \
+                               "padding-left: 3px;}" \
 
 # Default options and settings
 GENERAL_OPTIONS = {'previous_project': '',

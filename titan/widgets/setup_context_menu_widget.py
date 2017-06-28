@@ -17,20 +17,22 @@ class SetupContextMenuWidget(QMenu):
         self.ind = ind
         self.option = "None"
         if not ind.isValid():
-            self.add_action("Add New Base")
+            self.add_action("Add Setup")
             self.add_action("Execute Project")
             self.add_action("Verify Input Data")
             self.add_action("Explore Input Data")
+            self.add_action("Clear All Flags")
         else:
-            self.add_action("Add New Base")
-            self.add_action("Add Child")
+            self.add_action("Add Setup")
+            self.add_action("Add Child Setup")
             self.add_action("Edit Tool")
             self.add_action("Execute Single")
             self.add_action("Execute Selected")
             self.add_action("Execute Project")
-            self.add_action("Clear Flags")
             self.add_action("Verify Input Data")
             self.add_action("Explore Input Data")
+            self.add_action("Clear Flags")
+            self.add_action("Clear All Flags")
         self.exec_(position)
 
     def add_action(self, text):

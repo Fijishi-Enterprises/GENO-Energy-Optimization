@@ -26,722 +26,205 @@
    <string>Sceleton Titan</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_5">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
      <number>0</number>
     </property>
     <property name="rightMargin">
      <number>0</number>
     </property>
     <property name="bottomMargin">
-     <number>0</number>
+     <number>6</number>
     </property>
     <item>
      <widget class="QSplitter" name="splitter_horizontal">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
       <property name="handleWidth">
-       <number>3</number>
+       <number>5</number>
       </property>
       <property name="childrenCollapsible">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <property name="spacing">
+      <widget class="QSplitter" name="splitter_vertical_left">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="handleWidth">
+        <number>5</number>
+       </property>
+       <property name="childrenCollapsible">
+        <bool>false</bool>
+       </property>
+       <widget class="QTabWidget" name="tabWidget_setups">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="tabPosition">
+         <enum>QTabWidget::South</enum>
+        </property>
+        <property name="currentIndex">
          <number>0</number>
         </property>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetDefaultConstraint</enum>
+        <widget class="QWidget" name="tab_setups">
+         <attribute name="title">
+          <string>Setups</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
           </property>
           <item>
-           <widget class="QGroupBox" name="groupBox_execute">
+           <widget class="QTreeView" name="treeView_setups">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>100</width>
-              <height>160</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>100</width>
-              <height>160</height>
+              <width>16777215</width>
+              <height>16777215</height>
              </size>
             </property>
-            <property name="title">
-             <string>Execution</string>
+            <property name="contextMenuPolicy">
+             <enum>Qt::CustomContextMenu</enum>
             </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            <property name="editTriggers">
+             <set>QAbstractItemView::DoubleClicked</set>
             </property>
-            <property name="flat">
+            <property name="dragEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::InternalMove</enum>
+            </property>
+            <property name="defaultDropAction">
+             <enum>Qt::MoveAction</enum>
+            </property>
+            <property name="textElideMode">
+             <enum>Qt::ElideRight</enum>
+            </property>
+            <property name="indentation">
+             <number>20</number>
+            </property>
+            <property name="uniformRowHeights">
+             <bool>true</bool>
+            </property>
+            <property name="expandsOnDoubleClick">
              <bool>false</bool>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_3">
-             <item>
-              <widget class="QRadioButton" name="radioButton_breadth_first">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Breadth-first tree traversal algorithm. Determines the order of executed Setups when executing All Setups in the project.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Breadth-first</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="radioButton_depth_first">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;[Not Implemented]. Depth-first tree traversal algorithm.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Depth-first</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_execute_selected">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Starts executing selected Setup and its parents. Execution starts from selected Setups' base Setup and traverses from the base until the selected Setup.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Execute (F6)</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_execute_project">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Starts executing all Setups in the project using the selected tree traversal algorithm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Project (F7)</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_terminate_execution">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>80</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>80</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>8</pointsize>
-                </font>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Cancel execution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Cancel</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            <attribute name="headerMinimumSectionSize">
+             <number>50</number>
+            </attribute>
+            <attribute name="headerStretchLastSection">
+             <bool>true</bool>
+            </attribute>
            </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox_delete">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>160</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>100</width>
-              <height>160</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>Delete</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-            <property name="flat">
-             <bool>false</bool>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_2">
-             <item>
-              <spacer name="verticalSpacer">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_delete_setup">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Deletes selected Setup and all of it's children. Deletes input folders as well if the option is enabled in the settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Single</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_delete_all">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Deletes all Setups in the project. Deletes input folders as well if the option is enabled in the settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>All</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox_flags">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>160</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>100</width>
-              <height>160</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>Clear Flags</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-            <property name="flat">
-             <bool>false</bool>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_4">
-             <property name="leftMargin">
-              <number>30</number>
-             </property>
-             <item>
-              <spacer name="verticalSpacer_4">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QToolButton" name="toolButton_clear_failed">
-               <property name="minimumSize">
-                <size>
-                 <width>42</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>42</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Failed flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset resource="resources/resources.qrc">
-                 <normaloff>:/toolButtons/clear_failed_flags.png</normaloff>:/toolButtons/clear_failed_flags.png</iconset>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>36</width>
-                 <height>23</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="toolButton_clear_ready">
-               <property name="minimumSize">
-                <size>
-                 <width>42</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>42</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear Ready flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset resource="resources/resources.qrc">
-                 <normaloff>:/toolButtons/clear_ready_flags.png</normaloff>:/toolButtons/clear_ready_flags.png</iconset>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>36</width>
-                 <height>23</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="toolButton_clear_flags">
-               <property name="minimumSize">
-                <size>
-                 <width>42</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>42</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all flags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset resource="resources/resources.qrc">
-                 <normaloff>:/toolButtons/clear_all_flags.png</normaloff>:/toolButtons/clear_all_flags.png</iconset>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>36</width>
-                 <height>23</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox_data">
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>160</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>100</width>
-              <height>160</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>Data</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_6">
-             <item>
-              <spacer name="verticalSpacer_3">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>95</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_import_data">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import GAMS input data for Setups from MS Excel files&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Import (F2)</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_show_verifier">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open input verifier tool&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Verify (F3)</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_show_explorer">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open input explorer tool&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Explore (F4)</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_show_results">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open result explorer tool&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Results (F5)</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox">
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>160</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>100</width>
-              <height>160</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>Tools</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_8">
-             <item>
-              <spacer name="verticalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QToolButton" name="toolButton_add_tool">
-               <property name="minimumSize">
-                <size>
-                 <width>80</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>80</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>Add Tool to this project</string>
-               </property>
-               <property name="text">
-                <string>Add Tool</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="toolButton_refresh_tools">
-               <property name="minimumSize">
-                <size>
-                 <width>80</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>80</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>Refresh Tools</string>
-               </property>
-               <property name="text">
-                <string>Refresh Tools</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="toolButton_remove_tool">
-               <property name="minimumSize">
-                <size>
-                 <width>80</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>80</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>Remove selected Tool from this project</string>
-               </property>
-               <property name="text">
-                <string>Remove Tool</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>13</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
-        </item>
-        <item>
-         <widget class="QSplitter" name="splitter_vertical_left">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+        </widget>
+       </widget>
+       <widget class="QTabWidget" name="tabWidget">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="tabPosition">
+         <enum>QTabWidget::South</enum>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="tab_tools">
+         <attribute name="title">
+          <string>Tools</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_12">
+          <property name="leftMargin">
+           <number>0</number>
           </property>
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
+          <property name="topMargin">
+           <number>0</number>
           </property>
-          <property name="handleWidth">
-           <number>3</number>
+          <property name="rightMargin">
+           <number>0</number>
           </property>
-          <property name="childrenCollapsible">
-           <bool>false</bool>
+          <property name="bottomMargin">
+           <number>0</number>
           </property>
-          <widget class="QTabWidget" name="tabWidget_setups">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="tabPosition">
-            <enum>QTabWidget::South</enum>
-           </property>
-           <property name="currentIndex">
-            <number>0</number>
-           </property>
-           <widget class="QWidget" name="tab_setups">
-            <attribute name="title">
-             <string>Setups</string>
-            </attribute>
-            <layout class="QVBoxLayout" name="verticalLayout_7">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QTreeView" name="treeView_setups">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="contextMenuPolicy">
-                <enum>Qt::CustomContextMenu</enum>
-               </property>
-               <property name="editTriggers">
-                <set>QAbstractItemView::DoubleClicked</set>
-               </property>
-               <property name="dragEnabled">
-                <bool>true</bool>
-               </property>
-               <property name="dragDropMode">
-                <enum>QAbstractItemView::InternalMove</enum>
-               </property>
-               <property name="defaultDropAction">
-                <enum>Qt::MoveAction</enum>
-               </property>
-               <property name="textElideMode">
-                <enum>Qt::ElideRight</enum>
-               </property>
-               <property name="indentation">
-                <number>20</number>
-               </property>
-               <property name="uniformRowHeights">
-                <bool>true</bool>
-               </property>
-               <property name="expandsOnDoubleClick">
-                <bool>false</bool>
-               </property>
-               <attribute name="headerMinimumSectionSize">
-                <number>50</number>
-               </attribute>
-               <attribute name="headerStretchLastSection">
-                <bool>true</bool>
-               </attribute>
-              </widget>
-             </item>
-            </layout>
+          <item>
+           <widget class="QListView" name="listView_tools">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="contextMenuPolicy">
+             <enum>Qt::CustomContextMenu</enum>
+            </property>
            </widget>
-          </widget>
-          <widget class="QTabWidget" name="tabWidget">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="tabPosition">
-            <enum>QTabWidget::South</enum>
-           </property>
-           <property name="currentIndex">
-            <number>0</number>
-           </property>
-           <widget class="QWidget" name="tab_tools">
-            <attribute name="title">
-             <string>Tools</string>
-            </attribute>
-            <layout class="QVBoxLayout" name="verticalLayout_12">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QListView" name="listView_tools">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="contextMenuPolicy">
-                <enum>Qt::CustomContextMenu</enum>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </widget>
-        </item>
-       </layout>
+          </item>
+         </layout>
+        </widget>
+       </widget>
       </widget>
       <widget class="QSplitter" name="splitter_vertical_right">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
        <property name="handleWidth">
-        <number>3</number>
+        <number>5</number>
        </property>
        <property name="childrenCollapsible">
         <bool>false</bool>
@@ -996,21 +479,10 @@ color: rgb(255, 255, 255);</string>
     <property name="title">
      <string>File</string>
     </property>
-    <widget class="QMenu" name="menuToolbars">
-     <property name="title">
-      <string>Toolbars</string>
-     </property>
-     <addaction name="actionResizeViews"/>
-    </widget>
     <addaction name="actionNew"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
     <addaction name="actionLoad"/>
-    <addaction name="separator"/>
-    <addaction name="actionUnpack"/>
-    <addaction name="actionPack"/>
-    <addaction name="separator"/>
-    <addaction name="menuToolbars"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
     <addaction name="separator"/>
@@ -1048,7 +520,25 @@ color: rgb(255, 255, 255);</string>
     <addaction name="actionExecuteProject"/>
     <addaction name="actionStop_Execution"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <widget class="QMenu" name="menuToolbars">
+     <property name="title">
+      <string>Toolbars</string>
+     </property>
+     <addaction name="actionShowResizeViewsToolbar"/>
+     <addaction name="actionShowExecuteToolbar"/>
+     <addaction name="actionShowToolToolbar"/>
+     <addaction name="actionShowDeleteToolbar"/>
+     <addaction name="actionShowClearToolbar"/>
+     <addaction name="actionShowDataToolbar"/>
+    </widget>
+    <addaction name="menuToolbars"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuView"/>
    <addaction name="menuData"/>
    <addaction name="menuExecute"/>
    <addaction name="menuTools"/>
@@ -1201,7 +691,7 @@ color: rgb(255, 255, 255);</string>
   </action>
   <action name="actionAdd_Tool">
    <property name="text">
-    <string>Add Tool</string>
+    <string>Add Tool...</string>
    </property>
    <property name="shortcut">
     <string>F8</string>
@@ -1221,14 +711,6 @@ color: rgb(255, 255, 255);</string>
    </property>
    <property name="shortcut">
     <string>F9</string>
-   </property>
-  </action>
-  <action name="actionExecuteSingle">
-   <property name="text">
-    <string>Single</string>
-   </property>
-   <property name="shortcut">
-    <string>F5</string>
    </property>
   </action>
   <action name="actionExecuteSelected">
@@ -1268,7 +750,7 @@ color: rgb(255, 255, 255);</string>
     <string>Show ToolBar</string>
    </property>
   </action>
-  <action name="actionResizeViews">
+  <action name="actionShowResizeViewsToolbar">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1290,6 +772,76 @@ color: rgb(255, 255, 255);</string>
     <string>F5</string>
    </property>
   </action>
+  <action name="actionShowToolToolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tool</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionShowExecuteToolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Execute</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionShowDeleteToolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionShowClearToolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Clear Flags</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionShowDataToolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Data</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -1298,21 +850,6 @@ color: rgb(255, 255, 255);</string>
    <header>widgets/custom_qtextbrowser.h</header>
   </customwidget>
  </customwidgets>
- <tabstops>
-  <tabstop>radioButton_breadth_first</tabstop>
-  <tabstop>radioButton_depth_first</tabstop>
-  <tabstop>pushButton_execute_selected</tabstop>
-  <tabstop>pushButton_execute_project</tabstop>
-  <tabstop>pushButton_delete_setup</tabstop>
-  <tabstop>pushButton_delete_all</tabstop>
-  <tabstop>toolButton_clear_ready</tabstop>
-  <tabstop>toolButton_clear_failed</tabstop>
-  <tabstop>toolButton_clear_flags</tabstop>
-  <tabstop>pushButton_import_data</tabstop>
-  <tabstop>pushButton_show_verifier</tabstop>
-  <tabstop>pushButton_show_explorer</tabstop>
-  <tabstop>pushButton_show_results</tabstop>
- </tabstops>
  <resources>
   <include location="resources/resources.qrc"/>
  </resources>

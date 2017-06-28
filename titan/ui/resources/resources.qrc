@@ -11,11 +11,23 @@
     <file>VTT_RGB.png</file>
   </qresource>
   <qresource prefix="/toolButtons">
+    <file>verify_data.png</file>
+    <file>explore_data.png</file>
+    <file>results_data.png</file>
+    <file>import_data.png</file>
+    <file>add_tool.png</file>
+    <file>remove_tool.png</file>
+    <file>refresh_tools.png</file>
+    <file>delete_single.png</file>
+    <file>delete_all.png</file>
+    <file>clear_flags.png</file>
+    <file>run_selected.png</file>
+    <file>stop.png</file>
+    <file>run_project.png</file>
     <file>clear_qtextbrowser.png</file>
     <file>down_arrow.png</file>
     <file>up_arrow.png</file>
     <file>restore_original.png</file>
-    <file>clear_all_flags.png</file>
     <file>clear_ready_flags.png</file>
     <file>clear_failed_flags.png</file>
   </qresource>

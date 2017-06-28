@@ -11,10 +11,10 @@ import os
 import sys
 import json
 import subprocess
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt, QTimer, QSize
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt, QTimer, QSettings
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, \
-                            QFileDialog, QCheckBox, QToolBar
-from PyQt5.Qt import QDesktopServices, QUrl, QAction, QIcon, QPixmap
+                            QFileDialog, QCheckBox, QComboBox
+from PyQt5.Qt import QDesktopServices, QUrl
 from ui.main import Ui_MainWindow
 from project import SceletonProject
 from models import SetupModel, ToolModel
@@ -24,8 +24,7 @@ from helpers import find_work_dirs, erase_dir, \
 from config import ERROR_COLOR, BLACK_COLOR, \
                    DEFAULT_WORK_DIR, CONFIGURATION_FILE,\
                    GENERAL_OPTIONS, GAMSIDE_EXECUTABLE, \
-                   SCELETON_VERSION, STATUSBAR_STYLESHEET,\
-                   TOOLBAR_STYLESHEET
+                   SCELETON_VERSION, STATUSBAR_STYLESHEET
 from configuration import ConfigurationParser
 from delegates import SetupStyledItemDelegate
 from widgets.setup_form_widget import SetupFormWidget
@@ -41,6 +40,7 @@ from widgets.tool_context_menu_widget import ToolContextMenuWidget
 from widgets.progressbar_dialog_widget import ProgressBarDialog
 from modeltest.modeltest import ModelTest
 from excel_handler import ExcelHandler
+import widgets.toolbars
 
 
 class TitanUI(QMainWindow):
@@ -58,11 +58,10 @@ class TitanUI(QMainWindow):
         super().__init__(flags=Qt.Window)
         # Set number formatting to use user's default settings
         locale.setlocale(locale.LC_NUMERIC, '')
-        # Setup the user interface from Qt Creator files
+        # Setup the user interface from Qt Designer files
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.ui.splitter_horizontal.setStretchFactor(1, 1)  # Set horizontal splitter to the left
-        self.ui.splitter_horizontal.setCollapsible(1, True)  # Enables hiding cmd and tool views completely
+        self.qsettings = QSettings("VTT", "Sceleton Titan")
         # Class variables
         self._config = None
         self._project = None
@@ -86,19 +85,30 @@ class TitanUI(QMainWindow):
         self.results_form = None
         self.about_form = None
         self.delete_progressbar = None
-        # Setup status bar
+        # Initialize QStatusBar
         self.ui.statusbar.setStyleSheet(STATUSBAR_STYLESHEET)
         self.ui.statusbar.setFixedHeight(20)
-        # Setup resize views tool bar
-        self.toolbar = self.init_toolbar()
-        self.addToolBar(Qt.RightToolBarArea, self.toolbar)
-        # Init others
+        # Make and initialize QToolBars
+        self.view_toolbar = widgets.toolbars.make_view_toolbar(self)
+        self.addToolBar(Qt.RightToolBarArea, self.view_toolbar)
+        self.execute_toolbar = widgets.toolbars.make_execute_toolbar(self)
+        self.addToolBar(Qt.TopToolBarArea, self.execute_toolbar)
+        self.tool_toolbar = widgets.toolbars.make_tool_toolbar(self)
+        self.addToolBar(Qt.TopToolBarArea, self.tool_toolbar)
+        self.delete_toolbar = widgets.toolbars.make_delete_toolbar(self)
+        self.addToolBar(Qt.TopToolBarArea, self.delete_toolbar)
+        self.clear_toolbar = widgets.toolbars.make_clear_toolbar(self)
+        self.addToolBar(Qt.TopToolBarArea, self.clear_toolbar)
+        self.data_toolbar = widgets.toolbars.make_data_toolbar(self)
+        self.addToolBar(Qt.TopToolBarArea, self.data_toolbar)
+        # Initialize others
         self.timer = QTimer(parent=self)  # Timer for animating item decorations
         self.init_conf()  # Init conf file
         # Set logging level according to settings
         self.set_debug_level(level=self._config.get("settings", "debug_messages"))
         self.connect_signals()
         self.init_project()
+        self.restore_ui()
 
     # noinspection PyMethodMayBeStatic
     def set_debug_level(self, level):
@@ -116,11 +126,9 @@ class TitanUI(QMainWindow):
 
     def init_conf(self):
         """Initialize configuration file."""
-        self._config = ConfigurationParser(CONFIGURATION_FILE,
-                                           defaults=GENERAL_OPTIONS)
+        self._config = ConfigurationParser(CONFIGURATION_FILE, defaults=GENERAL_OPTIONS)
         self._config.load()
 
-    # noinspection PyUnresolvedReferences
     def connect_signals(self):
         """Connect PyQt signals."""
         # Custom signals (Needs to be connected before initializing project and model)
@@ -150,94 +158,159 @@ class TitanUI(QMainWindow):
         self.ui.actionExecuteSelected.triggered.connect(self.execute_selected)
         self.ui.actionExecuteProject.triggered.connect(self.execute_project)
         self.ui.actionStop_Execution.triggered.connect(self.terminate_execution)
-        self.ui.actionResizeViews.triggered.connect(self.toggle_tb)
-        self.toolbar.visibilityChanged.connect(self.handle_tb_context_menu)
+        # Toolbars (Toolbar QAction signals are connected in toolbars.py)
+        self.ui.actionShowResizeViewsToolbar.triggered.connect(self.set_toolbar_visibility)
+        self.ui.actionShowToolToolbar.triggered.connect(self.set_toolbar_visibility)
+        self.ui.actionShowExecuteToolbar.triggered.connect(self.set_toolbar_visibility)
+        self.ui.actionShowDeleteToolbar.triggered.connect(self.set_toolbar_visibility)
+        self.ui.actionShowClearToolbar.triggered.connect(self.set_toolbar_visibility)
+        self.ui.actionShowDataToolbar.triggered.connect(self.set_toolbar_visibility)
+        self.view_toolbar.visibilityChanged.connect(self.set_toolbar_menu_checkbox_states)
+        self.execute_toolbar.visibilityChanged.connect(self.set_toolbar_menu_checkbox_states)
+        self.tool_toolbar.visibilityChanged.connect(self.set_toolbar_menu_checkbox_states)
+        self.delete_toolbar.visibilityChanged.connect(self.set_toolbar_menu_checkbox_states)
+        self.clear_toolbar.visibilityChanged.connect(self.set_toolbar_menu_checkbox_states)
+        self.data_toolbar.visibilityChanged.connect(self.set_toolbar_menu_checkbox_states)
         # Widgets
-        self.ui.pushButton_execute_project.clicked.connect(self.execute_project)
-        self.ui.pushButton_execute_selected.clicked.connect(self.execute_selected)
-        self.ui.pushButton_delete_setup.clicked.connect(self.delete_selected_setup)
-        self.ui.pushButton_delete_all.clicked.connect(self.delete_all)
-        self.ui.toolButton_clear_ready.clicked.connect(self.clear_ready_flags)
-        self.ui.toolButton_clear_failed.clicked.connect(self.clear_failed_flags)
-        self.ui.toolButton_clear_flags.clicked.connect(self.clear_flags)
         self.ui.treeView_setups.customContextMenuRequested.connect(self.show_setup_context_menu)
         self.ui.listView_tools.customContextMenuRequested.connect(self.show_tool_context_menu)
-        self.ui.toolButton_add_tool.clicked.connect(self.add_tool)
-        self.ui.toolButton_refresh_tools.clicked.connect(self.refresh_tools)
-        self.ui.toolButton_remove_tool.clicked.connect(self.remove_tool)
-        self.ui.pushButton_import_data.clicked.connect(self.import_data)
-        self.ui.pushButton_show_verifier.clicked.connect(self.open_verifier_form)
-        self.ui.pushButton_show_explorer.clicked.connect(self.show_explorer_form)
-        self.ui.pushButton_show_results.clicked.connect(self.show_results_form)
         self.ui.textBrowser_main.anchorClicked.connect(self.open_anchor)
-        self.ui.pushButton_terminate_execution.clicked.connect(self.terminate_execution)
+        # noinspection PyUnresolvedReferences
         self.timer.timeout.connect(self.update_setup_model)
         self.ui.tabWidget_tools.tabBar().currentChanged.connect(self.current_tab_changed)
 
-    def init_toolbar(self):
-        """Initialize Main window toolbar."""
-        tb = QToolBar("Resize Views Toolbar", self)
-        max_icon = QIcon()
-        max_icon.addPixmap(QPixmap(":/toolButtons/down_arrow.png"), QIcon.Normal, QIcon.On)
-        maximize_action = QAction(max_icon, '', self)
-        min_icon = QIcon()
-        min_icon.addPixmap(QPixmap(":/toolButtons/up_arrow.png"), QIcon.Normal, QIcon.On)
-        minimize_action = QAction(min_icon, '', self)
-        split_icon = QIcon()
-        split_icon.addPixmap(QPixmap(":/toolButtons/restore_original.png"), QIcon.Normal, QIcon.On)
-        split_action = QAction(split_icon, '', self)
-        # Set tooltips for toolbar actions
-        maximize_action.setToolTip("Maximize Command Output View")
-        minimize_action.setToolTip("Maximize Tool Output View")
-        split_action.setToolTip("Split Command and Tool Output Views Evenly")
-        # Connect toolbar signals
-        # noinspection PyUnresolvedReferences
-        maximize_action.triggered.connect(self.max_textbrowser)
-        # noinspection PyUnresolvedReferences
-        minimize_action.triggered.connect(self.min_textbrowser)
-        # noinspection PyUnresolvedReferences
-        split_action.triggered.connect(self.split_textbrowsers)
-        # Add actions to toolbar
-        tb.addAction(maximize_action)
-        tb.addAction(minimize_action)
-        tb.addAction(split_action)
-        tb.setToolButtonStyle(Qt.ToolButtonIconOnly)
-        tb.setIconSize(QSize(16, 16))
-        # Set stylesheet
-        tb.setStyleSheet(TOOLBAR_STYLESHEET)
-        return tb
-
-    @pyqtSlot(name='toggle_tb')
-    def toggle_tb(self):
-        """Show or hide Resize Views Toolbar."""
-        if self.ui.actionResizeViews.isChecked():
-            self.toolbar.show()
+    def restore_ui(self):
+        """Restore UI state from previous session."""
+        window_size = self.qsettings.value("window_size", type="QSize")
+        window_pos = self.qsettings.value("window_pos", type="QPoint")
+        window_state = self.qsettings.value("window_state", type="QByteArray")
+        hor_splitter_state = self.qsettings.value("horizontal_splitter_state", type="QByteArray")
+        left_vert_splitter_state = self.qsettings.value("left_vertical_splitter_state", type="QByteArray")
+        right_vert_splitter_state = self.qsettings.value("right_vertical_splitter_state", type="QByteArray")
+        # Restore UI
+        if window_size:
+            self.resize(window_size)
+        if window_pos:
+            self.move(window_pos)
+        if window_state:
+            self.restoreState(window_state, version=1)
+        if hor_splitter_state:
+            self.ui.splitter_horizontal.restoreState(hor_splitter_state)
+        if left_vert_splitter_state:
+            self.ui.splitter_vertical_left.restoreState(left_vert_splitter_state)
+        if right_vert_splitter_state:
+            self.ui.splitter_vertical_right.restoreState(right_vert_splitter_state)
+        # Set check box states in the View->Toolbars menu
+        if not self.view_toolbar.isVisible():
+            self.ui.actionShowResizeViewsToolbar.setChecked(False)
         else:
-            self.toolbar.hide()
+            self.ui.actionShowResizeViewsToolbar.setChecked(True)
+        if not self.execute_toolbar.isVisible():
+            self.ui.actionShowExecuteToolbar.setChecked(False)
+        else:
+            self.ui.actionShowExecuteToolbar.setChecked(True)
+        if not self.tool_toolbar.isVisible():
+            self.ui.actionShowToolToolbar.setChecked(False)
+        else:
+            self.ui.actionShowToolToolbar.setChecked(True)
+        if not self.delete_toolbar.isVisible():
+            self.ui.actionShowDeleteToolbar.setChecked(False)
+        else:
+            self.ui.actionShowDeleteToolbar.setChecked(True)
+        if not self.data_toolbar.isVisible():
+            self.ui.actionShowDataToolbar.setChecked(False)
+        else:
+            self.ui.actionShowDataToolbar.setChecked(True)
+        if not self.clear_toolbar.isVisible():
+            self.ui.actionShowClearToolbar.setChecked(False)
+        else:
+            self.ui.actionShowClearToolbar.setChecked(True)
 
-    @pyqtSlot(name='handle_tb_context_menu')
-    def handle_tb_context_menu(self):
-        """Makes toolbar context menu check button
-        flip the menu action check button."""
-        if not self.toolbar.isVisible():
-            self.ui.actionResizeViews.setChecked(False)
+    @pyqtSlot(name="set_toolbar_visibility")
+    def set_toolbar_visibility(self):
+        """Show or hide QToolBars."""
+        if self.sender().objectName() == "actionShowResizeViewsToolbar":
+            if self.sender().isChecked():
+                self.view_toolbar.show()
+            else:
+                self.view_toolbar.hide()
+        elif self.sender().objectName() == "actionShowExecuteToolbar":
+            if self.sender().isChecked():
+                self.execute_toolbar.show()
+            else:
+                self.execute_toolbar.hide()
+        elif self.sender().objectName() == "actionShowToolToolbar":
+            if self.sender().isChecked():
+                self.tool_toolbar.show()
+            else:
+                self.tool_toolbar.hide()
+        elif self.sender().objectName() == "actionShowDeleteToolbar":
+            if self.sender().isChecked():
+                self.delete_toolbar.show()
+            else:
+                self.delete_toolbar.hide()
+        elif self.sender().objectName() == "actionShowDataToolbar":
+            if self.sender().isChecked():
+                self.data_toolbar.show()
+            else:
+                self.data_toolbar.hide()
+        elif self.sender().objectName() == "actionShowClearToolbar":
+            if self.sender().isChecked():
+                self.clear_toolbar.show()
+            else:
+                self.clear_toolbar.hide()
+        else:
+            logging.error("Unknown sender: '{0}'".format(self.sender()))
 
-    @pyqtSlot(name='max_textbrowser')
-    def max_textbrowser(self):
-        """Maximize Command Output View."""
-        self.ui.splitter_vertical_right.setSizes([100000, 0])  # Maximize command output tab height
+    @pyqtSlot(name="set_toolbar_menu_checkbox_states")
+    def set_toolbar_menu_checkbox_states(self):
+        """Set menu check box state according to toolbar visibility."""
+        if self.sender().objectName() == "viewToolbar":
+            if not self.view_toolbar.isVisible():
+                self.ui.actionShowResizeViewsToolbar.setChecked(False)
+            else:
+                self.ui.actionShowResizeViewsToolbar.setChecked(True)
+        elif self.sender().objectName() == "executeToolbar":
+            if not self.execute_toolbar.isVisible():
+                self.ui.actionShowExecuteToolbar.setChecked(False)
+            else:
+                self.ui.actionShowExecuteToolbar.setChecked(True)
+        elif self.sender().objectName() == "toolToolbar":
+            if not self.tool_toolbar.isVisible():
+                self.ui.actionShowToolToolbar.setChecked(False)
+            else:
+                self.ui.actionShowToolToolbar.setChecked(True)
+        elif self.sender().objectName() == "deleteToolbar":
+            if not self.delete_toolbar.isVisible():
+                self.ui.actionShowDeleteToolbar.setChecked(False)
+            else:
+                self.ui.actionShowDeleteToolbar.setChecked(True)
+        elif self.sender().objectName() == "dataToolbar":
+            if not self.data_toolbar.isVisible():
+                self.ui.actionShowDataToolbar.setChecked(False)
+            else:
+                self.ui.actionShowDataToolbar.setChecked(True)
+        elif self.sender().objectName() == "clearToolbar":
+            if not self.clear_toolbar.isVisible():
+                self.ui.actionShowClearToolbar.setChecked(False)
+            else:
+                self.ui.actionShowClearToolbar.setChecked(True)
+        else:
+            logging.error("Unknown sender in visibilityChanged: '{0}'".format(self.sender()))
 
-    @pyqtSlot(name='min_textbrowser')
-    def min_textbrowser(self):
-        """Maximize Tool Output View."""
-        self.ui.splitter_vertical_right.setSizes([0, 100000])  # Maximize tool output tab height
-
-    @pyqtSlot(name='split_textbrowsers')
-    def split_textbrowsers(self):
-        """Split Command Output and Tool Output views evenly."""
-        sizes = self.ui.splitter_vertical_right.sizes()  # Height of tabWidgets
-        s = sum(sizes)/2
-        self.ui.splitter_vertical_right.setSizes([s, s])  # Split cmd and tool output tabs evenly
+    @pyqtSlot(name="handle_view_toolbar_actions")
+    def handle_view_toolbar_actions(self):
+        """Handles QActions in the Resize Views Toolbar."""
+        if self.sender().objectName() == "maximize_action":
+            self.ui.splitter_vertical_right.setSizes([100000, 0])  # Maximize command output tab height
+        elif self.sender().objectName() == "minimize_action":
+            self.ui.splitter_vertical_right.setSizes([0, 100000])  # Maximize tool output tab height
+        elif self.sender().objectName() == "split_action":
+            sizes = self.ui.splitter_vertical_right.sizes()  # Height of tabWidgets
+            s = sum(sizes)/2
+            self.ui.splitter_vertical_right.setSizes([s, s])  # Split cmd and tool output tabs evenly
+        else:
+            logging.error("Unknown sender: '{0}'".format(self.sender()))
 
     def init_models(self, tools):
         """Create data models for GUI views.
@@ -761,7 +834,7 @@ class TitanUI(QMainWindow):
 
     # noinspection PyUnusedLocal
     def view_tool_def(self, current, previous):
-        """Show selected Tool definition file in a QTextBrowser in the tab widget.
+        """Show selected Tool definition file in a QTextBrowser.
 
         Args:
             current (QModelIndex): Index of the current item
@@ -797,8 +870,7 @@ class TitanUI(QMainWindow):
             clicked_index (QModelIndex): Index of the double clicked item
         """
         if clicked_index.row() == 0:
-            # Don't do anything if No Tool option is double-clicked
-            return
+            return  # Don't do anything if No Tool option is double-clicked
         sel_tool = self.tool_model.tool(clicked_index.row())
         tool_def_url = "file:///" + sel_tool.def_file_path
         # Open Tool definition file in editor
@@ -877,10 +949,10 @@ class TitanUI(QMainWindow):
         global_pos = self.ui.treeView_setups.viewport().mapToGlobal(pos)
         self.setup_context_menu = SetupContextMenuWidget(self, global_pos, ind)
         option = self.setup_context_menu.get_action()
-        if option == "Add Child":
+        if option == "Add Child Setup":
             self.open_setup_form(ind)
             return
-        elif option == "Add New Base":
+        elif option == "Add Setup":
             self.open_setup_form()
             return
         elif option == "Edit Tool":
@@ -897,6 +969,9 @@ class TitanUI(QMainWindow):
             return
         elif option == "Clear Flags":
             self.clear_setup_flags()
+            return
+        elif option == "Clear All Flags":
+            self.clear_flags()
             return
         elif option == "Verify Input Data":
             self.open_verify_data_form()
@@ -1155,11 +1230,16 @@ class TitanUI(QMainWindow):
 
     def execute_setup(self):
         """Start executing Setups according to the selected execution mode."""
-        if self.ui.radioButton_breadth_first.isChecked():
-            alg = 'breadth-first'
+        alg = ''
+        # Find current text in the algorithm combobox
+        for act in self.execute_toolbar.actions():
+            cand = self.execute_toolbar.widgetForAction(act)
+            if isinstance(cand, QComboBox):
+                alg = cand.currentText()
+                # logging.debug("Found QComboBox: {0}".format(cand.currentText()))
+        if alg == "Breadth-first":
             self.algorithm = True
-        elif self.ui.radioButton_depth_first.isChecked():
-            alg = 'depth-first'
+        elif alg == "Depth-first":
             self.algorithm = False
         else:
             self.add_msg_signal.emit("No tree traversal algorithm selected", 2)
@@ -1180,7 +1260,7 @@ class TitanUI(QMainWindow):
             if not base:
                 self.add_msg_signal.emit("No Setup selected.<br/>", 0)
                 return
-            self.add_msg_signal.emit("<br/>Executing Branch. Algorithm: {0}".format(alg), 0)
+            self.add_msg_signal.emit("<br/>Executing selected Setup. Algorithm: {0}".format(alg), 0)
             self.setup_model.set_base(base)
             # Set Base Setup as the first running Setup
             self._running_setup = self.setup_model.get_base().internalPointer()
@@ -1304,7 +1384,7 @@ class TitanUI(QMainWindow):
 
     @pyqtSlot(name='update_setup_model')
     def update_setup_model(self):
-        """Make all views connected to setup model update themselves."""
+        """Make all views connected to the setup model update themselves."""
         self.setup_model.emit_data_changed()
 
     def toggle_gui(self, value):
@@ -1313,28 +1393,51 @@ class TitanUI(QMainWindow):
         Args:
             value (boolean): False to disable GUI, True to enable GUI
         """
-        self.ui.pushButton_execute_selected.setEnabled(value)
-        self.ui.pushButton_execute_project.setEnabled(value)
-        self.ui.pushButton_delete_setup.setEnabled(value)
-        self.ui.pushButton_delete_all.setEnabled(value)
-        self.ui.toolButton_clear_ready.setEnabled(value)
-        self.ui.toolButton_clear_failed.setEnabled(value)
-        self.ui.toolButton_clear_flags.setEnabled(value)
-        self.ui.pushButton_import_data.setEnabled(value)
-        self.ui.actionExecuteSingle.setEnabled(value)
+        # Disable / Enable menu actions
+        self.ui.actionAdd_Tool.setEnabled(value)
+        self.ui.actionRefresh_Tools.setEnabled(value)
+        self.ui.actionRemove_Tool.setEnabled(value)
         self.ui.actionExecuteSelected.setEnabled(value)
         self.ui.actionExecuteProject.setEnabled(value)
-        self.ui.actionImportData.setEnabled(value)
         self.ui.actionStop_Execution.setEnabled(not value)
-        self.ui.pushButton_terminate_execution.setEnabled(not value)
+        self.ui.actionImportData.setEnabled(value)
+        # Disable / Enable toolbar actions
+        for act in self.execute_toolbar.actions():  # Execute toolbar
+            if act.text() == "Selected":
+                act.setEnabled(value)
+            elif act.text() == "Project":
+                act.setEnabled(value)
+            elif act.text() == "Cancel":
+                act.setEnabled(not value)
+        for act in self.tool_toolbar.actions():  # Tool toolbar
+            if act.text() == "Add":
+                act.setEnabled(value)
+            elif act.text() == "Refresh":
+                act.setEnabled(value)
+            elif act.text() == "Remove":
+                act.setEnabled(value)
+        for act in self.delete_toolbar.actions():  # Delete toolbar
+            if act.text() == "Single":
+                act.setEnabled(value)
+            elif act.text() == "All":
+                act.setEnabled(value)
+        for act in self.data_toolbar.actions():  # Data toolbar
+            if act.text() == "Import":
+                act.setEnabled(value)
+        for act in self.clear_toolbar.actions():  # Clear Flags toolbar
+            if act.text() == "Failed":
+                act.setEnabled(value)
+            elif act.text() == "Ready":
+                act.setEnabled(value)
+            elif act.text() == "All":
+                act.setEnabled(value)
+        # Start / stop animated icon QMovie
         if value:
-            # Stop the animated icon QMovie
-            self.setup_model.animated_icon.stop()
+            self.setup_model.animated_icon.stop()  # Stop animation
             # Stop timer when simulation stops
             self.timer.stop()
         else:
-            # Start the animated icon QMovie
-            self.setup_model.animated_icon.start()
+            self.setup_model.animated_icon.start()  # Start animation
             # Start timer when simulation starts. Updates the animated icon.
             self.timer.start(50)
         self.update_setup_model()
@@ -1624,41 +1727,6 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("Failed to open path {}".format(path), 2)
             logging.error("Failed to open editor for QUrl {0}".format(qurl))
 
-    def test_match(self):
-        """Test method for finding an item based on a string."""
-        value = 'base'
-        start_index = self.setup_model.index(0, 0, QModelIndex())
-        if not start_index.isValid():
-            self.add_msg_signal.emit("No items in QTreeView", 0)
-            return
-        ret_index_list = self.setup_model.match(
-            start_index, Qt.DisplayRole, value, 1, Qt.MatchFixedString | Qt.MatchRecursive)
-        if len(ret_index_list) > 0:
-            for ind in ret_index_list:
-                self.add_msg_signal.emit("Found '%s' in %s" % (value, ind.internalPointer().name), 0)
-        else:
-            self.add_msg_signal.emit("'%s' not found" % value, 0)
-
-    def print_tree(self):
-        """Print Setup tree model."""
-        root_print = self.setup_model.get_root().log()
-        logging.debug("Setup tree:\n%s" % root_print)
-
-    def traverse_model(self):
-        """Print Setup tree model."""
-        def traverse(item):
-            logging.debug("\t" * traverse.level + item.name)
-            for kid in item.children():
-                traverse.level += 1
-                traverse(kid)
-                traverse.level -= 1
-        traverse.level = 1
-        # Traverse tree starting from root
-        if not self._root:
-            logging.debug("No Setups in SetupModel")
-            return
-        traverse(self._root)
-
     def show_confirm_exit(self):
         """Shows confirm exit message box.
 
@@ -1832,13 +1900,20 @@ class TitanUI(QMainWindow):
             # Show save project message box
             self.show_save_project_prompt()
             # Show delete work directories message box
-            if self.show_delete_work_dirs_prompt(): # Returns True if delete work directories progress bar is shown
+            if self.show_delete_work_dirs_prompt():  # Returns True if delete work directories progress bar is shown
                 return
         self.quit_application()
 
     def quit_application(self):
         """This is needed in order to make delete work directories dialog work during exit."""
         logging.debug("See you later.")
+        # Save application states and geometries
+        self.qsettings.setValue("horizontal_splitter_state", self.ui.splitter_horizontal.saveState())
+        self.qsettings.setValue("left_vertical_splitter_state", self.ui.splitter_vertical_left.saveState())
+        self.qsettings.setValue("right_vertical_splitter_state", self.ui.splitter_vertical_right.saveState())
+        self.qsettings.setValue("window_size", self.size())
+        self.qsettings.setValue("window_pos", self.pos())
+        self.qsettings.setValue("window_state", self.saveState(version=1))
         self._config.save()
         # noinspection PyArgumentList
         QApplication.quit()  # same as QApplication.exit(0)
