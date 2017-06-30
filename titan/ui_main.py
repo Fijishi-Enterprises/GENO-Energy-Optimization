@@ -979,6 +979,8 @@ class TitanUI(QMainWindow):
         elif option == "Explore Input Data":
             self.show_explorer_form()
             return
+        elif option == "Clone":
+            self.clone_setup(ind)
         else:
             # No option selected
             pass
@@ -1080,12 +1082,10 @@ class TitanUI(QMainWindow):
             self.add_msg_signal.emit("No name given. Try again.", 0)
             return
         if not parent.isValid():
-            # logging.debug("Inserting Base")
             if not self.setup_model.insert_setup(name, description, self._project, 0):
                 logging.error("Adding base Setup failed")
                 return
         else:
-            # logging.debug("Inserting Child")
             if not self.setup_model.insert_setup(name, description, self._project, 0, parent):
                 logging.error("Adding child Setup failed")
                 return
@@ -1095,6 +1095,40 @@ class TitanUI(QMainWindow):
             setup = self.setup_model.get_setup(setup_index)
             setup.attach_tool(tool, cmdline_args=cmdline_args)
         return
+
+    def clone_setup(self, ind):
+        """Clone selected Setup.
+
+        Args:
+            ind (QModelIndex): Selected Setup
+        """
+        s = ind.internalPointer()
+        start_index = self.setup_model.index(0, 0, QModelIndex())
+        all_setups = self.setup_model.match(start_index, Qt.DisplayRole, '.*', -1, Qt.MatchRegExp | Qt.MatchRecursive)
+        short_names = [setup.internalPointer().short_name for setup in all_setups]
+        name_ok = False
+        i = 0
+        clone_name = "dummy123"
+        clone_short_name = "dummy123"
+        while not name_ok:
+            clone_name = s.name + '_' + str(i)
+            clone_short_name = clone_name.lower().replace(' ', '_')
+            # Check if Setup with the same name already exists
+            if start_index.isValid():
+                matching_index = self.setup_model.match(
+                    start_index, Qt.DisplayRole, clone_name, 1, Qt.MatchFixedString | Qt.MatchRecursive)
+                if len(matching_index) > 0:  # Match found
+                    logging.debug("Setup '{0}' already exists".format(clone_name))
+                    i += 1
+                    continue
+                # Check that no existing Setup short name matches the new Setup's short name.
+                if clone_short_name in short_names:
+                    logging.debug("Setup using folder name '{0}' already exists".format(clone_short_name))
+                    i += 1
+                    continue
+            name_ok = True
+        self.add_setup(clone_name, s.description, s.tool, s.cmdline_args, parent=QModelIndex())
+        self.add_msg_signal.emit("Setup <b>{0}</b> cloned -> <b>{1}</b>".format(s.name, clone_name), 0)
 
     @pyqtSlot(name='delete_selected_setup')
     def delete_selected_setup(self):

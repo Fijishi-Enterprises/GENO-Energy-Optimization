@@ -33,9 +33,10 @@ class SetupContextMenuWidget(QMenu):
             self.add_action("Explore Input Data")
             self.add_action("Clear Flags")
             self.add_action("Clear All Flags")
+            self.add_action("Clone")
         self.exec_(position)
 
-    def add_action(self, text):
+    def add_action(self, text, shortcut=None):
         """ Adds an action to the context menu.
 
         Args:
