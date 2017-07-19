@@ -174,7 +174,7 @@ loop(gn(grid, node),
     restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
 );
 
-  ts_cf_(flow,'FI_R',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst and ord(t) < tSolveFirst + f_improve )
-    = ts_cf(flow,'FI_R',f,t) + [ts_cf(flow,'FI_R','f00',t) - ts_cf(flow,'FI_R',f,t)] * [1 - log10( {ord(t) - tSolveFirst + 1.7} / 1.47 ) ];
-  ts_cf_(flow,'SE_N',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst and ord(t) < tSolveFirst + f_improve )
-    = ts_cf(flow,'SE_N',f,t) + [ts_cf(flow,'SE_N','f00',t) - ts_cf(flow,'SE_N',f,t)] * [1 - log10( {ord(t) - tSolveFirst + 1.7} / 1.47 ) ];
+*  ts_cf_(flow,'FI_R',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst and ord(t) < tSolveFirst + f_improve )
+*    = ts_cf(flow,'FI_R',f,t) + [ts_cf(flow,'FI_R','f00',t) - ts_cf(flow,'FI_R',f,t)] * [1 - log10( {ord(t) - tSolveFirst + 1.7} / 1.47 ) ];
+*  ts_cf_(flow,'SE_N',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst and ord(t) < tSolveFirst + f_improve )
+*    = ts_cf(flow,'SE_N',f,t) + [ts_cf(flow,'SE_N','f00',t) - ts_cf(flow,'SE_N',f,t)] * [1 - log10( {ord(t) - tSolveFirst + 1.7} / 1.47 ) ];

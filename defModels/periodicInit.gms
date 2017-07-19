@@ -171,7 +171,7 @@ loop(unit,
                             p_effGroupUnit(effLambda, unit, 'section') = p_unit(unit, 'section');
                         else
                             p_effGroupUnit(effLambda, unit, 'section') =  // Calculate section based on the opFirstCross, which has been calculated into p_effUnit(effLambda, unit, effLambda_, 'op')
-                                p_effUnit(effLambda, unit, effLambda_, 'op')
+                                tmp_op
                                   * ( heat_rate - 1 / p_unit(unit, eff__) )
                                   / ( p_unit(unit, 'op01') - tmp_op );
                         );

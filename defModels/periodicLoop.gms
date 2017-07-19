@@ -10,10 +10,10 @@
     tForecastNext(mSolve)$(ord(tSolve) >= tForecastNext(mSolve)) = tForecastNext(mSolve) + mSettings(mSolve, 't_ForecastJump');
 
     loop(tLatestForecast,  // There should be only one latest forecast
-        ts_cf(flow,'FI_R',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst + f_improve and ord(t) <= tSolveFirst + mSettings('schedule', 't_forecastLength'))
-          = ts_forecast(flow,'74FI',tLatestForecast,f,t);
-        ts_cf(flow,'SE_N',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst + f_improve and ord(t) <= tSolveFirst + mSettings('schedule', 't_forecastLength'))
-          = ts_forecast(flow,'86SE',tLatestForecast,f,t);
+*        ts_cf(flow,'FI_R',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst + f_improve and ord(t) <= tSolveFirst + mSettings('schedule', 't_forecastLength'))
+*          = ts_forecast(flow,'74FI',tLatestForecast,f,t);
+*        ts_cf(flow,'SE_N',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst + f_improve and ord(t) <= tSolveFirst + mSettings('schedule', 't_forecastLength'))
+*          = ts_forecast(flow,'86SE',tLatestForecast,f,t);
     );
 
 $offOrder
@@ -30,7 +30,7 @@ $offOrder
                 ts_cf_(flow, node, fSolve, t)$tInterval(t) = ts_cf(flow, node, fSolve, t+ct(t));
                 ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)$tInterval(t) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
                 ts_unit_(unit, param_unit, fSolve, t)$tInterval(t) = ts_unit(unit, param_unit, fSolve, t+ct(t));
-                ts_reservedemand_(restype, up_down, node, fSolve, t)$tInterval(t) = ts_reserveDemand(restype, up_down, node, fSolve, t+ct(t));
+                ts_reserveDemand_(restype, up_down, node, fSolve, t)$tInterval(t) = ts_reserveDemand(restype, up_down, node, fSolve, t+ct(t));
                 tCounter = mInterval(mSolve, 'intervalEnd', counter); // move tCounter to the next interval setting
                 p_stepLength(mf(mSolve, fSolve), t)$tInterval(t) = mSettings(mSolve, 'intervalInHours');  // p_stepLength will hold the length of the interval in hours in model equations
                 p_stepLengthNoReset(mSolve, fSolve, t)$tInterval(t) = mSettings(mSolve, 'intervalInHours');
