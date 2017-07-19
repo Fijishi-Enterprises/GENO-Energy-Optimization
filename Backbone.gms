@@ -57,7 +57,7 @@ options
     optcr = 0.0001
 *    profile = 8
     solvelink = %Solvelink.Loadlibrary%
-    bratio = 1
+    bratio = 0.25
     solveopt = merge
     savepoint = 1
     threads = -1
