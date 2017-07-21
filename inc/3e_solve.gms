@@ -59,7 +59,8 @@
             // Remaining solves will use bound start value for v_state once it has been established
             v_state.fx(grid, node, ft_fix(f,t))$gn_state(grid,node) = v_state.l(grid, node, f, t);
             // Remaining solves
-            v_online.fx(uft_limits_online(unit, ft_fix(f, t))) = round(v_online.l(unit, f, t));
+            v_online.fx(uft_online(unit, ft_fix(f, t))) = round(v_online.l(unit, f, t));
+            //v_startup.fx(uft_limits_online(unit, ft_fix(f,t))) = v_startup.l(unit,f,t);
             //v_gen.fx(gnu(grid, node, unit), ft_fix(f, t)) = v_gen.l(grid, node, unit, f, t);
             //v_spill.fx(gn(grid, node), ft_fix(f, t)) = v_spill.l(grid, node, f, t);
             //vq_gen.fx(inc_dec, gn(grid, node), ft_fix(f, t)) = vq_gen.l(inc_dec, grid, node, f, t);

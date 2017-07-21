@@ -40,6 +40,7 @@
 *                                ord(tSolve) + mSettings(mSolve, 't_horizon')]
 *                             and mf(mSolve, f)
 *                           } = yes;
+
     ft(f,t) = no;
     ft(f,t) = mft(mSolve, f, t);
     ft_dynamic(f,t) = no;
@@ -62,6 +63,7 @@
     ft_dynamic('f00',tSolve+(tDispatchCurrent))$(tDispatchCurrent > 0) = yes;
     //ft_dynamic(f,tSolve)$(tSolveFirst > 0 and tDispatchCurrent = 0 and ord(f) > 1) = yes;
     ft_dynamic(f,t)$(ord(f) = sum(f_$(fCentral(f_)), ord(f_)) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')) = yes;
+    ft_dynamic(f,t)$(ord(f) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon') and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')) = yes;
     ft_full(f,t) = no;
     ft_full(f,t) = ft(f,t) + ft_dynamic(f,t);
 
@@ -75,7 +77,7 @@
 
     // Defining unit aggregations and ramps
     uft(unit, f, t) = no;
-    uft(unit, f, t)$[ ft(f, t)
+    uft(unit, f, t)$[ ft_full(f, t)
                         and ord(t) <= tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
                         and not unit_aggregate(unit)
                     ] = yes;
@@ -121,8 +123,11 @@
     pf(f,t) = no;
     pf(ft(f,t))$(ord(t) eq ord(tSolve) + tDispatchCurrent) = 1 - ord(f);
 
+    // Clear probabilities from previous solve
+    p_sft_probability(sInitial(s), f, t) = 0;
     p_sft_probability(s, f, t)$(sInitial(s) and ft(f,t)) = p_fProbability(f) / sum(f_$ft(f_,t), p_fProbability(f_));
     p_sft_probability(s, f, t)$(sInitial(s) and fCentral(f) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$(fCentral(f_) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')), p_fProbability(f_));
+    p_sft_probability(s, f, t)$(sInitial(s) and ord(f) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon') and mSettings(mSolve, 't_forecastLength') >= mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$ft_dynamic(f_,t), p_fProbability(f_));
 
 $offOrder
     loop(counter$mInterval(mSolve, 'intervalLength', counter),  // Loop through all the different intervals set in the model definition file
@@ -133,7 +138,7 @@ $offOrder
                 mftLastForecast(mf(mSolve,fSolve),t) = no;
                 mftLastForecast(mf(mSolve,fSolve),t)$[ord(fSolve) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLength')] = yes;
             else
-                mftLastSteps(mf(mSolve,fSolve),t)$[fCentral(fSolve) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')] = yes;
+                mftLastSteps(mf(mSolve,fSolve),t)$[ord(fSolve) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')] = yes;
             );
         );
     );

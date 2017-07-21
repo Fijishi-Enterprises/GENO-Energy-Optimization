@@ -247,7 +247,7 @@ q_maxDownward(gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + sett
   + v_gen(grid, node, unit, f, t)                                                                                    // energy generation/consumption
   + sum( gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit),
         p_gnu(grid_, node_, unit, 'cV') * v_gen(grid_, node_, unit, f, t) )                              // considering output constraints (e.g. cV line)
-  - sum(nuRescapable(restype, 'down', node, unit),                                                                // minus downward reserve participation
+  - sum(nuRescapable(restype, 'down', node, unit)$[unit_elec(unit) and ord(t) < tSolveFirst + settings('t_reserveLength')],               // minus downward reserve participation
         v_reserve(restype, 'down', node, unit, f, t)                                                              // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
   =G=                                                                                                                // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
@@ -276,7 +276,7 @@ q_maxUpward(gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + settin
   + v_gen(grid, node, unit, f, t)                                                                                   // energy generation/consumption
   + sum( gngnu_constrainedOutputRatio(grid, node, grid_output, node_, unit),
          p_gnu(grid_output, node_, unit, 'cV') * v_gen(grid_output, node_, unit, f, t) )                            // considering output constraints (e.g. cV line)
-  + sum(nuRescapable(restype, 'up', node, unit)$unit_elec(unit),                                                    // plus upward reserve participation
+  + sum(nuRescapable(restype, 'up', node, unit)$[unit_elec(unit) and ord(t) < tSolveFirst + settings('t_reserveLength')],                                                    // plus upward reserve participation
         v_reserve(restype, 'up', node, unit, f, t)                                                                  // (v_reserve can be used only if the unit can provide a particular reserve)
     )
   =L=                                                                                                               // must be less than available/online capacity
@@ -293,10 +293,11 @@ q_maxUpward(gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + settin
 ;
 * -----------------------------------------------------------------------------
 q_startup(uft_online(unit, ft_dynamic(f, t))) ..
-  + v_startup(unit, f+pf(f,t), t+pt(t))
-  =G=
   + v_online(unit, f+cf(f,t), t)
-  - v_online(unit, f+pf(f,t), t+pt(t)) // This reaches to tFirstSolve when pt = -1
+  =E=
+  + v_online(unit, f+pf(f,t), t+pt(t)) // This reaches to tFirstSolve when pt = -1
+  + v_startup(unit, f+pf(f,t), t+pt(t))
+  - v_shutdown(unit, f+pf(f,t), t+pt(t))
 ;
 * -----------------------------------------------------------------------------
 q_genRamp(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node, unit, f, t)} ..
@@ -431,14 +432,14 @@ q_stateUpwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(gr
   + p_stepLength(m, f+pf(f,t), t+pt(t))
       * ( // Reserve provision from units that have output to this node
           + sum(gn2gnu(grid_, node_input, grid, node, unit)${uft(unit, f+pf(f,t), t+pt(t))},
-              + sum(restype$nuRescapable(restype, 'down', node_input, unit), // Downward reserves from units that output energy to the node
+              + sum(restype$[nuRescapable(restype, 'down', node_input, unit) and unit_elec(unit) and ord(t) < tSolveFirst + settings('t_reserveLength')], // Downward reserves from units that output energy to the node
                   + v_reserve(restype, 'down', node_input, unit, f+pf(f,t), t+pt(t))
                       / sum(effGroup${suft(effGroup, unit, f+pf(f,t), t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
                 )
             )
           // Reserve provision from units that take input from this node
           + sum(gn2gnu(grid, node, grid_, node_output, unit)${uft(unit, f+pf(f,t), t+pt(t))},
-              + sum(restype$nuRescapable(restype, 'down', node_output, unit), // Downward reserves from units that use the node as energy input
+              + sum(restype$[nuRescapable(restype, 'down', node_output, unit) and unit_elec(unit) and ord(t) < tSolveFirst + settings('t_reserveLength')], // Downward reserves from units that use the node as energy input
                   + v_reserve(restype, 'down', node_output, unit, f+pf(f,t), t+pt(t))
                       * sum(effGroup${suft(effGroup, unit, f+pf(f,t), t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
                 )
@@ -468,14 +469,14 @@ q_stateDownwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(
   + p_stepLength(m, f+pf(f,t), t+pt(t))
       * ( // Reserve provision from units that have output to this node
           + sum(gn2gnu(grid_, node_input, grid, node, unit)${uft(unit, f+pf(f,t), t+pt(t))},
-              + sum(restype$nuRescapable(restype, 'up', node_input, unit), // Upward reserves from units that output energy to the node
+              + sum(restype$[nuRescapable(restype, 'up', node_input, unit) and unit_elec(unit) and ord(t) < tSolveFirst + settings('t_reserveLength')], // Upward reserves from units that output energy to the node
                   + v_reserve(restype, 'up', node_input, unit, f+pf(f,t), t+pt(t))
                       / sum(effGroup${suft(effGroup, unit, f+pf(f,t), t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
                 )
             )
           // Reserve provision from units that take input from this node
           + sum(gn2gnu(grid, node, grid_, node_output, unit)${uft(unit, f+pf(f,t), t+pt(t))},
-              + sum(restype$nuRescapable(restype, 'up', node_output, unit), // Upward reserves from units that use the node as energy input
+              + sum(restype$[nuRescapable(restype, 'up', node_output, unit) and unit_elec(unit) and ord(t) < tSolveFirst + settings('t_reserveLength')], // Upward reserves from units that use the node as energy input
                   + v_reserve(restype, 'up', node_output, unit, f+pf(f,t), t+pt(t))
                       * sum(effGroup${suft(effGroup, unit, f+pf(f,t), t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
                 )
@@ -492,12 +493,12 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft_dynamic(f, t)) ..
 *            + v_reserve(restype, 'down', node, unit, f+pf(f,t), t+pt(t))
 *          )
         // Upwards reserve provided by input units
-        - sum(nuRescapable(restype, 'up', node_input, unit)${sum(grid_, gn2gnu(grid_, node_input, grid, node, unit)) AND uft(unit, f+pf(f,t), t+pt(t))},
+        - sum(nuRescapable(restype, 'up', node_input, unit)${sum(grid_, gn2gnu(grid_, node_input, grid, node, unit)) AND uft(unit, f+pf(f,t), t+pt(t)) and ord(t) < tSolveFirst + settings('t_reserveLength')},
             + v_reserve(restype, 'up', node_input, unit, f+pf(f,t), t+pt(t))
                 / sum(effGroup${suft(effGroup, unit, f+pf(f,t), t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
           )
         // Upwards reserve providewd by output units
-        - sum(nuRescapable(restype, 'up', node_output, unit)${sum(grid_, gn2gnu(grid, node, grid_, node_output, unit)) AND uft(unit, f+pf(f,t), t+pt(t))},
+        - sum(nuRescapable(restype, 'up', node_output, unit)${sum(grid_, gn2gnu(grid, node, grid_, node_output, unit)) AND uft(unit, f+pf(f,t), t+pt(t)) and ord(t) < tSolveFirst + settings('t_reserveLength')},
             + v_reserve(restype, 'up', node_output, unit, f+pf(f,t), t+pt(t))
                 / sum(effGroup${suft(effGroup, unit, f+pf(f,t), t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
           )
@@ -514,12 +515,12 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft_dynamic(f, t)) ..
 *            + v_reserve(restype, 'up', node_, unit, f+pf(f,t), t+pt(t))
 *          )
         // Possible reserve by input node
-        + sum(nuRescapable(restype, 'down', node_input, unit)${sum(grid_, gn2gnu(grid_, node_input, grid, node_, unit)) AND uft(unit, f+pf(f,t), t+pt(t))},
+        + sum(nuRescapable(restype, 'down', node_input, unit)${sum(grid_, gn2gnu(grid_, node_input, grid, node_, unit)) AND uft(unit, f+pf(f,t), t+pt(t)) and ord(t) < tSolveFirst + settings('t_reserveLength')},
             + v_reserve(restype, 'down', node_input, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 / sum(effGroup${suft(effGroup, unit, f+pf(f,t), t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
           )
         // Possible reserve by output node
-        + sum(nuRescapable(restype, 'down', node_output, unit)${sum(grid_, gn2gnu(grid, node_, grid_, node_output, unit)) AND uft(unit, f+pf(f,t), t+pt(t))},
+        + sum(nuRescapable(restype, 'down', node_output, unit)${sum(grid_, gn2gnu(grid, node_, grid_, node_output, unit)) AND uft(unit, f+pf(f,t), t+pt(t)) and ord(t) < tSolveFirst + settings('t_reserveLength')},
             + v_reserve(restype, 'down', node_output, unit, f+pf(f,t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 / sum(effGroup${suft(effGroup, unit, f+pf(f,t), t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f+pf(f,t), t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
           )
