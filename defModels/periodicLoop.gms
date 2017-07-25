@@ -26,7 +26,7 @@ $offOrder
                 tInterval(t)$(    ord(t) >= tSolveFirst + tCounter
                            and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)
                 ) = yes;   // Set of t's where the interval is 1 (right border defined by intervalEnd) - but do not go beyond tSolveLast
-                ts_influx_(grid, node, fSolve, t)$tInterval(t) = ts_influx(grid, node, 'f00', t+ct(t));
+                ts_influx_(grid, node, fSolve, t)$tInterval(t) = ts_influx(grid, node, fSolve, t+ct(t));
                 ts_cf_(flow, node, fSolve, t)$tInterval(t) = ts_cf(flow, node, fSolve, t+ct(t));
                 ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)$tInterval(t) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
                 ts_unit_(unit, param_unit, fSolve, t)$tInterval(t) = ts_unit(unit, param_unit, fSolve, t+ct(t));
@@ -48,7 +48,7 @@ $offOrder
                             ft_new(f,t_)$(mf(mSolve, f) and tInterval(t_)) = yes;
                             p_stepLengthNoReset(mf(mSolve, fSolve), t) = intervalLength * mSettings(mSolve, 'IntervalInHours');
                             // Aggregates the interval time series data by averaging the power data
-                            ts_influx_(grid, node, fSolve, t) = sum{t_$tInterval(t_), ts_influx(grid, node, 'f00', t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the absolute power terms over the interval
+                            ts_influx_(grid, node, fSolve, t) = sum{t_$tInterval(t_), ts_influx(grid, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the absolute power terms over the interval
                             ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the capacity factor over the inverval
                             ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t) = sum(t_${tInterval(t_)}, ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t); // Averages the time-dependent node state boundary conditions over the interval
                             ts_unit_(unit, param_unit, fSolve, t) = sum(t_${tInterval(t_)}, ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_steplength(mSolve, fSolve, t); // Averages the time-dependent unit parameters over the interval
