@@ -73,6 +73,10 @@ loop(ft_limits(f, tSolve),
 
     // First solve, online variables
     v_online.up(uft_online(unit, f, tSolve))${tSolveFirst = mSettings(mSolve, 't_start')} = p_unit(unit, 'unitCount');
+
+    // State and online variables fixed for the subsequent solves
+    v_state.fx(gn_state(grid, node), ft_fix(f,t))${not ord(t) = mSettings(mSolve, 't_start')} = v_state.l(grid, node, f, t);
+    v_online.fx(uft_online(unit, ft_fix(f,t)))${not ord(t) = mSettings(mSolve, 't_start')} = v_online.l(unit, f, t);
 );
 
 v_state.fx(grid, node, f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'boundStartToEnd')) = v_state.l(grid, node, f, tSolve);

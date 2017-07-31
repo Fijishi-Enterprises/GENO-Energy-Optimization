@@ -140,8 +140,7 @@ q_obj ..
 ;
 
 * -----------------------------------------------------------------------------
-q_balance(gn(grid, node), m, ft_dynamic(f, t)) ..
-*${p_stepLength(m, f+pf(f,t), t+pt(t)) and not p_gn(grid, node, 'boundAll')} .. // Energy/power balance dynamics solved using implicit Euler discretization
+q_balance(gn(grid, node), m, ft_dynamic(f, t))${p_stepLength(m, f+pf(f,t), t+pt(t)) and not p_gn(grid, node, 'boundAll')} .. // Energy/power balance dynamics solved using implicit Euler discretization
   // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
   + p_gn(grid, node, 'energyStoredPerUnitOfState')$gn_state(grid, node) // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
       * ( + v_state(grid, node, f+cf(f,t), t)                           // The difference between current
@@ -402,7 +401,7 @@ q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, 
       / p_gnu(grid_, node_, unit, 'cB')
 ;
 * -----------------------------------------------------------------------------
-q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))$p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost') ..
+q_stateSlack(gn_stateSlack(grid, node), slack, ft_dynamic(f, t))$p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost') ..
   + v_stateSlack(grid, node, slack, f, t)
   =G=
   + p_slackDirection(slack) * (
@@ -538,12 +537,12 @@ q_boundStateMaxDiff(gnn_state(grid, node, node_), m, ft_dynamic(f, t))$p_gnn(gri
     + p_gnn(grid, node, node_, 'boundStateMaxDiff')                                              // Affected by the maximum difference parameter
 ;
 * -----------------------------------------------------------------------------
-q_boundCyclic(gn_state(grid, node), mf(m, f), t, t_)${  p_gn(grid, node, 'boundCyclic')         // Bind variables if parameter found
+q_boundCyclic(gn_state(grid, node), mft(m, f, t), t_)${  p_gn(grid, node, 'boundCyclic')         // Bind variables if parameter found
                                                         AND tSolveFirst = mSettings(m, 't_start') // For the very first model solve only
-                                                        AND mftStart(m, f, t)                   // Use only the starting time step of the model solve
+                                                        AND mftStart(m, f+pf(f,t), t)                   // Use only the starting time step of the model solve
                                                         AND mftLastSteps(m, f, t_)              // Use only the ending time step of the model solve
                                                         }..
-    + v_state(grid, node, f, t)
+    + v_state(grid, node, f+pf(f,t), t)
     =E=
     + v_state(grid, node, f, t_)
 ;

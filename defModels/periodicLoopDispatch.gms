@@ -1,5 +1,5 @@
     // Set mft for the modelling period and model forecasts
-    mft(mSolve,f,t) = no;
+    mft(mSolve, f, t) = no;
     mft(mSolve, f, t)$( p_stepLength(mSolve, f, t) and ord(t) < tSolveFirst + mSettings(mSolve, 't_horizon') and
         {
             [ ord(f) = 1 and ord(t) = tSolveFirst + tDispatchCurrent - 1]
@@ -17,7 +17,7 @@
     mftStart(mSolve,f,t) = no;
     mftStart(mSolve,f,t)${ tDispatchCurrent = 0 and fSolve(f) and ord(f) > 1 and ord(t) = tSolveFirst + tDispatchCurrent} = yes;
     mftStart(mSolve,f,t)${ tDispatchCurrent >= 1 and ord(f) = 1 and ord(t) = tSolveFirst + tDispatchCurrent - 1} = yes;
-    //mftStart(mSolve,fRealization,t)$[ord(t) = ord(tSolve)] = yes;
+    mftStart(mSolve,fRealization,t)$[ord(t) = ord(tSolve)] = yes;
     mftBind(mSolve,f,t) = no;
     mft_bind(mSolve,f,t) = no;
     mt_bind(mSolve,t) = no;
@@ -53,7 +53,7 @@
     cf(f,t) = no;
     loop(t$(ord(t) > tSolveFirst + mSettings(mSolve,'t_forecastLength') and continueLoop),  // Loop through all the different intervals set in the model definition file
         if(sum(f,p_stepLength(mSolve,f,t)),
-            ft_dynamic(f,t)$(ord(f) > 1) = yes;
+            ft_dynamic(fSolve(f),t)$(ord(f) > 1) = yes;
             cf(ft_dynamic(f,t)) = sum(f_$(fCentral(f_)), ord(f_)) - ord(f);
             continueLoop = 0;
         );
@@ -62,18 +62,18 @@
     //ft_dynamic('f00',tSolve+(tDispatchCurrent-1))$(tDispatchCurrent > 1 or (tSolveFirst > 1 and tDispatchCurrent > 0)) = yes;
     ft_dynamic('f00',tSolve+(tDispatchCurrent))$(tDispatchCurrent > 0) = yes;
     //ft_dynamic(f,tSolve)$(tSolveFirst > 0 and tDispatchCurrent = 0 and ord(f) > 1) = yes;
-    ft_dynamic(f,t)$(ord(f) = sum(f_$(fCentral(f_)), ord(f_)) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')) = yes;
-    ft_dynamic(f,t)$(ord(f) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon') and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')) = yes;
+    ft_dynamic(fSolve(f),t)$(ord(f) = sum(f_$(fCentral(f_)), ord(f_)) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')) = yes;
+    ft_dynamic(fSolve(f),t)$(ord(f) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon') and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')) = yes;
     ft_full(f,t) = no;
     ft_full(f,t) = ft(f,t) + ft_dynamic(f,t);
 
     ft_realized(f,t) = no;
-    ft_realized(f,t)$[fRealization(f) and ord(t) >= ord(tSolve) and ord(t) < ord(tSolve) + mSettings(mSolve, 't_jump')] = yes;
+    ft_realized(f,t)$[fRealization(f) and ord(t) >= ord(tSolve) and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_jump')] = yes;
     ft_realizedLast(f,t) = no;
-    ft_realizedLast(f,t)$[fRealization(f) and ord(t) = ord(tSolve) + mSettings(mSolve, 't_jump') - 1] = yes;
+    ft_realizedLast(f,t)$[fRealization(f) and ord(t) = ord(tSolve) + mSettings(mSolve, 't_jump') ] = yes;
 
     ft_fix(f,t) = no;
-    ft_fix(f,tSolve + tDispatchCurrent) = yes;
+    ft_fix(fSolve,tSolve + tDispatchCurrent) = yes;
 
     // Defining unit aggregations and ramps
     uft(unit, f, t) = no;
@@ -121,7 +121,7 @@
     );
 
     pf(f,t) = no;
-    pf(ft(f,t))$(ord(t) eq ord(tSolve) + tDispatchCurrent) = 1 - ord(f);
+    pf(ft_dynamic(f,t))$(ord(t) eq ord(tSolve) + tDispatchCurrent) = 1 - ord(f);
 
     // Clear probabilities from previous solve
     p_sft_probability(sInitial(s), f, t) = 0;
@@ -138,7 +138,7 @@ $offOrder
                 mftLastForecast(mf(mSolve,fSolve),t) = no;
                 mftLastForecast(mf(mSolve,fSolve),t)$[ord(fSolve) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLength')] = yes;
             else
-                mftLastSteps(mf(mSolve,fSolve),t)$[ord(fSolve) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')] = yes;
+                mftLastSteps(mf(mSolve,fSolve),t)$[ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')] = yes;
             );
         );
     );
@@ -179,7 +179,6 @@ loop(gn(grid, node),
     restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
 );
 
-*  ts_cf_(flow,'FI_R',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst and ord(t) < tSolveFirst + f_improve )
-*    = ts_cf(flow,'FI_R',f,t) + [ts_cf(flow,'FI_R','f00',t) - ts_cf(flow,'FI_R',f,t)] * [1 - log10( {ord(t) - tSolveFirst + 1.7} / 1.47 ) ];
-*  ts_cf_(flow,'SE_N',f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst and ord(t) < tSolveFirst + f_improve )
-*    = ts_cf(flow,'SE_N',f,t) + [ts_cf(flow,'SE_N','f00',t) - ts_cf(flow,'SE_N',f,t)] * [1 - log10( {ord(t) - tSolveFirst + 1.7} / 1.47 ) ];
+// Improve forecasts
+  ts_cf_(flow,node,ft(f,t))$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst and ord(t) < tSolveFirst + f_improve )
+    = ts_cf(flow,node,f,t) + [ts_cf(flow,node,'f00',t) - ts_cf(flow,node,f,t)] * [1 - log10( {ord(t) - tSolveFirst + 1.7} / 1.47 ) ];

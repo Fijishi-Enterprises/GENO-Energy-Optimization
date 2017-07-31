@@ -57,7 +57,7 @@
             $$ifi '%debug%' == 'yes' execute_unload;   // Output debugging information
 
             // Remaining solves will use bound start value for v_state once it has been established
-            v_state.fx(grid, node, ft_fix(f,t))$gn_state(grid,node) = v_state.l(grid, node, f, t);
+            v_state.fx(gn_state(grid, node), ft_fix(f,t)) = v_state.l(grid, node, f, t);
             // Remaining solves
             v_online.fx(uft_online(unit, ft_fix(f, t))) = round(v_online.l(unit, f, t));
             //v_startup.fx(uft_limits_online(unit, ft_fix(f,t))) = v_startup.l(unit,f,t);
@@ -65,5 +65,9 @@
             //v_spill.fx(gn(grid, node), ft_fix(f, t)) = v_spill.l(grid, node, f, t);
             //vq_gen.fx(inc_dec, gn(grid, node), ft_fix(f, t)) = vq_gen.l(inc_dec, grid, node, f, t);
         );
-    );
+    ); // END IF SCHEDULE
+
+    if (mSolve('building'),
+        solve building using mip minimizing v_obj;
+    ); // END IF BUILDING
 *    if (mSolve('storage'),    solve storage    using lp   minimizing v_obj; );

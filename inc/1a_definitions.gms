@@ -214,7 +214,9 @@ param_unitFuel "Parameters for fuel limits in units" /
 /
 
 param_policy "Set of possible data parameters for grid, node, regulation" /
-    emissionTax "Emission tax (€/tonne)"
+    emissionTax "Emission tax (EUR/tonne)"
+    update_frequency "???"
+    gate_closure "???"
 /
 
 
