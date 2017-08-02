@@ -69,6 +69,7 @@ class Ui_MainWindow(object):
         self.treeView_setups.setDragEnabled(True)
         self.treeView_setups.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         self.treeView_setups.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.treeView_setups.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.treeView_setups.setTextElideMode(QtCore.Qt.ElideRight)
         self.treeView_setups.setIndentation(20)
         self.treeView_setups.setUniformRowHeights(True)

@@ -36,7 +36,7 @@ class SetupContextMenuWidget(QMenu):
             self.add_action("Clone")
         self.exec_(position)
 
-    def add_action(self, text, shortcut=None):
+    def add_action(self, text):
         """ Adds an action to the context menu.
 
         Args:

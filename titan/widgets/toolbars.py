@@ -152,8 +152,10 @@ def make_delete_toolbar(ui):
     label = QLabel("Delete")
     delete_single = QAction(delete_single_icon, "Single", ui)
     delete_all = QAction(delete_all_icon, "All", ui)
+    # Set shortcut for delete_single QAction
+    delete_single.setShortcut("Del")
     # Set tooltips for toolbar actions
-    delete_single.setToolTip("Delete selected Setup")
+    delete_single.setToolTip("Delete selected Setup(s)")
     delete_all.setToolTip("Delete all Setups in the project")
     # Add actions to toolbar
     toolb.addWidget(label)

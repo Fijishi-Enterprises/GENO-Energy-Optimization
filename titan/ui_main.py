@@ -13,7 +13,7 @@ import json
 import subprocess
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt, QTimer, QSettings
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, \
-                            QFileDialog, QCheckBox, QComboBox
+                            QFileDialog, QCheckBox, QComboBox, QAction
 from PyQt5.Qt import QDesktopServices, QUrl
 from ui.main import Ui_MainWindow
 from project import SceletonProject
@@ -101,6 +101,10 @@ class TitanUI(QMainWindow):
         self.addToolBar(Qt.TopToolBarArea, self.clear_toolbar)
         self.data_toolbar = widgets.toolbars.make_data_toolbar(self)
         self.addToolBar(Qt.TopToolBarArea, self.data_toolbar)
+        # Make QActions for keyboard shortcuts
+        self.action_clone = QAction(self)
+        self.action_clone.setShortcut("C")
+        self.addAction(self.action_clone)
         # Initialize others
         self.timer = QTimer(parent=self)  # Timer for animating item decorations
         self.init_conf()  # Init conf file
@@ -158,6 +162,8 @@ class TitanUI(QMainWindow):
         self.ui.actionExecuteSelected.triggered.connect(self.execute_selected)
         self.ui.actionExecuteProject.triggered.connect(self.execute_project)
         self.ui.actionStop_Execution.triggered.connect(self.terminate_execution)
+        # Connect keyboard shortcut QActions
+        self.action_clone.triggered.connect(self.clone)
         # Toolbars (Toolbar QAction signals are connected in toolbars.py)
         self.ui.actionShowResizeViewsToolbar.triggered.connect(self.set_toolbar_visibility)
         self.ui.actionShowToolToolbar.triggered.connect(self.set_toolbar_visibility)
@@ -1096,6 +1102,19 @@ class TitanUI(QMainWindow):
             setup.attach_tool(tool, cmdline_args=cmdline_args)
         return
 
+    def clone(self):
+        """Clone keyboard shortcut triggered handler.
+        Get selected Setup and call clone_setup() method."""
+        index = self.ui.treeView_setups.selectionModel().selectedRows()
+        if not index:
+            logging.debug("No Setup to clone Selected")
+            return
+        index = index[0]
+        if not index.isValid():
+            logging.debug("Index not valid for cloning")
+            return
+        self.clone_setup(index)
+
     def clone_setup(self, ind):
         """Clone selected Setup.
 
@@ -1109,7 +1128,6 @@ class TitanUI(QMainWindow):
         name_ok = False
         i = 0
         clone_name = "dummy123"
-        clone_short_name = "dummy123"
         while not name_ok:
             clone_name = s.name + '_' + str(i)
             clone_short_name = clone_name.lower().replace(' ', '_')
@@ -1118,7 +1136,7 @@ class TitanUI(QMainWindow):
                 matching_index = self.setup_model.match(
                     start_index, Qt.DisplayRole, clone_name, 1, Qt.MatchFixedString | Qt.MatchRecursive)
                 if len(matching_index) > 0:  # Match found
-                    logging.debug("Setup '{0}' already exists".format(clone_name))
+                    # logging.debug("Setup '{0}' already exists".format(clone_name))
                     i += 1
                     continue
                 # Check that no existing Setup short name matches the new Setup's short name.
@@ -1132,43 +1150,48 @@ class TitanUI(QMainWindow):
 
     @pyqtSlot(name='delete_selected_setup')
     def delete_selected_setup(self):
-        """Removes selected Setup and all of it's children from SetupModel."""
-        index = self.get_selected_setup_index()
-        if not index:
+        """Removes selected Setup(s) and all of it's children from the SetupModel."""
+        show_question_box = True
+        del_input_dirs = self._config.getboolean('settings', 'delete_input_dirs')
+        indexes = self.get_selected_setup_indexes()
+        if not indexes:
             self.add_msg_signal.emit("No Setup selected<br/>", 0)
             return
-        row = index.row()
-        parent = self.setup_model.parent(index)
-        selected_setup = index.internalPointer()
-        name = selected_setup.name
-        del_input_dirs = self._config.getboolean('settings', 'delete_input_dirs')
-        if not del_input_dirs:
-            title = "Delete Setup?"
-            msg = "You are about to delete Setup <b>{0}</b> and all of its children.\nAre you sure?".format(name)
-        else:
-            title = "Delete Setup and input directory?"
-            msg = "You are about to delete Setup <b>{0}</b> and all of its children." \
-                  "\nInput directories will be deleted as well.\nAre you sure?".format(name)
-        # noinspection PyCallByClass, PyTypeChecker
-        answer = QMessageBox.question(self, title, msg, QMessageBox.Yes, QMessageBox.No)
-        # Get deleted Setup's names and input dirs
-        [names, input_dirs] = self.get_deleted_setup_lists(selected_setup)
-        if answer == QMessageBox.Yes:
-            self.setup_model.remove_setup(row, parent)
-            for n in names:
-                self.add_msg_signal.emit("Setup <b>{}</b> deleted".format(n), 0)
-            # Delete input directories if selected
-            if del_input_dirs:
-                for path in input_dirs:
-                    try:
-                        if not erase_dir(path):
-                            self.add_msg_signal.emit("Removing path <b>{0}</b> failed".format(path), 2)
-                            continue
-                    except OSError:
-                        logging.exception("OSError while removing directory {}".format(path))
-                        continue
-                    else:
-                        self.add_msg_signal.emit("Directory <b>{0}</b> removed".format(path), 0)
+        # Get names of deleted Setups
+        setups = [ind.internalPointer().name for ind in indexes]
+        for setup in setups:
+            # Find index of setup
+            index = self.setup_model.find_index(setup)
+            row = index.row()
+            parent = self.setup_model.parent(index)
+            selected_setup = index.internalPointer()
+            name = selected_setup.name
+            if not del_input_dirs:
+                title = "Delete Setup?"
+                msg = "You are about to delete Setup <b>{0}</b> and all of its children.\nAre you sure?".format(name)
+            else:
+                title = "Delete Setup and input directory?"
+                msg = "You are about to delete Setup <b>{0}</b> and all of its children." \
+                      "\nInput directories will be deleted as well.\nAre you sure?".format(name)
+            # If 'Yes To All' was selected, do not show question box anymore
+            if not show_question_box:
+                # Delete Setup
+                self.delete_setup(selected_setup, row, parent, del_input_dirs)
+            else:
+                # noinspection PyCallByClass, PyTypeChecker, PyArgumentList
+                answer = QMessageBox.question(self, title, msg, QMessageBox.YesToAll | QMessageBox.Yes |
+                                              QMessageBox.No | QMessageBox.Cancel)
+                if answer == QMessageBox.Yes:
+                    # Delete Setup
+                    self.delete_setup(selected_setup, row, parent, del_input_dirs)
+                elif answer == QMessageBox.YesToAll:
+                    show_question_box = False
+                    # Delete Setup
+                    self.delete_setup(selected_setup, row, parent, del_input_dirs)
+                elif answer == QMessageBox.No:
+                    pass
+                else:  # Cancel, 'X', or Escape key pressed
+                    break
         return
 
     @pyqtSlot(name='delete_all')
@@ -1215,12 +1238,13 @@ class TitanUI(QMainWindow):
     # noinspection PyMethodMayBeStatic
     def get_deleted_setup_lists(self, start_setup):
         """Returns two lists with deleted Setup names and input directories.
+        Find Setup's to be deleted starting from the given Setup.
 
         Args:
             start_setup (Setup): Traverse tree from this Setup. Give root to traverse the whole tree.
 
         Returns:
-            List that contains two lists: deleted Setup names and their input directories
+            List that contains two lists: Setup names to be deleted and their input directories
         """
         names = list()
         input_dirs = list()
@@ -1245,6 +1269,34 @@ class TitanUI(QMainWindow):
         n_kids = self._root.child_count()
         for i in range(n_kids):
             self.setup_model.remove_setup(0, root_index)
+        return
+
+    def delete_setup(self, setup, row, parent, del_input_dirs):
+        """Delete Setup and it's Input directory if selected.
+        Used by delete_selected_setup() method.
+
+        Args:
+            setup (Setup): Setup to delete
+            row (int): Row of Setup
+            parent (QModelIndex): Index of deleted Setup's parent
+            del_input_dirs (bool): User setting whether to delete input directory as well as the Setup
+        """
+        [names, input_dirs] = self.get_deleted_setup_lists(setup)
+        self.setup_model.remove_setup(row, parent)
+        for n in names:
+            self.add_msg_signal.emit("Setup <b>{}</b> deleted".format(n), 0)
+        # Delete input directories if selected
+        if del_input_dirs:
+            for path in input_dirs:
+                try:
+                    if not erase_dir(path):
+                        self.add_msg_signal.emit("Removing path <b>{0}</b> failed".format(path), 2)
+                        continue
+                except OSError:
+                    logging.exception("OSError while removing directory {}".format(path))
+                    continue
+                else:
+                    self.add_msg_signal.emit("Directory <b>{0}</b> removed".format(path), 0)
         return
 
     def execute_single(self):
@@ -1596,6 +1648,19 @@ class TitanUI(QMainWindow):
         if not index.isValid():
             return None
         return index
+
+    def get_selected_setup_indexes(self):
+        """Returns the indexes of the selected rows or None if
+         nothing is selected or index is not valid."""
+        try:
+            indexes = self.ui.treeView_setups.selectionModel().selectedRows()
+        except IndexError:
+            # Nothing selected
+            return None
+        for index in indexes:
+            if not index.isValid():
+                return None
+        return indexes
 
     def get_selected_setup_base_index(self):
         """Returns the index of the base Setup of the selected
