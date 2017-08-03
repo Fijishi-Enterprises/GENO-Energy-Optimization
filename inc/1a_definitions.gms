@@ -112,7 +112,7 @@ $if set rampSched active('rampSched') = %rampSched%;
 Sets
 
 param_gn  "Possible parameters for grid, node" /
-    selfDischargeLoss "Self discharge rate of the node (p.u.)"
+    selfDischargeLoss "Self discharge rate of the node [MW/v_state]"
     energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh"
     boundStart    "A flag to bound the first t in the run using reference constant or time series"
     boundStartAndEnd "A flag that both start and end are bound using reference constant or time series"
