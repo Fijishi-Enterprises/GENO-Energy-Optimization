@@ -6,6 +6,7 @@
 *.~*
 225?/
 *.put
+*.log
 
 # Backbone
 Backbone.txt
@@ -16,10 +17,15 @@ Backbone.dat
 diffile.gdx
 defModels/schedule.gms
 defModels/storage.gms
+defModels/building.gms
 EfficiencyPiecewise.xlsx
 /version
+
+# Data files
+*.gdx
+*.xlsx
+
+# Other files
 *.pptx
 *.docx
 *.pdf
-*.gdx
-*.xlsx
