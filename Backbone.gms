@@ -101,8 +101,8 @@ $if exist 'input\3z_modelsClose.gms' $include 'input\3z_modelsClose.gms';
 
 
 * === Output ==================================================================
-$echon "'StoSSch version' " > 'stosschver'
-$call 'git describe --dirty=+ --always >> stosschver'
+$echon "'version' " > 'version'
+$call 'git describe --dirty=+ --always >> version'
 $include 'inc\4b_outputInvariant.gms'
 $include 'inc\4c_outputQuickFile.gms'
 

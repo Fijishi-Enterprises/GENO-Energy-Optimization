@@ -5,7 +5,7 @@ set metadata(*) /
    'Time' '%system.time%'
    'GAMS version' '%system.gamsrelease%'
    'GAMS system' '%system.gstring%'
-$include 'stosschver'
+$include 'version'
 /;
 if(errorcount > 0, metadata('FAILED') = yes);
 
