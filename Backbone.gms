@@ -1,14 +1,15 @@
 $title Backbone
 $ontext
 Backbone - chronological energy systems model
-===============================================================================
+==========================================================================
 Created by:
     Juha Kiviluoma <juha.kiviluoma@vtt.fi>
     Erkka Rinne <erkka.rinne@vtt.fi>
+    Topi Rasku <topi.rasku@vtt.fi>
 
 - Based on Stochastic Model Predictive Control method [1].
-- Enables multiple different models (m) to be implemented by changing the temporal
-  structure of the model.
+- Enables multiple different models (m) to be implemented by changing
+  the temporal structure of the model.
 - Time steps (t) can vary in length.
 - Short term forecast stochasticity (f) and longer term statistical uncertainty (s).
 - Can handle ramp based dispatch in addition to energy blocks.
@@ -52,11 +53,13 @@ $onempty   // Allow empty data definitions
 files log /''/, gdx, f_info /'output\info.txt'/;
 
 options
-    profile = 8
+    optca = 0
+    optcr = 0.0001
+*    profile = 8
     solvelink = %Solvelink.Loadlibrary%
-    bratio = 1
-    solveopt = replace
-    savepoint = 0
+    bratio = 0.25
+    solveopt = merge
+    savepoint = 1
     threads = -1
 $ifi not '%debug%' == 'yes'
     solprint = Silent
@@ -79,16 +82,12 @@ $include 'input\3a_modelsInit.gms'  // Sets that are defined over the whole mode
 
 * === Simulation ==============================================================
 loop(modelSolves(mSolve, tSolve),
-    $$include 'input\3b_modelsLoop.gms'         // Set sets that define model scope
-    $$include 'inc\3c_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
-    $$include 'inc\3d_solve.gms'                // Solve model(s)
-    put log;
-    put schedule.resGen;
-    put tSolveFirst;
-    putclose log;
+    $$include 'inc\3b_inputsLoop.gms'           // Read input data that is updated within the loop
+    $$include 'input\3c_modelsLoop.gms'         // Set sets that define model scope
+    $$include 'inc\3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
+    $$include 'inc\3e_solve.gms'                // Solve model(s)
 
     $$include 'inc\4a_outputVariant.gms'  // Store results from the loop
-    $$ifi '%debug%' == 'yes' execute_unload 'output\debug.gdx';   // Output debugging information
 *    $$ifi.debug '%debug%' == 'yes'
 *        putclose gdx;
 *        put_utility 'gdxout' / 'output\'mSolve.tl:0, '-', tSolve.tl:0, '.gdx';
