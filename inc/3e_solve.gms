@@ -84,7 +84,7 @@ $offtext
         );
     ); // END IF SCHEDULE
 
-    if (mSolve('building'),
-        solve building using mip minimizing v_obj;
-    ); // END IF BUILDING
+*    if (mSolve('building'),
+*        solve building using mip minimizing v_obj;
+*    ); // END IF BUILDING
 *    if (mSolve('storage'),    solve storage    using lp   minimizing v_obj; );

@@ -45,7 +45,7 @@ $offOrder
                 ts_cf_(flow, node, fSolve, t)$tInterval(t) = ts_cf(flow, node, fSolve, t+ct(t));
                 ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)$tInterval(t) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
                 ts_unit_(unit, param_unit, fSolve, t)$tInterval(t) = ts_unit(unit, param_unit, fSolve, t+ct(t));
-                ts_reserveDemand_(restype, up_down, node, fSolve, t)$tInterval(t) = ts_reserveDemand(restype, up_down, node, fSolve, t+ct(t));
+                ts_reserveDemand_(restype, up_down, node, fSolve, t)$tInterval(t) = p_nReserves(node, resType, up_down);
                 tCounter = mInterval(mSolve, 'intervalEnd', counter); // move tCounter to the next interval setting
                 p_stepLength(mf(mSolve, fSolve), t)$tInterval(t) = mSettings(mSolve, 'intervalInHours');  // p_stepLength will hold the length of the interval in hours in model equations
                 p_stepLengthNoReset(mSolve, fSolve, t)$tInterval(t) = mSettings(mSolve, 'intervalInHours');
@@ -67,7 +67,7 @@ $offOrder
                             ts_cf_(flow, node, fSolve, t) = sum{t_$tInterval(t_), ts_cf(flow, node, fSolve, t_+ct(t_))} / p_stepLength(mSolve, fSolve, t);  // Averages the capacity factor over the inverval
                             ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t) = sum(t_${tInterval(t_)}, ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t); // Averages the time-dependent node state boundary conditions over the interval
                             ts_unit_(unit, param_unit, fSolve, t) = sum(t_${tInterval(t_)}, ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_steplength(mSolve, fSolve, t); // Averages the time-dependent unit parameters over the interval
-                            ts_reservedemand_(restype, up_down, node, fSolve, t) = sum(t_${tInterval(t_)}, ts_reserveDemand(restype, up_down, node, fSolve, t_+ct(t_))) / p_steplength(mSolve, fSolve, t); // Averages the time-dependent unit parameters over the interval
+                            ts_reservedemand_(restype, up_down, node, fSolve, t) =  p_nReserves(node, resType, up_down); //Only static reserve for now
                             // Set the previous time step displacement
                             pt(t+intervalLength) = -intervalLength;
                         );
