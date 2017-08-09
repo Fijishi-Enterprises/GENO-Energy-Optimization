@@ -14,7 +14,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
-
+$ontext
 put log 'ord tSolve: ';
 put log ord(tSolve) /;
 
@@ -29,3 +29,4 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
 );
 
 putclose log;
+$offtext

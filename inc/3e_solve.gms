@@ -14,7 +14,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
-
+$ontext
     if (mSolve('schedule'),
         settings(mSetting) = mSettings(mSolve, mSetting);
         solve schedule   using mip   minimizing v_obj;
@@ -83,8 +83,11 @@ $offtext
             //vq_gen.fx(inc_dec, gn(grid, node), ft_fix(f, t)) = vq_gen.l(inc_dec, grid, node, f, t);
         );
     ); // END IF SCHEDULE
-
-    if (mSolve('building'),
-        solve building using mip minimizing v_obj;
-    ); // END IF BUILDING
+$offtext
+    if (mSolve('schedule'),
+        solve schedule using mip minimizing v_obj;
+    ); // END IF SCHEDULE
+*    if (mSolve('building'),
+*        solve building using mip minimizing v_obj;
+*    ); // END IF BUILDING
 *    if (mSolve('storage'),    solve storage    using lp   minimizing v_obj; );
