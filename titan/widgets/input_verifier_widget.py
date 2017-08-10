@@ -133,11 +133,16 @@ class InputVerifierWidget(QWidget):
             item.setFlags(Qt.ItemIsEnabled)
             self.req_files_model.appendRow(item)
         # Check if required files are in Setup input files
+        found_req_files = list()
         for req_file in req_files:
             found_file = setup.find_input_file(req_file)
             if found_file:
                 self.ui.textBrowser_output.append("<b>{0}</b> found in <b>{1}</b>".format(req_file, found_file))
-                req_files.remove(req_file)
+                found_req_files.append(req_file)
+        # Remove found required files from required files
+        for element in found_req_files:
+            if element in req_files:
+                req_files.remove(element)
         # Find remaining required files from parent Setup's Tool output files
         if len(req_files) > 0:
             found_files = dict()
@@ -231,7 +236,6 @@ class InputVerifierWidget(QWidget):
                 return ["Loading JSON data failed"]
         try:
             datafiles = json_data['datafiles']
-            # infiles = json_data['infiles']  # OBSOLETE
         except KeyError:
             logging.error("datafiles keyword not found in Tool definition file")
             return ["datafiles keyword not found in Tool definition file"]

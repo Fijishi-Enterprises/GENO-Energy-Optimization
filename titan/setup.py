@@ -269,7 +269,7 @@ class Setup(MetaObject):
         """
         if self.is_root:
             return None
-        # Look at own input
+        # Look in own input
         if not is_ancestor:
             if fname in self.get_input_files():
                 return os.path.join(self.input_dir, fname)
@@ -440,7 +440,7 @@ class Setup(MetaObject):
                 os.makedirs(dst_dir, exist_ok=True)
             except OSError as e:
                 logging.error(e)
-                ui.add_msg_signal.emit("Creating directory '{0}' failed. Check permissions.".format(dst_dir), 2)
+                ui.add_msg_signal.emit("Creating directory <b>{0}</b> failed. Check permissions.".format(dst_dir), 2)
                 return False
             if '*' in filename:  # Deal with wildcards
                 found_files = self.find_input_files(filename)
@@ -449,7 +449,7 @@ class Setup(MetaObject):
                 # Required file not found
                 if filepath in tool.datafiles and not found_file:
                     logging.error("Could not find required input file '{}'".format(filename))
-                    ui.add_msg_signal.emit("Required input file '{0}' not found".format(filename), 2)
+                    ui.add_msg_signal.emit("Required input file <b>{0}</b> not found".format(filename), 2)
                     return False
                 # Construct a list
                 found_files = [found_file] if found_file else []
@@ -461,7 +461,7 @@ class Setup(MetaObject):
                     n_copied_files += 1
                 except OSError:
                     logging.error("Copying file '{}' to directory '{}' failed".format(src_file, dst_dir))
-                    ui.add_msg_signal.emit("Copying file '{0}' to directory '{1}' failed."
+                    ui.add_msg_signal.emit("Copying file <b>{0}</b> to directory <b>{1}</b> failed."
                                            " Check directory permissions.".format(src_file, dst_dir), 2)
                     return False
         logging.info("Finished copying input files for Tool '{}'".format(tool.name))
