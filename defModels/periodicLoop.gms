@@ -30,19 +30,22 @@ p_stepLength(mSolve, f, t) = no;
 ft_new(f,t) = no;
 
 // Determine the next and latest forecasts (???)
-$ontext
-tForecastNext(mSolve)$(ord(tSolve) >= tForecastNext(mSolve)) = tForecastNext(mSolve) + mSettings(mSolve, 't_ForecastJump');
+tForecastNext(mSolve)${ord(tSolve) >= tForecastNext(mSolve)
+    } = tForecastNext(mSolve) + mSettings(mSolve, 't_ForecastJump');
 loop(tLatestForecast,  // There should be only one latest forecast
-    ts_cf(flow,node,f,t)$(ord(f) > 1 and ord(f) <= mSettings(mSolve, 'forecasts') + 1 and ord(t) >= tSolveFirst + f_improve and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength'))
-      = ts_forecast(flow,node,tLatestForecast,f,t);
+    ts_cf(flow,node,f,t)${  ord(f) > 1
+                            and ord(f) <= mSettings(mSolve, 'forecasts') + 1
+                            and ord(t) >= tSolveFirst + f_improve and
+                            ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
+        } = ts_forecast(flow,node,tLatestForecast,f,t);
 );
-$offtext
 
 // Initializing sets and counters
 tCounter = 0;
 p_stepLength(mf(mSolve, fSolve), t) = no;
 ft(f,t) = no;
 ft_dynamic(f,t) = no;
+ft_full(f,t) = no;
 
 // Build the forecast-time structure using the intervals
 loop(counter${mInterval(mSolve, 'intervalLength', counter)},
@@ -72,9 +75,10 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         ft_dynamic(fSolve, t + 1)${ ft(fSolve, t)
                                     and tInterval(t)
                                     } = yes; // Displace ft_dynamic by 1 step
+        ft_full(fSolve, t) = ft(fSolve, t) + ft_dynamic(fSolve, t);
 
         // Select time series data matching the intervals, for intervalLength = 1, this is trivial.
-        ts_influx_(grid, node, ft(fSolve, tInterval(t))) = ts_influx(grid, node, fSolve, t+ct(t));
+        ts_influx_(grid, node, ft_full(fSolve, t)) = ts_influx(grid, node, fSolve, t+ct(t));
         ts_cf_(flow, node, ft(fSolve, tInterval(t))) = ts_cf(flow, node, fSolve, t+ct(t));
         ts_unit_(unit, param_unit, ft(fSolve, tInterval(t))) = ts_unit(unit, param_unit, fSolve, t+ct(t));
         ts_reserveDemand_(restype, up_down, node, ft(fSolve, tInterval(t))) = ts_reserveDemand(restype, up_down, node, fSolve, t+ct(t));
@@ -104,6 +108,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         ft_dynamic(fSolve, t + mInterval(mSolve, 'intervalLength', counter))${  ft(fSolve, t)
                                                                                 and tInterval(t)
                                                                                 } = yes; // Displace ft_dynamic by intervalLength
+        ft_full(fSolve, t) = ft(fSolve, t) + ft_dynamic(fSolve, t);
 $offOrder
         // Select time series data matching the intervals, for intervalLength > 1
         loop(ft(fSolve, tInterval(t)), // Loop over the t:s of the interval
@@ -129,10 +134,6 @@ $onOrder
 ); // END LOOP COUNTER
 
 * --- Determine various sets required for the model ---------------------------
-// Full set of forecast-time steps included in the solve
-ft_full(f,t) = no;
-ft_full(f,t) = ft(f,t) + ft_dynamic(f,t);
-
 // Set of realized time steps in the solve
 ft_realized(f,t) = no;
 ft_realized(ft_full(fRealization(f),t)) = yes;
