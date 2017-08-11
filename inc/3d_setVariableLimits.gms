@@ -103,20 +103,27 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), ft(f, t))$nuft(node
 
 // Fix reserves between t_jump and gate_closure based on previous allocations
 loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
-    if ([not mod(tSolveFirst-1, p_nReserves(node, restype, 'update_frequency')) and not tSolveFirst = mSettings(mSolve, 't_start')],
+*    if ([not mod(tSolveFirst-1, p_nReserves(node, restype, 'update_frequency')) and not tSolveFirst = mSettings(mSolve, 't_start')],
+*    if (not tSolveFirst = mSettings(mSolve, 't_start'),
         v_reserve.fx(nuRescapable(restype, up_down, node, unit_elec), ft(f,t))${    nuft(node, unit_elec, f, t)
                                                                                     and not fRealization(f)
-*                                                                                    and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump') - 1
-                                                                                    and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - 1
+                                                                                    and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency')
+                                                                                    and ord(t) < tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst-1, p_nReserves(node, restype, 'update_frequency'))
                                                                                     and not unit_flow(unit_elec)           // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
             } = v_reserve.l(restype, up_down, node, unit_elec, f, t);
         v_resTransfer.fx(restype, up_down, node, to_node, ft(f,t))${    restypeDirectionNode(restype, up_down, to_node)
                                                                         and sum(grid, gn2n(grid, node, to_node))
                                                                         and not fRealization(f)
-*                                                                        and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump') - 1
-                                                                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - 1
+                                                                        and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency')
+                                                                        and ord(t) < tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst-1, p_nReserves(node, restype, 'update_frequency'))
             } = v_resTransfer.l(restype, up_down, node, to_node, f, t);
-    );
+*    );
+
+    // Free the tertiary reserves for the realization
+    v_reserve.fx(nuRescapable('tertiary', up_down, node, unit_elec), ft_realized(ft(f,t)))${    nuft(node, unit_elec, f, t)
+        } = 0;
+    v_resTransfer.fx('tertiary', up_down, node, to_node, ft_realized(ft(f,t)))${    sum(grid, gn2n(grid, node, to_node))
+        } = 0;
 );
 
 * --- Bounds overwritten for the first solve -----------------------------------
