@@ -83,7 +83,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         ts_unit_(unit, param_unit, ft(fSolve, tInterval(t))) = ts_unit(unit, param_unit, fSolve, t+ct(t));
         ts_reserveDemand_(restype, up_down, node, ft(fSolve, tInterval(t))) = ts_reserveDemand(restype, up_down, node, fSolve, t+ct(t));
         // nodeState uses ft_dynamic, requiring displacement
-        ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_dynamic(fSolve, t + 1))${tInterval(t)} = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
+        ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_full(fSolve, t)) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
 
     // If intervalLength exceeds 1 (intervalLength < 1 not defined)
     elseif mInterval(mSolve, 'intervalLength', counter) > 1,

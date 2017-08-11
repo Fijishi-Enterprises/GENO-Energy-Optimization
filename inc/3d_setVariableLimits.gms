@@ -22,7 +22,7 @@ v_state.up(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForSta
     } = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
 v_state.lo(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
     } = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
-v_state.fx(gn_state(grid, node), ft_dynamic(f, t))${p_gn(grid, node, 'boundAll')
+v_state.fx(gn_state(grid, node), ft_full(f, t))${p_gn(grid, node, 'boundAll')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
     } = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
@@ -31,7 +31,7 @@ v_state.up(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForSta
     } = ts_nodeState_(grid, node,   'upwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
 v_state.lo(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
     } = ts_nodeState_(grid, node, 'downwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
-v_state.fx(gn_state(grid, node), ft_dynamic(f, t))${p_gn(grid, node, 'boundAll')
+v_state.fx(gn_state(grid, node), ft_full(f, t))${p_gn(grid, node, 'boundAll')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
     } = ts_nodeState_(grid, node, 'reference', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 

@@ -562,9 +562,9 @@ q_boundCyclic(gn_state(grid, node), mftStart(m, f, t), fCentral(f_), t_)${  p_gn
                                                                             AND tSolveFirst = mSettings(m, 't_start') // For the very first model solve only
                                                                             AND mftLastSteps(m, f_, t_)              // Use only the ending time step of the model solve
                                                                             }..
-    + v_state(grid, node, f+pf(f,t), t)
+    + v_state(grid, node, f, t)
     =E=
-    + v_state(grid, node, f, t_)
+    + v_state(grid, node, f_, t_)
 ;
 * -----------------------------------------------------------------------------
 q_bidirectionalTransfer(gn2n_bidirectional(grid, node, node_), ft(f, t))${p_gnn(grid, node, node_, 'transferCapBidirectional')} ..
