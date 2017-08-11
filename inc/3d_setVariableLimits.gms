@@ -87,8 +87,8 @@ v_spill.up(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node
 // Restrictions on transferring energy between nodes
 v_transfer.up(gn2n(grid, from_node, to_node), ft(f, t))
     = p_gnn(grid, from_node, to_node, 'transferCap');
-v_resTransfer.up(restype, up_down, from_node, to_node, ft(f, t))${  restypeDirectionNode(restype, up_down, from_node)
-                                                                        and restypeDirectionNode(restype, up_down, to_node)
+v_resTransfer.up(restypeDirectionNode(restype, up_down, from_node), to_node, ft(f, t))${    restypeDirectionNode(restype, up_down, to_node)
+                                                                                            and sum(grid, gn2n(grid, from_node, to_node))
     } = p_gnn('elec', from_node, to_node, 'transferCap');
 
 // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
@@ -100,6 +100,24 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), ft(f, t))$nuft(node
     = min { p_nuReserves(node, unit_elec, restype, 'down') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
              v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
            };
+
+// Fix reserves between t_jump and gate_closure based on previous allocations
+loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
+    if ([not mod(tSolveFirst-1, p_nReserves(node, restype, 'update_frequency')) and not tSolveFirst = mSettings(mSolve, 't_start')],
+        v_reserve.fx(nuRescapable(restype, up_down, node, unit_elec), ft(f,t))${    nuft(node, unit_elec, f, t)
+                                                                                    and not fRealization(f)
+*                                                                                    and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump') - 1
+                                                                                    and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - 1
+                                                                                    and not unit_flow(unit_elec)           // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
+            } = v_reserve.l(restype, up_down, node, unit_elec, f, t);
+        v_resTransfer.fx(restype, up_down, node, to_node, ft(f,t))${    restypeDirectionNode(restype, up_down, to_node)
+                                                                        and sum(grid, gn2n(grid, node, to_node))
+                                                                        and not fRealization(f)
+*                                                                        and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump') - 1
+                                                                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - 1
+            } = v_resTransfer.l(restype, up_down, node, to_node, f, t);
+    );
+);
 
 * --- Bounds overwritten for the first solve -----------------------------------
 loop(ft(f, tSolve),
