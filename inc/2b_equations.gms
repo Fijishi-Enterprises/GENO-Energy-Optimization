@@ -229,7 +229,7 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) <
   + sum(gnu_input(grid, node, unit)${gnuft(grid, node, unit, f, t) AND nuRescapable(restype, up_down, node, unit)},
         v_reserve(restype, up_down, node, unit, f, t) // * p_nuReserves(node, unit, restype, 'reserveContribution') // Reserve capable units with input from this node
     )
-  + sum(gn2n(grid, from_node, node)$restypeDirectionNode(restype, up_down, from_node),
+  + sum(gn2n(grid, from_node, node), // $restypeDirectionNode(restype, up_down, from_node),
         (1 - p_gnn(grid, from_node, node, 'transferLoss')
         ) * v_resTransfer(restype, up_down, from_node, node, f, t)             // Reserves from another node - reduces the need for reserves in the node
     )
@@ -237,7 +237,7 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) <
   + ts_reserveDemand_(restype, up_down, node, f, t)$p_nReserves(node, restype, 'use_time_series')
   + p_nReserves(node, restype, up_down)${not p_nReserves(node, restype, 'use_time_series')}
   - vq_resDemand(restype, up_down, node, f, t)
-  + sum(gn2n(grid, node, to_node)$restypeDirectionNode(restype, up_down, to_node),   // If trasferring reserves to another node, increase your own reserves by same amount
+  + sum(gn2n(grid, node, to_node), // $restypeDirectionNode(restype, up_down, to_node),   // If trasferring reserves to another node, increase your own reserves by same amount
         v_resTransfer(restype, up_down, node, to_node, f, t)
     )
 ;
@@ -246,7 +246,7 @@ q_resTransfer(gn2n(grid, from_node, to_node), ft(f, t))${ sum(restypeDirection(r
                                                             OR sum(restypeDirection(restype, up_down), restypeDirectionNode(restype, up_down, to_node))
                                                             } ..
   + v_transfer(grid, from_node, to_node, f, t)
-  + sum(restypeDirection(restype, up_down)$(restypeDirectionNode(restype, up_down, from_node) and restypeDirectionNode(restype, up_down, to_node)),
+  + sum(restypeDirection(restype, up_down)$(restypeDirectionNode(restype, up_down, from_node) or restypeDirectionNode(restype, up_down, to_node)),
         + v_resTransfer(restype, up_down, from_node, to_node, f, t)
     )
   =L=
@@ -573,7 +573,7 @@ q_boundCyclic(gn_state(grid, node), mftStart(m, f, t), fCentral(f_), t_)${  p_gn
 q_bidirectionalTransfer(gn2n_bidirectional(grid, node, node_), ft(f, t))${p_gnn(grid, node, node_, 'transferCapBidirectional')} ..
     + v_transfer(grid, node, node_, f, t) // Transfers in one direction
     + v_transfer(grid, node_, node, f, t) // Transfers in the other direction
-    + sum(restypeDirection(restype, up_down)${restypeDirectionNode(restype, up_down, node) AND restypeDirectionNode(restype, up_down, node_)},
+    + sum(restypeDirection(restype, up_down)${restypeDirectionNode(restype, up_down, node) or restypeDirectionNode(restype, up_down, node_)},
         + v_resTransfer(restype, up_down, node, node_, f, t) // Reserve transfers in one direction
         + v_resTransfer(restype, up_down, node_, node, f, t) // Reserve transfers in the other direction
       )
