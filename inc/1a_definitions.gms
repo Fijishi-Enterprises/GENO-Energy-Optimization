@@ -179,6 +179,8 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     diffCoeff   "Coefficients for energy diffusion between nodes"
     boundStateOffset "Offset parameter for relatively bound node states"
     boundStateMaxDiff "Maximum difference of node state pairs"
+    transferCapInvLimit "Capacity limit for investments"
+    invCost "Investment cost (€/MW)"
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /
@@ -190,6 +192,8 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     maxRampDown "Speed to ramp down (p.u. / min)"
     rampUpCost  "Wear and tear cost of ramping up (€/MW)"
     rampDownCost "Wear and tear cost of ramping up (€/MW)"
+    maxGenCap   "Maximum output capacity investment (MW)"
+    maxConsCap  "Maximum loading capacity investment (MW)"
 /
 
 param_unit "Set of possible data parameters for units" /
@@ -217,6 +221,7 @@ param_unit "Set of possible data parameters for units" /
     level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "Uses time series form input for unit parameters whenever possible"
     section     "Possibility to define a no load fuel use for units with zero minimum output"
+    invCosts     "Investment costs (€/MW)"
 /
 
 param_fuel "Parameters for fuels" /
@@ -234,6 +239,10 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     emissionTax "Emission tax (EUR/tonne)"
     update_frequency "???"
     gate_closure "???"
+/
+
+param_gnugnu "Set of possible data parameters for grid, node, unit, grid, node, unit" /
+    capacityRatio "Fixed ratio of the capacity of the first unit to the second"
 /
 
 

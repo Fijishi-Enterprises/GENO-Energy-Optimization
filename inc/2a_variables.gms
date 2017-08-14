@@ -36,6 +36,8 @@ Positive variables
     v_transfer(grid, node, node, f, t) "Average electricity transmission level from node to node during time period/slice (MW)"
     v_resTransfer(restype, up_down, node, node, f, t) "Electricity transmission capacity from node to node reserved for providing reserves (MW)"
     v_reserve(restype, up_down, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
+    v_gnn(grid, node, node) "Invested transfer capacity (MW)"
+    v_gnu(grid, node, unit) "Invested energy generation capacity (MW)"
 ;
 
 * --- Feasibility control -----------------------------------------------------

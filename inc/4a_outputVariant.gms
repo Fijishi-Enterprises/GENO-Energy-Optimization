@@ -75,7 +75,7 @@ $offtext
                                 p_fuelEmission(fuel, emission) / 1e3
                                   * p_gnPolicy(grid, node, 'emissionTax', emission)  // Sum emission costs from different output energy types
                                )
-                           ) / p_gnu(grid, node, unit, 'maxGen')  // Calculate these in relation to maximum output ratios between multiple outputs
+                           ) / (p_gnu(grid, node, unit, 'maxGen')$p_gnu(grid, node, unit, 'maxGen') + 1$(not p_gnu(grid, node, unit, 'maxGen')))  // Calculate these in relation to maximum output ratios between multiple outputs
                        ) * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // see line above
                    )
                }

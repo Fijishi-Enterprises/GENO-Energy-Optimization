@@ -88,3 +88,7 @@ $offtext
 *        solve building using mip minimizing v_obj;
 *    ); // END IF BUILDING
 *    if (mSolve('storage'),    solve storage    using lp   minimizing v_obj; );
+    if (mSolve('invest'),
+        settings(mSetting) = mSettings(mSolve, mSetting);
+        solve invest using mip minimizing v_obj;
+    );

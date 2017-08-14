@@ -28,8 +28,8 @@ v_state.fx(gn_state(grid, node), ft_limits(f, t))$(p_gn(grid, node, 'boundAll') 
 
 * Other time dependent parameters and variable limits
     // Max. energy generation
-v_gen.up(gnu(grid, node, unit), ft_limits(f,t))$(not unit_flow(unit)) = p_gnu(grid, node, unit, 'maxGen') * p_unit(unit, 'availability');
-v_gen.up(gnu(grid, node, unit_flow), ft_limits(f,t))      // Should only be about variable generation
+v_gen.up(gnu(grid, node, unit), ft_limits(f,t))$(not unit_flow(unit) and not p_gnu(grid, node, unit, 'maxGenCap')) = p_gnu(grid, node, unit, 'maxGen') * p_unit(unit, 'availability');
+v_gen.up(gnu(grid, node, unit_flow), ft_limits(f,t))$(not p_gnu(grid, node, unit_flow, 'maxGenCap'))      // Should only be about variable generation
     = sum(flow$(flowUnit(flow, unit_flow) and nu(node, unit_flow)),
           ts_cf_(flow, node, f, t) *
           p_gnu(grid, node, unit_flow, 'maxGen') *
@@ -37,9 +37,9 @@ v_gen.up(gnu(grid, node, unit_flow), ft_limits(f,t))      // Should only be abou
       );
 
 // Min. generation to zero for units without consumption
-v_gen.lo(gnu(grid, node, unit), ft_limits(f,t))$(not p_gnu(grid, node, unit, 'maxCons')) = 0;
+v_gen.lo(gnu(grid, node, unit), ft_limits(f,t))$(not p_gnu(grid, node, unit, 'maxCons') and not p_gnu(grid, node, unit, 'maxConsCap')) = 0;
 // Max. consumption capacity
-v_gen.lo(gnu(grid, node, unit), ft_limits(f,t))$gnu_input(grid, node, unit) = -p_gnu(grid, node, unit, 'maxCons');
+v_gen.lo(gnu(grid, node, unit), ft_limits(f,t))$(gnu_input(grid, node, unit) and not p_gnu(grid, node, unit, 'maxConsCap')) = -p_gnu(grid, node, unit, 'maxCons');
 
 // In the case of negative generation (currently only used for cooling equipment)
 v_gen.lo(gnu(grid, node, unit), ft_limits(f,t))${p_gnu(grid, node, unit, 'maxGen') < 0} = p_gnu(grid, node, unit, 'maxGen');
@@ -65,9 +65,9 @@ v_spill.up(gn(grid, node), ft_limits(f, t))$p_gnBoundaryPropertiesForStates(grid
     = ts_nodeState_(grid, node, 'maxSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier') * p_stepLength(mSolve, f, t);
 
 // Restrictions on transferring energy between nodes
-v_transfer.up(gn2n(grid, from_node, to_node), ft_limits(f, t))
+v_transfer.up(gn2n(grid, from_node, to_node), ft_limits(f, t))$(not p_gnn(grid, from_node, to_node, 'transferCapInvLimit'))
     = p_gnn(grid, from_node, to_node, 'transferCap');
-v_resTransfer.up(restype, 'up', from_node, to_node, ft_limits(f, t))$(restypeDirectionNode(restype, 'up', from_node) and restypeDirectionNode(restype, 'up', to_node))
+v_resTransfer.up(restype, 'up', from_node, to_node, ft_limits(f, t))$(restypeDirectionNode(restype, 'up', from_node) and restypeDirectionNode(restype, 'up', to_node) and not p_gnn('elec', from_node, to_node, 'transferCapInvLimit'))
     = p_gnn('elec', from_node, to_node, 'transferCap');
 
 // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
@@ -79,6 +79,14 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), ft_limits(f, t))$nu
     = min { p_nuReserves(node, unit_elec, restype, 'down') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
              v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
            };
+
+// Max capacity investment
+v_gnu.up(gnu(grid, node, unit)) = INF;
+v_gnu.up(gnu(grid, node, unit))$(p_gnu(grid, node, unit, 'maxGenCap') > 0) = p_gnu(grid, node, unit, 'maxGenCap');
+v_gnu.up(gnu(grid, node, unit))$(p_gnu(grid, node, unit, 'maxConsCap') > 0) = p_gnu(grid, node, unit, 'maxConsCap');
+v_gnu.fx(gnu(grid, node, unit))${not p_gnu(grid, node, unit, 'maxGenCap') and not p_gnu(grid, node, unit, 'maxConsCap')} = 0;
+v_gnn.up(gn2n(grid, from_node, to_node)) = INF;
+v_gnn.up(gn2n(grid, from_node, to_node)) = p_gnn(grid, from_node, to_node, 'transferCapInvLimit');
 
 * --- Bounds overwritten for the first solve -----------------------------------
 loop(ft_limits(f, tSolve),
