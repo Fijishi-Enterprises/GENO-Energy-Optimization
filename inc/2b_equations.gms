@@ -224,21 +224,21 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) <
                                                                         // and [not (restype('tertiary') and ord(t) le tSolveFirst + tDispatchCurrent)]
                                                                         } ..
   + sum(nuft(node, unit, f, t)$nuRescapable(restype, up_down, node, unit),   // Reserve capable units on this node
-        v_reserve(restype, up_down, node, unit, f, t) // * p_nuReserves(node, unit, restype, 'reserveContribution')
+        v_reserve(restype, up_down, node, unit, f+cf_nReserves(node, restype, f, t), t) // * p_nuReserves(node, unit, restype, 'reserveContribution')
     )
   + sum(gnu_input(grid, node, unit)${gnuft(grid, node, unit, f, t) AND nuRescapable(restype, up_down, node, unit)},
-        v_reserve(restype, up_down, node, unit, f, t) // * p_nuReserves(node, unit, restype, 'reserveContribution') // Reserve capable units with input from this node
+        v_reserve(restype, up_down, node, unit, f+cf_nReserves(node, restype, f, t), t) // * p_nuReserves(node, unit, restype, 'reserveContribution') // Reserve capable units with input from this node
     )
-  + sum(gn2n(grid, from_node, node), // $restypeDirectionNode(restype, up_down, from_node),
+  + sum(gn2n(grid, from_node, node)${restypeDirectionNode(restype, up_down, from_node)},
         (1 - p_gnn(grid, from_node, node, 'transferLoss')
-        ) * v_resTransfer(restype, up_down, from_node, node, f, t)             // Reserves from another node - reduces the need for reserves in the node
+        ) * v_resTransfer(restype, up_down, from_node, node, f+cf_nReserves(from_node, restype, f, t), t)             // Reserves from another node - reduces the need for reserves in the node
     )
   =G=
   + ts_reserveDemand_(restype, up_down, node, f, t)$p_nReserves(node, restype, 'use_time_series')
   + p_nReserves(node, restype, up_down)${not p_nReserves(node, restype, 'use_time_series')}
   - vq_resDemand(restype, up_down, node, f, t)
-  + sum(gn2n(grid, node, to_node), // $restypeDirectionNode(restype, up_down, to_node),   // If trasferring reserves to another node, increase your own reserves by same amount
-        v_resTransfer(restype, up_down, node, to_node, f, t)
+  + sum(gn2n(grid, node, to_node)${restypeDirectionNode(restype, up_down, to_node)},   // If trasferring reserves to another node, increase your own reserves by same amount
+        v_resTransfer(restype, up_down, node, to_node, f+cf_nReserves(node, restype, f, t), t)
     )
 ;
 * -----------------------------------------------------------------------------
@@ -246,8 +246,8 @@ q_resTransfer(gn2n(grid, from_node, to_node), ft(f, t))${ sum(restypeDirection(r
                                                             OR sum(restypeDirection(restype, up_down), restypeDirectionNode(restype, up_down, to_node))
                                                             } ..
   + v_transfer(grid, from_node, to_node, f, t)
-  + sum(restypeDirection(restype, up_down)$(restypeDirectionNode(restype, up_down, from_node) or restypeDirectionNode(restype, up_down, to_node)),
-        + v_resTransfer(restype, up_down, from_node, to_node, f, t)
+  + sum(restypeDirection(restype, up_down)$(restypeDirectionNode(restype, up_down, from_node) and restypeDirectionNode(restype, up_down, to_node)),
+        + v_resTransfer(restype, up_down, from_node, to_node, f+cf_nReserves(from_node, restype, f, t), t)
     )
   =L=
   + p_gnn(grid, from_node, to_node, 'transferCap')
@@ -267,7 +267,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + m
   + sum( gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit),
         p_gnu(grid_, node_, unit, 'cV') * v_gen(grid_, node_, unit, f, t) )                              // considering output constraints (e.g. cV line)
   - sum(nuRescapable(restype, 'down', node, unit)$[unit_elec(unit) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')],               // minus downward reserve participation
-        v_reserve(restype, 'down', node, unit, f, t)                                                              // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+        v_reserve(restype, 'down', node, unit, f+cf_nReserves(node, restype, f, t), t)                                                              // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
   =G=                                                                                                                // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
   + v_online(unit, f+cf(f,t), t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')} // Online variables should only be generated for units with restrictions
@@ -296,7 +296,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + mSe
   + sum( gngnu_constrainedOutputRatio(grid, node, grid_output, node_, unit),
          p_gnu(grid_output, node_, unit, 'cV') * v_gen(grid_output, node_, unit, f, t) )                            // considering output constraints (e.g. cV line)
   + sum(nuRescapable(restype, 'up', node, unit)$[unit_elec(unit) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')],                                                    // plus upward reserve participation
-        v_reserve(restype, 'up', node, unit, f, t)                                                                  // (v_reserve can be used only if the unit can provide a particular reserve)
+        v_reserve(restype, 'up', node, unit, f+cf_nReserves(node, restype, f, t), t)                                                                  // (v_reserve can be used only if the unit can provide a particular reserve)
     )
   =L=                                                                                                               // must be less than available/online capacity
   - v_online(unit, f+cf(f,t), t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxCons')}       // Consuming units are restricted by their min. load (consuming is negative)
@@ -456,14 +456,14 @@ q_stateUpwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(gr
       * ( // Reserve provision from units that have output to this node
           + sum(gn2gnu(grid_, node_input, grid, node, unit)${uft(unit, f, t+pt(t))},
               + sum(restype$[nuRescapable(restype, 'down', node_input, unit) and unit_elec(unit) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')], // Downward reserves from units that output energy to the node
-                  + v_reserve(restype, 'down', node_input, unit, f, t+pt(t))
+                  + v_reserve(restype, 'down', node_input, unit, f+pf_nReserves(node, restype, f, t), t+pt(t))
                       / sum(effGroup${suft(effGroup, unit, f, t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
                 )
             )
           // Reserve provision from units that take input from this node
           + sum(gn2gnu(grid, node, grid_, node_output, unit)${uft(unit, f, t+pt(t))},
               + sum(restype$[nuRescapable(restype, 'down', node_output, unit) and unit_elec(unit) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')], // Downward reserves from units that use the node as energy input
-                  + v_reserve(restype, 'down', node_output, unit, f, t+pt(t))
+                  + v_reserve(restype, 'down', node_output, unit, f+pf_nReserves(node, restype, f, t), t+pt(t))
                       * sum(effGroup${suft(effGroup, unit, f, t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
                 )
             )
@@ -493,14 +493,14 @@ q_stateDownwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(
       * ( // Reserve provision from units that have output to this node
           + sum(gn2gnu(grid_, node_input, grid, node, unit)${uft(unit, f, t+pt(t))},
               + sum(restype$[nuRescapable(restype, 'up', node_input, unit) and unit_elec(unit) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')], // Upward reserves from units that output energy to the node
-                  + v_reserve(restype, 'up', node_input, unit, f, t+pt(t))
+                  + v_reserve(restype, 'up', node_input, unit, f+pf_nReserves(node, restype, f, t), t+pt(t))
                       / sum(effGroup${suft(effGroup, unit, f, t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
                 )
             )
           // Reserve provision from units that take input from this node
           + sum(gn2gnu(grid, node, grid_, node_output, unit)${uft(unit, f, t+pt(t))},
               + sum(restype$[nuRescapable(restype, 'up', node_output, unit) and unit_elec(unit) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')], // Upward reserves from units that use the node as energy input
-                  + v_reserve(restype, 'up', node_output, unit, f, t+pt(t))
+                  + v_reserve(restype, 'up', node_output, unit, f+pf_nReserves(node, restype, f, t), t+pt(t))
                       * sum(effGroup${suft(effGroup, unit, f, t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
                 )
             )
@@ -517,12 +517,12 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft_dynamic(f, t)) ..
 *          )
         // Upwards reserve provided by input units
         - sum(nuRescapable(restype, 'up', node_input, unit)${sum(grid_, gn2gnu(grid_, node_input, grid, node, unit)) AND uft(unit, f, t+pt(t)) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')},
-            + v_reserve(restype, 'up', node_input, unit, f, t+pt(t))
+            + v_reserve(restype, 'up', node_input, unit, f+pf_nReserves(node, restype, f, t), t+pt(t))
                 / sum(effGroup${suft(effGroup, unit, f, t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
           )
         // Upwards reserve providewd by output units
         - sum(nuRescapable(restype, 'up', node_output, unit)${sum(grid_, gn2gnu(grid, node, grid_, node_output, unit)) AND uft(unit, f, t+pt(t)) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')},
-            + v_reserve(restype, 'up', node_output, unit, f, t+pt(t))
+            + v_reserve(restype, 'up', node_output, unit, f+pf_nReserves(node, restype, f, t), t+pt(t))
                 / sum(effGroup${suft(effGroup, unit, f, t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
           )
         // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
@@ -539,12 +539,12 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft_dynamic(f, t)) ..
 *          )
         // Possible reserve by input node
         + sum(nuRescapable(restype, 'down', node_input, unit)${sum(grid_, gn2gnu(grid_, node_input, grid, node_, unit)) AND uft(unit, f, t+pt(t)) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')},
-            + v_reserve(restype, 'down', node_input, unit, f, t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
+            + v_reserve(restype, 'down', node_input, unit, f+pf_nReserves(node, restype, f, t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 / sum(effGroup${suft(effGroup, unit, f, t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
           )
         // Possible reserve by output node
         + sum(nuRescapable(restype, 'down', node_output, unit)${sum(grid_, gn2gnu(grid, node_, grid_, node_output, unit)) AND uft(unit, f, t+pt(t)) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')},
-            + v_reserve(restype, 'down', node_output, unit, f, t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
+            + v_reserve(restype, 'down', node_output, unit, f+pf_nReserves(node, restype, f, t), t+pt(t))               // NOTE! If elec-elec conversion, this might result in weird reserve requirements!
                 / sum(effGroup${suft(effGroup, unit, f, t+pt(t))}, (p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t))} + ts_effGroupUnit(effGroup, unit, 'slope', f, t+pt(t)))) // Efficiency approximated using maximum slope of effGroup?
           )
         // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
@@ -573,9 +573,9 @@ q_boundCyclic(gn_state(grid, node), mftStart(m, f, t), fCentral(f_), t_)${  p_gn
 q_bidirectionalTransfer(gn2n_bidirectional(grid, node, node_), ft(f, t))${p_gnn(grid, node, node_, 'transferCapBidirectional')} ..
     + v_transfer(grid, node, node_, f, t) // Transfers in one direction
     + v_transfer(grid, node_, node, f, t) // Transfers in the other direction
-    + sum(restypeDirection(restype, up_down)${restypeDirectionNode(restype, up_down, node) or restypeDirectionNode(restype, up_down, node_)},
-        + v_resTransfer(restype, up_down, node, node_, f, t) // Reserve transfers in one direction
-        + v_resTransfer(restype, up_down, node_, node, f, t) // Reserve transfers in the other direction
+    + sum(restypeDirection(restype, up_down)${restypeDirectionNode(restype, up_down, node) and restypeDirectionNode(restype, up_down, node_)},
+        + v_resTransfer(restype, up_down, node, node_, f+cf_nReserves(node, restype, f, t), t) // Reserve transfers in one direction
+        + v_resTransfer(restype, up_down, node_, node, f+cf_nReserves(node_, restype, f, t), t) // Reserve transfers in the other direction
       )
     =L=
     p_gnn(grid, node, node_, 'transferCapBidirectional')

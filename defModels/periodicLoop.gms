@@ -27,17 +27,17 @@ tDispatchCurrent = 0;
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve
 tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
 p_stepLength(mSolve, f, t) = no;
-ft_new(f,t) = no;
+*ft_new(f,t) = no;
 
 // Determine the next and latest forecasts (???)
-tForecastNext(mSolve)${ord(tSolve) >= tForecastNext(mSolve)
-    } = tForecastNext(mSolve) + mSettings(mSolve, 't_ForecastJump');
+tForecastNext(mSolve)${ ord(tSolve) >= tForecastNext(mSolve)
+                        } = tForecastNext(mSolve) + mSettings(mSolve, 't_ForecastJump');
 loop(tLatestForecast,  // There should be only one latest forecast
     ts_cf(flow,node,f,t)${  ord(f) > 1
                             and ord(f) <= mSettings(mSolve, 'forecasts') + 1
                             and ord(t) >= tSolveFirst + f_improve and
                             ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
-        } = ts_forecast(flow,node,tLatestForecast,f,t);
+                            } = ts_forecast(flow,node,tLatestForecast,f,t);
 );
 
 // Initializing sets and counters
@@ -110,7 +110,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
                                                                                 } = yes; // Displace ft_dynamic by intervalLength
         ft_full(fSolve, t) = ft(fSolve, t) + ft_dynamic(fSolve, t);
 $offOrder
-        // Select time series data matching the intervals, for intervalLength > 1
+        // Select and average time series data matching the intervals, for intervalLength > 1
         loop(ft(fSolve, tInterval(t)), // Loop over the t:s of the interval
             tt(t_) = no;
             tt(t_)${ord(t_) >= ord(t)
@@ -129,6 +129,8 @@ $onOrder
     elseif mInterval(mSolve, 'intervalLength', counter) < 1, abort "intervalLength < 1 is not defined!"
 
     ); // END IF intervalLenght
+
+    // Update tCounter for the next interval
     tCounter = mInterval(mSolve, 'intervalEnd', counter);
 
 ); // END LOOP COUNTER
@@ -138,23 +140,48 @@ $onOrder
 ft_realized(f,t) = no;
 ft_realized(ft_full(fRealization(f),t)) = yes;
 ft_realizedLast(f,t) = no;
-ft_realizedLast(ft_realized(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')} = yes;
+ft_realizedLast(ft_realized(f,t))${ ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')
+                                    } = yes;
 
-// Set of fixed time steps (necessary?)
-ft_fix(f,t) = no;
-ft_fix(ft(ft_realized)) = yes;
+// Set of locked forecast-time steps for the reserves
+ft_nReserves(node, restype, f, t) = no;
+ft_nReserves(node, restype, fRealization(f), t)${   p_nReserves(node, restype, 'update_frequency')
+                                                    and p_nReserves(node, restype, 'gate_closure')
+                                                    and ord(t) >= tSolveFirst
+                                                    and ord(t) < tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
+                                                    } = yes;
 
-// Set of limited ft (necessary?)
-ft_limits(f,t) = no;
-ft_limits(f,t) = ft_full(f,t) + ft_realized(f,t);
+// Set of fixed time steps (necessary???)
+*ft_fix(f,t) = no;
+*ft_fix(ft(ft_realized)) = yes;
+
+// Set of limited ft (necessary???)
+*ft_limits(f,t) = no;
+*ft_limits(f,t) = ft_full(f,t) + ft_realized(f,t);
 
 // Current forecast displacement between realized and forecasted timesteps
 cf(f,t) = no;
-cf(ft(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')} = sum(f_${fRealization(f_)}, ord(f_) - ord(f));
+cf(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')
+                } = sum(f_${fRealization(f_)}, ord(f_) - ord(f));
 
 // Previous forecast displacement between realized and forecasted timesteps
 pf(f,t) = no;
-pf(ft_dynamic(f,t))$(ord(t) = tSolveFirst + mSettings(mSolve, 't_jump') + 1) = sum(f_${fRealization(f_)}, ord(f_)) - ord(f);
+pf(ft_dynamic(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_jump') + 1
+                        } = sum(f_${fRealization(f_)}, ord(f_)) - ord(f);
+
+// Previous nodal forecast displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
+pf_nReserves(node, restype, f, t) = no;
+pf_nReserves(node, restype, ft_dynamic(f, t))${ p_nReserves(node, restype, 'update_frequency')
+                                                and p_nReserves(node, restype, 'gate_closure')
+                                                and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(node, restype, 'update_frequency')) + mSettings(mSolve, 't_jump')
+                                                } = sum(f_${fRealization(f_)}, ord(f_) - ord(f));
+
+// Current nodal forecast displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
+cf_nReserves(node, restype, f, t) = no;
+cf_nReserves(node, restype, ft(f, t))${ p_nReserves(node, restype, 'update_frequency')
+                                        and p_nReserves(node, restype, 'gate_closure')
+                                        and ord(t) < tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(node, restype, 'update_frequency')) + mSettings(mSolve, 't_jump')
+                                        } = sum(f_${fRealization(f_)}, ord(f_) - ord(f));
 
 // Model ft
 mft(mSolve, f, t) = no;
@@ -162,11 +189,13 @@ mft(mSolve, ft) = yes;
 
 // Starting model ft
 mftStart(mSolve, f, t) = no;
-mftStart(mSolve, ft(fSolve, t))${ord(t) = tSolveFirst} = yes;
+mftStart(mSolve, ft(fSolve, t))${   ord(t) = tSolveFirst
+                                    } = yes;
 
 // Last steps of model fts
 mftLastSteps(mSolve, f, t) = no;
-mftLastSteps(mSolve, ft_full(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')} = yes;
+mftLastSteps(mSolve, ft_full(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')
+                                    } = yes;
 mftLastSteps(mSolve, ft_full(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLength')
                                     and not fCentral(f)
                                     and not fRealization(f)
@@ -176,10 +205,10 @@ mftLastSteps(mSolve, ft_full(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_
 msft(mSolve, s, f, t) = no;
 msft(mSolve, 's000', f, t) = mft(mSolve,f,t);
 
-//
-mftBind(mSolve,f,t) = no;
-mft_bind(mSolve,f,t) = no;
-mt_bind(mSolve,t) = no;
+// mft Binds (???)
+*mftBind(mSolve,f,t) = no;
+*mft_bind(mSolve,f,t) = no;
+*mt_bind(mSolve,t) = no;
 $ontext
 // Connect the realization of the dispatch to the branches of the forecast tree
 mftBind(mft(mSolve,f,t))$[ord(t) = tSolveFirst + tDispatchCurrent] = yes;
