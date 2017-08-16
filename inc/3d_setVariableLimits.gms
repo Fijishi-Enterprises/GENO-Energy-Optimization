@@ -92,13 +92,13 @@ v_resTransfer.up(restypeDirectionNode(restype, up_down, from_node), to_node, ft(
     } = p_gnn('elec', from_node, to_node, 'transferCap');
 
 // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
-v_reserve.up(nuRescapable(restype, 'up', node, unit_elec), ft(f, t))${  nuft(node, unit_elec, f, t)
-                                                                        and not cf_nReserves(node, restype, f, t)
+v_reserve.up(nuRescapable(restype, 'up', node, unit_elec), f+cf_nReserves(node, restype, f, t), t)${    nuft(node, unit_elec, f, t)
+                                                                                                        and ord(t) < tSolveFirst + mSettings(mSolve, 't_reserveLength')
     } = min {   p_nuReserves(node, unit_elec, restype, 'up') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
                 v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
                 };
-v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), ft(f, t))${    nuft(node, unit_elec, f, t)
-                                                                            and not cf_nReserves(node, restype, f, t)
+v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), f+cf_nReserves(node, restype, f, t), t)${  nuft(node, unit_elec, f, t)
+                                                                                                        and ord(t) < tSolveFirst + mSettings(mSolve, 't_reserveLength')
     } = min {   p_nuReserves(node, unit_elec, restype, 'down') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
                 v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
                 };
