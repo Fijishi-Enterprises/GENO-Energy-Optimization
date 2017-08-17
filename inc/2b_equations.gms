@@ -229,7 +229,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))${p_stepLength(m, f+pf(f,t), t+pt(
   $$ifi '%rampSched%' == 'yes' / 2    // Averaging all the terms on the right side of the equation over the timestep here.
 ;
 * -----------------------------------------------------------------------------
-q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) <= tSolveFirst + sum[mf(m, f), mSettings(m, 't_reserveLength')]
+q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) < tSolveFirst + sum[mf(m, f), mSettings(m, 't_reserveLength')]
                                                                         // and [not (restype('tertiary') and ord(t) le tSolveFirst + tDispatchCurrent)]
                                                                         } ..
   + sum(nuft(node, unit, f, t)$nuRescapable(restype, up_down, node, unit),   // Reserve capable units on this node
@@ -252,7 +252,7 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) <
 ;
 * -----------------------------------------------------------------------------
 q_resTransfer(gn2n(grid, from_node, to_node), ft(f, t))${ sum(restypeDirection(restype, up_down), restypeDirectionNode(restype, up_down, from_node))
-                                                            OR sum(restypeDirection(restype, up_down), restypeDirectionNode(restype, up_down, to_node))
+                                                            AND sum(restypeDirection(restype, up_down), restypeDirectionNode(restype, up_down, to_node))
                                                             } ..
   + v_transfer(grid, from_node, to_node, f, t)
   + sum(restypeDirection(restype, up_down)$(restypeDirectionNode(restype, up_down, from_node) and restypeDirectionNode(restype, up_down, to_node)),
