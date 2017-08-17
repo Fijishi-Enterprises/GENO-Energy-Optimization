@@ -110,12 +110,12 @@ loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
         v_reserve.fx(nuRescapable(restype, up_down, node, unit_elec), f, t)${   ft_nReserves(node, restype, f, t)
                                                                                 and ord(t) >= mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                                 and not unit_flow(unit_elec)           // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
-            } = v_reserve.l(restype, up_down, node, unit_elec, f, t);
-        v_resTransfer.fx(restype, up_down, node, to_node, f,t)${    ft_nReserves(node, restype, f, t)
+            } = r_reserve(restype, up_down, node, unit_elec, f, t);
+        v_resTransfer.fx(restype, up_down, node, to_node, f, t)${   ft_nReserves(node, restype, f, t)
                                                                     and restypeDirectionNode(restype, up_down, to_node)
                                                                     and ord(t) >= mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                     and sum(grid, gn2n(grid, node, to_node))
-            } = v_resTransfer.l(restype, up_down, node, to_node, f, t);
+            } = r_resTransfer(restype, up_down, node, to_node, f, t);
 *    );
 
     // Free the tertiary reserves for the realization
@@ -145,11 +145,11 @@ loop(ft(f, tSolve),
         } = p_unit(unit, 'unitCount');
 
     // State and online variables fixed for the subsequent solves
-    v_state.fx(gn_state(grid, node), f, tSolve)${not ord(tSolve) = mSettings(mSolve, 't_start')} = v_state.l(grid, node, f, tSolve);
-    v_online.fx(uft_online(unit, f, tSolve))${not ord(tSolve) = mSettings(mSolve, 't_start')} = v_online.l(unit, f, tSolve);
+    v_state.fx(gn_state(grid, node), f, tSolve)${not ord(tSolve) = mSettings(mSolve, 't_start')} = r_state(grid, node, f, tSolve);
+    v_online.fx(uft_online(unit, f, tSolve))${not ord(tSolve) = mSettings(mSolve, 't_start')} = r_online(unit, f, tSolve);
 );
 
 // BoundStartToEnd
-v_state.fx(grid, node, f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'boundStartToEnd')) = v_state.l(grid, node, f, tSolve);
+v_state.fx(grid, node, f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'boundStartToEnd')) = r_state(grid, node, f, tSolve);
 
 
