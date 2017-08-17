@@ -42,7 +42,7 @@ Parameters
     r_qResDemand(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW)"
 ;
 
-// Initialize a few of the results arrays as required by model dynamics.
+// Initialize a few of the results arrays, required by model structure.
 Option clear = r_reserve;
 Option clear = r_resTransfer;
 Option clear = r_state;

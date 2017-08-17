@@ -20,6 +20,8 @@ $offtext
 r_state
 r_gen
 r_transfer
+r_reserve
+r_resTransfer
 *r_genFuel
 *r_elec_type
 *r_demand

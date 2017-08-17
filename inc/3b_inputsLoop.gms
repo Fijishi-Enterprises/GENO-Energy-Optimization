@@ -25,9 +25,9 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
 
   put_utility 'gdxin' / 'input\tertiary\' tSolve.tl:0 '.gdx';
   execute_load ts_tertiary;
-    ts_reserveDemand('tertiary', up_down, node, f, t)${ mf(mSolve, f)
+    ts_reserveDemand('tertiary', 'up', node, f, t)${ mf(mSolve, f)
                                                         and not fRealization(f)
-        } = min(500, ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
+        } = min(500, ts_tertiary('wind', node, tSolve, 'up', t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
 );
 
 putclose log;
