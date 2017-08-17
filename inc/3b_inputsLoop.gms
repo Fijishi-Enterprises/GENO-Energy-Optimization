@@ -14,7 +14,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
-
 put log 'ord tSolve: ';
 put log ord(tSolve) /;
 
@@ -26,6 +25,9 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
 
   put_utility 'gdxin' / 'input\tertiary\' tSolve.tl:0 '.gdx';
   execute_load ts_tertiary;
+    ts_reserveDemand('tertiary', up_down, node, f, t)${ mf(mSolve, f)
+                                                        and not fRealization(f)
+        } = min(500, ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
 );
 
 putclose log;
