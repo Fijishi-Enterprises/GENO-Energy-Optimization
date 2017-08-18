@@ -15,7 +15,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-* иии Generate model rules from basic patterns defined in the model definition files ииииииииииииииииииииииииииииииииииииииииииииииииииии
+* --- Generate model rules from basic patterns defined in the model definition files
 
 * Set the time for the next available forecast unless it has been preset.
 loop(m,
@@ -69,6 +69,7 @@ loop(mSolve${continueLoop},
     continueLoop = 0;
 );
 
+* Check whether the defined intervals are feasible
 loop(m,
     tmp = 0;
     continueLoop = 1;
@@ -81,7 +82,6 @@ loop(m,
         );
     );
 );
-
 
 * Parse through effLevelGroupUnit and convert selected effSelectors into sets representing those selections
 loop(unit,

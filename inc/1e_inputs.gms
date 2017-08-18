@@ -15,7 +15,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-* Load updates made for BackBone
+* --- Load updates made for BackBone ------------------------------------------
 $gdxin  'input/inputData.gdx'
 $loaddc grid
 $loaddc node
@@ -34,6 +34,7 @@ $loaddc p_unit
 $loaddc ts_unit
 $loaddc p_nReserves
 $loaddc p_nuReserves
+$loaddc ts_reserveDemand
 $loaddc p_gnBoundaryPropertiesForStates
 $loaddc p_gnPolicy
 $loaddc p_uFuel
@@ -58,8 +59,9 @@ $ontext
  $gdxin
 $offtext
 
+* --- Initial setup of sets & parameters based on input data ------------------
 * Copy fuel time series data for all nodes
-ts_fuelPriceChangenode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
+ts_fuelPriceChangeNode(fuel, node, t) = ts_fuelPriceChange(fuel, t);
 
 * Define unit aggregation sets
 unit_aggregate(unit)$sum(unit_, unitUnit_aggregate(unit, unit_)) = yes; // Set of aggregate units
