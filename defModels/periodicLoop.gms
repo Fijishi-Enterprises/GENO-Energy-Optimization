@@ -15,13 +15,61 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
+* -----------------------------------------------------------------------------
+* --- Initialize unnecessary parameters and variables in order to save memory -
+* -----------------------------------------------------------------------------
+
+// This is only done if debug mode is not specifically enabled
+$$iftheni.debug NOT '%debug%' == 'yes';
+    // Variables
+    Option clear = v_gen;
+    Option clear = v_state;
+    Option clear = v_genRamp;
+    Option clear = v_online;
+    Option clear = v_sos2;
+    Option clear = v_fuelUse;
+    Option clear = v_startup;
+    Option clear = v_shutdown;
+    Option clear = v_genRampChange;
+    Option clear = v_spill;
+    Option clear = v_transfer;
+    Option clear = v_resTransfer;
+    Option clear = v_reserve;
+    Option clear = v_stateSlack;
+    Option clear = vq_gen;
+    Option clear = vq_resDemand;
+
+    // Equations
+    Option clear = q_balance;
+    Option clear = q_resDemand;
+    Option clear = q_resTransfer;
+    Option clear = q_maxDownward;
+    Option clear = q_maxUpward;
+    Option clear = q_startup
+    Option clear = q_genRamp;
+    Option clear = q_genRampChange;
+    Option clear = q_conversionDirectInputOutput;
+    Option clear = q_conversionSOS2InputIntermediate;
+    Option clear = q_conversionSOS2Constraint;
+    Option clear = q_conversionSOS2IntermediateOutput;
+    Option clear = q_outputRatioFixed;
+    Option clear = q_outputRatioConstrained;
+    Option clear = q_stateSlack;
+    Option clear = q_stateUpwardLimit;
+    Option clear = q_stateDownwardLimit;
+    Option clear = q_boundState;
+    Option clear = q_boundStateMaxDiff;
+    Option clear = q_boundCyclic;
+    Option clear = q_bidirectionalTransfer;
+$$endif.debug
+
+* -----------------------------------------------------------------------------
 * --- Determine the forecast-time indeces included in the current solve -------
+* -----------------------------------------------------------------------------
+
 // Select the forecasts included in the current solve
 Option clear = fSolve;
 fSolve(f)$mf(mSolve,f) = yes;
-
-// Reset dispatch loop
-*tDispatchCurrent = 0;
 
 // Determine the first and last timesteps of the current solve
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve
@@ -140,7 +188,10 @@ $onOrder
 
 ); // END LOOP COUNTER
 
-* --- Determine various sets required for the model ---------------------------
+* -----------------------------------------------------------------------------
+* --- Determine various other forecast-time sets required for the model -------
+* -----------------------------------------------------------------------------
+
 // Set of realized time steps in the solve
 Option clear = ft_realized;
 Option clear = ft_realizedLast;
@@ -202,7 +253,9 @@ mftLastSteps(mSolve, ft_full(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_
 Option clear = msft;
 msft(mSolve, 's000', f, t) = mft(mSolve,f,t);
 
+* -----------------------------------------------------------------------------
 * --- Defining unit aggregations and ramps ------------------------------------
+* -----------------------------------------------------------------------------
 
 // Units active on each forecast-time step
 Option clear = uft;
@@ -253,20 +306,6 @@ Option clear = uft_online;
 loop(suft(effOnline, uft(unit, f, t)), // Determine the time steps when units need to have online variables.
     uft_online(unit, f, t) = yes;
     p_uft_online_last(unit, f, t) = ord(t);
-);
-
-* --- Probabilities -----------------------------------------------------------
-// Clear probabilities from previous solve
-Option clear = p_sft_probability;
-p_sft_probability(s, f, t)$(sInitial(s) and ft(f,t)) = p_fProbability(f) / sum(f_$ft(f_,t), p_fProbability(f_));
-p_sft_probability(s, f, t)$(sInitial(s) and fCentral(f) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$(fCentral(f_) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')), p_fProbability(f_));
-p_sft_probability(s, f, t)$(sInitial(s) and ord(f) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon') and mSettings(mSolve, 't_forecastLength') >= mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$ft_dynamic(f_,t), p_fProbability(f_));
-
-* --- BEGIN OLD CODE ----------------------------------------------------------
-
-loop(gn(grid, node),
-    restypeDirectionNode(restypeDirection(restype, up_down), node)$(p_nReserves(node, restype, 'use_time_series') and sum((f,t), ts_reserveDemand(restype, up_down, node, f, t))) = yes;
-    restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
 );
 
 // Calculate time series for unit parameters when necessary and/or possible
@@ -352,3 +391,26 @@ loop(unit,
         );
     );
 );
+
+* -----------------------------------------------------------------------------
+* --- Reserves ----------------------------------------------------------------
+* -----------------------------------------------------------------------------
+
+// Nodes with reserve requirements
+loop(gn(grid, node),
+    restypeDirectionNode(restypeDirection(restype, up_down), node)$(p_nReserves(node, restype, 'use_time_series') and sum((f,t), ts_reserveDemand(restype, up_down, node, f, t))) = yes;
+    restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
+);
+
+* -----------------------------------------------------------------------------
+* --- Probabilities -----------------------------------------------------------
+* -----------------------------------------------------------------------------
+
+// Clear probabilities from previous solve
+Option clear = p_sft_probability;
+p_sft_probability(s, f, t)$(sInitial(s) and ft(f,t)) = p_fProbability(f) / sum(f_$ft(f_,t), p_fProbability(f_));
+p_sft_probability(s, f, t)$(sInitial(s) and fCentral(f) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$(fCentral(f_) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')), p_fProbability(f_));
+p_sft_probability(s, f, t)$(sInitial(s) and ord(f) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon') and mSettings(mSolve, 't_forecastLength') >= mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$ft_dynamic(f_,t), p_fProbability(f_));
+
+
+

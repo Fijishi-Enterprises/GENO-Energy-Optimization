@@ -40,7 +40,6 @@ equations
     q_bidirectionalTransfer(grid, node, node, f, t) "Possible common transfer capacity constraint for interconnected transfer variables"
 ;
 
-
 $setlocal def_penalty 1e9
 Scalars
     PENALTY "Default equation violation penalty" / %def_penalty% /
@@ -50,7 +49,7 @@ Parameters
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (€/MW)"
 ;
 PENALTY_BALANCE(grid) = %def_penalty%;
-PENALTY_RES(restype, up_down) =  1e-3*%def_penalty%;
+PENALTY_RES(restype, up_down) =  1e-2*%def_penalty%;
 
 * -----------------------------------------------------------------------------
 q_obj ..
