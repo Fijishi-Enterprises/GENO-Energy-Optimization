@@ -23,7 +23,8 @@ r_transfer(gn2n(grid, from_node, to_node), ft_realized(f, t)) = v_transfer.l(gri
 
 // Results required for keeping model dynamics working
 r_state(gn_state(grid, node), ft_realized(f, t)) = v_state.l(grid, node, f, t);
-r_online(uft_online(unit, ft_realized(f, t))) = v_online.l(unit, f, t);
+r_online(unit, ft_realized(f, t))${ uft_online(unit, f, t+pt(t))
+    } = v_online.l(unit, f, t);
 r_reserve(nuRescapable(restype, up_down, node, unit), fRealization(f), t)${ ft_nReserves(node, restype, f, t)
                                                                             or sum(f_, cf_nReserves(node, restype, f_, t))
     } = v_reserve.l(restype, up_down, node, unit, f, t);

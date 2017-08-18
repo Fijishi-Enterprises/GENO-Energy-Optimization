@@ -16,7 +16,7 @@ along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
 *r_stoContent
-*r_onlineCap
+r_online
 r_state
 r_gen
 r_transfer
