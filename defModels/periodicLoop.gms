@@ -20,7 +20,7 @@ $offtext
 * -----------------------------------------------------------------------------
 
 // This is only done if debug mode is not specifically enabled
-$$iftheni.debug NOT '%debug%' == 'yes';
+$$iftheni.debug NOT '%debug%' == 'yes'
     // Variables
     Option clear = v_gen;
     Option clear = v_state;
@@ -61,7 +61,7 @@ $$iftheni.debug NOT '%debug%' == 'yes';
     Option clear = q_boundStateMaxDiff;
     Option clear = q_boundCyclic;
     Option clear = q_bidirectionalTransfer;
-$$endif.debug
+$endif.debug
 
 * -----------------------------------------------------------------------------
 * --- Determine the forecast-time indeces included in the current solve -------
