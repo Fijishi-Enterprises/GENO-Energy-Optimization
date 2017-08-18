@@ -15,28 +15,38 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-*r_stoContent
-r_online
-r_state
+* --- Results required for the model structure --------------------------------
+
+r_state // Conserves state variable values between solves
+r_online // Conserves online variable values between solves
+r_reserve // Conserves locked reserve variables between solves
+r_resTransfer // Conserves locked reserve transfer variables between solves
+
+* --- Other desired results ---------------------------------------------------
+
+// Interesting variables
+r_totalCost
 r_gen
+r_genFuel
 r_transfer
-r_reserve
-r_resTransfer
-*r_genFuel
+
+// Dummy variables for solution feasibility reasons
+r_qGen
+r_qResDemand
+
+// OLD RESULTS
 *r_elec_type
 *r_demand
 *r_onlineCap
-*r_transmission
 *r_heat
 *r_capacity_type
 *r_elecConsumption
 *r_storageValue
 *r_storageControl
 *r_elecPrice
-r_totalCost
 *r_cost
-r_qGen
-r_qResDemand
+
+// Metadata and settings
 metadata
 mSettings
 

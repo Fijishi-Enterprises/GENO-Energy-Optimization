@@ -17,10 +17,6 @@ $offtext
 
 * --- Recording realized parameter values -------------------------------------
 
-// Interesting results
-r_gen(gnu(grid, node, unit), ft_realized(f, t)) = v_gen.l(grid, node, unit, f, t);
-r_transfer(gn2n(grid, from_node, to_node), ft_realized(f, t)) = v_transfer.l(grid, from_node, to_node, f, t);
-
 // Results required for keeping model dynamics working
 r_state(gn_state(grid, node), ft_realized(f, t)) = v_state.l(grid, node, f, t);
 r_online(unit, ft_realized(f, t))${ uft_online(unit, f, t+pt(t))
@@ -33,6 +29,11 @@ r_resTransfer(restypeDirectionNode(restype, up_down, from_node), to_node, fReali
                                                                                                         or sum(f_, cf_nReserves(from_node, restype, f_, t))
                                                                                                         ]
     } = v_resTransfer.l(restype, up_down, from_node, to_node, f, t);
+
+// Interesting results
+r_gen(gnu(grid, node, unit), ft_realized(f, t)) = v_gen.l(grid, node, unit, f, t);
+r_genFuel(gn(grid, node), fuel, ft_realized(f, t)) = sum(gnu(grid, node, unit), v_fuelUse.l(fuel, unit, f, t));
+r_transfer(gn2n(grid, from_node, to_node), ft_realized(f, t)) = v_transfer.l(grid, from_node, to_node, f, t);
 
 // Feasibility results
 r_qGen(inc_dec, gn(grid, node), ft_realized(f, t)) = vq_gen.l(inc_dec, grid, node, f, t);
