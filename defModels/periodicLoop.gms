@@ -15,19 +15,65 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-* --- Determine the forecast-time indeces included in the current solve -------
-// Select the forecasts included in the current solve
-fSolve(f) = no;
-fSolve(f)$mf(mSolve,f) = yes;
+* -----------------------------------------------------------------------------
+* --- Initialize unnecessary parameters and variables in order to save memory -
+* -----------------------------------------------------------------------------
 
-// Reset dispatch loop
-tDispatchCurrent = 0;
+// This is only done if debug mode is not specifically enabled
+$$iftheni.debug NOT '%debug%' == 'yes'
+    // Variables
+    Option clear = v_gen;
+    Option clear = v_state;
+    Option clear = v_genRamp;
+    Option clear = v_online;
+    Option clear = v_sos2;
+    Option clear = v_fuelUse;
+    Option clear = v_startup;
+    Option clear = v_shutdown;
+    Option clear = v_genRampChange;
+    Option clear = v_spill;
+    Option clear = v_transfer;
+    Option clear = v_resTransfer;
+    Option clear = v_reserve;
+    Option clear = v_stateSlack;
+    Option clear = vq_gen;
+    Option clear = vq_resDemand;
+
+    // Equations
+    Option clear = q_balance;
+    Option clear = q_resDemand;
+    Option clear = q_resTransfer;
+    Option clear = q_maxDownward;
+    Option clear = q_maxUpward;
+    Option clear = q_startup
+    Option clear = q_genRamp;
+    Option clear = q_genRampChange;
+    Option clear = q_conversionDirectInputOutput;
+    Option clear = q_conversionSOS2InputIntermediate;
+    Option clear = q_conversionSOS2Constraint;
+    Option clear = q_conversionSOS2IntermediateOutput;
+    Option clear = q_outputRatioFixed;
+    Option clear = q_outputRatioConstrained;
+    Option clear = q_stateSlack;
+    Option clear = q_stateUpwardLimit;
+    Option clear = q_stateDownwardLimit;
+    Option clear = q_boundState;
+    Option clear = q_boundStateMaxDiff;
+    Option clear = q_boundCyclic;
+    Option clear = q_bidirectionalTransfer;
+$endif.debug
+
+* -----------------------------------------------------------------------------
+* --- Determine the forecast-time indeces included in the current solve -------
+* -----------------------------------------------------------------------------
+
+// Select the forecasts included in the current solve
+Option clear = fSolve;
+fSolve(f)$mf(mSolve,f) = yes;
 
 // Determine the first and last timesteps of the current solve
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve
 tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
-p_stepLength(mSolve, f, t) = no;
-*ft_new(f,t) = no;
 
 // Determine the next and latest forecasts (???)
 tForecastNext(mSolve)${ ord(tSolve) >= tForecastNext(mSolve)
@@ -41,17 +87,24 @@ loop(tLatestForecast,  // There should be only one latest forecast
 );
 
 // Initializing sets and counters
-tCounter = 0;
-p_stepLength(mf(mSolve, fSolve), t) = no;
-ft(f,t) = no;
-ft_dynamic(f,t) = no;
-ft_full(f,t) = no;
+Option clear = tCounter;
+Option clear = p_stepLength;
+Option clear = ft;
+Option clear = ft_dynamic;
+Option clear = ft_full;
+
+// Initialize temporary time series
+Option clear = ts_influx_;
+Option clear = ts_cf_;
+Option clear = ts_unit_;
+Option clear = ts_reserveDemand_;
+Option clear = ts_nodeState_;
 
 // Build the forecast-time structure using the intervals
 loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 
     // Initialize tInterval
-    tInterval(t) = no;
+    Option clear = tInterval;
 
     // If intervalLength equals one, simply use all the steps within the interval
     if(mInterval(mSolve, 'intervalLength', counter) = 1,
@@ -112,7 +165,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 $offOrder
         // Select and average time series data matching the intervals, for intervalLength > 1
         loop(ft(fSolve, tInterval(t)), // Loop over the t:s of the interval
-            tt(t_) = no;
+            Option clear = tt;
             tt(t_)${ord(t_) >= ord(t)
                     and ord(t_) < ord(t) + mInterval(mSolve, 'intervalLength', counter)
                     } = yes; // Select t:s within the interval
@@ -135,65 +188,60 @@ $onOrder
 
 ); // END LOOP COUNTER
 
-* --- Determine various sets required for the model ---------------------------
+* -----------------------------------------------------------------------------
+* --- Determine various other forecast-time sets required for the model -------
+* -----------------------------------------------------------------------------
+
 // Set of realized time steps in the solve
-ft_realized(f,t) = no;
+Option clear = ft_realized;
+Option clear = ft_realizedLast;
 ft_realized(ft_full(fRealization(f),t)) = yes;
-ft_realizedLast(f,t) = no;
 ft_realizedLast(ft_realized(f,t))${ ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')
                                     } = yes;
 
 // Set of locked forecast-time steps for the reserves
-ft_nReserves(node, restype, f, t) = no;
+Option clear = ft_nReserves;
 ft_nReserves(node, restype, fRealization(f), t)${   p_nReserves(node, restype, 'update_frequency')
                                                     and p_nReserves(node, restype, 'gate_closure')
                                                     and ord(t) >= tSolveFirst
                                                     and ord(t) < tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
                                                     } = yes;
 
-// Set of fixed time steps (necessary???)
-*ft_fix(f,t) = no;
-*ft_fix(ft(ft_realized)) = yes;
-
-// Set of limited ft (necessary???)
-*ft_limits(f,t) = no;
-*ft_limits(f,t) = ft_full(f,t) + ft_realized(f,t);
-
 // Current forecast displacement between realized and forecasted timesteps
-cf(f,t) = no;
+Option clear = cf;
 cf(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')
                 } = sum(f_${fRealization(f_)}, ord(f_) - ord(f));
 
 // Previous forecast displacement between realized and forecasted timesteps
-pf(f,t) = no;
+Option clear = pf;
 pf(ft_dynamic(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_jump') + 1
                         } = sum(f_${fRealization(f_)}, ord(f_)) - ord(f);
 
 // Previous nodal forecast displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
-pf_nReserves(node, restype, f, t) = no;
+Option clear = pf_nReserves;
 pf_nReserves(node, restype, ft_dynamic(f, t))${ p_nReserves(node, restype, 'update_frequency')
                                                 and p_nReserves(node, restype, 'gate_closure')
                                                 and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(node, restype, 'update_frequency')) + mSettings(mSolve, 't_jump')
                                                 } = sum(f_${fRealization(f_)}, ord(f_) - ord(f));
 
 // Current nodal forecast displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
-cf_nReserves(node, restype, f, t) = no;
+Option clear = cf_nReserves;
 cf_nReserves(node, restype, ft(f, t))${ p_nReserves(node, restype, 'update_frequency')
                                         and p_nReserves(node, restype, 'gate_closure')
                                         and ord(t) < tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(node, restype, 'update_frequency')) + mSettings(mSolve, 't_jump')
                                         } = sum(f_${fRealization(f_)}, ord(f_) - ord(f));
 
 // Model ft
-mft(mSolve, f, t) = no;
+Option clear = mft;
 mft(mSolve, ft) = yes;
 
 // Starting model ft
-mftStart(mSolve, f, t) = no;
+Option clear = mftStart;
 mftStart(mSolve, ft(fSolve, t))${   ord(t) = tSolveFirst
                                     } = yes;
 
 // Last steps of model fts
-mftLastSteps(mSolve, f, t) = no;
+Option clear = mftLastSteps;
 mftLastSteps(mSolve, ft_full(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')
                                     } = yes;
 mftLastSteps(mSolve, ft_full(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLength')
@@ -202,52 +250,45 @@ mftLastSteps(mSolve, ft_full(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_
                                     } = yes;
 
 // Samples
-msft(mSolve, s, f, t) = no;
+Option clear = msft;
 msft(mSolve, 's000', f, t) = mft(mSolve,f,t);
 
-// mft Binds (???)
-*mftBind(mSolve,f,t) = no;
-*mft_bind(mSolve,f,t) = no;
-*mt_bind(mSolve,t) = no;
-$ontext
-// Connect the realization of the dispatch to the branches of the forecast tree
-mftBind(mft(mSolve,f,t))$[ord(t) = tSolveFirst + tDispatchCurrent] = yes;
-mft_bind(mft(mSolve,f,t))$[ord(t) = tSolveFirst + tDispatchCurrent] = 1 - ord(f);
-mt_bind(mSolve,t)$[ord(t) = tSolveFirst + tDispatchCurrent] = 1;
-
-// Connect branches of the forecast tree to the central forecast at the end of the forecast period
-mftBind(mft(mSolve,f,t))$[ord(t) = ord(tSolve) + mSettings(mSolve, 't_forecastLength')] = yes;
-mft_bind(mft(mSolve,f,t))$[ord(t) = ord(tSolve) + mSettings(mSolve, 't_forecastLength')] = sum(f_$(fCentral(f_)), ord(f_)) - ord(f);
-mt_bind(mSolve,t)$[ord(t) = ord(tSolve) + mSettings(mSolve, 't_forecastLength')] = -1;
-$offtext
+* -----------------------------------------------------------------------------
 * --- Defining unit aggregations and ramps ------------------------------------
+* -----------------------------------------------------------------------------
 
-uft(unit, f, t) = no;
+// Units active on each forecast-time step
+Option clear = uft;
 uft(unit, f, t)$[ ft(f, t)
                     and ord(t) <= tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
-                    and not unit_aggregate(unit)
+                    and not unit_aggregate(unit) // Non-aggregate units
                 ] = yes;
 
 uft(unit, f, t)$[ ft(f, t)
                     and ord(t) > tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
-                    and (unit_aggregate(unit) or unit_noAggregate(unit))
+                    and (unit_aggregate(unit) or unit_noAggregate(unit)) // Aggregate units
                 ] = yes;
 
-uft_limits(unit, f, t) = no;
+*uft_limits(unit, f, t) = no;
 
-nuft(node, unit, f, t) = no;
+// Active units in nodes on each forecast-time step
+Option clear = nuft;
 nuft(node, unit, f, t)$(nu(node, unit) and uft(unit, f, t)) = yes;
 
-gnuft(grid, node, unit, f, t) = no;
-gnuft_ramp(grid, node, unit, f, t) = no;
+// Active (grid, node, unit) on each forecast-time step
+Option clear = gnuft;
 gnuft(grid, node, unit, f, t)$(gn(grid, node) and nuft(node, unit, f, t)) = yes;
+
+// Active (grid, node, unit) on each forecast-time step with ramp restrictions
+Option clear = gnuft_ramp;
 gnuft_ramp(gnuft(grid, node, unit, f, t))${ p_gnu(grid, node, unit, 'maxRampUp')
                                             OR p_gnu(grid, node, unit, 'maxRampDown')
                                             OR p_gnu(grid, node, unit, 'rampUpCost')
                                             OR p_gnu(grid, node, unit, 'rampDownCost') } = yes;
 
 // Defining unit efficiency groups etc.
-suft(effGroup, unit, f, t) = no;
+Option clear = suft;
+Option clear = sufts;
 loop(effLevel$mSettingsEff(mSolve, effLevel),
     tInterval(t) = no;
     tInterval(t)$(ord(effLevel) = 1 and ord(t) = tSolveFirst) = yes;
@@ -258,47 +299,14 @@ loop(effLevel$mSettingsEff(mSolve, effLevel),
         suft(effGroup, unit, f, tInterval(t))$(effLevelGroupUnit(effLevel, effGroup, unit) and uft(unit, f, tInterval)) = yes;
     );
 );
-sufts(effGroup, unit, f, t, effSelector) = no;
 sufts(effGroup, unit, f, t, effSelector)$(effGroupSelector(effGroup, effSelector) and suft(effGroup, unit, f, t)) = yes;
-uft_online(unit, f, t) = no; // Initialize the 'uft_online' set so that no units use online variables by default.
+
+// Units with online variables on each forecast-time step
+Option clear = uft_online;
 loop(suft(effOnline, uft(unit, f, t)), // Determine the time steps when units need to have online variables.
     uft_online(unit, f, t) = yes;
     p_uft_online_last(unit, f, t) = ord(t);
 );
-
-// Unit limits
-$ontext
-uft_limits(unit, f, t) = no;
-uft_limits(unit, f, t)$[ ft_limits(f, t)
-                    and ord(t) <= tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
-                    and not unit_aggregate(unit)
-                ] = yes;
-uft_limits(unit, f, t)$[ ft_limits(f, t)
-                    and ord(t) > tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
-                    and (unit_aggregate(unit) or unit_noAggregate(unit))
-                ] = yes;
-
-uft_limits_online(unit, f, t) = no;
-loop(suft(effOnline, uft_limits(unit, f, t)), // Determine the time steps when units need to have online variables.
-    uft_limits_online(unit, f, t) = yes;
-);
-$offtext
-
-* --- Probabilities -----------------------------------------------------------
-// Clear probabilities from previous solve
-p_sft_probability(sInitial(s), f, t) = 0;
-p_sft_probability(s, f, t)$(sInitial(s) and ft(f,t)) = p_fProbability(f) / sum(f_$ft(f_,t), p_fProbability(f_));
-p_sft_probability(s, f, t)$(sInitial(s) and fCentral(f) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$(fCentral(f_) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')), p_fProbability(f_));
-p_sft_probability(s, f, t)$(sInitial(s) and ord(f) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon') and mSettings(mSolve, 't_forecastLength') >= mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$ft_dynamic(f_,t), p_fProbability(f_));
-
-* --- BEGIN OLD CODE ----------------------------------------------------------
-
-loop(gn(grid, node),
-    restypeDirectionNode(restypeDirection(restype, up_down), node)$(p_nReserves(node, restype, 'use_time_series') and sum((f,t), ts_reserveDemand(restype, up_down, node, f, t))) = yes;
-    restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
-);
-
-*$include 'defModels\periodicLoopDispatch.gms';
 
 // Calculate time series for unit parameters when necessary and/or possible
 loop(unit${p_unit(unit, 'useTimeseries')},
@@ -383,3 +391,26 @@ loop(unit,
         );
     );
 );
+
+* -----------------------------------------------------------------------------
+* --- Reserves ----------------------------------------------------------------
+* -----------------------------------------------------------------------------
+
+// Nodes with reserve requirements
+loop(gn(grid, node),
+    restypeDirectionNode(restypeDirection(restype, up_down), node)$(p_nReserves(node, restype, 'use_time_series') and sum((f,t), ts_reserveDemand(restype, up_down, node, f, t))) = yes;
+    restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
+);
+
+* -----------------------------------------------------------------------------
+* --- Probabilities -----------------------------------------------------------
+* -----------------------------------------------------------------------------
+
+// Clear probabilities from previous solve
+Option clear = p_sft_probability;
+p_sft_probability(s, f, t)$(sInitial(s) and ft(f,t)) = p_fProbability(f) / sum(f_$ft(f_,t), p_fProbability(f_));
+p_sft_probability(s, f, t)$(sInitial(s) and fCentral(f) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$(fCentral(f_) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')), p_fProbability(f_));
+p_sft_probability(s, f, t)$(sInitial(s) and ord(f) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon') and mSettings(mSolve, 't_forecastLength') >= mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$ft_dynamic(f_,t), p_fProbability(f_));
+
+
+
