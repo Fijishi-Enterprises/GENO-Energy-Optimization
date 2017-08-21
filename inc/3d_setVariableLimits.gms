@@ -104,10 +104,34 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), f+cf_nReserves(node
                 };
 
 // Max capacity investment
-v_gnu.up(gnu(grid, node, unit))$(p_gnu(grid, node, unit, 'maxGenCap') > 0) = p_gnu(grid, node, unit, 'maxGenCap');
-v_gnu.up(gnu(grid, node, unit))$(p_gnu(grid, node, unit, 'maxConsCap') > 0) = p_gnu(grid, node, unit, 'maxConsCap');
-v_gnu.fx(gnu(grid, node, unit))${not p_gnu(grid, node, unit, 'maxGenCap') and not p_gnu(grid, node, unit, 'maxConsCap')} = 0;
-v_gnn.up(gn2n(grid, from_node, to_node)) = p_gnn(grid, from_node, to_node, 'transferCapInvLimit');
+v_invest_LP.up(gnu(grid, node, unit))${    p_gnu(grid, node, unit, 'maxGenCap') > 0
+                                           and not p_gnu(grid, node, unit, 'investMIP')
+    } = p_gnu(grid, node, unit, 'maxGenCap');
+v_invest_LP.up(gnu(grid, node, unit))${    p_gnu(grid, node, unit, 'maxConsCap') > 0
+                                           and not p_gnu(grid, node, unit, 'investMIP')
+    } = p_gnu(grid, node, unit, 'maxConsCap');
+v_invest_LP.fx(gnu(grid, node, unit))${    [not p_gnu(grid, node, unit, 'maxGenCap')
+                                           and not p_gnu(grid, node, unit, 'maxConsCap')
+                                           ] or p_gnu(grid, node, unit, 'investMIP')
+    } = 0;
+v_invest_MIP.up(gnu(grid, node, unit))${    p_gnu(grid, node, unit, 'maxGenCap') > 0
+                                            and p_gnu(grid, node, unit, 'investMIP')
+    } = p_gnu(grid, node, unit, 'maxGenCap') / p_gnu(grid, node, unit, 'unitSize');
+v_invest_MIP.up(gnu(grid, node, unit))${    p_gnu(grid, node, unit, 'maxConsCap') > 0
+                                            and p_gnu(grid, node, unit, 'investMIP')
+    } = p_gnu(grid, node, unit, 'maxConsCap') / p_gnu(grid, node, unit, 'unitSize');
+v_invest_MIP.fx(gnu(grid, node, unit))${    [not p_gnu(grid, node, unit, 'maxGenCap')
+                                            and not p_gnu(grid, node, unit, 'maxConsCap')
+                                            ] or not p_gnu(grid, node, unit, 'investMIP')
+    } = 0;
+v_investTransfer_LP.up(gn2n(grid, from_node, to_node))${not p_gnn(grid, from_node, to_node, 'investMIP')
+    } = p_gnn(grid, from_node, to_node, 'transferCapInvLimit');
+v_investTransfer_LP.fx(gn2n(grid, from_node, to_node))${p_gnn(grid, from_node, to_node, 'investMIP')
+    } = 0;
+v_investTransfer_MIP.up(gn2n(grid, from_node, to_node))${p_gnn(grid, from_node, to_node, 'investMIP')
+    } = p_gnn(grid, from_node, to_node, 'transferCapInvLimit') / p_gnn(grid, from_node, to_node, 'unitSize');
+v_investTransfer_MIP.fx(gn2n(grid, from_node, to_node))${not p_gnn(grid, from_node, to_node, 'investMIP')
+    } = 0;
 // Fix reserves between t_jump and gate_closure based on previous allocations
 loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
 *    if ([not mod(tSolveFirst-1, p_nReserves(node, restype, 'update_frequency')) and not tSolveFirst = mSettings(mSolve, 't_start')],

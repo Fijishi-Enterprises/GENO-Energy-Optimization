@@ -157,11 +157,19 @@ q_obj ..
             )
         )
     )
+    // Unit investment costs
   + sum(gnu(grid, node, unit),
-      v_gnu(grid, node, unit) * p_unit(unit, 'invCosts')
+      + v_invest_LP(grid, node, unit) * p_gnu(grid, node, unit, 'invCosts')
+          * p_gnu(grid, node, unit, 'annuity')
+      + v_invest_MIP(grid, node, unit) * p_gnu(grid, node, unit, 'unitSize')
+          * p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
     )
+    // Transfer link investment costs
   + sum(gn2n(grid, from_node, to_node),
-      v_gnn(grid, from_node, to_node) * p_gnn(grid, from_node, to_node, 'invCost')
+      + v_investTransfer_LP(grid, from_node, to_node) * p_gnn(grid, from_node, to_node, 'invCost')
+          * p_gnn(grid, from_node, to_node, 'annuity')
+      + v_investTransfer_MIP(grid, from_node, to_node) * p_gnn(grid, from_node, to_node, 'unitSize')
+          * p_gnn(grid, from_node, to_node, 'invCost') * p_gnn(grid, from_node, to_node, 'annuity')
     )
 ;
 
@@ -259,7 +267,8 @@ q_resTransfer(gn2n(grid, from_node, to_node), ft(f, t))${ sum(restypeDirection(r
     )
   =L=
   + p_gnn(grid, from_node, to_node, 'transferCap')
-  + v_gnn(grid, from_node, to_node)
+  + v_investTransfer_LP(grid, from_node, to_node)
+  + v_investTransfer_MIP(grid, from_node, to_node) * p_gnn(grid, from_node, to_node, 'unitSize')
 ;
 * -----------------------------------------------------------------------------
 q_maxDownward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')               // Unit is either providing
@@ -287,11 +296,13 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + m
         + (p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)} + ts_effGroupUnit(effGroup, unit, 'lb', f, t))
       )
   + v_gen.lo(grid, node, unit, f, t)$p_gnu(grid, node, unit, 'maxCons')           // notice: v_gen.lo for consuming units is negative
-  - v_gnu(grid, node, unit)$p_gnu(grid, node, unit, 'maxConsCap')           // notice: v_gnu also for consuming units is positive
+  - v_invest_LP(grid, node, unit)$p_gnu(grid, node, unit, 'maxConsCap')           // notice: v_invest_LP also for consuming units is positive
+  - v_invest_MIP(grid, node, unit)$p_gnu(grid, node, unit, 'maxConsCap')           // notice: v_invest_MIP also for consuming units is positive
+    * p_gnu(grid, node, unit, 'unitSize')
   - v_online(unit, f+cf(f,t), t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxCons')} // Online variables should only be generated for units with restrictions
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxGen')
-* Check what needs to be done for investment options and check why there is maxGen in the row above
+* Check what needs to be done for investment options and check why there is maxGen in the row above: minimum load, ...
 ;
 * -----------------------------------------------------------------------------
 q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')               // Unit is either providing
@@ -319,16 +330,20 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + mSe
         + (p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)} + ts_effGroupUnit(effGroup, unit, 'lb', f, t))
       )
   + v_gen.up(grid, node, unit, f, t)${not uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')}            // Generation units are restricted by their (online) capacity
-  + (v_gnu(grid, node, unit) * p_unit(unit, 'availability'))${not unit_flow(unit) and p_gnu(grid, node, unit, 'maxGenCap')}
+  + v_invest_LP(grid, node, unit)${not unit_flow(unit) and p_gnu(grid, node, unit, 'maxGenCap')}
+    * p_unit(unit, 'availability')
+  + v_invest_MIP(grid, node, unit)${not unit_flow(unit) and p_gnu(grid, node, unit, 'maxGenCap')}
+    * p_gnu(grid, node, unit, 'unitSize')
+    * p_unit(unit, 'availability')
   + sum(flow$(flowUnit(flow, unit) and nu(node, unit) and unit_flow(unit) and p_gnu(grid, node, unit, 'maxGenCap')),
           ts_cf_(flow, node, f, t) *
-          v_gnu(grid, node, unit) *
+          {v_invest_LP(grid, node, unit) + v_invest_MIP(grid, node, unit) * p_gnu(grid, node, unit, 'unitSize')} *
           p_unit(unit, 'availability')
     )
   + v_online(unit, f+cf(f,t), t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')}       // Consuming units are restricted by their min. load (consuming is negative)
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxGen')
-* Check what needs to be done for investment options
+* Check what needs to be done for investment options: online capacity restrictions for MIP, ...
 ;
 * -----------------------------------------------------------------------------
 q_startup(unit, ft_dynamic(f, t))${ uft_online(unit, f, t)
@@ -462,7 +477,8 @@ q_stateUpwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(gr
   ( // Utilizable headroom in the state variable
       + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
       + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'upwardLimit', f, t)
-      + sum{gnu(grid, node, unit), v_gnu(grid, node, unit) * p_gnu(grid, node, unit, 'upperLimitCapacityRatio')}
+      + sum{gnu(grid, node, unit), v_invest_LP(grid, node, unit) * p_gnu(grid, node, unit, 'upperLimitCapacityRatio')}
+      + sum{gnu(grid, node, unit), v_invest_MIP(grid, node, unit) * p_gnu(grid, node, unit, 'unitSize') * p_gnu(grid, node, unit, 'upperLimitCapacityRatio')}
       - v_state(grid, node, f, t)
   )
       * ( // Accounting for the energyStoredPerUnitOfState ...
@@ -604,16 +620,22 @@ q_bidirectionalTransfer(gn2n_bidirectional(grid, node, node_), ft(f, t))${p_gnn(
 ;
 *-----------------------------------------------------------------------------
 q_fixedGenCap(grid, node, unit, grid_, node_, unit_)${p_gnugnu(grid, node, unit, grid_, node_, unit_, 'capacityRatio')} ..
-    + v_gnu(grid, node, unit)
+    + v_invest_LP(grid, node, unit)
+    + v_invest_MIP(grid, node, unit)
     =E=
-    + v_gnu(grid_, node_, unit_)
-    * p_gnugnu(grid, node, unit, grid_, node_, unit_, 'capacityRatio')
+    + (
+        + v_invest_LP(grid_, node_, unit_)
+        + v_invest_MIP(grid_, node_, unit_)
+      )
+      * p_gnugnu(grid, node, unit, grid_, node_, unit_, 'capacityRatio')
 ;
 *-----------------------------------------------------------------------------
 q_symmetricTransferCap(gn2n(grid, from_node, to_node)) ..
-    + v_gnn(grid, from_node, to_node)
+    + v_investTransfer_LP(grid, from_node, to_node)
+    + v_investTransfer_MIP(grid, from_node, to_node)
     =E=
-    + v_gnn(grid, to_node, from_node)
+    + v_investTransfer_LP(grid, to_node, from_node)
+    + v_investTransfer_MIP(grid, to_node, from_node)
 ;
 
 

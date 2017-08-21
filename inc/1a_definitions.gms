@@ -179,8 +179,11 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     diffCoeff   "Coefficients for energy diffusion between nodes"
     boundStateOffset "Offset parameter for relatively bound node states"
     boundStateMaxDiff "Maximum difference of node state pairs"
-    transferCapInvLimit "Capacity limit for investments"
+    transferCapInvLimit "Capacity limit for investments (MW)"
+    investMIP   "Choice of making integer investment instead of continous investment (MW versus number of links)"
+    unitSize    "Size of one link for integer investments (MW)"
     invCost "Investment cost (€/MW)"
+    annuity "Investment annuity"
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /
@@ -195,6 +198,10 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     maxGenCap   "Maximum output capacity investment (MW)"
     maxConsCap  "Maximum loading capacity investment (MW)"
     upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment"
+    investMIP   "Choice of making integer investment instead of continous investment (MW versus number of units)"
+    unitSize    "Size of one unit for integer investments (MW)"
+    invCosts    "Investment costs (€/MW)"
+    annuity     "Investment annuity"
 /
 
 param_unit "Set of possible data parameters for units" /
@@ -222,7 +229,6 @@ param_unit "Set of possible data parameters for units" /
     level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "Uses time series form input for unit parameters whenever possible"
     section     "Possibility to define a no load fuel use for units with zero minimum output"
-    invCosts     "Investment costs (€/MW)"
 /
 
 param_fuel "Parameters for fuels" /

@@ -23,6 +23,8 @@ Free variables
 ;
 Integer variables
     v_online(unit, f, t) "Number of units online for units with unit commitment restrictions"
+    v_investTransfer_MIP(grid, node, node) "Number of invested transfer links"
+    v_invest_MIP(grid, node, unit) "Number of invested generation units"
 ;
 SOS2 variables
     v_sos2(unit, f, t, effSelector) "Intermediate lambda variable for SOS2 based piece-wise linear efficiency curve"
@@ -36,8 +38,8 @@ Positive variables
     v_transfer(grid, node, node, f, t) "Average electricity transmission level from node to node during time period/slice (MW)"
     v_resTransfer(restype, up_down, node, node, f, t) "Electricity transmission capacity from node to node reserved for providing reserves (MW)"
     v_reserve(restype, up_down, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
-    v_gnn(grid, node, node) "Invested transfer capacity (MW)"
-    v_gnu(grid, node, unit) "Invested energy generation capacity (MW)"
+    v_investTransfer_LP(grid, node, node) "Invested transfer capacity (MW)"
+    v_invest_LP(grid, node, unit) "Invested energy generation capacity (MW)"
 ;
 
 * --- Feasibility control -----------------------------------------------------
