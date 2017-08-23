@@ -29,6 +29,7 @@ r_totalCost
 r_gen
 r_genFuel
 r_transfer
+r_spill
 
 // Dummy variables for solution feasibility reasons
 r_qGen

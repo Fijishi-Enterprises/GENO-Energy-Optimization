@@ -28,6 +28,7 @@ Parameters
     r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
     r_genFuel(grid, node, fuel, f, t) "Energy generation/consumption based on fuels / flows (MW)"
     r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
+    r_spill(grid, node, f, t) "Spill of energy from storage node during time period (MWh)"
 *    r_genNodeType(grid, node, unitType, t) "Energy generation/consumption based on unittypes (MW)"
 *    r_genType(grid, unitType, t) "Energy generation/consumption based on unittypes (MW)"
 *    r_elec_type(unittype, t) "Average electricity generation rate of generator type (MW)"

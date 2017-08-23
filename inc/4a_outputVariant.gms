@@ -34,6 +34,7 @@ r_resTransfer(restypeDirectionNode(restype, up_down, from_node), to_node, fReali
 r_gen(gnu(grid, node, unit), ft_realized(f, t)) = v_gen.l(grid, node, unit, f, t);
 r_genFuel(gn(grid, node), fuel, ft_realized(f, t)) = sum(gnu(grid, node, unit), v_fuelUse.l(fuel, unit, f, t));
 r_transfer(gn2n(grid, from_node, to_node), ft_realized(f, t)) = v_transfer.l(grid, from_node, to_node, f, t);
+r_spill(gn(grid, node), ft_realized(f, t)) = v_spill.l(grid, node, f, t);
 
 // Feasibility results
 r_qGen(inc_dec, gn(grid, node), ft_realized(f, t)) = vq_gen.l(inc_dec, grid, node, f, t);
