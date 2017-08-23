@@ -50,6 +50,7 @@ Parameters
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
     p_fuelEmission(fuel, emission) "Fuel emission content"
     p_uFuel(unit, param_fuel, fuel, param_unitFuel) "Parameters interacting between units and fuels"
+    p_unitFuelEmissionCost(unit, fuel, emission) "Emission costs for each unit, calculated from input data"
     p_effUnit(effSelector, unit, effSelector, *)  "Data for piece-wise linear efficiency blocks"
     p_effGroupUnit(effSelector, unit, *) "Unit data specific to a efficiency group (e.g. left border of the unit)"
 // Time dependent unit & fuel parameters
@@ -96,7 +97,6 @@ Parameters
     ts_reserveDemand_(restype, up_down, node, f, t)
     ts_nodeState(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input"
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (€/MWh)"
-    ts_fuelPriceChangenode(fuel, node, t) "Initial fuel price and consequent changes in fuel price in model nodegraphies (€/MWh)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time period/slice (p.u.)"
 // Aliases used for interval aggregation
     ts_influx_(grid, node, f, t)
