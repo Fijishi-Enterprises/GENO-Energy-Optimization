@@ -70,15 +70,13 @@ q_obj ..
                      v_gen(grid, node, unit, f, t)$nuft(node, unit, f, t)
            )
          // Fuel and emission costs
-         + sum((node, unit_fuel, fuel)$(nu(node, unit_fuel) and uFuel(unit_fuel, 'main', fuel)),
+         + sum((uft(unit_fuel, f, t), fuel)$uFuel(unit_fuel, 'main', fuel),
               + p_stepLength(m, f, t)
-              * v_fuelUse(fuel, unit_fuel, f, t)$nuft(node, unit_fuel, f, t)
+              * v_fuelUse(fuel, unit_fuel, f, t)
                   * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
-                            ts_fuelPriceChangenode(fuel, node, tFuel) }  // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
-                      + sum{emission,         // Emission taxes
-                            p_fuelEmission(fuel, emission) / 1e3
-                              * sum(grid$gnu_output(grid, node, unit_fuel), p_gnPolicy(grid, node, 'emissionTax', emission))  // Sum emission costs from different output energy types
-                        }
+                           ts_fuelPriceChange(fuel, tFuel) }  // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
+                      + sum(emission,                          // Emission taxes
+                           p_unitFuelEmissionCost(unit_fuel, fuel, emission) )
                      )
            )
          // Start-up costs
@@ -91,21 +89,14 @@ q_obj ..
                  + p_unit(unit, 'startCost')
                  * p_unit(unit, 'outputCapacityTotal')
                   // Start-up fuel and emission costs
-                 + sum(uFuel(unit_fuel, 'startup', fuel),
+                 + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
                      + p_unit(unit, 'startFuelCons')
                      * p_unit(unit, 'outputCapacityTotal')
-                     * sum(gnu_output(grid, node, unit),
-                           // Fuel costs for start-up fuel use
-                         + ( + sum{tFuel$[ord(tFuel) <= ord(t)],
-                                   ts_fuelPriceChangenode(fuel, node, tFuel) }
-                               // Emission taxes of startup fuel use
-                             + sum(emission,
-                                p_fuelEmission(fuel, emission) / 1e3
-                                  * p_gnPolicy(grid, node, 'emissionTax', emission)  // Sum emission costs from different output energy types
-                               )
-                           ) / (p_gnu(grid, node, unit, 'maxGen')$p_gnu(grid, node, unit, 'maxGen') + 1$(not p_gnu(grid, node, unit, 'maxGen')))  // Calculate these in relation to maximum output ratios between multiple outputs
-                       ) * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // see line above
-* Check the calculation of emissions when maxGen = 0
+                         * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
+                                 ts_fuelPriceChange(fuel, tFuel) }  // Fuel costs for start-up fuel use
+                             + sum(emission,                          // Emission taxes of startup fuel use
+                                 p_unitFuelEmissionCost(unit, fuel, emission) )
+                           )
                    )
                }
            )
