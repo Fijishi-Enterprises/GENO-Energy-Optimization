@@ -48,6 +48,7 @@ $loaddc ts_fuelPriceChange
 $loaddc ts_influx
 $loaddc ts_nodeState
 $loaddc p_gnugnu
+$loaddc t_invest
 $gdxin
 
 $ontext
@@ -78,7 +79,7 @@ gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'maxGen') = yes;
 gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'maxCons') = yes;
 gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'maxGenCap') or p_gnu(grid, node, unit, 'maxConsCap')) = yes;
 gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'maxGenCap') = yes;
-gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'maxConsCap') = yes;
+gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'maxConsCap') = yes;
 gn2gnu(grid_, node_input, grid, node, unit)$(gnu_input(grid_, node_input, unit) and gnu_output(grid, node, unit)) = yes;
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
 nuRescapable(restype, up_down, node, unit)$p_nuReserves(node, unit, restype, up_down) = yes;

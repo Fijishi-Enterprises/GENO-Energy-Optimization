@@ -103,34 +103,40 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), f+cf_nReserves(node
                 v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
                 };
 
-// Max capacity investment
-v_invest_LP.up(gnu(grid, node, unit))${    p_gnu(grid, node, unit, 'maxGenCap') > 0
-                                           and not p_gnu(grid, node, unit, 'investMIP')
+// Max and min capacity investment
+v_invest_LP.up(gnu(grid, node, unit), t)${    (p_gnu(grid, node, unit, 'maxGenCap') > 0)
+                                              and not p_unit(unit, 'investMIP')
     } = p_gnu(grid, node, unit, 'maxGenCap');
-v_invest_LP.up(gnu(grid, node, unit))${    p_gnu(grid, node, unit, 'maxConsCap') > 0
-                                           and not p_gnu(grid, node, unit, 'investMIP')
+v_invest_LP.up(gnu(grid, node, unit), t)${    (p_gnu(grid, node, unit, 'maxConsCap') > 0)
+                                              and not p_unit(unit, 'investMIP')
     } = p_gnu(grid, node, unit, 'maxConsCap');
-v_invest_LP.fx(gnu(grid, node, unit))${    [not p_gnu(grid, node, unit, 'maxGenCap')
-                                           and not p_gnu(grid, node, unit, 'maxConsCap')
-                                           ] or p_gnu(grid, node, unit, 'investMIP')
+v_invest_LP.lo(gnu(grid, node, unit), t)${    (p_gnu(grid, node, unit, 'maxGenCap') > 0)
+                                              and not p_unit(unit, 'investMIP')
+    } = p_gnu(grid, node, unit, 'minGenCap');
+v_invest_LP.lo(gnu(grid, node, unit), t)${    (p_gnu(grid, node, unit, 'maxConsCap') > 0)
+                                              and not p_unit(unit, 'investMIP')
+    } = p_gnu(grid, node, unit, 'minConsCap');
+v_invest_LP.fx(gnu(grid, node, unit), t)${    [(not p_gnu(grid, node, unit, 'maxGenCap'))
+                                              and (not p_gnu(grid, node, unit, 'maxConsCap'))
+                                              ] or p_unit(unit, 'investMIP')
+                                              or not t_invest(t)
     } = 0;
-v_invest_MIP.up(gnu(grid, node, unit))${    p_gnu(grid, node, unit, 'maxGenCap') > 0
-                                            and p_gnu(grid, node, unit, 'investMIP')
-    } = p_gnu(grid, node, unit, 'maxGenCap') / p_gnu(grid, node, unit, 'unitSize');
-v_invest_MIP.up(gnu(grid, node, unit))${    p_gnu(grid, node, unit, 'maxConsCap') > 0
-                                            and p_gnu(grid, node, unit, 'investMIP')
-    } = p_gnu(grid, node, unit, 'maxConsCap') / p_gnu(grid, node, unit, 'unitSize');
-v_invest_MIP.fx(gnu(grid, node, unit))${    [not p_gnu(grid, node, unit, 'maxGenCap')
-                                            and not p_gnu(grid, node, unit, 'maxConsCap')
-                                            ] or not p_gnu(grid, node, unit, 'investMIP')
+v_invest_MIP.up(unit, t)${    p_unit(unit, 'investMIP')
+    } = p_unit(unit, 'maxUnitCount');
+v_invest_MIP.lo(unit, t)${    p_unit(unit, 'investMIP')
+    } = p_unit(unit, 'minUnitCount');
+v_invest_MIP.fx(unit, t)${    not p_unit(unit, 'investMIP')
+                              or not t_invest(t)
     } = 0;
-v_investTransfer_LP.up(gn2n(grid, from_node, to_node))${not p_gnn(grid, from_node, to_node, 'investMIP')
+v_investTransfer_LP.up(gn2n(grid, from_node, to_node), t)${not p_gnn(grid, from_node, to_node, 'investMIP')
     } = p_gnn(grid, from_node, to_node, 'transferCapInvLimit');
-v_investTransfer_LP.fx(gn2n(grid, from_node, to_node))${p_gnn(grid, from_node, to_node, 'investMIP')
+v_investTransfer_LP.fx(gn2n(grid, from_node, to_node), t)${p_gnn(grid, from_node, to_node, 'investMIP')
+                                                        or not t_invest(t)
     } = 0;
-v_investTransfer_MIP.up(gn2n(grid, from_node, to_node))${p_gnn(grid, from_node, to_node, 'investMIP')
+v_investTransfer_MIP.up(gn2n(grid, from_node, to_node), t)${p_gnn(grid, from_node, to_node, 'investMIP')
     } = p_gnn(grid, from_node, to_node, 'transferCapInvLimit') / p_gnn(grid, from_node, to_node, 'unitSize');
-v_investTransfer_MIP.fx(gn2n(grid, from_node, to_node))${not p_gnn(grid, from_node, to_node, 'investMIP')
+v_investTransfer_MIP.fx(gn2n(grid, from_node, to_node), t)${not p_gnn(grid, from_node, to_node, 'investMIP')
+                                                         or not t_invest(t)
     } = 0;
 // Fix reserves between t_jump and gate_closure based on previous allocations
 loop(restypeDirectionNode(restypeDirection(restype, up_down), node),

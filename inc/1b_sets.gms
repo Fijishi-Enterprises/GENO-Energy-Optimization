@@ -100,6 +100,7 @@ Sets
     fSolve(f) "forecasts in the model to be solved next"
     tSolveDispatch(t)
     tLatestForecast(t) "t for the latest forecast that is available"
+    t_invest(t) "Time steps when investments can be made"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Enables aggregation of units for later time periods"

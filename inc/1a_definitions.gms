@@ -138,6 +138,7 @@ param_gn  "Possible parameters for grid, node" /
     boundStartToEnd  "Force the last states to equal the first state"
     boundCyclic   "A flag to impose cyclic bounds for the first and the last states"
     forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."
+    capacityMargin "Capacity margin used in invest mode (MW)"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
@@ -197,9 +198,11 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     rampDownCost "Wear and tear cost of ramping up (€/MW)"
     maxGenCap   "Maximum output capacity investment (MW)"
     maxConsCap  "Maximum loading capacity investment (MW)"
+    minGenCap   "Minimum output capacity investment (MW)"
+    minConsCap  "Minimum loading capacity investment (MW)"
     upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment"
-    investMIP   "Choice of making integer investment instead of continous investment (MW versus number of units)"
-    unitSize    "Size of one unit for integer investments (MW)"
+    unitSizeGen "Output capacity of one unit for integer investments (MW)"
+    unitSizeCons  "Loading capacity of one unit for integer investments (MW)"
     invCosts    "Investment costs (€/MW)"
     annuity     "Investment annuity"
 /
@@ -229,6 +232,9 @@ param_unit "Set of possible data parameters for units" /
     level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "Uses time series form input for unit parameters whenever possible"
     section     "Possibility to define a no load fuel use for units with zero minimum output"
+    investMIP   "Choice of making integer investment instead of continous investment (number of units versus MW)"
+    maxUnitCount "Maximum number of units when making integer investments"
+    minUnitCount "Minimum number of units when making integer investments"
 /
 
 param_fuel "Parameters for fuels" /
@@ -246,6 +252,7 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     emissionTax "Emission tax (EUR/tonne)"
     update_frequency "???"
     gate_closure "???"
+    emissionCap "Emission limit (tonne)"
 /
 
 param_gnugnu "Set of possible data parameters for grid, node, unit, grid, node, unit" /
