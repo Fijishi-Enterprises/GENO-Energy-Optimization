@@ -86,7 +86,7 @@ Parameters
     p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
     tForecastNext(mType) "When the next forecast will be availalbe (ord time)"
     aaSolveInfo(mType, t, solveInfoAttributes) "stores information about the solve status"
-    p_uft_online_last(unit, f, t) "Ord of last t where unit is online"
+*    p_uft_online_last(unit, f, t) "Ord of last t where unit is online"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------
