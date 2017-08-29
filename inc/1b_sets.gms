@@ -41,6 +41,8 @@ Sets
     unitUnittype(unit, *) "Link generation technologies to types"
     uFuel(unit, param_fuel, fuel) "Units linked with fuels"
     unittype "Unit technology types"
+    unit_investLP(unit) "Units with continuous investments allowed"
+    unit_investMIP(unit) "Units with integer investments allowed"
 
 * --- Nodes -----------------------------------------------------------------
 *    node_reservoir(node)  "Hydropower reservoirs"

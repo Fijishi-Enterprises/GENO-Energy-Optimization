@@ -37,8 +37,8 @@ v_state.fx(gn_state(grid, node), ft_full(f, t))${p_gn(grid, node, 'boundAll')
 // Other time dependent parameters and variable limits
 // Max. energy generation
 v_gen.up(gnu(grid, node, unit), ft(f,t))${not unit_flow(unit)
-     and not p_gnu(grid, node, unit, 'maxGenCap')} = p_gnu(grid, node, unit, 'maxGen') * p_unit(unit, 'availability');
-v_gen.up(gnu(grid, node, unit_flow), ft(f,t))$(not p_gnu(grid, node, unit_flow, 'maxGenCap'))      // Should only be about variable generation
+     and not (unit_investLP(unit) or unit_investMIP(unit))} = p_gnu(grid, node, unit, 'maxGen') * p_unit(unit, 'availability');
+v_gen.up(gnu(grid, node, unit_flow), ft(f,t))$(not (unit_investLP(unit_flow) or unit_investMIP(unit_flow)))      // Should only be about variable generation
     = sum(flow$(flowUnit(flow, unit_flow) and nu(node, unit_flow)),
           ts_cf_(flow, node, f, t) *
           p_gnu(grid, node, unit_flow, 'maxGen') *
@@ -46,11 +46,11 @@ v_gen.up(gnu(grid, node, unit_flow), ft(f,t))$(not p_gnu(grid, node, unit_flow, 
       );
 
 // Min. generation to zero for units without consumption
-v_gen.lo(gnu(grid, node, unit), ft(f,t))${not p_gnu(grid, node, unit, 'maxCons')
-     and not p_gnu(grid, node, unit, 'maxConsCap')} = 0;
+v_gen.lo(gnu(grid, node, unit), ft(f,t))${not gnu_input(grid, node, unit)
+     } = 0;
 // Max. consumption capacity
 v_gen.lo(gnu(grid, node, unit), ft(f,t))${gnu_input(grid, node, unit)
-     and not p_gnu(grid, node, unit, 'maxConsCap')} = -p_gnu(grid, node, unit, 'maxCons');
+     and not (unit_investLP(unit) or unit_investMIP(unit))} = -p_gnu(grid, node, unit, 'maxCons');
 
 // In the case of negative generation (currently only used for cooling equipment)
 v_gen.lo(gnu(grid, node, unit), ft(f,t))${p_gnu(grid, node, unit, 'maxGen') < 0
@@ -59,19 +59,32 @@ v_gen.up(gnu(grid, node, unit), ft(f,t))${p_gnu(grid, node, unit, 'maxGen') < 0
     } = 0;
 
 // v_online cannot exceed unit count
-v_online.up(uft_online(unit, ft_dynamic(f,t)))
-    = p_unit(unit, 'unitCount');
+v_online.up(uft_online(unit, ft_dynamic(f,t)))${not unit_investMIP(unit)
+    } = p_unit(unit, 'unitCount');
 // Restrict v_online also in the last dynamic time step
 v_online.up(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
+                                                and not unit_investMIP(unit)
     } = p_unit(unit, 'unitCount');
+// v_online is zero for units with continuous online variable
+v_online.fx(uft_online(unit, ft_dynamic(f,t)))${unit_investLP(unit)
+    } = 0;
+// v_onlineLP is zero for units without continuous online variable
+v_online_LP.fx(uft_online(unit, ft_dynamic(f,t)))${not unit_investLP(unit)
+    } = 0;
 
 // Possible constraints for generator ramping speeds
-v_genRamp.up(gnu(grid, node, unit), ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
-                                                AND p_gnu(grid, node, unit, 'maxRampUp')
-    } = p_gnu(grid, node, unit, 'maxRampUp');
-v_genRamp.lo(gnu(grid, node, unit), ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
-                                                AND p_gnu(grid, node, unit, 'maxRampDown')
-    } = -p_gnu(grid, node, unit, 'maxRampDown');
+*v_genRamp.up(gnu(grid, node, unit), ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
+*                                                AND p_gnu(grid, node, unit, 'maxRampUp')
+*                                                and not ( unit_investLP(unit) or unit_investMIP(unit) )
+*    } = p_gnu(grid, node, unit, 'maxRampUp')
+*         * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
+*         * ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') );
+*v_genRamp.lo(gnu(grid, node, unit), ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
+*                                                AND p_gnu(grid, node, unit, 'maxRampDown')
+*                                                and not ( unit_investLP(unit) or unit_investMIP(unit) )
+*    } = -p_gnu(grid, node, unit, 'maxRampDown')
+*         * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
+*         * ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') );
 
 // Max. & min. spilling
 v_spill.lo(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useConstant')
@@ -105,27 +118,27 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), f+cf_nReserves(node
 
 // Max and min capacity investment
 v_invest_LP.up(gnu(grid, node, unit), t)${    (p_gnu(grid, node, unit, 'maxGenCap') > 0)
-                                              and not p_unit(unit, 'investMIP')
+                                              and unit_investLP(unit)
     } = p_gnu(grid, node, unit, 'maxGenCap');
 v_invest_LP.up(gnu(grid, node, unit), t)${    (p_gnu(grid, node, unit, 'maxConsCap') > 0)
-                                              and not p_unit(unit, 'investMIP')
+                                              and unit_investLP(unit)
     } = p_gnu(grid, node, unit, 'maxConsCap');
 v_invest_LP.lo(gnu(grid, node, unit), t)${    (p_gnu(grid, node, unit, 'maxGenCap') > 0)
-                                              and not p_unit(unit, 'investMIP')
+                                              and unit_investLP(unit)
     } = p_gnu(grid, node, unit, 'minGenCap');
 v_invest_LP.lo(gnu(grid, node, unit), t)${    (p_gnu(grid, node, unit, 'maxConsCap') > 0)
-                                              and not p_unit(unit, 'investMIP')
+                                              and unit_investLP(unit)
     } = p_gnu(grid, node, unit, 'minConsCap');
 v_invest_LP.fx(gnu(grid, node, unit), t)${    [(not p_gnu(grid, node, unit, 'maxGenCap'))
                                               and (not p_gnu(grid, node, unit, 'maxConsCap'))
-                                              ] or p_unit(unit, 'investMIP')
+                                              ] or unit_investMIP(unit)
                                               or not t_invest(t)
     } = 0;
-v_invest_MIP.up(unit, t)${    p_unit(unit, 'investMIP')
+v_invest_MIP.up(unit, t)${    unit_investMIP(unit)
     } = p_unit(unit, 'maxUnitCount');
-v_invest_MIP.lo(unit, t)${    p_unit(unit, 'investMIP')
+v_invest_MIP.lo(unit, t)${    unit_investMIP(unit)
     } = p_unit(unit, 'minUnitCount');
-v_invest_MIP.fx(unit, t)${    not p_unit(unit, 'investMIP')
+v_invest_MIP.fx(unit, t)${    not unit_investMIP(unit)
                               or not t_invest(t)
     } = 0;
 v_investTransfer_LP.up(gn2n(grid, from_node, to_node), t)${not p_gnn(grid, from_node, to_node, 'investMIP')

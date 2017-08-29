@@ -70,6 +70,12 @@ Model invest /
     q_boundStateMaxDiff
     q_boundCyclic
     q_bidirectionalTransfer
-    q_fixedGenCap
+    q_fixedGenCap1U
+    q_fixedGenCap2U
     q_symmetricTransferCap
+    q_onlineLimit
+    q_rampUpLimit
+    q_rampDownLimit
+    q_capacityMargin
+    q_emissionCap
 /;

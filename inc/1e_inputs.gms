@@ -75,9 +75,12 @@ p_gnu(grid, node, unit_aggregate(unit), 'maxCons') = sum(unit_$unitUnit_aggregat
 gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'maxGen') or p_gnu(grid, node, unit, 'maxCons')) = yes;
 gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'maxGen') = yes;
 gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'maxCons') = yes;
+gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'unitSizeGen') or p_gnu(grid, node, unit, 'unitSizeCons')) = yes;
 gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'maxGenCap') or p_gnu(grid, node, unit, 'maxConsCap')) = yes;
 gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'maxGenCap') = yes;
 gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'maxConsCap') = yes;
+gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'unitSizeGen') = yes;
+gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'unitSizeCons') = yes;
 gn2gnu(grid_, node_input, grid, node, unit)$(gnu_input(grid_, node_input, unit) and gnu_output(grid, node, unit)) = yes;
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
 nuRescapable(restype, up_down, node, unit)$p_nuReserves(node, unit, restype, up_down) = yes;
@@ -88,14 +91,28 @@ unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) 
 unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxCons')) = yes;
 unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGenCap')) = yes;
 unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxConsCap')) = yes;
+unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'unitSizeGen')) = yes;
+unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'unitSizeCons')) = yes;
+unit_investLP(unit)${  not p_unit(unit, 'investMIP')
+                       and sum(gnu(grid, node, unit),
+                             p_gnu(grid, node, unit, 'maxGenCap') + p_gnu(grid, node, unit, 'maxConsCap')
+                           )
+  } = yes;
+unit_investMIP(unit)${p_unit(unit, 'investMIP') and p_unit(unit, 'maxUnitCount')} = yes;
 
 * Assume values for critical unit related parameters, if not provided by input data
 p_unit(unit, 'eff00')$(not p_unit(unit, 'eff00')) = 1; // If the unit does not have efficiency set, it is 1
-p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount')) = 1;  // In case number of units has not been defined it is 1.
+p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount') and not p_unit(unit, 'investMIP')) = 1;  // In case number of units has not been defined it is 1 except for units with integer investments allowed.
 p_unit(unit, 'outputCapacityTotal')$(not p_unit(unit, 'outputCapacityTotal')) = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));  // By default add outputs in order to get the total capacity of the unit
 p_unitFuelEmissionCost(unit_fuel, fuel, emission)$sum(param_fuel, uFuel(unit_fuel, param_fuel, fuel)) = p_fuelEmission(fuel, emission) / 1e3
-                                                      * sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen') * p_gnPolicy(grid, node, 'emissionTax', emission))  // Weighted average of emission costs from different output energy types
-                                                      / sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen'));
+                                                      * sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen') * p_gnPolicy(grid, node, 'emissionTax', emission)  // Weighted average of emission costs from different output energy types
+                                                          + p_gnu(grid, node, unit_fuel, 'unitSizeGen')$(not p_gnu(grid, node, unit_fuel, 'maxGen')) * p_gnPolicy(grid, node, 'emissionTax', emission)
+                                                        )  // Weighted average of emission costs from different output energy types
+                                                      / sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen')
+                                                          + p_gnu(grid, node, unit_fuel, 'unitSizeGen')$(not p_gnu(grid, node, unit_fuel, 'maxGen'))
+                                                        );
+p_gnu(grid, node, unit, 'unitSizeGen')$(p_gnu(grid, node, unit, 'maxGen') and p_unit(unit, 'unitCount')) = p_gnu(grid, node, unit, 'maxGen')/p_unit(unit, 'unitCount');  // If maxGen and unitCount are given, calculate unitSizeGen based on them.
+p_gnu(grid, node, unit, 'unitSizeCons')$(p_gnu(grid, node, unit, 'maxCons') and p_unit(unit, 'unitCount')) = p_gnu(grid, node, unit, 'maxCons')/p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
 * Generate node related sets based on input data // NOTE! These will need to change if p_gnn is required to work with only one row per link.
 gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCap') OR p_gnn(grid, from_node, to_node, 'transferLoss')} = yes;
 gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCapBidirectional') OR p_gnn(grid, to_node, from_node, 'transferCapBidirectional')} = yes;
