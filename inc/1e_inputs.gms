@@ -111,6 +111,10 @@ p_unitFuelEmissionCost(unit_fuel, fuel, emission)$sum(param_fuel, uFuel(unit_fue
                                                       / sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen')
                                                           + p_gnu(grid, node, unit_fuel, 'unitSizeGen')$(not p_gnu(grid, node, unit_fuel, 'maxGen'))
                                                         );
+p_uNonoperational(unit, 'hot', 'min') = 0;
+p_uNonoperational(unit, 'hot', 'max') = p_unit(unit, 'startWarm');
+p_uNonoperational(unit, 'warm', 'min') = p_unit(unit, 'startWarm');
+p_uNonoperational(unit, 'warm', 'max') = p_unit(unit, 'startCold');
 p_gnu(grid, node, unit, 'unitSizeGen')$(p_gnu(grid, node, unit, 'maxGen') and p_unit(unit, 'unitCount')) = p_gnu(grid, node, unit, 'maxGen')/p_unit(unit, 'unitCount');  // If maxGen and unitCount are given, calculate unitSizeGen based on them.
 p_gnu(grid, node, unit, 'unitSizeCons')$(p_gnu(grid, node, unit, 'maxCons') and p_unit(unit, 'unitCount')) = p_gnu(grid, node, unit, 'maxCons')/p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
 * Generate node related sets based on input data // NOTE! These will need to change if p_gnn is required to work with only one row per link.

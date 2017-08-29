@@ -67,6 +67,8 @@ Sets  // Model related selections
         / up, down /
     inc_dec "Increase or decrease in dummy, or slack variables"
        / increase, decrease /
+    min_max "Minimum and maximum"
+        / min, max /
 ;
 
 Sets //Reserve type sets
@@ -83,6 +85,16 @@ Sets //Reserve type sets
           tertiary.up
           tertiary.down
         /
+;
+
+Sets //Startup type sets
+    starttype "Startup types"
+        / hot "Hot start"
+          warm "Warm start"
+          cold "Cold start"
+        /
+    starttypeConstrained(starttype) "Startup types with constrained maximum non-opearational time"
+        / hot, warm /
 ;
 
 * Numeric parameters

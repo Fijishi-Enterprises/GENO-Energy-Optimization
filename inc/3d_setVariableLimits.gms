@@ -151,6 +151,12 @@ v_investTransfer_MIP.up(gn2n(grid, from_node, to_node), t)${p_gnn(grid, from_nod
 v_investTransfer_MIP.fx(gn2n(grid, from_node, to_node), t)${not p_gnn(grid, from_node, to_node, 'investMIP')
                                                          or not t_invest(t)
     } = 0;
+
+// If offline hours after which the start-up will be a warm/cold start is not
+// defined, fix hot/warm start-up to zero.
+v_startup.fx(unit, 'hot', ft_dynamic(f, t))${not p_unit(unit, 'startWarm')} = 0;
+v_startup.fx(unit, 'warm', ft_dynamic(f, t))${not p_unit(unit, 'startCold')} = 0;
+
 // Fix reserves between t_jump and gate_closure based on previous allocations
 loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
 *    if ([not mod(tSolveFirst-1, p_nReserves(node, restype, 'update_frequency')) and not tSolveFirst = mSettings(mSolve, 't_start')],

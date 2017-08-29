@@ -76,6 +76,9 @@ Model invest /
     q_onlineLimit
     q_rampUpLimit
     q_rampDownLimit
+    q_startuptype
+    q_minUp
+    q_minDown
     q_capacityMargin
     q_emissionCap
 /;

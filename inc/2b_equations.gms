@@ -44,6 +44,9 @@ equations
     q_onlineLimit(unit, f, t) "Number of online units limited for units with investment possibility"
     q_rampUpLimit(grid, node, mType, unit, f, t) "Up ramping limited for units"
     q_rampDownLimit(grid, node, mType, unit, f, t) "Down ramping limited for units"
+    q_startuptype(mType, unit, starttype, f, t) "Startup type depends on the time the unit has been non-operational"
+    q_minUp(mType, unit, f, t) "Unit must stay operational if it has started up during the previous minOperationTime hours"
+    q_minDown(mType, unit, f, t) "Unit must stay non-operational if it has shut down during the previous minShutDownTime hours"
     q_capacityMargin(grid, node, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
     q_emissioncap(grid, node, emission) "Limit for emissions"
 ;
@@ -86,7 +89,7 @@ q_obj ..
          // Start-up costs
          + sum(uft_online(unit, f, t),
              + {
-                 + v_startup(unit, f, t) // Cost of starting up
+                 + v_startup(unit, 'hot', f, t) // Cost of starting up
                }
              * {
                   // Startup variable costs
@@ -97,6 +100,46 @@ q_obj ..
                      (
                        + p_unit(unit, 'startFuelCons')${not unit_investLP(unit)}
                        + p_unit(unit, 'startFuelCons_MW')$unit_investLP(unit)
+                     )
+                         * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
+                                 ts_fuelPriceChange(fuel, tFuel) }  // Fuel costs for start-up fuel use
+                             + sum(emission,                          // Emission taxes of startup fuel use
+                                 p_unitFuelEmissionCost(unit, fuel, emission) )
+                           )
+                   )
+               }
+             + {
+                 + v_startup(unit, 'warm', f, t) // Cost of starting up
+               }
+             * {
+                  // Startup variable costs
+                 + p_unit(unit, 'startCostWarm')${not unit_investLP(unit)}
+                 + p_unit(unit, 'startCostWarm_MW')$unit_investLP(unit)
+                  // Start-up fuel and emission costs
+                 + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
+                     (
+                       + p_unit(unit, 'startFuelConsWarm')${not unit_investLP(unit)}
+                       + p_unit(unit, 'startFuelConsWarm_MW')$unit_investLP(unit)
+                     )
+                         * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
+                                 ts_fuelPriceChange(fuel, tFuel) }  // Fuel costs for start-up fuel use
+                             + sum(emission,                          // Emission taxes of startup fuel use
+                                 p_unitFuelEmissionCost(unit, fuel, emission) )
+                           )
+                   )
+               }
+             + {
+                 + v_startup(unit, 'cold', f, t) // Cost of starting up
+               }
+             * {
+                  // Startup variable costs
+                 + p_unit(unit, 'startCostCold')${not unit_investLP(unit)}
+                 + p_unit(unit, 'startCostCold_MW')$unit_investLP(unit)
+                  // Start-up fuel and emission costs
+                 + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
+                     (
+                       + p_unit(unit, 'startFuelConsCold')${not unit_investLP(unit)}
+                       + p_unit(unit, 'startFuelConsCold_MW')$unit_investLP(unit)
                      )
                          * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
                                  ts_fuelPriceChange(fuel, tFuel) }  // Fuel costs for start-up fuel use
@@ -409,7 +452,7 @@ q_startup(unit, ft_dynamic(f, t))${ uft_online(unit, f, t)
   =E=
   + v_online(unit, f+pf(f,t), t+pt(t)) // This reaches to tFirstSolve when pt = -1
   + v_online_LP(unit, f+pf(f,t), t+pt(t))
-  + v_startup(unit, f, t+pt(t))
+  + sum(starttype, v_startup(unit, starttype, f, t+pt(t)))
   - v_shutdown(unit, f, t+pt(t))
 ;
 * -----------------------------------------------------------------------------
@@ -720,7 +763,7 @@ q_rampUpLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node,
   =L=
   // Ramping capability of units that were online both in the previous time step and the current time step
   + (
-      + 1${not uft_online(unit, f+pf(f,t), t+pt(t))} // Taking into account units without online variable
+      + p_unit(unit, 'unitCount')${not uft_online(unit, f+pf(f,t), t+pt(t))} // Taking into account units without online variable
       + v_online_LP(unit, f+pf(f,t), t+pt(t))${uft_online(unit, f+pf(f,t), t+pt(t))} // Units with continuous online variable?
       + v_online(unit, f+pf(f,t), t+pt(t))${uft_online(unit, f+pf(f,t), t+pt(t))}
       - v_shutdown(unit, f, t+pt(t))${uft_online(unit, f, t+pt(t))}
@@ -733,11 +776,11 @@ q_rampUpLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node,
           + sum(gnu(grid_, node_, unit), p_gnu(grid_, node_, unit, 'unitSizeGen') + p_gnu(grid_, node_, unit, 'unitSizeCons'))${
               unit_investLP(unit) and ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
               }
-        }
+        } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
   // Newly started units are assumed to start to their minload and
   // newly shutdown units are assumed to be shut down from their minload.
   + (
-      + v_startup(unit, f, t+pt(t))${uft_online(unit, f, t+pt(t))}
+      + sum(starttype, v_startup(unit, starttype, f, t+pt(t))${uft_online(unit, f, t+pt(t))})
       - v_shutdown(unit, f, t+pt(t))${uft_online(unit, f, t+pt(t))}
     )
       * ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
@@ -746,8 +789,9 @@ q_rampUpLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node,
           + sum(gnu(grid_, node_, unit), p_gnu(grid_, node_, unit, 'unitSizeGen') + p_gnu(grid_, node_, unit, 'unitSizeCons'))${
               unit_investLP(unit) and ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
               }
-        }
+        } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
       * sum(suft(effGroup, unit, f+cf(f,t), t), p_effGroupUnit(effGroup, unit, 'lb'))
+// Reserve provision?
 ;
 * -----------------------------------------------------------------------------
 q_rampDownLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node, unit, f, t)} ..
@@ -756,7 +800,7 @@ q_rampDownLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, nod
   =G=
   // Ramping capability of units that were online both in the previous time step and the current time step
   - (
-      + 1${not uft_online(unit, f+pf(f,t), t+pt(t))} // Taking into account units without online variable
+      + p_unit(unit, 'unitCount')${not uft_online(unit, f+pf(f,t), t+pt(t))} // Taking into account units without online variable
       + v_online_LP(unit, f+pf(f,t), t+pt(t))${uft_online(unit, f+pf(f,t), t+pt(t))} // Units with continuous online variable?
       + v_online(unit, f+pf(f,t), t+pt(t))${uft_online(unit, f+pf(f,t), t+pt(t))}
       - v_shutdown(unit, f, t+pt(t))${uft_online(unit, f, t+pt(t))}
@@ -769,11 +813,11 @@ q_rampDownLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, nod
           + sum(gnu(grid_, node_, unit), p_gnu(grid_, node_, unit, 'unitSizeGen') + p_gnu(grid_, node_, unit, 'unitSizeCons'))${
               unit_investLP(unit) and ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
               }
-        }
+        } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
   // Newly started units are assumed to start to their minload and
   // newly shutdown units are assumed to be shut down from their minload.
   + (
-      + v_startup(unit, f, t+pt(t))${uft_online(unit, f, t+pt(t))}
+      + sum(starttype, v_startup(unit, starttype, f, t+pt(t))${uft_online(unit, f, t+pt(t))})
       - v_shutdown(unit, f, t+pt(t))${uft_online(unit, f, t+pt(t))}
     )
       * ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
@@ -782,8 +826,43 @@ q_rampDownLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, nod
           + sum(gnu(grid_, node_, unit), p_gnu(grid_, node_, unit, 'unitSizeGen') + p_gnu(grid_, node_, unit, 'unitSizeCons'))${
               unit_investLP(unit) and ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
               }
-        }
+        } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
       * sum(suft(effGroup, unit, f+cf(f,t), t), p_effGroupUnit(effGroup, unit, 'lb'))
+// Reserve provision?
+;
+*-----------------------------------------------------------------------------
+q_startuptype(m, unit, starttype, f, t)${  uft_online(unit, f, t)
+                                        and ft_dynamic(f,t)
+                                        and starttypeConstrained(starttype)} ..
+    + v_startup(unit, starttype, f, t)
+    =L=
+    + sum(t_${  ord(t_)>[ord(t)-p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'intervalInHours')]
+                and ord(t_)<=[ord(t)-p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'intervalInHours')]
+        }, v_shutdown(unit, f, t_)
+      )
+* How to take into account varying time step lengths? And forecasts?
+;
+*-----------------------------------------------------------------------------
+q_minUp(m, unit, f, t)${uft_online(unit, f, t) and ft_dynamic(f,t) and not unit_investLP(unit)} ..
+    + sum(t_${  ord(t_)>=[ord(t)-p_unit(unit, 'minOperationTime') / mSettings(m, 'intervalInHours')]
+                and ord(t_)<ord(t)
+        }, sum(starttype, v_startup(unit, starttype, f, t_))
+      )
+    =L=
+    + v_online(unit, f, t)
+* How to take into account varying time step lengths? And forecasts?
+;
+*-----------------------------------------------------------------------------
+q_minDown(m, unit, f, t)${uft_online(unit, f, t) and ft_dynamic(f,t) and not unit_investLP(unit)} ..
+    + sum(t_${  ord(t_)>=[ord(t)-p_unit(unit, 'minShutDownTime') / mSettings(m, 'intervalInHours')]
+                and ord(t_)<ord(t)
+        }, v_shutdown(unit, f, t_)
+      )
+    =L=
+    + p_unit(unit, 'unitCount')
+    + sum(t__$(ord(t__)<=ord(t)), v_invest_MIP(unit, t__))
+    - v_online(unit, f, t)
+* How to take into account varying time step lengths? And forecasts?
 ;
 *-----------------------------------------------------------------------------
 q_capacityMargin(gn(grid, node), ft(f, t))${p_gn(grid, node, 'capacityMargin')} ..
@@ -836,7 +915,7 @@ q_emissioncap(grid, node, emission)${p_gnPolicy(grid, node, 'emissionCap', emiss
          // Start-up emissions
          + sum(uft_online(unit, f, t),
              + {
-                 + v_startup(unit, f, t)
+                 + v_startup(unit, 'hot', f, t)
                }
              * {
                  + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
@@ -855,6 +934,47 @@ q_emissioncap(grid, node, emission)${p_gnPolicy(grid, node, 'emissionCap', emiss
                            )
                    )
                }
+             + {
+                 + v_startup(unit, 'warm', f, t)
+               }
+             * {
+                 + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
+                     (
+                       + p_unit(unit, 'startFuelConsWarm')${not unit_investLP(unit)}
+                       + p_unit(unit, 'startFuelConsWarm_MW')$unit_investLP(unit)
+                     )
+                         * (
+                             p_fuelEmission(fuel, emission) / 1e3
+                             * (p_gnu(grid, node, unit, 'maxGen')
+                                 + p_gnu(grid, node, unit, 'unitSizeGen')$(not p_gnu(grid, node, unit, 'maxGen'))
+                               )  // Weighted emissions from different output energy types
+                             / sum(gnu_output(grid_, node_, unit), p_gnu(grid_, node_, unit, 'maxGen')
+                                 + p_gnu(grid_, node_, unit, 'unitSizeGen')$(not p_gnu(grid_, node_, unit, 'maxGen'))
+                               )
+                           )
+                   )
+               }
+             + {
+                 + v_startup(unit, 'cold', f, t)
+               }
+             * {
+                 + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
+                     (
+                       + p_unit(unit, 'startFuelConsCold')${not unit_investLP(unit)}
+                       + p_unit(unit, 'startFuelConsCold_MW')$unit_investLP(unit)
+                     )
+                         * (
+                             p_fuelEmission(fuel, emission) / 1e3
+                             * (p_gnu(grid, node, unit, 'maxGen')
+                                 + p_gnu(grid, node, unit, 'unitSizeGen')$(not p_gnu(grid, node, unit, 'maxGen'))
+                               )  // Weighted emissions from different output energy types
+                             / sum(gnu_output(grid_, node_, unit), p_gnu(grid_, node_, unit, 'maxGen')
+                                 + p_gnu(grid_, node_, unit, 'unitSizeGen')$(not p_gnu(grid_, node_, unit, 'maxGen'))
+                               )
+                           )
+                   )
+               }
+
            )
         )
     )
