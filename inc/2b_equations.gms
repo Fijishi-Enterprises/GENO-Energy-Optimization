@@ -88,66 +88,28 @@ q_obj ..
            )
          // Start-up costs
          + sum(uft_online(unit, f, t),
-             + {
-                 + v_startup(unit, 'hot', f, t) // Cost of starting up
-               }
-             * {
-                  // Startup variable costs
-                 + p_unit(unit, 'startCost')${not unit_investLP(unit)}
-                 + p_unit(unit, 'startCost_MW')$unit_investLP(unit)
-                  // Start-up fuel and emission costs
-                 + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
-                     (
-                       + p_unit(unit, 'startFuelCons')${not unit_investLP(unit)}
-                       + p_unit(unit, 'startFuelCons_MW')$unit_investLP(unit)
+             + sum(starttype,
+               + {
+                   + v_startup(unit, starttype, f, t) // Cost of starting up
+                 }
+               * {
+                    // Startup variable costs
+                   + p_uStartup(unit, starttype, 'cost', 'unit')${not unit_investLP(unit)}
+                   + p_uStartup(unit, starttype, 'cost', 'capacity')$unit_investLP(unit)
+                    // Start-up fuel and emission costs
+                   + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
+                       (
+                         + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
+                         + p_uStartup(unit, starttype, 'consumption', 'capacity')$unit_investLP(unit)
+                       )
+                           * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
+                                   ts_fuelPriceChange(fuel, tFuel) }  // Fuel costs for start-up fuel use
+                               + sum(emission,                          // Emission taxes of startup fuel use
+                                   p_unitFuelEmissionCost(unit, fuel, emission) )
+                             )
                      )
-                         * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
-                                 ts_fuelPriceChange(fuel, tFuel) }  // Fuel costs for start-up fuel use
-                             + sum(emission,                          // Emission taxes of startup fuel use
-                                 p_unitFuelEmissionCost(unit, fuel, emission) )
-                           )
-                   )
-               }
-             + {
-                 + v_startup(unit, 'warm', f, t) // Cost of starting up
-               }
-             * {
-                  // Startup variable costs
-                 + p_unit(unit, 'startCostWarm')${not unit_investLP(unit)}
-                 + p_unit(unit, 'startCostWarm_MW')$unit_investLP(unit)
-                  // Start-up fuel and emission costs
-                 + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
-                     (
-                       + p_unit(unit, 'startFuelConsWarm')${not unit_investLP(unit)}
-                       + p_unit(unit, 'startFuelConsWarm_MW')$unit_investLP(unit)
-                     )
-                         * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
-                                 ts_fuelPriceChange(fuel, tFuel) }  // Fuel costs for start-up fuel use
-                             + sum(emission,                          // Emission taxes of startup fuel use
-                                 p_unitFuelEmissionCost(unit, fuel, emission) )
-                           )
-                   )
-               }
-             + {
-                 + v_startup(unit, 'cold', f, t) // Cost of starting up
-               }
-             * {
-                  // Startup variable costs
-                 + p_unit(unit, 'startCostCold')${not unit_investLP(unit)}
-                 + p_unit(unit, 'startCostCold_MW')$unit_investLP(unit)
-                  // Start-up fuel and emission costs
-                 + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
-                     (
-                       + p_unit(unit, 'startFuelConsCold')${not unit_investLP(unit)}
-                       + p_unit(unit, 'startFuelConsCold_MW')$unit_investLP(unit)
-                     )
-                         * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
-                                 ts_fuelPriceChange(fuel, tFuel) }  // Fuel costs for start-up fuel use
-                             + sum(emission,                          // Emission taxes of startup fuel use
-                                 p_unitFuelEmissionCost(unit, fuel, emission) )
-                           )
-                   )
-               }
+                 }
+               )
            )
          // Ramping costs
          + sum(gnuft_ramp(grid, node, unit, f, t)${ p_gnu(grid, node, unit, 'rampUpCost') OR p_gnu(grid, node, unit, 'rampDownCost') },
@@ -946,15 +908,17 @@ q_emissioncap(grid, node, emission)${p_gnPolicy(grid, node, 'emissionCap', emiss
            )
          // Start-up emissions
          + sum(uft_online(unit, f, t),
-             + {
-                 + v_startup(unit, 'hot', f, t)
-               }
-             * {
-                 + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
-                     (
-                       + p_unit(unit, 'startFuelCons')${not unit_investLP(unit)}
-                       + p_unit(unit, 'startFuelCons_MW')$unit_investLP(unit)
-                     )
+             + sum(starttype,
+               + {
+                   + v_startup(unit, starttype, f, t) // Cost of starting up
+                 }
+               * {
+                    // Start-up fuel and emission costs
+                   + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
+                       (
+                         + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
+                         + p_uStartup(unit, starttype, 'consumption', 'capacity')$unit_investLP(unit)
+                       )
                          * (
                              p_fuelEmission(fuel, emission) / 1e3
                              * (p_gnu(grid, node, unit, 'maxGen')
@@ -964,49 +928,9 @@ q_emissioncap(grid, node, emission)${p_gnPolicy(grid, node, 'emissionCap', emiss
                                  + p_gnu(grid_, node_, unit, 'unitSizeGen')$(not p_gnu(grid_, node_, unit, 'maxGen'))
                                )
                            )
-                   )
-               }
-             + {
-                 + v_startup(unit, 'warm', f, t)
-               }
-             * {
-                 + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
-                     (
-                       + p_unit(unit, 'startFuelConsWarm')${not unit_investLP(unit)}
-                       + p_unit(unit, 'startFuelConsWarm_MW')$unit_investLP(unit)
                      )
-                         * (
-                             p_fuelEmission(fuel, emission) / 1e3
-                             * (p_gnu(grid, node, unit, 'maxGen')
-                                 + p_gnu(grid, node, unit, 'unitSizeGen')$(not p_gnu(grid, node, unit, 'maxGen'))
-                               )  // Weighted emissions from different output energy types
-                             / sum(gnu_output(grid_, node_, unit), p_gnu(grid_, node_, unit, 'maxGen')
-                                 + p_gnu(grid_, node_, unit, 'unitSizeGen')$(not p_gnu(grid_, node_, unit, 'maxGen'))
-                               )
-                           )
-                   )
-               }
-             + {
-                 + v_startup(unit, 'cold', f, t)
-               }
-             * {
-                 + sum(uFuel(unit, 'startup', fuel)$unit_fuel(unit),
-                     (
-                       + p_unit(unit, 'startFuelConsCold')${not unit_investLP(unit)}
-                       + p_unit(unit, 'startFuelConsCold_MW')$unit_investLP(unit)
-                     )
-                         * (
-                             p_fuelEmission(fuel, emission) / 1e3
-                             * (p_gnu(grid, node, unit, 'maxGen')
-                                 + p_gnu(grid, node, unit, 'unitSizeGen')$(not p_gnu(grid, node, unit, 'maxGen'))
-                               )  // Weighted emissions from different output energy types
-                             / sum(gnu_output(grid_, node_, unit), p_gnu(grid_, node_, unit, 'maxGen')
-                                 + p_gnu(grid_, node_, unit, 'unitSizeGen')$(not p_gnu(grid_, node_, unit, 'maxGen'))
-                               )
-                           )
-                   )
-               }
-
+                 }
+               )
            )
         )
     )

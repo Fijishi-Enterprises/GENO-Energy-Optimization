@@ -59,17 +59,25 @@ v_gen.up(gnu(grid, node, unit), ft(f,t))${p_gnu(grid, node, unit, 'maxGen') < 0
     } = 0;
 
 // v_online cannot exceed unit count
-v_online.up(uft_online(unit, ft_dynamic(f,t)))${not unit_investMIP(unit)
+v_online.up(uft_online(unit, ft(f,t)))${not unit_investMIP(unit)
     } = p_unit(unit, 'unitCount');
 // Restrict v_online also in the last dynamic time step
 v_online.up(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
                                                 and not unit_investMIP(unit)
     } = p_unit(unit, 'unitCount');
 // v_online is zero for units with continuous online variable
-v_online.fx(uft_online(unit, ft_dynamic(f,t)))${unit_investLP(unit)
+v_online.fx(uft_online(unit, ft(f,t)))${unit_investLP(unit)
     } = 0;
-// v_onlineLP is zero for units without continuous online variable
-v_online_LP.fx(uft_online(unit, ft_dynamic(f,t)))${not unit_investLP(unit)
+// Restrict v_online also in the last dynamic time step
+v_online.fx(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
+                                                and unit_investLP(unit)
+    } = 0;
+// v_online_LP is zero for units without continuous online variable
+v_online_LP.fx(uft_online(unit, ft(f,t)))${not unit_investLP(unit)
+    } = 0;
+// Restrict v_online_LP also in the last dynamic time step
+v_online_LP.fx(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
+                                                   and not unit_investLP(unit)
     } = 0;
 
 // Possible constraints for generator ramping speeds

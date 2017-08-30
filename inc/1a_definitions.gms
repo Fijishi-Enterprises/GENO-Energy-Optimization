@@ -87,7 +87,7 @@ Sets //Reserve type sets
         /
 ;
 
-Sets //Startup type sets
+Sets //Startup related sets
     starttype "Startup types"
         / hot "Hot start"
           warm "Warm start"
@@ -95,6 +95,10 @@ Sets //Startup type sets
         /
     starttypeConstrained(starttype) "Startup types with constrained maximum non-opearational time"
         / hot, warm /
+    cost_consumption "Startup cost or startup fuel consumption"
+        / cost, consumption /
+    unit_capacity "Unit or capacity based parameter"
+        / unit, capacity /
 ;
 
 * Numeric parameters

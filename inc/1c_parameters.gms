@@ -55,6 +55,7 @@ Parameters
     p_effGroupUnit(effSelector, unit, *) "Unit data specific to a efficiency group (e.g. left border of the unit)"
     p_gnugnu(grid, node, unit, grid, node, unit, param_gnugnu) "Data connecting units in nodes and grids"
     p_uNonoperational(unit, starttype, min_max) "Non-operational time after being shut down before start up"
+    p_uStartup(unit, starttype, cost_consumption, unit_capacity) "Startup cost and fuel consumption"
 // Time dependent unit & fuel parameters
     ts_unit(unit, *, f, t) "Time dependent unit data, where energy type doesn't matter"
     ts_effUnit(effSelector, unit, effSelector, *, f, t) "Time dependent data for piece-wise linear efficiency blocks"
