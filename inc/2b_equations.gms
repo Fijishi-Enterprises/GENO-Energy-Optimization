@@ -763,20 +763,36 @@ q_rampUpLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node,
   =L=
   // Ramping capability of units that were online both in the previous time step and the current time step
   + (
-      + p_unit(unit, 'unitCount')${not uft_online(unit, f+pf(f,t), t+pt(t))} // Taking into account units without online variable
-      + v_online_LP(unit, f+pf(f,t), t+pt(t))${uft_online(unit, f+pf(f,t), t+pt(t))} // Units with continuous online variable?
+      // Taking into account units without online variable
+      + ( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f+pf(f,t), t+pt(t))}
+      + sum(t_$(ord(t_)<=ord(t)),
+        + v_invest_LP(grid, node, unit, t_)${not uft_online(unit, f+pf(f,t), t+pt(t)) and p_gnu(grid, node, unit, 'maxGenCap')}
+        - v_invest_LP(grid, node, unit, t_)${not uft_online(unit, f+pf(f,t), t+pt(t)) and p_gnu(grid, node, unit, 'maxConsCap')}
+        + v_invest_MIP(unit, t_)${not uft_online(unit, f, t)}
+          * ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
+        )
+      // Taking into account units with online variable
+      + v_online_LP(unit, f+pf(f,t), t+pt(t))${uft_online(unit, f+pf(f,t), t+pt(t))}
       + v_online(unit, f+pf(f,t), t+pt(t))${uft_online(unit, f+pf(f,t), t+pt(t))}
       - v_shutdown(unit, f, t+pt(t))${uft_online(unit, f, t+pt(t))}
     )
-      * p_gnu(grid, node, unit, 'maxRampUp')
-      * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
-      * ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
+      * {
+          + 1${not uft_online(unit, f+pf(f,t), t+pt(t))}
+          + ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )${uft_online(unit, f+pf(f,t), t+pt(t))}
+        } // Scale to calculate the online capacity of units with online variable
       / {
-          + 1${not unit_investLP(unit) or not ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )}
+          + 1${  not unit_investLP(unit)
+                 or not uft_online(unit, f+pf(f,t), t+pt(t))
+                 or not ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
+              }
           + sum(gnu(grid_, node_, unit), p_gnu(grid_, node_, unit, 'unitSizeGen') + p_gnu(grid_, node_, unit, 'unitSizeCons'))${
-              unit_investLP(unit) and ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
+                 unit_investLP(unit)
+                 and uft_online(unit, f+pf(f,t), t+pt(t))
+                 and ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
               }
         } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
+      * p_gnu(grid, node, unit, 'maxRampUp')
+      * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
   // Newly started units are assumed to start to their minload and
   // newly shutdown units are assumed to be shut down from their minload.
   + (
@@ -800,20 +816,36 @@ q_rampDownLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, nod
   =G=
   // Ramping capability of units that were online both in the previous time step and the current time step
   - (
-      + p_unit(unit, 'unitCount')${not uft_online(unit, f+pf(f,t), t+pt(t))} // Taking into account units without online variable
-      + v_online_LP(unit, f+pf(f,t), t+pt(t))${uft_online(unit, f+pf(f,t), t+pt(t))} // Units with continuous online variable?
+      // Taking into account units without online variable
+      + ( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f+pf(f,t), t+pt(t))}
+      + sum(t_$(ord(t_)<=ord(t)),
+        + v_invest_LP(grid, node, unit, t_)${not uft_online(unit, f+pf(f,t), t+pt(t)) and p_gnu(grid, node, unit, 'maxGenCap')}
+        - v_invest_LP(grid, node, unit, t_)${not uft_online(unit, f+pf(f,t), t+pt(t)) and p_gnu(grid, node, unit, 'maxConsCap')}
+        + v_invest_MIP(unit, t_)${not uft_online(unit, f, t)}
+          * ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
+        )
+      // Taking into account units with online variable
+      + v_online_LP(unit, f+pf(f,t), t+pt(t))${uft_online(unit, f+pf(f,t), t+pt(t))}
       + v_online(unit, f+pf(f,t), t+pt(t))${uft_online(unit, f+pf(f,t), t+pt(t))}
       - v_shutdown(unit, f, t+pt(t))${uft_online(unit, f, t+pt(t))}
     )
-      * p_gnu(grid, node, unit, 'maxRampDown')
-      * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
-      * ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
+      * {
+          + 1${not uft_online(unit, f+pf(f,t), t+pt(t))}
+          + ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )${uft_online(unit, f+pf(f,t), t+pt(t))}
+        } // Scale to calculate the online capacity of units with online variable
       / {
-          + 1${not unit_investLP(unit) or not ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )}
+          + 1${  not unit_investLP(unit)
+                 or not uft_online(unit, f+pf(f,t), t+pt(t))
+                 or not ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
+              }
           + sum(gnu(grid_, node_, unit), p_gnu(grid_, node_, unit, 'unitSizeGen') + p_gnu(grid_, node_, unit, 'unitSizeCons'))${
-              unit_investLP(unit) and ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
+                 unit_investLP(unit)
+                 and uft_online(unit, f+pf(f,t), t+pt(t))
+                 and ( p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons') )
               }
         } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
+      * p_gnu(grid, node, unit, 'maxRampDown')
+      * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
   // Newly started units are assumed to start to their minload and
   // newly shutdown units are assumed to be shut down from their minload.
   + (
