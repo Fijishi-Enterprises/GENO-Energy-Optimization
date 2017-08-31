@@ -162,21 +162,20 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
                                                                                 and tInterval(t)
                                                                                 } = yes; // Displace ft_dynamic by intervalLength
         ft_full(fSolve, t) = ft(fSolve, t) + ft_dynamic(fSolve, t);
-$offOrder
+
         // Select and average time series data matching the intervals, for intervalLength > 1
         loop(ft(fSolve, tInterval(t)), // Loop over the t:s of the interval
             Option clear = tt;
             tt(t_)${ord(t_) >= ord(t)
                     and ord(t_) < ord(t) + mInterval(mSolve, 'intervalLength', counter)
                     } = yes; // Select t:s within the interval
-            ts_influx_(grid, node, fSolve, t) = sum(tt, ts_influx(grid, node, fSolve, tt+ct(tt))) / p_stepLength(mSolve, fSolve, t);
-            ts_cf_(flow, node, fSolve, t) = sum(tt, ts_cf(flow, node, fSolve, tt+ct(tt))) / p_stepLength(mSolve, fSolve, t);
-            ts_unit_(unit, param_unit, fSolve, t) = sum(tt, ts_unit(unit, param_unit, fSolve, tt+ct(tt))) / p_stepLength(mSolve, fSolve, t);
-            ts_reserveDemand_(restype, up_down, node, fSolve, t) = sum(tt, ts_reserveDemand(restype, up_down, node, fSolve, tt+ct(tt))) / p_stepLength(mSolve, fSolve, t);
+            ts_influx_(grid, node, fSolve, t) = sum(t_${tt(t_)}, ts_influx(grid, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_cf_(flow, node, fSolve, t) = sum(t_${tt(t_)}, ts_cf(flow, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_unit_(unit, param_unit, fSolve, t) = sum(t_${tt(t_)}, ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_reserveDemand_(restype, up_down, node, fSolve, t) = sum(t_${tt(t_)}, ts_reserveDemand(restype, up_down, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
             // nodeState uses ft_dynamic, requiring displacement
-            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t + mInterval(mSolve, 'intervalLength', counter)) = sum(tt, ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, tt+ct(tt))) / p_stepLength(mSolve, fSolve, t);
+            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t + mInterval(mSolve, 'intervalLength', counter)) = sum(t_${tt(t_)}, ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
         ); // END LOOP tInterval
-$onOrder
 
     // Abort if intervalLength is less than one
     elseif mInterval(mSolve, 'intervalLength', counter) < 1, abort "intervalLength < 1 is not defined!"
