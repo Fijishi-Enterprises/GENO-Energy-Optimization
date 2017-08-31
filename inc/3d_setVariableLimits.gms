@@ -28,12 +28,12 @@ v_state.fx(gn_state(grid, node), ft_full(f, t))${p_gn(grid, node, 'boundAll')
 
 // When using time series
 v_state.up(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
-    } = ts_nodeState_(grid, node,   'upwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
+    } = ts_nodeState_(grid, node,   'upwardLimit', f, t+ct(t)) * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
 v_state.lo(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'downwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
+    } = ts_nodeState_(grid, node, 'downwardLimit', f, t+ct(t)) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
 v_state.fx(gn_state(grid, node), ft_full(f, t))${p_gn(grid, node, 'boundAll')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'reference', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+    } = ts_nodeState_(grid, node, 'reference', f, t+ct(t)) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
 // Other time dependent parameters and variable limits
 // Max. energy generation
@@ -41,7 +41,7 @@ v_gen.up(gnu(grid, node, unit), ft(f,t))${not unit_flow(unit)
     } = p_gnu(grid, node, unit, 'maxGen') * p_unit(unit, 'availability');
 v_gen.up(gnu(grid, node, unit_flow), ft(f,t))      // Should only be about variable generation
     = sum(flow$(flowUnit(flow, unit_flow) and nu(node, unit_flow)),
-          ts_cf_(flow, node, f, t) *
+          ts_cf_(flow, node, f, t+ct(t)) *
           p_gnu(grid, node, unit_flow, 'maxGen') *
           p_unit(unit_flow, 'availability')
       );
@@ -78,11 +78,11 @@ v_genRamp.lo(gnu(grid, node, unit), ft(f, t))${ gnuft_ramp(grid, node, unit, f, 
 v_spill.lo(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useConstant')
     } = p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
 v_spill.lo(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'minSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    } = ts_nodeState_(grid, node, 'minSpill', f, t+ct(t)) * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
 v_spill.up(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'useConstant')
     } = p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier') * p_stepLength(mSolve, f, t);
 v_spill.up(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'maxSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    } = ts_nodeState_(grid, node, 'maxSpill', f, t+ct(t)) * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier') * p_stepLength(mSolve, f, t);
 
 // Restrictions on transferring energy between nodes
 v_transfer.up(gn2n(grid, from_node, to_node), ft(f, t))
@@ -105,8 +105,6 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), f+cf_nReserves(node
 
 // Fix reserves between t_jump and gate_closure based on previous allocations
 loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
-*    if ([not mod(tSolveFirst-1, p_nReserves(node, restype, 'update_frequency')) and not tSolveFirst = mSettings(mSolve, 't_start')],
-*    if (not tSolveFirst = mSettings(mSolve, 't_start'),
         v_reserve.fx(nuRescapable(restype, up_down, node, unit_elec), f, t)${   ft_nReserves(node, restype, f, t)
                                                                                 and ord(t) >= mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                                 and not unit_flow(unit_elec)           // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
@@ -116,7 +114,6 @@ loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
                                                                     and ord(t) >= mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                     and sum(grid, gn2n(grid, node, to_node))
             } = r_resTransfer(restype, up_down, node, to_node, f, t);
-*    );
 
     // Free the tertiary reserves for the realization
     v_reserve.fx(nuRescapable('tertiary', up_down, node, unit_elec), ft_realized(ft(f,t)))${    nuft(node, unit_elec, f, t)
