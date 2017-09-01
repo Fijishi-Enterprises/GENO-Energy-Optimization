@@ -22,7 +22,7 @@ v_state.up(gn_state(grid, node), ft_full(f, t))${p_gnBoundaryPropertiesForStates
     } = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
 v_state.lo(gn_state(grid, node), ft_full(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
     } = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
-v_state.fx(gn_state(grid, node), ft_full(f, t))${p_gn(grid, node, 'boundAll')
+v_state.fx(gn_state(grid, node), ft_full(f, t))${   p_gn(grid, node, 'boundAll')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
     } = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
@@ -31,7 +31,7 @@ v_state.up(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForSta
     } = ts_nodeState_(grid, node,   'upwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
 v_state.lo(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
     } = ts_nodeState_(grid, node, 'downwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
-v_state.fx(gn_state(grid, node), ft_full(f, t))${p_gn(grid, node, 'boundAll')
+v_state.fx(gn_state(grid, node), ft_full(f, t))${   p_gn(grid, node, 'boundAll')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
     } = ts_nodeState_(grid, node, 'reference', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 // Other time dependent parameters and variable limits
@@ -167,8 +167,6 @@ v_startup.fx(unit, 'warm', ft_dynamic(f, t))${not p_unit(unit, 'startCold')} = 0
 
 // Fix reserves between t_jump and gate_closure based on previous allocations
 loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
-*    if ([not mod(tSolveFirst-1, p_nReserves(node, restype, 'update_frequency')) and not tSolveFirst = mSettings(mSolve, 't_start')],
-*    if (not tSolveFirst = mSettings(mSolve, 't_start'),
         v_reserve.fx(nuRescapable(restype, up_down, node, unit_elec), f, t)${   ft_nReserves(node, restype, f, t)
                                                                                 and ord(t) >= mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                                 and not unit_flow(unit_elec)           // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
@@ -178,7 +176,6 @@ loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
                                                                     and ord(t) >= mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                     and sum(grid, gn2n(grid, node, to_node))
             } = r_resTransfer(restype, up_down, node, to_node, f, t);
-*    );
 
     // Free the tertiary reserves for the realization
     v_reserve.fx(nuRescapable('tertiary', up_down, node, unit_elec), ft_realized(ft(f,t)))${    nuft(node, unit_elec, f, t)
@@ -206,11 +203,17 @@ loop(ft(f, tSolve),
         } = p_unit(unit, 'unitCount');
 
     // State and online variables fixed for the subsequent solves
-    v_state.fx(gn_state(grid, node), f, tSolve)${not ord(tSolve) = mSettings(mSolve, 't_start')} = r_state(grid, node, f, tSolve);
-    v_online.fx(uft_online(unit, f, tSolve))${not ord(tSolve) = mSettings(mSolve, 't_start')} = r_online(unit, f, tSolve);
+    v_state.fx(gn_state(grid, node), f, tSolve)${   not ord(tSolve) = mSettings(mSolve, 't_start')
+                                                    and mftStart(mSolve, f, tSolve)
+        } = r_state(grid, node, f, tSolve);
+    v_online.fx(uft_online(unit, f, tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
+                                                and mftStart(mSolve, f, tSolve)
+        } = r_online(unit, f, tSolve);
 );
 
 // BoundStartToEnd
-v_state.fx(grid, node, f, t)$(mftLastSteps(mSolve, f, t) and p_gn(grid, node, 'boundStartToEnd')) = r_state(grid, node, f, tSolve);
+v_state.fx(grid, node, ft_dynamic(f,t))${   mftLastSteps(mSolve, f, t)
+                                            and p_gn(grid, node, 'boundStartToEnd')
+    } = r_state(grid, node, f, t);
 
 

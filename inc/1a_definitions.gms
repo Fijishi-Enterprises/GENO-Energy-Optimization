@@ -211,7 +211,7 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     maxRampUp   "Speed to ramp up (p.u. / min)"
     maxRampDown "Speed to ramp down (p.u. / min)"
     rampUpCost  "Wear and tear cost of ramping up (€/MW)"
-    rampDownCost "Wear and tear cost of ramping up (€/MW)"
+    rampDownCost "Wear and tear cost of ramping down (€/MW)"
     maxGenCap   "Maximum output capacity investment (MW)"
     maxConsCap  "Maximum loading capacity investment (MW)"
     minGenCap   "Minimum output capacity investment (MW)"

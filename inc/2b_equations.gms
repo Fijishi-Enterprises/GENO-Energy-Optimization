@@ -60,7 +60,7 @@ Parameters
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (€/MW)"
 ;
 PENALTY_BALANCE(grid) = %def_penalty%;
-PENALTY_RES(restype, up_down) =  1e-2*%def_penalty%;
+PENALTY_RES(restype, up_down) =  1e-1*%def_penalty%;
 
 * -----------------------------------------------------------------------------
 q_obj ..
@@ -137,7 +137,7 @@ q_obj ..
          )
     )
   - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mftStart(m, f, t), p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t))     // minus value of avoiding startup costs before
-  - sum((s, uft_online(unit, ft_dynamic(f,t)))$(ord(t) = p_uft_online_last(unit, f, t)), p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t)) // or after the model solve
+*  - sum((s, uft_online(unit, ft_dynamic(f,t)))$(ord(t) = p_uft_online_last(unit, f, t)), p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t)) // or after the model solve
   - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mftStart(m, f, t), p_sft_probability(s, f, t) * 0.5 * v_online_LP(unit, f+cf(f,t), t))     // minus value of avoiding startup costs before
   - sum((s, uft_online(unit, ft_dynamic(f,t)))$(ord(t) = p_uft_online_last(unit, f, t)), p_sft_probability(s, f, t) * 0.5 * v_online_LP(unit, f+cf(f,t), t)) // or after the model solve
 
