@@ -707,7 +707,7 @@ q_symmetricTransferCap(gn2n(grid, from_node, to_node), t_invest(t)) ..
     + v_investTransfer_MIP(grid, to_node, from_node, t)
 ;
 *-----------------------------------------------------------------------------
-q_onlineLimit(uft_online(unit, ft_dynamic(f,t)))${unit_investMIP(unit) or unit_investLP(unit)} ..
+q_onlineLimit(uft_online(unit, ft(f,t)))${unit_investMIP(unit) or unit_investLP(unit)} ..
     + v_online(unit, f, t)
     + v_online_LP(unit, f, t)
     =L=
@@ -719,7 +719,7 @@ q_onlineLimit(uft_online(unit, ft_dynamic(f,t)))${unit_investMIP(unit) or unit_i
       )
 ;
 * -----------------------------------------------------------------------------
-q_rampUpLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node, unit, f, t)} ..
+q_rampUpLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node, unit, f, t) and p_gnu(grid, node, unit, 'maxRampUp')} ..
   + v_genRamp(grid, node, unit, f, t+pt(t))
   * p_stepLength(m, f+pf(f,t), t+pt(t))
   =L=
@@ -772,7 +772,7 @@ q_rampUpLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node,
 // Reserve provision?
 ;
 * -----------------------------------------------------------------------------
-q_rampDownLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node, unit, f, t)} ..
+q_rampDownLimit(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node, unit, f, t) and p_gnu(grid, node, unit, 'maxRampDown')} ..
   + v_genRamp(grid, node, unit, f, t+pt(t))
   * p_stepLength(m, f+pf(f,t), t+pt(t))
   =G=

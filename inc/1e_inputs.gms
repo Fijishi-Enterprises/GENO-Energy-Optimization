@@ -111,7 +111,7 @@ p_unitFuelEmissionCost(unit_fuel, fuel, emission)$sum(param_fuel, uFuel(unit_fue
                                                       / sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen')
                                                           + p_gnu(grid, node, unit_fuel, 'unitSizeGen')$(not p_gnu(grid, node, unit_fuel, 'maxGen'))
                                                         );
-p_uNonoperational(unit, 'hot', 'min') = 0;
+p_uNonoperational(unit, 'hot', 'min') = p_unit(unit, 'minShutDownTime');
 p_uNonoperational(unit, 'hot', 'max') = p_unit(unit, 'startWarm');
 p_uNonoperational(unit, 'warm', 'min') = p_unit(unit, 'startWarm');
 p_uNonoperational(unit, 'warm', 'max') = p_unit(unit, 'startCold');
