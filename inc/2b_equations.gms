@@ -260,17 +260,19 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + m
   - sum(nuRescapable(restype, 'down', node, unit)$[unit_elec(unit) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')],               // minus downward reserve participation
         v_reserve(restype, 'down', node, unit, f+cf_nReserves(node, restype, f, t), t)                                                              // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
-  =G=                                                                                                                // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
+  =G=   // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
+  // Generation units, greater than minload
   + v_online(unit, f+cf(f,t), t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')} // Online variables should only be generated for units with restrictions
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxGen')
     * sum(effGroup, // Uses the minimum 'lb' for the current efficiency approximation
         + (p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)} + ts_effGroupUnit(effGroup, unit, 'lb', f, t))
       )
-  + v_gen.lo(grid, node, unit, f, t)$p_gnu(grid, node, unit, 'maxCons')           // notice: v_gen.lo for consuming units is negative
-  - v_online(unit, f+cf(f,t), t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxCons')} // Online variables should only be generated for units with restrictions
+  // Consuming units, greater than maxcons
+  + v_gen.lo(grid, node, unit, f, t)${p_gnu(grid, node, unit, 'maxCons') and not uft_online(unit, f, t)} // notice: v_gen.lo for consuming units is negative
+  - v_online(unit, f+cf(f,t), t)${p_gnu(grid, node, unit, 'maxCons') and uft_online(unit, f, t)} // Online variables should only be generated for units with restrictions
     / p_unit(unit, 'unitCount')
-    * p_gnu(grid, node, unit, 'maxGen')
+    * p_gnu(grid, node, unit, 'maxCons')
 ;
 * -----------------------------------------------------------------------------
 q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')               // Unit is either providing
@@ -290,14 +292,16 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + mSe
         v_reserve(restype, 'up', node, unit, f+cf_nReserves(node, restype, f, t), t)                                                                  // (v_reserve can be used only if the unit can provide a particular reserve)
     )
   =L=                                                                                                               // must be less than available/online capacity
+  // Consuming units
   - v_online(unit, f+cf(f,t), t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxCons')}       // Consuming units are restricted by their min. load (consuming is negative)
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxCons')
     * sum(effGroup, // Uses the minimum 'lb' for the current efficiency approximation
         + (p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)} + ts_effGroupUnit(effGroup, unit, 'lb', f, t))
       )
-  + v_gen.up(grid, node, unit, f, t)${not uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')}            // Generation units are restricted by their (online) capacity
-  + v_online(unit, f+cf(f,t), t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')}       // Consuming units are restricted by their min. load (consuming is negative)
+  // Generation units
+  + v_gen.up(grid, node, unit, f, t)${p_gnu(grid, node, unit, 'maxGen') and not uft_online(unit, f, t)}            // Generation units are restricted by their (online) capacity
+  + v_online(unit, f+cf(f,t), t)${p_gnu(grid, node, unit, 'maxGen') and uft_online(unit, f, t)}       // Consuming units are restricted by their min. load (consuming is negative)
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxGen')
 ;
