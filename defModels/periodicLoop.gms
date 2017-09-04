@@ -75,7 +75,7 @@ fSolve(f)$mf(mSolve,f) = yes;
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve
 tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
 
-// Determine the next and latest forecasts (???)
+// Determine the next and latest forecasts
 tForecastNext(mSolve)${ ord(tSolve) >= tForecastNext(mSolve)
                         } = tForecastNext(mSolve) + mSettings(mSolve, 't_ForecastJump');
 loop(tLatestForecast,  // There should be only one latest forecast
