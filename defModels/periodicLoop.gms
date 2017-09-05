@@ -286,7 +286,8 @@ Option clear = gnuft_ramp;
 gnuft_ramp(gnuft(grid, node, unit, f, t))${ p_gnu(grid, node, unit, 'maxRampUp')
                                             OR p_gnu(grid, node, unit, 'maxRampDown')
                                             OR p_gnu(grid, node, unit, 'rampUpCost')
-                                            OR p_gnu(grid, node, unit, 'rampDownCost') } = yes;
+                                            OR p_gnu(grid, node, unit, 'rampDownCost')
+    } = yes;
 
 // Defining unit efficiency groups etc.
 Option clear = suft;

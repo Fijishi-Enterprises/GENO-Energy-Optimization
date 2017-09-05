@@ -19,7 +19,6 @@ Sets
 * --- Geography ---------------------------------------------------------------
     grid "Forms of energy endogenously presented in the model"
     node "Nodes where different types of energy are converted"
-*    node_to_node(node, node) "Transmission links" // NOT USED ATM
 
 * --- Fuels & resources -------------------------------------------------------
     emission "Emissions"
@@ -43,7 +42,6 @@ Sets
     unittype "Unit technology types"
 
 * --- Nodes -----------------------------------------------------------------
-*    node_reservoir(node)  "Hydropower reservoirs"
     node_spill(node)      "Nodes that can spill; used to remove v_spill variables where not relevant"
 
 * --- Sets bounding geography and units -------------------------------------
@@ -81,9 +79,6 @@ Sets
     ft_realized(f, t) "Realized ft"
     ft_realizedLast(f, t) "Last realized ft"
     ft_nReserves(node, restype, f, t) "Forecast-time steps locked due to committing reserves ahead of time."
-*    ft_fix(f,t) "ft where variable values are fixed after the solve, so that dynamic equations cannot alter them"
-*    ft_limits(f, t) "All ft for which variable limits are set within the tSolve loop"
-*    ft_new(f, t) "Newly introduced f,t to be used in calculating parameter/variable values"
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     mft_(mType, f, t) "Combination of forecasts and time periods in the models"
     msf(mType, s, f) "Model, sample, forecast"
