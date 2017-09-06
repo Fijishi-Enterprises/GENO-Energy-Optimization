@@ -75,17 +75,6 @@ fSolve(f)$mf(mSolve,f) = yes;
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve
 tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
 
-// Determine the next and latest forecasts
-tForecastNext(mSolve)${ ord(tSolve) >= tForecastNext(mSolve)
-                        } = tForecastNext(mSolve) + mSettings(mSolve, 't_ForecastJump');
-loop(tLatestForecast,  // There should be only one latest forecast
-    ts_cf(flow,node,f,t)${  ord(f) > 1
-                            and ord(f) <= mSettings(mSolve, 'forecasts') + 1
-                            and ord(t) >= tSolveFirst + f_improve and
-                            ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
-                            } = ts_forecast(flow,node,tLatestForecast,f,t);
-);
-
 // Initializing sets and counters
 Option clear = tCounter;
 Option clear = p_stepLength;
