@@ -40,7 +40,7 @@ equations
     q_bidirectionalTransfer(grid, node, node, f, t) "Possible common transfer capacity constraint for interconnected transfer variables"
 ;
 
-$setlocal def_penalty 1e9
+$setlocal def_penalty 1e3
 Scalars
     PENALTY "Default equation violation penalty" / %def_penalty% /
 ;
@@ -49,7 +49,7 @@ Parameters
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (€/MW)"
 ;
 PENALTY_BALANCE(grid) = %def_penalty%;
-PENALTY_RES(restype, up_down) =  1e-1*%def_penalty%;
+PENALTY_RES(restype, up_down) = %def_penalty%;
 
 * -----------------------------------------------------------------------------
 q_obj ..
@@ -122,8 +122,18 @@ q_obj ..
     )
 
     // "Value" of online units
-  - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mftStart(m, f, t), p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t))     // minus value of avoiding startup costs before
-  - sum((s, uft_online_last(unit, ft_dynamic(f,t))), p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t)) // or after the model solve
+  - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mftStart(m, f, t),
+        + p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t)
+            * p_unit(unit, 'startCost')
+            * p_unit(unit, 'outputCapacityTotal')
+            / p_unit(unit, 'unitCount')
+        )     // minus value of avoiding startup costs before
+  - sum((s, uft_online_last(unit, ft_dynamic(f,t))),
+        + p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t)
+            * p_unit(unit, 'startCost')
+            * p_unit(unit, 'outputCapacityTotal')
+            / p_unit(unit, 'unitCount')
+        ) // or after the model solve
 
     // Dummy variables
   + sum(msft(m, s, f, t), p_sft_probability(s, f, t) * (
@@ -254,9 +264,9 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + m
                                            }..
   + v_gen(grid, node, unit, f, t)                                                                                    // energy generation/consumption
   + sum( gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit),
-        p_gnu(grid_, node_, unit, 'cV') * v_gen(grid_, node_, unit, f, t) )                              // considering output constraints (e.g. cV line)
-  - sum(nuRescapable(restype, 'down', node, unit)$[unit_elec(unit) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')],               // minus downward reserve participation
-        v_reserve(restype, 'down', node, unit, f+cf_nReserves(node, restype, f, t), t)                                                              // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+        p_gnu(grid_, node_, unit, 'cV') * v_gen(grid_, node_, unit, f, t) ) // considering output constraints (e.g. cV line)
+  - sum(nuRescapable(restype, 'down', node, unit)$[unit_elec(unit) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')], // minus downward reserve participation
+        v_reserve(restype, 'down', node, unit, f+cf_nReserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
   =G=   // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
   // Generation units, greater than minload
