@@ -219,6 +219,8 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment"
     unitSizeGen "Output capacity of one unit for integer investments (MW)"
     unitSizeCons  "Loading capacity of one unit for integer investments (MW)"
+    unitSizeTot "Sum of output and loading capacity of one unit (MW)"
+    unitSizeGenNet "Output minus loading capacity of one unit (MW)"
     invCosts    "Investment costs (€/MW)"
     annuity     "Investment annuity"
 /

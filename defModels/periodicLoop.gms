@@ -75,7 +75,7 @@ fSolve(f)$mf(mSolve,f) = yes;
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve
 tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
 
-// Determine the next and latest forecasts (???)
+// Determine the next and latest forecasts
 tForecastNext(mSolve)${ ord(tSolve) >= tForecastNext(mSolve)
                         } = tForecastNext(mSolve) + mSettings(mSolve, 't_ForecastJump');
 loop(tLatestForecast,  // There should be only one latest forecast
@@ -141,7 +141,9 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         ts_influx_(grid, node, ft_full(fSolve, t)) = ts_influx(grid, node, fSolve, t+ct(t));
         ts_cf_(flow, node, ft(fSolve, tInterval(t))) = ts_cf(flow, node, fSolve, t+ct(t));
         ts_unit_(unit, param_unit, ft(fSolve, tInterval(t))) = ts_unit(unit, param_unit, fSolve, t+ct(t));
-        ts_reserveDemand_(restype, up_down, node, ft(fSolve, tInterval(t))) = ts_reserveDemand(restype, up_down, node, fSolve, t+ct(t));
+        // Reserve demand relevant only up until t_reserveLength
+        ts_reserveDemand_(restype, up_down, node, ft(fSolve, tInterval(t)))${ ord(t) <= mSettings(mSolve, 't_reserveLength')
+            } = ts_reserveDemand(restype, up_down, node, fSolve, t+ct(t));
         // nodeState uses ft_dynamic, requiring displacement
         ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_full(fSolve, t)) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
 
@@ -176,12 +178,14 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
             tt(t_)${ord(t_) >= ord(t)
                     and ord(t_) < ord(t) + mInterval(mSolve, 'intervalLength', counter)
                     } = yes; // Select t:s within the interval
-            ts_influx_(grid, node, fSolve, t) = sum(t_${tt(t_)}, ts_influx(grid, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
-            ts_cf_(flow, node, fSolve, t) = sum(t_${tt(t_)}, ts_cf(flow, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
-            ts_unit_(unit, param_unit, fSolve, t) = sum(t_${tt(t_)}, ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
-            ts_reserveDemand_(restype, up_down, node, fSolve, t) = sum(t_${tt(t_)}, ts_reserveDemand(restype, up_down, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_influx_(grid, node, fSolve, t) = sum(tt(t_), ts_influx(grid, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_cf_(flow, node, fSolve, t) = sum(tt(t_), ts_cf(flow, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_unit_(unit, param_unit, fSolve, t) = sum(tt(t_), ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            // Reserves relevant only until t_reserveLength
+            ts_reserveDemand_(restype, up_down, node, fSolve, t)${  ord(t) <= mSettings(mSolve, 't_reserveLength')
+                } = sum(tt(t_), ts_reserveDemand(restype, up_down, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
             // nodeState uses ft_dynamic, requiring displacement
-            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t + mInterval(mSolve, 'intervalLength', counter)) = sum(t_${tt(t_)}, ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t + mInterval(mSolve, 'intervalLength', counter)) = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
         ); // END LOOP tInterval
 
     // Abort if intervalLength is less than one
@@ -278,7 +282,6 @@ uft(unit, f, t)$[ ft(f, t)
                     and (unit_aggregate(unit) or unit_noAggregate(unit)) // Aggregate units
                 ] = yes;
 
-*uft_limits(unit, f, t) = no;
 
 // Active units in nodes on each forecast-time step
 Option clear = nuft;

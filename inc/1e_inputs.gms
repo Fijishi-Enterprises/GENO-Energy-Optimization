@@ -129,6 +129,8 @@ p_uStartup(unit, 'cold', 'consumption', 'unit') = p_unit(unit, 'startFuelConsCol
 p_uStartup(unit, 'cold', 'consumption', 'capacity') = p_unit(unit, 'startFuelConsCold_MW');
 p_gnu(grid, node, unit, 'unitSizeGen')$(p_gnu(grid, node, unit, 'maxGen') and p_unit(unit, 'unitCount')) = p_gnu(grid, node, unit, 'maxGen')/p_unit(unit, 'unitCount');  // If maxGen and unitCount are given, calculate unitSizeGen based on them.
 p_gnu(grid, node, unit, 'unitSizeCons')$(p_gnu(grid, node, unit, 'maxCons') and p_unit(unit, 'unitCount')) = p_gnu(grid, node, unit, 'maxCons')/p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
+p_gnu(grid, node, unit, 'unitSizeTot') = p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons');
+p_gnu(grid, node, unit, 'unitSizeGenNet') = p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons');
 * Generate node related sets based on input data // NOTE! These will need to change if p_gnn is required to work with only one row per link.
 gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCap') OR p_gnn(grid, from_node, to_node, 'transferLoss')} = yes;
 gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCapBidirectional') OR p_gnn(grid, to_node, from_node, 'transferCapBidirectional')} = yes;

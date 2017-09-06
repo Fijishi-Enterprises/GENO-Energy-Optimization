@@ -80,20 +80,6 @@ v_online_LP.fx(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
                                                    and not unit_investLP(unit)
     } = 0;
 
-// Possible constraints for generator ramping speeds
-*v_genRamp.up(gnu(grid, node, unit), ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
-*                                                AND p_gnu(grid, node, unit, 'maxRampUp')
-*                                                and not ( unit_investLP(unit) or unit_investMIP(unit) )
-*    } = p_gnu(grid, node, unit, 'maxRampUp')
-*         * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
-*         * ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') );
-*v_genRamp.lo(gnu(grid, node, unit), ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
-*                                                AND p_gnu(grid, node, unit, 'maxRampDown')
-*                                                and not ( unit_investLP(unit) or unit_investMIP(unit) )
-*    } = -p_gnu(grid, node, unit, 'maxRampDown')
-*         * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
-*         * ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') );
-
 // Max. & min. spilling
 v_spill.lo(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useConstant')
     } = p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
