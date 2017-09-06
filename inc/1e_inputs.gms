@@ -34,7 +34,7 @@ $loaddc p_unit
 $loaddc ts_unit
 $loaddc p_nReserves
 $loaddc p_nuReserves
-*$loaddc ts_reserveDemand
+$loaddc ts_reserveDemand
 $loaddc p_gnBoundaryPropertiesForStates
 $loaddc p_gnPolicy
 $loaddc p_uFuel
