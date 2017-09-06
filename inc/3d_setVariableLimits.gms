@@ -199,7 +199,8 @@ loop(ft(f, tSolve),
         } = ts_nodeState_(grid, node, 'reference', 'f00', tSolve) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
     // First solve, online variables
-    v_online.up(uft_online(unit, f, tSolve))${tSolveFirst = mSettings(mSolve, 't_start')
+    v_online.up(uft_online(unit, f, tSolve))${ tSolveFirst = mSettings(mSolve, 't_start')
+                                               and not unit_investMIP(unit)
         } = p_unit(unit, 'unitCount');
 
     // State and online variables fixed for the subsequent solves
