@@ -76,13 +76,13 @@ v_genRamp.lo(gnu(grid, node, unit), ft(f, t))${ gnuft_ramp(grid, node, unit, f, 
 
 // Max. & min. spilling
 v_spill.lo(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useConstant')
-    } = p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    } = p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier');
 v_spill.lo(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'minSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    } = ts_nodeState_(grid, node, 'minSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier');
 v_spill.up(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'useConstant')
-    } = p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    } = p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier');
 v_spill.up(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'maxSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    } = ts_nodeState_(grid, node, 'maxSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier');
 
 // Restrictions on transferring energy between nodes
 v_transfer.up(gn2n(grid, from_node, to_node), ft(f, t))
