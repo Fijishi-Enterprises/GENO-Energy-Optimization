@@ -18,22 +18,22 @@ $offtext
 * --- Variable limits ---------------------------------------------------------
 // v_state absolute boundaries set according to p_gn parameters;
 // When using constant values and to supplement time series with constant values (time series will override when data available)
-v_state.up(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
+v_state.up(gn_state(grid, node), ft_dynamic(f+cf_Central(f,t), t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
     } = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
-v_state.lo(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+v_state.lo(gn_state(grid, node), ft_dynamic(f+cf_Central(f,t), t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
     } = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
-v_state.fx(gn_state(grid, node), ft_full(f, t))${   p_gn(grid, node, 'boundAll')
+v_state.fx(gn_state(grid, node), ft_full(f+cf_Central(f,t), t))${   p_gn(grid, node, 'boundAll')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
     } = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
 // When using time series
-v_state.up(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
-    } = ts_nodeState_(grid, node,   'upwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
-v_state.lo(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'downwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
-v_state.fx(gn_state(grid, node), ft_full(f, t))${   p_gn(grid, node, 'boundAll')
+v_state.up(gn_state(grid, node), ft_dynamic(f+cf_Central(f,t), t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
+    } = ts_nodeState_(grid, node,   'upwardLimit', f+cf_Central(f,t), t) * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
+v_state.lo(gn_state(grid, node), ft_dynamic(f+cf_Central(f,t), t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
+    } = ts_nodeState_(grid, node, 'downwardLimit', f+cf_Central(f,t), t) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
+v_state.fx(gn_state(grid, node), ft_full(f+cf_Central(f,t), t))${   p_gn(grid, node, 'boundAll')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'reference', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+    } = ts_nodeState_(grid, node, 'reference', f+cf_Central(f,t), t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
 // Other time dependent parameters and variable limits
 // Max. energy generation

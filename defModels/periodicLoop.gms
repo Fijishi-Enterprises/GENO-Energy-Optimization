@@ -202,7 +202,13 @@ ft_nReserves(node, restype, fRealization(f), t)${   p_nReserves(node, restype, '
 // Current forecast displacement between realized and forecasted timesteps
 Option clear = cf;
 cf(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')
-                } = sum(f_${fRealization(f_)}, ord(f_) - ord(f));
+                } = sum(fRealization(f_), ord(f_) - ord(f));
+
+// Current forecast displacement between central and forecasted timesteps
+Option clear = cf_Central;
+cf_Central(ft_dynamic(f,t+pt(t)))${ not ft_dynamic(f, t)
+                                            and not fRealization(f)
+    } = sum(fCentral(f_), ord(f_) - ord(f));
 
 // Previous forecast displacement between realized and forecasted timesteps
 Option clear = pf;

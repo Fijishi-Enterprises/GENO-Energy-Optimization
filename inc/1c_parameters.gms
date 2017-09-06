@@ -77,6 +77,7 @@ Parameters
     pf(f, t) "Displacement needed to reach the previous forecast (in forecasts)"
     pf_nReserves(node, restype, f, t) "Forecast index displacement needed to reach the previous forecast when committing reserves."
     cf(f, t) "Displacement needed to reach the current forecast (in forecasts) - this is needed when the forecast tree gets reduced in dynamic equations"
+    cf_Central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
     cf_nReserves(node, restype,  f, t) "Forecast index displacement needed to reach the realization when committing reserves."
     ct(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
 *    t_bind(t) "Displacement to reach the binding time period in the parent sample (in time periods). Can skip with aggregated steps as well as when connecting samples."
