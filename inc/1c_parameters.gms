@@ -90,6 +90,8 @@ Parameters
     tForecastNext(mType) "When the next forecast will be availalbe (ord time)"
     aaSolveInfo(mType, t, solveInfoAttributes) "stores information about the solve status"
 *    p_uft_online_last(unit, f, t) "Ord of last t where unit is online"
+    msStart(mType, s) "Start point of samples"
+    msEnd(mType, s) "End point of samples"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------

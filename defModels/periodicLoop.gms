@@ -115,11 +115,18 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         p_stepLengthNoReset(mf(mSolve, fSolve), tInterval(t)) = mSettings(mSolve, 'intervalInHours');
         pt(t + 1)${tInterval(t)} = -1;
 
+        // Determine the initial combination of model-sample-forecast-time steps
+        msft(mSolve, s, fSolve, tInterval(t))${  msf(mSolve, s, fSolve)
+                                                 and ord(t) >= msStart(mSolve, s)
+                                                 and ord(t) <= msEnd(mSolve, s)
+                                                 } = yes;
+
         // Determine the forecast-time steps
         ft(fCentral(fSolve), tInterval(t))${    ord(t) >= tSolveFirst + mSettings(mSolve, 't_jump')
                                                 } = yes; // Include the full horizon for the central forecast
         ft(fRealization(fSolve), tInterval(t))${    ord(t) < tSolveFirst + mSettings(mSolve, 't_jump')
-                                                    } = yes; // Include the t_jump for the realization
+                                                    and sum(s, msft(mSolve, s, fSolve, t)) // Make sure time step is in sample
+                                                    } =  yes; // Include the t_jump for the realization
         ft(fSolve, tInterval(t))${  not fCentral(fSolve)
                                     and not fRealization(fSolve)
                                     and ord(t) >= tSolveFirst + mSettings(mSolve, 't_jump')
@@ -250,7 +257,10 @@ mftLastSteps(mSolve, ft_full(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_
 
 // Samples
 Option clear = msft;
-msft(mSolve, 's000', f, t) = mft(mSolve,f,t);
+msft(mSolve, s, f, t)${msf(mSolve, s, f)
+                       and ord(t) >= msStart(mSolve, s)
+                       and ord(t) <= msEnd(mSolve, s)
+                      } = mft(mSolve,f,t);
 
 * -----------------------------------------------------------------------------
 * --- Defining unit aggregations and ramps ------------------------------------
@@ -408,7 +418,8 @@ loop(gn(grid, node),
 
 // Clear probabilities from previous solve
 Option clear = p_sft_probability;
-p_sft_probability(s, f, t)$(sInitial(s) and ft(f,t)) = p_fProbability(f) / sum(f_$ft(f_,t), p_fProbability(f_));
+*p_sft_probability(s, f, t)$(sInitial(s) and ft(f,t)) = p_fProbability(f) / sum(f_$ft(f_,t), p_fProbability(f_));
+p_sft_probability(s, f, t)$(ft(f,t) and msft(mSolve, s, f, t)) = p_fProbability(f) / sum(f_$ft(f_,t), p_fProbability(f_)) * p_sProbability(s);
 p_sft_probability(s, f, t)$(sInitial(s) and fCentral(f) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$(fCentral(f_) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')), p_fProbability(f_));
 p_sft_probability(s, f, t)$(sInitial(s) and ord(f) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon') and mSettings(mSolve, 't_forecastLength') >= mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$ft_dynamic(f_,t), p_fProbability(f_));
 
