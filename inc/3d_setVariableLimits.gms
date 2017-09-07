@@ -60,8 +60,11 @@ v_gen.up(gnu(grid, node, unit), ft(f,t))${p_gnu(grid, node, unit, 'maxGen') < 0
     } = 0;
 
 // v_online cannot exceed unit count
-v_online.up(uft_online(unit, ft_dynamic(f,t)))
-    = p_unit(unit, 'unitCount');
+v_online.up(unit, ft_dynamic(f,t))${    uft_online(unit, f, t)
+                                        or [    uft_online(unit, f, t+pt(t))
+                                                and fRealization(f)
+                                            ]
+    } = p_unit(unit, 'unitCount');
 // Restrict v_online also in the last dynamic time step
 v_online.up(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
     } = p_unit(unit, 'unitCount');
