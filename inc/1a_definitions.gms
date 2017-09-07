@@ -232,8 +232,9 @@ param_unitFuel "Parameters for fuel limits in units" /
 
 param_policy "Set of possible data parameters for grid, node, regulation" /
     emissionTax "Emission tax (EUR/tonne)"
-    update_frequency "???"
-    gate_closure "???"
+    update_frequency "Frequency of updating reserve contributions"
+    gate_closure "Number of timesteps ahead of dispatch that reserves are fixed"
+    reserveContribution "Reliability parameter of reserve provisions"
 /
 
 

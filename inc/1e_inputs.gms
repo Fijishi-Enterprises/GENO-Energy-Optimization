@@ -127,6 +127,11 @@ loop(gn2n_bidirectional(grid, node, node_)${p_gnn(grid, node, node_, 'transferCa
 p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multiplier')$(not p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'multiplier')) = 1; // If multiplier has not been set, set it to 1 by default
 *p_gn(gn(grid, node), 'energyStoredPerUnitOfState')$(not p_gn(grid, node, 'energyStoredPerUnitOfState') and not p_gn(grid, node, 'boundAll')) = 1; // If unitConversion has not been set, default to 1; If the state is bound, there is no need for the term
 
+* Assume values for critical reserve related parameters, if not provided by input data
+p_nuReserves(nu(node, unit), restype, 'reserveContribution')${  not p_nuReserves(node, unit, restype, 'reserveContribution')
+                                                                and sum(up_down, nuRescapable(restype, up_down, node, unit))
+    } = 1;
+
 * --- Perform various data checks, and abort if errors are detected -----------
 * Check the integrity of node connection related data
 count = 0;
