@@ -224,7 +224,7 @@ cf(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')
 
 // Previous forecast displacement between realized and forecasted timesteps
 Option clear = pf;
-pf(ft_dynamic(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_jump') + 1
+pf(ft_dynamic(f,t))${   ord(t) = smin(t_${ft_dynamic(f,t_)}, tOrd(t_))
                         } = sum(f_${fRealization(f_)}, ord(f_)) - ord(f);
 
 // Previous nodal forecast displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
