@@ -121,14 +121,18 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         ft_full(fSolve, t) = ft(fSolve, t) + ft_dynamic(fSolve, t);
 
         // Select time series data matching the intervals, for intervalLength = 1, this is trivial.
-        ts_influx_(grid, node, ft(fSolve, tInterval(t))) = ts_influx(grid, node, fSolve, t+ct(t));
-        ts_cf_(flow, node, ft(fSolve, tInterval(t))) = ts_cf(flow, node, fSolve, t+ct(t));
-        ts_unit_(unit, param_unit, ft(fSolve, tInterval(t))) = ts_unit(unit, param_unit, fSolve, t+ct(t));
+        ts_influx_(gn(grid, node), ft(fSolve, tInterval(t))) = ts_influx(grid, node, fSolve, t+ct(t));
+        ts_cf_(flow, node, ft(fSolve, tInterval(t)))${  sum(grid, gn(grid, node)) // Only include nodes that have a grid attributed to them
+            } = ts_cf(flow, node, fSolve, t+ct(t));
+        ts_unit_(unit, param_unit, ft(fSolve, tInterval(t)))${  sum(gn, gnu(gn, unit)) // Only include units that have gn attributed to them
+            } = ts_unit(unit, param_unit, fSolve, t+ct(t));
         // Reserve demand relevant only up until t_reserveLength
-        ts_reserveDemand_(restype, up_down, node, ft(fSolve, tInterval(t)))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')
+        ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(fSolve, tInterval(t)))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')
             } = ts_reserveDemand(restype, up_down, node, fSolve, t+ct(t));
         // nodeState uses ft_dynamic
-        ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_dynamic(fSolve, tInterval(t))) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
+        ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_full(fSolve, t))${    tInterval(t)
+                                                                                            or tInterval(t-1)
+            } = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
 
     // If intervalLength exceeds 1 (intervalLength < 1 not defined)
     elseif mInterval(mSolve, 'intervalLength', counter) > 1,
@@ -161,14 +165,16 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
             tt(t_)${ord(t_) >= ord(t)
                     and ord(t_) < ord(t) + mInterval(mSolve, 'intervalLength', counter)
                     } = yes; // Select t:s within the interval
-            ts_influx_(grid, node, ft(fSolve, t)) = sum(tt(t_), ts_influx(grid, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
-            ts_cf_(flow, node, ft(fSolve, t)) = sum(tt(t_), ts_cf(flow, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
-            ts_unit_(unit, param_unit, ft(fSolve, t)) = sum(tt(t_), ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_influx_(gn(grid, node), ft(fSolve, t)) = sum(tt(t_), ts_influx(grid, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_cf_(flow, node, ft(fSolve, t))${ sum(grid, gn(grid, node)) // Only include nodes with grids attributed to them
+                } = sum(tt(t_), ts_cf(flow, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_unit_(unit, param_unit, ft(fSolve, t))${ sum(gn, gnu(gn, unit)) // Only include units with gn attributed to them
+                } = sum(tt(t_), ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
             // Reserves relevant only until t_reserveLength
-            ts_reserveDemand_(restype, up_down, node, ft(fSolve, t))${  ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')
+            ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(fSolve, t))${  ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')
                 } = sum(tt(t_), ts_reserveDemand(restype, up_down, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
             // nodeState uses ft_dynamic, and requires displacement of the steplength
-            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_dynamic(fSolve, t)) = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t+pt(t));
+            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t) = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t+pt(t));
         ); // END LOOP tInterval
 
     // Abort if intervalLength is less than one
@@ -392,16 +398,6 @@ loop(unit,
             ts_effGroupUnit(effGroup, unit, 'slope', ft(f, t))${sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'slope', f, t))} = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
         );
     );
-);
-
-* -----------------------------------------------------------------------------
-* --- Reserves ----------------------------------------------------------------
-* -----------------------------------------------------------------------------
-
-// Nodes with reserve requirements
-loop(gn(grid, node),
-    restypeDirectionNode(restypeDirection(restype, up_down), node)$(p_nReserves(node, restype, 'use_time_series') and sum((f,t), ts_reserveDemand(restype, up_down, node, f, t))) = yes;
-    restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
 );
 
 * -----------------------------------------------------------------------------
