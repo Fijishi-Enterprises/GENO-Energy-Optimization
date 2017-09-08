@@ -77,6 +77,7 @@ tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(
 
 // Initializing sets and counters
 Option clear = tCounter;
+Option clear = pt;
 Option clear = p_stepLength;
 Option clear = ft;
 Option clear = ft_dynamic;
@@ -124,7 +125,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         ts_cf_(flow, node, ft(fSolve, tInterval(t))) = ts_cf(flow, node, fSolve, t+ct(t));
         ts_unit_(unit, param_unit, ft(fSolve, tInterval(t))) = ts_unit(unit, param_unit, fSolve, t+ct(t));
         // Reserve demand relevant only up until t_reserveLength
-        ts_reserveDemand_(restype, up_down, node, ft(fSolve, tInterval(t)))${ ord(t) <= mSettings(mSolve, 't_reserveLength')
+        ts_reserveDemand_(restype, up_down, node, ft(fSolve, tInterval(t)))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')
             } = ts_reserveDemand(restype, up_down, node, fSolve, t+ct(t));
         // nodeState uses ft_dynamic
         ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_dynamic(fSolve, tInterval(t))) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
@@ -164,7 +165,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
             ts_cf_(flow, node, ft(fSolve, t)) = sum(tt(t_), ts_cf(flow, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
             ts_unit_(unit, param_unit, ft(fSolve, t)) = sum(tt(t_), ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
             // Reserves relevant only until t_reserveLength
-            ts_reserveDemand_(restype, up_down, node, ft(fSolve, t))${  ord(t) <= mSettings(mSolve, 't_reserveLength')
+            ts_reserveDemand_(restype, up_down, node, ft(fSolve, t))${  ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')
                 } = sum(tt(t_), ts_reserveDemand(restype, up_down, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
             // nodeState uses ft_dynamic, and requires displacement of the steplength
             ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_dynamic(fSolve, t)) = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t+pt(t));
