@@ -112,12 +112,14 @@ q_obj ..
                )
            )
          // Ramping costs
-         + sum(gnuft_ramp(grid, node, unit, f, t)${ p_gnu(grid, node, unit, 'rampUpCost') OR p_gnu(grid, node, unit, 'rampDownCost') },
-*            + (p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons')) // NOTE! Doens't work correctly if a gnu has both! Is that even possible, though?
-            + 1
-            * ( // Changes in ramp rates
-                + p_gnu(grid, node, unit, 'rampUpCost') * v_genRampChange(grid, node, unit, 'up', f, t)
-                + p_gnu(grid, node, unit, 'rampDownCost') * v_genRampChange(grid, node, unit, 'down', f, t)
+         + sum(gnuft_ramp(grid, node, unit, f, t)${ [ p_gnu(grid, node, unit, 'rampUpCost')
+                                                      or p_gnu(grid, node, unit, 'rampDownCost')
+                                                      ]
+                                                    and ord(t) > mSettings(m, 't_start')
+                                                  },
+            + ( // Changes in ramp rates
+                + p_gnu(grid, node, unit, 'rampUpCost') * v_genRampChange(grid, node, unit, 'up', f, t+pt(t))
+                + p_gnu(grid, node, unit, 'rampDownCost') * v_genRampChange(grid, node, unit, 'down', f, t+pt(t))
               )
            )
         )  // END * p_sft_probability(s,f,t)
@@ -439,15 +441,16 @@ q_genRamp(gn(grid, node), m, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t
   - v_gen(grid, node, unit, f+cf(f,t), t+pt(t))
 ;
 * -----------------------------------------------------------------------------
-q_genRampChange(gn(grid, node), m, unit, ft_dynamic(f, t))${ gnuft_ramp(grid, node, unit, f, t)
-                                                             and [ p_gnu(grid, node, unit, 'rampUpCost')
-                                                                   or p_gnu(grid, node, unit, 'rampDownCost')
-                                                                   ]
-                                                             } ..
-    + v_genRampChange(grid, node, unit, 'up', f, t+pt(t))
-    - v_genRampChange(grid, node, unit, 'down', f, t+pt(t))
-    =E=
-    + v_genRamp(grid, node, unit, f, t+pt(t))
+q_genRampChange(gn(grid, node), m, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
+                                                     and ord(t) > mSettings(m, 't_start')
+                                                     and [ p_gnu(grid, node, unit, 'rampUpCost')
+                                                           or p_gnu(grid, node, unit, 'rampDownCost')
+                                                           ]
+                                                     } ..
+  + v_genRampChange(grid, node, unit, 'up', f, t+pt(t))
+  - v_genRampChange(grid, node, unit, 'down', f, t+pt(t))
+  =E=
+  + v_genRamp(grid, node, unit, f, t+pt(t))
 ;
 * -----------------------------------------------------------------------------
 q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..
