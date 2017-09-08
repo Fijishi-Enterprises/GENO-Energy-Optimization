@@ -69,6 +69,10 @@ v_online.up(unit, ft_dynamic(f,t))${    uft_online(unit, f, t)
 v_online.up(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
     } = p_unit(unit, 'unitCount');
 
+// Startup and shutdown variables cannot exceed unit count
+v_startup.up(uft_online(unit, f, t)) = p_unit(unit, 'unitCount');
+v_shutdown.up(uft_online(unit, f, t)) = p_unit(unit, 'unitCount');
+
 // Possible constraints for generator ramping speeds
 v_genRamp.up(gnu(grid, node, unit), ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
                                                 AND p_gnu(grid, node, unit, 'maxRampUp')
