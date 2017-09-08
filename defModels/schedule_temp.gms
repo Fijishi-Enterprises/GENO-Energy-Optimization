@@ -101,6 +101,12 @@ Model schedule /
     q_boundState
     q_boundCyclic
     q_bidirectionalTransfer
+    q_onlineLimit
+    q_rampUpLimit
+    q_rampDownLimit
+    q_startuptype
+    q_minUp
+    q_minDown
 /;
 
 

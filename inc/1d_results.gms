@@ -45,11 +45,15 @@ Parameters
     r_qResDemand(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW)"
 ;
 
+Scalar r_realizedLast "Order of last realised time step";
+
 // Initialize a few of the results arrays, required by model structure.
 Option clear = r_state;
 Option clear = r_online;
 Option clear = r_reserve;
 Option clear = r_resTransfer;
+Option clear = r_gen;
+Option clear = r_realizedLast;
 
 * --- Diagnostics Results -----------------------------------------------------
 Parameters

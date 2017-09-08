@@ -316,10 +316,14 @@ sufts(effGroup, unit, f, t, effSelector)$(effGroupSelector(effGroup, effSelector
 // Units with online variables on each forecast-time step
 Option clear = uft_online;
 *Option clear = p_uft_online_last;
+Option clear = uft_online_last;
 loop(suft(effOnline, uft(unit, f, t)), // Determine the time steps when units need to have online variables.
     uft_online(unit, f, t) = yes;
 *    p_uft_online_last(uft_online(unit, f, t)) = ord(t);
 );
+uft_online_last(uft_online(unit, f+pf(f,t), t+pt(t)))${ not uft_online(unit, f, t)
+                                                        and ft_dynamic(f, t)
+    } = yes;
 
 // Calculate time series for unit parameters when necessary and/or possible
 loop(unit${p_unit(unit, 'useTimeseries')},

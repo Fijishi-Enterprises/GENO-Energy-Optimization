@@ -59,21 +59,37 @@ v_gen.up(gnu(grid, node, unit), ft(f,t))${p_gnu(grid, node, unit, 'maxGen') < 0
     } = 0;
 
 // v_online cannot exceed unit count
-v_online.up(uft_online(unit, ft(f,t)))${not unit_investMIP(unit)
+v_online.up(unit, ft_dynamic(f,t))${    ( uft_online(unit, f, t)
+                                          or [    uft_online(unit, f, t+pt(t))
+                                                  and fRealization(f)
+                                                  ]
+                                        ) and not unit_investMIP(unit)
     } = p_unit(unit, 'unitCount');
 // Restrict v_online also in the last dynamic time step
 v_online.up(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
                                                 and not unit_investMIP(unit)
     } = p_unit(unit, 'unitCount');
 // v_online is zero for units with continuous online variable
-v_online.fx(uft_online(unit, ft(f,t)))${unit_investLP(unit)
+v_online.fx(uft_online(unit, ft_full(f,t)))${unit_investLP(unit)
+    } = 0;
+v_online.fx(unit, ft_dynamic(f,t))${    ( uft_online(unit, f, t)
+                                          or [    uft_online(unit, f, t+pt(t))
+                                                  and fRealization(f)
+                                                  ]
+                                        ) and unit_investLP(unit)
     } = 0;
 // Restrict v_online also in the last dynamic time step
 v_online.fx(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
                                                 and unit_investLP(unit)
     } = 0;
 // v_online_LP is zero for units without continuous online variable
-v_online_LP.fx(uft_online(unit, ft(f,t)))${not unit_investLP(unit)
+v_online_LP.fx(uft_online(unit, ft_full(f,t)))${not unit_investLP(unit)
+    } = 0;
+v_online_LP.fx(unit, ft_dynamic(f,t))${    ( uft_online(unit, f, t)
+                                             or [    uft_online(unit, f, t+pt(t))
+                                                     and fRealization(f)
+                                                     ]
+                                           ) and not unit_investLP(unit)
     } = 0;
 // Restrict v_online_LP also in the last dynamic time step
 v_online_LP.fx(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
@@ -196,6 +212,9 @@ loop(ft(f, tSolve),
     v_online.fx(uft_online(unit, f, tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
                                                 and mftStart(mSolve, f, tSolve)
         } = r_online(unit, f, tSolve);
+    v_gen.fx(gnu(grid, node, unit), f, tSolve+pt(tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
+                                                             and mftStart(mSolve, f, tSolve)
+        } = r_gen(grid, node, unit, f, tSolve+pt(tSolve));
 );
 
 // BoundStartToEnd

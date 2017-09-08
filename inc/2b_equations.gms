@@ -138,6 +138,7 @@ q_obj ..
     )
   - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mftStart(m, f, t), p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t))     // minus value of avoiding startup costs before
 *  - sum((s, uft_online(unit, ft_dynamic(f,t)))$(ord(t) = p_uft_online_last(unit, f, t)), p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t)) // or after the model solve
+  - sum((s, uft_online_last(unit, ft_dynamic(f,t))), p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t)) // or after the model solve
   - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mftStart(m, f, t), p_sft_probability(s, f, t) * 0.5 * v_online_LP(unit, f+cf(f,t), t))     // minus value of avoiding startup costs before
 *  - sum((s, uft_online(unit, ft_dynamic(f,t)))$(ord(t) = p_uft_online_last(unit, f, t)), p_sft_probability(s, f, t) * 0.5 * v_online_LP(unit, f+cf(f,t), t)) // or after the model solve
 
@@ -423,13 +424,19 @@ q_startup(unit, ft_dynamic(f, t))${ uft_online(unit, f, t)
   - v_shutdown(unit, f, t+pt(t))
 ;
 * -----------------------------------------------------------------------------
-q_genRamp(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node, unit, f, t)} ..
-    + v_genRamp(grid, node, unit, f, t+pt(t))
-    * p_stepLength(m, f+pf(f,t), t+pt(t))
-    =E=
-    // Change in generation over the time step
-    + v_gen(grid, node, unit, f, t)
-    - v_gen(grid, node, unit, f+pf(f,t), t+pt(t))
+q_genRamp(gn(grid, node), m, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
+                                               and ord(t) > mSettings(m, 't_start')
+                                               } ..
+  + v_genRamp(grid, node, unit, f, t+pt(t))
+  * (
+      + p_stepLength(m, f+cf(f,t), t+pt(t))
+        // Step length for the last time step in the previous solve
+      + sum(t_${fRealization(f) and ord(t) = tSolveFirst and ord(t_) = r_realizedLast}, p_stepLengthNoReset(m, f, t_))
+    )
+  =E=
+  // Change in generation over the time step
+  + v_gen(grid, node, unit, f, t)
+  - v_gen(grid, node, unit, f+cf(f,t), t+pt(t))
 ;
 * -----------------------------------------------------------------------------
 q_genRampChange(gn(grid, node), m, unit, ft_dynamic(f, t))${ gnuft_ramp(grid, node, unit, f, t)

@@ -40,6 +40,8 @@ r_spill(gn(grid, node), ft_realized(f, t)) = v_spill.l(grid, node, f, t);
 r_qGen(inc_dec, gn(grid, node), ft_realized(f, t)) = vq_gen.l(inc_dec, grid, node, f, t);
 r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t)) = vq_resDemand.l(restype, up_down, node, f, t);
 
+r_realizedLast = smax(t${sum(fRealization(f), ft(f,t))}, tOrd(t));
+
 $ontext
     // Deterministic stage
     loop(fRealization(f),
