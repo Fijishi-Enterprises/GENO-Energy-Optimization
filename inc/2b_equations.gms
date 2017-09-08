@@ -40,7 +40,7 @@ equations
     q_bidirectionalTransfer(grid, node, node, f, t) "Possible common transfer capacity constraint for interconnected transfer variables"
 ;
 
-$setlocal def_penalty 1e3
+$setlocal def_penalty 1e6
 Scalars
     PENALTY "Default equation violation penalty" / %def_penalty% /
 ;
@@ -75,6 +75,7 @@ q_obj ..
                            p_unitFuelEmissionCost(unit_fuel, fuel, emission) )
                      )
            )
+
          // Start-up costs
          + sum(uft_online(unit, f, t),
              + {
@@ -96,6 +97,7 @@ q_obj ..
                    )
                }
            )
+
          // Ramping costs
          + sum(gnuft_ramp(grid, node, unit, f, t)${ p_gnu(grid, node, unit, 'rampUpCost') OR p_gnu(grid, node, unit, 'rampDownCost') },
             + (p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons')) // NOTE! Doens't work correctly if a gnu has both! Is that even possible, though?
@@ -104,6 +106,12 @@ q_obj ..
                 + p_gnu(grid, node, unit, 'rampDownCost') * v_genRampChange(grid, node, unit, 'down', f, t)
               )
            )
+
+         // "Cost" of spilling energy
+         + sum(gn(grid, node_spill(node)),
+            v_spill(grid, node, f, t) * p_stepLength(m, f, t)
+           )
+
         )  // END * p_sft_probability(s,f,t)
     ) // END sum over msft(m, s, f, t)
 
