@@ -8,7 +8,6 @@ Class to handle Sceleton projects.
 import os
 import logging
 import json
-from collections import Counter
 from metaobject import MetaObject
 from helpers import find_duplicates, project_dir, create_dir
 from config import DEFAULT_WORK_DIR
@@ -348,6 +347,7 @@ class SceletonProject(MetaObject):
             setup.failed = failed
         return
 
+    # noinspection PyMethodMayBeStatic
     def make_data_files(self, setup_model, wb, ui):
         """Reads data from Excel and creates GAMS compliant (text) data files.
 
@@ -363,68 +363,68 @@ class SceletonProject(MetaObject):
             if sheet.lower() == 'project' or sheet.lower() == 'setups' or sheet.lower() == 'recipes':
                 continue
             n_data_sheets += 1
-            try:
-                ui.add_msg_signal.emit("<br/>Processing sheet '{0}'".format(sheet), 0)
-                [headers, filename, setup, sets, value, n_rows] = wb.read_data_sheet(sheet)
-            except ValueError:  # No data found
-                ui.add_msg_signal.emit("No data found on sheet '{0}'".format(sheet), 0)
-                continue
-            # Get the file name found on this sheet
-            filename = set(filename)
-            # If more than one file name on sheet. Skip whole sheet.
-            if len(filename) > 1:
-                ui.add_msg_signal.emit("Sheet '{0}' has {1} file names. Only one file name per sheet allowed."
-                                       " Data files not created.".format(sheet, len(filename)), 2)
-                continue
-            # Make a dictionary where key is Setup name and value is a list
-            data = dict()
-            setups = Counter(setup).keys()
-            for setup_name in setups:
-                data[setup_name] = list()
-            n_sets = len(sets)
-            # Collect data into dictionary
-            for i in range(n_rows-1):  # subtract header row
-                if not sets[0][i]:  # Check that first set is not '' or None
-                    line = ''
+            ui.add_msg_signal.emit("<br/>Processing sheet <b>{0}</b>".format(sheet), 0)
+            header, data = wb.get_header_and_data(sheet)
+            if not header:
+                if not data:
+                    ui.add_msg_signal.emit("Sheet is empty", 3)
                 else:
-                    line = sets[0][i]
-                if n_sets > 1:
-                    for j in range(n_sets-1):  # Subtract first set
-                        if sets[j+1][i]:  # Skip '' and None sets
-                            if line == '':  # This happens when first set is empty
-                                line = sets[j+1][i]
-                            else:
-                                line += '.' + sets[j+1][i]  # Append new set on line
-                # Add '=' and value to line
-                # Do not use if not value[i]: because if value is 0, it will not be written
-                if value[i] == '' or value[i] == None:
-                    line += '=\n'
-                else:
-                    line += '=' + str(value[i]) + '\n'
-                data[setup[i]].append(line)
-            # Write values from dictionary to files
-            for key, value in data.items():
+                    ui.add_msg_signal.emit("Header is missing", 2)
+                continue
+            if not data:
+                ui.add_msg_signal.emit("No data on sheet", 2)
+                continue
+            if header['type'] == 'set':
+                ui.add_msg_signal.emit("Importing <b>set</b> data", 0)
+                data_dict = wb.process_set_data(data)
+            elif header['type'] == 'parameter':
+                ui.add_msg_signal.emit("Importing <b>parameter</b> data", 0)
+                data_dict = wb.process_parameter_data(data)
+            elif header['type'] == 'table':
+                ui.add_msg_signal.emit("Importing <b>table</b> data", 0)
+                data_dict = wb.process_table_data(data)
+            elif header['type'] == '':
+                ui.add_msg_signal.emit("Type is missing. Supported types are "
+                                       "<b>set</b>, <b>parameter</b>, and <b>table</b>", 2)
+                continue
+            else:
+                ui.add_msg_signal.emit("Unknown Type '<b>{0}</b>' in header. Supported types are "
+                                       "<b>set</b>, <b>parameter</b>, and <b>table</b>".format(header['type']), 2)
+                continue
+            # Check that filename exists
+            if not header['filename']:
+                ui.add_msg_signal.emit("Filename is missing", 2)
+                continue
+            # Make filename
+            if header['extension'] == '' or not header['extension']:
+                filename = header['filename']
+            elif header['extension'][0] == '.':
+                filename = header['filename'] + header['extension']  # If extension already has a dot
+            else:
+                filename = header['filename'] + '.' + header['extension']
+            # Write lines from dictionary to files
+            for key, value in data_dict.items():
                 index = setup_model.find_index(key)
                 # Skip if Setup does not exist
                 if not index:
                     ui.add_msg_signal.emit("Setup <b>{0}</b> not found".format(key), 2)
                     continue
+                setup_name = index.internalPointer().name
                 input_dir = index.internalPointer().input_dir
-                fname = list(filename)[0]
-                d_file = os.path.join(input_dir, fname)
+                dest_path = os.path.join(input_dir, filename)
                 try:
-                    with open(d_file, 'w') as d:
-                        d.write("$offlisting\n")
-                        d.writelines(value)
-                    ui.add_msg_signal.emit("File {0} written to Setup <b>{1}</b> input directory ({2} lines) "
-                                           .format(fname, key, len(value)+1), 0)
+                    with open(dest_path, 'w') as dfile:
+                        dfile.write("$offlisting\n")
+                        dfile.writelines(value)
+                    ui.add_msg_signal.emit("File <b>{0}</b> written to Setup <b>{1}</b> input directory ({2} lines) "
+                                           .format(filename, setup_name, len(value)+1), 0)
                 except OSError:
-                    ui.add_msg_signal.emit("OSError: Writing to file '{0}' failed".format(d_file), 2)
-            ui.add_msg_signal.emit("Processing sheet '{0}' done".format(sheet), 1)
+                    ui.add_msg_signal.emit("OSError: Writing to file <b>{0}</b> failed".format(dest_path), 2)
+            ui.add_msg_signal.emit("Processing sheet <b>{0}</b> done".format(sheet), 1)
         if n_data_sheets == 0:
             ui.add_msg_signal.emit("No data sheets found", 0)
         else:
-            ui.add_msg_signal.emit("Processed {0} data sheets in file {1}".format(n_data_sheets, excel_fname), 0)
+            ui.add_msg_signal.emit("Processed {0} data sheets in file <b>{1}</b>".format(n_data_sheets, excel_fname), 0)
         ui.add_msg_signal.emit("Done", 1)
 
     @staticmethod
