@@ -124,14 +124,14 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         ts_influx_(gn(grid, node), ft(fSolve, tInterval(t))) = ts_influx(grid, node, fSolve, t+ct(t));
         ts_cf_(flow, node, ft(fSolve, tInterval(t)))${  sum(grid, gn(grid, node)) // Only include nodes that have a grid attributed to them
             } = ts_cf(flow, node, fSolve, t+ct(t));
-        ts_unit_(unit, param_unit, ft(fSolve, tInterval(t)))${  sum(gn, gnu(gn, unit)) // Only include units that have gn attributed to them
+        ts_unit_(unit, param_unit, ft(fSolve, tInterval(t)))${  p_unit(unit, 'useTimeseries') // Only include units that have timeseries attributed to them
             } = ts_unit(unit, param_unit, fSolve, t+ct(t));
         // Reserve demand relevant only up until t_reserveLength
         ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(fSolve, tInterval(t)))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')
             } = ts_reserveDemand(restype, up_down, node, fSolve, t+ct(t));
-        // nodeState uses ft_dynamic
-        ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_full(fSolve, t))${    tInterval(t)
-                                                                                            or tInterval(t-1)
+        // Last nodeState value handled by the next interval or the end of horizon, only calculated for nodes with timeseries data
+        ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft(fSolve, tInterval(t)))${  p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+                                                                                                and [ft_dynamic(fSolve, t) or ord(t) = tSolveFirst]
             } = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
 
     // If intervalLength exceeds 1 (intervalLength < 1 not defined)
@@ -160,27 +160,33 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         ft_full(fSolve, t) = ft(fSolve, t) + ft_dynamic(fSolve, t);
 
         // Select and average time series data matching the intervals, for intervalLength > 1
-        loop(ft_full(fSolve, tInterval(t)), // Loop over the t:s of the interval
+        loop(ft(fSolve, tInterval(t)), // Loop over the t:s of the interval
             Option clear = tt;
             tt(t_)${ord(t_) >= ord(t)
                     and ord(t_) < ord(t) + mInterval(mSolve, 'intervalLength', counter)
                     } = yes; // Select t:s within the interval
-            ts_influx_(gn(grid, node), ft(fSolve, t)) = sum(tt(t_), ts_influx(grid, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
-            ts_cf_(flow, node, ft(fSolve, t))${ sum(grid, gn(grid, node)) // Only include nodes with grids attributed to them
+            ts_influx_(gn(grid, node), fSolve, t) = sum(tt(t_), ts_influx(grid, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_cf_(flow, node, fSolve, t)${ sum(grid, gn(grid, node)) // Only include nodes with grids attributed to them
                 } = sum(tt(t_), ts_cf(flow, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
-            ts_unit_(unit, param_unit, ft(fSolve, t))${ sum(gn, gnu(gn, unit)) // Only include units with gn attributed to them
+            ts_unit_(unit, param_unit, fSolve, t)${ p_unit(unit, 'useTimeseries') // Only include units with timeseries attributed to them
                 } = sum(tt(t_), ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
             // Reserves relevant only until t_reserveLength
-            ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(fSolve, t))${  ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')
+            ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), fSolve, t)${  ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')
                 } = sum(tt(t_), ts_reserveDemand(restype, up_down, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
-            // nodeState uses ft_dynamic, and requires displacement of the steplength
-            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t) = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t+pt(t));
+            // Last nodeState handled by the next interval or the end of horizon.
+            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+                                                                                    and [ft_dynamic(fSolve, t) or ord(t) = tSolveFirst]
+                } = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
         ); // END LOOP tInterval
 
     // Abort if intervalLength is less than one
     elseif mInterval(mSolve, 'intervalLength', counter) < 1, abort "intervalLength < 1 is not defined!"
 
     ); // END IF intervalLenght
+
+    // The nodeState at the the end of the horizon doesn't have a defined p_stepLength, so using raw data value.
+    ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_dynamic(fSolve, t))${ord(t) = tSolveLast
+        } = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
 
     // Update tCounter for the next interval
     tCounter = mInterval(mSolve, 'intervalEnd', counter);

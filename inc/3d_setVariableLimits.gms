@@ -18,22 +18,31 @@ $offtext
 * --- Variable limits ---------------------------------------------------------
 // v_state absolute boundaries set according to p_gn parameters;
 // When using constant values and to supplement time series with constant values (time series will override when data available)
-v_state.up(gn_state(grid, node), ft_dynamic(f+cf_Central(f,t), t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
+v_state.up(gn_state(grid, node), ft_full(f, t))${   p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
     } = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
-v_state.lo(gn_state(grid, node), ft_dynamic(f+cf_Central(f,t), t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+v_state.lo(gn_state(grid, node), ft_full(f, t))${   p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
     } = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
-v_state.fx(gn_state(grid, node), ft_full(f+cf_Central(f,t), t))${   p_gn(grid, node, 'boundAll')
+v_state.fx(gn_state(grid, node), ft_full(f, t))${   p_gn(grid, node, 'boundAll')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
     } = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
 // When using time series
-v_state.up(gn_state(grid, node), ft_dynamic(f+cf_Central(f,t), t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
-    } = ts_nodeState_(grid, node,   'upwardLimit', f+cf_Central(f,t), t) * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
-v_state.lo(gn_state(grid, node), ft_dynamic(f+cf_Central(f,t), t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'downwardLimit', f+cf_Central(f,t), t) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
-v_state.fx(gn_state(grid, node), ft_full(f+cf_Central(f,t), t))${   p_gn(grid, node, 'boundAll')
+v_state.up(gn_state(grid, node), ft_full(f, t))${   p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
+                                                    and not cf_Central(f,t)
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
+    } = ts_nodeState_(grid, node,   'upwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
+v_state.lo(gn_state(grid, node), ft_full(f, t))${   p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
+                                                    and not cf_Central(f,t)
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
+    } = ts_nodeState_(grid, node, 'downwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
+v_state.fx(gn_state(grid, node), ft_full(f, t))${   p_gn(grid, node, 'boundAll')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'reference', f+cf_Central(f,t), t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+                                                    and not cf_Central(f,t)
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
+    } = ts_nodeState_(grid, node, 'reference', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
 // Other time dependent parameters and variable limits
 // Max. energy generation
@@ -60,13 +69,10 @@ v_gen.up(gnu(grid, node, unit), ft(f,t))${p_gnu(grid, node, unit, 'maxGen') < 0
     } = 0;
 
 // v_online cannot exceed unit count
-v_online.up(unit, ft_dynamic(f,t))${    uft_online(unit, f, t)
-                                        or [    uft_online(unit, f, t+pt(t))
-                                                and fRealization(f)
-                                            ]
-    } = p_unit(unit, 'unitCount');
-// Restrict v_online also in the last dynamic time step
-v_online.up(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
+v_online.up(unit, ft_full(f,t))${   uft_online(unit, f, t)
+                                    or [    uft_online(unit, f, t+pt(t))
+                                            and fRealization(f)
+                                        ]
     } = p_unit(unit, 'unitCount');
 
 // Startup and shutdown variables cannot exceed unit count
@@ -135,37 +141,29 @@ loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
         } = 0;
 );
 
-* --- Bounds overwritten for the first solve -----------------------------------
-loop(ft(f, tSolve),
+* --- Bounds overwritten for the first timestep --------------------------------
+loop(mftStart(mSolve, f, t),
     // First solve, state variables (only if boundStart flag is true)
-    v_state.fx(grid, node, f, tSolve)${ gn_state(grid,node)
-                                        and p_gn(grid, node, 'boundStart')
-                                        and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
-                                        and tSolveFirst = mSettings(mSolve, 't_start')
+    v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
+                                                and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                                and tSolveFirst = mSettings(mSolve, 't_start')
         } = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
     // Time series form boundary
-    v_state.fx(grid, node, f, tSolve)${ gn_state(grid,node)
-                                        and p_gn(grid, node, 'boundStart')
-                                        and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
-                                        and tSolveFirst = mSettings(mSolve, 't_start')
-        } = ts_nodeState_(grid, node, 'reference', 'f00', tSolve) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
-
-    // First solve, online variables
-    v_online.up(uft_online(unit, f, tSolve))${tSolveFirst = mSettings(mSolve, 't_start')
-        } = p_unit(unit, 'unitCount');
+    v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
+                                                and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
+                                                and tSolveFirst = mSettings(mSolve, 't_start')
+        } = ts_nodeState_(grid, node, 'reference', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
     // State and online variables fixed for the subsequent solves
-    v_state.fx(gn_state(grid, node), f, tSolve)${   not ord(tSolve) = mSettings(mSolve, 't_start')
-                                                    and mftStart(mSolve, f, tSolve)
-        } = r_state(grid, node, f, tSolve);
-    v_online.fx(uft_online(unit, f, tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
-                                                and mftStart(mSolve, f, tSolve)
-        } = r_online(unit, f, tSolve);
+    v_state.fx(gn_state(grid, node), f, t)${    not ord(t) = mSettings(mSolve, 't_start')
+        } = r_state(grid, node, f, t);
+    v_online.fx(uft_online(unit, f, t))${  not ord(t) = mSettings(mSolve, 't_start')
+        } = r_online(unit, f, t);
 );
 
 // BoundStartToEnd
-v_state.fx(grid, node, ft_dynamic(f,t))${   mftLastSteps(mSolve, f, t)
-                                            and p_gn(grid, node, 'boundStartToEnd')
+v_state.fx(grid, node, ft_full(f,t))${  mftLastSteps(mSolve, f, t)
+                                        and p_gn(grid, node, 'boundStartToEnd')
     } = r_state(grid, node, f, t);
 
 
