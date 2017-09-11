@@ -184,7 +184,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 
     ); // END IF intervalLenght
 
-    // The nodeState at the the end of the horizon doesn't have a defined p_stepLength, so using raw data value.
+    // The nodeState at the the end of the horizon doesn't have a defined p_stepLength (and isn't included in the tIntervals), so using raw data value.
     ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_dynamic(fSolve, t))${ord(t) = tSolveLast
         } = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
 
