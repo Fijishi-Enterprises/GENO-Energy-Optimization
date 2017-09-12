@@ -29,6 +29,11 @@ r_resTransfer(restypeDirectionNode(restype, up_down, from_node), to_node, fReali
                                                                                                         or sum(f_, cf_nReserves(from_node, restype, f_, t))
                                                                                                         ]
     } = v_resTransfer.l(restype, up_down, from_node, to_node, f, t);
+r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t)
+    } = v_startup.l(unit, starttype, f, t);
+r_shutdown(unit, ft_realized(f, t))${ uft_online(unit, f, t)
+    } = v_shutdown.l(unit, f, t);
+r_realizedLast = smax(t${sum(fRealization(f), ft(f,t))}, tOrd(t));
 
 // Interesting results
 r_gen(gnu(grid, node, unit), ft_realized(f, t)) = v_gen.l(grid, node, unit, f, t);
@@ -39,8 +44,6 @@ r_spill(gn(grid, node), ft_realized(f, t)) = v_spill.l(grid, node, f, t);
 // Feasibility results
 r_qGen(inc_dec, gn(grid, node), ft_realized(f, t)) = vq_gen.l(inc_dec, grid, node, f, t);
 r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t)) = vq_resDemand.l(restype, up_down, node, f, t);
-
-r_realizedLast = smax(t${sum(fRealization(f), ft(f,t))}, tOrd(t));
 
 $ontext
     // Deterministic stage

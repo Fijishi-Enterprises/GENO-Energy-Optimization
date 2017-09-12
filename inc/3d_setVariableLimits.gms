@@ -78,6 +78,8 @@ v_online.fx(unit, ft_dynamic(f,t))${    ( uft_online(unit, f, t)
                                                   ]
                                         ) and unit_investLP(unit)
     } = 0;
+v_online.fx(uft_online_incl_previous(unit, f, t))${unit_investLP(unit)
+    } = 0;
 // Restrict v_online also in the last dynamic time step
 v_online.fx(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
                                                 and unit_investLP(unit)
@@ -90,6 +92,8 @@ v_online_LP.fx(unit, ft_dynamic(f,t))${    ( uft_online(unit, f, t)
                                                      and fRealization(f)
                                                      ]
                                            ) and not unit_investLP(unit)
+    } = 0;
+v_online_LP.fx(uft_online_incl_previous(unit, f, t))${not unit_investLP(unit)
     } = 0;
 // Restrict v_online_LP also in the last dynamic time step
 v_online_LP.fx(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
@@ -212,9 +216,22 @@ loop(ft(f, tSolve),
     v_online.fx(uft_online(unit, f, tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
                                                 and mftStart(mSolve, f, tSolve)
         } = r_online(unit, f, tSolve);
+    v_online.fx(unit, f, tSolve+pt(tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
+                                               and mftStart(mSolve, f, tSolve)
+                                               and uft_online(unit, f, tSolve)
+        } = r_online(unit, f, tSolve+pt(tSolve));
+    // Generation, startup and shutdown variables fixed for the subsequent solves
     v_gen.fx(gnu(grid, node, unit), f, tSolve+pt(tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
                                                              and mftStart(mSolve, f, tSolve)
         } = r_gen(grid, node, unit, f, tSolve+pt(tSolve));
+    v_startup.fx(unit, starttype, f, tSolve+pt(tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
+                                                           and mftStart(mSolve, f, tSolve)
+                                                           and uft_online(unit, f, tSolve)
+        } = r_startup(unit, starttype, f, tSolve+pt(tSolve));
+    v_shutdown.fx(unit, f, tSolve+pt(tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
+                                                 and mftStart(mSolve, f, tSolve)
+                                                 and uft_online(unit, f, tSolve)
+        } = r_shutdown(unit, f, tSolve+pt(tSolve));
 );
 
 // BoundStartToEnd

@@ -22,10 +22,12 @@ Parameters
     r_online(unit, f, t) "Units online"
     r_reserve(restype, up_down, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
     r_resTransfer(restype, up_down, node, node, f, t) "Electricity transmission capacity from node to node reserved for providing reserves (MW)"
+    r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
+    r_startup(unit, starttype, f, t) "Units started up"
+    r_shutdown(unit, f, t) "Units shut down"
 
     // Arrays of interest
     r_totalCost "Total operating cost over the simulation (€)" / 0 /
-    r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
     r_genFuel(grid, node, fuel, f, t) "Energy generation/consumption based on fuels / flows (MW)"
     r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
     r_spill(grid, node, f, t) "Spill of energy from storage node during time period (MWh)"
@@ -54,6 +56,8 @@ Option clear = r_reserve;
 Option clear = r_resTransfer;
 Option clear = r_gen;
 Option clear = r_realizedLast;
+Option clear = r_startup;
+Option clear = r_shutdown;
 
 * --- Diagnostics Results -----------------------------------------------------
 Parameters

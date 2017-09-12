@@ -92,8 +92,8 @@ Parameters
 *    p_uft_online_last(unit, f, t) "Ord of last t where unit is online"
     msStart(mType, s) "Start point of samples"
     msEnd(mType, s) "End point of samples"
-*    af(f, t) "Displacement needed to reach the previous forecast (in forecasts)"
     tOrd(t) "Order of t"
+    cpf(f, t) "Displacement needed to reach the realized data (forecast) in the first two time periods of ft"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------

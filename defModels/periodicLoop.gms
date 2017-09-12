@@ -227,6 +227,11 @@ Option clear = pf;
 pf(ft_dynamic(f,t))${   ord(t) = smin(t_${ft_dynamic(f,t_)}, tOrd(t_))
                         } = sum(f_${fRealization(f_)}, ord(f_)) - ord(f);
 
+// Forecast displacement between realized and forecasted timesteps
+Option clear = cpf;
+cpf(ft(f,t))${cf(f,t)} = cf(f,t);
+cpf(ft(f,t))${pf(f,t)} = pf(f,t);
+
 // Previous nodal forecast displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
 Option clear = pf_nReserves;
 pf_nReserves(node, restype, ft_dynamic(f, t))${ p_nReserves(node, restype, 'update_frequency')
@@ -324,6 +329,9 @@ loop(suft(effOnline, uft(unit, f, t)), // Determine the time steps when units ne
 uft_online_last(uft_online(unit, f+pf(f,t), t+pt(t)))${ not uft_online(unit, f, t)
                                                         and ft_dynamic(f, t)
     } = yes;
+Option clear = uft_online_incl_previous;
+uft_online_incl_previous(uft_online(unit, f, t)) = yes;
+uft_online_incl_previous(unit, f, t+pt(t))${uft_online(unit, f, t) and ord(t) = tSolveFirst and fRealization(f)} = yes;
 
 // Calculate time series for unit parameters when necessary and/or possible
 loop(unit${p_unit(unit, 'useTimeseries')},
