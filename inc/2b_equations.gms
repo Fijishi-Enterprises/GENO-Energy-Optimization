@@ -283,7 +283,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + m
     )
   =G=   // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
   // Generation units, greater than minload
-  + v_online(unit, f+cf(f,t), t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')} // Online variables should only be generated for units with restrictions
+  + v_online(unit, f, t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxGen')} // Online variables should only be generated for units with restrictions
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxGen')
     * sum(effGroup, // Uses the minimum 'lb' for the current efficiency approximation
@@ -291,7 +291,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + m
       )
   // Consuming units, greater than maxcons
   + v_gen.lo(grid, node, unit, f, t)${p_gnu(grid, node, unit, 'maxCons') and not uft_online(unit, f, t)} // notice: v_gen.lo for consuming units is negative
-  - v_online(unit, f+cf(f,t), t)${p_gnu(grid, node, unit, 'maxCons') and uft_online(unit, f, t)} // Online variables should only be generated for units with restrictions
+  - v_online(unit, f, t)${p_gnu(grid, node, unit, 'maxCons') and uft_online(unit, f, t)} // Online variables should only be generated for units with restrictions
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxCons')
 ;
@@ -314,7 +314,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + mSe
     )
   =L=                                                                                                               // must be less than available/online capacity
   // Consuming units
-  - v_online(unit, f+cf(f,t), t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxCons')}       // Consuming units are restricted by their min. load (consuming is negative)
+  - v_online(unit, f, t)${uft_online(unit, f, t) and p_gnu(grid, node, unit, 'maxCons')}       // Consuming units are restricted by their min. load (consuming is negative)
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxCons')
     * sum(effGroup, // Uses the minimum 'lb' for the current efficiency approximation
@@ -322,21 +322,18 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + mSe
       )
   // Generation units
   + v_gen.up(grid, node, unit, f, t)${p_gnu(grid, node, unit, 'maxGen') and not uft_online(unit, f, t)}            // Generation units are restricted by their (online) capacity
-  + v_online(unit, f+cf(f,t), t)${p_gnu(grid, node, unit, 'maxGen') and uft_online(unit, f, t)}       // Consuming units are restricted by their min. load (consuming is negative)
+  + v_online(unit, f, t)${p_gnu(grid, node, unit, 'maxGen') and uft_online(unit, f, t)}       // Consuming units are restricted by their min. load (consuming is negative)
     / p_unit(unit, 'unitCount')
     * p_gnu(grid, node, unit, 'maxGen')
 ;
 * -----------------------------------------------------------------------------
-q_startup(unit, ft_dynamic(f, t))${ uft_online(unit, f, t)
-                                    or [    uft_online(unit, f, t+pt(t))
-                                            and fRealization(f)
-                                            ]
-                                    } ..
+q_startup(uft_online(unit, f, t)) .. //${not ord(t) = sum(m, mSettings(m, 't_start'))} ..
   + v_online(unit, f, t)
   =E=
-  + v_online(unit, f+pf(f,t), t+pt(t)) // This reaches to tFirstSolve when pt = -1
-  + v_startup(unit, f, t+pt(t))
-  - v_shutdown(unit, f, t+pt(t))
+  + v_online(unit, f+cf(f,t), t+pt(t))${pt(t)} // !!! TEMPORARY MEASURES TO ACCOUNT FOR INDEXING !!!
+  + v_online(unit, f+cf(f,t), t-1)${not pt(t)} // !!! TEMPORARY MEASURES TO ACCOUNT FOR INDEXING !!!
+  + v_startup(unit, f, t)
+  - v_shutdown(unit, f, t)
 ;
 * -----------------------------------------------------------------------------
 q_genRamp(gn(grid, node), m, unit, ft_dynamic(f, t))${gnuft_ramp(grid, node, unit, f, t)} ..

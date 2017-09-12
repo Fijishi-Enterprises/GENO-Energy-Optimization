@@ -157,8 +157,9 @@ loop(mftStart(mSolve, f, t),
     // State and online variables fixed for the subsequent solves
     v_state.fx(gn_state(grid, node), f, t)${    not ord(t) = mSettings(mSolve, 't_start')
         } = r_state(grid, node, f, t);
-    v_online.fx(uft_online(unit, f, t))${  not ord(t) = mSettings(mSolve, 't_start')
-        } = r_online(unit, f, t);
+    v_online.fx(unit, f, t-1)${ not ord(t) = mSettings(mSolve, 't_start')
+                                and uft_online(unit, f, t) // !!! TEMPORARY MEASURES !!!
+        } = r_online(unit, f, t-1); // !!! TEMPORARY MEASURES !!!
 );
 
 // BoundStartToEnd
