@@ -859,7 +859,8 @@ q_startuptype(m, unit, starttype, f, t)${  uft_online(unit, f, t)
 q_minUp(m, unit, f, t)${uft_online(unit, f, t) and ft_dynamic(f,t) and not unit_investLP(unit)} ..
   + sum(t_${  ord(t_)>=[ord(t)-p_unit(unit, 'minOperationTime') / mSettings(m, 'intervalInHours')]
               and ord(t_)<ord(t)
-        }, sum(starttype, v_startup(unit, starttype, f, t_))
+              and p_stepLengthNoReset(m, f+af(f,t_), t_)
+        }, sum(starttype, v_startup(unit, starttype, f+af(f,t_), t_))
     )
   =L=
   + v_online(unit, f, t)
@@ -869,7 +870,8 @@ q_minUp(m, unit, f, t)${uft_online(unit, f, t) and ft_dynamic(f,t) and not unit_
 q_minDown(m, unit, f, t)${uft_online(unit, f, t) and ft_dynamic(f,t) and not unit_investLP(unit)} ..
   + sum(t_${  ord(t_)>=[ord(t)-p_unit(unit, 'minShutDownTime') / mSettings(m, 'intervalInHours')]
               and ord(t_)<ord(t)
-        }, v_shutdown(unit, f, t_)
+              and p_stepLengthNoReset(m, f+af(f,t_), t_)
+        }, v_shutdown(unit, f+af(f,t_), t_)
     )
   =L=
   + p_unit(unit, 'unitCount')

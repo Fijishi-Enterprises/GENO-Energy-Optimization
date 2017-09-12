@@ -224,11 +224,11 @@ loop(ft(f, tSolve),
     v_gen.fx(gnu(grid, node, unit), f, tSolve+pt(tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
                                                              and mftStart(mSolve, f, tSolve)
         } = r_gen(grid, node, unit, f, tSolve+pt(tSolve));
-    v_startup.fx(unit, starttype, f, tSolve+pt(tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
-                                                           and mftStart(mSolve, f, tSolve)
-                                                           and uft_online(unit, f, tSolve)
-        } = r_startup(unit, starttype, f, tSolve+pt(tSolve));
 );
+
+v_startup.fx(unit, starttype, fRealization(f), t)${  ord(t) < tSolveFirst
+                                                     and p_stepLengthNoReset(mSolve, f, t)
+    } = r_startup(unit, starttype, f, t);
 
 v_shutdown.fx(unit, fRealization(f), t)${  ord(t) < tSolveFirst
                                            and p_stepLengthNoReset(mSolve, f, t)
