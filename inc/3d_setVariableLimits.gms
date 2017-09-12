@@ -228,11 +228,11 @@ loop(ft(f, tSolve),
                                                            and mftStart(mSolve, f, tSolve)
                                                            and uft_online(unit, f, tSolve)
         } = r_startup(unit, starttype, f, tSolve+pt(tSolve));
-    v_shutdown.fx(unit, f, tSolve+pt(tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
-                                                 and mftStart(mSolve, f, tSolve)
-                                                 and uft_online(unit, f, tSolve)
-        } = r_shutdown(unit, f, tSolve+pt(tSolve));
 );
+
+v_shutdown.fx(unit, fRealization(f), t)${  ord(t) < tSolveFirst
+                                           and p_stepLengthNoReset(mSolve, f, t)
+    } = r_shutdown(unit, f, t);
 
 // BoundStartToEnd
 v_state.fx(grid, node, ft_dynamic(f,t))${   mftLastSteps(mSolve, f, t)

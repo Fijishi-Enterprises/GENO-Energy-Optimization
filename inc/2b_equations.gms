@@ -843,13 +843,15 @@ q_rampDownLimit(gn(grid, node), m, unit, ft(f, t))${ gnuft_ramp(grid, node, unit
 ;
 *-----------------------------------------------------------------------------
 q_startuptype(m, unit, starttype, f, t)${  uft_online(unit, f, t)
-                                           and ft_dynamic(f,t)
+                                           and ft(f,t)
                                            and starttypeConstrained(starttype)} ..
   + v_startup(unit, starttype, f, t)
   =L=
   + sum(t_${  ord(t_)>[ord(t)-p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'intervalInHours')]
               and ord(t_)<=[ord(t)-p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'intervalInHours')]
-        }, v_shutdown(unit, f, t_)
+              and p_stepLengthNoReset(m, f+af(f,t_), t_)
+        },
+          + v_shutdown(unit, f+af(f,t_), t_)
     )
 * How to take into account varying time step lengths? And forecasts?
 ;

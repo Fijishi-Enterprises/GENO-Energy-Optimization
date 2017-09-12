@@ -232,6 +232,10 @@ Option clear = cpf;
 cpf(ft(f,t))${cf(f,t)} = cf(f,t);
 cpf(ft(f,t))${pf(f,t)} = pf(f,t);
 
+// Forecast displacement between realized and forecasted timesteps - starting from t_start
+Option clear = af;
+af(fSolve(f),t)${ord(t) <= smax(t_${sum(fRealization(f_), ft(f_,t_))}, tOrd(t_))} = sum(f__${fRealization(f__)}, ord(f__)) - ord(f);
+
 // Previous nodal forecast displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
 Option clear = pf_nReserves;
 pf_nReserves(node, restype, ft_dynamic(f, t))${ p_nReserves(node, restype, 'update_frequency')
