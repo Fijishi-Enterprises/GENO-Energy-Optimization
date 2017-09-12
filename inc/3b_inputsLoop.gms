@@ -49,27 +49,34 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
     put_utility 'gdxin' / 'input\tertiary\' tSolve.tl:0 '.gdx';
     execute_load ts_tertiary;
     ts_reserveDemand('tertiary', up_down, node, f, tt(t))${ mf(mSolve, f)
+                                                            and gn('elec', node)
                                                             and not fRealization(f)
-        } = min(500, ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
+*        } = min(500, ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
+        } = max(p_nReserves(node, 'primary', up_down), ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
+
 ); // END IF readForecastsInTheLoop
 
 putclose log;
 
 * --- Improve forecasts -------------------------------------------------------
 
-// Define updated time window
-Option clear = tt;
-tt(t)${ ord(t) >= ord(tSolve)
-        and ord(t) <= ord(tSolve) + f_improve
-    } = yes;
+// !!! TEMPORARY MEASURES !!!
+if(mSettings(mSolve, 'forecasts') > 0,
 
-// Improve capacity factors, linear improvement towards fRealization
-loop(fRealization(f_),
-    ts_cf(flow, node, f, tt(t))${   not fRealization(f)
-                                    and fRealization(f_)
-                                    and mf(mSolve, f)
-        } = (
-                (ord(t) - ord(tSolve)) * ts_cf(flow, node, f, t)
-                + (f_improve + ord(tSolve) - ord(t)) * ts_cf(flow, node, f_, t)
-            ) / f_improve;
-);
+    // Define updated time window
+    Option clear = tt;
+    tt(t)${ ord(t) >= ord(tSolve)
+            and ord(t) <= ord(tSolve) + f_improve
+        } = yes;
+
+    // Improve capacity factors, linear improvement towards fRealization
+    loop(fRealization(f_),
+        ts_cf(flow, node, f, tt(t))${   not fRealization(f)
+                                        and fRealization(f_)
+                                        and mf(mSolve, f)
+            } = (
+                    (ord(t) - ord(tSolve)) * ts_cf(flow, node, f, t)
+                    + (f_improve + ord(tSolve) - ord(t)) * ts_cf(flow, node, f_, t)
+                ) / f_improve;
+    );
+); // END IF forecasts

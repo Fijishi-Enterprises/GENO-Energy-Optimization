@@ -116,7 +116,7 @@ v_reserve.up(nuRescapable(restype, 'up', node, unit_elec), f+cf_nReserves(node, 
 v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), f+cf_nReserves(node, restype, f, t), t)${  nuft(node, unit_elec, f, t)
                                                                                                         and ord(t) < tSolveFirst + mSettings(mSolve, 't_reserveLength')
     } = min {   p_nuReserves(node, unit_elec, restype, 'down') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
-                v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
+                v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t) // Generator + consuming unit available unit_elec. output delta
                 }
             * ( + 1${ft_nReserves(node, restype, f+cf_nReserves(node, restype, f, t), t)} // reserveContribution limits the reliability of reserves locked ahead of time.
                 + p_nuReserves(node, unit_elec, restype, 'reserveContribution')${not ft_nReserves(node, restype, f+cf_nReserves(node, restype, f, t), t)}

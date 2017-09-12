@@ -410,11 +410,13 @@ loop(unit,
 * --- Probabilities -----------------------------------------------------------
 * -----------------------------------------------------------------------------
 
-// Clear probabilities from previous solve
+// Update probabilities
 Option clear = p_sft_probability;
-p_sft_probability(s, f, t)$(sInitial(s) and ft(f,t)) = p_fProbability(f) / sum(f_$ft(f_,t), p_fProbability(f_));
-p_sft_probability(s, f, t)$(sInitial(s) and fCentral(f) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$(fCentral(f_) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')), p_fProbability(f_));
-p_sft_probability(s, f, t)$(sInitial(s) and ord(f) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon') and mSettings(mSolve, 't_forecastLength') >= mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$ft_dynamic(f_,t), p_fProbability(f_));
+p_sft_probability(sInitial(s), ft(f,t)) = p_fProbability(f+cf_Central(f,t)) / sum(f_${ft(f_,t)}, p_fProbability(f_));
+p_sft_probability(sInitial(s), ft_realized(f,t)) = p_fProbability(f);
+p_sft_probability(sInitial(s), ft_full(f,t))${  mftLastSteps(mSolve, f, t)
+                                                and not cf_Central(f,t)
+    } = p_fProbability(f) / sum(f_${ft_full(f_,t)}, p_fProbability(f_));
 
 
 
