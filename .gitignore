@@ -3,3 +3,5 @@
 .spyderproject
 /temp/**/*
 tools/
+build/
+dist/

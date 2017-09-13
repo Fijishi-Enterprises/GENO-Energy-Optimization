@@ -16,22 +16,21 @@ SUCCESS_COLOR = QColor('green')
 NEUTRAL_COLOR = QColor('blue')
 BLACK_COLOR = QColor('black')
 
-# Application path
+# Application, Configuration file, default project and work directory paths
 if getattr(sys, 'frozen', False):
     APPLICATION_PATH = os.path.realpath(os.path.dirname(sys.executable))
+    CONFIGURATION_FILE = os.path.abspath(os.path.join(APPLICATION_PATH, 'titan.conf'))
+    DEFAULT_PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, 'projects'))
+    DEFAULT_WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, 'work'))
 else:
     APPLICATION_PATH = os.path.realpath(os.path.dirname(__file__))
-
-# Sceleton configuration file and default project directory paths
-CONFIGURATION_FILE = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'conf', 'titan.conf'))
-DEFAULT_PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'projects'))
+    CONFIGURATION_FILE = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'conf', 'titan.conf'))
+    DEFAULT_PROJECT_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'projects'))
+    DEFAULT_WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
 
 # Project input/output directory names
 INPUT_STORAGE_DIR = 'input'
 OUTPUT_STORAGE_DIR = 'output'
-
-# Work directory
-DEFAULT_WORK_DIR = os.path.abspath(os.path.join(APPLICATION_PATH, os.path.pardir, 'work'))
 
 # GAMS
 if not sys.platform == 'win32':
