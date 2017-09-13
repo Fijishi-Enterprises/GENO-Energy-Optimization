@@ -1151,6 +1151,9 @@ class TitanUI(QMainWindow):
     @pyqtSlot(name='delete_selected_setup')
     def delete_selected_setup(self):
         """Removes selected Setup(s) and all of it's children from the SetupModel."""
+        if not self._project:
+            self.add_msg_signal.emit("No project open", 0)
+            return
         show_question_box = True
         del_input_dirs = self._config.getboolean('settings', 'delete_input_dirs')
         indexes = self.get_selected_setup_indexes()
