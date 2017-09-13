@@ -43,6 +43,7 @@ Sets
     unittype "Unit technology types"
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
+    group "A group of units and transfer links"
 
 * --- Nodes -----------------------------------------------------------------
 *    node_reservoir(node)  "Hydropower reservoirs"
@@ -64,6 +65,8 @@ Sets
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
     gngnu_fixedOutputRatio(grid, node, grid, node, unit) "Units with a fixed ratio between two different grids of output (e.g. backpressure)"
     gngnu_constrainedOutputRatio(grid, node, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
+    gnu_group(grid, node, unit, group) "Units in particular groups"
+    gn2n_group(grid, node, node, group) "Transfer links in particular groups"
 
 * --- Reserve types -----------------------------------------------------------
     restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
@@ -108,7 +111,7 @@ Sets
     uft(unit, f, t) "Enables aggregation of units for later time periods"
     uft_online(unit, f, t) "Units with online and startup variables on time periods"
     uft_online_last(unit, f, t) "Last (f,t) when online variables are included"
-    uft_online_incl_previous(unit, f, t) "Units with online and startup variables on time periods including the last realized period from previous solve" 
+    uft_online_incl_previous(unit, f, t) "Units with online and startup variables on time periods including the last realized period from previous solve"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"

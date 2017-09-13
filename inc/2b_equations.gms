@@ -49,6 +49,7 @@ equations
     q_minDown(mType, unit, f, t) "Unit must stay non-operational if it has shut down during the previous minShutDownTime hours"
     q_capacityMargin(grid, node, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
     q_emissioncap(grid, node, emission) "Limit for emissions"
+    q_instantaneousShareMax(grid, node, group, f, t) "Maximum instantaneous share of generation and import from a group of units and transfer links"
 ;
 
 $setlocal def_penalty 1e9
@@ -960,3 +961,25 @@ q_emissioncap(grid, node, emission)${p_gnPolicy(grid, node, 'emissionCap', emiss
   =L=
   p_gnPolicy(grid, node, 'emissionCap', emission)
 ;
+*-----------------------------------------------------------------------------
+q_instantaneousShareMax(gn(grid, node), group, ft(f, t))${p_gnPolicy(grid, node, 'instantaneousShareMax', group)} ..
+    // Generation of units in the group
+  + sum(gnu(grid, node, unit)${  gnu_group(grid, node, unit, group)
+                                 and p_gnu(grid, node, unit, 'unitSizeGen')
+        }, v_gen(grid, node, unit, f, t)
+    )
+    // Controlled import of transfer links in the group
+  + sum(gn2n(grid, from_node, node)${gn2n_group(grid, from_node, node, group)
+        }, v_transfer(grid, from_node, node, f, t) * (1 - p_gnn(grid, from_node, node, 'transferLoss'))
+    )
+  =L=
+  + (
+      - ts_influx_(grid, node, f, t)  // External power inflow/outflow
+      - sum(gnu(grid, node, unit)${p_gnu(grid, node, unit, 'unitSizeCons')  // Consumption of units
+            }, v_gen(grid, node, unit, f, t)
+        )
+      + sum(gn2n(grid, node, to_node), v_transfer(grid, node, to_node, f, t))  // Controlled export
+    )
+  * p_gnPolicy(grid, node, 'instantaneousShareMax', group)
+;
+* Energy diffusion?

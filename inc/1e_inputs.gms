@@ -49,6 +49,9 @@ $loaddc ts_influx
 $loaddc ts_nodeState
 $loaddc p_gnugnu
 $loaddc t_invest
+$loaddc group
+$loaddc gnu_group
+$loaddc gn2n_group
 $gdxin
 
 $ontext
