@@ -75,19 +75,9 @@ fSolve(f)$mf(mSolve,f) = yes;
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve
 tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
 
-// Determine the next and latest forecasts
-tForecastNext(mSolve)${ ord(tSolve) >= tForecastNext(mSolve)
-                        } = tForecastNext(mSolve) + mSettings(mSolve, 't_ForecastJump');
-loop(tLatestForecast,  // There should be only one latest forecast
-    ts_cf(flow,node,f,t)${  ord(f) > 1
-                            and ord(f) <= mSettings(mSolve, 'forecasts') + 1
-                            and ord(t) >= tSolveFirst + f_improve and
-                            ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
-                            } = ts_forecast(flow,node,tLatestForecast,f,t);
-);
-
 // Initializing sets and counters
 Option clear = tCounter;
+*Option clear = pt;
 Option clear = p_stepLength;
 Option clear = ft;
 Option clear = ft_dynamic;
@@ -138,14 +128,18 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         ft_full(fSolve, t) = ft(fSolve, t) + ft_dynamic(fSolve, t);
 
         // Select time series data matching the intervals, for intervalLength = 1, this is trivial.
-        ts_influx_(grid, node, ft_full(fSolve, t)) = ts_influx(grid, node, fSolve, t+ct(t));
-        ts_cf_(flow, node, ft(fSolve, tInterval(t))) = ts_cf(flow, node, fSolve, t+ct(t));
-        ts_unit_(unit, param_unit, ft(fSolve, tInterval(t))) = ts_unit(unit, param_unit, fSolve, t+ct(t));
+        ts_influx_(gn(grid, node), ft(fSolve, tInterval(t))) = ts_influx(grid, node, fSolve, t+ct(t));
+        ts_cf_(flow, node, ft(fSolve, tInterval(t)))${  sum(grid, gn(grid, node)) // Only include nodes that have a grid attributed to them
+            } = ts_cf(flow, node, fSolve, t+ct(t));
+        ts_unit_(unit, param_unit, ft(fSolve, tInterval(t)))${  p_unit(unit, 'useTimeseries') // Only include units that have timeseries attributed to them
+            } = ts_unit(unit, param_unit, fSolve, t+ct(t));
         // Reserve demand relevant only up until t_reserveLength
-        ts_reserveDemand_(restype, up_down, node, ft(fSolve, tInterval(t)))${ ord(t) <= mSettings(mSolve, 't_reserveLength')
+        ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(fSolve, tInterval(t)))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')
             } = ts_reserveDemand(restype, up_down, node, fSolve, t+ct(t));
-        // nodeState uses ft_dynamic, requiring displacement
-        ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_full(fSolve, t)) = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
+        // Last nodeState value handled by the next interval or the end of horizon, only calculated for nodes with timeseries data
+        ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_full(fSolve, tInterval(t)))${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+                                                                                                    and [ft_dynamic(fSolve, t) or ord(t) = tSolveFirst]
+            } = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
 
     // If intervalLength exceeds 1 (intervalLength < 1 not defined)
     elseif mInterval(mSolve, 'intervalLength', counter) > 1,
@@ -173,25 +167,33 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         ft_full(fSolve, t) = ft(fSolve, t) + ft_dynamic(fSolve, t);
 
         // Select and average time series data matching the intervals, for intervalLength > 1
-        loop(ft(fSolve, tInterval(t)), // Loop over the t:s of the interval
+        loop(ft_full(fSolve, tInterval(t)), // Loop over the t:s of the interval
             Option clear = tt;
             tt(t_)${ord(t_) >= ord(t)
                     and ord(t_) < ord(t) + mInterval(mSolve, 'intervalLength', counter)
                     } = yes; // Select t:s within the interval
-            ts_influx_(grid, node, fSolve, t) = sum(tt(t_), ts_influx(grid, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
-            ts_cf_(flow, node, fSolve, t) = sum(tt(t_), ts_cf(flow, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
-            ts_unit_(unit, param_unit, fSolve, t) = sum(tt(t_), ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_influx_(gn(grid, node), ft(fSolve, t)) = sum(tt(t_), ts_influx(grid, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_cf_(flow, node, ft(fSolve, t))${ sum(grid, gn(grid, node)) // Only include nodes with grids attributed to them
+                } = sum(tt(t_), ts_cf(flow, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            ts_unit_(unit, param_unit, ft(fSolve, t))${ p_unit(unit, 'useTimeseries') // Only include units with timeseries attributed to them
+                } = sum(tt(t_), ts_unit(unit, param_unit, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
             // Reserves relevant only until t_reserveLength
-            ts_reserveDemand_(restype, up_down, node, fSolve, t)${  ord(t) <= mSettings(mSolve, 't_reserveLength')
+            ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(fSolve, t))${  ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')
                 } = sum(tt(t_), ts_reserveDemand(restype, up_down, node, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
-            // nodeState uses ft_dynamic, requiring displacement
-            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t + mInterval(mSolve, 'intervalLength', counter)) = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
+            // Last nodeState handled by the next interval or the end of horizon.
+            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+                                                                                    and [ft_dynamic(fSolve, t) or ord(t) = tSolveFirst]
+                } = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+ct(t_))) / p_stepLength(mSolve, fSolve, t);
         ); // END LOOP tInterval
 
     // Abort if intervalLength is less than one
     elseif mInterval(mSolve, 'intervalLength', counter) < 1, abort "intervalLength < 1 is not defined!"
 
     ); // END IF intervalLenght
+
+    // The nodeState at the the end of the horizon doesn't have a defined p_stepLength (and isn't included in the tIntervals), so using raw data value.
+    ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_dynamic(fSolve, t))${ord(t) = tSolveLast
+        } = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
 
     // Update tCounter for the next interval
     tCounter = mInterval(mSolve, 'intervalEnd', counter);
@@ -220,7 +222,13 @@ ft_nReserves(node, restype, fRealization(f), t)${   p_nReserves(node, restype, '
 // Current forecast displacement between realized and forecasted timesteps
 Option clear = cf;
 cf(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')
-                } = sum(f_${fRealization(f_)}, ord(f_) - ord(f));
+                } = sum(fRealization(f_), ord(f_) - ord(f));
+
+// Current forecast displacement between central and forecasted timesteps
+Option clear = cf_Central;
+cf_Central(ft_dynamic(f,t+pt(t)))${ not ft_dynamic(f, t)
+                                            and not fRealization(f)
+    } = sum(fCentral(f_), ord(f_) - ord(f));
 
 // Previous forecast displacement between realized and forecasted timesteps
 Option clear = pf;
@@ -306,7 +314,8 @@ Option clear = gnuft_ramp;
 gnuft_ramp(gnuft(grid, node, unit, f, t))${ p_gnu(grid, node, unit, 'maxRampUp')
                                             OR p_gnu(grid, node, unit, 'maxRampDown')
                                             OR p_gnu(grid, node, unit, 'rampUpCost')
-                                            OR p_gnu(grid, node, unit, 'rampDownCost') } = yes;
+                                            OR p_gnu(grid, node, unit, 'rampDownCost')
+    } = yes;
 
 // Defining unit efficiency groups etc.
 Option clear = suft;
@@ -325,14 +334,13 @@ sufts(effGroup, unit, f, t, effSelector)$(effGroupSelector(effGroup, effSelector
 
 // Units with online variables on each forecast-time step
 Option clear = uft_online;
-*Option clear = p_uft_online_last;
+Option clear = uft_online_last;
 Option clear = uft_online_last;
 loop(suft(effOnline, uft(unit, f, t)), // Determine the time steps when units need to have online variables.
     uft_online(unit, f, t) = yes;
-*    p_uft_online_last(uft_online(unit, f, t)) = ord(t);
 );
 uft_online_last(uft_online(unit, f+pf(f,t), t+pt(t)))${ not uft_online(unit, f, t)
-                                                        and ft_dynamic(f, t)
+                                                        and ft(f, t)
     } = yes;
 Option clear = uft_online_incl_previous;
 uft_online_incl_previous(uft_online(unit, f, t)) = yes;
@@ -423,25 +431,17 @@ loop(unit,
 );
 
 * -----------------------------------------------------------------------------
-* --- Reserves ----------------------------------------------------------------
-* -----------------------------------------------------------------------------
-
-// Nodes with reserve requirements
-loop(gn(grid, node),
-    restypeDirectionNode(restypeDirection(restype, up_down), node)$(p_nReserves(node, restype, 'use_time_series') and sum((f,t), ts_reserveDemand(restype, up_down, node, f, t))) = yes;
-    restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
-);
-
-* -----------------------------------------------------------------------------
 * --- Probabilities -----------------------------------------------------------
 * -----------------------------------------------------------------------------
 
-// Clear probabilities from previous solve
+// Update probabilities
 Option clear = p_sft_probability;
-*p_sft_probability(s, f, t)$(sInitial(s) and ft(f,t)) = p_fProbability(f) / sum(f_$ft(f_,t), p_fProbability(f_));
-p_sft_probability(s, f, t)$(ft(f,t) and msft(mSolve, s, f, t)) = p_fProbability(f) / sum(f_$ft(f_,t), p_fProbability(f_)) * p_sProbability(s);
-p_sft_probability(s, f, t)$(sInitial(s) and fCentral(f) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$(fCentral(f_) and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon')), p_fProbability(f_));
-p_sft_probability(s, f, t)$(sInitial(s) and ord(f) > 1 and ord(t) = tSolveFirst + mSettings(mSolve, 't_horizon') and mSettings(mSolve, 't_forecastLength') >= mSettings(mSolve, 't_horizon')) = p_fProbability(f) / sum(f_$ft_dynamic(f_,t), p_fProbability(f_));
+p_sft_probability(s, ft(f,t))${msft(mSolve, s, f, t)} = p_fProbability(f+cf_Central(f,t)) / sum(f_${ft(f_,t)}, p_fProbability(f_)) * p_sProbability(s);
+p_sft_probability(s, ft_realized(f,t))${msft(mSolve, s, f, t)} = p_fProbability(f) * p_sProbability(s);
+p_sft_probability(s, ft_full(f,t))${  mftLastSteps(mSolve, f, t)
+                                      and msft(mSolve, s, f, t)
+                                      and not cf_Central(f,t)
+    } = p_fProbability(f) / sum(f_${ft_full(f_,t)}, p_fProbability(f_)) * p_sProbability(s);
 
 
 

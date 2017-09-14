@@ -18,21 +18,30 @@ $offtext
 * --- Variable limits ---------------------------------------------------------
 // v_state absolute boundaries set according to p_gn parameters;
 // When using constant values and to supplement time series with constant values (time series will override when data available)
-v_state.up(gn_state(grid, node), ft_full(f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
+v_state.up(gn_state(grid, node), ft_full(f, t))${   p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
     } = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
-v_state.lo(gn_state(grid, node), ft_full(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+v_state.lo(gn_state(grid, node), ft_full(f, t))${   p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
     } = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
 v_state.fx(gn_state(grid, node), ft_full(f, t))${   p_gn(grid, node, 'boundAll')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
     } = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
 // When using time series
-v_state.up(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
+v_state.up(gn_state(grid, node), ft_full(f, t))${   p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
+                                                    and not cf_Central(f,t)
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
     } = ts_nodeState_(grid, node,   'upwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
-v_state.lo(gn_state(grid, node), ft_dynamic(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
+v_state.lo(gn_state(grid, node), ft_full(f, t))${   p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
+                                                    and not cf_Central(f,t)
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
     } = ts_nodeState_(grid, node, 'downwardLimit', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
 v_state.fx(gn_state(grid, node), ft_full(f, t))${   p_gn(grid, node, 'boundAll')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
+                                                    and not cf_Central(f,t)
+                                                    and [ft_dynamic(f, t) or ord(t) = tSolveFirst]
     } = ts_nodeState_(grid, node, 'reference', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 // Other time dependent parameters and variable limits
 // Max. energy generation
@@ -59,56 +68,42 @@ v_gen.up(gnu(grid, node, unit), ft(f,t))${p_gnu(grid, node, unit, 'maxGen') < 0
     } = 0;
 
 // v_online cannot exceed unit count
-v_online.up(unit, ft_dynamic(f,t))${    ( uft_online(unit, f, t)
-                                          or [    uft_online(unit, f, t+pt(t))
-                                                  and fRealization(f)
-                                                  ]
-                                        ) and not unit_investMIP(unit)
+v_online.up(unit, ft_full(f,t))${   (   uft_online(unit, f, t)
+                                        or [    uft_online(unit, f, t+pt(t))
+                                                and fRealization(f)
+                                           ]
+                                    ) and not unit_investMIP(unit)
     } = p_unit(unit, 'unitCount');
-// Restrict v_online also in the last dynamic time step
-v_online.up(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
-                                                and not unit_investMIP(unit)
-    } = p_unit(unit, 'unitCount');
+
 // v_online is zero for units with continuous online variable
-v_online.fx(uft_online(unit, ft_full(f,t)))${unit_investLP(unit)
-    } = 0;
-v_online.fx(unit, ft_dynamic(f,t))${    ( uft_online(unit, f, t)
-                                          or [    uft_online(unit, f, t+pt(t))
-                                                  and fRealization(f)
-                                                  ]
-                                        ) and unit_investLP(unit)
+v_online.fx(unit, ft_full(f,t))${   (   uft_online(unit, f, t)
+                                        or [   uft_online(unit, f, t+pt(t))
+                                               and fRealization(f)
+                                               ]
+                                    ) and unit_investLP(unit)
     } = 0;
 v_online.fx(uft_online_incl_previous(unit, f, t))${unit_investLP(unit)
     } = 0;
-// Restrict v_online also in the last dynamic time step
-v_online.fx(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
-                                                and unit_investLP(unit)
-    } = 0;
+
 // v_online_LP is zero for units without continuous online variable
-v_online_LP.fx(uft_online(unit, ft_full(f,t)))${not unit_investLP(unit)
-    } = 0;
-v_online_LP.fx(unit, ft_dynamic(f,t))${    ( uft_online(unit, f, t)
-                                             or [    uft_online(unit, f, t+pt(t))
-                                                     and fRealization(f)
-                                                     ]
-                                           ) and not unit_investLP(unit)
+v_online_LP.fx(unit, ft_full(f,t))${   (   uft_online(unit, f, t)
+                                           or [   uft_online(unit, f, t+pt(t))
+                                                  and fRealization(f)
+                                              ]
+                                       ) and not unit_investLP(unit)
     } = 0;
 v_online_LP.fx(uft_online_incl_previous(unit, f, t))${not unit_investLP(unit)
-    } = 0;
-// Restrict v_online_LP also in the last dynamic time step
-v_online_LP.fx(uft_online(unit, ft_dynamic(f,t)))${mftLastSteps(mSolve, f, t)
-                                                   and not unit_investLP(unit)
     } = 0;
 
 // Max. & min. spilling
 v_spill.lo(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useConstant')
-    } = p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    } = p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier');
 v_spill.lo(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'minSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    } = ts_nodeState_(grid, node, 'minSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'minSpill', 'multiplier');
 v_spill.up(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'useConstant')
-    } = p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    } = p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier');
 v_spill.up(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'useTimeSeries')
-    } = ts_nodeState_(grid, node, 'maxSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier') * p_stepLength(mSolve, f, t);
+    } = ts_nodeState_(grid, node, 'maxSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier');
 
 // Restrictions on transferring energy between nodes
 v_transfer.up(gn2n(grid, from_node, to_node), ft(f, t))$(not p_gnn(grid, from_node, to_node, 'transferCapInvLimit'))
@@ -122,13 +117,19 @@ v_resTransfer.up(restypeDirectionNode(restype, up_down, from_node), to_node, ft(
 v_reserve.up(nuRescapable(restype, 'up', node, unit_elec), f+cf_nReserves(node, restype, f, t), t)${    nuft(node, unit_elec, f, t)
                                                                                                         and ord(t) < tSolveFirst + mSettings(mSolve, 't_reserveLength')
     } = min {   p_nuReserves(node, unit_elec, restype, 'up') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
-                v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
-                };
+                v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t) // Generator + consuming unit available unit_elec. output delta
+                }
+            * ( + 1${ft_nReserves(node, restype, f+cf_nReserves(node, restype, f, t), t)} // reserveContribution limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit_elec, restype, 'reserveContribution')${not ft_nReserves(node, restype, f+cf_nReserves(node, restype, f, t), t)}
+              );
 v_reserve.up(nuRescapable(restype, 'down', node, unit_elec), f+cf_nReserves(node, restype, f, t), t)${  nuft(node, unit_elec, f, t)
                                                                                                         and ord(t) < tSolveFirst + mSettings(mSolve, 't_reserveLength')
     } = min {   p_nuReserves(node, unit_elec, restype, 'down') * [ p_gnu('elec', node, unit_elec, 'maxGen') + p_gnu('elec', node, unit_elec, 'maxCons') ],  // Generator + consuming unit res_range limit
-                v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t)                           // Generator + consuming unit available unit_elec. output delta
-                };
+                v_gen.up('elec', node, unit_elec, f, t) - v_gen.lo('elec', node, unit_elec, f, t) // Generator + consuming unit available unit_elec. output delta
+                }
+            * ( + 1${ft_nReserves(node, restype, f+cf_nReserves(node, restype, f, t), t)} // reserveContribution limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit_elec, restype, 'reserveContribution')${not ft_nReserves(node, restype, f+cf_nReserves(node, restype, f, t), t)}
+              );
 
 // Max and min capacity investment
 v_invest_LP.up(gnu(grid, node, unit), t)${    (p_gnu(grid, node, unit, 'maxGenCap') > 0)
@@ -175,7 +176,7 @@ v_startup.fx(unit, 'warm', ft_dynamic(f, t))${not p_unit(unit, 'startCold')} = 0
 loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
         v_reserve.fx(nuRescapable(restype, up_down, node, unit_elec), f, t)${   ft_nReserves(node, restype, f, t)
                                                                                 and ord(t) >= mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
-                                                                                and not unit_flow(unit_elec)           // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
+                                                                                and not unit_flow(unit_elec) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
             } = r_reserve(restype, up_down, node, unit_elec, f, t);
         v_resTransfer.fx(restype, up_down, node, to_node, f, t)${   ft_nReserves(node, restype, f, t)
                                                                     and restypeDirectionNode(restype, up_down, to_node)
@@ -189,41 +190,30 @@ loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
     v_resTransfer.fx('tertiary', up_down, node, to_node, ft_realized(ft(f,t)))${    sum(grid, gn2n(grid, node, to_node))
         } = 0;
 );
-* --- Bounds overwritten for the first solve -----------------------------------
-loop(ft(f, tSolve),
+* --- Bounds overwritten for the first timestep --------------------------------
+loop(mftStart(mSolve, f, t),
     // First solve, state variables (only if boundStart flag is true)
-    v_state.fx(grid, node, f, tSolve)${ gn_state(grid,node)
-                                        and p_gn(grid, node, 'boundStart')
-                                        and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
-                                        and tSolveFirst = mSettings(mSolve, 't_start')
+    v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
+                                                and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                                and tSolveFirst = mSettings(mSolve, 't_start')
         } = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant') * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
     // Time series form boundary
-    v_state.fx(grid, node, f, tSolve)${ gn_state(grid,node)
-                                        and p_gn(grid, node, 'boundStart')
-                                        and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
-                                        and tSolveFirst = mSettings(mSolve, 't_start')
-        } = ts_nodeState_(grid, node, 'reference', 'f00', tSolve) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
-
-    // First solve, online variables
-    v_online.up(uft_online(unit, f, tSolve))${ tSolveFirst = mSettings(mSolve, 't_start')
-                                               and not unit_investMIP(unit)
-        } = p_unit(unit, 'unitCount');
+    v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
+                                                and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
+                                                and tSolveFirst = mSettings(mSolve, 't_start')
+        } = ts_nodeState_(grid, node, 'reference', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
     // State and online variables fixed for the subsequent solves
-    v_state.fx(gn_state(grid, node), f, tSolve)${   not ord(tSolve) = mSettings(mSolve, 't_start')
-                                                    and mftStart(mSolve, f, tSolve)
-        } = r_state(grid, node, f, tSolve);
-    v_online.fx(uft_online(unit, f, tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
-                                                and mftStart(mSolve, f, tSolve)
-        } = r_online(unit, f, tSolve);
-    v_online.fx(unit, f, tSolve+pt(tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
-                                               and mftStart(mSolve, f, tSolve)
-                                               and uft_online(unit, f, tSolve)
-        } = r_online(unit, f, tSolve+pt(tSolve));
+    v_state.fx(gn_state(grid, node), f, t)${    not ord(t) = mSettings(mSolve, 't_start')
+        } = r_state(grid, node, f, t);
+    v_online.fx(uft_online(unit, f, t))${  not ord(t) = mSettings(mSolve, 't_start')
+        } = r_online(unit, f, t);
+    v_online.fx(unit, f, t+pt(t))${  not ord(tSolve) = mSettings(mSolve, 't_start')
+                                     and uft_online(unit, f, t)
+        } = r_online(unit, f, t+pt(t));
     // Generation, startup and shutdown variables fixed for the subsequent solves
-    v_gen.fx(gnu(grid, node, unit), f, tSolve+pt(tSolve))${  not ord(tSolve) = mSettings(mSolve, 't_start')
-                                                             and mftStart(mSolve, f, tSolve)
-        } = r_gen(grid, node, unit, f, tSolve+pt(tSolve));
+    v_gen.fx(gnu(grid, node, unit), f, t+pt(t))${  not ord(tSolve) = mSettings(mSolve, 't_start')
+        } = r_gen(grid, node, unit, f, t+pt(t));
 );
 
 v_startup.fx(unit, starttype, fRealization(f), t)${  ord(t) < tSolveFirst
@@ -235,8 +225,8 @@ v_shutdown.fx(unit, fRealization(f), t)${  ord(t) < tSolveFirst
     } = r_shutdown(unit, f, t);
 
 // BoundStartToEnd
-v_state.fx(grid, node, ft_dynamic(f,t))${   mftLastSteps(mSolve, f, t)
-                                            and p_gn(grid, node, 'boundStartToEnd')
+v_state.fx(grid, node, ft_full(f,t))${  mftLastSteps(mSolve, f, t)
+                                        and p_gn(grid, node, 'boundStartToEnd')
     } = r_state(grid, node, f, t);
 
 

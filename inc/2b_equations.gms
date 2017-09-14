@@ -54,7 +54,7 @@ equations
     q_energyShareMin(grid, node, group) "Minimum energy share of generation and import from a group of units and transfer links"
 ;
 
-$setlocal def_penalty 1e9
+$setlocal def_penalty 1e6
 Scalars
     PENALTY "Default equation violation penalty" / %def_penalty% /
 ;
@@ -63,7 +63,7 @@ Parameters
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (€/MW)"
 ;
 PENALTY_BALANCE(grid) = %def_penalty%;
-PENALTY_RES(restype, up_down) =  1e-1*%def_penalty%;
+PENALTY_RES(restype, up_down) = %def_penalty%;
 
 * -----------------------------------------------------------------------------
 q_obj ..
@@ -79,6 +79,7 @@ q_obj ..
                 $$ifi '%rampSched%' == 'yes' (p_stepLength(m, f, t) + p_stepLength(m, f, t+1))/2 *
                      v_gen(grid, node, unit, f, t)$nuft(node, unit, f, t)
            )
+
          // Fuel and emission costs
          + sum((uft(unit_fuel, f, t), fuel)$uFuel(unit_fuel, 'main', fuel),
               + p_stepLength(m, f, t)
@@ -89,6 +90,7 @@ q_obj ..
                            p_unitFuelEmissionCost(unit_fuel, fuel, emission) )
                      )
            )
+
          // Start-up costs
          + sum(uft_online(unit, f, t),
              + sum(starttype,
@@ -114,6 +116,7 @@ q_obj ..
                    }
                )
            )
+
          // Ramping costs
          + sum(gnuft_ramp(grid, node, unit, f, t)${ [ p_gnu(grid, node, unit, 'rampUpCost')
                                                       or p_gnu(grid, node, unit, 'rampDownCost')
@@ -125,9 +128,28 @@ q_obj ..
                 + p_gnu(grid, node, unit, 'rampDownCost') * v_genRampChange(grid, node, unit, 'down', f, t+pt(t))
               )
            )
+
+         // "Cost" of spilling energy, !!! TEMPORARY MEASURES !!!
+         + sum(gn(grid, node_spill(node)),
+            + v_spill(grid, node, f, t) * p_stepLength(m, f, t)
+           )
+
         )  // END * p_sft_probability(s,f,t)
     ) // END sum over msft(m, s, f, t)
+*$ontext
 
+    // Node state slack variable penalties
+  + sum(gn_stateSlack(grid, node),
+    + sum(ms(m, s),
+      + sum(ft_full(f, t)${ ft_dynamic(f,t) or mftStart(m, f, t) },
+        + p_stepLength(m, f, t)
+        * p_sft_probability(s, f, t)
+        * sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
+                + p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost') * v_stateSlack(grid, node, slack, f, t)
+            )
+        )
+      )
+    )
     // Value of energy storage change
   - sum(mftLastSteps(m, f, t)$active('storageValue'),
          sum(gn_state(grid, node),
@@ -139,15 +161,26 @@ q_obj ..
          sum(gn_state(grid, node),
               p_storageValue(grid, node, t) *
                   sum(s$p_sft_probability(s,f,t), p_sft_probability(s, f, t) * v_state(grid, node, f, t))
-         )
+         ) * mSettings(m, 'forecasts') // Correction for the smaller amount of starting points
     )
-  - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mftStart(m, f, t), p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t))     // minus value of avoiding startup costs before
-*  - sum((s, uft_online(unit, ft_dynamic(f,t)))$(ord(t) = p_uft_online_last(unit, f, t)), p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t)) // or after the model solve
-  - sum((s, uft_online_last(unit, ft_dynamic(f,t))), p_sft_probability(s, f, t) * 0.5 * v_online(unit, f+cf(f,t), t)) // or after the model solve
-  - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mftStart(m, f, t), p_sft_probability(s, f, t) * 0.5 * v_online_LP(unit, f+cf(f,t), t))     // minus value of avoiding startup costs before
-*  - sum((s, uft_online(unit, ft_dynamic(f,t)))$(ord(t) = p_uft_online_last(unit, f, t)), p_sft_probability(s, f, t) * 0.5 * v_online_LP(unit, f+cf(f,t), t)) // or after the model solve
-
-    // Dummy variables
+$ontext
+    // "Value" of online units, !!! TEMPORARY MEASURES !!!
+  - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mftStart(m, f, t),
+        + p_sft_probability(s, f, t) * 0.5
+            * (
+                + v_online(unit, f+cf(f,t), t) * p_unit(unit, 'startCost')
+                + v_online_LP(unit, f+cf(f,t), t) * p_unit(unit, 'startCost_MW')
+              )
+        ) // minus value of avoiding startup costs before
+  - sum((s, uft_online_last(unit, ft_dynamic(f,t))),
+        + p_sft_probability(s, f, t) * 0.5
+            * (
+                + v_online(unit, f+cf(f,t), t) * p_unit(unit, 'startCost')
+                + v_online_LP(unit, f+cf(f,t), t) * p_unit(unit, 'startCost_MW')
+              )
+        ) // or after the model solve
+$offtext
+    // Dummy variable penalties
   + sum(msft(m, s, f, t), p_sft_probability(s, f, t) * (
         sum(inc_dec,
             sum( gn(grid, node), vq_gen(inc_dec, grid, node, f, t) * (p_stepLength(m, f, t) + p_stepLength(m, f+pf(f,t), t+pt(t))${not p_stepLength(m, f, t)}) * PENALTY_BALANCE(grid) )
@@ -158,17 +191,6 @@ q_obj ..
             * PENALTY_RES(restype, up_down)
           )
       )
-    )
-    // Node state slack variable penalties
-  + sum(gn_stateSlack(grid, node),
-      + sum(msft(m, s, f, t),
-          + sum(upwardSlack$p_gnBoundaryPropertiesForStates(grid, node, upwardSlack, 'slackCost'),
-              + p_sft_probability(s, f, t) * ( p_gnBoundaryPropertiesForStates(grid, node,   upwardSlack, 'slackCost') * v_stateSlack(grid, node,   upwardSlack, f, t) )
-            )
-          + sum(downwardSlack$p_gnBoundaryPropertiesForStates(grid, node, downwardSlack, 'slackCost'),
-              + p_sft_probability(s, f, t) * ( p_gnBoundaryPropertiesForStates(grid, node, downwardSlack, 'slackCost') * v_stateSlack(grid, node, downwardSlack, f, t) )
-            )
-        )
     )
   + sum(t_invest(t),
       // Unit investment costs
@@ -189,10 +211,12 @@ q_obj ..
 ;
 
 * -----------------------------------------------------------------------------
-q_balance(gn(grid, node), m, ft_dynamic(f, t))${p_stepLength(m, f+pf(f,t), t+pt(t)) and not p_gn(grid, node, 'boundAll')} .. // Energy/power balance dynamics solved using implicit Euler discretization
+q_balance(gn(grid, node), m, ft_dynamic(f, t))${    p_stepLength(m, f+pf(f,t), t+pt(t))
+                                                    and not p_gn(grid, node, 'boundAll')
+                                                } .. // Energy/power balance dynamics solved using implicit Euler discretization
   // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
   + p_gn(grid, node, 'energyStoredPerUnitOfState')$gn_state(grid, node) // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
-      * ( + v_state(grid, node, f, t)                           // The difference between current
+      * ( + v_state(grid, node, f+cf_Central(f,t), t)                   // The difference between current
           - v_state(grid, node, f+pf(f,t), t+pt(t))                     // ... and previous state of the node
         )
   =E=
@@ -201,20 +225,20 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))${p_stepLength(m, f+pf(f,t), t+pt(
       + (
           // Self discharge out of the model boundaries
           - p_gn(grid, node, 'selfDischargeLoss')$gn_state(grid, node) * (
-              + v_state(grid, node, f, t)                                               // The current state of the node
+              + v_state(grid, node, f+cf_Central(f,t), t)                                               // The current state of the node
               $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+pf(f,t), t+pt(t))    // and possibly averaging with the previous state of the node
             )
           // Energy diffusion from this node to neighbouring nodes
           - sum(to_node$(gnn_state(grid, node, to_node)),
               + p_gnn(grid, node, to_node, 'diffCoeff') * (
-                  + v_state(grid, node, f, t)
+                  + v_state(grid, node, f+cf_Central(f,t), t)
                   $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+pf(f,t), t+pt(t))
                 )
             )
           // Energy diffusion from neighbouring nodes to this node
           + sum(from_node$(gnn_state(grid, from_node, node)),
               + p_gnn(grid, from_node, node, 'diffCoeff') * (
-                  + v_state(grid, from_node, f, t)                                             // Incoming diffusion based on the state of the neighbouring node
+                  + v_state(grid, from_node, f+cf_Central(f,t), t)                                             // Incoming diffusion based on the state of the neighbouring node
                   $$ifi '%rampSched%' == 'yes' + v_state(grid, from_node, f+pf(f,t), t+pt(t))  // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
                 )
             )
@@ -254,7 +278,7 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))${p_stepLength(m, f+pf(f,t), t+pt(
 q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) < tSolveFirst + sum[mf(m, f), mSettings(m, 't_reserveLength')]
                                                                         } ..
   + sum(nuft(node, unit, f, t)${nuRescapable(restype, up_down, node, unit)},   // Reserve capable units on this node
-        v_reserve(restype, up_down, node, unit, f+cf_nReserves(node, restype, f, t), t) // * p_nuReserves(node, unit, restype, 'reserveContribution')
+        v_reserve(restype, up_down, node, unit, f+cf_nReserves(node, restype, f, t), t)
     )
   + sum(gn2n(grid, from_node, node)${restypeDirectionNode(restype, up_down, from_node)},
         (1 - p_gnn(grid, from_node, node, 'transferLoss')
@@ -299,9 +323,9 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + m
                                            }..
   + v_gen(grid, node, unit, f, t)                                                                                    // energy generation/consumption
   + sum( gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit),
-        p_gnu(grid_, node_, unit, 'cV') * v_gen(grid_, node_, unit, f, t) )                                          // considering output constraints (e.g. cV line)
-  - sum(nuRescapable(restype, 'down', node, unit)$[unit_elec(unit) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')],  // minus downward reserve participation
-        v_reserve(restype, 'down', node, unit, f+cf_nReserves(node, restype, f, t), t)                               // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+        p_gnu(grid_, node_, unit, 'cV') * v_gen(grid_, node_, unit, f, t) ) // considering output constraints (e.g. cV line)
+  - sum(nuRescapable(restype, 'down', node, unit)$[unit_elec(unit) and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')], // minus downward reserve participation
+        v_reserve(restype, 'down', node, unit, f+cf_nReserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
     )
   =G=   // must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
   // Generation units, greater than minload
@@ -529,22 +553,23 @@ q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, 
       / p_gnu(grid_, node_, unit, 'cB')
 ;
 * -----------------------------------------------------------------------------
-q_stateSlack(gn_stateSlack(grid, node), slack, ft_dynamic(f, t))$p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost') ..
+q_stateSlack(gn_stateSlack(grid, node), slack, ft_full(f, t))${ p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
+                                                                and [ft_dynamic(f,t) or sum(m, mftStart(m, f, t))]
+                                                                } ..
   + v_stateSlack(grid, node, slack, f, t)
   =G=
   + p_slackDirection(slack) * (
-      + v_state(grid, node, f, t)
+      + v_state(grid, node, f+cf_Central(f,t), t)
       - p_gnBoundaryPropertiesForStates(grid, node, slack, 'constant')$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useConstant')
       - ts_nodeState(grid, node, slack, f, t)$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries')
     )
 ;
 * -----------------------------------------------------------------------------
-q_stateUpwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'down', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
-                                                        or sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, nuRescapable(restype, 'down', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
-                                                        or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))  // or nodes that have units whose invested capacity limits their state
-                                                      ) ..
-  ( // Utilizable headroom in the state variable
-      + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
+q_stateUpwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))${ sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'down', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
+                                                                or sum(gn2gnu(grid_, node_input, grid, node, unit)$(sum(restype, nuRescapable(restype, 'down', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
+                                                                or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))  // or nodes that have units whose invested capacity limits their state
+                                                                }..  ( // Utilizable headroom in the state variable
+      + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant') * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
       + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'upwardLimit', f, t)
       + sum{gnu(grid, node, unit), sum(t_$(ord(t_)<=ord(t)), v_invest_LP(grid, node, unit, t_) * p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))}
       + sum{gnu(grid, node, unit),
@@ -554,7 +579,7 @@ q_stateUpwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(gr
               * p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
             )
         }
-      - v_state(grid, node, f, t)
+      - v_state(grid, node, f+cf_Central(f,t), t)
   )
       * ( // Accounting for the energyStoredPerUnitOfState ...
           + p_gn(grid, node, 'energyStoredPerUnitOfState')
@@ -585,11 +610,11 @@ q_stateUpwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(gr
         )
 ;
 * -----------------------------------------------------------------------------
-q_stateDownwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'up', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
-                                                          or sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, nuRescapable(restype, 'up', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
-                                                        ) ..
+q_stateDownwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))${   sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'up', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
+                                                                    or sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, nuRescapable(restype, 'up', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
+                                                                    } ..
   ( // Utilizable headroom in the state variable
-      + v_state(grid, node, f, t)
+      + v_state(grid, node, f+cf_Central(f,t), t)
       - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
       - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'downwardLimit', f, t)
   )
@@ -623,7 +648,7 @@ q_stateDownwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))$(    sum(gn2gnu(
 ;
 * -----------------------------------------------------------------------------
 q_boundState(gnn_boundState(grid, node, node_), m, ft_dynamic(f, t)) ..
-    + v_state(grid, node, f, t)   // The state of the first node sets the upper limit of the second
+    + v_state(grid, node, f+cf_Central(f,t), t)   // The state of the first node sets the upper limit of the second
     + ( // Downward reserve provided by units in node
 *        - sum(nuRescapable(restype, 'down', node, unit)${nuft(unit, f+pf(f,t), t+pt(t))},
 *            + v_reserve(restype, 'down', node, unit, f+pf(f,t), t+pt(t))
@@ -644,7 +669,7 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft_dynamic(f, t)) ..
         / (p_gn(grid, node, 'energyStoredPerUnitOfState') )                                     // Divide by the stored energy in the node per unit of v_state to obtain same unit as the v_state
         * p_stepLength(m, f+pf(f,t), t+pt(t))                                                   // Multiply with time step to obtain change in state over the step
     =G=
-    + v_state(grid, node_, f, t)
+    + v_state(grid, node_, f+cf_Central(f,t), t)
     + p_gnn(grid, node, node_, 'boundStateOffset')                                              // Affected by the offset parameter
     + (  // Possible reserve by this node
 *        + sum(nuRescapable(restype, 'up', node_, unit)${nuft(node, unit, f+pf(f,t), t+pt(t))},
@@ -668,19 +693,19 @@ q_boundState(gnn_boundState(grid, node, node_), m, ft_dynamic(f, t)) ..
 ;
 * -----------------------------------------------------------------------------
 q_boundStateMaxDiff(gnn_state(grid, node, node_), m, ft_dynamic(f, t))$p_gnn(grid, node, node_, 'boundStateMaxDiff') ..
-  + v_state(grid, node, f, t)   // The state of the first node sets the lower limit of the second
+  + v_state(grid, node, f+cf_Central(f,t), t)  // The state of the first node sets the lower limit of the second
   =L=
-  + v_state(grid, node_, f, t)
-  + p_gnn(grid, node, node_, 'boundStateMaxDiff')                                              // Affected by the maximum difference parameter
+  + v_state(grid, node_, f+cf_Central(f,t), t)
+  + p_gnn(grid, node, node_, 'boundStateMaxDiff')  // Affected by the maximum difference parameter
 ;
 * -----------------------------------------------------------------------------
 q_boundCyclic(gn_state(grid, node), mftStart(m, f, t), fCentral(f_), t_)${  p_gn(grid, node, 'boundCyclic')         // Bind variables if parameter found
                                                                             AND tSolveFirst = mSettings(m, 't_start') // For the very first model solve only
                                                                             AND mftLastSteps(m, f_, t_)              // Use only the ending time step of the model solve
                                                                             }..
-    + v_state(grid, node, f, t)
+    + v_state(grid, node, f+cf_Central(f,t), t)
     =E=
-    + v_state(grid, node, f_, t_)
+    + v_state(grid, node, f_+cf_Central(f,t), t_)
 ;
 * -----------------------------------------------------------------------------
 q_bidirectionalTransfer(gn2n_bidirectional(grid, node, node_), ft(f, t))${p_gnn(grid, node, node_, 'transferCapBidirectional')} ..

@@ -170,8 +170,25 @@ loop(gn2n_bidirectional(grid, node, node_)${p_gnn(grid, node, node_, 'transferCa
 );
 
 * Assume values for critical node related parameters, if not provided by input data
-p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multiplier')$(not p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'multiplier')) = 1; // If multiplier has not been set, set it to 1 by default
+p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multiplier')${  not p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'multiplier')
+                                                                                        and sum(param_gnBoundaryProperties, p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, param_gnBoundaryProperties))
+    } = 1; // If multiplier has not been set, set it to 1 by default
 *p_gn(gn(grid, node), 'energyStoredPerUnitOfState')$(not p_gn(grid, node, 'energyStoredPerUnitOfState') and not p_gn(grid, node, 'boundAll')) = 1; // If unitConversion has not been set, default to 1; If the state is bound, there is no need for the term
+
+* -----------------------------------------------------------------------------
+* --- Reserves ----------------------------------------------------------------
+* -----------------------------------------------------------------------------
+
+// Nodes with reserve requirements
+loop(gn(grid, node),
+    restypeDirectionNode(restypeDirection(restype, up_down), node)$(p_nReserves(node, restype, 'use_time_series') and sum((f,t), ts_reserveDemand(restype, up_down, node, f, t))) = yes;
+    restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
+);
+
+* Assume values for critical reserve related parameters, if not provided by input data
+p_nuReserves(nu(node, unit), restype, 'reserveContribution')${  not p_nuReserves(node, unit, restype, 'reserveContribution')
+                                                                and sum(up_down, nuRescapable(restype, up_down, node, unit))
+    } = 1;
 
 * --- Perform various data checks, and abort if errors are detected -----------
 * Check the integrity of node connection related data
