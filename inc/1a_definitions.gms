@@ -277,7 +277,9 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     update_frequency "???"
     gate_closure "???"
     emissionCap "Emission limit (tonne)"
-    instantaneousShareMax "Maximum instantaneous share of generation from a particular group of units"
+    instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
+    energyShareMax "Maximum energy share of generation from a particular group of units"
+    energyShareMin "Minimum energy share of generation from a particular group of units"
 /
 
 param_gnugnu "Set of possible data parameters for grid, node, unit, grid, node, unit" /

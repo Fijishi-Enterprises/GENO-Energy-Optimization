@@ -50,6 +50,8 @@ equations
     q_capacityMargin(grid, node, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
     q_emissioncap(grid, node, emission) "Limit for emissions"
     q_instantaneousShareMax(grid, node, group, f, t) "Maximum instantaneous share of generation and import from a group of units and transfer links"
+    q_energyShareMax(grid, node, group) "Maximum energy share of generation and import from a group of units and transfer links"
+    q_energyShareMin(grid, node, group) "Minimum energy share of generation and import from a group of units and transfer links"
 ;
 
 $setlocal def_penalty 1e9
@@ -983,3 +985,52 @@ q_instantaneousShareMax(gn(grid, node), group, ft(f, t))${p_gnPolicy(grid, node,
   * p_gnPolicy(grid, node, 'instantaneousShareMax', group)
 ;
 * Energy diffusion?
+*-----------------------------------------------------------------------------
+q_energyShareMax(gn(grid, node), group)${p_gnPolicy(grid, node, 'energyShareMax', group)} ..
+  + sum(msft(m, s, f, t),
+      + p_sft_Probability(s,f,t)
+      * p_stepLength(m, f, t)
+      * (
+            // Generation of units in the group
+          + sum(gnu(grid, node, unit)${  gnu_group(grid, node, unit, group)
+                                         and p_gnu(grid, node, unit, 'unitSizeGen')
+                }, v_gen(grid, node, unit, f, t)
+            )
+            // External power inflow/outflow and consumption of units times the minimum share
+          - (
+              - ts_influx_(grid, node, f, t)
+              - sum(gnu(grid, node, unit)${p_gnu(grid, node, unit, 'unitSizeCons')
+                    }, v_gen(grid, node, unit, f, t)
+                )
+            )
+              * p_gnPolicy(grid, node, 'energyShareMax', group)
+        )
+    )
+  =L=
+    0
+;
+*-----------------------------------------------------------------------------
+q_energyShareMin(gn(grid, node), group)${p_gnPolicy(grid, node, 'energyShareMin', group)} ..
+  + sum(msft(m, s, f, t),
+      + p_sft_Probability(s,f,t)
+      * p_stepLength(m, f, t)
+      * (
+            // Generation of units in the group
+          + sum(gnu(grid, node, unit)${  gnu_group(grid, node, unit, group)
+                                         and p_gnu(grid, node, unit, 'unitSizeGen')
+                }, v_gen(grid, node, unit, f, t)
+            )
+            // External power inflow/outflow and consumption of units times the minimum share
+          - (
+              - ts_influx_(grid, node, f, t)
+              - sum(gnu(grid, node, unit)${p_gnu(grid, node, unit, 'unitSizeCons')
+                    }, v_gen(grid, node, unit, f, t)
+                )
+            )
+              * p_gnPolicy(grid, node, 'energyShareMin', group)
+        )
+    )
+  =G=
+    0
+;
+
