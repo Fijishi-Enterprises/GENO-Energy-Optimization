@@ -81,4 +81,7 @@ Model invest /
     q_minDown
     q_capacityMargin
     q_emissionCap
+    q_instantaneousShareMax
+    q_energyShareMax
+    q_energyShareMin
 /;

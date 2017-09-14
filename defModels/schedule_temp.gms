@@ -99,6 +99,7 @@ Model schedule /
     q_stateUpwardLimit
     q_stateDownwardLimit
     q_boundState
+    q_boundStateMaxDiff
     q_boundCyclic
     q_bidirectionalTransfer
     q_onlineLimit
@@ -107,6 +108,7 @@ Model schedule /
     q_startuptype
     q_minUp
     q_minDown
+    q_instantaneousShareMax
 /;
 
 
