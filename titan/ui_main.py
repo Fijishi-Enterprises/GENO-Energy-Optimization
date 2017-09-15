@@ -1165,7 +1165,11 @@ class TitanUI(QMainWindow):
         for setup in setups:
             # Find index of setup
             index = self.setup_model.find_index(setup)
-            row = index.row()
+            try:
+                row = index.row()
+            except AttributeError:
+                # This happens when user tries to delete a child Setup whose Parent has already been deleted
+                continue
             parent = self.setup_model.parent(index)
             selected_setup = index.internalPointer()
             name = selected_setup.name
