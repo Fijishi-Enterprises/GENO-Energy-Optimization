@@ -1,3 +1,4 @@
+# Sceleton Titan development environment
 dependencies:
 - python >=3.4
 - openpyxl >=2.4.0

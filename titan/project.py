@@ -12,7 +12,7 @@ from metaobject import MetaObject
 from helpers import find_duplicates, project_dir, create_dir
 from config import DEFAULT_WORK_DIR
 from executable_tool import ExecutableTool
-from GAMS import GAMSModel, write_inc
+from GAMS import GAMSModel, write_inc, write_gdx
 
 
 class SceletonProject(MetaObject):
@@ -388,10 +388,10 @@ class SceletonProject(MetaObject):
             wb (ExcelHandler): Excel workbook
             ui (TitanUI): Titan user interface
         """
-        #TODO: Add GDX writing
         sheet_names = wb.sheet_names()
         n_data_sheets = 0
         excel_fname = os.path.split(wb.path)[1]
+        files_written = set()  # Files that have been written to
         for sheet in sheet_names:
             if sheet.lower() == 'project' or sheet.lower() == 'setups' or sheet.lower() == 'recipes':
                 continue
@@ -424,10 +424,12 @@ class SceletonProject(MetaObject):
                 ui.add_msg_signal.emit("Unknown Type '<b>{0}</b>' in header. Supported types are "
                                        "<b>set</b>, <b>parameter</b>, and <b>table</b>".format(header['type']), 2)
                 continue
+
             # Check that filename exists
             if not header['filename']:
                 ui.add_msg_signal.emit("Filename is missing", 2)
                 continue
+
             # Make filename
             if header['extension'] == '' or not header['extension']:
                 filename = header['filename']
@@ -435,6 +437,21 @@ class SceletonProject(MetaObject):
                 filename = header['filename'] + header['extension']  # If extension already has a dot
             else:
                 filename = header['filename'] + '.' + header['extension']
+
+            # Choose write function
+            _, ext = os.path.splitext(filename)
+            ext = ext.lower()[1:]  # Convert to lowercase and remove leading dot
+            if ext == 'inc':
+                writefunc = write_inc
+            elif ext == 'gdx':
+                writefunc = write_gdx
+            else:
+                ui.add_msg_signal.emit(
+                    "Unknown file format or no format given: '{}'".format(ext), 2)
+                continue
+
+            symbol_name = header['symbol']
+
             # Write lines from dictionary to files
             for key, value in data_dict.items():
                 index = setup_model.find_index(key)
@@ -445,19 +462,19 @@ class SceletonProject(MetaObject):
                 setup_name = index.internalPointer().name
                 input_dir = index.internalPointer().input_dir
                 dest_path = os.path.join(input_dir, filename)
-                if 'inc' in header['extension'].lower():
-                    writefunc = write_inc
-                else:
-                    # TODO: Message here
-                    continue
                 try:
-                    writefunc(dest_path, *value)
-                except OSError:
-                    ui.add_msg_signal.emit("OSError: Writing to file <b>{0}</b> failed".format(dest_path), 2)
+                    # Write data. Append if file already visited
+                    writefunc(dest_path, symbol_name, *value,
+                              append=(dest_path in files_written))
+                except (OSError, ImportError) as e:
+                    ui.add_msg_signal.emit(
+                        "{}: Writing to file <b>{}</b> failed: {}"
+                            .format(type(e).__name__, dest_path, e), 2)
                 else:
                     ui.add_msg_signal.emit(
                         "File <b>{0}</b> written to Setup <b>{1}</b> input directory ({2} lines) "
                         .format(filename, setup_name, len(value) + 1), 0)
+                    files_written.add(dest_path)
             ui.add_msg_signal.emit("Processing sheet <b>{0}</b> done".format(sheet), 1)
         if n_data_sheets == 0:
             ui.add_msg_signal.emit("No data sheets found", 0)

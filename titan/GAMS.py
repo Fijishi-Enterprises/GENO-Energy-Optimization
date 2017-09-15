@@ -201,18 +201,26 @@ class GAMSModel(Tool):
         return True
 
 
-def write_inc(filepath, keys, values):
+def write_inc(filepath, symbol, keys, values, append=False):
     """Write a GAMS include file
 
     Args:
         filepath (str)
         keys (list of tuples)
         values (list)
+        append (bool)
+            Append to existing file
     Raises:
         OSError
     """
-    with open(filepath, 'w') as dfile:
-            dfile.write("$offlisting\n")
+    if append:
+        fmode = 'w+'
+    else:
+        fmode = 'w'
+    with open(filepath, mode=fmode) as dfile:
+            if not append:
+                dfile.write("$offlisting\n")
+                dfile.write('* {}\n'.format(symbol))
             for key, val in zip(keys, values):
                 r = '.'.join(map(str, key))
                 if val is not None:
@@ -220,3 +228,30 @@ def write_inc(filepath, keys, values):
                         val = '"{}"'.format(val)
                     r += ' {}'.format(val)
                 dfile.write(r + '\n')
+
+
+def write_gdx(filepath, symbol, keys, values, append=False):
+    """Write a GAMS Data eXchange (GDX) file
+    Args:
+        filepath (str)
+        symbol (str)
+        keys (list of tuples)
+        values (list)
+        append (bool)
+            Append to existing file
+    Raises:
+        OSError
+        ImportError
+    """
+    try:
+        from gdx2py import GdxFile
+    except ImportError:
+        raise ImportError("GDX support not available")
+
+    if append:
+        fmode = 'w+'
+    else:
+        fmode = 'w'
+
+    with GdxFile(filepath, mode=fmode) as f:
+        f[symbol] = (keys, values)

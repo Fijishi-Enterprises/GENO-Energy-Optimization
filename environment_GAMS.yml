@@ -1,0 +1,5 @@
+# Add GAMS functionality to Sceleton environment
+dependencies:
+- pip:
+    - "//ad.vtt.fi/vtt-new/BA-Projects/S/Sceleton/Programs/Python and modules installation packages/64-bit/gams/gdxcc-7.0-cp36-cp36m-win_amd64.whl"
+    - git+https://github.com/ererkka/GDX2py@master
