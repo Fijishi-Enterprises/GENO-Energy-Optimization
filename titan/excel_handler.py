@@ -158,7 +158,7 @@ class ExcelHandler:
         setup_list = [v[0].value for v in data if v[0].value is not None]
         setups = Counter(map(str.lower, setup_list)).keys()  # Collect Setups (lower-case) to a list
         for setup_name in setups:
-            d[setup_name] = list()  # Make a list for each Setup
+            d[setup_name] = (list(), list())  # Initialize lists for each Setup
         # Iterate rows to make lines that are ready to be written into file
         for i in range(len(data)):
             row = [c.value for c in data[i]]
@@ -166,10 +166,11 @@ class ExcelHandler:
             if not setup:
                 logging.error("No Setup on data (set) row {0}".format(i))
                 continue
-            row_with_no_nones = [x for x in row if x is not None]  # Remove all NoneTypes
-            row_with_no_empty_strings = [x for x in row_with_no_nones if x is not '']  # Remove all empty strings ('')
-            line = '.'.join(map(str, row_with_no_empty_strings)) + "\n"  # Make a set string
-            d[setup.lower()].append(line)
+            if None in row or '' in row:  # Skip rows with missing data
+                logging.error("Incomplete data (set) row {0}".format(i))
+                continue
+            d[setup.lower()][0].append(tuple(row))  # Append indices
+            d[setup.lower()][1].append(None)  # TODO: Append explanatory text
         return d
 
     def process_parameter_data(self, data):
@@ -191,7 +192,7 @@ class ExcelHandler:
         setup_list = [v[0].value for v in data if v[0].value is not None]
         setups = Counter(map(str.lower, setup_list)).keys()  # Collect Setups (lower-case) to a list
         for setup_name in setups:
-            d[setup_name] = list()  # Make entry to dictionary for each Setup
+            d[setup_name] = (list(), list())  # Initialize lists for each Setup
         # Iterate rows to make lines that are ready to be written into file
         for i in range(len(data)):
             row = [c.value for c in data[i]]
@@ -199,11 +200,17 @@ class ExcelHandler:
             if not setup:
                 logging.error("No Setup on data (parameter) row {0}".format(i))
                 continue
-            row_with_no_nones = [x for x in row if x is not None]  # Remove all NoneTypes
-            row_with_no_empty_strings = [x for x in row_with_no_nones if x is not '']  # Remove all empty strings ('')
-            line = '.'.join(map(str, row_with_no_empty_strings[:-1]))  # Make a set string
-            line += "=" + str(row_with_no_empty_strings[-1]) + "\n"  # Append value and a newline character
-            d[setup.lower()].append(line)
+            if None in row or '' in row:  # Skip rows with missing data
+                logging.error("Missing values on data (parameter) row {0}".format(i))
+                continue
+            indices = tuple(row[:-1])
+            try:
+                value = float(row[-1])
+            except ValueError:
+                logging.error("No value on data (parameter) row {0}".format(i))
+                continue
+            d[setup.lower()][0].append(indices)  # Append indices
+            d[setup.lower()][1].append(value)   # Append value
         return d
 
     def process_table_data(self, data):
@@ -248,7 +255,7 @@ class ExcelHandler:
         setup_list = [v[0] for v in clean_setup_set_value_data if v[0] is not None]  # This probably never has Nones
         setups = Counter(map(str.lower, setup_list)).keys()  # Collect Setups (lower-case) to a list
         for setup_name in setups:
-            d[setup_name] = list()  # Make entry to dictionary for each Setup
+            d[setup_name] = (list(), list())  # Initialize lists for each Setup
         # Make written lines for each setup
         for j in range(len(clean_setup_set_value_data)):
             # j is row
@@ -262,15 +269,12 @@ class ExcelHandler:
                     logging.error("IndexError in table data. No set in index {0}".format(i))
                     sets = list()
                 try:
-                    value = clean_setup_set_value_data[j][i+2]  # Value
+                    value = float(clean_setup_set_value_data[j][i+2])  # Value
                 except IndexError:
                     logging.error("IndexError in table data. No value in index {0}".format(i+2))
-                    value = ''
-                if not sets:
-                    line = set1 + "=" + value + '\n'  # This happens when data is missing
-                else:
-                    line = set1 + '.' + '.'.join(sets) + "=" + value + '\n'
-                d[setup.lower()].append(line)
+                    value = None
+                d[setup.lower()][0].append(tuple([set1] + sets))
+                d[setup.lower()][1].append(value)
         return d
 
     # noinspection PyMethodMayBeStatic

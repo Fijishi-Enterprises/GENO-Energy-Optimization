@@ -199,3 +199,24 @@ class GAMSModel(Tool):
             logging.error("Failed to write GAMS project file: {0}".format(filepath))
             return False
         return True
+
+
+def write_inc(filepath, keys, values):
+    """Write a GAMS include file
+
+    Args:
+        filepath (str)
+        keys (list of tuples)
+        values (list)
+    Raises:
+        OSError
+    """
+    with open(filepath, 'w') as dfile:
+            dfile.write("$offlisting\n")
+            for key, val in zip(keys, values):
+                r = '.'.join(map(str, key))
+                if val is not None:
+                    if isinstance(val, str):  # Quote explanatory text
+                        val = '"{}"'.format(val)
+                    r += ' {}'.format(val)
+                dfile.write(r + '\n')

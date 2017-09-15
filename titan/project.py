@@ -12,7 +12,7 @@ from metaobject import MetaObject
 from helpers import find_duplicates, project_dir, create_dir
 from config import DEFAULT_WORK_DIR
 from executable_tool import ExecutableTool
-from GAMS import GAMSModel
+from GAMS import GAMSModel, write_inc
 
 
 class SceletonProject(MetaObject):
@@ -388,6 +388,7 @@ class SceletonProject(MetaObject):
             wb (ExcelHandler): Excel workbook
             ui (TitanUI): Titan user interface
         """
+        #TODO: Add GDX writing
         sheet_names = wb.sheet_names()
         n_data_sheets = 0
         excel_fname = os.path.split(wb.path)[1]
@@ -444,14 +445,19 @@ class SceletonProject(MetaObject):
                 setup_name = index.internalPointer().name
                 input_dir = index.internalPointer().input_dir
                 dest_path = os.path.join(input_dir, filename)
+                if 'inc' in header['extension'].lower():
+                    writefunc = write_inc
+                else:
+                    # TODO: Message here
+                    continue
                 try:
-                    with open(dest_path, 'w') as dfile:
-                        dfile.write("$offlisting\n")
-                        dfile.writelines(value)
-                    ui.add_msg_signal.emit("File <b>{0}</b> written to Setup <b>{1}</b> input directory ({2} lines) "
-                                           .format(filename, setup_name, len(value)+1), 0)
+                    writefunc(dest_path, *value)
                 except OSError:
                     ui.add_msg_signal.emit("OSError: Writing to file <b>{0}</b> failed".format(dest_path), 2)
+                else:
+                    ui.add_msg_signal.emit(
+                        "File <b>{0}</b> written to Setup <b>{1}</b> input directory ({2} lines) "
+                        .format(filename, setup_name, len(value) + 1), 0)
             ui.add_msg_signal.emit("Processing sheet <b>{0}</b> done".format(sheet), 1)
         if n_data_sheets == 0:
             ui.add_msg_signal.emit("No data sheets found", 0)
