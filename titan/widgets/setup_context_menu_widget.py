@@ -34,6 +34,7 @@ class SetupContextMenuWidget(QMenu):
             self.add_action("Clear Flags")
             self.add_action("Clear All Flags")
             self.add_action("Clone")
+            self.add_action("Enable/Disable")
         self.exec_(position)
 
     def add_action(self, text):

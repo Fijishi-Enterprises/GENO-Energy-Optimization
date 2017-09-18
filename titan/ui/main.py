@@ -73,6 +73,7 @@ class Ui_MainWindow(object):
         self.treeView_setups.setTextElideMode(QtCore.Qt.ElideRight)
         self.treeView_setups.setIndentation(20)
         self.treeView_setups.setUniformRowHeights(True)
+        self.treeView_setups.setAllColumnsShowFocus(True)
         self.treeView_setups.setExpandsOnDoubleClick(False)
         self.treeView_setups.setObjectName("treeView_setups")
         self.treeView_setups.header().setMinimumSectionSize(50)

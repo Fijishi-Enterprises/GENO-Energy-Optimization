@@ -331,6 +331,8 @@ class TitanUI(QMainWindow):
         # Set custom item delegate for QTreeView
         self.setup_delegate = SetupStyledItemDelegate(self)
         self.ui.treeView_setups.setItemDelegateForColumn(0, self.setup_delegate)
+        self.ui.treeView_setups.setItemDelegateForColumn(1, self.setup_delegate)
+        self.ui.treeView_setups.setItemDelegateForColumn(2, self.setup_delegate)
         # Set SetupModel to QTreeView
         self.ui.treeView_setups.setModel(self.setup_model)
         self.ui.treeView_setups.setColumnWidth(0, 160)
@@ -987,6 +989,8 @@ class TitanUI(QMainWindow):
             return
         elif option == "Clone":
             self.clone_setup(ind)
+        elif option == "Enable/Disable":
+            self.enable_disable_setups()
         else:
             # No option selected
             pass
@@ -1306,6 +1310,28 @@ class TitanUI(QMainWindow):
                     self.add_msg_signal.emit("Directory <b>{0}</b> removed".format(path), 0)
         return
 
+    @pyqtSlot(name='enable_disable_setups')
+    def enable_disable_setups(self):
+        """Enable or Disable selected Setup(s)."""
+        if not self._project:
+            self.add_msg_signal.emit("No project open", 0)
+            return
+        indexes = self.get_selected_setup_indexes()
+        if not indexes:
+            self.add_msg_signal.emit("No Setup selected<br/>", 0)
+            return
+        # Get names of Setups to be disabled
+        for ind in indexes:
+            name = ind.internalPointer().name
+            # Disable/Enable Setup
+            if ind.internalPointer().disabled:
+                # Clear also is_ready flag
+                ind.internalPointer().is_ready = False
+                ind.internalPointer().disabled = False
+            else:
+                ind.internalPointer().disabled = True
+        self.setup_model.emit_data_changed()
+
     def execute_single(self):
         """Execute selected Setup."""
         self.exec_mode = 'single'
@@ -1323,6 +1349,9 @@ class TitanUI(QMainWindow):
 
     def execute_setup(self):
         """Start executing Setups according to the selected execution mode."""
+        if not self._project:
+            self.add_msg_signal.emit("Open a Project to execute Setups<br/>", 0)
+            return
         alg = ''
         # Find current text in the algorithm combobox
         for act in self.execute_toolbar.actions():
@@ -1335,17 +1364,21 @@ class TitanUI(QMainWindow):
         elif alg == "Depth-first":
             self.algorithm = False
         else:
-            self.add_msg_signal.emit("No tree traversal algorithm selected", 2)
+            self.add_msg_signal.emit("No tree-traversal algorithm selected", 2)
             return
         if self.exec_mode == 'single':
             # Execute a single selected Setup
-            selected_setup = self.get_selected_setup_index()
+            selected_setups = self.get_selected_setup_indexes()
             # Check if no Setup selected
-            if not selected_setup:
+            if not selected_setups:
                 self.add_msg_signal.emit("No Setup selected.<br/>", 0)
                 return
+            # Stop if more than one Setup selected
+            if len(selected_setups) > 1:
+                self.add_msg_signal.emit("<br/>Too many Setups selected", 0)
+                return
             self.add_msg_signal.emit("<br/>Executing a single Setup", 0)
-            self._running_setup = selected_setup.internalPointer()
+            self._running_setup = selected_setups[0].internalPointer()
         elif self.exec_mode == 'selected':
             # Set index of base Setup for the model
             base = self.get_selected_setup_base_index()
@@ -1358,9 +1391,6 @@ class TitanUI(QMainWindow):
             # Set Base Setup as the first running Setup
             self._running_setup = self.setup_model.get_base().internalPointer()
         elif self.exec_mode == 'project':
-            if not self._project:
-                self.add_msg_signal.emit("Open a Project to execute Setups<br/>", 0)
-                return
             if self._root.child_count() == 0:
                 self.add_msg_signal.emit("No Setups to execute", 0)
                 return
@@ -1389,7 +1419,6 @@ class TitanUI(QMainWindow):
         self.ui.tabWidget_tools.tabBar().setCurrentIndex(0)
         # Connect setup_finished_signal to setup_done slot
         self._running_setup.setup_finished_signal.connect(self.setup_done)
-        logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
         start_msg = "*** Starting Setup <b>{0}</b> ***".format(self._running_setup.name)
         star_line = "\t\t" + "*" * (len(start_msg) - 10)  # Deduct <b> tag space
         self.add_msg_signal.emit("<br/>" + star_line, 0)
@@ -1409,14 +1438,15 @@ class TitanUI(QMainWindow):
         except TypeError:  # Just in case
             # logging.warning("setup_finished_signal not connected")
             pass
-        if self._running_setup.failed:
+        if self._running_setup.failed and not self._running_setup.disabled:
             self.add_msg_signal.emit("Setup <b>{0}</b> failed".format(self._running_setup.name), 2)
             self._running_setup = None
             self.toggle_gui(True)
             return
-        if not self._running_setup.tool:  # No Tool
+        if not self._running_setup.tool and not self._running_setup.disabled:  # No Tool and Setup is not disabled
             self.add_msg_signal.emit("No Tool. No results.", 0)
-        self.add_msg_signal.emit("Setup <b>{0}</b> Done".format(self._running_setup.name), 1)
+        if not self._running_setup.disabled:
+            self.add_msg_signal.emit("Setup <b>{0}</b> Done".format(self._running_setup.name), 1)
         # Clear running Setup
         self._running_setup = None
         if self.exec_mode == 'single':
@@ -1450,7 +1480,6 @@ class TitanUI(QMainWindow):
                 self.toggle_gui(True)
                 return
             self._running_setup = next_setup.internalPointer()
-        logging.debug("Starting Setup <{0}>".format(self._running_setup.name))
         start_msg = "*** Starting Setup <b>{0}</b> ***".format(self._running_setup.name)
         star_line = "\t\t" + "*" * (len(start_msg) - 10)  # Deduct <b> tag space
         self.add_msg_signal.emit("<br/>" + star_line, 0)
@@ -1523,6 +1552,8 @@ class TitanUI(QMainWindow):
             elif act.text() == "Ready":
                 act.setEnabled(value)
             elif act.text() == "All":
+                act.setEnabled(value)
+            elif act.text() == "Disable":
                 act.setEnabled(value)
         # Start / stop animated icon QMovie
         if value:

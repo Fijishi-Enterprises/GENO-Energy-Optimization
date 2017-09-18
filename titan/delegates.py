@@ -6,7 +6,7 @@ Custom PyQt delegate classes.
 """
 
 from PyQt5.QtCore import Qt, QRect, QSize
-from PyQt5.Qt import QStyleOptionViewItem, QIcon, QStyle, QPixmap, QFontMetrics, QApplication
+from PyQt5.Qt import QStyleOptionViewItem, QIcon, QStyle, QPixmap, QFontMetrics, QApplication, QPalette
 from PyQt5.QtWidgets import QStyledItemDelegate
 
 
@@ -43,7 +43,7 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
 
     # noinspection PyArgumentList, PyUnresolvedReferences
     def paint(self, painter, options, index):
-        """Reimplemented paint method. Remenber to reimplement also
+        """Reimplemented paint method. Remember to reimplement also
         displayText method if super().paint() is called.
 
         Paints item with the following contents:
@@ -57,49 +57,86 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
         style = self.parent().style()
         palette = QApplication.palette()
         font = QApplication.font()
-        deco = index.model().data(index, Qt.DecorationRole)
-        text = index.internalPointer().name
-        icon = self.get_flag_icon(index.internalPointer())
-        main_rect = options.rect  # The allotted rectangle to fill (size given by sizeHint)
-        deco_width = 0
-        if deco:
-            deco_width = self.decoration_width
-        # Rectangle for decoration (spinning wheel animation)
-        deco_box = QRect()
-        deco_box.setX(main_rect.x() + self.padding)
-        deco_box.setY(main_rect.y())
-        deco_box.setWidth(deco_width)
-        deco_box.setHeight(main_rect.height())
-        # Rectangle where text is drawn
-        text_box = QRect()
-        text_box.setX(main_rect.x() + deco_box.width() + self.padding)
-        text_box.setY(main_rect.y())
-        text_box.setWidth(main_rect.width() - self.box_widths - deco_box.width() - self.padding)
-        text_box.setHeight(main_rect.height())
-        # Rectangle where flag icon is drawn
-        first_box = QRect()  # Rectangle for box icon (Extra 10 pixels space for 1st and 2nd box padding)
-        first_box.setX(main_rect.x() + main_rect.width() - self.box_width - self.box_w_padding)
-        first_box.setY(main_rect.y())
-        first_box.setWidth(self.box_width+self.box_w_padding)
-        first_box.setHeight(main_rect.height())
-        # Compact text when allotted space is too short for the whole text
-        metrics = QFontMetrics(font)
-        elided_text = metrics.elidedText(text, Qt.ElideRight, text_box.width())
-        # Set mode and state for flag icons
-        item_state = QIcon.On
-        item_mode = QIcon.Normal
-        if options.state & QStyle.State_Selected and options.state & QStyle.State_HasFocus:
-            item_mode = QIcon.Selected
-        # Draw item contents
-        style.drawControl(QStyle.CE_ItemViewItem, options, painter, options.widget)
-        # Draw decoration when Setup is running and if item has enough space
-        if deco and main_rect.width() > self.box_widths + self.decoration_width:
-            style.drawItemPixmap(painter, deco_box, Qt.AlignLeft | Qt.AlignVCenter,
-                                 deco.pixmap(QSize(deco_box.width(), self.box_height), item_mode, item_state))
-        style.drawItemText(painter, text_box, Qt.AlignLeft | Qt.AlignVCenter,
-                           palette, True, elided_text)
-        style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter,
-                             icon.pixmap(QSize(first_box.width(), self.box_height), item_mode, item_state))
+        if index.column() == 0:  # Setup column
+            deco = index.model().data(index, Qt.DecorationRole)
+            text = index.internalPointer().name
+            icon = self.get_flag_icon(index.internalPointer())
+            main_rect = options.rect  # The allotted rectangle to fill (size given by sizeHint)
+            deco_width = 0
+            if deco:
+                deco_width = self.decoration_width
+            # Rectangle for decoration (spinning wheel animation)
+            deco_box = QRect()
+            deco_box.setX(main_rect.x() + self.padding)
+            deco_box.setY(main_rect.y())
+            deco_box.setWidth(deco_width)
+            deco_box.setHeight(main_rect.height())
+            # Rectangle where text is drawn
+            text_box = QRect()
+            text_box.setX(main_rect.x() + deco_box.width() + self.padding)
+            text_box.setY(main_rect.y())
+            text_box.setWidth(main_rect.width() - self.box_widths - deco_box.width() - self.padding)
+            text_box.setHeight(main_rect.height())
+            # Rectangle where flag icon is drawn
+            first_box = QRect()  # Rectangle for box icon (Extra 10 pixels space for 1st and 2nd box padding)
+            first_box.setX(main_rect.x() + main_rect.width() - self.box_width - self.box_w_padding)
+            first_box.setY(main_rect.y())
+            first_box.setWidth(self.box_width+self.box_w_padding)
+            first_box.setHeight(main_rect.height())
+            # Compact text when allotted space is too short for the whole text
+            metrics = QFontMetrics(font)
+            elided_text = metrics.elidedText(text, Qt.ElideRight, text_box.width())
+            # Set mode and state for flag icons
+            item_state = QIcon.On
+            item_mode = QIcon.Normal
+            # if options.state & QStyle.State_Selected and options.state & QStyle.State_HasFocus:
+            if options.state & QStyle.State_Selected:
+                item_mode = QIcon.Selected
+            if index.internalPointer().disabled:
+                if options.state & QStyle.State_Selected:
+                    item_mode = QIcon.Selected
+                else:
+                    item_mode = QIcon.Disabled
+            # Draw item contents
+            style.drawControl(QStyle.CE_ItemViewItem, options, painter, options.widget)
+            # Draw decoration when Setup is running and if item has enough space
+            if deco and main_rect.width() > self.box_widths + self.decoration_width:
+                style.drawItemPixmap(painter, deco_box, Qt.AlignLeft | Qt.AlignVCenter,
+                                     deco.pixmap(QSize(deco_box.width(), self.box_height), item_mode, item_state))
+            if index.internalPointer().disabled:
+                style.drawItemText(painter, text_box, Qt.AlignLeft | Qt.AlignVCenter,
+                                   palette, True, elided_text, textRole=QPalette.Mid)
+            else:
+                style.drawItemText(painter, text_box, Qt.AlignLeft | Qt.AlignVCenter,
+                                   palette, True, elided_text)
+            style.drawItemPixmap(painter, first_box, Qt.AlignLeft | Qt.AlignVCenter,
+                                 icon.pixmap(QSize(first_box.width(), self.box_height), item_mode, item_state))
+        elif index.column() == 1:  # Tool column
+            if index.internalPointer().disabled:
+                tool_text_rect = options.rect
+                tool_text = index.model().data(index, Qt.DisplayRole)
+                # Compact text when allotted space is too short for the whole text
+                metrics = QFontMetrics(font)
+                elided_text = metrics.elidedText(tool_text, Qt.ElideRight, tool_text_rect.width())
+                # Draw item contents
+                style.drawControl(QStyle.CE_ItemViewItem, options, painter, options.widget)
+                style.drawItemText(painter, tool_text_rect, Qt.AlignLeft | Qt.AlignVCenter,
+                                   palette, True, elided_text, textRole=QPalette.Mid)
+            else:
+                super().paint(painter, options, index)
+        elif index.column() == 2:  # Args column
+            if index.internalPointer().disabled:
+                args_text_rect = options.rect
+                args_text = index.model().data(index, Qt.DisplayRole)
+                # Compact text when allotted space is too short for the whole text
+                metrics = QFontMetrics(font)
+                elided_text = metrics.elidedText(args_text, Qt.ElideRight, args_text_rect.width())
+                # Draw item contents
+                style.drawControl(QStyle.CE_ItemViewItem, options, painter, options.widget)
+                style.drawItemText(painter, args_text_rect, Qt.AlignLeft | Qt.AlignVCenter,
+                                   palette, True, elided_text, textRole=QPalette.Mid)
+            else:
+                super().paint(painter, options, index)
 
     def sizeHint(self, options, index):
         """Reimplemented sizeHint method. Needed in order to
@@ -115,7 +152,7 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
             h = self.box_height + self.box_h_padding
             return QSize(w, h)
         else:
-            super().sizeHint(options, index)
+            return super().sizeHint(options, index)
 
     # noinspection PyMethodMayBeStatic
     def get_flag_icon(self, setup):
@@ -128,6 +165,8 @@ class SetupStyledItemDelegate(QStyledItemDelegate):
         icon = QIcon()
         if setup.failed:
             icon.addPixmap(QPixmap(":/flags/fail_box.png"))
+        elif setup.is_ready and setup.disabled:
+            icon.addPixmap(QPixmap(":/flags/empty_box.png"))
         elif setup.is_ready and not setup.failed:
             icon.addPixmap(QPixmap(":/flags/check_mark.png"))
         else:

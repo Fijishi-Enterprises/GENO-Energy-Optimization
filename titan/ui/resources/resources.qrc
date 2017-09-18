@@ -11,6 +11,7 @@
     <file>VTT_RGB.png</file>
   </qresource>
   <qresource prefix="/toolButtons">
+    <file>disable.png</file>
     <file>verify_data.png</file>
     <file>explore_data.png</file>
     <file>results_data.png</file>

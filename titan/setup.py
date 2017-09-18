@@ -43,6 +43,7 @@ class Setup(MetaObject):
         self.running = False
         self.failed = False
         self.ready_to_run = None  # Used to draw background color when verifying input data
+        self.disabled = False  # Indicates if Setup is enabled or disabled
         # Create path to setup input directory (except for root)
         if not self.is_root:
             self.input_dir = os.path.join(project.project_dir, INPUT_STORAGE_DIR,
@@ -342,6 +343,11 @@ class Setup(MetaObject):
             ui (TitanUI): User interface
         """
         logging.info("Executing Setup '{}'".format(self.name))
+        if self.disabled:
+            self.is_ready = True
+            ui.add_msg_signal.emit("Setup {0} disabled".format(self.name), 3)
+            self.setup_finished_signal.emit()
+            return
         if self.is_ready:
             logging.debug("Setup '{}' ready. Starting next Setup".format(self.name))
             self.setup_finished_signal.emit()

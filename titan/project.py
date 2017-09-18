@@ -152,6 +152,7 @@ class SceletonProject(MetaObject):
             the_dict['cmdline_args'] = ""
         the_dict['is_ready'] = setup.is_ready
         the_dict['failed'] = setup.failed
+        the_dict['disabled'] = setup.disabled
         the_dict['n_child'] = setup.child_count()
         if setup.parent() is not None:
             the_dict['parent'] = parent_name
@@ -211,6 +212,7 @@ class SceletonProject(MetaObject):
                     cmdline_args = v['cmdline_args']
                     is_ready = False
                     failed = False
+                    disabled = False
                     try:
                         is_ready = v['is_ready']
                     except KeyError:
@@ -219,6 +221,10 @@ class SceletonProject(MetaObject):
                         failed = v['failed']
                     except KeyError:
                         logging.debug("failed not found")
+                    try:
+                        disabled = v['disabled']
+                    except KeyError:
+                        logging.debug("disabled not found")
                     logging.info("Loading Setup '%s'" % name)
                     ui.add_msg_signal.emit("Loading Setup <b>{0}</b>".format(name), 0)
                     if parent_name == 'root':
@@ -249,6 +255,7 @@ class SceletonProject(MetaObject):
                     # Set flags for Setup
                     setup.is_ready = is_ready
                     setup.failed = failed
+                    setup.disabled = disabled
                 self.parse_setups(v, setup_model, tool_model, ui)
 
     def parse_excel_setups(self, setup_model, tool_model, wb, ui):
@@ -274,8 +281,18 @@ class SceletonProject(MetaObject):
             tool_name = items[2][i]
             cmdline_args = items[3][i]
             desc = items[4][i]
-            is_ready = items[5][i]  # This might be a boolean already
-            failed = items[6][i]
+            try:
+                is_ready = items[5][i]  # This might be a boolean already
+            except IndexError:
+                is_ready = False
+            try:
+                failed = items[6][i]
+            except IndexError:
+                failed = False
+            try:
+                disabled = items[7][i]
+            except IndexError:
+                disabled = False
             logging.debug("{0} is_ready: {1} type: {2}".format(name, is_ready, type(is_ready)))
             # Make is_ready a boolean
             if not type(is_ready) == bool:
@@ -293,7 +310,7 @@ class SceletonProject(MetaObject):
             logging.debug("{0} failed: {1} type: {2}".format(name, failed, type(failed)))
             # Make failed a boolean
             if not type(failed) == bool:
-                if not failed:  # is_ready can be None
+                if not failed:  # failed can be None
                     failed = False
                 elif type(failed) == int:
                     if failed == 1:
@@ -304,6 +321,20 @@ class SceletonProject(MetaObject):
                     failed = True
                 else:
                     failed = False
+            logging.debug("{0} disabled: {1} type: {2}".format(name, disabled, type(disabled)))
+            # Make disabled a boolean
+            if not type(disabled) == bool:
+                if not disabled:  # disabled can be None
+                    disabled = False
+                elif type(disabled) == int:
+                    if disabled == 1:
+                        disabled = True
+                    else:
+                        disabled = False
+                elif disabled.lower() == 'true' or disabled.lower() == 'yes':
+                    disabled = True
+                else:
+                    disabled = False
             # Continue from next Setup if name is missing
             if not name:
                 ui.add_msg_signal.emit("Could not load Setup. Name missing.", 2)
@@ -345,6 +376,7 @@ class SceletonProject(MetaObject):
             # Set flags for Setup
             setup.is_ready = is_ready
             setup.failed = failed
+            setup.disabled = disabled
         return
 
     # noinspection PyMethodMayBeStatic
