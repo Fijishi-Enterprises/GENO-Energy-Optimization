@@ -45,6 +45,8 @@ if (mType('invest'),
     p_fProbability(f) = 0;
     p_fProbability(fRealization) = 1;
 
+    msStart('invest', 's000') = 1;
+    msEnd('invest', 's000') = msStart('invest', 's000') + 48;
 );
 
 Model invest /

@@ -77,6 +77,9 @@ if (mType('schedule'),
     p_fProbability('f01') = 0.2;
     p_fProbability('f02') = 0.6;
     p_fProbability('f03') = 0.2;
+
+    msStart('schedule', 's000') = 1;
+    msEnd('schedule', 's000') = msStart('invest', 's000') + 8759;
 );
 
 Model schedule /

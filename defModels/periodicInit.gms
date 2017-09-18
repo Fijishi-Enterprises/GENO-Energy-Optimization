@@ -231,3 +231,6 @@ loop(m,
 * Set slack direction
 p_slackDirection(upwardSlack) = 1;
 p_slackDirection(downwardSlack) = -1;
+
+* Calculating the order of time periods 
+tOrd(t) = ord(t);
