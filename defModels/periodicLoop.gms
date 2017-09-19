@@ -306,7 +306,7 @@ loop(effLevel$mSettingsEff(mSolve, effLevel),
     tInterval(t)$(     ord(t) >= tSolveFirst + mSettingsEff(mSolve, effLevel)
                    and ord(t) < tSolveFirst + mSettingsEff(mSolve, effLevel+1)
                  ) = yes;
-    loop(effLevelGroupUnit(effLevel, effGroup, unit)$(not sum(flow$flowUnit(flow, unit), 1)),
+    loop(effLevelGroupUnit(effLevel, effGroup, unit),//$(not sum(flow$flowUnit(flow, unit), 1)),
         suft(effGroup, unit, f, tInterval(t))$(effLevelGroupUnit(effLevel, effGroup, unit) and uft(unit, f, tInterval)) = yes;
     );
 );
