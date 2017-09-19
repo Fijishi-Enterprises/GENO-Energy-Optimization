@@ -40,6 +40,22 @@ r_spill(gn(grid, node), ft_realized(f, t)) = v_spill.l(grid, node, f, t);
 r_qGen(inc_dec, gn(grid, node), ft_realized(f, t)) = vq_gen.l(inc_dec, grid, node, f, t);
 r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t)) = vq_resDemand.l(restype, up_down, node, f, t);
 
+// Model/solve status
+if (mSolve('schedule'),
+    r_solveStatus(tSolve,'modelStat')=schedule.modelStat;
+    r_solveStatus(tSolve,'solveStat')=schedule.solveStat;
+    r_solveStatus(tSolve,'totalTime')=schedule.etSolve;
+    r_solveStatus(tSolve,'iterations')=schedule.iterUsd;
+    r_solveStatus(tSolve,'nodes')=schedule.nodUsd;
+    r_solveStatus(tSolve,'numEqu')=schedule.numEqu;
+    r_solveStatus(tSolve,'numDVar')=schedule.numDVar;
+    r_solveStatus(tSolve,'numVar')=schedule.numVar;
+    r_solveStatus(tSolve,'numNZ')=schedule.numNZ;
+    r_solveStatus(tSolve,'sumInfes')=schedule.sumInfes;
+    r_solveStatus(tSolve,'objEst')=schedule.objEst;
+    r_solveStatus(tSolve,'objVal')=schedule.objVal;
+);
+
 $ontext
     // Deterministic stage
     loop(fRealization(f),

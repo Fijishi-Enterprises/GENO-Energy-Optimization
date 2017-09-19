@@ -35,6 +35,9 @@ r_spill
 r_qGen
 r_qResDemand
 
+// Solve/model information
+r_solveStatus
+
 // OLD RESULTS
 *r_elec_type
 *r_demand

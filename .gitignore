@@ -29,3 +29,6 @@ EfficiencyPiecewise.xlsx
 *.pptx
 *.docx
 *.pdf
+*.par
+to_UCD/
+*.zip

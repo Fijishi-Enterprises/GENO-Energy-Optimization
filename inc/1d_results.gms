@@ -43,6 +43,7 @@ Parameters
     // Dummy variable arrays for solution feasibility
     r_qGen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
     r_qResDemand(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW)"
+    r_solveStatus(t, solve_info) "Information about the solve"
 ;
 
 // Initialize a few of the results arrays, required by model structure.
