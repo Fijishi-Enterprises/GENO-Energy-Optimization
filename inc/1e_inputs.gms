@@ -52,6 +52,9 @@ $loaddc t_invest
 $loaddc group
 $loaddc gnu_group
 $loaddc gn2n_group
+$loaddc gngroup
+$loaddc gn_gngroup
+$loaddc p_gngroupPolicy
 $gdxin
 
 $ontext

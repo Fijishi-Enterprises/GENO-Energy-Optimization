@@ -208,11 +208,11 @@ loop(mftStart(mSolve, f, t),
         } = r_state(grid, node, f, t);
     v_online.fx(uft_online(unit, f, t))${  not ord(t) = mSettings(mSolve, 't_start')
         } = r_online(unit, f, t);
-    v_online.fx(unit, f, t+pt(t))${  not ord(tSolve) = mSettings(mSolve, 't_start')
+    v_online.fx(unit, f, t+pt(t))${  not ord(t) = mSettings(mSolve, 't_start')
                                      and uft_online(unit, f, t)
         } = r_online(unit, f, t+pt(t));
     // Generation, startup and shutdown variables fixed for the subsequent solves
-    v_gen.fx(gnu(grid, node, unit), f, t+pt(t))${  not ord(tSolve) = mSettings(mSolve, 't_start')
+    v_gen.fx(gnu(grid, node, unit), f, t+pt(t))${  not ord(t) = mSettings(mSolve, 't_start')
         } = r_gen(grid, node, unit, f, t+pt(t));
 );
 

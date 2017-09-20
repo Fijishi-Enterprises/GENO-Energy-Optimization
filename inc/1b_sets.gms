@@ -65,6 +65,8 @@ Sets
     gngnu_constrainedOutputRatio(grid, node, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
     gnu_group(grid, node, unit, group) "Units in particular groups"
     gn2n_group(grid, node, node, group) "Transfer links in particular groups"
+    gngroup "A group of grid, node pairs"
+    gn_gngroup(grid, node, gngroup) "Grid, node pairs in particular gngroups"
 
 * --- Reserve types -----------------------------------------------------------
     restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
