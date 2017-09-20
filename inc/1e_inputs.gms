@@ -66,6 +66,9 @@ $ontext
  $endif
  $gdxin
 $offtext
+$ifthen exist 'input/changes.inc'
+   $$include 'input/changes.inc'
+$endif
 
 * --- Initial setup of sets & parameters based on input data ------------------
 
