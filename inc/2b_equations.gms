@@ -483,6 +483,12 @@ q_genRampChange(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, u
   =E=
   + v_genRamp(grid, node, unit, f, t+pt(t))
 ;
+q_genRampChange(gn(grid, node), m, unit, ft_dynamic(f, t))${ gnuft_ramp(grid, node, unit, f, t) AND [ p_gnu(grid, node, unit, 'rampUpCost') OR p_gnu(grid, node, unit, 'rampDownCost') ]} ..
+    + v_genRampChange(grid, node, unit, 'up', f+pf(f,t), t+pt(t))
+    - v_genRampChange(grid, node, unit, 'down', f+pf(f,t), t+pt(t))
+    =E=
+    + v_genRamp(grid, node, unit, f, t)
+    - v_genRamp(grid, node, unit, f+pf(f,t), t+pt(t));
 * -----------------------------------------------------------------------------
 q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..
   - sum(gnu_input(grid, node, unit),

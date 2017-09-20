@@ -288,5 +288,18 @@ param_gnugnu "Set of possible data parameters for grid, node, unit, grid, node, 
     capacityRatio "Fixed ratio of the capacity of the first unit to the second"
 /
 
-
+solve_info "Containers for solve information" /
+    modelStat "Status of the model after solve"
+    solveStat "Status of the solve"
+    totalTime "Total solve time"
+    iterations "Number of iteration"
+    nodes "Number of nodes in the solve"
+    numEqu "Number of equations in the problem"
+    numDVar "Number of D variables in the problem"
+    numVar "Number of variables in the problem"
+    numNZ "Number of non-zeros in the problem"
+    sumInfes "Sum of infeasibilities"
+    objEst "Estimate for the best possible objective value"
+    objVal "Objectiv value"
+/
 ; // End parameter set declarations
