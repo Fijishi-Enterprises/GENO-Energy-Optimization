@@ -45,7 +45,8 @@ Sets
     group "A group of units and transfer links"
 
 * --- Nodes -----------------------------------------------------------------
-    node_spill(node)      "Nodes that can spill; used to remove v_spill variables where not relevant"
+    node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
+    flowNode(flow, node) "Nodes with flows"
 
 * --- Sets bounding geography and units -------------------------------------
     gn(grid, node) "Grids and their nodes"

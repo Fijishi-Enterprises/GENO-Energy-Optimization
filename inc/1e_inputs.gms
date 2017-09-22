@@ -318,6 +318,12 @@ p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multipli
                                                                                         and sum(param_gnBoundaryProperties, p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, param_gnBoundaryProperties))
     } = 1; // If multiplier has not been set, set it to 1 by default
 
+* --- Other Node Properties ---------------------------------------------------
+
+// Nodes with flows
+flowNode(flow, node)${ sum((f, t), ts_cf(flow, node, f, t)) }
+    = yes;
+
 * =============================================================================
 * --- Reserves Sets & Parameters ----------------------------------------------
 * =============================================================================

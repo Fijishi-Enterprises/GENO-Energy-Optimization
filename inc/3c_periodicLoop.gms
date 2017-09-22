@@ -197,8 +197,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 
             // Select time series data matching the intervals, for intervalLength = 1, this is trivial.
             ts_influx_(gn(grid, node), ft(fSolve, tInterval(t))) = ts_influx(grid, node, fSolve, t+dt_circular(t));
-            ts_cf_(flow, node, ft(fSolve, tInterval(t)))${  sum(grid, gn(grid, node))   } // Only include nodes that have a grid attributed to them
-                = ts_cf(flow, node, fSolve, t+dt_circular(t));
+            ts_cf_(flowNode(flow, node), ft(fSolve, tInterval(t))) = ts_cf(flow, node, fSolve, t+dt_circular(t));
             ts_unit_(unit, param_unit, ft(fSolve, tInterval(t)))${  p_unit(unit, 'useTimeseries')   } // Only include units that have timeseries attributed to them
                 = ts_unit(unit, param_unit, fSolve, t+dt_circular(t));
             // Reserve demand relevant only up until t_reserveLength
@@ -261,8 +260,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
                 ts_influx_(gn(grid, node), fSolve, t)
                     = sum(tt(t_), ts_influx(grid, node, fSolve, t_+dt_circular(t_)))
                         / p_stepLength(mSolve, fSolve, t);
-                ts_cf_(flow, node, fSolve, t)${ sum(grid, gn(grid, node)) // Only include nodes with grids attributed to them
-                                                    }
+                ts_cf_(flowNode(flow, node), fSolve, t)
                     = sum(tt(t_), ts_cf(flow, node, fSolve, t_+dt_circular(t_)))
                         / p_stepLength(mSolve, fSolve, t);
                 ts_unit_(unit, param_unit, fSolve, t)${ p_unit(unit, 'useTimeseries')   } // Only include units with timeseries attributed to them
