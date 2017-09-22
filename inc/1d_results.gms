@@ -21,7 +21,8 @@ Parameters
     r_state(grid, node, f, t) "Node state at timestep t"
     r_online(unit, f, t) "Units online"
     r_reserve(restype, up_down, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
-    r_resTransfer(restype, up_down, node, node, f, t) "Electricity transmission capacity from node to node reserved for providing reserves (MW)"
+    r_resTransferRightward(restype, up_down, node, node, f, t) "Electricity transmission capacity from the first node to the second node reserved for providing reserves (MW)"
+    r_resTransferLeftward(restype, up_down, node, node, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
     r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
     r_startup(unit, starttype, f, t) "Units started up"
     r_shutdown(unit, f, t) "Units shut down"
@@ -54,7 +55,8 @@ Scalar r_realizedLast "Order of last realised time step";
 Option clear = r_state;
 Option clear = r_online;
 Option clear = r_reserve;
-Option clear = r_resTransfer;
+Option clear = r_resTransferRightward;
+Option clear = r_resTransferLeftward;
 Option clear = r_gen;
 Option clear = r_realizedLast;
 Option clear = r_startup;

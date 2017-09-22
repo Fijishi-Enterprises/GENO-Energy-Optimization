@@ -20,7 +20,8 @@ $offtext
 r_state // Conserves state variable values between solves
 r_online // Conserves online variable values between solves
 r_reserve // Conserves locked reserve variables between solves
-r_resTransfer // Conserves locked reserve transfer variables between solves
+r_resTransferRightward // Conserves locked reserve transfer variables between solves
+r_resTransferLeftward // Conserves locked reserve transfer variables between solves
 r_gen // Conserves locked generation variables between solves
 r_startup // Conserves locked startup variables between solves
 r_shutdown // Conserves locked shutdown variables between solves

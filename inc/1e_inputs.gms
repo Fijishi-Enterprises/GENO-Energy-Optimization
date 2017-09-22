@@ -174,6 +174,10 @@ loop(gn2n_bidirectional(grid, node, node_)${p_gnn(grid, node, node_, 'transferCa
     // NOTE! One has to define 'transferCapBidirectional' for the direction with zero 'transferLoss', if asymmetric losses are desired.
     p_gnn(grid, node_, node, 'transferLoss')${not p_gnn(grid, node_, node, 'transferLoss')} = p_gnn(grid, node, node_, 'transferLoss');
 );
+* Generate the set for transfer links where the order of the first node must be smaller than the order of the second node
+gn2n_directional(grid, node, node_) = no;
+gn2n_directional(grid, node, node_)${gn2n(grid, node, node_) and ord(node)<ord(node_)} = yes;
+gn2n_directional(grid, node, node_)${gn2n(grid, node_, node) and ord(node)<ord(node_)} = yes;
 
 * Assume values for critical node related parameters, if not provided by input data
 p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multiplier')${  not p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'multiplier')

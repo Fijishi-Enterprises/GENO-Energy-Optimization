@@ -86,7 +86,11 @@ Model schedule /
     q_obj
     q_balance
     q_resDemand
-    q_resTransfer
+    q_resTransferLimitRightward
+    q_resTransferLimitLeftward
+    q_transferRightwardLimit
+    q_transferLeftwardLimit
+    q_transfer
     q_maxDownward
     q_maxUpward
     q_startup
@@ -104,7 +108,6 @@ Model schedule /
     q_boundState
     q_boundStateMaxDiff
     q_boundCyclic
-    q_bidirectionalTransfer
     q_onlineLimit
     q_rampUpLimit
     q_rampDownLimit
@@ -119,7 +122,11 @@ Model schedule_dispatch /
     q_obj
     q_balance
     q_resDemand
-    q_resTransfer
+    q_resTransferLimitRightward
+    q_resTransferLimitLeftward
+    q_transferRightwardLimit
+    q_transferLeftwardLimit
+    q_transfer
     q_maxDownward
     q_maxUpward
     q_startup
@@ -136,6 +143,5 @@ Model schedule_dispatch /
     q_stateDownwardLimit
     q_boundState
     q_boundCyclic
-    q_bidirectionalTransfer
 /;
 

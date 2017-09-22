@@ -53,7 +53,11 @@ Model invest /
     q_obj
     q_balance
     q_resDemand
-    q_resTransfer
+    q_resTransferLimitRightward
+    q_resTransferLimitLeftward
+    q_transferRightwardLimit
+    q_transferLeftwardLimit
+    q_transfer
     q_maxDownward
     q_maxUpward
     q_startup
@@ -71,10 +75,8 @@ Model invest /
     q_boundState
     q_boundStateMaxDiff
     q_boundCyclic
-    q_bidirectionalTransfer
     q_fixedGenCap1U
     q_fixedGenCap2U
-    q_symmetricTransferCap
     q_onlineLimit
     q_rampUpLimit
     q_rampDownLimit

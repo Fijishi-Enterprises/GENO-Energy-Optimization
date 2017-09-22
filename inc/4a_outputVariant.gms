@@ -24,11 +24,16 @@ r_online(unit, ft_realized(f, t))${ uft_online(unit, f, t+pt(t))
 r_reserve(nuRescapable(restype, up_down, node, unit), fRealization(f), t)${ ft_nReserves(node, restype, f, t)
                                                                             or sum(f_, cf_nReserves(node, restype, f_, t))
     } = v_reserve.l(restype, up_down, node, unit, f, t);
-r_resTransfer(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${ restypeDirectionNode(restype, up_down, to_node)
+r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${ restypeDirectionNode(restype, up_down, to_node)
                                                                                                 and [   ft_nReserves(from_node, restype, f, t)
                                                                                                         or sum(f_, cf_nReserves(from_node, restype, f_, t))
                                                                                                         ]
-    } = v_resTransfer.l(restype, up_down, from_node, to_node, f, t);
+    } = v_resTransferRightward.l(restype, up_down, from_node, to_node, f, t);
+r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${ restypeDirectionNode(restype, up_down, to_node)
+                                                                                                and [   ft_nReserves(from_node, restype, f, t)
+                                                                                                        or sum(f_, cf_nReserves(from_node, restype, f_, t))
+                                                                                                        ]
+    } = v_resTransferLeftward.l(restype, up_down, from_node, to_node, f, t);
 r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t)
     } = v_startup.l(unit, starttype, f, t);
 r_shutdown(unit, ft_realized(f, t))${ uft_online(unit, f, t)

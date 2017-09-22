@@ -19,7 +19,11 @@ equations
     q_obj "Objective function"
     q_balance(grid, node, mType, f, t) "Energy demand must be satisfied at each node"
     q_resDemand(restype, up_down, node, f, t) "Procurement for each reserve type is greater than demand"
-    q_resTransfer(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity"
+    q_resTransferLimitRightward(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the rightward direction"
+    q_resTransferLimitLeftward(grid, node, node, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the leftward direction"
+    q_transferRightwardLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations to the rightward direction are less than the transfer capacity"
+    q_transferLeftwardLimit(grid, node, node, f, t) "Transfer of energy and capacity reservations to the leftward direction are less than the transfer capacity"
+    q_transfer(grid, node, node, f, t) "Rightward and leftward transfer must match the total transfer"
     q_maxDownward(mType, grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(mType, grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
     q_startup(unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
@@ -37,10 +41,8 @@ equations
     q_boundState(grid, node, node, mType, f, t) "Node state variables bounded by other nodes"
     q_boundStateMaxDiff(grid, node, node, mType, f, t) "Node state variables bounded by other nodes (maximum state difference)"
     q_boundCyclic(grid, node, mType, f, t, f_, t_) "Cyclic bound for the first and the last state"
-    q_bidirectionalTransfer(grid, node, node, f, t) "Possible common transfer capacity constraint for interconnected transfer variables"
     q_fixedGenCap1U(grid, node, unit, t) "Fixed capacity ratio of a unit in one node versus all nodes it is connected to"
     q_fixedGenCap2U(grid, node, unit, grid, node, unit, t) "Fixed capacity ratio of two (grid, node, unit) pairs"
-    q_symmetricTransferCap(grid, node, node, t) "Invested transfer capacity needs to be the same in both directions"
     q_onlineLimit(unit, f, t) "Number of online units limited for units with investment possibility"
     q_rampUpLimit(grid, node, mType, s, unit, f, t) "Up ramping limited for units"
     q_rampDownLimit(grid, node, mType, s, unit, f, t) "Down ramping limited for units"
@@ -242,17 +244,27 @@ q_balance(gn(grid, node), m, ft_dynamic(f, t))${    p_stepLength(m, f+pf(f,t), t
                   $$ifi '%rampSched%' == 'yes' + v_state(grid, from_node, f+pf(f,t), t+pt(t))  // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
                 )
             )
-          // Controlled energy transfer from other nodes to this one
-          + sum(from_node$(gn2n(grid, from_node, node)),
-              + (1 - p_gnn(grid, from_node, node, 'transferLoss')) * (    // Include transfer losses
-                  + v_transfer(grid, from_node, node, f, t+pt(t))
-                  $$ifi '%rampSched%' == 'yes' + v_transfer(grid, from_node, node, f, t)    // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
+          // Controlled energy transfer, applies when the current node is on the left side of the connection
+          - sum(node_$(gn2n_directional(grid, node, node_)),
+              + (1 - p_gnn(grid, node, node_, 'transferLoss')) * (    // Reduce transfer losses
+                  + v_transfer(grid, node, node_, f, t+pt(t))
+                  $$ifi '%rampSched%' == 'yes' + v_transfer(grid, node, node_, f, t)    // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
+                )
+              + (p_gnn(grid, node, node_, 'transferLoss')) * (    // Add transfer losses back if transfer is from this node to another node
+                  + v_transferRightward(grid, node, node_, f, t+pt(t))
+                  $$ifi '%rampSched%' == 'yes' + v_transferRightward(grid, node, node_, f, t)    // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
                 )
             )
-          // Controlled energy transfer to other nodes from this one
-          - sum(to_node$(gn2n(grid, node, to_node)),
-              + v_transfer(grid, node, to_node, f, t+pt(t))   // Transfer losses accounted for in the previous term
-              $$ifi '%rampSched%' == 'yes' + v_transfer(grid, node, to_node, f, t)    // Ramp schedule averaging
+          // Controlled energy transfer, applies when the current node is on the right side of the connection
+          + sum(node_$(gn2n_directional(grid, node_, node)),
+              + (
+                  + v_transfer(grid, node_, node, f, t+pt(t))
+                  $$ifi '%rampSched%' == 'yes' + v_transfer(grid, node_, node, f, t)    // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
+                )
+              - (p_gnn(grid, node_, node, 'transferLoss')) * (    // Reduce transfer losses if transfer is from another node to this node
+                  + v_transferRightward(grid, node_, node, f, t+pt(t))
+                  $$ifi '%rampSched%' == 'yes' + v_transferRightward(grid, node_, node, f, t)    // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
+                )
             )
           // Interactions between the node and its units
           + sum(gnuft(grid, node, unit, f, t+pt(t)),
@@ -280,32 +292,93 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) <
   + sum(nuft(node, unit, f, t)${nuRescapable(restype, up_down, node, unit)},   // Reserve capable units on this node
         v_reserve(restype, up_down, node, unit, f+cf_nReserves(node, restype, f, t), t)
     )
-  + sum(gn2n(grid, from_node, node)${restypeDirectionNode(restype, up_down, from_node)},
-        (1 - p_gnn(grid, from_node, node, 'transferLoss')
-        ) * v_resTransfer(restype, up_down, from_node, node, f+cf_nReserves(from_node, restype, f, t), t)             // Reserves from another node - reduces the need for reserves in the node
+  + sum(gn2n_directional(grid, node_, node)${restypeDirectionNode(restype, up_down, node_)},
+      + (1 - p_gnn(grid, node_, node, 'transferLoss')
+        ) * v_resTransferRightward(restype, up_down, node_, node, f+cf_nReserves(node_, restype, f, t), t)             // Reserves from another node - reduces the need for reserves in the node
+    )
+  + sum(gn2n_directional(grid, node, node_)${restypeDirectionNode(restype, up_down, node_)},
+      + (1 - p_gnn(grid, node, node_, 'transferLoss')
+        ) * v_resTransferLeftward(restype, up_down, node, node_, f+cf_nReserves(node_, restype, f, t), t)             // Reserves from another node - reduces the need for reserves in the node
     )
   =G=
   + ts_reserveDemand_(restype, up_down, node, f, t)$p_nReserves(node, restype, 'use_time_series')
   + p_nReserves(node, restype, up_down)${not p_nReserves(node, restype, 'use_time_series')}
   - vq_resDemand(restype, up_down, node, f, t)
-  + sum(gn2n(grid, node, to_node)${restypeDirectionNode(restype, up_down, to_node)},   // If trasferring reserves to another node, increase your own reserves by same amount
-        v_resTransfer(restype, up_down, node, to_node, f+cf_nReserves(node, restype, f, t), t)
+  + sum(gn2n_directional(grid, node, node_)${restypeDirectionNode(restype, up_down, node_)},   // If trasferring reserves to another node, increase your own reserves by same amount
+      + v_resTransferRightward(restype, up_down, node, node_, f+cf_nReserves(node, restype, f, t), t)
+    )
+  + sum(gn2n_directional(grid, node_, node)${restypeDirectionNode(restype, up_down, node_)},   // If trasferring reserves to another node, increase your own reserves by same amount
+      + v_resTransferLeftward(restype, up_down, node_, node, f+cf_nReserves(node, restype, f, t), t)
     )
 ;
 * -----------------------------------------------------------------------------
-q_resTransfer(gn2n(grid, from_node, to_node), ft(f, t))${ sum(restypeDirection(restype, up_down), restypeDirectionNode(restype, up_down, from_node))
-                                                            AND sum(restypeDirection(restype, up_down), restypeDirectionNode(restype, up_down, to_node))
-                                                            } ..
-  + v_transfer(grid, from_node, to_node, f, t)
-  + sum(restypeDirection(restype, up_down)$(restypeDirectionNode(restype, up_down, from_node) and restypeDirectionNode(restype, up_down, to_node)),
-        + v_resTransfer(restype, up_down, from_node, to_node, f+cf_nReserves(from_node, restype, f, t), t)
+q_resTransferLimitRightward(gn2n_directional(grid, node, node_), ft(f, t))${
+    sum(restypeDirection(restype, 'up'), restypeDirectionNode(restype, 'up', node_))
+    or sum(restypeDirection(restype, 'down'), restypeDirectionNode(restype, 'down', node))
+    or p_gnn(grid, node, node_, 'transferCapInvLimit')
+} ..
+
+  + v_transfer(grid, node, node_, f, t)
+  + sum(restypeDirection(restype, 'up')$(restypeDirectionNode(restype, 'up', node_)),
+      + v_resTransferRightward(restype, 'up', node, node_, f+cf_nReserves(node_, restype, f, t), t)
+    )
+  + sum(restypeDirection(restype, 'down')$(restypeDirectionNode(restype, 'down', node)),
+      + v_resTransferLeftward(restype, 'down', node, node_, f+cf_nReserves(node, restype, f, t), t)
     )
   =L=
-  + p_gnn(grid, from_node, to_node, 'transferCap')
+  + p_gnn(grid, node, node_, 'transferCap')
   + sum(t_$(ord(t_)<=ord(t)),
-      + v_investTransfer_LP(grid, from_node, to_node, t_)
-      + v_investTransfer_MIP(grid, from_node, to_node, t_) * p_gnn(grid, from_node, to_node, 'unitSize')
+      + v_investTransfer_LP(grid, node, node_, t_)
+      + v_investTransfer_MIP(grid, node, node_, t_) * p_gnn(grid, node, node_, 'unitSize')
     )
+;
+* -----------------------------------------------------------------------------
+q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), ft(f, t))${
+    sum(restypeDirection(restype, 'up'), restypeDirectionNode(restype, 'up', node_))
+    or sum(restypeDirection(restype, 'down'), restypeDirectionNode(restype, 'down', node))
+    or p_gnn(grid, node, node_, 'transferCapInvLimit')
+} ..
+
+  + v_transfer(grid, node, node_, f, t)
+  - sum(restypeDirection(restype, 'up')$(restypeDirectionNode(restype, 'up', node)),
+      + v_resTransferLeftward(restype, 'up', node, node_, f+cf_nReserves(node, restype, f, t), t)
+    )
+  - sum(restypeDirection(restype, 'down')$(restypeDirectionNode(restype, 'down', node_)),
+      + v_resTransferRightward(restype, 'down', node, node_, f+cf_nReserves(node_, restype, f, t), t)
+    )
+  =G=
+  - p_gnn(grid, node_, node, 'transferCap')
+  - sum(t_$(ord(t_)<=ord(t)),
+      + v_investTransfer_LP(grid, node, node_, t_)
+      + v_investTransfer_MIP(grid, node, node_, t_) * p_gnn(grid, node, node_, 'unitSize')
+    )
+;
+* -----------------------------------------------------------------------------
+q_transferRightwardLimit(gn2n_directional(grid, node, node_), ft(f, t))${p_gnn(grid, node, node_, 'transferCapInvLimit')} ..
+  + v_transferRightward(grid, node, node_, f, t)
+  =L=
+  + p_gnn(grid, node, node_, 'transferCap')
+  + sum(t_$(ord(t_)<=ord(t)),
+      + v_investTransfer_LP(grid, node, node_, t_)
+      + v_investTransfer_MIP(grid, node, node_, t_) * p_gnn(grid, node, node_, 'unitSize')
+    )
+;
+* -----------------------------------------------------------------------------
+q_transferLeftwardLimit(gn2n_directional(grid, node, node_), ft(f, t))${p_gnn(grid, node, node_, 'transferCapInvLimit')} ..
+  + v_transferLeftward(grid, node, node_, f, t)
+  =L=
+  + p_gnn(grid, node_, node, 'transferCap')
+  + sum(t_$(ord(t_)<=ord(t)),
+      + v_investTransfer_LP(grid, node, node_, t_)
+      + v_investTransfer_MIP(grid, node, node_, t_) * p_gnn(grid, node, node_, 'unitSize')
+    )
+;
+* -----------------------------------------------------------------------------
+q_transfer(gn2n_directional(grid, node, node_), ft(f, t)) ..
+  + v_transferRightward(grid, node, node_, f, t)
+  - v_transferLeftward(grid, node, node_, f, t)
+  =E=
+  + v_transfer(grid, node, node_, f, t)
 ;
 * -----------------------------------------------------------------------------
 q_maxDownward(m, gnuft(grid, node, unit, f, t))${ [     ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')               // Unit is either providing
@@ -711,17 +784,6 @@ q_boundCyclic(gn_state(grid, node), mftStart(m, f, t), fCentral(f_), t_)${  p_gn
     =E=
     + v_state(grid, node, f_+cf_Central(f,t), t_)
 ;
-* -----------------------------------------------------------------------------
-q_bidirectionalTransfer(gn2n_bidirectional(grid, node, node_), ft(f, t))${p_gnn(grid, node, node_, 'transferCapBidirectional')} ..
-    + v_transfer(grid, node, node_, f, t) // Transfers in one direction
-    + v_transfer(grid, node_, node, f, t) // Transfers in the other direction
-    + sum(restypeDirection(restype, up_down)${restypeDirectionNode(restype, up_down, node) and restypeDirectionNode(restype, up_down, node_)},
-        + v_resTransfer(restype, up_down, node, node_, f+cf_nReserves(node, restype, f, t), t) // Reserve transfers in one direction
-        + v_resTransfer(restype, up_down, node_, node, f+cf_nReserves(node_, restype, f, t), t) // Reserve transfers in the other direction
-      )
-    =L=
-    p_gnn(grid, node, node_, 'transferCapBidirectional')
-;
 *-----------------------------------------------------------------------------
 q_fixedGenCap1U(gnu(grid, node, unit), t_invest(t))${unit_investLP(unit)} ..
   + v_invest_LP(grid, node, unit, t)
@@ -740,14 +802,6 @@ q_fixedGenCap2U(grid, node, unit, grid_, node_, unit_, t_invest(t))${p_gnugnu(gr
     + v_invest_MIP(unit_, t)
   )
   * p_gnugnu(grid, node, unit, grid_, node_, unit_, 'capacityRatio')
-;
-*-----------------------------------------------------------------------------
-q_symmetricTransferCap(gn2n(grid, from_node, to_node), t_invest(t)) ..
-  + v_investTransfer_LP(grid, from_node, to_node, t)
-  + v_investTransfer_MIP(grid, from_node, to_node, t)
-  =E=
-  + v_investTransfer_LP(grid, to_node, from_node, t)
-  + v_investTransfer_MIP(grid, to_node, from_node, t)
 ;
 *-----------------------------------------------------------------------------
 q_onlineLimit(uft_online(unit, ft(f,t)))${unit_investMIP(unit) or unit_investLP(unit)} ..
@@ -935,8 +989,14 @@ q_capacityMargin(gn(grid, node), ft(f, t))${p_gn(grid, node, 'capacityMargin')} 
             )
         )
     )
-  + sum(gn2n(grid, from_node, node), (1 - p_gnn(grid, from_node, node, 'transferLoss')) * v_transfer(grid, from_node, node, f, t))
-  - sum(gn2n(grid, node, to_node), v_transfer(grid, node, to_node, f, t))
+  + sum(gn2n_directional(grid, node_, node),
+      + v_transfer(grid, node_, node, f, t)
+      - v_transferRightward(grid, node_, node, f, t) * p_gnn(grid, node_, node, 'transferLoss')
+    )
+  - sum(gn2n_directional(grid, node, node_),
+      + v_transfer(grid, node, node_, f, t)
+      + v_transferLeftward(grid, node, node_, f, t) * p_gnn(grid, node, node_, 'transferLoss')
+    )
   + sum(gnn_state(grid, from_node, node), p_gnn(grid, from_node, node, 'diffCoeff') * v_state(grid, from_node, f, t))
   - sum(gnn_state(grid, node, to_node), p_gnn(grid, node, to_node, 'diffCoeff') * v_state(grid, node, f, t))
   + ts_influx_(grid, node, f, t) // ts_influx_ or  ts_influx?
@@ -1013,15 +1073,18 @@ q_instantaneousShareMax(gngroup, group, ft(f, t))${p_gngroupPolicy(gngroup, 'ins
                                      and gn_gngroup(grid, node, gngroup)
             }, v_gen(grid, node, unit, f, t)
         )
-        // Controlled export
-      + sum(gn2n(grid, node, to_node)${  gn_gngroup(grid, node, gngroup)
-                                         and not gn_gngroup(grid, to_node, gngroup)
-            }, v_transfer(grid, node, to_node, f, t)
+        // Controlled transfer
+      + sum(gn2n_directional(grid, node, node_)${  gn_gngroup(grid, node, gngroup)
+                                                   and not gn_gngroup(grid, node_, gngroup)
+            },
+              + v_transfer(grid, node, node_, f, t)
+              + v_transferLeftward(grid, node, node_, f, t) * p_gnn(grid, node, node_, 'transferLoss')
         )
-        // Controlled import
-      - sum(gn2n(grid, from_node, node)${  gn_gngroup(grid, node, gngroup)
-                                           and not gn_gngroup(grid, from_node, gngroup)
-            }, v_transfer(grid, from_node, node, f, t) * (1 - p_gnn(grid, from_node, node, 'transferLoss'))
+      - sum(gn2n_directional(grid, node_, node)${  gn_gngroup(grid, node, gngroup)
+                                                   and not gn_gngroup(grid, node_, gngroup)
+            },
+              + v_transfer(grid, node_, node, f, t)
+              - v_transferRightward(grid, node_, node, f, t) * p_gnn(grid, node_, node, 'transferLoss')
         )
     )
   * p_gngroupPolicy(gngroup, 'instantaneousShareMax', group)

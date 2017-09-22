@@ -106,12 +106,14 @@ v_spill.up(gn(grid, node), ft(f, t))${p_gnBoundaryPropertiesForStates(grid, node
     } = ts_nodeState_(grid, node, 'maxSpill', f, t) * p_gnBoundaryPropertiesForStates(grid, node, 'maxSpill', 'multiplier');
 
 // Restrictions on transferring energy between nodes
-v_transfer.up(gn2n(grid, from_node, to_node), ft(f, t))$(not p_gnn(grid, from_node, to_node, 'transferCapInvLimit'))
-    = p_gnn(grid, from_node, to_node, 'transferCap');
-v_resTransfer.up(restypeDirectionNode(restype, up_down, from_node), to_node, ft(f, t))${    restypeDirectionNode(restype, up_down, to_node)
-                                                                                            and sum(grid, gn2n(grid, from_node, to_node)
-                                                                                            and not p_gnn('elec', from_node, to_node, 'transferCapInvLimit'))
-    } = p_gnn('elec', from_node, to_node, 'transferCap');
+v_transfer.up(gn2n_directional(grid, node, node_), ft(f, t))$(not p_gnn(grid, node, node_, 'transferCapInvLimit'))
+    = p_gnn(grid, node, node_, 'transferCap');
+v_transfer.lo(gn2n_directional(grid, node, node_), ft(f, t))$(not p_gnn(grid, node, node_, 'transferCapInvLimit'))
+    = -p_gnn(grid, node_, node, 'transferCap');
+v_transferRightward.up(gn2n_directional(grid, node, node_), ft(f, t))$(not p_gnn(grid, node, node_, 'transferCapInvLimit'))
+    = p_gnn(grid, node, node_, 'transferCap');
+v_transferLeftward.up(gn2n_directional(grid, node, node_), ft(f, t))$(not p_gnn(grid, node, node_, 'transferCapInvLimit'))
+    = p_gnn(grid, node_, node, 'transferCap');
 
 // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
 v_reserve.up(nuRescapable(restype, 'up', node, unit_elec), f+cf_nReserves(node, restype, f, t), t)${    nuft(node, unit_elec, f, t)
@@ -156,14 +158,14 @@ v_invest_MIP.lo(unit, t)${    unit_investMIP(unit)
 v_invest_MIP.fx(unit, t)${    not unit_investMIP(unit)
                               or not t_invest(t)
     } = 0;
-v_investTransfer_LP.up(gn2n(grid, from_node, to_node), t)${not p_gnn(grid, from_node, to_node, 'investMIP')
+v_investTransfer_LP.up(gn2n_directional(grid, from_node, to_node), t)${not p_gnn(grid, from_node, to_node, 'investMIP')
     } = p_gnn(grid, from_node, to_node, 'transferCapInvLimit');
-v_investTransfer_LP.fx(gn2n(grid, from_node, to_node), t)${p_gnn(grid, from_node, to_node, 'investMIP')
+v_investTransfer_LP.fx(gn2n_directional(grid, from_node, to_node), t)${p_gnn(grid, from_node, to_node, 'investMIP')
                                                         or not t_invest(t)
     } = 0;
-v_investTransfer_MIP.up(gn2n(grid, from_node, to_node), t)${p_gnn(grid, from_node, to_node, 'investMIP')
+v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t)${p_gnn(grid, from_node, to_node, 'investMIP')
     } = p_gnn(grid, from_node, to_node, 'transferCapInvLimit') / p_gnn(grid, from_node, to_node, 'unitSize');
-v_investTransfer_MIP.fx(gn2n(grid, from_node, to_node), t)${not p_gnn(grid, from_node, to_node, 'investMIP')
+v_investTransfer_MIP.fx(gn2n_directional(grid, from_node, to_node), t)${not p_gnn(grid, from_node, to_node, 'investMIP')
                                                          or not t_invest(t)
     } = 0;
 
@@ -178,16 +180,23 @@ loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
                                                                                 and ord(t) >= mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                                 and not unit_flow(unit_elec) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
             } = r_reserve(restype, up_down, node, unit_elec, f, t);
-        v_resTransfer.fx(restype, up_down, node, to_node, f, t)${   ft_nReserves(node, restype, f, t)
-                                                                    and restypeDirectionNode(restype, up_down, to_node)
+        v_resTransferRightward.fx(restype, up_down, node, node_, f, t)${   ft_nReserves(node, restype, f, t)
+                                                                    and restypeDirectionNode(restype, up_down, node_)
                                                                     and ord(t) >= mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
-                                                                    and sum(grid, gn2n(grid, node, to_node))
-            } = r_resTransfer(restype, up_down, node, to_node, f, t);
+                                                                    and sum(grid, gn2n(grid, node, node_))
+            } = r_resTransferRightward(restype, up_down, node, node_, f, t);
+        v_resTransferLeftward.fx(restype, up_down, node, node_, f, t)${   ft_nReserves(node, restype, f, t)
+                                                                    and restypeDirectionNode(restype, up_down, node_)
+                                                                    and ord(t) >= mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
+                                                                    and sum(grid, gn2n(grid, node, node_))
+            } = r_resTransferLeftward(restype, up_down, node, node_, f, t);
 
     // Free the tertiary reserves for the realization
     v_reserve.fx(nuRescapable('tertiary', up_down, node, unit_elec), ft_realized(ft(f,t)))${    nuft(node, unit_elec, f, t)
         } = 0;
-    v_resTransfer.fx('tertiary', up_down, node, to_node, ft_realized(ft(f,t)))${    sum(grid, gn2n(grid, node, to_node))
+    v_resTransferRightward.fx('tertiary', up_down, node, node_, ft_realized(ft(f,t)))${    sum(grid, gn2n(grid, node, node_))
+        } = 0;
+    v_resTransferLeftward.fx('tertiary', up_down, node, node_, ft_realized(ft(f,t)))${    sum(grid, gn2n(grid, node, node_))
         } = 0;
 );
 * --- Bounds overwritten for the first timestep --------------------------------
