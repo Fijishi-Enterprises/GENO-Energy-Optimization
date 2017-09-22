@@ -424,12 +424,10 @@ class SceletonProject(MetaObject):
                 ui.add_msg_signal.emit("Unknown Type '<b>{0}</b>' in header. Supported types are "
                                        "<b>set</b>, <b>parameter</b>, and <b>table</b>".format(header['type']), 2)
                 continue
-
             # Check that filename exists
             if not header['filename']:
                 ui.add_msg_signal.emit("Filename is missing", 2)
                 continue
-
             # Make filename
             if header['extension'] == '' or not header['extension']:
                 filename = header['filename']
@@ -437,7 +435,6 @@ class SceletonProject(MetaObject):
                 filename = header['filename'] + header['extension']  # If extension already has a dot
             else:
                 filename = header['filename'] + '.' + header['extension']
-
             # Choose write function
             _, ext = os.path.splitext(filename)
             ext = ext.lower()[1:]  # Convert to lowercase and remove leading dot
@@ -447,11 +444,9 @@ class SceletonProject(MetaObject):
                 writefunc = write_gdx
             else:
                 ui.add_msg_signal.emit(
-                    "Unknown file format or no format given: '{}'".format(ext), 2)
+                    "Unknown file format or no format given: <b>{0}</b>".format(ext), 2)
                 continue
-
             symbol_name = header['symbol']
-
             # Write lines from dictionary to files
             for key, value in data_dict.items():
                 index = setup_model.find_index(key)
@@ -464,16 +459,26 @@ class SceletonProject(MetaObject):
                 dest_path = os.path.join(input_dir, filename)
                 try:
                     # Write data. Append if file already visited
-                    writefunc(dest_path, symbol_name, *value,
-                              append=(dest_path in files_written))
+                    n_lines = writefunc(dest_path, symbol_name, *value, append=(dest_path in files_written))
                 except (OSError, ImportError) as e:
-                    ui.add_msg_signal.emit(
-                        "{}: Writing to file <b>{}</b> failed: {}"
-                            .format(type(e).__name__, dest_path, e), 2)
+                    ui.add_msg_signal.emit("{}: Writing to file <b>{}</b> for Setup <b>{}</b> failed: {}"
+                                           .format(type(e).__name__, filename, setup_name, e), 2)
                 else:
-                    ui.add_msg_signal.emit(
-                        "File <b>{0}</b> written to Setup <b>{1}</b> input directory ({2} lines) "
-                        .format(filename, setup_name, len(value) + 1), 0)
+                    if not n_lines:  # Written file was a .gdx
+                        if dest_path in files_written:  # Lines appended to GDX file
+                            ui.add_msg_signal.emit("Appended data to file <b>{0}</b> for Setup <b>{1}</b>"
+                                                   .format(filename, setup_name), 0)
+                        else:
+                            ui.add_msg_signal.emit("File <b>{0}</b> written for Setup <b>{1}</b>"
+                                                   .format(filename, setup_name), 0)
+                    else:
+                        if dest_path in files_written:  # Lines appended to text file
+                            # noinspection PyTypeChecker
+                            ui.add_msg_signal.emit("Appended <b>{0}</b> lines to file <b>{1}</b> for Setup <b>{2}</b>"
+                                                   .format(n_lines-2, filename, setup_name), 0)
+                        else:
+                            ui.add_msg_signal.emit("File <b>{0}</b> written for Setup <b>{1}</b> ({2} lines)"
+                                                   .format(filename, setup_name, n_lines), 0)
                     files_written.add(dest_path)
             ui.add_msg_signal.emit("Processing sheet <b>{0}</b> done".format(sheet), 1)
         if n_data_sheets == 0:

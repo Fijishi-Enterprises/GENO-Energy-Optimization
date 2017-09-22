@@ -387,6 +387,7 @@ class ExcelHandler:
                             line = sets[j+1][i]
                         else:
                             line += '.' + str(sets[j+1][i])  # Append new set on line
+            # noinspection PyComparisonWithNone
             # Add '=' and value to line
             # Do not use if not value[i]: because if value is 0, it will not be written
             if values[i] == '' or values[i] == None:

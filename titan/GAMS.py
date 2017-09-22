@@ -202,21 +202,26 @@ class GAMSModel(Tool):
 
 
 def write_inc(filepath, symbol, keys, values, append=False):
-    """Write a GAMS include file
+    """Write a GAMS include file.
 
     Args:
-        filepath (str)
-        keys (list of tuples)
-        values (list)
-        append (bool)
-            Append to existing file
+        filepath (str): File path
+        symbol (str): Symbol name
+        keys (list of tuples): Keys
+        values (list): Values
+        append (bool): Append to existing file
+
     Raises:
         OSError
+
+    Returns:
+        Number of lines written.
     """
     if append:
-        fmode = 'w+'
+        fmode = 'a'
     else:
         fmode = 'w'
+    n = 0  # Number of lines written
     with open(filepath, mode=fmode) as dfile:
             if not append:
                 dfile.write("$offlisting\n")
@@ -228,30 +233,35 @@ def write_inc(filepath, symbol, keys, values, append=False):
                         val = '"{}"'.format(val)
                     r += ' {}'.format(val)
                 dfile.write(r + '\n')
+                n += 1
+    return n+2
 
 
 def write_gdx(filepath, symbol, keys, values, append=False):
-    """Write a GAMS Data eXchange (GDX) file
+    """Write a GAMS Data eXchange (GDX) file.
+
     Args:
-        filepath (str)
-        symbol (str)
-        keys (list of tuples)
-        values (list)
-        append (bool)
-            Append to existing file
+        filepath (str): File path
+        symbol (str): Symbol name
+        keys (list of tuples): Keys
+        values (list): Values
+        append (bool): Append to existing file
+
     Raises:
         OSError
         ImportError
+
+    Returns:
+        None
     """
     try:
         from gdx2py import GdxFile
     except ImportError:
         raise ImportError("GDX support not available")
-
     if append:
-        fmode = 'w+'
+        fmode = 'a'
     else:
         fmode = 'w'
-
     with GdxFile(filepath, mode=fmode) as f:
         f[symbol] = (keys, values)
+    return None
