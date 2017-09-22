@@ -449,7 +449,7 @@ q_stateSlack(gn_stateSlack(grid, node), slack, ft_full(f, t))${ p_gnBoundaryProp
   + p_slackDirection(slack) * (
       + v_state(grid, node, f+cf_Central(f,t), t)
       - p_gnBoundaryPropertiesForStates(grid, node, slack, 'constant')$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useConstant')
-      - ts_nodeState(grid, node, slack, f, t)$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries')
+      - ts_nodeState_(grid, node, slack, f, t)$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries')
     )
 ;
 * -----------------------------------------------------------------------------
@@ -458,7 +458,7 @@ q_stateUpwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))${ sum(gn2gnu(grid,
                                                                 } ..
   ( // Utilizable headroom in the state variable
       + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant') * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
-      + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'upwardLimit', f, t)
+      + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeSeries') * ts_nodeState_(grid, node, 'upwardLimit', f, t)
       - v_state(grid, node, f+cf_Central(f,t), t)
   )
       * ( // Accounting for the energyStoredPerUnitOfState ...
@@ -496,7 +496,7 @@ q_stateDownwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))${   sum(gn2gnu(g
   ( // Utilizable headroom in the state variable
       + v_state(grid, node, f+cf_Central(f,t), t)
       - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')   * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
-      - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'downwardLimit', f, t)
+      - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries') * ts_nodeState_(grid, node, 'downwardLimit', f, t)
   )
       * ( // Accounting for the energyStoredPerUnitOfState ...
           + p_gn(grid, node, 'energyStoredPerUnitOfState')
