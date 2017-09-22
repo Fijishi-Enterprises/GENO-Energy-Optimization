@@ -823,10 +823,12 @@ q_onlineLimit(uft_online(unit, ft(f,t)))${unit_investMIP(unit) or unit_investLP(
 ;
 * -----------------------------------------------------------------------------
 q_rampUpLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
-*                                                   and ord(t) > mSettings(m, 't_start')
                                                    and ord(t) > msStart(m, s)
-                                                   and ord(t) <= msEnd(m, s)
+                                                   and msft(m, s, f, t)
                                                    and p_gnu(grid, node, unit, 'maxRampUp')
+                                                   and (uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))
+                                                           or unit_investLP(unit)
+                                                           or unit_investMIP(unit))
                                                    } ..
   + v_genRamp(grid, node, unit, f, t+pt(t))
   =L=
@@ -883,10 +885,12 @@ q_rampUpLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, uni
 ;
 * -----------------------------------------------------------------------------
 q_rampDownLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
-*                                                     and ord(t) > mSettings(m, 't_start')
                                                      and ord(t) > msStart(m, s)
-                                                     and ord(t) <= msEnd(m, s)
+                                                     and msft(m, s, f, t)
                                                      and p_gnu(grid, node, unit, 'maxRampDown')
+                                                     and (uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))
+                                                             or unit_investLP(unit)
+                                                             or unit_investMIP(unit))
                                                      } ..
   + v_genRamp(grid, node, unit, f, t+pt(t))
   =G=

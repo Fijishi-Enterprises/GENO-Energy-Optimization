@@ -67,6 +67,34 @@ v_gen.lo(gnu(grid, node, unit), ft(f,t))${p_gnu(grid, node, unit, 'maxGen') < 0
 v_gen.up(gnu(grid, node, unit), ft(f,t))${p_gnu(grid, node, unit, 'maxGen') < 0
     } = 0;
 
+// Ramping capability of units without online variable and not part of investment set
+loop(ms(mSolve, s),
+    v_genRamp.up(grid, node, unit, f, t+pt(t))${  ft(f, t)
+                                              and gnuft_ramp(grid, node, unit, f, t)
+                                              and msft(mSolve, s, f, t)
+                                              and ord(t) > msStart(mSolve, s)
+                                              and p_gnu(grid, node, unit, 'maxRampUp')
+                                              and not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))
+                                              and not unit_investLP(unit)
+                                              and not unit_investMIP(unit)
+
+        } = ( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )
+            * p_gnu(grid, node, unit, 'maxRampUp')
+            * 60 / 100;  // Unit conversion from [p.u./min] to [MW/h]
+    v_genRamp.lo(grid, node, unit, f, t+pt(t))${  ft(f, t)
+                                              and gnuft_ramp(grid, node, unit, f, t)
+                                              and msft(mSolve, s, f, t)
+                                              and ord(t) > msStart(mSolve, s)
+                                              and p_gnu(grid, node, unit, 'maxRampDown')
+                                              and not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))
+                                              and not unit_investLP(unit)
+                                              and not unit_investMIP(unit)
+
+        } = -( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )
+            * p_gnu(grid, node, unit, 'maxRampDown')
+            * 60 / 100;  // Unit conversion from [p.u./min] to [MW/h]
+);
+
 // v_online cannot exceed unit count
 v_online.up(unit, ft_full(f,t))${   (   uft_online(unit, f, t)
                                         or [    uft_online(unit, f, t+pt(t))
