@@ -155,25 +155,6 @@ gn_state(grid, node)$(sum(useConstantOrTimeSeries, p_gnBoundaryPropertiesForStat
 gn(grid, node)$(sum(unit, gnu(grid, node, unit) or gn_state(grid, node))) = yes;
 node_spill(node)$(sum((grid, spillLimits, useConstantOrTimeSeries)$gn(grid, node), p_gnBoundaryPropertiesForStates(grid, node, spillLimits, useConstantOrTimeSeries))) = yes;
 
-* Generate the set of unique, symmetric transfer links
-gn2n_bidirectional(grid, node, node_) = no;
-gn2n_bidirectional(grid, node, node_)${p_gnn(grid, node, node_, 'transferCapBidirectional')} = yes;
-loop(gn(grid, node),
-    loop(gn2n(grid, node, node_)${gn2n(grid, node_,node)},
-        gn2n_bidirectional(grid, node, node_)${not gn2n_bidirectional(grid, node_, node)} = yes;
-    );
-);
-* Assume lacking parameters for bidirectional links, if input data found lacking.
-loop(gn2n_bidirectional(grid, node, node_)${p_gnn(grid, node, node_, 'transferCapBidirectional')},
-    // Replicate the bidirectional transfer capacity for the other direction as well for clarity, in case it's undefined. This affects the related data integrity check later.
-    p_gnn(grid, node_, node, 'transferCapBidirectional')${not p_gnn(grid, node_, node, 'transferCapBidirectional')} = p_gnn(grid, node, node_, 'transferCapBidirectional');
-    // Limit individual directional transfer capacities to the bidirectional capacity if not defined otherwise.
-    p_gnn(grid, node, node_, 'transferCap')${not p_gnn(grid, node, node_, 'transferCap')} = p_gnn(grid, node, node_, 'transferCapBidirectional');
-    p_gnn(grid, node_, node, 'transferCap')${not p_gnn(grid, node_, node, 'transferCap')} = p_gnn(grid, node, node_, 'transferCapBidirectional');
-    // Fill in missing transfer losses
-    // NOTE! One has to define 'transferCapBidirectional' for the direction with zero 'transferLoss', if asymmetric losses are desired.
-    p_gnn(grid, node_, node, 'transferLoss')${not p_gnn(grid, node_, node, 'transferLoss')} = p_gnn(grid, node, node_, 'transferLoss');
-);
 * Generate the set for transfer links where the order of the first node must be smaller than the order of the second node
 gn2n_directional(grid, node, node_) = no;
 gn2n_directional(grid, node, node_)${gn2n(grid, node, node_) and ord(node)<ord(node_)} = yes;

@@ -203,11 +203,17 @@ $offtext
             * p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
       )
       // Transfer link investment costs
-    + sum(gn2n(grid, from_node, to_node),
-        + v_investTransfer_LP(grid, from_node, to_node, t) * p_gnn(grid, from_node, to_node, 'invCost')
-            * p_gnn(grid, from_node, to_node, 'annuity')
-        + v_investTransfer_MIP(grid, from_node, to_node, t) * p_gnn(grid, from_node, to_node, 'unitSize')
-            * p_gnn(grid, from_node, to_node, 'invCost') * p_gnn(grid, from_node, to_node, 'annuity')
+    + sum(gn2n_directional(grid, from_node, to_node),
+        + v_investTransfer_LP(grid, from_node, to_node, t)
+            * (
+                + p_gnn(grid, from_node, to_node, 'invCost') * p_gnn(grid, from_node, to_node, 'annuity')
+                + p_gnn(grid, to_node, from_node, 'invCost') * p_gnn(grid, to_node, from_node, 'annuity')
+              )
+        + v_investTransfer_MIP(grid, from_node, to_node, t)
+            * (
+                + p_gnn(grid, from_node, to_node, 'unitSize') * p_gnn(grid, from_node, to_node, 'invCost') * p_gnn(grid, from_node, to_node, 'annuity')
+                + p_gnn(grid, to_node, from_node, 'unitSize') * p_gnn(grid, to_node, from_node, 'invCost') * p_gnn(grid, to_node, from_node, 'annuity')
+              )
       )
     )
 ;

@@ -51,7 +51,6 @@ Sets
     gn(grid, node) "Grids and their nodes"
 * NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
     gn2n(grid, node, node) "All (directional) transfer links between nodes in specific energy grids"
-    gn2n_bidirectional(grid, node, node) "Bidirectional transfer links between nodes in specific energy grids"
     gn2n_directional(grid, node, node) "Transfer links with positive rightward transfer and negative leftward transfer"
     gnu(grid, node, unit) "Units in specific nodes of particular energy grids"
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
