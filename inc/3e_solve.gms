@@ -18,6 +18,7 @@ $offtext
 * --- Solve commands ----------------------------------------------------------
 
     if (mSolve('schedule'),
+        schedule.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
         solve schedule using mip minimizing v_obj;
     ); // END IF SCHEDULE
 
@@ -26,5 +27,6 @@ $offtext
 *    ); // END IF BUILDING
 *    if (mSolve('storage'),    solve storage    using lp   minimizing v_obj; );
     if (mSolve('invest'),
+        invest.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
         solve invest using mip minimizing v_obj;
     );
