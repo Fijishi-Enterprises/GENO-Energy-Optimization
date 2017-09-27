@@ -54,8 +54,7 @@ equations
     q_instantaneousShareMax(gngroup, group, f, t) "Maximum instantaneous share of generation and import from a group of units"
     q_energyShareMax(gngroup, group) "Maximum energy share of generation and import from a group of units"
     q_energyShareMin(gngroup, group) "Minimum energy share of generation and import from a group of units"
-    q_boundCyclicInSample(grid, node, mType, s, f, t, f_, t_) "Cyclic bound for the first and the last state in a sample"
-    q_boundCyclicBetweenSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound for the first and the last and first states between samples"
+    q_boundCyclicSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound inside or between samples"
 ;
 
 $setlocal def_penalty 1e6
@@ -1156,27 +1155,25 @@ q_energyShareMin(gngroup, group)${p_gngroupPolicy(gngroup, 'energyShareMin', gro
     0
 ;
 * -----------------------------------------------------------------------------
-q_boundCyclicInSample(gn_state(grid, node), msft(m, s, f, t), fCentral(f_), t_)${
-    p_gn(grid, node, 'boundCyclicInSample')  // Bind variables if parameter found
-    and ord(t) = msStart(m, s)               // For the first time step in the sample
-    and ord(t_)+pt(t_) = msEnd(m, s)         // Use only the ending time step in the sample
-    and msft(m, s, f_, t_+pt(t_))
+q_boundCyclicSamples(gn_state(grid, node), msft(m, s, f, t), s_, fCentral(f_), t_)${
+    [
+        p_gn(grid, node, 'boundCyclicInSample')  // Bind variables if parameter found
+        and ord(t) = msStart(m, s)               // For the first time step in the sample
+        and ord(t_)+pt(t_) = msEnd(m, s_)        // Use only the ending time step in the sample
+        and msft(m, s_, f_, t_+pt(t_))
+        and ord(s) = ord(s_)                     // Select same sample
+    ] or
+    [
+        p_gn(grid, node, 'boundCyclicBetweenSamples')  // Bind variables if parameter found
+        and ord(t) = msStart(m, s)                     // For the first time step in the sample
+        and ord(t_)+pt(t_) = msEnd(m, s_)              // Use only the ending time step in the other sample
+        and msft(m, s_, f_, t_+pt(t_))
+        and [ord(s_) = ord(s)-1 or [ord(s_) = mSettings(m, 'samples') and ord(s) = 1]]  // Select consecutive samples
+    ]
     }..
 
     + v_state(grid, node, f+cf_Central(f,t), t)
     =E=
     + v_state(grid, node, f_+cf_Central(f,t), t_)
 ;
-* -----------------------------------------------------------------------------
-q_boundCyclicBetweenSamples(gn_state(grid, node), msft(m, s, f, t+pt(t)), s_, fCentral(f_), t_)${
-    p_gn(grid, node, 'boundCyclicBetweenSamples')  // Bind variables if parameter found
-    and ord(t)+pt(t) = msEnd(m, s)                 // For the ending time step in the sample
-    and ord(t_) = msStart(m, s_)                   // Use only the first time step in the next sample
-    and msft(m, s_, f_, t_)                        
-    and [ord(s) = ord(s_)-1 or [ord(s) = mSettings(m, 'samples') and ord(s_) = 1]]  // Select consecutive samples
-    }..
-
-    + v_state(grid, node, f+cf_Central(f,t), t)
-    =E=
-    + v_state(grid, node, f_+cf_Central(f,t), t_)
-;
+* Check forecasts

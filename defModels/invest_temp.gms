@@ -89,6 +89,5 @@ Model invest /
 *    q_instantaneousShareMax
     q_energyShareMax
     q_energyShareMin
-    q_boundCyclicInSample
-    q_boundCyclicBetweenSamples
+    q_boundCyclicSamples 
 /;
