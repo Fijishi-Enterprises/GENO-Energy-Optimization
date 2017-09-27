@@ -34,6 +34,7 @@ if (mType('invest'),
     fRealization(f) = no;
     fRealization('f00') = yes;
     fCentral(f) = no;
+    fCentral('f00') = yes;
     sInitial(s) = no;
     sInitial('s000') = yes;
     sCentral(s) = no;
@@ -88,4 +89,6 @@ Model invest /
 *    q_instantaneousShareMax
     q_energyShareMax
     q_energyShareMin
+    q_boundCyclicInSample
+    q_boundCyclicBetweenSamples
 /;

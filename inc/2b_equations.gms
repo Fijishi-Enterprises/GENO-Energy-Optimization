@@ -54,6 +54,8 @@ equations
     q_instantaneousShareMax(gngroup, group, f, t) "Maximum instantaneous share of generation and import from a group of units"
     q_energyShareMax(gngroup, group) "Maximum energy share of generation and import from a group of units"
     q_energyShareMin(gngroup, group) "Minimum energy share of generation and import from a group of units"
+    q_boundCyclicInSample(grid, node, mType, s, f, t, f_, t_) "Cyclic bound for the first and the last state in a sample"
+    q_boundCyclicBetweenSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound for the first and the last and first states between samples"
 ;
 
 $setlocal def_penalty 1e6
@@ -651,7 +653,8 @@ q_stateSlack(gn_stateSlack(grid, node), slack, ft_full(f, t))${ p_gnBoundaryProp
 q_stateUpwardLimit(gn_state(grid, node), m, ft_dynamic(f, t))${ sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'down', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
                                                                 or sum(gn2gnu(grid_, node_input, grid, node, unit)$(sum(restype, nuRescapable(restype, 'down', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
                                                                 or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))  // or nodes that have units whose invested capacity limits their state
-                                                                }..  ( // Utilizable headroom in the state variable
+                                                                }..
+  ( // Utilizable headroom in the state variable
       + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant') * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
       + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeSeries') * ts_nodeState(grid, node, 'upwardLimit', f, t)
       + sum{gnu(grid, node, unit), sum(t_$(ord(t_)<=ord(t)), v_invest_LP(grid, node, unit, t_) * p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))}
@@ -1152,4 +1155,28 @@ q_energyShareMin(gngroup, group)${p_gngroupPolicy(gngroup, 'energyShareMin', gro
   =G=
     0
 ;
+* -----------------------------------------------------------------------------
+q_boundCyclicInSample(gn_state(grid, node), msft(m, s, f, t), fCentral(f_), t_)${
+    p_gn(grid, node, 'boundCyclicInSample')  // Bind variables if parameter found
+    and ord(t) = msStart(m, s)               // For the first time step in the sample
+    and ord(t_)+pt(t_) = msEnd(m, s)         // Use only the ending time step in the sample
+    and msft(m, s, f_, t_+pt(t_))
+    }..
 
+    + v_state(grid, node, f+cf_Central(f,t), t)
+    =E=
+    + v_state(grid, node, f_+cf_Central(f,t), t_)
+;
+* -----------------------------------------------------------------------------
+q_boundCyclicBetweenSamples(gn_state(grid, node), msft(m, s, f, t+pt(t)), s_, fCentral(f_), t_)${
+    p_gn(grid, node, 'boundCyclicBetweenSamples')  // Bind variables if parameter found
+    and ord(t)+pt(t) = msEnd(m, s)                 // For the ending time step in the sample
+    and ord(t_) = msStart(m, s_)                   // Use only the first time step in the next sample
+    and msft(m, s_, f_, t_)                        
+    and [ord(s) = ord(s_)-1 or [ord(s) = mSettings(m, 'samples') and ord(s_) = 1]]  // Select consecutive samples
+    }..
+
+    + v_state(grid, node, f+cf_Central(f,t), t)
+    =E=
+    + v_state(grid, node, f_+cf_Central(f,t), t_)
+;

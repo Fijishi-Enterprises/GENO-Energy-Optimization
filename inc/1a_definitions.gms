@@ -155,6 +155,8 @@ param_gn  "Possible parameters for grid, node" /
     boundCyclic   "A flag to impose cyclic bounds for the first and the last states"
     forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."
     capacityMargin "Capacity margin used in invest mode (MW)"
+    boundCyclicInSample   "A flag to impose cyclic bounds for the first and the last states in a sample"
+    boundCyclicBetweenSamples   "A flag to impose cyclic bounds for the last and first states between samples"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /

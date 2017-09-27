@@ -53,6 +53,8 @@ v_gen.up(gnu(grid, node, unit_flow), ft(f,t))$(not (unit_investLP(unit_flow) or 
           p_gnu(grid, node, unit_flow, 'maxGen') *
           p_unit(unit_flow, 'availability')
       );
+v_gen.up(gnu(grid, node, unit), ft(f,t))${not gnu_output(grid, node, unit)
+     } = 0;
 
 // Min. generation to zero for units without consumption
 v_gen.lo(gnu(grid, node, unit), ft(f,t))${not gnu_input(grid, node, unit)
