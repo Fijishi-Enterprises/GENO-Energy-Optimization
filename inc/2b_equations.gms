@@ -51,10 +51,11 @@ equations
     q_minDown(mType, unit, f, t) "Unit must stay non-operational if it has shut down during the previous minShutDownTime hours"
     q_capacityMargin(grid, node, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
     q_emissioncap(gngroup, emission) "Limit for emissions"
-    q_instantaneousShareMax(gngroup, group, f, t) "Maximum instantaneous share of generation and import from a group of units"
+    q_instantaneousShareMax(gngroup, group, f, t) "Maximum instantaneous share of generation and controlled import from a group of units and links"
     q_energyShareMax(gngroup, group) "Maximum energy share of generation and import from a group of units"
     q_energyShareMin(gngroup, group) "Minimum energy share of generation and import from a group of units"
     q_boundCyclicSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound inside or between samples"
+    q_inertiaMin(gngroup, f, t) "Minimum inertia in a group of nodes"
 ;
 
 $setlocal def_penalty 1e6
@@ -1069,39 +1070,68 @@ q_emissioncap(gngroup, emission)${p_gngroupPolicy(gngroup, 'emissionCap', emissi
   p_gngroupPolicy(gngroup, 'emissionCap', emission)
 ;
 *-----------------------------------------------------------------------------
-q_instantaneousShareMax(gngroup, group, ft(f, t))${p_gngroupPolicy(gngroup, 'instantaneousShareMax', group)} ..
+q_instantaneousShareMax(gngroup, group, ft_dynamic(f, t))${p_gngroupPolicy(gngroup, 'instantaneousShareMax', group)} ..
     // Generation of units in the group
   + sum(gnu(grid, node, unit)${  gnu_group(grid, node, unit, group)
                                  and p_gnu(grid, node, unit, 'unitSizeGen')
                                  and gn_gngroup(grid, node, gngroup)
-        }, v_gen(grid, node, unit, f, t)
+        }, v_gen(grid, node, unit, f, t+pt(t))
+    )
+    // Controlled transfer to this node group
+    // Set gn2n_group controls whether transfer is included in the equation
+  + sum(gn2n_directional(grid, node, node_)${  gn2n_group(grid, node, node_, group)
+                                               and gn_gngroup(grid, node, gngroup)
+                                               and not gn_gngroup(grid, node_, gngroup)
+        },
+          + v_transferLeftward(grid, node, node_, f, t+pt(t)) * (1-p_gnn(grid, node, node_, 'transferLoss'))
+    )
+  + sum(gn2n_directional(grid, node_, node)${  gn2n_group(grid, node_, node, group)
+                                               and gn_gngroup(grid, node, gngroup)
+                                               and not gn_gngroup(grid, node_, gngroup)
+        },
+          + v_transferRightward(grid, node_, node, f, t+pt(t)) * (1-p_gnn(grid, node_, node, 'transferLoss'))
     )
   =L=
   + (
         // External power inflow/outflow
-      - sum((grid, node)${gn_gngroup(grid, node, gngroup)}, ts_influx_(grid, node, f, t))
+      - sum((grid, node)${gn_gngroup(grid, node, gngroup)}, ts_influx_(grid, node, f, t+pt(t)))
         // Consumption of units
       - sum(gnu(grid, node, unit)${  p_gnu(grid, node, unit, 'unitSizeCons')
                                      and gn_gngroup(grid, node, gngroup)
-            }, v_gen(grid, node, unit, f, t)
+            }, v_gen(grid, node, unit, f, t+pt(t))
         )
-        // Controlled transfer
-      + sum(gn2n_directional(grid, node, node_)${  gn_gngroup(grid, node, gngroup)
+        // Controlled transfer from this node group
+        // Set gn2n_group controls whether transfer is included in the equation
+      + sum(gn2n_directional(grid, node, node_)${  gn2n_group(grid, node, node_, group)
+                                                   and gn_gngroup(grid, node, gngroup)
                                                    and not gn_gngroup(grid, node_, gngroup)
             },
-              + v_transfer(grid, node, node_, f, t)
-              + v_transferLeftward(grid, node, node_, f, t) * p_gnn(grid, node, node_, 'transferLoss')
+              + v_transferRightward(grid, node, node_, f, t+pt(t))
         )
-      - sum(gn2n_directional(grid, node_, node)${  gn_gngroup(grid, node, gngroup)
+      + sum(gn2n_directional(grid, node_, node)${  gn2n_group(grid, node_, node, group)
+                                                   and gn_gngroup(grid, node, gngroup)
                                                    and not gn_gngroup(grid, node_, gngroup)
             },
-              + v_transfer(grid, node_, node, f, t)
-              - v_transferRightward(grid, node_, node, f, t) * p_gnn(grid, node_, node, 'transferLoss')
+              + v_transferLeftward(grid, node_, node, f, t+pt(t))
         )
+$ontext
+        // No uncontrolled (AC) transfer because this equation is typically used
+        // for one synchronous area which does not have any external AC links
+
+        // Energy diffusion from this node to neighbouring nodes
+      + sum(gnn_state(grid, node, node_)${  gn_gngroup(grid, node, gngroup)
+                                            and not gn_gngroup(grid, node_, gngroup)
+            }, p_gnn(grid, node, node_, 'diffCoeff') * v_state(grid, node, f+cf_Central(f,t), t)
+        )
+        // Energy diffusion from neighbouring nodes to this node
+      - sum(gnn_state(grid, node_, node)${  gn_gngroup(grid, node, gngroup)
+                                            and not gn_gngroup(grid, node_, gngroup)
+            }, p_gnn(grid, node_, node, 'diffCoeff') * v_state(grid, node_, f+cf_Central(f,t), t)
+        )
+$offtext
     )
   * p_gngroupPolicy(gngroup, 'instantaneousShareMax', group)
 ;
-* Energy diffusion?
 *-----------------------------------------------------------------------------
 q_energyShareMax(gngroup, group)${p_gngroupPolicy(gngroup, 'energyShareMax', group)} ..
   + sum(msft(m, s, f, t),
@@ -1177,3 +1207,21 @@ q_boundCyclicSamples(gn_state(grid, node), msft(m, s, f, t), s_, fCentral(f_), t
     + v_state(grid, node, f_+cf_Central(f,t), t_)
 ;
 * Check forecasts
+*-----------------------------------------------------------------------------
+q_inertiaMin(gngroup, ft(f, t))${p_gngroupPolicy(gngroup, 'kineticEnergyMin', '')} ..
+  + sum(gnu(grid, node, unit)${  p_gnu(grid, node, unit, 'unitSizeGen')
+                                 and gn_gngroup(grid, node, gngroup)
+        },
+          + v_online(unit, f, t)${not unit_investLP(unit) and uft_online(unit, f, t)}
+              * p_gnu(grid, node, unit, 'unitSizeMVA') * p_gnu(grid, node, unit, 'inertia')
+          + v_online_LP(unit, f, t)${unit_investLP(unit) and uft_online(unit, f, t)}
+              / sum((grid_, node_)$gnu(grid_, node_, unit), p_gnu(grid_, node_, unit, 'unitSizeTot'))
+              * p_gnu(grid, node, unit, 'unitSizeMVA') * p_gnu(grid, node, unit, 'inertia')
+          + v_gen(grid, node, unit, f, t)${not uft_online(unit, f, t)}
+              * p_gnu(grid, node, unit, 'unitSizeMVA')
+              / p_gnu(grid, node, unit, 'unitSizeGen')
+              * p_gnu(grid, node, unit, 'inertia')
+    )
+  =G=
+    p_gngroupPolicy(gngroup, 'kineticEnergyMin', '')
+;

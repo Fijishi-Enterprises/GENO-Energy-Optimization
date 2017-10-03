@@ -86,8 +86,9 @@ Model invest /
     q_minDown
     q_capacityMargin
     q_emissionCap
-*    q_instantaneousShareMax
+    q_instantaneousShareMax
     q_energyShareMax
     q_energyShareMin
-    q_boundCyclicSamples 
+    q_boundCyclicSamples
+    q_inertiaMin
 /;
