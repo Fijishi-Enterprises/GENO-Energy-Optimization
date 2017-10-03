@@ -91,9 +91,10 @@ unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxCons'))
 p_unit(unit, 'eff00')$(not p_unit(unit, 'eff00')) = 1; // If the unit does not have efficiency set, it is 1
 p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount')) = 1;  // In case number of units has not been defined it is 1.
 p_unit(unit, 'outputCapacityTotal')$(not p_unit(unit, 'outputCapacityTotal')) = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));  // By default add outputs in order to get the total capacity of the unit
-p_unitFuelEmissionCost(unit_fuel, fuel, emission)$sum(param_fuel, uFuel(unit_fuel, param_fuel, fuel)) = p_fuelEmission(fuel, emission) / 1e3
-                                                      * sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen') * p_gnPolicy(grid, node, 'emissionTax', emission))  // Weighted average of emission costs from different output energy types
-                                                      / sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen'));
+p_unitFuelEmissionCost(unit_fuel, fuel, emission)$(sum[param_fuel, uFuel(unit_fuel, param_fuel, fuel)] and sum[gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen')])
+ = p_fuelEmission(fuel, emission) / 1e3
+     * sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen') * p_gnPolicy(grid, node, 'emissionTax', emission))  // Weighted average of emission costs from different output energy types
+     / sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen'));
 * Generate node related sets based on input data // NOTE! These will need to change if p_gnn is required to work with only one row per link.
 gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCap') OR p_gnn(grid, from_node, to_node, 'transferLoss')} = yes;
 gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCapBidirectional') OR p_gnn(grid, to_node, from_node, 'transferCapBidirectional')} = yes;
