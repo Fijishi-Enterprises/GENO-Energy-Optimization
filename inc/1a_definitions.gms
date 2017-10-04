@@ -67,6 +67,8 @@ Sets  // Model related selections
         / up, down /
     inc_dec "Increase or decrease in dummy, or slack variables"
        / increase, decrease /
+    min_max "Minimum and maximum"
+        / min, max /
 ;
 
 Sets //Reserve type sets
@@ -83,6 +85,20 @@ Sets //Reserve type sets
           tertiary.up
           tertiary.down
         /
+;
+
+Sets //Startup related sets
+    starttype "Startup types"
+        / hot "Hot start"
+          warm "Warm start"
+          cold "Cold start"
+        /
+    starttypeConstrained(starttype) "Startup types with constrained maximum non-opearational time"
+        / hot, warm /
+    cost_consumption "Startup cost or startup fuel consumption"
+        / cost, consumption /
+    unit_capacity "Unit or capacity based parameter"
+        / unit, capacity /
 ;
 
 * Numeric parameters
@@ -138,6 +154,9 @@ param_gn  "Possible parameters for grid, node" /
     boundStartToEnd  "Force the last states to equal the first state"
     boundCyclic   "A flag to impose cyclic bounds for the first and the last states"
     forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."
+    capacityMargin "Capacity margin used in invest mode (MW)"
+    boundCyclicInSample   "A flag to impose cyclic bounds for the first and the last states in a sample"
+    boundCyclicBetweenSamples   "A flag to impose cyclic bounds for the last and first states between samples"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
@@ -179,6 +198,11 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     diffCoeff   "Coefficients for energy diffusion between nodes"
     boundStateOffset "Offset parameter for relatively bound node states"
     boundStateMaxDiff "Maximum difference of node state pairs"
+    transferCapInvLimit "Capacity limit for investments (MW)"
+    investMIP   "Choice of making integer investment instead of continous investment (MW versus number of links)"
+    unitSize    "Size of one link for integer investments (MW)"
+    invCost "Investment cost (€/MW)"
+    annuity "Investment annuity"
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /
@@ -190,19 +214,38 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     maxRampDown "Speed to ramp down (p.u. / min)"
     rampUpCost  "Wear and tear cost of ramping up (€/MW)"
     rampDownCost "Wear and tear cost of ramping down (€/MW)"
+    maxGenCap   "Maximum output capacity investment (MW)"
+    maxConsCap  "Maximum loading capacity investment (MW)"
+    minGenCap   "Minimum output capacity investment (MW)"
+    minConsCap  "Minimum loading capacity investment (MW)"
+    upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment"
+    unitSizeGen "Output capacity of one unit for integer investments (MW)"
+    unitSizeCons  "Loading capacity of one unit for integer investments (MW)"
+    unitSizeTot "Sum of output and loading capacity of one unit (MW)"
+    unitSizeGenNet "Output minus loading capacity of one unit (MW)"
+    invCosts    "Investment costs (€/MW)"
+    annuity     "Investment annuity"
+    inertia  "Inertia of the unit (s)"
+    unitSizeMVA "Generator MVA rating (MVA)"
 /
 
 param_unit "Set of possible data parameters for units" /
-    unitCount   "Number of units if aggregated"
+    unitCount   "Number of subunits if aggregated"
     outputCapacityTotal "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"
     availability "Availability of given energy conversion technology (p.u.)"
     omCosts     "Variable operation and maintenance costs (€/MWh)"
-    startCostCold "Variable start-up costs for cold starts excluding fuel costs (€/MWh) NOT IN USE"
-    startCostWarm "Variable start-up costs for warm starts excluding fuel costs (€/MWh) NOT IN USE"
-    startCost "Variable start-up costs for starts excluding fuel costs (€/MWh)"
-    startFuelConsCold "Consumption of start-up fuel per capacity started up (MWh_fuel/MW) NOT IN USE"
-    startFuelConsWarm "Consumption of start-up fuel per capacity started up (MWh_fuel/MW) NOT IN USE"
-    startFuelCons "Consumption of start-up fuel per capacity started up (MWh_fuel/MW)"
+    startCostCold "Variable start-up costs for cold starts excluding fuel costs (€/subunit) NOT IN USE"
+    startCostWarm "Variable start-up costs for warm starts excluding fuel costs (€/subunit) NOT IN USE"
+    startCost "Variable start-up costs for starts excluding fuel costs (€/subunit)"
+    startFuelConsCold "Consumption of start-up fuel per subunit started up (MWh_fuel/subunit) NOT IN USE"
+    startFuelConsWarm "Consumption of start-up fuel per subunit started up (MWh_fuel/subunit) NOT IN USE"
+    startFuelCons "Consumption of start-up fuel per subunit started up (MWh_fuel/subunit)"
+    startCostCold_MW "Variable start-up costs for cold starts excluding fuel costs (€/MW) NOT IN USE"
+    startCostWarm_MW "Variable start-up costs for warm starts excluding fuel costs (€/MW) NOT IN USE"
+    startCost_MW "Variable start-up costs for starts excluding fuel costs (€/MW)"
+    startFuelConsCold_MW "Consumption of start-up fuel per capacity started up (MWh_fuel/MW) NOT IN USE"
+    startFuelConsWarm_MW "Consumption of start-up fuel per capacity started up (MWh_fuel/MW) NOT IN USE"
+    startFuelCons_MW "Consumption of start-up fuel per capacity started up (MWh_fuel/MW)"
     startCold   "Offline hours after which the start-up will be a cold start (h) NOT IN USE"
     startWarm   "Offline hours after which the start-up will be a warm start (h) NOT IN USE"
     minOperationTime "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
@@ -217,6 +260,9 @@ param_unit "Set of possible data parameters for units" /
     level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "Uses time series form input for unit parameters whenever possible"
     section     "Possibility to define a no load fuel use for units with zero minimum output"
+    investMIP   "Choice of making integer investment instead of continous investment (number of units versus MW)"
+    maxUnitCount "Maximum number of units when making integer investments"
+    minUnitCount "Minimum number of units when making integer investments"
 /
 
 param_fuel "Parameters for fuels" /
@@ -236,7 +282,29 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     gate_closure "Number of timesteps ahead of dispatch that reserves are fixed"
     use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
     reserveContribution "Reliability parameter of reserve provisions"
+    emissionCap "Emission limit (tonne)"
+    instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
+    energyShareMax "Maximum energy share of generation from a particular group of units"
+    energyShareMin "Minimum energy share of generation from a particular group of units"
+    kineticEnergyMin "Minimum system kinetic energy (MWs)"
 /
 
+param_gnugnu "Set of possible data parameters for grid, node, unit, grid, node, unit" /
+    capacityRatio "Fixed ratio of the capacity of the first unit to the second"
+/
 
+solve_info "Containers for solve information" /
+    modelStat "Status of the model after solve"
+    solveStat "Status of the solve"
+    totalTime "Total solve time"
+    iterations "Number of iteration"
+    nodes "Number of nodes in the solve"
+    numEqu "Number of equations in the problem"
+    numDVar "Number of D variables in the problem"
+    numVar "Number of variables in the problem"
+    numNZ "Number of non-zeros in the problem"
+    sumInfes "Sum of infeasibilities"
+    objEst "Estimate for the best possible objective value"
+    objVal "Objectiv value"
+/
 ; // End parameter set declarations

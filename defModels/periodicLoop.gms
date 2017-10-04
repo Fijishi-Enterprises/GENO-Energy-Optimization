@@ -77,7 +77,7 @@ tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(
 
 // Initializing sets and counters
 Option clear = tCounter;
-Option clear = pt;
+*Option clear = pt;
 Option clear = p_stepLength;
 Option clear = ft;
 Option clear = ft_dynamic;
@@ -105,11 +105,18 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         p_stepLengthNoReset(mf(mSolve, fSolve), tInterval(t)) = mSettings(mSolve, 'intervalInHours');
         pt(t + 1)${tInterval(t)} = -1;
 
+        // Determine the initial combination of model-sample-forecast-time steps
+        msft(mSolve, s, fSolve, tInterval(t))${  msf(mSolve, s, fSolve)
+                                                 and ord(t) >= msStart(mSolve, s)
+                                                 and ord(t) <= msEnd(mSolve, s)
+                                                 } = yes;
+
         // Determine the forecast-time steps
         ft(fCentral(fSolve), tInterval(t))${    ord(t) >= tSolveFirst + mSettings(mSolve, 't_jump')
                                                 } = yes; // Include the full horizon for the central forecast
         ft(fRealization(fSolve), tInterval(t))${    ord(t) < tSolveFirst + mSettings(mSolve, 't_jump')
-                                                    } = yes; // Include the t_jump for the realization
+                                                    and sum(s, msft(mSolve, s, fSolve, t)) // Make sure time step is in sample
+                                                    } =  yes; // Include the t_jump for the realization
         ft(fSolve, tInterval(t))${  not fCentral(fSolve)
                                     and not fRealization(fSolve)
                                     and ord(t) >= tSolveFirst + mSettings(mSolve, 't_jump')
@@ -225,8 +232,18 @@ cf_Central(ft_dynamic(f,t+pt(t)))${ not ft_dynamic(f, t)
 
 // Previous forecast displacement between realized and forecasted timesteps
 Option clear = pf;
-pf(ft_dynamic(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_jump') + 1
+pf(ft_dynamic(f,t))${   ord(t) = smin(t_${ft_dynamic(f,t_)}, tOrd(t_))
                         } = sum(f_${fRealization(f_)}, ord(f_)) - ord(f);
+
+// Forecast displacement between realized and forecasted timesteps
+Option clear = cpf;
+cpf(ft(f,t))${cf(f,t)} = cf(f,t);
+cpf(ft(f,t))${pf(f,t)} = pf(f,t);
+
+// Forecast displacement between realized and forecasted timesteps - starting from t_start
+tRealizedLast = smax(t${sum(fRealization(f), ft(f,t))}, tOrd(t));
+Option clear = af;
+af(fSolve(f),t)${ord(t) <= tRealizedLast} = sum(f_${fRealization(f_)}, ord(f_)) - ord(f);
 
 // Previous nodal forecast displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
 Option clear = pf_nReserves;
@@ -262,7 +279,10 @@ mftLastSteps(mSolve, ft_full(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_
 
 // Samples
 Option clear = msft;
-msft(mSolve, 's000', f, t) = mft(mSolve,f,t);
+msft(mSolve, s, f, t)${msf(mSolve, s, f)
+                       and ord(t) >= msStart(mSolve, s)
+                       and ord(t) <= msEnd(mSolve, s)
+                      } = mft(mSolve,f,t);
 
 * -----------------------------------------------------------------------------
 * --- Defining unit aggregations and ramps ------------------------------------
@@ -315,12 +335,16 @@ sufts(effGroup, unit, f, t, effSelector)$(effGroupSelector(effGroup, effSelector
 // Units with online variables on each forecast-time step
 Option clear = uft_online;
 Option clear = uft_online_last;
+Option clear = uft_online_last;
 loop(suft(effOnline, uft(unit, f, t)), // Determine the time steps when units need to have online variables.
     uft_online(unit, f, t) = yes;
 );
 uft_online_last(uft_online(unit, f+pf(f,t), t+pt(t)))${ not uft_online(unit, f, t)
                                                         and ft(f, t)
     } = yes;
+Option clear = uft_online_incl_previous;
+uft_online_incl_previous(uft_online(unit, f, t)) = yes;
+uft_online_incl_previous(unit, f, t+pt(t))${uft_online(unit, f, t) and ord(t) = tSolveFirst and fRealization(f)} = yes;
 
 // Calculate time series for unit parameters when necessary and/or possible
 loop(unit${p_unit(unit, 'useTimeseries')},
@@ -412,11 +436,12 @@ loop(unit,
 
 // Update probabilities
 Option clear = p_sft_probability;
-p_sft_probability(sInitial(s), ft(f,t)) = p_fProbability(f+cf_Central(f,t)) / sum(f_${ft(f_,t)}, p_fProbability(f_));
-p_sft_probability(sInitial(s), ft_realized(f,t)) = p_fProbability(f);
-p_sft_probability(sInitial(s), ft_full(f,t))${  mftLastSteps(mSolve, f, t)
-                                                and not cf_Central(f,t)
-    } = p_fProbability(f) / sum(f_${ft_full(f_,t)}, p_fProbability(f_));
+p_sft_probability(s, ft(f,t))${msft(mSolve, s, f, t)} = p_fProbability(f+cf_Central(f,t)) / sum(f_${ft(f_,t)}, p_fProbability(f_)) * p_sProbability(s);
+p_sft_probability(s, ft_realized(f,t))${msft(mSolve, s, f, t)} = p_fProbability(f) * p_sProbability(s);
+p_sft_probability(s, ft_full(f,t))${  mftLastSteps(mSolve, f, t)
+                                      and msft(mSolve, s, f, t)
+                                      and not cf_Central(f,t)
+    } = p_fProbability(f) / sum(f_${ft_full(f_,t)}, p_fProbability(f_)) * p_sProbability(s);
 
 
 

@@ -47,6 +47,14 @@ $loaddc ts_cf
 $loaddc ts_fuelPriceChange
 $loaddc ts_influx
 $loaddc ts_nodeState
+$loaddc p_gnugnu
+$loaddc t_invest
+$loaddc group
+$loaddc gnu_group
+$loaddc gn2n_group
+$loaddc gngroup
+$loaddc gn_gngroup
+$loaddc p_gngroupPolicy
 $gdxin
 
 $ontext
@@ -58,6 +66,9 @@ $ontext
  $endif
  $gdxin
 $offtext
+$ifthen exist 'input/changes.inc'
+   $$include 'input/changes.inc'
+$endif
 
 * --- Initial setup of sets & parameters based on input data ------------------
 
@@ -73,6 +84,12 @@ p_gnu(grid, node, unit_aggregate(unit), 'maxCons') = sum(unit_$unitUnit_aggregat
 gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'maxGen') or p_gnu(grid, node, unit, 'maxCons')) = yes;
 gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'maxGen') = yes;
 gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'maxCons') = yes;
+gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'unitSizeGen') or p_gnu(grid, node, unit, 'unitSizeCons')) = yes;
+gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'maxGenCap') or p_gnu(grid, node, unit, 'maxConsCap')) = yes;
+gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'maxGenCap') = yes;
+gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'maxConsCap') = yes;
+gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'unitSizeGen') = yes;
+gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'unitSizeCons') = yes;
 gn2gnu(grid_, node_input, grid, node, unit)$(gnu_input(grid_, node_input, unit) and gnu_output(grid, node, unit)) = yes;
 nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
 nuRescapable(restype, up_down, node, unit)$p_nuReserves(node, unit, restype, up_down) = yes;
@@ -81,17 +98,52 @@ unit_flow(unit)$sum(flow, flowUnit(flow, unit)) = yes;
 unit_fuel(unit)$sum[fuel, uFuel(unit, 'main', fuel)] = yes;
 unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) = yes;
 unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxCons')) = yes;
+unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGenCap')) = yes;
+unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxConsCap')) = yes;
+unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'unitSizeGen')) = yes;
+unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'unitSizeCons')) = yes;
+unit_investLP(unit)${  not p_unit(unit, 'investMIP')
+                       and sum(gnu(grid, node, unit),
+                             p_gnu(grid, node, unit, 'maxGenCap') + p_gnu(grid, node, unit, 'maxConsCap')
+                           )
+  } = yes;
+unit_investMIP(unit)${p_unit(unit, 'investMIP') and p_unit(unit, 'maxUnitCount')} = yes;
 
 * Assume values for critical unit related parameters, if not provided by input data
 p_unit(unit, 'eff00')$(not p_unit(unit, 'eff00')) = 1; // If the unit does not have efficiency set, it is 1
-p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount')) = 1;  // In case number of units has not been defined it is 1.
+p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount') and not p_unit(unit, 'investMIP')) = 1;  // In case number of units has not been defined it is 1 except for units with integer investments allowed.
 p_unit(unit, 'outputCapacityTotal')$(not p_unit(unit, 'outputCapacityTotal')) = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));  // By default add outputs in order to get the total capacity of the unit
 p_unitFuelEmissionCost(unit_fuel, fuel, emission)$sum(param_fuel, uFuel(unit_fuel, param_fuel, fuel)) = p_fuelEmission(fuel, emission) / 1e3
-                                                      * sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen') * p_gnPolicy(grid, node, 'emissionTax', emission))  // Weighted average of emission costs from different output energy types
-                                                      / sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen'));
+                                                      * sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen') * p_gnPolicy(grid, node, 'emissionTax', emission)  // Weighted average of emission costs from different output energy types
+                                                          + p_gnu(grid, node, unit_fuel, 'unitSizeGen')$(not p_gnu(grid, node, unit_fuel, 'maxGen')) * p_gnPolicy(grid, node, 'emissionTax', emission)
+                                                        )  // Weighted average of emission costs from different output energy types
+                                                      / sum(gnu_output(grid, node, unit_fuel), p_gnu(grid, node, unit_fuel, 'maxGen')
+                                                          + p_gnu(grid, node, unit_fuel, 'unitSizeGen')$(not p_gnu(grid, node, unit_fuel, 'maxGen'))
+                                                        );
+p_uNonoperational(unit, 'hot', 'min') = p_unit(unit, 'minShutDownTime');
+p_uNonoperational(unit, 'hot', 'max') = p_unit(unit, 'startWarm');
+p_uNonoperational(unit, 'warm', 'min') = p_unit(unit, 'startWarm');
+p_uNonoperational(unit, 'warm', 'max') = p_unit(unit, 'startCold');
+p_uStartup(unit, 'hot', 'cost', 'unit') = p_unit(unit, 'startCost');
+p_uStartup(unit, 'hot', 'cost', 'capacity') = p_unit(unit, 'startCost_MW');
+p_uStartup(unit, 'hot', 'consumption', 'unit') = p_unit(unit, 'startFuelCons');
+p_uStartup(unit, 'hot', 'consumption', 'capacity') = p_unit(unit, 'startFuelCons_MW');
+p_uStartup(unit, 'warm', 'cost', 'unit') = p_unit(unit, 'startCostWarm');
+p_uStartup(unit, 'warm', 'cost', 'capacity') = p_unit(unit, 'startCostWarm_MW');
+p_uStartup(unit, 'warm', 'consumption', 'unit') = p_unit(unit, 'startFuelConsWarm');
+p_uStartup(unit, 'warm', 'consumption', 'capacity') = p_unit(unit, 'startFuelConsWarm_MW');
+p_uStartup(unit, 'cold', 'cost', 'unit') = p_unit(unit, 'startCostCold');
+p_uStartup(unit, 'cold', 'cost', 'capacity') = p_unit(unit, 'startCostCold_MW');
+p_uStartup(unit, 'cold', 'consumption', 'unit') = p_unit(unit, 'startFuelConsCold');
+p_uStartup(unit, 'cold', 'consumption', 'capacity') = p_unit(unit, 'startFuelConsCold_MW');
+p_gnu(grid, node, unit, 'unitSizeGen')$(p_gnu(grid, node, unit, 'maxGen') and p_unit(unit, 'unitCount')) = p_gnu(grid, node, unit, 'maxGen')/p_unit(unit, 'unitCount');  // If maxGen and unitCount are given, calculate unitSizeGen based on them.
+p_gnu(grid, node, unit, 'unitSizeCons')$(p_gnu(grid, node, unit, 'maxCons') and p_unit(unit, 'unitCount')) = p_gnu(grid, node, unit, 'maxCons')/p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
+p_gnu(grid, node, unit, 'unitSizeTot') = p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons');
+p_gnu(grid, node, unit, 'unitSizeGenNet') = p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons');
 * Generate node related sets based on input data // NOTE! These will need to change if p_gnn is required to work with only one row per link.
 gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCap') OR p_gnn(grid, from_node, to_node, 'transferLoss')} = yes;
 gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCapBidirectional') OR p_gnn(grid, to_node, from_node, 'transferCapBidirectional')} = yes;
+gn2n(grid, from_node, to_node)$p_gnn(grid, from_node, to_node, 'transferCapInvLimit') = yes;
 gnn_boundState(grid, node, node_)$(p_gnn(grid, node, node_, 'boundStateOffset')) = yes;
 gnn_state(grid, node, node_)$(p_gnn(grid, node, node_, 'diffCoeff') or gnn_boundState(grid, node, node_)) = yes;
 gn_stateSlack(grid, node)$(sum((upwardSlack,   useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node,   upwardSlack, useConstantOrTimeSeries))) = yes;
@@ -103,25 +155,10 @@ gn_state(grid, node)$(sum(useConstantOrTimeSeries, p_gnBoundaryPropertiesForStat
 gn(grid, node)$(sum(unit, gnu(grid, node, unit) or gn_state(grid, node))) = yes;
 node_spill(node)$(sum((grid, spillLimits, useConstantOrTimeSeries)$gn(grid, node), p_gnBoundaryPropertiesForStates(grid, node, spillLimits, useConstantOrTimeSeries))) = yes;
 
-* Generate the set of unique, symmetric transfer links
-gn2n_bidirectional(grid, node, node_) = no;
-gn2n_bidirectional(grid, node, node_)${p_gnn(grid, node, node_, 'transferCapBidirectional')} = yes;
-loop(gn(grid, node),
-    loop(gn2n(grid, node, node_)${gn2n(grid, node_,node)},
-        gn2n_bidirectional(grid, node, node_)${not gn2n_bidirectional(grid, node_, node)} = yes;
-    );
-);
-* Assume lacking parameters for bidirectional links, if input data found lacking.
-loop(gn2n_bidirectional(grid, node, node_)${p_gnn(grid, node, node_, 'transferCapBidirectional')},
-    // Replicate the bidirectional transfer capacity for the other direction as well for clarity, in case it's undefined. This affects the related data integrity check later.
-    p_gnn(grid, node_, node, 'transferCapBidirectional')${not p_gnn(grid, node_, node, 'transferCapBidirectional')} = p_gnn(grid, node, node_, 'transferCapBidirectional');
-    // Limit individual directional transfer capacities to the bidirectional capacity if not defined otherwise.
-    p_gnn(grid, node, node_, 'transferCap')${not p_gnn(grid, node, node_, 'transferCap')} = p_gnn(grid, node, node_, 'transferCapBidirectional');
-    p_gnn(grid, node_, node, 'transferCap')${not p_gnn(grid, node_, node, 'transferCap')} = p_gnn(grid, node, node_, 'transferCapBidirectional');
-    // Fill in missing transfer losses
-    // NOTE! One has to define 'transferCapBidirectional' for the direction with zero 'transferLoss', if asymmetric losses are desired.
-    p_gnn(grid, node_, node, 'transferLoss')${not p_gnn(grid, node_, node, 'transferLoss')} = p_gnn(grid, node, node_, 'transferLoss');
-);
+* Generate the set for transfer links where the order of the first node must be smaller than the order of the second node
+gn2n_directional(grid, node, node_) = no;
+gn2n_directional(grid, node, node_)${gn2n(grid, node, node_) and ord(node)<ord(node_)} = yes;
+gn2n_directional(grid, node, node_)${gn2n(grid, node_, node) and ord(node)<ord(node_)} = yes;
 
 * Assume values for critical node related parameters, if not provided by input data
 p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multiplier')${  not p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'multiplier')

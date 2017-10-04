@@ -40,6 +40,9 @@ Sets
     unitUnittype(unit, *) "Link generation technologies to types"
     uFuel(unit, param_fuel, fuel) "Units linked with fuels"
     unittype "Unit technology types"
+    unit_investLP(unit) "Units with continuous investments allowed"
+    unit_investMIP(unit) "Units with integer investments allowed"
+    group "A group of units and transfer links"
 
 * --- Nodes -----------------------------------------------------------------
     node_spill(node)      "Nodes that can spill; used to remove v_spill variables where not relevant"
@@ -48,7 +51,7 @@ Sets
     gn(grid, node) "Grids and their nodes"
 * NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
     gn2n(grid, node, node) "All (directional) transfer links between nodes in specific energy grids"
-    gn2n_bidirectional(grid, node, node) "Bidirectional transfer links between nodes in specific energy grids"
+    gn2n_directional(grid, node, node) "Transfer links with positive rightward transfer and negative leftward transfer"
     gnu(grid, node, unit) "Units in specific nodes of particular energy grids"
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
     gnu_output(grid, node, unit) "Forms of energy the unit uses as endogenous outputs"
@@ -60,6 +63,10 @@ Sets
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
     gngnu_fixedOutputRatio(grid, node, grid, node, unit) "Units with a fixed ratio between two different grids of output (e.g. backpressure)"
     gngnu_constrainedOutputRatio(grid, node, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
+    gnu_group(grid, node, unit, group) "Units in particular groups"
+    gn2n_group(grid, node, node, group) "Transfer links in particular groups"
+    gngroup "A group of grid, node pairs"
+    gn_gngroup(grid, node, gngroup) "Grid, node pairs in particular gngroups"
 
 * --- Reserve types -----------------------------------------------------------
     restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
@@ -95,11 +102,13 @@ Sets
     fSolve(f) "forecasts in the model to be solved next"
     tSolveDispatch(t)
     tLatestForecast(t) "t for the latest forecast that is available"
+    t_invest(t) "Time steps when investments can be made"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Enables aggregation of units for later time periods"
     uft_online(unit, f, t) "Units with online and startup variables on time periods"
     uft_online_last(unit, f, t) "Last (f,t) when online variables are included"
+    uft_online_incl_previous(unit, f, t) "Units with online and startup variables on time periods including the last realized period from previous solve"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"

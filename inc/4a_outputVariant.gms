@@ -24,11 +24,21 @@ r_online(unit, ft_realized(f, t))${ uft_online(unit, f, t+pt(t))
 r_reserve(nuRescapable(restype, up_down, node, unit), fRealization(f), t)${ ft_nReserves(node, restype, f, t)
                                                                             or sum(f_, cf_nReserves(node, restype, f_, t))
     } = v_reserve.l(restype, up_down, node, unit, f, t);
-r_resTransfer(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${ restypeDirectionNode(restype, up_down, to_node)
+r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${ restypeDirectionNode(restype, up_down, to_node)
                                                                                                 and [   ft_nReserves(from_node, restype, f, t)
                                                                                                         or sum(f_, cf_nReserves(from_node, restype, f_, t))
                                                                                                         ]
-    } = v_resTransfer.l(restype, up_down, from_node, to_node, f, t);
+    } = v_resTransferRightward.l(restype, up_down, from_node, to_node, f, t);
+r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${ restypeDirectionNode(restype, up_down, to_node)
+                                                                                                and [   ft_nReserves(from_node, restype, f, t)
+                                                                                                        or sum(f_, cf_nReserves(from_node, restype, f_, t))
+                                                                                                        ]
+    } = v_resTransferLeftward.l(restype, up_down, from_node, to_node, f, t);
+r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t)
+    } = v_startup.l(unit, starttype, f, t);
+r_shutdown(unit, ft_realized(f, t))${ uft_online(unit, f, t)
+    } = v_shutdown.l(unit, f, t);
+r_realizedLast = tRealizedLast;
 
 // Interesting results
 r_gen(gnu(grid, node, unit), ft_realized(f, t)) = v_gen.l(grid, node, unit, f, t);
@@ -39,6 +49,22 @@ r_spill(gn(grid, node), ft_realized(f, t)) = v_spill.l(grid, node, f, t);
 // Feasibility results
 r_qGen(inc_dec, gn(grid, node), ft_realized(f, t)) = vq_gen.l(inc_dec, grid, node, f, t);
 r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t)) = vq_resDemand.l(restype, up_down, node, f, t);
+
+// Model/solve status
+if (mSolve('schedule'),
+    r_solveStatus(tSolve,'modelStat')=schedule.modelStat;
+    r_solveStatus(tSolve,'solveStat')=schedule.solveStat;
+    r_solveStatus(tSolve,'totalTime')=schedule.etSolve;
+    r_solveStatus(tSolve,'iterations')=schedule.iterUsd;
+    r_solveStatus(tSolve,'nodes')=schedule.nodUsd;
+    r_solveStatus(tSolve,'numEqu')=schedule.numEqu;
+    r_solveStatus(tSolve,'numDVar')=schedule.numDVar;
+    r_solveStatus(tSolve,'numVar')=schedule.numVar;
+    r_solveStatus(tSolve,'numNZ')=schedule.numNZ;
+    r_solveStatus(tSolve,'sumInfes')=schedule.sumInfes;
+    r_solveStatus(tSolve,'objEst')=schedule.objEst;
+    r_solveStatus(tSolve,'objVal')=schedule.objVal;
+);
 
 $ontext
     // Deterministic stage
@@ -101,7 +127,7 @@ $ontext
                                 p_fuelEmission(fuel, emission) / 1e3
                                   * p_gnPolicy(grid, node, 'emissionTax', emission)  // Sum emission costs from different output energy types
                                )
-                           ) / p_gnu(grid, node, unit, 'maxGen')  // Calculate these in relation to maximum output ratios between multiple outputs
+                           ) / (p_gnu(grid, node, unit, 'maxGen')$p_gnu(grid, node, unit, 'maxGen') + 1$(not p_gnu(grid, node, unit, 'maxGen')))  // Calculate these in relation to maximum output ratios between multiple outputs
                        ) * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // see line above
                    )
                }

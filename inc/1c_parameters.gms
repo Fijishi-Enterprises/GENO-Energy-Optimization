@@ -35,7 +35,8 @@ Scalars
     tmp_dist "Temporary parameter for calculating the distance between operating points"
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
-    f_improve /12/;
+    f_improve /12/
+    tRealizedLast "counter (ord) for the last realized t in the solve";
 ;
 
 * --- Power plant and fuel data -----------------------------------------------
@@ -48,11 +49,15 @@ Parameters
     p_nReserves(node, restype, *) "Data defining the reserve rules in each node"
     p_nuReserves(node, unit, restype, *) "Reserve provision data for units"
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
+    p_gngroupPolicy(gngroup, param_policy, *) "Policy data for groups of grid, node"
     p_fuelEmission(fuel, emission) "Fuel emission content"
     p_uFuel(unit, param_fuel, fuel, param_unitFuel) "Parameters interacting between units and fuels"
     p_unitFuelEmissionCost(unit, fuel, emission) "Emission costs for each unit, calculated from input data"
     p_effUnit(effSelector, unit, effSelector, *)  "Data for piece-wise linear efficiency blocks"
     p_effGroupUnit(effSelector, unit, *) "Unit data specific to a efficiency group (e.g. left border of the unit)"
+    p_gnugnu(grid, node, unit, grid, node, unit, param_gnugnu) "Data connecting units in nodes and grids"
+    p_uNonoperational(unit, starttype, min_max) "Non-operational time after being shut down before start up"
+    p_uStartup(unit, starttype, cost_consumption, unit_capacity) "Startup cost and fuel consumption"
 // Time dependent unit & fuel parameters
     ts_unit(unit, *, f, t) "Time dependent unit data, where energy type doesn't matter"
     ts_effUnit(effSelector, unit, effSelector, *, f, t) "Time dependent data for piece-wise linear efficiency blocks"
@@ -87,6 +92,11 @@ Parameters
     p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
     tForecastNext(mType) "When the next forecast will be availalbe (ord time)"
     aaSolveInfo(mType, t, solveInfoAttributes) "stores information about the solve status"
+    msStart(mType, s) "Start point of samples"
+    msEnd(mType, s) "End point of samples"
+    tOrd(t) "Order of t"
+    cpf(f, t) "Displacement needed to reach the realized data (forecast) in the first two time periods of ft"
+    af(f, t) "Displacement needed to reach the realized data (forecast) - extended to t_start"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------

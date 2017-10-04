@@ -21,11 +21,14 @@ Parameters
     r_state(grid, node, f, t) "Node state at timestep t"
     r_online(unit, f, t) "Units online"
     r_reserve(restype, up_down, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
-    r_resTransfer(restype, up_down, node, node, f, t) "Electricity transmission capacity from node to node reserved for providing reserves (MW)"
+    r_resTransferRightward(restype, up_down, node, node, f, t) "Electricity transmission capacity from the first node to the second node reserved for providing reserves (MW)"
+    r_resTransferLeftward(restype, up_down, node, node, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
+    r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
+    r_startup(unit, starttype, f, t) "Units started up"
+    r_shutdown(unit, f, t) "Units shut down"
 
     // Arrays of interest
     r_totalCost "Total operating cost over the simulation (€)" / 0 /
-    r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
     r_genFuel(grid, node, fuel, f, t) "Energy generation/consumption based on fuels / flows (MW)"
     r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
     r_spill(grid, node, f, t) "Spill of energy from storage node during time period (MWh)"
@@ -43,13 +46,21 @@ Parameters
     // Dummy variable arrays for solution feasibility
     r_qGen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
     r_qResDemand(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW)"
+    r_solveStatus(t, solve_info) "Information about the solve"
 ;
+
+Scalar r_realizedLast "Order of last realised time step";
 
 // Initialize a few of the results arrays, required by model structure.
 Option clear = r_state;
 Option clear = r_online;
 Option clear = r_reserve;
-Option clear = r_resTransfer;
+Option clear = r_resTransferRightward;
+Option clear = r_resTransferLeftward;
+Option clear = r_gen;
+Option clear = r_realizedLast;
+Option clear = r_startup;
+Option clear = r_shutdown;
 
 * --- Diagnostics Results -----------------------------------------------------
 Parameters

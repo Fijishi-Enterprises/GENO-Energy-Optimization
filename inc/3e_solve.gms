@@ -21,8 +21,13 @@ $offtext
         schedule.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
         solve schedule using mip minimizing v_obj;
     ); // END IF SCHEDULE
-
+$ontext
     if (mSolve('building'),
-        building.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
         solve building using mip minimizing v_obj;
     ); // END IF BUILDING
+
+    if (mSolve('invest'),
+        invest.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
+        solve invest using mip minimizing v_obj;
+    );
+$offtext
