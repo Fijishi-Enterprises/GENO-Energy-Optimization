@@ -27,7 +27,7 @@ Sets
 
 * --- Energy generation and consumption ---------------------------------------
     unit "Set of generators, storages and loads"
-    unit_elec(unit) "Units that generate and/or consume electricity"
+*    unit_elec(unit) "Units that generate and/or consume electricity"
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
     unit_fuel(unit) "Units using a commercial fuel"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
@@ -81,7 +81,7 @@ Sets
     ms(mType, s) "Samples present in the models"
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
-    ft_dynamic(f, t) "ft without first t and with tLast+1 (moved right)"
+*    ft_dynamic(f, t) "ft without first t and with tLast+1 (moved right)"
     ft_full(f, t) "ft with all t's in the solve including tSolve and tLast+1"
     ft_realized(f, t) "Realized ft"
     ft_realizedLast(f, t) "Last realized ft"
@@ -105,8 +105,10 @@ Sets
     t_invest(t) "Time steps when investments can be made"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
-    uft(unit, f, t) "Enables aggregation of units for later time periods"
-    uft_online(unit, f, t) "Units with online and startup variables on time periods"
+    uft(unit, f, t) "Active units on time steps, enables aggregation of units for later time periods"
+    uft_online(unit, f, t) "Units with any online and startup variables on time steps"
+    uft_onlineLP(unit, f, t) "Units with LP online and startup variables on time steps"
+    uft_onlineMIP(unit, f, t) "Units with MIP online and startup variables on time steps"
     uft_online_last(unit, f, t) "Last (f,t) when online variables are included"
     uft_online_incl_previous(unit, f, t) "Units with online and startup variables on time periods including the last realized period from previous solve"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"

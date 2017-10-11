@@ -78,13 +78,13 @@ Scalar p_sWeightSum "Sum of sample weights";
 
 * --- Model structure ---------------------------------------------------------
 Parameters
-    pt(t) "Displacement needed to reach the previous time period (in time periods)"
-    pf(f, t) "Displacement needed to reach the previous forecast (in forecasts)"
-    pf_nReserves(node, restype, f, t) "Forecast index displacement needed to reach the previous forecast when committing reserves."
-    cf(f, t) "Displacement needed to reach the current forecast (in forecasts) - this is needed when the forecast tree gets reduced in dynamic equations"
-    cf_Central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
-    cf_nReserves(node, restype,  f, t) "Forecast index displacement needed to reach the realization when committing reserves."
-    ct(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
+    dt(t) "Displacement needed to reach the previous time period (in time periods)"
+    dt_circular(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
+    df(f, t) "Displacement needed to reach the realized forecast on the current time step"
+    df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
+    df_nReserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves."
+*    cf(f, t) "Displacement needed to reach the current forecast (in forecasts) - this is needed when the forecast tree gets reduced in dynamic equations"
+*    cf_nReserves(node, restype,  f, t) "Forecast index displacement needed to reach the realization when committing reserves."
 *    t_bind(t) "Displacement to reach the binding time period in the parent sample (in time periods). Can skip with aggregated steps as well as when connecting samples."
 *    ft_bind(f, t) "Displacement to reach the binding forecast (in forecasts) in the current model"
 *    mt_bind(mType, t) "Displacement to reach the binding time period in the parent sample (in time periods) in the models"
@@ -95,8 +95,8 @@ Parameters
     msStart(mType, s) "Start point of samples"
     msEnd(mType, s) "End point of samples"
     tOrd(t) "Order of t"
-    cpf(f, t) "Displacement needed to reach the realized data (forecast) in the first two time periods of ft"
-    af(f, t) "Displacement needed to reach the realized data (forecast) - extended to t_start"
+*    cpf(f, t) "Displacement needed to reach the realized data (forecast) in the first two time periods of ft"
+*    af(f, t) "Displacement needed to reach the realized data (forecast) - extended to t_start"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------

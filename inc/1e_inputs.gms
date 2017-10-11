@@ -96,12 +96,12 @@ nuRescapable(restype, up_down, node, unit)$p_nuReserves(node, unit, restype, up_
 unit_minload(unit)$[p_unit(unit, 'op00') > 0 and p_unit(unit, 'op00') < 1] = yes;   // If the first point is between 0 and 1, then the unit has a min load limit
 unit_flow(unit)$sum(flow, flowUnit(flow, unit)) = yes;
 unit_fuel(unit)$sum[fuel, uFuel(unit, 'main', fuel)] = yes;
-unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) = yes;
-unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxCons')) = yes;
-unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGenCap')) = yes;
-unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxConsCap')) = yes;
-unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'unitSizeGen')) = yes;
-unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'unitSizeCons')) = yes;
+*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) = yes;
+*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxCons')) = yes;
+*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGenCap')) = yes;
+*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxConsCap')) = yes;
+*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'unitSizeGen')) = yes;
+*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'unitSizeCons')) = yes;
 unit_investLP(unit)${  not p_unit(unit, 'investMIP')
                        and sum(gnu(grid, node, unit),
                              p_gnu(grid, node, unit, 'maxGenCap') + p_gnu(grid, node, unit, 'maxConsCap')
