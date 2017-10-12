@@ -51,7 +51,6 @@ loop(m,
     msf(m, s, f)$(ms(m, s) and mf(m, f)) = yes;
 );
 
-
 * Calculate the length of the time series
 continueLoop = 1;
 tmp = 0;
@@ -61,11 +60,13 @@ loop(mSolve${continueLoop},
         tmp = max(sum(t${ts_nodeState(grid, node, 'reference', 'f00', t)}, 1), tmp); // Find the maximum length of the given node state time series
     );
     ts_length = tmp;
-    ct(t)$(
-            ord(t) > ts_length
-        and ord(t) <= ts_length + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'))
-        and ord(t) <= mSettings(mSolve, 't_end') + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'))
-    ) = -ts_length;
+    dt_circular(t)${
+                    ord(t) > ts_length
+                    and ord(t) <= ts_length + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'))
+                    and ord(t) <= mSettings(mSolve, 't_end') + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'))
+                    }
+        = - ts_length
+            * floor(ord(t) / ts_length);
     continueLoop = 0;
 );
 
@@ -232,5 +233,5 @@ loop(m,
 p_slackDirection(upwardSlack) = 1;
 p_slackDirection(downwardSlack) = -1;
 
-* Calculating the order of time periods 
+* Calculating the order of time periods
 tOrd(t) = ord(t);
