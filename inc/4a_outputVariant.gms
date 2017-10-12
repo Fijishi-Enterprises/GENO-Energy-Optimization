@@ -15,40 +15,95 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
+* =============================================================================
 * --- Recording realized parameter values -------------------------------------
+* =============================================================================
+// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Have to go through my RealValue branch changes to the result arrays for
+// More thought-out result arrays
 
-// Results required for keeping model dynamics working
-r_state(gn_state(grid, node), ft_realized(f, t)) = v_state.l(grid, node, f, t);
-r_online(unit, ft_realized(f, t))${ uft_online(unit, f, t+pt(t))
-    } = v_online.l(unit, f, t);
+* --- Result arrays required by model dynamics --------------------------------
+
+// Realized state history
+r_state(gn_state(grid, node), ft_realized(f, t))
+    = v_state.l(grid, node, f, t)
+;
+// Realized unit online history
+r_online(uft_online(unit, ft_realized(f, t)))
+    = v_online_LP.l(unit, f, t)${ uft_onlineLP(unit, f, t)    }
+        + v_online_MIP.l(unit, f, t)${  uft_onlineMIP(unit, f, t)   }
+;
+// Reserve provisions of units
 r_reserve(nuRescapable(restype, up_down, node, unit), fRealization(f), t)${ ft_nReserves(node, restype, f, t)
-                                                                            or sum(f_, cf_nReserves(node, restype, f_, t))
-    } = v_reserve.l(restype, up_down, node, unit, f, t);
-r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${ restypeDirectionNode(restype, up_down, to_node)
-                                                                                                and [   ft_nReserves(from_node, restype, f, t)
-                                                                                                        or sum(f_, cf_nReserves(from_node, restype, f_, t))
-                                                                                                        ]
-    } = v_resTransferRightward.l(restype, up_down, from_node, to_node, f, t);
+                                                                            or sum(f_, df_nReserves(node, restype, f_, t))
+                                                                            }
+    = v_reserve.l(restype, up_down, node, unit, f, t)
+;
+// Reserve transfer capacity
+r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${    restypeDirectionNode(restype, up_down, to_node)
+                                                                                                            and [   ft_nReserves(from_node, restype, f, t)
+                                                                                                                or sum(f_, df_nReserves(from_node, restype, f_, t))
+                                                                                                                ]
+                                                                                                            }
+    = v_resTransferRightward.l(restype, up_down, from_node, to_node, f, t)
+;
 r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${ restypeDirectionNode(restype, up_down, to_node)
-                                                                                                and [   ft_nReserves(from_node, restype, f, t)
-                                                                                                        or sum(f_, cf_nReserves(from_node, restype, f_, t))
-                                                                                                        ]
-    } = v_resTransferLeftward.l(restype, up_down, from_node, to_node, f, t);
-r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t)
-    } = v_startup.l(unit, starttype, f, t);
-r_shutdown(unit, ft_realized(f, t))${ uft_online(unit, f, t)
-    } = v_shutdown.l(unit, f, t);
-r_realizedLast = tRealizedLast;
+                                                                                                        and [   ft_nReserves(from_node, restype, f, t)
+                                                                                                            or sum(f_, df_nReserves(from_node, restype, f_, t))
+                                                                                                            ]
+                                                                                                        }
+    = v_resTransferLeftward.l(restype, up_down, from_node, to_node, f, t)
+;
+// Unit startup and shutdown history
+r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t)  }
+    = v_startup.l(unit, starttype, f, t)
+;
+r_shutdown(unit, ft_realized(f, t))${   uft_online(unit, f, t)  }
+    = v_shutdown.l(unit, f, t)
+;
+// Last realized timestep
+*r_realizedLast = tRealizedLast;
 
-// Interesting results
-r_gen(gnu(grid, node, unit), ft_realized(f, t)) = v_gen.l(grid, node, unit, f, t);
-r_genFuel(gn(grid, node), fuel, ft_realized(f, t)) = sum(gnu(grid, node, unit), v_fuelUse.l(fuel, unit, f, t));
-r_transfer(gn2n(grid, from_node, to_node), ft_realized(f, t)) = v_transfer.l(grid, from_node, to_node, f, t);
-r_spill(gn(grid, node), ft_realized(f, t)) = v_spill.l(grid, node, f, t);
+* --- Interesting results -----------------------------------------------------
 
-// Feasibility results
-r_qGen(inc_dec, gn(grid, node), ft_realized(f, t)) = vq_gen.l(inc_dec, grid, node, f, t);
-r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t)) = vq_resDemand.l(restype, up_down, node, f, t);
+// Unit generation and consumption
+r_gen(gnuft(grid, node, unit, ft_realized(f, t)))
+    = v_gen.l(grid, node, unit, f, t)
+;
+// Fuel used for generation
+r_genFuel(gn(grid, node), fuel, ft_realized(f, t))
+    = sum(gnu(grid, node, unit), v_fuelUse.l(fuel, unit, f, t))
+;
+// Transfer of energy between nodes
+r_transfer(gn2n(grid, from_node, to_node), ft_realized(f, t))
+    = v_transfer.l(grid, from_node, to_node, f, t)
+;
+// Energy spilled from nodes
+r_spill(gn(grid, node), ft_realized(f, t))
+    = v_spill.l(grid, node, f, t)
+;
+// Total Objective function
+r_totalCost
+    = r_totalCost + v_obj.l
+;
+
+* --- Feasibility results -----------------------------------------------------
+
+// Dummy generation & consumption
+r_qGen(inc_dec, gn(grid, node), ft_realized(f, t))
+    = vq_gen.l(inc_dec, grid, node, f, t)
+;
+// Dummy reserve demand changes
+r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
+    = vq_resDemand.l(restype, up_down, node, f, t)
+;
+
+* --- Diagnostics Results -----------------------------------------------------
+
+*d_cop(unit, t)${sum(gnu_input(grid, node, unit), 1)} = sum(gnu_output(grid, node, unit), r_gen(grid, unit, t)) / ( sum(gnu_input(grid_, node_, unit), -r_gen(grid_, unit, t)) + 1${not sum(gnu_input(grid_, node_, unit), -r_gen(grid_, unit, t))} );
+*d_eff(unit_fuel, t) = sum(gnu_output(grid, node, unit_fuel), r_gen(grid, unit_fuel, t)) / ( sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, t)) + 1${not sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, t))} );
+
+* --- Model Solve & Status ----------------------------------------------------
 
 // Model/solve status
 if (mSolve('schedule'),
@@ -168,11 +223,6 @@ $ontext
         );
     ); // END LOOP fRealization
 $offtext
-    r_totalCost = r_totalCost + v_obj.l;
-
-* --- Diagnostics Results -----------------------------------------------------
-*d_cop(unit, t)${sum(gnu_input(grid, node, unit), 1)} = sum(gnu_output(grid, node, unit), r_gen(grid, unit, t)) / ( sum(gnu_input(grid_, node_, unit), -r_gen(grid_, unit, t)) + 1${not sum(gnu_input(grid_, node_, unit), -r_gen(grid_, unit, t))} );
-*d_eff(unit_fuel, t) = sum(gnu_output(grid, node, unit_fuel), r_gen(grid, unit_fuel, t)) / ( sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, t)) + 1${not sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, t))} );
 
 
 

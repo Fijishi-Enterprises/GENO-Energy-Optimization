@@ -79,6 +79,7 @@ tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(
 Option clear = tCounter;
 Option clear = p_stepLength;
 Option clear = ft;
+Option clear = ft_nReserves;
 
 // Initialize temporary time series
 Option clear = ts_influx_;
@@ -129,6 +130,14 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
                                     and ord(t) >= tSolveFirst + mSettings(mSolve, 't_jump')
                                     and ord(t) < tSolveFirst + mSettings(mSolve, 't_forecastLength')
                                     }
+            = yes;
+
+        // Set of locked forecast-time steps for the reserves
+        ft_nReserves(node, restype, fRealization(f), tInterval(t))${    p_nReserves(node, restype, 'update_frequency')
+                                                                        and p_nReserves(node, restype, 'gate_closure')
+                                                                        and ord(t) >= tSolveFirst
+                                                                        and ord(t) < tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
+                                                                        }
             = yes;
 
         // Select time series data matching the intervals, for intervalLength = 1, this is trivial.
@@ -217,15 +226,6 @@ Option clear = ft_realized;
 Option clear = ft_realizedLast;
 ft_realized(ft(fRealization(f),t)) = yes;
 ft_realizedLast(ft_realized(f,t))${ ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')  }
-    = yes;
-
-// Set of locked forecast-time steps for the reserves
-Option clear = ft_nReserves;
-ft_nReserves(node, restype, fRealization(f), t)${   p_nReserves(node, restype, 'update_frequency')
-                                                    and p_nReserves(node, restype, 'gate_closure')
-                                                    and ord(t) >= tSolveFirst
-                                                    and ord(t) < tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
-                                                    }
     = yes;
 
 // Forecast index displacement between realized and forecasted timesteps
