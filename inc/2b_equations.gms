@@ -452,17 +452,18 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
             // Online capacity restriction
             + p_gnu(grid, node, unit, 'maxCons')${not uft_online(unit, f, t)} // Use initial maximum if no online variables
             + p_gnu(grid, node, unit, 'unitSizeCons')
-                // Investments to additional non-online capacity
-                * sum(t_invest(t_)${    ord(t_)<=ord(t)
-                                        and not uft_online(unit, f, t)
-                                        },
-                    + v_invest_LP(unit, t_)${unit_investLP(unit)} // NOTE! v_invest_LP also for consuming units is positive
-                    + v_invest_MIP(unit, t_)${unit_investMIP(unit)} // NOTE! v_invest_MIP also for consuming units is positive
-                    ) // END sum(t_invest)
-                // Capacity online
                 * [
+                    // Capacity online
                     + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
                     + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+
+                    // Investments to additional non-online capacity
+                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
+                                            and not uft_online(unit, f, t)
+                                            },
+                        + v_invest_LP(unit, t_)${unit_investLP(unit)} // NOTE! v_invest_LP also for consuming units is positive
+                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)} // NOTE! v_invest_MIP also for consuming units is positive
+                        ) // END sum(t_invest)
                     ] // END * p_gnu(unitSizeCons)
             ] // END * p_unit(availability)
 ;
@@ -525,17 +526,18 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
             // Online capacity restriction
             + p_gnu(grid, node, unit, 'maxGen')${not uft_online(unit, f, t)} // Use initial maxGen if no online variables
             + p_gnu(grid, node, unit, 'unitSizeGen')
-                // Investments to non-online capacity
-                * sum(t_invest(t_)${    ord(t_)<=ord(t)
-                                        and not uft_online(unit, f ,t)
-                                        },
-                    + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                    + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                    ) // END sum(t_invest)
-                // Capacity online
                 * [
+                    // Capacity online
                     + v_online_LP(unit, f, t)${uft_onlineLP(unit, f ,t)}
                     + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+
+                    // Investments to non-online capacity
+                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
+                                            and not uft_online(unit, f ,t)
+                                            },
+                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
+                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
+                        ) // END sum(t_invest)
                     ] // END * p_gnu(unitSizeGen)
             ] // END * p_unit(availability)
 ;
