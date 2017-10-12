@@ -364,6 +364,8 @@ loop(mftStart(mSolve, f, t),
                                                 }
         = ts_nodeState_(grid, node, 'reference', f, t)
             * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+    ) // END loop(mftStart)
+;
 
 $ontext
 // !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -394,7 +396,7 @@ $offtext
 v_state.fx(grid, node, ft(f,t))${   mftLastSteps(mSolve, f, t)
                                     and p_gn(grid, node, 'boundStartToEnd')
                                     }
-    = sum(fRealization(f_), r_state(grid, node, f_, tSolve+dt(tSolve)))
+    = sum(fRealization(f_),
+        + r_state(grid, node, f_, tSolve+dt(tSolve))
+        ) // END sum(fRealization)
 ;
-
-
