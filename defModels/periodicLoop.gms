@@ -158,8 +158,12 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
                         and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)
                         and mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'intervalLength', counter)) = 0
                         } = yes;
+
+        // Length of the time step in hours
         p_stepLength(mf(mSolve, fSolve), tInterval(t)) = mInterval(mSolve, 'intervalLength', counter) * mSettings(mSolve, 'intervalInHours');
         p_stepLengthNoReset(mf(mSolve, fSolve), tInterval(t)) = mInterval(mSolve, 'intervalLength', counter) * mSettings(mSolve, 'intervalInHours');
+
+        // Time index displacement to reach the previous time step
         dt(t + mInterval(mSolve, 'intervalLength', counter))${tInterval(t)} = - mInterval(mSolve, 'intervalLength', counter);
 
         // Determine the forecast-time steps
@@ -232,7 +236,9 @@ ft_realizedLast(ft_realized(f,t))${ ord(t) = tSolveFirst + mSettings(mSolve, 't_
 // !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Forecast displacement cannot be reset anymore due to startup type constraints
 // requiring historical information.
-df(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')  }
+df(f, t)${  mf(mSolve, f)
+            and ord(t) < tSolveFirst + mSettings(mSolve, 't_jump')
+            }
     = sum(fRealization(f_), ord(f_) - ord(f));
 
 // Forecast displacement between central and forecasted timesteps at the end of forecast horizon
