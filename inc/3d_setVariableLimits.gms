@@ -362,7 +362,7 @@ loop(mftStart(mSolve, f, t),
                                                 and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
                                                 and tSolveFirst = mSettings(mSolve, 't_start')
                                                 }
-        = ts_nodeState_(grid, node, 'reference', f, t)
+        = ts_nodeState(grid, node, 'reference', f, t) // NOTE!!! ts_nodeState_ doesn't contain initial values so using raw data instead.
             * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
     ) // END loop(mftStart)
 ;
@@ -397,6 +397,6 @@ v_state.fx(grid, node, ft(f,t))${   mftLastSteps(mSolve, f, t)
                                     and p_gn(grid, node, 'boundStartToEnd')
                                     }
     = sum(fRealization(f_),
-        + r_state(grid, node, f_, tSolve+dt(tSolve))
+        + r_state(grid, node, f_, tSolve)
         ) // END sum(fRealization)
 ;
