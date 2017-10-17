@@ -107,11 +107,9 @@ q_obj ..
                 + p_stepLength(m, f, t)
                     * [
                         // Variable O&M costs
-                        + sum(gnu_output(grid, node, unit),  // Calculated only for output energy
-                            + v_gen(grid, node, unit, f, t)${nuft(node, unit, f, t)}
+                        + sum(gnu_output(grid, node, unit)${nuft(node, unit, f, t)},  // Calculated only for output energy
+                            + v_gen(grid, node, unit, f, t)
                                 * p_unit(unit, 'omCosts')
-*                                 $$ifi not '%rampSched%' == 'yes' * p_stepLength(m, f, t)
-*                                 $$ifi '%rampSched%' == 'yes' * (p_stepLength(m, f, t) + p_stepLength(m, f, t+1))/2
                             ) // END sum(gnu_output)
 
                         // Fuel and emission costs
@@ -157,38 +155,33 @@ q_obj ..
                     + sum(starttype,
                         + v_startup(unit, starttype, f, t) // Cost of starting up
                             * [ // Startup variable costs
-                                + p_uStartup(unit, starttype, 'cost', 'unit')${not unit_investLP(unit)}
-                                + p_uStartup(unit, starttype, 'cost', 'capacity')${unit_investLP(unit)}
+                                + p_uStartup(unit, starttype, 'cost', 'unit')
 
                                 // Start-up fuel and emission costs
-                                + sum(uFuel(unit, 'startup', fuel)${unit_fuel(unit)},
-                                    + (
-                                        + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
-                                        + p_uStartup(unit, starttype, 'consumption', 'capacity')$unit_investLP(unit)
-                                        )
+                                + sum(uFuel(unit_fuel, 'startup', fuel),
+                                    + p_uStartup(unit_fuel, starttype, 'consumption', 'unit')${not unit_investLP(unit_fuel)}
                                         * [
                                             + sum(tFuel$[ord(tFuel) <= ord(t)], // Fuel costs for start-up fuel use
                                                 + ts_fuelPriceChange(fuel, tFuel)
                                                 ) // END sum(tFuel)
                                             + sum(emission, // Emission taxes of startup fuel use
-                                                + p_unitFuelEmissionCost(unit, fuel, emission)
+                                                + p_unitFuelEmissionCost(unit_fuel, fuel, emission)
                                                 ) // END sum(emission)
                                             ] // END * p_uStartup
                                         ) // END sum(uFuel)
                                 ] // END * v_startup
                         ) // END sum(starttype)
                     ) // END sum(uft_online)
-
+$ontext
+                // !!! PENDING CHANGES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 // Ramping costs
-                + sum(gnuft_ramp(grid, node, unit, f, t)${  [   p_gnu(grid, node, unit, 'rampUpCost')
-                                                                or p_gnu(grid, node, unit, 'rampDownCost')
-                                                                ]
-                                                            and ord(t) > mSettings(m, 't_start')
+                + sum(gnuft_ramp(grid, node, unit, f, t)${  p_gnu(grid, node, unit, 'rampUpCost')
+                                                            or p_gnu(grid, node, unit, 'rampDownCost')
                                                             },
                     + p_gnu(grid, node, unit, 'rampUpCost') * v_genRampChange(grid, node, unit, 'up', f, t)
                     + p_gnu(grid, node, unit, 'rampDownCost') * v_genRampChange(grid, node, unit, 'down', f, t)
                     ) // END sum(gnuft_ramp)
-
+$offtext
                 ]  // END * p_sft_probability(s,f,t)
         ) // END sum over msft(m, s, f, t)
 
@@ -283,7 +276,7 @@ q_balance(gn(grid, node), mft(m, f, t))${   not p_gn(grid, node, 'boundAll')
             // Self discharge out of the model boundaries
             - p_gn(grid, node, 'selfDischargeLoss')${gn_state(grid, node)}
                 * [
-                    + v_state(grid, node, f+df_Central(f,t), t) // The current state of the node
+                    + v_state(grid, node, f+df_central(f,t), t) // The current state of the node
                     $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+df(f,t+dt(t)), t+dt(t)) // and possibly averaging with the previous state of the node
                     ]
 
@@ -291,7 +284,7 @@ q_balance(gn(grid, node), mft(m, f, t))${   not p_gn(grid, node, 'boundAll')
             - sum(to_node${gnn_state(grid, node, to_node)},
                 + p_gnn(grid, node, to_node, 'diffCoeff')
                     * [
-                        + v_state(grid, node, f+df_Central(f,t), t)
+                        + v_state(grid, node, f+df_central(f,t), t)
                         $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+df(f,t+dt(t)), t+dt(t))
                         ]
                 ) // END sum(to_node)
@@ -300,7 +293,7 @@ q_balance(gn(grid, node), mft(m, f, t))${   not p_gn(grid, node, 'boundAll')
             + sum(from_node${gnn_state(grid, from_node, node)},
                 + p_gnn(grid, from_node, node, 'diffCoeff')
                     * [
-                        + v_state(grid, from_node, f+df_Central(f,t), t) // Incoming diffusion based on the state of the neighbouring node
+                        + v_state(grid, from_node, f+df_central(f,t), t) // Incoming diffusion based on the state of the neighbouring node
                         $$ifi '%rampSched%' == 'yes' + v_state(grid, from_node, f+df(f,t+dt(t)), t+dt(t)) // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
                         ]
                 ) // END sum(from_node)
@@ -597,7 +590,7 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutDownTime')
     + p_unit(unit, 'unitCount')
 
     // Number of units unable to start due to restrictions
-    - sum(t_${  ord(t_)>=[ord(t)-p_unit(unit, 'minShutDownTime') / mSettings(m, 'intervalInHours')]
+    - sum(t_${  ord(t_)>=[ord(t)-p_unit(unit, 'minShutDownTime') / mSettings(m, 'intervalInHours') / p_stepLengthNoReset(m,f,t_)]
                 and ord(t_)<ord(t)
                 and p_stepLengthNoReset(m, f+df(f,t_), t_)
                 },
@@ -1118,7 +1111,7 @@ q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))${  p_gnBoundaryProperti
         * [
             + v_state(grid, node, f+df_central(f,t), t)
             - p_gnBoundaryPropertiesForStates(grid, node, slack, 'constant')$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useConstant')
-            - ts_nodeState(grid, node, slack, f, t)$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries')
+            - ts_nodeState_(grid, node, slack, f, t)$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries')
             ] // END * p_slackDirection
 ;
 
@@ -1133,7 +1126,7 @@ q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, nod
     + [
         // Upper boundary of the variable
         + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')}
-        + ts_nodeState(grid, node, 'upwardLimit', f, t)${p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeseries')}
+        + ts_nodeState_(grid, node, 'upwardLimit', f, t)${p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeseries')}
 
         // Investments
         + sum(gnu(grid, node, unit),
@@ -1209,11 +1202,11 @@ q_stateDownwardLimit(gn_state(grid, node), mft(m, f, t))${  sum(gn2gnu(grid, nod
     // Utilizable headroom in the state variable
     + [
         // Current state of the variable
-        - v_state(grid, node, f+df_central(f,t), t)
+        + v_state(grid, node, f+df_central(f,t), t)
 
         // Lower boundary of the variable
         - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')}
-        - ts_nodeState(grid, node, 'downwardLimit', f, t)${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeseries')}
+        - ts_nodeState_(grid, node, 'downwardLimit', f, t)${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeseries')}
         ] // END Headroom
         * [
             // Conversion to energy
