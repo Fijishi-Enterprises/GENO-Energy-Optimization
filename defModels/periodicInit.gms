@@ -28,10 +28,10 @@ loop(m,
     if(sum(t$modelSolves(m, t), 1) = 0,
         t_skip_counter = 0;
         loop(t$( ord(t) = mSettings(m, 't_start') + mSettings(m, 't_jump') * t_skip_counter and ord(t) <= mSettings(m, 't_end') ),
-            modelSolves(m, t)=yes;
+            modelSolves(m, t) = yes;
             t_skip_counter = t_skip_counter + 1;
         );
-        p_stepLengthNoReset(m, f, t) = no;
+*        p_stepLengthNoReset(m, f, t) = no;
     );
 );
 

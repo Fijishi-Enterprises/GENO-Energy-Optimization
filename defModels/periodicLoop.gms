@@ -22,45 +22,86 @@ $offtext
 // This is only done if debug mode is not specifically enabled
 $$iftheni.debug NOT '%debug%' == 'yes'
     // Variables
+    // Free Variables
     Option clear = v_gen;
     Option clear = v_state;
     Option clear = v_genRamp;
-    Option clear = v_online;
+    Option clear = v_transfer;
+    // Integer Variables
+    Option clear = v_online_MIP;
+    Option clear = v_invest_MIP;
+    Option clear = v_investTransfer_MIP;
+    // SOS2 Variables
     Option clear = v_sos2;
+    // Positive Variables
     Option clear = v_fuelUse;
     Option clear = v_startup;
     Option clear = v_shutdown;
     Option clear = v_genRampChange;
     Option clear = v_spill;
-    Option clear = v_transfer;
-    Option clear = v_resTransfer;
+    Option clear = v_transferRightward;
+    Option clear = v_transferLeftward;
+    Option clear = v_resTransferRightward;
+    Option clear = v_resTransferLeftward;
     Option clear = v_reserve;
+    Option clear = v_investTransfer_LP;
+    Option clear = v_online_LP;
+    Option clear = v_invest_LP;
+    // Feasibility control
     Option clear = v_stateSlack;
     Option clear = vq_gen;
     Option clear = vq_resDemand;
 
     // Equations
+    // Objective Function, Energy Balance, and Reserve demand
+    Option clear = q_obj;
     Option clear = q_balance;
     Option clear = q_resDemand;
-    Option clear = q_resTransfer;
+
+    // Unit Operation
     Option clear = q_maxDownward;
     Option clear = q_maxUpward;
-    Option clear = q_startup
-    Option clear = q_genRamp;
-    Option clear = q_genRampChange;
+    Option clear = q_startup;
+    Option clear = q_startuptype;
+    Option clear = q_onlineLimit;
+    Option clear = q_onlineMinUptime;
+*    q_minDown(mType, unit, f, t) "Unit must stay non-operational if it has shut down during the previous minShutDownTime hours"
+*    q_genRamp(grid, node, mType, s, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
+*    q_genRampChange(grid, node, mType, s, unit, f, t) "Record the ramp rates of units with ramping costs"
+*    q_rampUpLimit(grid, node, mType, s, unit, f, t) "Up ramping limited for units"
+*    q_rampDownLimit(grid, node, mType, s, unit, f, t) "Down ramping limited for units"
+    Option clear = q_outputRatioFixed;
+    Option clear = q_outputRatioConstrained;
     Option clear = q_conversionDirectInputOutput;
     Option clear = q_conversionSOS2InputIntermediate;
     Option clear = q_conversionSOS2Constraint;
     Option clear = q_conversionSOS2IntermediateOutput;
-    Option clear = q_outputRatioFixed;
-    Option clear = q_outputRatioConstrained;
+    Option clear = q_fixedGenCap1U;
+    Option clear = q_fixedGenCap2U;
+
+    // Energy Transfer
+    Option clear = q_transfer;
+    Option clear = q_transferRightwardLimit;
+    Option clear = q_transferLeftwardLimit;
+    Option clear = q_resTransferLimitRightward;
+    Option clear = q_resTransferLimitLeftward;
+
+    // State Variables
     Option clear = q_stateSlack;
     Option clear = q_stateUpwardLimit;
     Option clear = q_stateDownwardLimit;
-    Option clear = q_boundState;
+*    q_boundState(grid, node, node, mType, f, t) "Node state variables bounded by other nodes"
     Option clear = q_boundStateMaxDiff;
     Option clear = q_boundCyclic;
-    Option clear = q_bidirectionalTransfer;
+*    q_boundCyclicSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound inside or between samples"
+
+    // Policy
+    Option clear = q_capacityMargin;
+    Option clear = q_emissioncap;
+    Option clear = q_instantaneousShareMax;
+    Option clear = q_energyShareMax;
+    Option clear = q_energyShareMin;
+    Option clear = q_inertiaMin;
 $endif.debug
 
 * =============================================================================
