@@ -344,45 +344,43 @@ v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ 
 *v_startup.fx(unit, 'warm', ft_dynamic(f, t))${not p_unit(unit, 'startCold')} = 0;
 
 * =============================================================================
-* --- Bounds overwritten for the first timestep -------------------------------
+* --- Bounds for the first timestep -------------------------------------------
 * =============================================================================
 
 // Loop over the start steps
 loop(mftStart(mSolve, f, t),
-    // First solve, state variables (only if boundStart flag is true)
-    v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
-                                                and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
-                                                and tSolveFirst = mSettings(mSolve, 't_start')
-                                                }
-        = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
-            * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
-    // Time series form boundary
-    v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
-                                                and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
-                                                and tSolveFirst = mSettings(mSolve, 't_start')
-                                                }
-        = ts_nodeState(grid, node, 'reference', f, t) // NOTE!!! ts_nodeState_ doesn't contain initial values so using raw data instead.
-            * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+    // If this is the very first solve, set boundStart
+    if(tSolveFirst = mSettings(mSolve, 't_start'),
+
+        // First solve, state variables (only if boundStart flag is true)
+        v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
+                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                                    }
+            = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
+                * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+
+        // Time series form boundary
+        v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
+                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
+                                                    }
+            = ts_nodeState(grid, node, 'reference', f, t) // NOTE!!! ts_nodeState_ doesn't contain initial values so using raw data instead.
+                * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+
+    else // For all other solves, fix the initial state and online variable values based on previous results.
+
+        // State and online variable initial values for the subsequent solves
+        v_state.fx(gn_state(grid, node), f, t)
+            = r_state(grid, node, f, t);
+        v_online_LP.fx(uft_onlineLP(unit, f, t))
+            = r_online(unit, f, t);
+        v_online_MIP.fx(uft_onlineMIP(unit, f, t))
+            = r_online(unit, f, t);
+
+        ); // END if(tSolveFirst)
     ) // END loop(mftStart)
 ;
-
 $ontext
-// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// These should no longer be necessary due to the time indexing changes
-    // State and online variables fixed for the subsequent solves
-    v_state.fx(gn_state(grid, node), f, t)${    not ord(t) = mSettings(mSolve, 't_start')
-        } = r_state(grid, node, f, t);
-    v_online.fx(uft_online(unit, f, t))${  not ord(t) = mSettings(mSolve, 't_start')
-        } = r_online(unit, f, t);
-    v_online.fx(unit, f, t+pt(t))${  not ord(t) = mSettings(mSolve, 't_start')
-                                     and uft_online(unit, f, t)
-        } = r_online(unit, f, t+pt(t));
-    // Generation, startup and shutdown variables fixed for the subsequent solves
-    v_gen.fx(gnu(grid, node, unit), f, t+pt(t))${  not ord(t) = mSettings(mSolve, 't_start')
-        } = r_gen(grid, node, unit, f, t+pt(t));
-);
-
 v_startup.fx(unit, starttype, fRealization(f), t)${  ord(t) < tSolveFirst
                                                      and p_stepLengthNoReset(mSolve, f, t)
     } = r_startup(unit, starttype, f, t);
@@ -391,7 +389,6 @@ v_shutdown.fx(unit, fRealization(f), t)${  ord(t) < tSolveFirst
                                            and p_stepLengthNoReset(mSolve, f, t)
     } = r_shutdown(unit, f, t);
 $offtext
-
 // BoundStartToEnd
 v_state.fx(grid, node, ft(f,t))${   mftLastSteps(mSolve, f, t)
                                     and p_gn(grid, node, 'boundStartToEnd')
