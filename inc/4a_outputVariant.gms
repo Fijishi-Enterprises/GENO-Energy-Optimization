@@ -58,9 +58,9 @@ r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node
 r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t)  }
     = v_startup.l(unit, starttype, f, t)
 ;
-r_shutdown(unit, ft_realized(f, t))${   uft_online(unit, f, t)  }
-    = v_shutdown.l(unit, f, t)
-;
+*r_shutdown(uft_online(unit, ft_realized(f, t)))
+*    = v_shutdown.l(unit, f, t)
+*;
 // Last realized timestep
 *r_realizedLast = tRealizedLast;
 

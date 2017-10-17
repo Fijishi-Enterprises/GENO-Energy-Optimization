@@ -150,13 +150,6 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         // Time index displacement to reach previous timestep
         dt(tInterval(t)) = -1;
 
-        // Determine the initial combination of model-sample-forecast-time steps
-*        msft(mSolve, s, fSolve, tInterval(t))${  msf(mSolve, s, fSolve)
-*                                                 and ord(t) >= msStart(mSolve, s)
-*                                                 and ord(t) <= msEnd(mSolve, s)
-*                                                 }
-*            = yes;
-
         // Determine the forecast-time steps
         // Include the t_jump for the realization
         ft(fRealization(fSolve), tInterval(t))${    ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')  }
@@ -176,7 +169,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         ft_nReserves(node, restype, fRealization(f), tInterval(t))${    p_nReserves(node, restype, 'update_frequency')
                                                                         and p_nReserves(node, restype, 'gate_closure')
                                                                         and ord(t) > tSolveFirst
-                                                                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
+                                                                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst, p_nReserves(node, restype, 'update_frequency'))
                                                                         }
             = yes;
 
@@ -325,8 +318,8 @@ mftLastSteps(mSolve, ft(f,t))${ord(t)-dt(t) = tSolveLast}
 // Samples
 Option clear = msft;
 msft(ms(mSolve, s), ft(f, t))${ msf(mSolve, s, f)
-                                and ord(t) > msStart(mSolve, s)
-                                and ord(t) <= msEnd(mSolve, s)
+                                and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
+                                and ord(t) <= msEnd(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
                                 }
     = mft(mSolve,f,t)
 ;

@@ -1360,8 +1360,14 @@ q_boundCyclic(gn_state(grid, node), ms(m, s), s_)${ ms(m, s_)
                                                     }..
 
     // Initial value of the state of the node at the start of the sample
-    + sum(ft_realized(f, t)${ord(t) + dt(t) = msStart(m, s)},
-        + v_state(grid, node, f, t+dt(t)) // Need the time displacement to reach the initial value of the state.
+    + sum(mftStart(m, f, t)${   p_gn(grid, node, 'boundCyclic')},
+        + v_state(grid, node, f, t)
+        ) // END sum(mftStart)
+
+    + sum(mftStart(m, f, t)${   p_gn(grid, node, 'boundCyclicBetweenSamples')
+                                and ord(t) = msStart(m, s)
+                                },
+        + v_state(grid, node, f, t)
         ) // END sum(mftStart)
 
     =E=

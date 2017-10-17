@@ -354,15 +354,15 @@ loop(mftStart(mSolve, f, t),
     if(tSolveFirst = mSettings(mSolve, 't_start'),
 
         // First solve, state variables (only if boundStart flag is true)
-        v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
-                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+        v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart') // !!! NOTE !!! The check fails if value is zero
+*                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant') // !!! NOTE !!! The check fails if value is zero
                                                     }
             = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
                 * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
         // Time series form boundary
         v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
-                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
+                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') // !!! NOTE !!! The check fails if value is zero
                                                     }
             = ts_nodeState(grid, node, 'reference', f, t) // NOTE!!! ts_nodeState_ doesn't contain initial values so using raw data instead.
                 * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');

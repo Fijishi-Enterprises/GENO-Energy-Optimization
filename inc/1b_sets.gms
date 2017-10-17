@@ -82,9 +82,8 @@ Sets
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
 *    ft_dynamic(f, t) "ft without first t and with tLast+1 (moved right)"
-    ft_full(f, t) "ft with all t's in the solve including tSolve and tLast+1"
     ft_realized(f, t) "Realized ft"
-    ft_realizedLast(f, t) "Last realized ft"
+*    ft_realizedLast(f, t) "Last realized ft"
     ft_nReserves(node, restype, f, t) "Forecast-time steps locked due to committing reserves ahead of time."
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     mft_(mType, f, t) "Combination of forecasts and time periods in the models"
@@ -110,7 +109,7 @@ Sets
     uft_onlineLP(unit, f, t) "Units with LP online and startup variables on time steps"
     uft_onlineMIP(unit, f, t) "Units with MIP online and startup variables on time steps"
     uft_online_last(unit, f, t) "Last (f,t) when online variables are included"
-    uft_online_incl_previous(unit, f, t) "Units with online and startup variables on time periods including the last realized period from previous solve"
+*    uft_online_incl_previous(unit, f, t) "Units with online and startup variables on time periods including the last realized period from previous solve"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"
@@ -128,6 +127,7 @@ modelSolves(mType, t) = no;
 
 alias(m, mSolve);
 alias(t, t_, t__, tSolve, tFuel);
+alias(tt, tt_, tt__);
 alias(f, f_, f__);
 alias(s, s_, s__);
 alias(grid, grid_, grid_output);
