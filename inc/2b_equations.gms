@@ -75,7 +75,7 @@ equations
     q_stateDownwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
 *    q_boundState(grid, node, node, mType, f, t) "Node state variables bounded by other nodes"
     q_boundStateMaxDiff(grid, node, node, mType, f, t) "Node state variables bounded by other nodes (maximum state difference)"
-    q_boundCyclic(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound for the first and the last states of samples"
+    q_boundCyclic(grid, node, mType, s, s_) "Cyclic bound for the first and the last states of samples"
 *    q_boundCyclicSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound inside or between samples"
 
     // Policy
@@ -1344,28 +1344,39 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
 
 * --- Cyclic Boundary Conditions ----------------------------------------------
 
-q_boundCyclic(gn_state(grid, node), msft(m, s, f, t), s_, ft(fCentral(f_), t_))${   [   p_gn(grid, node, 'boundCyclic') // Bind variables if parameter found
-                                                                                        and ord(s) = ord(s_) // Select the same sample
-                                                                                        and ord(t) = msStart(m, s) // For the first time step in the sample
-                                                                                        and ord(t_) = msEnd(m, s_) // For the last time step in the sample
-                                                                                        ]
-                                                                                    or
-                                                                                    [   p_gn(grid, node, 'boundCyclicBetweenSamples')
-                                                                                        and [   ord(s_) = ord(s) - 1 // Select consecutive samples
-                                                                                                or [mSettings(m, 'samples') and ord (s) = 1]
-                                                                                                ]
-                                                                                        and ord(t) = msStart(m, s) // For the first time step in the sample
-                                                                                        and ord(t_) = msEnd(m, s_) // For the last time step in the sample
-                                                                                        ]
-                                                                                    }..
+q_boundCyclic(gn_state(grid, node), ms(m, s), s_)${ ms(m, s_)
+                                                    and tSolveFirst = mSettings(m, 't_start') // Only apply for the very first solve
+                                                    and [
+                                                        [   p_gn(grid, node, 'boundCyclic') // Bind variables if parameter found
+                                                            and ord(s) = ord(s_) // Select the same sample
+                                                            ]
+                                                        or
+                                                        [   p_gn(grid, node, 'boundCyclicBetweenSamples')
+                                                            and [   ord(s_) = ord(s) - 1 // Select consecutive samples
+                                                                or [ord(s_) = mSettings(m, 'samples') and ord (s) = 1]
+                                                                ] // END and
+                                                            ] // END or
+                                                        ] // END and
+                                                    }..
 
-    // State of the node at the start of the sample
-    + v_state(grid, node, f+df_central(f,t), t)
+    // Initial value of the state of the node at the start of the sample
+    + sum(ft_realized(f, t)${ord(t) + dt(t) = msStart(m, s)},
+        + v_state(grid, node, f, t+dt(t)) // Need the time displacement to reach the initial value of the state.
+        ) // END sum(mftStart)
 
     =E=
 
-    // State of the node at the end of the sample
-    + v_state(grid, node, f_+df_central(f,t), t_)
+    // State of the node at the end of horizon
+    + sum(mftLastSteps(m, fCentral(f_), t_)${   p_gn(grid, node, 'boundCyclic')},
+        + v_state(grid, node, f_, t_)
+        ) // END sum(mftLastSteps)
+
+    // State of the node at the end of the sample, BoundCyclicBetweenSamples
+    + sum(mftLastSteps(m, fCentral(f_), t_)${   p_gn(grid, node, 'boundCyclicBetweenSamples')
+                                                and ord(t_) =  msEnd(m, s_)
+                                                },
+        + v_state(grid, node, f_, t_)
+        ) // END sum(ft)
 ;
 
 *--- Required Capacity Margin -------------------------------------------------
