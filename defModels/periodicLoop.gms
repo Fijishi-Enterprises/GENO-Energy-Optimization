@@ -400,11 +400,16 @@ Option clear = uft_online_last;
 // Determine the time steps when units need to have online variables.
 loop(suft(effOnline, uft(unit, f, t)),
     uft_online(unit, f, t) = yes;
+    uft_onlineLP(unit, f, t)${  suft('directOnLP', unit, f, t)  }
+        = yes;
+    uft_onlineMIP(unit, f, t)${ suft('directOnMIP', unit, f, t) }
+        = yes;
     ); // END loop(suft)
 
 // Determine the last timestep with online variables
-uft_online_last(uft_online(unit, f+df(f,t+dt(t)), t+dt(t)))${   not uft_online(unit, f, t)  }
-    = yes;
+// !!! NOTE !!! THIS ROW CONSUMES TOO MUCH TIME !!! IMPROVEMENTS NEEDED !!!!!!!
+*uft_online_last(uft_online(unit, f+df(f,t+dt(t)), t+dt(t)))${   not uft_online(unit, f, t)  }
+*    = yes;
 
 *Option clear = uft_online_incl_previous;
 *uft_online_incl_previous(uft_online(unit, f, t)) = yes;
