@@ -30,6 +30,7 @@ r_shutdown // Conserves locked shutdown variables between solves
 
 // Interesting variables
 r_totalCost
+r_fuelUse
 r_genFuel
 r_transfer
 r_spill

@@ -58,9 +58,9 @@ r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node
 r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t)  }
     = v_startup.l(unit, starttype, f, t)
 ;
-*r_shutdown(uft_online(unit, ft_realized(f, t)))
-*    = v_shutdown.l(unit, f, t)
-*;
+r_shutdown(uft_online(unit, ft_realized(f, t)))
+    = v_shutdown.l(unit, f, t)
+;
 // Last realized timestep
 *r_realizedLast = tRealizedLast;
 
@@ -69,6 +69,10 @@ r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t)  }
 // Unit generation and consumption
 r_gen(gnuft(grid, node, unit, ft_realized(f, t)))
     = v_gen.l(grid, node, unit, f, t)
+;
+// Fuel use of units
+r_fuelUse(fuel, uft(unit_fuel, ft_realized(f, t)))
+    = v_fuelUse.l(fuel, unit_fuel, f, t)
 ;
 // Fuel used for generation
 r_genFuel(gn(grid, node), fuel, ft_realized(f, t))
@@ -100,8 +104,26 @@ r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
 
 * --- Diagnostics Results -----------------------------------------------------
 
-*d_cop(unit, t)${sum(gnu_input(grid, node, unit), 1)} = sum(gnu_output(grid, node, unit), r_gen(grid, unit, t)) / ( sum(gnu_input(grid_, node_, unit), -r_gen(grid_, unit, t)) + 1${not sum(gnu_input(grid_, node_, unit), -r_gen(grid_, unit, t))} );
-*d_eff(unit_fuel, t) = sum(gnu_output(grid, node, unit_fuel), r_gen(grid, unit_fuel, t)) / ( sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, t)) + 1${not sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, t))} );
+d_cop(uft(unit, ft_realized(f, t)))${sum(gnu_input(grid, node, unit), 1)}
+    = sum(gnu_output(grid, node, unit),
+        + r_gen(grid, node, unit, f, t)
+        ) // END sum(gnu_output)
+        / [ sum(gnu_input(grid_, node_, unit),
+                -r_gen(grid_, node_, unit, f, t)
+                ) // END sum(gnu_input)
+            + 1${not sum(gnu_input(grid_, node_, unit), -r_gen(grid_, node_, unit, f, t))}
+            ]
+;
+d_eff(uft(unit_fuel, ft_realized(f, t)))
+    = sum(gnu_output(grid, node, unit_fuel),
+        + r_gen(grid, node, unit_fuel, f, t)
+        ) // END sum(gnu_output)
+        / [ sum(uFuel(unit_fuel, param_fuel, fuel),
+                + r_fuelUse(fuel, unit_fuel, f, t)
+                ) // END sum(uFuel)
+            + 1${not sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, f, t))}
+            ]
+;
 
 * --- Model Solve & Status ----------------------------------------------------
 

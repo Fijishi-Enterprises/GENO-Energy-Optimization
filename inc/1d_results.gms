@@ -29,6 +29,7 @@ Parameters
 
     // Arrays of interest
     r_totalCost "Total operating cost over the simulation (€)" / 0 /
+    r_fuelUse(fuel, unit, f, t) "Fuel use of units"
     r_genFuel(grid, node, fuel, f, t) "Energy generation/consumption based on fuels / flows (MW)"
     r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
     r_spill(grid, node, f, t) "Spill of energy from storage node during time period (MWh)"
@@ -64,6 +65,6 @@ Option clear = r_shutdown;
 
 * --- Diagnostics Results -----------------------------------------------------
 Parameters
-    d_cop(unit, t) "Coefficients of performance of conversion units"
-    d_eff(unit, t) "Efficiency of generation units using fuel"
+    d_cop(unit, f, t) "Coefficients of performance of conversion units"
+    d_eff(unit, f, t) "Efficiency of generation units using fuel"
 ;

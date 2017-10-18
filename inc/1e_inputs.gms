@@ -183,7 +183,7 @@ p_nuReserves(nu(node, unit), restype, 'reserveContribution')${  not p_nuReserves
 
 * --- Perform various data checks, and abort if errors are detected -----------
 * Check the integrity of node connection related data
-count = 0;
+Option clear = count;
 loop(gn2n(grid, node, node_),
     count = count + 1; // Count the gn2n indeces to make finding the errors easier.
     // Check if the bidirectional transfer parameter exists for this link.
@@ -202,11 +202,11 @@ loop(gn2n(grid, node, node_),
 );
 
 * Check the integrity of efficiency approximation related data
-tmp = 0; // Log the unit index for finding the error easier.
+Option clear = tmp; // Log the unit index for finding the error easier.
 loop( unit,
     tmp = tmp + 1; // Increase the unit counter
     // Check that 'op' is defined correctly
-    count = 0; // Initialize the previous op to zero
+    Option clear = count; // Initialize the previous op to zero
     loop( op,
         abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!";
         count = p_unit(unit, op);

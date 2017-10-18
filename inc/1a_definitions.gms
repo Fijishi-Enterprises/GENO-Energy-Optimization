@@ -91,7 +91,7 @@ Sets
     effLevel "Pre-defined levels for efficiency representation that can start from t_solve + x"
         / level1*level9 /
     effSelector "Select equations and lambdas/slope for efficiency calculations"
-        / directOff, directOnLP, directOnMIP, lambda01*lambda12 /
+        / lambda01*lambda12, directOff, directOnLP, directOnMIP / // NOTE! Lambdas required first!
     effDirect(effSelector) "Using direct input to output equation"
         / directOff, directOnLP, directOnMIP /
     effDirectOff(effSelector) "Using direct input to output equation without online variable, i.e. constant efficiency"
