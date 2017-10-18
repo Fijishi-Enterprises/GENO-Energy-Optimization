@@ -566,10 +566,7 @@ q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t)) ..
     =L=
 
     // Subunit shutdowns within special startup timeframe
-    + sum(t_${  ord(t_) > [ord(t)-p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'intervalInHours') / p_stepLengthNoReset(m, f, t_)]
-                and ord(t_)<=[ord(t)-p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'intervalInHours') / p_stepLengthNoReset(m, f, t_)]
-                and p_stepLengthNoReset(m, f, t_)
-        },
+    + sum(uftt_startupType(starttype, unit, f, t, t_),
           + v_shutdown(unit, f+df(f,t_), t_)
     ) // END sum(t_)
 ;
@@ -590,10 +587,7 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutDownTime')
     + p_unit(unit, 'unitCount')
 
     // Number of units unable to start due to restrictions
-    - sum(t_${  ord(t_)>=[ord(t)-p_unit(unit, 'minShutDownTime') / mSettings(m, 'intervalInHours') / p_stepLengthNoReset(m,f,t_)]
-                and ord(t_)<ord(t)
-                and p_stepLengthNoReset(m, f+df(f,t_), t_)
-                },
+    - sum(uftt_minDowntime(unit, f, t, t_),
         + v_shutdown(unit, f+df(f,t_), t_)
     ) // END sum(t_)
 
@@ -616,10 +610,7 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationTime')
     =G=
 
     // Units that have minimum operation time requirements active
-    + sum(t_${  ord(t_)>=[ord(t)-p_unit(unit, 'minOperationTime') / mSettings(m, 'intervalInHours') / p_stepLengthNoReset(m,f,t_)]
-                and ord(t_)<ord(t)
-                and p_stepLengthNoReset(m, f, t_)
-                },
+    + sum(uftt_minUptime(unit, f, t, t_),
         + sum(starttype,
             + v_startup(unit, starttype, f+df(f,t_), t_)
             ) // END sum(starttype)

@@ -218,27 +218,27 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         // Loop over the t:s of the interval
         loop(ft(fSolve, tInterval(t)),
             // Select t:s within the interval
-            Option clear = tt;
-            tt(t_)${    ord(t_) >= ord(t)
+            Option clear = tt_;
+            tt_(t_)${   ord(t_) >= ord(t)
                         and ord(t_) < ord(t) + mInterval(mSolve, 'intervalLength', counter)
                         }
                 = yes;
             ts_influx_(gn(grid, node), fSolve, t)
-                = sum(tt(t_), ts_influx(grid, node, fSolve, t_+dt_circular(t_)))
+                = sum(tt_(t_), ts_influx(grid, node, fSolve, t_+dt_circular(t_)))
                     / p_stepLength(mSolve, fSolve, t);
             ts_cf_(flow, node, fSolve, t)${ sum(grid, gn(grid, node)) // Only include nodes with grids attributed to them
                                                 }
-                = sum(tt(t_), ts_cf(flow, node, fSolve, t_+dt_circular(t_)))
+                = sum(tt_(t_), ts_cf(flow, node, fSolve, t_+dt_circular(t_)))
                     / p_stepLength(mSolve, fSolve, t);
             ts_unit_(unit, param_unit, fSolve, t)${ p_unit(unit, 'useTimeseries')   } // Only include units with timeseries attributed to them
-                = sum(tt(t_), ts_unit(unit, param_unit, fSolve, t_+dt_circular(t_)))
+                = sum(tt_(t_), ts_unit(unit, param_unit, fSolve, t_+dt_circular(t_)))
                     / p_stepLength(mSolve, fSolve, t);
             // Reserves relevant only until t_reserveLength
             ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), fSolve, t)${    ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')    }
-                = sum(tt(t_), ts_reserveDemand(restype, up_down, node, fSolve, t_+dt_circular(t_)))
+                = sum(tt_(t_), ts_reserveDemand(restype, up_down, node, fSolve, t_+dt_circular(t_)))
                     / p_stepLength(mSolve, fSolve, t);
             ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, fSolve, t)${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
-                = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+dt_circular(t_)))
+                = sum(tt_(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t_+dt_circular(t_)))
                     / p_stepLength(mSolve, fSolve, t);
             ); // END loop(ft)
 
@@ -395,7 +395,7 @@ sufts(suft(effGroup, unit, f, t), effSelector)${    effGroupSelector(effGroup, e
 Option clear = uft_online;
 Option clear = uft_onlineLP;
 Option clear = uft_onlineMIP;
-Option clear = uft_online_last;
+*Option clear = uft_online_last;
 
 // Determine the time steps when units need to have online variables.
 loop(suft(effOnline, uft(unit, f, t)),
@@ -427,18 +427,37 @@ loop(effGroupSelectorUnit(effDirectOff, unit, effDirectOff_)${ p_unit(unit, 'use
 // Alternatively, one might require that the 'rb' is defined in a similar structure, so that the max 'rb' is located in the same index for all ft(f,t)
 
 // Calculate unit wide parameters for each efficiency group
-loop(unit,
-    loop(effLevel${mSettingsEff(mSolve, effLevel)},
-        loop(effLevelGroupUnit(effLevel, effGroup, unit),
-            ts_effGroupUnit(effGroup, unit, 'rb', ft(f, t))${   sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'rb', f, t))}
-                = smax(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'rb', f, t));
-            ts_effGroupUnit(effGroup, unit, 'lb', ft(f, t))${   sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'lb', f, t))}
-                = smin(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, ts_effUnit(effGroup, unit, effSelector, 'lb', f, t));
-            ts_effGroupUnit(effGroup, unit, 'slope', ft(f, t))${sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'slope', f, t))}
-                = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
-            ); // END loop(effLevelGroupUnit)
-        ); // END loop(effLevel)
-    ); // END loop(unit)
+loop(effLevelGroupUnit(effLevel, effGroup, unit)${mSettingsEff(mSolve, effLevel)},
+    ts_effGroupUnit(effGroup, unit, 'rb', ft(f, t))${   sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'rb', f, t))}
+        = smax(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'rb', f, t));
+    ts_effGroupUnit(effGroup, unit, 'lb', ft(f, t))${   sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'lb', f, t))}
+        = smin(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, ts_effUnit(effGroup, unit, effSelector, 'lb', f, t));
+    ts_effGroupUnit(effGroup, unit, 'slope', ft(f, t))${sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'slope', f, t))}
+        = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
+); // END loop(effLevelGroupUnit)
+
+* --- Define the time steps necessary for startup, downtime and uptime constraints
+
+// Time windows for startups
+Option clear = uftt_startupType;
+uftt_startupType(starttype, uft_online(unit, f, t), tt_(t_))${  ord(t_) > [ord(t)-p_uNonoperational(unit, starttype, 'max') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve, f, t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
+                                                                and ord(t_)<=[ord(t)-p_uNonoperational(unit, starttype, 'min') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve, f, t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
+                                                                }
+    = yes;
+
+// Time windows for minimum uptime requirements
+Option clear = uftt_minUptime;
+uftt_minUptime(uft_online(unit, f, t), tt_(t_))${   ord(t_)>=[ord(t)-p_unit(unit, 'minOperationTime') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve,f,t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
+                                                    and ord(t_)<ord(t)
+                                                    }
+    = yes;
+
+// Time windows for minimum downtime requirements
+Option clear = uftt_minDowntime;
+uftt_minDowntime(uft_online(unit, f, t), tt_(t_))${ ord(t_)>=[ord(t)-p_unit(unit, 'minShutDownTime') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve,f,t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
+                                                    and ord(t_)<ord(t)
+                                                    }
+    = yes;
 
 * -----------------------------------------------------------------------------
 * --- Probabilities -----------------------------------------------------------

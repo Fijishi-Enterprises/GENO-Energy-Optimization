@@ -108,7 +108,7 @@ Sets
     uft_online(unit, f, t) "Units with any online and startup variables on time steps"
     uft_onlineLP(unit, f, t) "Units with LP online and startup variables on time steps"
     uft_onlineMIP(unit, f, t) "Units with MIP online and startup variables on time steps"
-    uft_online_last(unit, f, t) "Last (f,t) when online variables are included"
+*    uft_online_last(unit, f, t) "Last (f,t) when online variables are included"
 *    uft_online_incl_previous(unit, f, t) "Units with online and startup variables on time periods including the last realized period from previous solve"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
@@ -119,6 +119,11 @@ Sets
     effGroupSelector(effSelector, effSelector) "Efficiency selectors included in efficiency groups, e.g. Lambda02 contains Lambda01 and Lambda02."
     effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
+
+    // Auxiliary time step sets for startup and shutdown constraints
+    uftt_startupType(starttype, unit, f, t, t) "Set of time steps where special startup conditions apply for units"
+    uftt_minUptime(unit, f, t, t) "Set of time steps where minimum uptime constraints apply for units"
+    uftt_minDowntime(unit, f, t, t) "Set of time steps where minimum downtype constrains apply for units"
 ;
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 fRealization('f00') = yes;

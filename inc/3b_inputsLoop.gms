@@ -33,14 +33,15 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
     tLatestForecast(t)$(ord(t) = ord(tSolve)) = yes;
 
     // Define updated time window
-    Option clear = tt;
-    tt(t)${ ord(t) >= ord(tSolve)
-            and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_forecastLength') + mSettings(mSolve, 't_ForecastJump')
-        } = yes;
+    Option clear = tt_;
+    tt_(t)${    ord(t) >= ord(tSolve)
+                and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_forecastLength') + mSettings(mSolve, 't_ForecastJump')
+                }
+        = yes;
 
     // Update capacity factor data
     loop(tLatestForecast,  // There should be only one latest forecast
-        ts_cf(flow, node, f, tt(t))${   ts_forecast(flow, node, tLatestForecast, f, t) // Only update data for capacity factors with forecast. NOTE! This results in problems if the forecast has values of zero!
+        ts_cf(flow, node, f, tt_(t))${  ts_forecast(flow, node, tLatestForecast, f, t) // Only update data for capacity factors with forecast. NOTE! This results in problems if the forecast has values of zero!
                                         and mf(mSolve, f)
             } = ts_forecast(flow,node,tLatestForecast,f,t);
     );
@@ -48,11 +49,12 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
     // Read the tertiary reserve requirements
     put_utility 'gdxin' / 'input\tertiary\' tSolve.tl:0 '.gdx';
     execute_load ts_tertiary;
-    ts_reserveDemand('tertiary', up_down, node, f, tt(t))${ mf(mSolve, f)
-                                                            and gn('elec', node)
-                                                            and not fRealization(f)
-*        } = min(500, ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
-        } = max(p_nReserves(node, 'primary', up_down), ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
+    ts_reserveDemand('tertiary', up_down, node, f, tt_(t))${    mf(mSolve, f)
+                                                                and gn('elec', node)
+                                                                and not fRealization(f)
+                                                                }
+*        = min(500, ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
+        = max(p_nReserves(node, 'primary', up_down), ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
 
 ); // END IF readForecastsInTheLoop
 
@@ -64,14 +66,15 @@ putclose log;
 if(mSettings(mSolve, 'forecasts') > 0,
 
     // Define updated time window
-    Option clear = tt;
-    tt(t)${ ord(t) >= ord(tSolve)
-            and ord(t) <= ord(tSolve) + f_improve
-        } = yes;
+    Option clear = tt_;
+    tt_(t)${    ord(t) >= ord(tSolve)
+                and ord(t) <= ord(tSolve) + f_improve
+                }
+        = yes;
 
     // Improve capacity factors, linear improvement towards fRealization
     loop(fRealization(f_),
-        ts_cf(flow, node, f, tt(t))${   not fRealization(f)
+        ts_cf(flow, node, f, tt_(t))${  not fRealization(f)
                                         and fRealization(f_)
                                         and mf(mSolve, f)
             } = (
