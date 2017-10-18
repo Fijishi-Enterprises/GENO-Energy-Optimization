@@ -415,79 +415,16 @@ loop(suft(effOnline, uft(unit, f, t)),
 *uft_online_incl_previous(uft_online(unit, f, t)) = yes;
 *uft_online_incl_previous(unit, f, t+pt(t))${uft_online(unit, f, t) and ord(t) = tSolveFirst and fRealization(f)} = yes;
 
-// Calculate time series for unit parameters when necessary and/or possible
-loop(unit${p_unit(unit, 'useTimeseries')},
-    loop(effLevel${mSettingsEff(mSolve, effLevel)},
+// Calculate time series form parameters for units using direct input output conversion without online variable
+// Always constant 'lb', 'rb', and 'section', so need only to define 'slope'.
+loop(effGroupSelectorUnit(effDirectOff, unit, effDirectOff_)${ p_unit(unit, 'useTimeseries') },
+    ts_effUnit(effDirectOff, unit, effDirectOff_, 'slope', ft(f, t))${  sum(eff, ts_unit(unit, eff, f, t))  } // NOTE!!! Averages the slope over all available data.
+        = sum(eff${ts_unit(unit, eff, f, t)}, 1 / ts_unit(unit, eff, f, t))
+            / sum(eff${ts_unit(unit, eff, f, t)}, 1);
+    ); // END loop(effGroupSelectorUnit)
 
-        // Calculate time series form parameters for units using direct input output conversion without online variable
-        // Always constant 'lb', 'rb', and 'section', so need only to define 'slope'.
-        loop(effGroupSelectorUnit(effDirectOff, unit, effDirectOff_),
-            ts_effUnit(effDirectOff, unit, effDirectOff_, 'slope', ft(f, t))${  sum(eff, ts_unit(unit, eff, f, t))  } // NOTE!!! Averages the slope over all available data.
-                = sum(eff${ts_unit(unit, eff, f, t)}, 1 / ts_unit(unit, eff, f, t))
-                    / sum(eff${ts_unit(unit, eff, f, t)}, 1);
-            ); // END loop(effGroupSelectorUnit)
-
-        // NOTE! Using the same methodology for the directOn and lambda approximations in time series form might require looping over ft(f,t) to find the min and max 'eff' and 'rb'
-        // Alternatively, one might require that the 'rb' is defined in a similar structure, so that the max 'rb' is located in the same index for all ft(f,t)
-
-        // Calculate time series form parameters for units using direct input output conversion with online variable
-*        loop(effGroupSelectorUnit(effDirectOn, unit, effDirectOn_),
-*            ts_effUnit(effDirectOn, unit, effDirectOn_, 'lb', ft(f, t))${ts_unit(unit, 'rb00', f, t)} = ts_unit(unit, 'rb00', f, t); // rb00 contains the possible min load of the unit
-*            ts_effUnit(effDirectOn, unit, effDirectOn_, 'rb', ft(f, t))${sum(rb, ts_unit(unit, rb, f, t))} = smax(rb, ts_unit(unit, rb, f, t)); // Maximum load determined by the largest 'rb' parameter found in data
-*            loop(rb__${ts_unit(unit, rb__, ft(f, t)) = smax(rb, ts_unit(unit, rb, f, t))}, // Find the maximum defined 'rb'.
-*                loop(eff__${ord(eff__) = ord(rb__)},                     // ...  and the corresponding 'eff'.
-*                    loop(rb_${ts_unit(unit, rb_, ft(f, t)) = smin(rb, ts_unit(unit, rb, f, t))}, // Find the minimum defined nonzero 'rb'.
-*                        loop(eff_${ord(eff_) = ord(rb_)},                      // ... and the corresponding 'eff'.
-*                            // Calculating the slope based on the first nonzero and the last defined data points.
-*                            ts_effUnit(effDirectOn, unit, effDirectOn_, 'slope', ft(f, t)) =
-*                                + (ts_unit(unit, rb__, f, t) / ts_unit(unit, eff__, f, t) - ts_unit(unit, rb_, f, t) / ts_unit(unit, eff_, f, t))
-*                                    / (ts_unit(unit, rb__, f, t) - ts_unit(unit, rb_, f, t));
-*                            // Calculating the section based on the slope and the last defined point.
-*                            ts_effUnit(effDirectOn, unit, effDirectOn_, 'section', ft(f, t)) =
-*                                ( 1 / ts_unit(unit, eff__, f, t) - ts_effUnit(effDirectOn, unit, effDirectOn_, 'slope', f, t) )
-*                                    * ts_unit(unit, rb__, f, t);
-*                        );
-*                    );
-*                );
-*            );
-*        );
-
-        // Calculate lambdas
-*        loop(effGroupSelectorUnit(effLambda, unit, effLambda_),
-*            ts_effUnit(effLambda, unit, effLambda_, 'lb', ft(f, t)) = ts_unit(unit, 'rb00', f, t); // 'rb00' contains the possible minload of the unit, recorded for every lambda for ts_effGroupUnit.
-*            // For the first lambda, simply use the first data point
-*            if(ord(effLambda_) = 1,
-*                ts_effUnit(effLambda, unit, effLambda_, 'rb', ft(f, t)) = ts_unit(unit, 'rb00', f, t); // 'rb00' also works as the lowest lambda point.
-*                ts_effUnit(effLambda, unit, effLambda_, 'slope', ft(f, t)) = 1 / ts_unit(unit, 'eff00', f, t); // eff00 works as the lowest lambda slope.
-*            // For the last lambda, use the last data point
-*            elseif ord(effLambda_) = ord(effLambda),
-*                loop(rb__${ts_unit(unit, rb__, ft(f, t)) = smax(rb, ts_unit(unit, rb, f, t))}, // Find the maximum defined 'rb'.
-*                    loop(eff__${ord(eff__) = ord(rb__)},                     // ...  and the corresponding 'eff'.
-*                        ts_effUnit(effLambda, unit, effLambda_, 'rb', ft(f, t)) = ts_unit(unit, rb__, f, t); // Last defined 'rb'.
-*                        ts_effUnit(effLambda, unit, effLambda_, 'slope', ft(f, t)) = 1 / ts_unit(unit, eff__, f, t); // Last defined 'eff'.
-*                    );
-*                );
-*            // For the intermediary lambdas, use averages of the data points on each side.
-*            else
-*                count = sum(rb${ts_unit(unit, rb, ft(f, t))}, 1) + 1${not ts_unit(unit, 'rb00', f, t)}; // Count the data points to correctly establish the lambda intervals, have to separately account for the possibility of 'rb00' = 0.
-*                count_lambda = floor( (ord(effLambda_) - 1) / (ord(effLambda) - 1) * count ); // Determine the data point index before the lambda
-*                count_lambda2 = ceil( (ord(effLambda_) - 1) / (ord(effLambda) - 1) * count ); // Determine the data point index after the lambda
-*                loop(rb__${ord(rb__) = count_lambda2}, // Find the ceiling data point 'rb'.
-*                    loop(eff__${ord(eff__) = count_lambda2}, // ... and the corresponding 'eff'.
-*                        loop(rb_${ord(rb_) = count_lambda}, // Find the floor data point 'rb'.
-*                            loop(eff_${ord(eff_) = count_lambda}, // .. and the corresponding 'eff'.
-*                                ts_effUnit(effLambda, unit, effLambda_, 'rb', ft(f, t)) = (ts_unit(unit, rb__, f, t) + ts_unit(unit, rb_, f, t)) / 2; // Average the 'rb' between the found data points.
-*                                ts_effUnit(effLambda, unit, effLambda_, 'slope', ft(f, t)) = (1 / ts_unit(unit, eff__, f, t) + 1 / ts_unit(unit, eff_, f, t)) / 2; // Average the 'eff' between the found data points.
-*                            );
-*                        );
-*                    );
-*                );
-*            );
-*        );
-
-    ); // END LOOP OVER effLevel
-); // END LOOP OVER unit
-
+// NOTE! Using the same methodology for the directOn and lambda approximations in time series form might require looping over ft(f,t) to find the min and max 'eff' and 'rb'
+// Alternatively, one might require that the 'rb' is defined in a similar structure, so that the max 'rb' is located in the same index for all ft(f,t)
 
 // Calculate unit wide parameters for each efficiency group
 loop(unit,
