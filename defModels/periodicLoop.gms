@@ -417,13 +417,15 @@ loop(effGroupSelectorUnit(effDirectOff, unit, effDirectOff_)${ p_unit(unit, 'use
     ts_effUnit(effDirectOff, unit, effDirectOff_, 'slope', ft(f, t))${  sum(eff, ts_unit(unit, eff, f, t))  } // NOTE!!! Averages the slope over all available data.
         = sum(eff${ts_unit(unit, eff, f, t)}, 1 / ts_unit(unit, eff, f, t))
             / sum(eff${ts_unit(unit, eff, f, t)}, 1);
-    ); // END loop(effGroupSelectorUnit)
+); // END loop(effGroupSelectorUnit)
 
 // NOTE! Using the same methodology for the directOn and lambda approximations in time series form might require looping over ft(f,t) to find the min and max 'eff' and 'rb'
 // Alternatively, one might require that the 'rb' is defined in a similar structure, so that the max 'rb' is located in the same index for all ft(f,t)
 
 // Calculate unit wide parameters for each efficiency group
-loop(effLevelGroupUnit(effLevel, effGroup, unit)${mSettingsEff(mSolve, effLevel)},
+loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLevel)
+                                                    and p_unit(unit, 'useTimeseries')
+                                                    },
     ts_effGroupUnit(effGroup, unit, 'rb', ft(f, t))${   sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'rb', f, t))}
         = smax(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'rb', f, t));
     ts_effGroupUnit(effGroup, unit, 'lb', ft(f, t))${   sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'lb', f, t))}
@@ -437,7 +439,7 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${mSettingsEff(mSolve, effLevel)
 // Define the set of required historical and current timesteps
 Option clear = tt;
 tt(tCurrent(t))${   ord(t) <= tSolveLast
-                    and ord(t) > tSolveFirst - tMaxRequiredHistory 
+                    and ord(t) > tSolveFirst - tMaxRequiredHistory
                     }
     = yes
 ;

@@ -214,13 +214,6 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
                         * (smax(op, p_unit(unit, op)) - p_unit(unit, 'op00'));
         p_effUnit(effSelector, unit, effSelector_, 'op') = tmp_op; // Copy the operating point to the p_effUnit
 
-        // Copy the cross between the p_unit efficiency curve and opFirstCross to the temporary op parameter for further calculations
-*        tmp_op${    ord(effSelector) = 1
-*                    and not p_unit(unit, 'op00')
-*                    and not p_unit(unit, 'section')
-*                    }
-*            = p_unit(unit, 'opFirstCross');
-
         // tmp_op falls between two p_unit defined operating points or then it is equal to one of them
         loop((op_, op__)${  (   [tmp_op > p_unit(unit, op_) and tmp_op < p_unit(unit, op__) and ord(op_) = ord(op__) - 1]
                                 or [p_unit(unit, op_) = tmp_op and ord(op_) = ord(op__)]
@@ -256,32 +249,26 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
                     // Calculate section based on the opFirstCross, which has been calculated into p_effUnit(effLambda, unit, effLambda_, 'op')
                     else
                         p_effGroupUnit(effSelector, unit, 'section')
-                            = tmp_op
-                                * ( heat_rate - 1 / p_unit(unit, eff__) )
+                            = p_unit(unit, 'opFirstCross')
+                                * ( heat_rate - 1 / p_unit(unit, 'eff01') )
                                 / ( p_unit(unit, 'op01') - tmp_op );
                     ); // END if(p_unit)
                 ); // END if(ord(effSelector))
 
                 // Calculate the slope
-                p_effUnit(effSelector, unit, effSelector_, 'slope')${   ord(effSelector_) > 1
-                                                                        or p_unit(unit, 'op00')
-                                                                        }
-                    = heat_rate - p_effGroupUnit(effSelector, unit, 'section') / tmp_op;
+                p_effUnit(effSelector, unit, effSelector_, 'slope')
+                    = heat_rate - p_effGroupUnit(effSelector, unit, 'section') / [tmp_op + 1${not tmp_op}];
             ); // END loop(eff_,eff__)
         ); // END loop(op_,op__)
     ); // END if(effLambda)
 ); // END loop(effGroupSelectorUnit)
 
 // Calculate unit wide parameters for each efficiency group
-loop(unit,
-    loop(effLevel$sum(m, mSettingsEff(m, effLevel)),
-        loop(effLevelGroupUnit(effLevel, effGroup, unit),
-            p_effGroupUnit(effGroup, unit, 'op') = smax(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'op'));
-            p_effGroupUnit(effGroup, unit, 'lb') = smin(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, p_effUnit(effGroup, unit, effSelector, 'lb'));
-            p_effGroupUnit(effGroup, unit, 'slope') = smin(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, p_effUnit(effGroup, unit, effSelector, 'slope')); // NOTE! Uses maximum efficiency for the group.
-        );
-    );
-);
+loop(effLevelGroupUnit(effLevel, effGroup, unit)${sum(m, mSettingsEff(m, effLevel))},
+    p_effGroupUnit(effGroup, unit, 'op') = smax(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'op'));
+    p_effGroupUnit(effGroup, unit, 'lb') = smin(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'lb'));
+    p_effGroupUnit(effGroup, unit, 'slope') = smin(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'slope')); // NOTE! Uses maximum efficiency for the group.
+); // END loop(effLevelGroupUnit)
 
 * --- Ensure that efficiency levels extend to the end of the model horizon ----
 
