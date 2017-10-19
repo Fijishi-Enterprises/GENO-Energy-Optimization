@@ -20,8 +20,8 @@ Scalars
     errorcount /0/
     tSolveFirst "counter (ord) for the first t in the solve"
     tSolveLast "counter for the last t in the solve"
-    tDispatchCurrent "counter for the current t in the dispatch loop" /0/
     tCounter "counter for t" /0/
+    tMaxRequiredHistory "Maximum number of time intervals required for constraints dependent on variable history (e.g. startup type)"
     lastCounter "last member in use of the general counter"
     ts_length "Length of time series (t)"
     continueLoop "Helper to stop the looping early"
@@ -32,6 +32,8 @@ Scalars
     cum_lambda "Cumulative for lambda"
     heat_rate "Heat rate temporary parameter"
     tmp "General temporary parameter"
+    tmp_ "General temporary parameter"
+    tmp__ "General temporary parameter"
     tmp_dist "Temporary parameter for calculating the distance between operating points"
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"

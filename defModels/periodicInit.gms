@@ -24,25 +24,31 @@ loop(m,
 
 * --- Time Steps within Model Horizon -----------------------------------------
 
-    Option clear = tt;
-    tt(t)${ ord(t) >= mSettings(m, 't_start')
-            and ord(t) <= mSettings(m, 't_end') + mSettings(m, 't_horizon')
-            }
+    // Determine the full set of timesteps to be considered by the defined simulation
+    Option clear = tCurrent;
+    tCurrent(t)${   ord(t) >= mSettings(m, 't_start')
+                    and ord(t) <= mSettings(m, 't_end') + mSettings(m, 't_horizon')
+                    }
         = yes;
-*);
+
+    // Determine the maximum length of historical information required by model constraints
+    Option clear = tMaxRequiredHistory;
+    tmp = smax((unit, starttype), p_uNonoperational(unit, starttype, 'max')) / mSettings(m, 'intervalInHours');
+    tmp_ = smax(unit, p_unit(unit, 'minOperationTime')) / mSettings(m, 'intervalInHours');
+    tmp__ = smax(unit, p_unit(unit, 'minShutDownTime')) / mSettings(m, 'intervalInHours');
+    tMaxRequiredHistory = max(tmp, tmp_, tmp__);
+
 * --- Samples and Forecasts ---------------------------------------------------
 
     // Set the time for the next available forecast.
-*loop(m,
     tForecastNext(m) = mSettings(m, 't_forecastStart');
-*);
-*loop(m,
+
     // Check the modelSolves for preset patterns for model solve timings
     // If not found, then use mSettings to set the model solve timings
-    if(sum(modelSolves(m, tt(t)), 1) = 0,
+    if(sum(modelSolves(m, tCurrent(t)), 1) = 0,
         t_skip_counter = 0;
-        loop(tt(t)${    ord(t) = mSettings(m, 't_start') + mSettings(m, 't_jump') * t_skip_counter
-                        and ord(t) <= mSettings(m, 't_end')
+        loop(tCurrent(t)${  ord(t) = mSettings(m, 't_start') + mSettings(m, 't_jump') * t_skip_counter
+                            and ord(t) <= mSettings(m, 't_end')
                         },
             modelSolves(m, t) = yes;
             t_skip_counter = t_skip_counter + 1;
@@ -92,7 +98,7 @@ loop(m,
     ts_length = tmp;
 
     // Circular displacement of time index for data loop
-    dt_circular(tt(t))${ ord(t) > ts_length }
+    dt_circular(tCurrent(t))${ ord(t) > ts_length }
         = - ts_length
             * floor(ord(t) / ts_length);
 *    continueLoop = 0;

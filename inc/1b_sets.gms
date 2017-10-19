@@ -75,8 +75,10 @@ Sets
 * --- Sets to define time, forecasts and samples -----------------------------------------------
     $$include 'input/timeAndSamples.inc'
     m(mType) "model(s) in use"
-    tt(t) "Time steps in the current model"
+    tCurrent(t) "Time steps in the current model"
     tInterval(t) "Temp for t's when calculating time series averages"
+    t_invest(t) "Time steps when investments can be made"
+    tt(t) "Temporary subset for time steps used for calculations"
     mf(mType, f) "Forecasts present in the models"
     ms(mType, s) "Samples present in the models"
     mstStart(mType, s, t) "Start point of samples"
@@ -101,7 +103,6 @@ Sets
     fSolve(f) "forecasts in the model to be solved next"
 *    tSolveDispatch(t)
     tLatestForecast(t) "t for the latest forecast that is available"
-    t_invest(t) "Time steps when investments can be made"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Active units on time steps, enables aggregation of units for later time periods"
