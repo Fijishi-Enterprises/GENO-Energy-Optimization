@@ -35,6 +35,10 @@ r_genFuel
 r_transfer
 r_spill
 
+// Diagnostics
+d_cop
+d_eff
+
 // Dummy variables for solution feasibility reasons
 r_qGen
 r_qResDemand
