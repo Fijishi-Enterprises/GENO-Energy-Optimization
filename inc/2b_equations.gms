@@ -107,20 +107,20 @@ q_obj ..
                 + p_stepLength(m, f, t)
                     * [
                         // Variable O&M costs
-                        + sum(gnu_output(grid, node, unit)${nuft(node, unit, f, t)},  // Calculated only for output energy
+                        + sum(gnuft(gnu_output(grid, node, unit), f, t),  // Calculated only for output energy
                             + v_gen(grid, node, unit, f, t)
                                 * p_unit(unit, 'omCosts')
                             ) // END sum(gnu_output)
 
                         // Fuel and emission costs
-                        + sum((uft(unit_fuel, f, t), fuel)${uFuel(unit_fuel, 'main', fuel)},
-                            + v_fuelUse(fuel, unit_fuel, f, t)
+                        + sum(uFuel(unit, 'main', fuel)${uft(unit, f, t)},
+                            + v_fuelUse(fuel, unit, f, t)
                                 * [
-                                    + sum(tFuel$[ord(tFuel) <= ord(t)], // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
+                                    + sum(tFull(tFuel)$[ord(tFuel) <= ord(t)], // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
                                         + ts_fuelPriceChange(fuel, tFuel)
                                         )
                                     + sum(emission, // Emission taxes
-                                        + p_unitFuelEmissionCost(unit_fuel, fuel, emission)
+                                        + p_unitFuelEmissionCost(unit, fuel, emission)
                                         )
                                     ] // END * v_fuelUse
                             ) // END sum(uft)
@@ -158,14 +158,14 @@ q_obj ..
                                 + p_uStartup(unit, starttype, 'cost', 'unit')
 
                                 // Start-up fuel and emission costs
-                                + sum(uFuel(unit_fuel, 'startup', fuel),
-                                    + p_uStartup(unit_fuel, starttype, 'consumption', 'unit')${not unit_investLP(unit_fuel)}
+                                + sum(uFuel(unit, 'startup', fuel),
+                                    + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
                                         * [
-                                            + sum(tFuel$[ord(tFuel) <= ord(t)], // Fuel costs for start-up fuel use
+                                            + sum(tFull(tFuel)$[ord(tFuel) <= ord(t)], // Fuel costs for start-up fuel use
                                                 + ts_fuelPriceChange(fuel, tFuel)
                                                 ) // END sum(tFuel)
                                             + sum(emission, // Emission taxes of startup fuel use
-                                                + p_unitFuelEmissionCost(unit_fuel, fuel, emission)
+                                                + p_unitFuelEmissionCost(unit, fuel, emission)
                                                 ) // END sum(emission)
                                             ] // END * p_uStartup
                                         ) // END sum(uFuel)
@@ -190,14 +190,14 @@ $offtext
         + sum(mftStart(m, f, t)${p_storageValue(grid, node, t)},
             + v_state(grid, node, f, t)
                 * p_storageValue(grid, node, t)
-                * sum(s${p_sft_probability(s, f, t)},
+                * sum(ms(m, s)${p_sft_probability(s, f, t)},
                     + p_sft_probability(s, f, t)
                     ) // END sum(s)
             ) // END sum(mftStart)
         - sum(mftLastSteps(m, f, t)${p_storageValue(grid, node, t)},
             + v_state(grid, node, f, t)
                 * p_storageValue(grid, node, t)
-                * sum(s${p_sft_probability(s, f, t)},
+                * sum(ms(m, s)${p_sft_probability(s, f, t)},
                     + p_sft_probability(s, f, t)
                     ) // END sum(s)
             ) // END sum(mftLastSteps)

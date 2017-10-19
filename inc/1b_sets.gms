@@ -75,11 +75,13 @@ Sets
 * --- Sets to define time, forecasts and samples -----------------------------------------------
     $$include 'input/timeAndSamples.inc'
     m(mType) "model(s) in use"
-    tCurrent(t) "Time steps in the current model"
-    tInterval(t) "Temp for t's when calculating time series averages"
+    tFull(t) "Full set of time steps in the current model"
+    tActive(t) "Set of active t:s in the current solve"
+    tInterval(t) "Temporary time steps when forming the ft structure"
     t_invest(t) "Time steps when investments can be made"
     tt(t) "Temporary subset for time steps used for calculations"
     mf(mType, f) "Forecasts present in the models"
+    ff(f) "Temporary subset of forecasts for calculations"
     ms(mType, s) "Samples present in the models"
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"

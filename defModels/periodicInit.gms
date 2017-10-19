@@ -25,10 +25,10 @@ loop(m,
 * --- Time Steps within Model Horizon -----------------------------------------
 
     // Determine the full set of timesteps to be considered by the defined simulation
-    Option clear = tCurrent;
-    tCurrent(t)${   ord(t) >= mSettings(m, 't_start')
-                    and ord(t) <= mSettings(m, 't_end') + mSettings(m, 't_horizon')
-                    }
+    Option clear = tFull;
+    tFull(t)${  ord(t) >= mSettings(m, 't_start')
+                and ord(t) <= mSettings(m, 't_end') + mSettings(m, 't_horizon')
+                }
         = yes;
 
     // Determine the maximum length of historical information required by model constraints
@@ -45,17 +45,24 @@ loop(m,
 
     // Check the modelSolves for preset patterns for model solve timings
     // If not found, then use mSettings to set the model solve timings
-    if(sum(modelSolves(m, tCurrent(t)), 1) = 0,
+    if(sum(modelSolves(m, tFull(t)), 1) = 0,
         t_skip_counter = 0;
-        loop(tCurrent(t)${  ord(t) = mSettings(m, 't_start') + mSettings(m, 't_jump') * t_skip_counter
-                            and ord(t) <= mSettings(m, 't_end')
+        loop(tFull(t)${ ord(t) = mSettings(m, 't_start') + mSettings(m, 't_jump') * t_skip_counter
+                        and ord(t) <= mSettings(m, 't_end')
                         },
             modelSolves(m, t) = yes;
+
+            // Forecast index displacement between realized and forecasted timesteps for the initial values
+            df(f, t)${  mf(m, f)
+                        and ord(t) = mSettings(m, 't_start')
+                        }
+            = sum(fRealization(f_), ord(f_) - ord(f));
+
+            // Increase the t_skip counter
             t_skip_counter = t_skip_counter + 1;
         );
     );
-*);
-*loop(m,
+
     // Select samples for the model
     if (not sum(s, ms(m, s)),  // unless they have been provided as input
         ms(m, s)$(ord(s) <= mSettings(m, 'samples')) = yes;
@@ -69,11 +76,9 @@ loop(m,
         mf(m, f)$(ord(f) <= 1 + mSettings(m, 'forecasts')) = yes;  // realization needs one f, therefore 1 + number of forecasts
     );
     msf(m, s, f)$(ms(m, s) and mf(m, f)) = yes;
-*);
 
 * --- Intervals and Time Series -----------------------------------------------
 
-*loop(m,
     // Check whether the defined intervals are feasible
     tmp = 0;
     continueLoop = 1;
@@ -85,9 +90,6 @@ loop(m,
             continueLoop = continueLoop + 1;
         );
     );
-*);
-*continueLoop = 1;
-*loop(mSolve${continueLoop},
 
     // Calculate the length of the time series
     Option clear = tmp;
@@ -98,20 +100,11 @@ loop(m,
     ts_length = tmp;
 
     // Circular displacement of time index for data loop
-    dt_circular(tCurrent(t))${ ord(t) > ts_length }
+    dt_circular(tFull(t))${ ord(t) > ts_length }
         = - ts_length
             * floor(ord(t) / ts_length);
-*    continueLoop = 0;
+
 ); // END loop(m)
-
-// Calculating the order of time periods
-tOrd(t) = ord(t);
-
-* --- Slack Direction ---------------------------------------------------------
-
-// Upwards slack is positive, downward slack negative
-p_slackDirection(upwardSlack) = 1;
-p_slackDirection(downwardSlack) = -1;
 
 * =============================================================================
 * --- Initialize Unit Efficiency Approximations -------------------------------
@@ -283,6 +276,20 @@ loop(m,
         );
     );
 );
+
+* =============================================================================
+* --- Various Initial Values and Calculations ---------------------------------
+* =============================================================================
+
+// Calculating the order of time periods
+tOrd(t) = ord(t);
+
+// Slack Direction
+
+// Upwards slack is positive, downward slack negative
+p_slackDirection(upwardSlack) = 1;
+p_slackDirection(downwardSlack) = -1;
+
 
 
 

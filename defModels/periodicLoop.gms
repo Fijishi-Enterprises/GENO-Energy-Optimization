@@ -131,6 +131,9 @@ Option clear = ts_nodeState_;
 
 * --- Build the forecast-time structure using the intervals -------------------
 
+// Initialize the set of active time steps
+Option clear = tActive;
+
 // Loop over the defined intervals
 loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 
@@ -139,9 +142,9 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 
     // If intervalLength equals one, simply use all the steps within the interval
     if(mInterval(mSolve, 'intervalLength', counter) = 1,
-        tInterval(tCurrent(t))${    ord(t) > tSolveFirst + tCounter
-                                    and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
-                                    }
+        tInterval(tFull(t))${   ord(t) > tSolveFirst + tCounter
+                                and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
+                                }
             = yes; // Include all time steps within the interval
 
         // Calculate the time step length in hours
@@ -188,10 +191,10 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 
     // If intervalLength exceeds 1 (intervalLength < 1 not defined)
     elseif mInterval(mSolve, 'intervalLength', counter) > 1,
-        tInterval(tCurrent(t))${    ord(t) > tSolveFirst + tCounter
-                                    and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
-                                    and mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'intervalLength', counter)) = 0
-                                    }
+        tInterval(tFull(t))${   ord(t) > tSolveFirst + tCounter
+                                and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
+                                and mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'intervalLength', counter)) = 0
+                                }
             = yes;
 
         // Length of the time step in hours
@@ -221,9 +224,9 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
         loop(ft(fSolve, tInterval(t)),
             // Select t:s within the interval
             Option clear = tt_;
-            tt(tCurrent(t_))${  ord(t_) >= ord(t)
-                                and ord(t_) < ord(t) + mInterval(mSolve, 'intervalLength', counter)
-                                }
+            tt(tFull(t_))${ ord(t_) >= ord(t)
+                            and ord(t_) < ord(t) + mInterval(mSolve, 'intervalLength', counter)
+                            }
                 = yes;
             ts_influx_(gn(grid, node), fSolve, t)
                 = sum(tt(t_), ts_influx(grid, node, fSolve, t_+dt_circular(t_)))
@@ -253,6 +256,9 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 *    ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_dynamic(fSolve, t))${ord(t) = tSolveLast
 *        } = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
 
+    // Update tActive
+    tActive(tInterval) = yes;
+
     // Update tCounter for the next interval
     tCounter = mInterval(mSolve, 'intervalEnd', counter);
 
@@ -262,7 +268,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 
 // Set of realized time steps in the solve
 Option clear = ft_realized;
-ft_realized(ft(fRealization(f), tCurrent(t)))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
+ft_realized(ft(fRealization(f), t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = yes
 ;
 *Option clear = ft_realizedLast;
@@ -270,9 +276,9 @@ ft_realized(ft(fRealization(f), tCurrent(t)))${ ord(t) <= tSolveFirst + mSetting
 *    = yes;
 
 // Forecast index displacement between realized and forecasted timesteps
-df(f, tCurrent(t))${    mf(mSolve, f)
-                        and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
-                        }
+Option clear = ff;
+ff(f) = mf(mSolve, f);
+df(ff(f), tActive(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = sum(fRealization(f_), ord(f_) - ord(f));
 
 // Forecast displacement between central and forecasted timesteps at the end of forecast horizon
@@ -366,20 +372,10 @@ Option clear = sufts;
 
 // Loop over the defined efficiency groups for units
 loop(effLevelGroupUnit(effLevel, effGroup, unit)${ mSettingsEff(mSolve, effLevel) },
-
-    // Determine the timeframe
-    Option clear = tInterval;
-    tInterval(tCurrent(t))${    ord(effLevel) = 1
-                                and ord(t) = tSolveFirst
-                                }
-        = yes;
-    tInterval(tCurrent(t))${    ord(t) >= tSolveFirst + mSettingsEff(mSolve, effLevel)
-                                and ord(t) < tSolveFirst + mSettingsEff(mSolve, effLevel+1)
-                                }
-        = yes;
-
     // Determine the used effGroup for each uft
-    suft(effGroup, uft(unit, f, tInterval(t))) = yes;
+    suft(effGroup, uft(unit, f, t))${   ord(t) >= tSolveFirst + mSettingsEff(mSolve, effLevel)
+                                        and ord(t) < tSolveFirst + mSettingsEff(mSolve, effLevel + 1) }
+        = yes;
 ); // END loop(effLevelGroupUnit)
 
 // Determine the efficiency selectors for suft
@@ -436,31 +432,32 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
 
 * --- Define the time steps necessary for startup, downtime and uptime constraints
 
-// Define the set of required historical and current timesteps
+// Define the set of required historical timesteps
 Option clear = tt;
-tt(tCurrent(t))${   ord(t) <= tSolveLast
-                    and ord(t) > tSolveFirst - tMaxRequiredHistory
-                    }
-    = yes
-;
+tt(tFull(t))${  ord(t) <= tSolveFirst
+                and ord(t) > tSolveFirst - tMaxRequiredHistory
+                }
+    = yes;
+// Required historical and currently active time steps
+tt_(tFull(t)) = tt(t) + tActive(t);
 
 // Time windows for startups
 Option clear = uftt_startupType;
-uftt_startupType(starttype, uft_online(unit, f, t), tt(t_))${   ord(t_) > [ord(t)-p_uNonoperational(unit, starttype, 'max') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve, f, t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
+uftt_startupType(starttype, uft_online(unit, f, t), tt_(t_))${  ord(t_) > [ord(t)-p_uNonoperational(unit, starttype, 'max') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve, f, t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
                                                                 and ord(t_)<=[ord(t)-p_uNonoperational(unit, starttype, 'min') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve, f, t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
                                                                 }
     = yes;
 
 // Time windows for minimum uptime requirements
 Option clear = uftt_minUptime;
-uftt_minUptime(uft_online(unit, f, t), tt(t_))${    ord(t_)>=[ord(t)-p_unit(unit, 'minOperationTime') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve,f,t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
+uftt_minUptime(uft_online(unit, f, t), tt_(t_))${   ord(t_)>=[ord(t)-p_unit(unit, 'minOperationTime') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve,f,t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
                                                     and ord(t_)<ord(t)
                                                     }
     = yes;
 
 // Time windows for minimum downtime requirements
 Option clear = uftt_minDowntime;
-uftt_minDowntime(uft_online(unit, f, t), tt(t_))${  ord(t_)>=[ord(t)-p_unit(unit, 'minShutDownTime') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve,f,t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
+uftt_minDowntime(uft_online(unit, f, t), tt_(t_))${ ord(t_)>=[ord(t)-p_unit(unit, 'minShutDownTime') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve,f,t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
                                                     and ord(t_)<ord(t)
                                                     }
     = yes;
