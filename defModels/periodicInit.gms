@@ -277,14 +277,45 @@ loop(m,
     );
 );
 
+* --- Unit Startup and Shutdown Counters --------------------------------------
+
+loop(m,
+    // Loop over units with online approximations in the model
+    loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit)${mSettingsEff(m, effLevel)},
+        // Loop over the constrained starttypes
+        loop(starttypeConstrained(starttype),
+            // Find the time step displacements needed to define the startup time frame
+            Option clear = cc;
+            cc(counter)${   ord(counter) <= p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'intervalInHours')
+                            and ord(counter) >= p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'intervalInHours')
+                            }
+                = yes;
+            dt_starttypeUnitCounter(starttype, unit, cc(counter)) = - ord(counter);
+        ); // END loop(starttypeConstrained)
+
+        // Find the time step displacements needed to define the downtime requirements
+        Option clear = cc;
+        cc(counter)${ ord(counter) <= p_unit(unit, 'minShutDownTime') / mSettings(m, 'intervalInHours') }
+            = yes;
+        dt_downtimeUnitCounter(unit, cc(counter)) = - ord(counter);
+
+        // Find the time step displacements needed to define the uptime requirements
+        Option clear = cc;
+        cc(counter)${ ord(counter) <= p_unit(unit, 'minOperationTime') / mSettings(m, 'intervalInHours')}
+            = yes;
+        dt_uptimeUnitCounter(unit, cc(counter)) = - ord(counter);
+    ); // END loop(effLevelGroupUnit)
+); // END loop(m)
+
 * =============================================================================
 * --- Various Initial Values and Calculations ---------------------------------
 * =============================================================================
 
-// Calculating the order of time periods
+* --- Calculating the order of time periods -----------------------------------
+
 tOrd(t) = ord(t);
 
-// Slack Direction
+* --- Slack Direction ---------------------------------------------------------
 
 // Upwards slack is positive, downward slack negative
 p_slackDirection(upwardSlack) = 1;

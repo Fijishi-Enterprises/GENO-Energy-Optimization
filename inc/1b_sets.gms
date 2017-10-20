@@ -27,7 +27,6 @@ Sets
 
 * --- Energy generation and consumption ---------------------------------------
     unit "Set of generators, storages and loads"
-*    unit_elec(unit) "Units that generate and/or consume electricity"
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
     unit_fuel(unit) "Units using a commercial fuel"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
@@ -122,11 +121,6 @@ Sets
     effGroupSelector(effSelector, effSelector) "Efficiency selectors included in efficiency groups, e.g. Lambda02 contains Lambda01 and Lambda02."
     effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
-
-    // Auxiliary time step sets for startup and shutdown constraints
-    uftt_startupType(starttype, unit, f, t, t) "Set of time steps where special startup conditions apply for units"
-    uftt_minUptime(unit, f, t, t) "Set of time steps where minimum uptime constraints apply for units"
-    uftt_minDowntime(unit, f, t, t) "Set of time steps where minimum downtype constrains apply for units"
 ;
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 fRealization('f00') = yes;

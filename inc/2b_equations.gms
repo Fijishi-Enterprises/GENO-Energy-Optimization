@@ -101,7 +101,7 @@ q_obj ..
     // Sum over all the samples, forecasts, and time steps in the current model
     + sum(msft(m, s, f, t),
         // Probability (weight coefficient) of (s,f,t)
-        + p_sft_Probability(s,f,t)
+        + p_sft_Probability(s, f, t)
             * [
                 // Time step length dependent costs
                 + p_stepLength(m, f, t)
@@ -566,8 +566,8 @@ q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t)) ..
     =L=
 
     // Subunit shutdowns within special startup timeframe
-    + sum(uftt_startupType(starttype, unit, f, t, t_),
-          + v_shutdown(unit, f+df(f,t_), t_)
+    + sum(counter${dt_starttypeUnitCounter(starttype, unit, counter)},
+          + v_shutdown(unit, f+df(f,t+dt_starttypeUnitCounter(starttype, unit, counter)), t+dt_starttypeUnitCounter(starttype, unit, counter))
     ) // END sum(t_)
 ;
 
@@ -587,8 +587,8 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutDownTime')
     + p_unit(unit, 'unitCount')
 
     // Number of units unable to start due to restrictions
-    - sum(uftt_minDowntime(unit, f, t, t_),
-        + v_shutdown(unit, f+df(f,t_), t_)
+    - sum(counter${dt_downtimeUnitCounter(unit, counter)},
+        + v_shutdown(unit, f+df(f,t+dt_downtimeUnitCounter(unit, counter)), t+dt_downtimeUnitCounter(unit, counter))
     ) // END sum(t_)
 
     // Investments into units
@@ -610,9 +610,9 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationTime')
     =G=
 
     // Units that have minimum operation time requirements active
-    + sum(uftt_minUptime(unit, f, t, t_),
+    + sum(counter${dt_uptimeUnitCounter(unit, counter)},
         + sum(starttype,
-            + v_startup(unit, starttype, f+df(f,t_), t_)
+            + v_startup(unit, starttype, f+df(f,t+dt_uptimeUnitCounter(unit, counter)), t+dt_uptimeUnitCounter(unit, counter))
             ) // END sum(starttype)
     ) // END sum(t_)
 ;
@@ -815,7 +815,7 @@ q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, 
 
 * --- Direct Input-Output Conversion ------------------------------------------
 
-q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..
+q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
 
     // Sum over endogenous energy inputs
     - sum(gnu_input(grid, node, unit),
@@ -833,8 +833,8 @@ q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..
     + sum(gnu_output(grid, node, unit),
         + v_gen(grid, node, unit, f, t)
             * [ // Heat rate
-                + p_effUnit(effDirect, unit, effDirect, 'slope')${not ts_effUnit(effDirect, unit, effDirect, 'slope', f, t)}
-                + ts_effUnit(effDirect, unit, effDirect, 'slope', f, t)
+                + p_effUnit(effGroup, unit, effGroup, 'slope')${not ts_effUnit(effGroup, unit, effGroup, 'slope', f, t)}
+                + ts_effUnit(effGroup, unit, effGroup, 'slope', f, t)
                 ] // END * v_gen
         ) // END sum(gnu_output)
 
@@ -847,8 +847,8 @@ q_conversionDirectInputOutput(suft(effDirect, unit, f, t)) ..
             + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
             ] // END * sum(gnu_output)
         * [
-            + p_effGroupUnit(effDirect, unit, 'section')${not ts_effUnit(effDirect, unit, effDirect, 'section', f, t)}
-            + ts_effUnit(effDirect, unit, effDirect, 'section', f, t)
+            + p_effGroupUnit(effGroup, unit, 'section')${not ts_effUnit(effGroup, unit, effDirect, 'section', f, t)}
+            + ts_effUnit(effGroup, unit, effGroup, 'section', f, t)
             ] // END * sum(gnu_output)
 ;
 

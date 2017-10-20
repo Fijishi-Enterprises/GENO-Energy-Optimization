@@ -430,38 +430,6 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
         = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
 ); // END loop(effLevelGroupUnit)
 
-* --- Define the time steps necessary for startup, downtime and uptime constraints
-
-// Define the set of required historical timesteps
-Option clear = tt;
-tt(tFull(t))${  ord(t) <= tSolveFirst
-                and ord(t) > tSolveFirst - tMaxRequiredHistory
-                }
-    = yes;
-// Required historical and currently active time steps
-tt_(tFull(t)) = tt(t) + tActive(t);
-
-// Time windows for startups
-Option clear = uftt_startupType;
-uftt_startupType(starttype, uft_online(unit, f, t), tt_(t_))${  ord(t_) > [ord(t)-p_uNonoperational(unit, starttype, 'max') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve, f, t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
-                                                                and ord(t_)<=[ord(t)-p_uNonoperational(unit, starttype, 'min') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve, f, t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
-                                                                }
-    = yes;
-
-// Time windows for minimum uptime requirements
-Option clear = uftt_minUptime;
-uftt_minUptime(uft_online(unit, f, t), tt_(t_))${   ord(t_)>=[ord(t)-p_unit(unit, 'minOperationTime') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve,f,t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
-                                                    and ord(t_)<ord(t)
-                                                    }
-    = yes;
-
-// Time windows for minimum downtime requirements
-Option clear = uftt_minDowntime;
-uftt_minDowntime(uft_online(unit, f, t), tt_(t_))${ ord(t_)>=[ord(t)-p_unit(unit, 'minShutDownTime') / mSettings(mSolve, 'intervalInHours') / (p_stepLengthNoReset(mSolve,f,t_) + 1${not p_stepLengthNoReset(mSolve, f, t_)})]
-                                                    and ord(t_)<ord(t)
-                                                    }
-    = yes;
-
 * -----------------------------------------------------------------------------
 * --- Probabilities -----------------------------------------------------------
 * -----------------------------------------------------------------------------

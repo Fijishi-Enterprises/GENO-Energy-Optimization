@@ -114,8 +114,9 @@ Sets
 * --- General and Directional Sets --------------------------------------------
 
     // General Counter
-    counter "general counter set"
+    counter "General counter set"
         /c000*c999/
+    cc(counter) "Temporary subset of counter used for calculations"
 
     // Directional Sets
     up_down "Direction set used by some variables, e.g. reserve provisions and generation ramps"

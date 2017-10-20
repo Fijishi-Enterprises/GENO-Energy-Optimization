@@ -80,17 +80,19 @@ Scalar p_sWeightSum "Sum of sample weights";
 
 * --- Model structure ---------------------------------------------------------
 Parameters
+    // Time displacement arrays
     dt(t) "Displacement needed to reach the previous time period (in time periods)"
     dt_circular(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
+    dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints"
+    dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints"
+    dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints"
+
+    // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
     df_nReserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves."
-*    cf(f, t) "Displacement needed to reach the current forecast (in forecasts) - this is needed when the forecast tree gets reduced in dynamic equations"
-*    cf_nReserves(node, restype,  f, t) "Forecast index displacement needed to reach the realization when committing reserves."
-*    t_bind(t) "Displacement to reach the binding time period in the parent sample (in time periods). Can skip with aggregated steps as well as when connecting samples."
-*    ft_bind(f, t) "Displacement to reach the binding forecast (in forecasts) in the current model"
-*    mt_bind(mType, t) "Displacement to reach the binding time period in the parent sample (in time periods) in the models"
-*    mft_bind(mType, f, t) "Displacement to reach the binding forecast (in forecasts) in the models"
+
+    // Other
     p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
     tForecastNext(mType) "When the next forecast will be availalbe (ord time)"
     aaSolveInfo(mType, t, solveInfoAttributes) "stores information about the solve status"
