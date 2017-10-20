@@ -85,14 +85,14 @@ v_spill.up(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(
 * --- Unit Related Variable Boundaries ----------------------------------------
 
 // Constant max. energy generation if investments disabled
-v_gen.up(gnuft(gnu_output(grid, node, unit), f,t))${    not unit_flow(unit)
+v_gen.up(gnuft(gnu_output(grid, node, unit), f, t))${   not unit_flow(unit)
                                                         and not (unit_investLP(unit) or unit_investMIP(unit))
                                                         }
     = p_gnu(grid, node, unit, 'maxGen')
         * p_unit(unit, 'availability')
 ;
 // Time series capacity factor based max. energy generation if investments disabled
-v_gen.up(gnuft(gnu_output(grid, node, unit_flow), f,t))${   not (unit_investLP(unit_flow) or unit_investMIP(unit_flow)) }
+v_gen.up(gnuft(gnu_output(grid, node, unit_flow), f, t))${  not (unit_investLP(unit_flow) or unit_investMIP(unit_flow)) }
     = sum(flow${    flowUnit(flow, unit_flow)
                     and nu(node, unit_flow)
                     },

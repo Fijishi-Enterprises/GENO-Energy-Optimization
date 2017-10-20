@@ -146,7 +146,7 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
     // Parameters for direct conversion units without online variables
     if(effDirectOff(effSelector),
         p_effUnit(effSelector, unit, effSelector, 'lb') = 0; // No min load for the DirectOff approximation
-        p_effUnit(effSelector, unit, effSelector, 'op') = 1; // No max load for the DirectOff approximation
+        p_effUnit(effSelector, unit, effSelector, 'op') = smax(op, p_unit(unit, op));
         p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
         p_effUnit(effSelector, unit, effSelector, 'section') = 0; // No section for the DirectOff approximation
     ); // END if(effDirectOff)
@@ -162,7 +162,8 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
                 if(p_unit(unit, 'op00') = 0,
 
                     // Heat rate at the cross between real efficiency curve and approximated efficiency curve
-                    heat_rate = 1 / [ // !!! NOTE !!! It is advised not to define opFirstCross as any of the op points to avoid accidental division by zero!
+                    // !!! NOTE !!! It is advised not to define opFirstCross as any of the op points to avoid accidental division by zero!
+                    heat_rate = 1 / [
                                     + p_unit(unit, 'eff00')
                                         * [ p_unit(unit, op__) - p_unit(unit, 'opFirstCross') ]
                                         / [ p_unit(unit, op__) - p_unit(unit, 'op00') ]
@@ -176,7 +177,7 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
                     p_effGroupUnit(effSelector, unit, 'section')${ not p_effGroupUnit(effSelector, unit, 'section') }
                         = p_unit(unit, 'opFirstCross')
                             * ( heat_rate - 1 / p_unit(unit, eff__) )
-                            / ( p_unit(unit, op__) - p_unit(unit, 'opFirstCross') );
+                            / ( p_unit(unit, op__) - p_unit(unit, 'op00') );
                     p_effUnit(effSelector, unit, effSelector_, 'slope')
                         = 1 / p_unit(unit, eff__)
                             - p_effGroupUnit(effSelector, unit, 'section') / p_unit(unit, op__);

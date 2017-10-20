@@ -84,16 +84,13 @@ Sets
     ms(mType, s) "Samples present in the models"
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
-*    ft_dynamic(f, t) "ft without first t and with tLast+1 (moved right)"
     ft_realized(f, t) "Realized ft"
-*    ft_realizedLast(f, t) "Last realized ft"
     ft_nReserves(node, restype, f, t) "Forecast-time steps locked due to committing reserves ahead of time."
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     mft_(mType, f, t) "Combination of forecasts and time periods in the models"
     msf(mType, s, f) "Model, sample, forecast"
     msft(mType, s, f, t) "Combination of samples, forecasts and time periods in the models"
     mftStart(mType, f, t) "Start point of simulation"
-*    mftBind(mType, f, t) "Time periods/slices where forecasts/samples are coupled, note: t couples samples"
     fRealization(f) "fRealization of the forecasts"
     fCentral(f) "Forecast that continues as sample(s) after the forecast horizon ends"
     sInitial(s) "Sample that presents the realized/forecasted period"
@@ -102,7 +99,6 @@ Sets
     mftLastSteps(mType, f, t) "Last time periods of the model (can be end of forecasts or end of samples)"
     modelSolves(mType, t) "when different models are to be solved"
     fSolve(f) "forecasts in the model to be solved next"
-*    tSolveDispatch(t)
     tLatestForecast(t) "t for the latest forecast that is available"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
@@ -110,8 +106,6 @@ Sets
     uft_online(unit, f, t) "Units with any online and startup variables on time steps"
     uft_onlineLP(unit, f, t) "Units with LP online and startup variables on time steps"
     uft_onlineMIP(unit, f, t) "Units with MIP online and startup variables on time steps"
-*    uft_online_last(unit, f, t) "Last (f,t) when online variables are included"
-*    uft_online_incl_previous(unit, f, t) "Units with online and startup variables on time periods including the last realized period from previous solve"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"

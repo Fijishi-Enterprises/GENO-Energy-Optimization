@@ -99,8 +99,6 @@ Parameters
     msStart(mType, s) "Start point of samples"
     msEnd(mType, s) "End point of samples"
     tOrd(t) "Order of t"
-*    cpf(f, t) "Displacement needed to reach the realized data (forecast) in the first two time periods of ft"
-*    af(f, t) "Displacement needed to reach the realized data (forecast) - extended to t_start"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------
