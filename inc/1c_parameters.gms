@@ -70,10 +70,10 @@ Parameters
 
 * --- Probability -------------------------------------------------------------
 Parameters
-    p_sWeight(s) "Weight of sample"
-    p_sProbability(s) "Probability to reach sample conditioned on anchestor samples"
-    p_fProbability(f) "Probability of forecast"
-    p_sft_probability(s, f, t) "Probability of forecast"
+    p_msWeight(mType, s) "Weight of sample"
+    p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
+    p_mfProbability(mType, f) "Probability of forecast"
+    p_msft_probability(mType, s, f, t) "Probability of forecast"
 ;
 
 Scalar p_sWeightSum "Sum of sample weights";

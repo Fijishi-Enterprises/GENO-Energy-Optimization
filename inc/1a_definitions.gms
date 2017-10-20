@@ -188,7 +188,7 @@ $if exist 'params.inc' $include 'params.inc'
 /;
 
 // Activate model features if found
-Set active(feature) "Set membership tells active model features" /
+Set active(mType, feature) "Set membership tells active model features" /
 $if exist 'features.inc' $include 'features.inc'
 /;
 

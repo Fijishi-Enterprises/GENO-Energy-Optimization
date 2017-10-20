@@ -34,24 +34,24 @@ r_online(uft_online(unit, ft_realized(f, t)))
         + v_online_MIP.l(unit, f, t)${  uft_onlineMIP(unit, f, t)   }
 ;
 // Reserve provisions of units
-r_reserve(nuRescapable(restype, up_down, node, unit), fRealization(f), t)${ ft_nReserves(node, restype, f, t)
-                                                                            or sum(f_, df_nReserves(node, restype, f_, t))
-                                                                            }
+r_reserve(nuRescapable(restype, up_down, node, unit), fSolve(f), tActive(t))${  mft_nReserves(node, restype, mSolve, f, t)
+                                                                                or sum(f_, df_nReserves(node, restype, f_, t))
+                                                                                }
     = v_reserve.l(restype, up_down, node, unit, f, t)
 ;
 // Reserve transfer capacity
-r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${    restypeDirectionNode(restype, up_down, to_node)
-                                                                                                            and [   ft_nReserves(from_node, restype, f, t)
+r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, fSolve(f), tActive(t))${ restypeDirectionNode(restype, up_down, to_node)
+                                                                                                            and [   mft_nReserves(from_node, restype, mSolve, f, t)
                                                                                                                 or sum(f_, df_nReserves(from_node, restype, f_, t))
                                                                                                                 ]
                                                                                                             }
     = v_resTransferRightward.l(restype, up_down, from_node, to_node, f, t)
 ;
-r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${ restypeDirectionNode(restype, up_down, to_node)
-                                                                                                        and [   ft_nReserves(from_node, restype, f, t)
-                                                                                                            or sum(f_, df_nReserves(from_node, restype, f_, t))
-                                                                                                            ]
-                                                                                                        }
+r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, fSolve(f), tActive(t))${  restypeDirectionNode(restype, up_down, to_node)
+                                                                                                            and [   mft_nReserves(from_node, restype, mSolve, f, t)
+                                                                                                                or sum(f_, df_nReserves(from_node, restype, f_, t))
+                                                                                                                ]
+                                                                                                            }
     = v_resTransferLeftward.l(restype, up_down, from_node, to_node, f, t)
 ;
 // Unit startup and shutdown history

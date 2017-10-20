@@ -85,16 +85,16 @@ Sets
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
     ft_realized(f, t) "Realized ft"
-    ft_nReserves(node, restype, f, t) "Forecast-time steps locked due to committing reserves ahead of time."
+    mft_nReserves(node, restype, mType, f, t) "Forecast-time steps locked due to committing reserves ahead of time."
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
-    mft_(mType, f, t) "Combination of forecasts and time periods in the models"
+*    mft_(mType, f, t) "Combination of forecasts and time periods in the models"
     msf(mType, s, f) "Model, sample, forecast"
     msft(mType, s, f, t) "Combination of samples, forecasts and time periods in the models"
     mftStart(mType, f, t) "Start point of simulation"
-    fRealization(f) "fRealization of the forecasts"
-    fCentral(f) "Forecast that continues as sample(s) after the forecast horizon ends"
-    sInitial(s) "Sample that presents the realized/forecasted period"
-    sCentral(s) "Sample that continues the central forecast after the forecast horizon ends"
+    mfRealization(mType, f) "fRealization of the forecasts"
+    mfCentral(mType, f) "Forecast that continues as sample(s) after the forecast horizon ends"
+    msInitial(mType, s) "Sample that presents the realized/forecasted period"
+    msCentral(mType, s) "Sample that continues the central forecast after the forecast horizon ends"
     mftLastForecast(mType, f, t) "Last time period where the forecast extends"
     mftLastSteps(mType, f, t) "Last time periods of the model (can be end of forecasts or end of samples)"
     modelSolves(mType, t) "when different models are to be solved"
@@ -117,7 +117,7 @@ Sets
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
 ;
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
-fRealization('f00') = yes;
+mfRealization(mType, 'f00') = yes;
 ms(mType, s) = no;
 modelSolves(mType, t) = no;
 

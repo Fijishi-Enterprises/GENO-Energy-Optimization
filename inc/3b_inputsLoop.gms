@@ -51,7 +51,7 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
     execute_load ts_tertiary;
     ts_reserveDemand('tertiary', up_down, node, f, tt_(t))${    mf(mSolve, f)
                                                                 and gn('elec', node)
-                                                                and not fRealization(f)
+                                                                and not mfRealization(mSolve, f)
                                                                 }
 *        = min(500, ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
         = max(p_nReserves(node, 'primary', up_down), ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
@@ -73,9 +73,9 @@ if(mSettings(mSolve, 'forecasts') > 0,
         = yes;
 
     // Improve capacity factors, linear improvement towards fRealization
-    loop(fRealization(f_),
-        ts_cf(flow, node, f, tt_(t))${  not fRealization(f)
-                                        and fRealization(f_)
+    loop(mfRealization(mSolve, f_),
+        ts_cf(flow, node, f, tt_(t))${  not mfRealization(mSolve, f)
+                                        and mfRealization(mSolve, f_)
                                         and mf(mSolve, f)
             } = (
                     (ord(t) - ord(tSolve)) * ts_cf(flow, node, f, t)

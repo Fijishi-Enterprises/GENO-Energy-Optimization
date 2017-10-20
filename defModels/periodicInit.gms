@@ -56,7 +56,7 @@ loop(m,
             df(f, t)${  mf(m, f)
                         and ord(t) = mSettings(m, 't_start')
                         }
-            = sum(fRealization(f_), ord(f_) - ord(f));
+            = sum(mfRealization(m, f_), ord(f_) - ord(f));
 
             // Increase the t_skip counter
             t_skip_counter = t_skip_counter + 1;

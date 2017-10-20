@@ -101,7 +101,7 @@ q_obj ..
     // Sum over all the samples, forecasts, and time steps in the current model
     + sum(msft(m, s, f, t),
         // Probability (weight coefficient) of (s,f,t)
-        + p_sft_Probability(s, f, t)
+        + p_msft_Probability(m, s, f, t)
             * [
                 // Time step length dependent costs
                 + p_stepLength(m, f, t)
@@ -186,19 +186,21 @@ $offtext
         ) // END sum over msft(m, s, f, t)
 
     // Value of energy storage change
-    + sum(gn_state(grid, node)${active('storageValue')},
-        + sum(mftStart(m, f, t)${p_storageValue(grid, node, t)},
+    + sum(gn_state(grid, node),
+        + sum(mftStart(m, f, t)${   p_storageValue(grid, node, t)
+                                    and active(m, 'storageValue')
+                                    },
             + v_state(grid, node, f, t)
                 * p_storageValue(grid, node, t)
-                * sum(ms(m, s)${p_sft_probability(s, f, t)},
-                    + p_sft_probability(s, f, t)
+                * sum(ms(m, s)${ p_msft_probability(m, s, f, t) },
+                    + p_msft_probability(m, s, f, t)
                     ) // END sum(s)
             ) // END sum(mftStart)
         - sum(mftLastSteps(m, f, t)${p_storageValue(grid, node, t)},
             + v_state(grid, node, f, t)
                 * p_storageValue(grid, node, t)
-                * sum(ms(m, s)${p_sft_probability(s, f, t)},
-                    + p_sft_probability(s, f, t)
+                * sum(ms(m, s)${p_msft_probability(m, s, f, t)},
+                    + p_msft_probability(m, s, f, t)
                     ) // END sum(s)
             ) // END sum(mftLastSteps)
         ) // END sum(gn_state)
@@ -1364,12 +1366,12 @@ q_boundCyclic(gn_state(grid, node), ms(m, s), s_)${ ms(m, s_)
     =E=
 
     // State of the node at the end of horizon
-    + sum(mftLastSteps(m, fCentral(f_), t_)${   p_gn(grid, node, 'boundCyclic')},
+    + sum(mftLastSteps(mfCentral(m, f_), t_)${ p_gn(grid, node, 'boundCyclic') },
         + v_state(grid, node, f_, t_)
         ) // END sum(mftLastSteps)
 
     // State of the node at the end of the sample, BoundCyclicBetweenSamples
-    + sum(mftLastSteps(m, fCentral(f_), t_)${   p_gn(grid, node, 'boundCyclicBetweenSamples')
+    + sum(mftLastSteps(mfCentral(m, f_), t_)${  p_gn(grid, node, 'boundCyclicBetweenSamples')
                                                 and ord(t_) =  msEnd(m, s_)
                                                 },
         + v_state(grid, node, f_, t_)
@@ -1453,7 +1455,7 @@ q_emissioncap(gngroup, emission)${  p_gngroupPolicy(gngroup, 'emissionCap', emis
                                     } ..
 
     + sum(msft(m, s, f, t),
-        + p_sft_Probability(s,f,t)
+        + p_msft_Probability(m,s,f,t)
         * [
             // Time step length dependent emissions
             + p_stepLength(m, f, t)
@@ -1578,7 +1580,7 @@ q_energyShareMax(gngroup, group)${  p_gngroupPolicy(gngroup, 'energyShareMax', g
                                     } ..
 
     + sum(msft(m, s, f, t),
-        + p_sft_Probability(s,f,t)
+        + p_msft_Probability(m,s,f,t)
             * p_stepLength(m, f, t)
             * [
                 // Generation of units in the group
@@ -1615,7 +1617,7 @@ q_energyShareMin(gngroup, group)${  p_gngroupPolicy(gngroup, 'energyShareMin', g
                                     } ..
 
     + sum(msft(m, s, f, t),
-        + p_sft_Probability(s,f,t)
+        + p_msft_Probability(m,s,f,t)
             * p_stepLength(m, f, t)
             * [
                 // Generation of units in the group

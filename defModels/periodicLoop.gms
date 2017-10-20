@@ -110,7 +110,7 @@ $endif.debug
 
 // Select the forecasts included in the current solve
 Option clear = fSolve;
-fSolve(f)$mf(mSolve,f) = yes;
+fSolve(f)${mf(mSolve,f)} = yes;
 
 // Determine the first and last timesteps of the current solve
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 used only for initial values
@@ -119,8 +119,9 @@ tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(
 // Initializing sets and counters
 Option clear = tCounter;
 Option clear = p_stepLength;
+Option clear = mft;
 Option clear = ft;
-Option clear = ft_nReserves;
+Option clear = mft_nReserves;
 
 // Initialize temporary time series
 Option clear = ts_influx_;
@@ -156,26 +157,29 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 
         // Determine the forecast-time steps
         // Include the t_jump for the realization
-        ft(fRealization(fSolve), tInterval(t))${    ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')  }
+        mft(mfRealization(mSolve, fSolve), tInterval(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
             = yes;
         // Include the full horizon for the central forecast
-        ft(fCentral(fSolve), tInterval(t))${    ord(t) > tSolveFirst + mSettings(mSolve, 't_jump') }
+        mft(mfCentral(mSolve, fSolve), tInterval(t))${ ord(t) > tSolveFirst + mSettings(mSolve, 't_jump') }
             = yes;
         // Include up to forecastLength for remaining forecasts
-        ft(fSolve, tInterval(t))${  not fCentral(fSolve)
-                                    and not fRealization(fSolve)
-                                    and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                    and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
-                                    }
+        mft(mf(mSolve, fSolve), tInterval(t))${ not mfCentral(mSolve, fSolve)
+                                                and not mfRealization(mSolve, fSolve)
+                                                and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+                                                and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
+                                                }
             = yes;
 
         // Set of locked forecast-time steps for the reserves
-        ft_nReserves(node, restype, fRealization(f), tInterval(t))${    p_nReserves(node, restype, 'update_frequency')
-                                                                        and p_nReserves(node, restype, 'gate_closure')
-                                                                        and ord(t) > tSolveFirst
-                                                                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst, p_nReserves(node, restype, 'update_frequency'))
-                                                                        }
+        mft_nReserves(node, restype, mfRealization(mSolve, f), tInterval(t))${  p_nReserves(node, restype, 'update_frequency')
+                                                                                and p_nReserves(node, restype, 'gate_closure')
+                                                                                and ord(t) > tSolveFirst
+                                                                                and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
+                                                                                }
             = yes;
+
+        // Reduce the model dimension
+        ft(fSolve, tInterval(t)) = mft(mSolve, fSolve, t);
 
         // Select time series data matching the intervals, for intervalLength = 1, this is trivial.
         ts_influx_(gn(grid, node), ft(fSolve, tInterval(t))) = ts_influx(grid, node, fSolve, t+dt_circular(t));
@@ -206,18 +210,21 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 
         // Determine the forecast-time steps
         // Include the full horizon for the central forecast
-        ft(fCentral(fSolve), tInterval(t))${    ord(t) > tSolveFirst + mSettings(mSolve, 't_jump') }
+        mft(mfCentral(mSolve, fSolve), tInterval(t))${ ord(t) > tSolveFirst + mSettings(mSolve, 't_jump') }
             = yes;
         // Include the t_jump for the realization
-        ft(fRealization(fSolve), tInterval(t))${    ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')  }
+        mft(mfRealization(mSolve, fSolve), tInterval(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
             = yes;
         // Include up to forecastLength for remaining forecasts
-        ft(fSolve, tInterval(t))${  not fCentral(fSolve)
-                                    and not fRealization(fSolve)
-                                    and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                    and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
-                                    }
+        mft(mf(mSolve,fSolve), tInterval(t))${  not mfCentral(mSolve, fSolve)
+                                                and not mfRealization(mSolve, fSolve)
+                                                and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+                                                and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
+                                                }
             = yes;
+
+        // Reduce the model dimension
+        ft(fSolve, tInterval(t)) = mft(mSolve, fSolve, t)
 
         // Select and average time series data matching the intervals, for intervalLength > 1
         // Loop over the t:s of the interval
@@ -252,10 +259,6 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 
         ); // END IF intervalLenght
 
-    // The nodeState at the the end of the horizon doesn't have a defined p_stepLength (and isn't included in the tIntervals), so using raw data value.
-*    ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft_dynamic(fSolve, t))${ord(t) = tSolveLast
-*        } = ts_nodeState(grid, node, param_gnBoundaryTypes, fSolve, t+ct(t));
-
     // Update tActive
     tActive(tInterval) = yes;
 
@@ -264,45 +267,9 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
 
     ); // END LOOP COUNTER
 
-* --- Determine various other forecast-time sets required for the model -------
-
-// Set of realized time steps in the solve
-Option clear = ft_realized;
-ft_realized(ft(fRealization(f), t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
-    = yes
-;
-*Option clear = ft_realizedLast;
-*ft_realizedLast(ft_realized(f,t))${ ord(t) = tSolveFirst + mSettings(mSolve, 't_jump')  }
-*    = yes;
-
-// Forecast index displacement between realized and forecasted timesteps
-Option clear = ff;
-ff(f) = mf(mSolve, f);
-df(ff(f), tActive(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
-    = sum(fRealization(f_), ord(f_) - ord(f));
-
-// Forecast displacement between central and forecasted timesteps at the end of forecast horizon
-Option clear = df_central; // This can be reset.
-df_central(ft(f,t+dt(t)))${ not ft(f,t)
-                            and not fRealization(f)
-                            }
-    = sum(fCentral(f_), ord(f_) - ord(f));
-
-// Forecast index displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
-Option clear = df_nReserves;
-df_nReserves(node, restype, ft(f, t))${ p_nReserves(node, restype, 'update_frequency')
-                                        and p_nReserves(node, restype, 'gate_closure')
-                                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(node, restype, 'update_frequency')) + mSettings(mSolve, 't_jump')
-                                        }
-    = sum(f_${fRealization(f_)}, ord(f_) - ord(f));
-
-// Model ft
-Option clear = mft;
-mft(mSolve, ft) = yes;
-
 // Initial model ft
 Option clear = mftStart;
-mftStart(mSolve, fRealization(f), tSolve)
+mftStart(mfRealization(mSolve, f), tSolve)
     = yes
 ;
 // Last steps of model fts
@@ -313,12 +280,32 @@ Option clear = mftLastSteps;
 mftLastSteps(mSolve, ft(f,t))${ord(t)-dt(t) = tSolveLast}
     = yes
 ;
-*mftLastSteps(mSolve, ft(f,t))${ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLength')
-*                                    and not fCentral(f)
-*                                    and not fRealization(f)
-*                                    }
-*    = yes
-*;
+
+* --- Determine various other forecast-time sets required for the model -------
+
+// Set of realized time steps in the solve
+Option clear = ft_realized;
+ft_realized(fSolve, tActive(t))${mfRealization(mSolve, fSolve)}
+    = ft(fSolve, t);
+
+// Forecast index displacement between realized and forecasted timesteps
+df(fSolve(f), tActive(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
+    = sum(mfRealization(mSolve, f_), ord(f_) - ord(f));
+
+// Forecast displacement between central and forecasted timesteps at the end of forecast horizon
+Option clear = df_central; // This can be reset.
+df_central(ft(f,t+dt(t)))${ not ft(f,t)
+                            and not mfRealization(mSolve, f)
+                            }
+    = sum(mfCentral(mSolve, f_), ord(f_) - ord(f));
+
+// Forecast index displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
+Option clear = df_nReserves;
+df_nReserves(node, restype, ft(f, t))${ p_nReserves(node, restype, 'update_frequency')
+                                        and p_nReserves(node, restype, 'gate_closure')
+                                        and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(node, restype, 'update_frequency'))
+                                        }
+    = sum(f_${mfRealization(mSolve, f_)}, ord(f_) - ord(f));
 
 // Samples
 Option clear = msft;
@@ -435,15 +422,6 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
 * -----------------------------------------------------------------------------
 
 // Update probabilities
-Option clear = p_sft_probability;
-p_sft_probability(s, ft(f,t))${ msft(mSolve, s, f, t)}
-    = p_fProbability(f+df_central(f,t)) / sum(f_${ft(f_,t)}, p_fProbability(f_)) * p_sProbability(s);
-p_sft_probability(s, ft_realized(f,t))${    msft(mSolve, s, f, t)}
-    = p_fProbability(f) * p_sProbability(s);
-*p_sft_probability(s, ft_full(f,t))${  mftLastSteps(mSolve, f, t)
-*                                      and msft(mSolve, s, f, t)
-*                                      and not cf_Central(f,t)
-*    } = p_fProbability(f) / sum(f_${ft_full(f_,t)}, p_fProbability(f_)) * p_sProbability(s);
-
-
-
+Option clear = p_msft_probability;
+p_msft_probability(msft(mSolve, s, f, t))
+    = p_mfProbability(mSolve, f) / sum(f_${ft(f_, t)}, p_mfProbability(mSolve, f_)) * p_msProbability(mSolve, s);
