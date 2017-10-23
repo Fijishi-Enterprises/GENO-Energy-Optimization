@@ -28,12 +28,27 @@ r_shutdown // Conserves locked shutdown variables between solves
 
 * --- Other desired results ---------------------------------------------------
 
-// Interesting variables
-r_totalCost
+// Interesting variable and equation values
 r_fuelUse
 r_genFuel
 r_transfer
 r_spill
+r_balanceMarginal
+r_resDemandMarginal
+
+// Total result arrays
+r_totalObj
+r_gnuTotalGen
+r_gnTotalGenFuel
+r_gnnTotalTransfer
+r_gnTotalSpill
+
+// Results requiring calculations
+r_gnConsumption
+r_gnTotalConsumption
+r_gnRealizedCost
+r_gnTotalRealizedCost
+r_totalRealizedCost
 
 // Diagnostics
 d_cop
@@ -46,7 +61,7 @@ r_qResDemand
 // Solve/model information
 r_solveStatus
 
-// OLD RESULTS
+// OLD RESULTS, mostly here for inspiration
 *r_elec_type
 *r_demand
 *r_onlineCap

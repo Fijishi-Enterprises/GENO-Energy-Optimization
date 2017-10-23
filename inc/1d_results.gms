@@ -17,7 +17,7 @@ $offtext
 
 * --- Result arrays -----------------------------------------------------------
 Parameters
-    // Arrays required for model structure
+    // Variables required for model structure
     r_state(grid, node, f, t) "Node state at timestep t"
     r_online(unit, f, t) "Units online"
     r_reserve(restype, up_down, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
@@ -27,12 +27,30 @@ Parameters
     r_startup(unit, starttype, f, t) "Units started up"
     r_shutdown(unit, f, t) "Units shut down"
 
-    // Arrays of interest
-    r_totalCost "Total operating cost over the simulation (€)" / 0 /
+    // Variables and equations of interest
     r_fuelUse(fuel, unit, f, t) "Fuel use of units"
     r_genFuel(grid, node, fuel, f, t) "Energy generation/consumption based on fuels / flows (MW)"
     r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
     r_spill(grid, node, f, t) "Spill of energy from storage node during time period (MWh)"
+    r_balanceMarginal(grid, node, f, t) "Marginal values of the q_balance equation"
+    r_resDemandMarginal(restype, up_down, node, f, t) "Marginal values of the q_resDemand equation"
+
+    // Total variable value arrays
+    r_totalObj "Total operating cost over the simulation (€)" / 0 /
+    r_gnuTotalGen(grid, node, unit) "Total energy generation/consumption in gnu over the simulation (MWh)"
+    r_gnTotalGenFuel(grid, node, fuel) "Total energy generation/consumption in gn per fuel over the simulation (MWh)"
+    r_totalGenFuel(fuel) "Total overall energy generation/consumption per fuel over the simulation (MWh)"
+    r_gnnTotalTransfer(grid, node, node) "Total amount of energy transferred between gnn over the simulation (MWh)"
+    r_gnTotalSpill(grid, node) "Total spilled enegy from gn over the simulation (MWh)"
+
+    // Interesting results requiring further calculations
+    r_gnConsumption(grid, node, f, t) "Consumption of energy in gn for each t (MWh)"
+    r_gnTotalConsumption(grid, node) "Total consumption of energy in gn over the simulation (MWh)"
+    r_gnRealizedCost(grid, node, f, t) "Realized system costs in gn for each t (MEUR)"
+    r_gnTotalRealizedCost(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
+    r_totalRealizedCost "Total realized system costs over the simulation (MEUR)" / 0 /
+
+    // Old results arrays
 *    r_genNodeType(grid, node, unitType, t) "Energy generation/consumption based on unittypes (MW)"
 *    r_genType(grid, unitType, t) "Energy generation/consumption based on unittypes (MW)"
 *    r_elec_type(unittype, t) "Average electricity generation rate of generator type (MW)"

@@ -84,6 +84,7 @@ Sets
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
     ft_realized(f, t) "Realized ft"
+    ft_realizedNoReset(f, t) "Full set of realized ft, facilitates calculation of results"
     mft_nReserves(node, restype, mType, f, t) "Forecast-time steps locked due to committing reserves ahead of time."
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     msf(mType, s, f) "Model, sample, forecast"

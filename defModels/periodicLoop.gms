@@ -309,6 +309,7 @@ mftLastSteps(mSolve, ft(f,t))${ord(t)-dt(t) = tSolveLast}
 Option clear = ft_realized;
 ft_realized(fSolve, tActive(t))${ mfRealization(mSolve, fSolve) }
     = ft(fSolve, t);
+ft_realizedNoReset(ft_realized(f, t)) = yes;
 
 // Forecast index displacement between realized and forecasted timesteps
 df(fSolve(f), tActive(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }

@@ -115,7 +115,7 @@ q_obj ..
                         // Fuel and emission costs
                         + sum(uFuel(unit, 'main', fuel)${uft(unit, f, t)},
                             + v_fuelUse(fuel, unit, f, t)
-                                * [
+                                * [ // !!! NOTE !!! Sum over tFull is needlessly time consuming. Price time series could be calculated beforehand.
                                     + sum(tFull(tFuel)$[ord(tFuel) <= ord(t)], // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
                                         + ts_fuelPriceChange(fuel, tFuel)
                                         )
