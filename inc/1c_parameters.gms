@@ -125,3 +125,4 @@ Parameters
     p_stepLength(mType, f, t) "Length of a time step (t)"
     p_stepLengthNoReset(mType, f, t) "Length of a time step (t)"
 ;
+Option clear = p_storageValue; // Required for whatever reason.

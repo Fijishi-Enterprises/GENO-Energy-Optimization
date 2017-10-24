@@ -116,9 +116,10 @@ Sets
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
 ;
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
+Option clear = modelSolves;
+Option clear = ms;
+Option clear = mf;
 mfRealization(mType, 'f00') = yes;
-ms(mType, s) = no;
-modelSolves(mType, t) = no;
 
 alias(m, mSolve);
 alias(t, t_, t__, tSolve, tFuel);
