@@ -183,10 +183,12 @@ p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multipli
 * -----------------------------------------------------------------------------
 
 // Nodes with reserve requirements
-loop(gn(grid, node),
-    restypeDirectionNode(restypeDirection(restype, up_down), node)$(p_nReserves(node, restype, 'use_time_series') and sum((f,t), ts_reserveDemand(restype, up_down, node, f, t))) = yes;
-    restypeDirectionNode(restypeDirection(restype, up_down), node)$(not p_nReserves(node, restype, 'use_time_series') and p_nReserves(node, restype, up_down)) = yes;
-);
+*loop(gn(grid, node),
+restypeDirectionNode(restypeDirection(restype, up_down), node)${    p_nReserves(node, restype, up_down)
+                                                                    or p_nReserves(node, restype, 'use_time_series')
+                                                                    }
+    = yes;
+*);
 
 * Assume values for critical reserve related parameters, if not provided by input data
 p_nuReserves(nu(node, unit), restype, 'reserveContribution')${  not p_nuReserves(node, unit, restype, 'reserveContribution')

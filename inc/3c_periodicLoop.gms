@@ -21,7 +21,9 @@ $offtext
 
 // This is only done if debug mode is not specifically enabled
 $$iftheni.debug NOT '%debug%' == 'yes'
-    // Variables
+
+* --- Variables ---------------------------------------------------------------
+
     // Free Variables
     Option clear = v_gen;
     Option clear = v_state;
@@ -52,7 +54,8 @@ $$iftheni.debug NOT '%debug%' == 'yes'
     Option clear = vq_gen;
     Option clear = vq_resDemand;
 
-    // Equations
+* --- Equations ---------------------------------------------------------------
+
     // Objective Function, Energy Balance, and Reserve demand
     Option clear = q_obj;
     Option clear = q_balance;
@@ -102,6 +105,16 @@ $$iftheni.debug NOT '%debug%' == 'yes'
     Option clear = q_energyShareMax;
     Option clear = q_energyShareMin;
     Option clear = q_inertiaMin;
+
+* --- Temporary Time Series ---------------------------------------------------
+
+    // Initialize temporary time series
+    Option clear = ts_influx_;
+    Option clear = ts_cf_;
+    Option clear = ts_unit_;
+    Option clear = ts_reserveDemand_;
+    Option clear = ts_nodeState_;
+
 $endif.debug
 
 * =============================================================================
@@ -123,13 +136,6 @@ Option clear = msft;
 Option clear = mft;
 Option clear = ft;
 Option clear = mft_nReserves;
-
-// Initialize temporary time series
-Option clear = ts_influx_;
-Option clear = ts_cf_;
-Option clear = ts_unit_;
-Option clear = ts_reserveDemand_;
-Option clear = ts_nodeState_;
 
 * --- Build the forecast-time structure using the intervals -------------------
 
