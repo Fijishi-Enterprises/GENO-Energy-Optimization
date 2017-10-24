@@ -20,8 +20,8 @@ Scalars
     errorcount /0/
     tSolveFirst "counter (ord) for the first t in the solve"
     tSolveLast "counter for the last t in the solve"
-    tDispatchCurrent "counter for the current t in the dispatch loop" /0/
     tCounter "counter for t" /0/
+    tMaxRequiredHistory "Maximum number of time intervals required for constraints dependent on variable history (e.g. startup type)"
     lastCounter "last member in use of the general counter"
     ts_length "Length of time series (t)"
     continueLoop "Helper to stop the looping early"
@@ -32,10 +32,13 @@ Scalars
     cum_lambda "Cumulative for lambda"
     heat_rate "Heat rate temporary parameter"
     tmp "General temporary parameter"
+    tmp_ "General temporary parameter"
+    tmp__ "General temporary parameter"
     tmp_dist "Temporary parameter for calculating the distance between operating points"
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
-    f_improve /12/;
+    f_improve /12/
+    tRealizedLast "counter (ord) for the last realized t in the solve";
 ;
 
 * --- Power plant and fuel data -----------------------------------------------
@@ -48,11 +51,15 @@ Parameters
     p_nReserves(node, restype, *) "Data defining the reserve rules in each node"
     p_nuReserves(node, unit, restype, *) "Reserve provision data for units"
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
+    p_gngroupPolicy(gngroup, param_policy, *) "Policy data for groups of grid, node"
     p_fuelEmission(fuel, emission) "Fuel emission content"
     p_uFuel(unit, param_fuel, fuel, param_unitFuel) "Parameters interacting between units and fuels"
     p_unitFuelEmissionCost(unit, fuel, emission) "Emission costs for each unit, calculated from input data"
     p_effUnit(effSelector, unit, effSelector, *)  "Data for piece-wise linear efficiency blocks"
     p_effGroupUnit(effSelector, unit, *) "Unit data specific to a efficiency group (e.g. left border of the unit)"
+    p_gnugnu(grid, node, unit, grid, node, unit, param_gnugnu) "Data connecting units in nodes and grids"
+    p_uNonoperational(unit, starttype, min_max) "Non-operational time after being shut down before start up"
+    p_uStartup(unit, starttype, cost_consumption, unit_capacity) "Startup cost and fuel consumption"
 // Time dependent unit & fuel parameters
     ts_unit(unit, *, f, t) "Time dependent unit data, where energy type doesn't matter"
     ts_effUnit(effSelector, unit, effSelector, *, f, t) "Time dependent data for piece-wise linear efficiency blocks"
@@ -63,30 +70,35 @@ Parameters
 
 * --- Probability -------------------------------------------------------------
 Parameters
-    p_sWeight(s) "Weight of sample"
-    p_sProbability(s) "Probability to reach sample conditioned on anchestor samples"
-    p_fProbability(f) "Probability of forecast"
-    p_sft_probability(s, f, t) "Probability of forecast"
+    p_msWeight(mType, s) "Weight of sample"
+    p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
+    p_mfProbability(mType, f) "Probability of forecast"
+    p_msft_probability(mType, s, f, t) "Probability of forecast"
 ;
 
 Scalar p_sWeightSum "Sum of sample weights";
 
 * --- Model structure ---------------------------------------------------------
 Parameters
-    pt(t) "Displacement needed to reach the previous time period (in time periods)"
-    pf(f, t) "Displacement needed to reach the previous forecast (in forecasts)"
-    pf_nReserves(node, restype, f, t) "Forecast index displacement needed to reach the previous forecast when committing reserves."
-    cf(f, t) "Displacement needed to reach the current forecast (in forecasts) - this is needed when the forecast tree gets reduced in dynamic equations"
-    cf_Central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
-    cf_nReserves(node, restype,  f, t) "Forecast index displacement needed to reach the realization when committing reserves."
-    ct(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
-*    t_bind(t) "Displacement to reach the binding time period in the parent sample (in time periods). Can skip with aggregated steps as well as when connecting samples."
-*    ft_bind(f, t) "Displacement to reach the binding forecast (in forecasts) in the current model"
-*    mt_bind(mType, t) "Displacement to reach the binding time period in the parent sample (in time periods) in the models"
-*    mft_bind(mType, f, t) "Displacement to reach the binding forecast (in forecasts) in the models"
+    // Time displacement arrays
+    dt(t) "Displacement needed to reach the previous time period (in time periods)"
+    dt_circular(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
+    dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints"
+    dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints"
+    dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints"
+
+    // Forecast displacement arrays
+    df(f, t) "Displacement needed to reach the realized forecast on the current time step"
+    df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
+    df_nReserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves."
+
+    // Other
     p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
     tForecastNext(mType) "When the next forecast will be availalbe (ord time)"
     aaSolveInfo(mType, t, solveInfoAttributes) "stores information about the solve status"
+    msStart(mType, s) "Start point of samples"
+    msEnd(mType, s) "End point of samples"
+    tOrd(t) "Order of t"
 ;
 
 * --- Stochastic data parameters ----------------------------------------------

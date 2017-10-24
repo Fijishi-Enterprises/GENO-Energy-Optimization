@@ -15,30 +15,185 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
+* =============================================================================
 * --- Recording realized parameter values -------------------------------------
+* =============================================================================
+// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Have to go through my RealValue branch changes to the result arrays for
+// More thought-out result arrays
 
-// Results required for keeping model dynamics working
-r_state(gn_state(grid, node), ft_realized(f, t)) = v_state.l(grid, node, f, t);
-r_online(unit, ft_realized(f, t))${ uft_online(unit, f, t+pt(t))
-    } = v_online.l(unit, f, t);
-r_reserve(nuRescapable(restype, up_down, node, unit), fRealization(f), t)${ ft_nReserves(node, restype, f, t)
-                                                                            or sum(f_, cf_nReserves(node, restype, f_, t))
-    } = v_reserve.l(restype, up_down, node, unit, f, t);
-r_resTransfer(restypeDirectionNode(restype, up_down, from_node), to_node, fRealization(f), t)${ restypeDirectionNode(restype, up_down, to_node)
-                                                                                                and [   ft_nReserves(from_node, restype, f, t)
-                                                                                                        or sum(f_, cf_nReserves(from_node, restype, f_, t))
-                                                                                                        ]
-    } = v_resTransfer.l(restype, up_down, from_node, to_node, f, t);
+* --- Result arrays required by model dynamics --------------------------------
 
-// Interesting results
-r_gen(gnu(grid, node, unit), ft_realized(f, t)) = v_gen.l(grid, node, unit, f, t);
-r_genFuel(gn(grid, node), fuel, ft_realized(f, t)) = sum(gnu(grid, node, unit), v_fuelUse.l(fuel, unit, f, t));
-r_transfer(gn2n(grid, from_node, to_node), ft_realized(f, t)) = v_transfer.l(grid, from_node, to_node, f, t);
-r_spill(gn(grid, node), ft_realized(f, t)) = v_spill.l(grid, node, f, t);
+// Realized state history
+r_state(gn_state(grid, node), ft_realized(f, t))
+    = v_state.l(grid, node, f, t)
+;
+// Realized unit online history
+r_online(uft_online(unit, ft_realized(f, t)))
+    = v_online_LP.l(unit, f, t)${ uft_onlineLP(unit, f, t)    }
+        + v_online_MIP.l(unit, f, t)${  uft_onlineMIP(unit, f, t)   }
+;
+// Reserve provisions of units
+r_reserve(nuRescapable(restype, up_down, node, unit), fSolve(f), tActive(t))${  mft_nReserves(node, restype, mSolve, f, t)
+                                                                                or sum(f_, df_nReserves(node, restype, f_, t))
+                                                                                }
+    = v_reserve.l(restype, up_down, node, unit, f, t)
+;
+// Reserve transfer capacity
+r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, fSolve(f), tActive(t))${ restypeDirectionNode(restype, up_down, to_node)
+                                                                                                            and [   mft_nReserves(from_node, restype, mSolve, f, t)
+                                                                                                                or sum(f_, df_nReserves(from_node, restype, f_, t))
+                                                                                                                ]
+                                                                                                            }
+    = v_resTransferRightward.l(restype, up_down, from_node, to_node, f, t)
+;
+r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, fSolve(f), tActive(t))${  restypeDirectionNode(restype, up_down, to_node)
+                                                                                                            and [   mft_nReserves(from_node, restype, mSolve, f, t)
+                                                                                                                or sum(f_, df_nReserves(from_node, restype, f_, t))
+                                                                                                                ]
+                                                                                                            }
+    = v_resTransferLeftward.l(restype, up_down, from_node, to_node, f, t)
+;
+// Unit startup and shutdown history
+r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t)  }
+    = v_startup.l(unit, starttype, f, t)
+;
+r_shutdown(uft_online(unit, ft_realized(f, t)))
+    = v_shutdown.l(unit, f, t)
+;
+// Last realized timestep
+*r_realizedLast = tRealizedLast;
 
-// Feasibility results
-r_qGen(inc_dec, gn(grid, node), ft_realized(f, t)) = vq_gen.l(inc_dec, grid, node, f, t);
-r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t)) = vq_resDemand.l(restype, up_down, node, f, t);
+* --- Interesting results -----------------------------------------------------
+
+// Unit generation and consumption
+r_gen(gnuft(grid, node, unit, ft_realized(f, t)))
+    = v_gen.l(grid, node, unit, f, t)
+;
+// Fuel use of units
+r_fuelUse(fuel, uft(unit_fuel, ft_realized(f, t)))
+    = v_fuelUse.l(fuel, unit_fuel, f, t)
+;
+// Fuel used for generation
+r_genFuel(gn(grid, node), fuel, ft_realized(f, t))
+    = sum(gnu(grid, node, unit), v_fuelUse.l(fuel, unit, f, t))
+;
+// Transfer of energy between nodes
+r_transfer(gn2n(grid, from_node, to_node), ft_realized(f, t))
+    = v_transfer.l(grid, from_node, to_node, f, t)
+;
+// Energy spilled from nodes
+r_spill(gn(grid, node), ft_realized(f, t))
+    = v_spill.l(grid, node, f, t)
+;
+// Total Objective function
+r_totalObj
+    = r_totalObj + v_obj.l
+;
+// q_balance marginal values
+r_balanceMarginal(gn(grid, node), ft_realized(f, t))
+    = q_balance.m(grid, node, mSolve, f, t)
+;
+// q_resDemand marginal values
+r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
+    = q_resDemand.m(restype, up_down, node, f, t)
+;
+
+* --- Realized system costs ---------------------------------------------------
+
+r_gnRealizedCost(gn(grid, node), ft_realized(f, t))
+    // Time step length dependent costs
+    = p_stepLength(mSolve, f, t)
+        * 1e-6 // Scaling to MEUR
+        * [
+            // Variable O&M costs
+            + sum(gnuft(gnu_output(grid, node, unit), f, t),  // Calculated only for output energy
+                + v_gen.l(grid, node, unit, f, t)
+                    * p_unit(unit, 'omCosts')
+                ) // END sum(gnu_output)
+
+            // Fuel and emission costs
+            + sum(uFuel(unit, 'main', fuel)${ gnuft(grid, node, unit, f, t) },
+                + v_fuelUse.l(fuel, unit, f, t)
+                    * [ // !!! NOTE !!! Sum over tFull is needlessly time consuming. Price time series could be calculated beforehand.
+                        + sum(tFull(tFuel)$[ord(tFuel) <= ord(t)], // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
+                            + ts_fuelPriceChange(fuel, tFuel)
+                            ) // END sum(tFull)
+                        + sum(emission, // Emission taxes
+                            + p_unitFuelEmissionCost(unit, fuel, emission)
+                            ) // END sum(emission)
+                        ] // END * v_fuelUse
+                ) // END sum(uFuel)
+
+            // Node state slack variable penalties
+            + sum(gn_stateSlack(grid, node),
+                + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
+                    + v_stateSlack.l(grid, node, slack, f, t)
+                        * p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
+                    ) // END sum(slack)
+                ) // END sum(gn_stateSlack)
+
+            ] // END * p_stepLength
+
+    // Start-up costs
+    + sum(gnuft(grid, node, unit, f, t)${ uft_online(unit, f, t) },
+        + sum(starttype,
+            + v_startup.l(unit, starttype, f, t) // Cost of starting up
+                * [ // Startup variable costs
+                    + p_uStartup(unit, starttype, 'cost', 'unit')
+
+                    // Start-up fuel and emission costs
+                    + sum(uFuel(unit, 'startup', fuel),
+                        + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
+                            * [ // !!! NOTE !!! Sum over tFull is needlessly time consuming. Price time series could be calculated beforehand.
+                                + sum(tFull(tFuel)$[ord(tFuel) <= ord(t)], // Fuel costs for start-up fuel use
+                                    + ts_fuelPriceChange(fuel, tFuel)
+                                    ) // END sum(tFuel)
+                                + sum(emission, // Emission taxes of startup fuel use
+                                    + p_unitFuelEmissionCost(unit, fuel, emission)
+                                    ) // END sum(emission)
+                                ] // END * p_uStartup
+                        ) // END sum(uFuel)
+                    ] // END * v_startup
+            ) // END sum(starttype)
+        ) // END sum(uft_online)
+;
+
+* --- Feasibility results -----------------------------------------------------
+
+// Dummy generation & consumption
+r_qGen(inc_dec, gn(grid, node), ft_realized(f, t))
+    = vq_gen.l(inc_dec, grid, node, f, t)
+;
+// Dummy reserve demand changes
+r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
+    = vq_resDemand.l(restype, up_down, node, f, t)
+;
+
+* --- Diagnostics Results -----------------------------------------------------
+
+d_cop(uft(unit, ft_realized(f, t)))${sum(gnu_input(grid, node, unit), 1)}
+    = sum(gnu_output(grid, node, unit),
+        + r_gen(grid, node, unit, f, t)
+        ) // END sum(gnu_output)
+        / [ sum(gnu_input(grid_, node_, unit),
+                -r_gen(grid_, node_, unit, f, t)
+                ) // END sum(gnu_input)
+            + 1${not sum(gnu_input(grid_, node_, unit), -r_gen(grid_, node_, unit, f, t))}
+            ]
+;
+d_eff(uft(unit_fuel, ft_realized(f, t)))
+    = sum(gnu_output(grid, node, unit_fuel),
+        + r_gen(grid, node, unit_fuel, f, t)
+        ) // END sum(gnu_output)
+        / [ sum(uFuel(unit_fuel, param_fuel, fuel),
+                + r_fuelUse(fuel, unit_fuel, f, t)
+                ) // END sum(uFuel)
+            + 1${not sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, f, t))}
+            ]
+;
+
+* --- Model Solve & Status ----------------------------------------------------
 
 // Model/solve status
 if (mSolve('schedule'),
@@ -55,114 +210,6 @@ if (mSolve('schedule'),
     r_solveStatus(tSolve,'objEst')=schedule.objEst;
     r_solveStatus(tSolve,'objVal')=schedule.objVal;
 );
-
-$ontext
-    // Deterministic stage
-    loop(fRealization(f),
-        r_gen(grid, unit, t)$ft_realized(f,t) = sum(node$(gnu(grid, node, unit) or gnu_input(grid, node, unit)), v_gen.l(grid, node, unit, f, t));
-        r_qGen(inc_dec, gn(grid, node), t)$ft_realized(f,t) = vq_gen.l(inc_dec, grid, node, f, t);
-        r_qResDemand(restypeDirectionNode(restype, up_down, node), t)$ft_realized(f, t) = vq_resDemand.l(restype, up_down, node, f, t);
-        r_state(gn_state(grid, node), t)${ft_realized(f,t)} = v_state.l(grid, node, f, t);
-        r_transfer(gn2n(grid, from_node, to_node), t)${ft_realized(f,t)} = v_transfer.l(grid, from_node, to_node, f, t);
-        loop(fuel,
-            r_genFuel(gn(grid, node), fuel, t)$ft_realized(f,t) = sum(unit$uFuel(unit, 'main', fuel), v_gen.l(grid, node, unit, f, t));
-        );
-        r_genNodeType(grid, node, unittype, t)$ft_realized(f,t) = sum(unit$unitUnittype(unit, unittype),
-                                          v_gen.l(grid, node, unit, f, t));
-        r_genType(grid, unittype, t)$ft_realized(f,t) = sum(nu(node, unit)$unitUnittype(unit, unittype),
-                                          v_gen.l(grid, node, unit, f, t));
-        r_fuelUse(fuel, unit, t)${ft_realized(f,t)} = v_fuelUse.l(fuel, unit, f, t);
-        r_demand(grid, node, t)$ft_realized(f,t)
-             = sum(gn(grid, node), ts_influx(grid, node, f, t));
-        r_onlineCap(unit, t) = v_online.l(unit, f, t);
-
-      r_cost(t)$ft_realized(f,t) =
-      + sum(ms(m, s),
-        (
-         // Variable O&M costs
-         + sum(gnu_output(grid, node, unit),  // Calculated only for output energy
-                p_unit(unit, 'omCosts') *
-                     v_gen.l(grid, node, unit, f, t) //$nuft(node, unit, f, t)
-           )
-         // Fuel and emission costs
-         + sum((node, unit_fuel, fuel)$(nu(node, unit_fuel) and uFuel(unit_fuel, 'main', fuel)),
-              + v_fuelUse.l(fuel, unit_fuel, f, t)  //$nuft(node, unit_fuel, f, t)
-                  * ( + sum{tFuel$[ord(tFuel) <= ord(t)],
-                            ts_fuelPriceChangenode(fuel, node, tFuel) }  // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
-                      + sum{emission,         // Emission taxes
-                            p_fuelEmission(fuel, emission) / 1e3
-                              * sum(grid$gnu_output(grid, node, unit_fuel), p_gnPolicy(grid, node, 'emissionTax', emission))  // Sum emission costs from different output energy types
-                        }
-                     )
-           )
-         // Start-up costs
-         + sum(unit,
-             + {
-                 + v_startup.l(unit, f, t) // Cost of starting up
-               } / p_unit(unit, 'unitCount')
-             * {
-                  // Startup variable costs
-                 + p_unit(unit, 'startCost')
-                 * p_unit(unit, 'outputCapacityTotal')
-                  // Start-up fuel and emission costs
-                 + sum(uFuel(unit_fuel, 'startup', fuel),
-                     + p_unit(unit, 'startFuelCons')
-                     * p_unit(unit, 'outputCapacityTotal')
-                     * sum(gnu_output(grid, node, unit),
-                           // Fuel costs for start-up fuel use
-                         + ( + sum{tFuel$[ord(tFuel) <= ord(t)],
-                                   ts_fuelPriceChangenode(fuel, node, tFuel) }
-                               // Emission taxes of startup fuel use
-                             + sum(emission,
-                                p_fuelEmission(fuel, emission) / 1e3
-                                  * p_gnPolicy(grid, node, 'emissionTax', emission)  // Sum emission costs from different output energy types
-                               )
-                           ) / p_gnu(grid, node, unit, 'maxGen')  // Calculate these in relation to maximum output ratios between multiple outputs
-                       ) * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'))  // see line above
-                   )
-               }
-            )
-         )
-         // Ramping costs
-         + sum(gnu(grid, node, unit),
-            + (p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons')) // NOTE! Doens't work correctly if a gnu has both! Is that even possible, though?
-            * ( // Changes in ramp rates
-                + p_gnu(grid, node, unit, 'rampUpCost') * v_genRampChange.l(grid, node, unit, 'up', f, t)
-                + p_gnu(grid, node, unit, 'rampDownCost') * v_genRampChange.l(grid, node, unit, 'down', f, t)
-              )
-          )
-    ); // END sum over ms(m, s)
-
-$ontext
-            r_transmission(h, from_node, to_node, t)
-                = v_transmission(from_node, to_node, t);
-            r_elecConsumption(h, consuming(elec))
-                = v_elecConsumption.l(elec, t);
-            r_elecPrice(h, node)
-                = q_elecDemand.m(node, f, t) / p_blockLength(t);
-            r_heat(h, heat) = v_heat.l(heat, t);
-            r_storageControl(h, storage)
-               = v_stoCharge.l(storage, f, t) / p_blockLength(t);
-        loop(step_hour(h, t),
-           r_stoContent(h, f)$p_data(f, 'maxContent')
-              = r_stoContent(h - 1, f)
-                + (r_storageControl(h, f)
-                   + ts_absolute(h, f)
-                   + sum(unitStorage(unit_flow, f),
-                         ts_absolute(h, unit_flow)
-                     )
-                  ) / p_data(f, 'maxContent');
-           r_storageValue(h, f) = p_storageValue(f, t);
-           r_elecLoad(h, node)
-               = sum(load_in_hub(load, node), ts_elecLoad(h, load));
-        );
-    ); // END LOOP fRealization
-$offtext
-    r_totalCost = r_totalCost + v_obj.l;
-
-* --- Diagnostics Results -----------------------------------------------------
-*d_cop(unit, t)${sum(gnu_input(grid, node, unit), 1)} = sum(gnu_output(grid, node, unit), r_gen(grid, unit, t)) / ( sum(gnu_input(grid_, node_, unit), -r_gen(grid_, unit, t)) + 1${not sum(gnu_input(grid_, node_, unit), -r_gen(grid_, unit, t))} );
-*d_eff(unit_fuel, t) = sum(gnu_output(grid, node, unit_fuel), r_gen(grid, unit_fuel, t)) / ( sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, t)) + 1${not sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, t))} );
 
 
 

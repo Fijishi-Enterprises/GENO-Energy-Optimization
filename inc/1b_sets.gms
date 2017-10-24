@@ -27,7 +27,6 @@ Sets
 
 * --- Energy generation and consumption ---------------------------------------
     unit "Set of generators, storages and loads"
-    unit_elec(unit) "Units that generate and/or consume electricity"
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
     unit_fuel(unit) "Units using a commercial fuel"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
@@ -40,6 +39,9 @@ Sets
     unitUnittype(unit, *) "Link generation technologies to types"
     uFuel(unit, param_fuel, fuel) "Units linked with fuels"
     unittype "Unit technology types"
+    unit_investLP(unit) "Units with continuous investments allowed"
+    unit_investMIP(unit) "Units with integer investments allowed"
+    group "A group of units and transfer links"
 
 * --- Nodes -----------------------------------------------------------------
     node_spill(node)      "Nodes that can spill; used to remove v_spill variables where not relevant"
@@ -48,7 +50,7 @@ Sets
     gn(grid, node) "Grids and their nodes"
 * NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
     gn2n(grid, node, node) "All (directional) transfer links between nodes in specific energy grids"
-    gn2n_bidirectional(grid, node, node) "Bidirectional transfer links between nodes in specific energy grids"
+    gn2n_directional(grid, node, node) "Transfer links with positive rightward transfer and negative leftward transfer"
     gnu(grid, node, unit) "Units in specific nodes of particular energy grids"
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
     gnu_output(grid, node, unit) "Forms of energy the unit uses as endogenous outputs"
@@ -60,6 +62,10 @@ Sets
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
     gngnu_fixedOutputRatio(grid, node, grid, node, unit) "Units with a fixed ratio between two different grids of output (e.g. backpressure)"
     gngnu_constrainedOutputRatio(grid, node, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
+    gnu_group(grid, node, unit, group) "Units in particular groups"
+    gn2n_group(grid, node, node, group) "Transfer links in particular groups"
+    gngroup "A group of grid, node pairs"
+    gn_gngroup(grid, node, gngroup) "Grid, node pairs in particular gngroups"
 
 * --- Reserve types -----------------------------------------------------------
     restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
@@ -68,38 +74,37 @@ Sets
 * --- Sets to define time, forecasts and samples -----------------------------------------------
     $$include 'input/timeAndSamples.inc'
     m(mType) "model(s) in use"
-    tt(t) "Time steps in the current model"
-    tInterval(t) "Temp for t's when calculating time series averages"
+    tFull(t) "Full set of time steps in the current model"
+    tActive(t) "Set of active t:s in the current solve"
+    tInterval(t) "Temporary time steps when forming the ft structure"
+    t_invest(t) "Time steps when investments can be made"
+    tt(t) "Temporary subset for time steps used for calculations"
     mf(mType, f) "Forecasts present in the models"
     ms(mType, s) "Samples present in the models"
     mstStart(mType, s, t) "Start point of samples"
     ft(f, t) "Combination of forecasts and time periods in the current model"
-    ft_dynamic(f, t) "ft without first t and with tLast+1 (moved right)"
-    ft_full(f, t) "ft with all t's in the solve including tSolve and tLast+1"
     ft_realized(f, t) "Realized ft"
-    ft_realizedLast(f, t) "Last realized ft"
-    ft_nReserves(node, restype, f, t) "Forecast-time steps locked due to committing reserves ahead of time."
+    ft_realizedNoReset(f, t) "Full set of realized ft, facilitates calculation of results"
+    mft_nReserves(node, restype, mType, f, t) "Forecast-time steps locked due to committing reserves ahead of time."
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
-    mft_(mType, f, t) "Combination of forecasts and time periods in the models"
     msf(mType, s, f) "Model, sample, forecast"
     msft(mType, s, f, t) "Combination of samples, forecasts and time periods in the models"
     mftStart(mType, f, t) "Start point of simulation"
-*    mftBind(mType, f, t) "Time periods/slices where forecasts/samples are coupled, note: t couples samples"
-    fRealization(f) "fRealization of the forecasts"
-    fCentral(f) "Forecast that continues as sample(s) after the forecast horizon ends"
-    sInitial(s) "Sample that presents the realized/forecasted period"
-    sCentral(s) "Sample that continues the central forecast after the forecast horizon ends"
+    mfRealization(mType, f) "fRealization of the forecasts"
+    mfCentral(mType, f) "Forecast that continues as sample(s) after the forecast horizon ends"
+    msInitial(mType, s) "Sample that presents the realized/forecasted period"
+    msCentral(mType, s) "Sample that continues the central forecast after the forecast horizon ends"
     mftLastForecast(mType, f, t) "Last time period where the forecast extends"
     mftLastSteps(mType, f, t) "Last time periods of the model (can be end of forecasts or end of samples)"
     modelSolves(mType, t) "when different models are to be solved"
     fSolve(f) "forecasts in the model to be solved next"
-    tSolveDispatch(t)
     tLatestForecast(t) "t for the latest forecast that is available"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
-    uft(unit, f, t) "Enables aggregation of units for later time periods"
-    uft_online(unit, f, t) "Units with online and startup variables on time periods"
-    uft_online_last(unit, f, t) "Last (f,t) when online variables are included"
+    uft(unit, f, t) "Active units on time steps, enables aggregation of units for later time periods"
+    uft_online(unit, f, t) "Units with any online and startup variables on time steps"
+    uft_onlineLP(unit, f, t) "Units with LP online and startup variables on time steps"
+    uft_onlineMIP(unit, f, t) "Units with MIP online and startup variables on time steps"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"
@@ -111,12 +116,13 @@ Sets
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
 ;
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
-fRealization('f00') = yes;
+mfRealization(mType, 'f00') = yes;
 ms(mType, s) = no;
 modelSolves(mType, t) = no;
 
 alias(m, mSolve);
 alias(t, t_, t__, tSolve, tFuel);
+alias(tt, tt_, tt__);
 alias(f, f_, f__);
 alias(s, s_, s__);
 alias(grid, grid_, grid_output);

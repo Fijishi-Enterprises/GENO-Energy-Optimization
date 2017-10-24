@@ -20,16 +20,39 @@ $offtext
 r_state // Conserves state variable values between solves
 r_online // Conserves online variable values between solves
 r_reserve // Conserves locked reserve variables between solves
-r_resTransfer // Conserves locked reserve transfer variables between solves
+r_resTransferRightward // Conserves locked reserve transfer variables between solves
+r_resTransferLeftward // Conserves locked reserve transfer variables between solves
+r_gen // Conserves locked generation variables between solves
+r_startup // Conserves locked startup variables between solves
+r_shutdown // Conserves locked shutdown variables between solves
 
 * --- Other desired results ---------------------------------------------------
 
-// Interesting variables
-r_totalCost
-r_gen
+// Interesting variable and equation values
+r_fuelUse
 r_genFuel
 r_transfer
 r_spill
+r_balanceMarginal
+r_resDemandMarginal
+
+// Total result arrays
+r_totalObj
+r_gnuTotalGen
+r_gnTotalGenFuel
+r_gnnTotalTransfer
+r_gnTotalSpill
+
+// Results requiring calculations
+r_gnConsumption
+r_gnTotalConsumption
+r_gnRealizedCost
+r_gnTotalRealizedCost
+r_totalRealizedCost
+
+// Diagnostics
+d_cop
+d_eff
 
 // Dummy variables for solution feasibility reasons
 r_qGen
@@ -38,7 +61,7 @@ r_qResDemand
 // Solve/model information
 r_solveStatus
 
-// OLD RESULTS
+// OLD RESULTS, mostly here for inspiration
 *r_elec_type
 *r_demand
 *r_onlineCap

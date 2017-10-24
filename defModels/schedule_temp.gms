@@ -53,78 +53,81 @@ if (mType('schedule'),
     //mSettingsEff('schedule', 'level4') = 168;
 
     // Define active model features
-    active('storageValue') = yes;
+    active('schedule', 'storageValue') = yes;
 
     // Define model stochastic parameters
     mSettings('schedule', 'samples') = 1;
     mSettings('schedule', 'forecasts') = 3;
     mSettings('schedule', 'readForecastsInTheLoop') = 1;
     mf('schedule', f)$[ord(f)-1 <= mSettings('schedule', 'forecasts')] = yes;
-    fRealization(f) = no;
-    fRealization('f00') = yes;
-    fCentral(f) = no;
-    fCentral('f02') = yes;
-    sInitial(s) = no;
-    sInitial('s000') = yes;
-    sCentral(s) = no;
-    sCentral('s001') = yes;
+    mfRealization('schedule', f) = no;
+    mfRealization('schedule', 'f00') = yes;
+    mfCentral('schedule', f) = no;
+    mfCentral('schedule', 'f02') = yes;
+    msInitial('schedule', s) = no;
+    msInitial('schedule', 's000') = yes;
+    msCentral('schedule', s) = no;
+    msCentral('schedule', 's001') = yes;
 
     p_stepLength('schedule', f, t)$(ord(f)=1 and ord(t)=1) = 0;   // set one p_stepLength value, so that unassigned values will not cause an error later
-    p_sProbability(s) = 0;
-    p_sProbability('s000') = 1;
-    p_fProbability(f) = 0;
-    p_fProbability(fRealization) = 1;
-    p_fProbability('f01') = 0.2;
-    p_fProbability('f02') = 0.6;
-    p_fProbability('f03') = 0.2;
+    p_msProbability('schedule', s) = 0;
+    p_msProbability('schedule', 's000') = 1;
+    p_mfProbability('schedule', f) = 0;
+    p_mfProbability(mfRealization('schedule', f)) = 1;
+    p_mfProbability('schedule', 'f01') = 0.2;
+    p_mfProbability('schedule', 'f02') = 0.6;
+    p_mfProbability('schedule', 'f03') = 0.2;
+
+    msStart('schedule', 's000') = 1;
+    msEnd('schedule', 's000') = msStart('invest', 's000') + 8759;
 );
 
 Model schedule /
     q_obj
     q_balance
     q_resDemand
-    q_resTransfer
+
+    // Unit Equations
     q_maxDownward
     q_maxUpward
     q_startup
-    q_genRamp
-    q_genRampChange
+    q_startuptype
+    q_onlineLimit
+    q_onlineMinUptime
+*    q_minDown
+*    q_genRamp
+*    q_genRampChange
+*    q_rampUpLimit
+*    q_rampDownLimit
+    q_outputRatioFixed
+    q_outputRatioConstrained
     q_conversionDirectInputOutput
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
-    q_outputRatioFixed
-    q_outputRatioConstrained
+*    q_fixedGenCap1U
+*    q_fixedGenCap2U
+
+    // Energy Transfer
+    q_transfer
+    q_transferRightwardLimit
+    q_transferLeftwardLimit
+    q_resTransferLimitRightward
+    q_resTransferLimitLeftward
+
+    // State Variables
     q_stateSlack
     q_stateUpwardLimit
     q_stateDownwardLimit
-    q_boundState
+    q_boundStateMaxDiff
     q_boundCyclic
-    q_bidirectionalTransfer
-/;
 
-
-Model schedule_dispatch /
-    q_obj
-    q_balance
-    q_resDemand
-    q_resTransfer
-    q_maxDownward
-    q_maxUpward
-    q_startup
-    q_genRamp
-    q_genRampChange
-    q_conversionDirectInputOutput
-    q_conversionSOS2InputIntermediate
-    q_conversionSOS2Constraint
-    q_conversionSOS2IntermediateOutput
-    q_outputRatioFixed
-    q_outputRatioConstrained
-    q_stateSlack
-    q_stateUpwardLimit
-    q_stateDownwardLimit
-    q_boundState
-    q_boundCyclic
-    q_bidirectionalTransfer
+    // Policy
+*    q_capacityMargin
+*    q_emissioncap
+*    q_instantaneousShareMax
+*    q_energyShareMax
+*    q_energyShareMin
+*    q_inertiaMin
 /;
 
