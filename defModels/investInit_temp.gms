@@ -1,3 +1,20 @@
+$ontext
+This file is part of Backbone.
+
+Backbone is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Backbone is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
+$offtext
+
 if (mType('invest'),
     m('invest') = yes; // Definition, that the model exists by its name
 
@@ -49,46 +66,3 @@ if (mType('invest'),
     msStart('invest', 's000') = 1;
     msEnd('invest', 's000') = msStart('invest', 's000') + 48;
 );
-
-Model invest /
-    q_obj
-    q_balance
-    q_resDemand
-    q_resTransferLimitRightward
-    q_resTransferLimitLeftward
-    q_transferRightwardLimit
-    q_transferLeftwardLimit
-    q_transfer
-    q_maxDownward
-    q_maxUpward
-    q_startup
-    q_genRamp
-    q_genRampChange
-    q_conversionDirectInputOutput
-    q_conversionSOS2InputIntermediate
-    q_conversionSOS2Constraint
-    q_conversionSOS2IntermediateOutput
-    q_outputRatioFixed
-    q_outputRatioConstrained
-    q_stateSlack
-    q_stateUpwardLimit
-    q_stateDownwardLimit
-    q_boundState
-    q_boundStateMaxDiff
-    q_boundCyclic
-    q_fixedGenCap1U
-    q_fixedGenCap2U
-    q_onlineLimit
-    q_rampUpLimit
-    q_rampDownLimit
-    q_startuptype
-    q_minUp
-    q_minDown
-    q_capacityMargin
-    q_emissionCap
-    q_instantaneousShareMax
-    q_energyShareMax
-    q_energyShareMin
-    q_boundCyclicSamples
-    q_inertiaMin
-/;

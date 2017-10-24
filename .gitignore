@@ -15,9 +15,6 @@ output/
 EnsemblesAndYears.xlsx
 Backbone.dat
 diffile.gdx
-defModels/schedule.gms
-defModels/storage.gms
-defModels/building.gms
 EfficiencyPiecewise.xlsx
 /version
 

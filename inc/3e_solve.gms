@@ -15,13 +15,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-* --- Solve commands ----------------------------------------------------------
+* =============================================================================
+* --- Solve Commands ----------------------------------------------------------
+* =============================================================================
 
     if (mSolve('schedule'),
         schedule.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
         solve schedule using mip minimizing v_obj;
     ); // END IF SCHEDULE
-$ontext
+
     if (mSolve('building'),
         solve building using mip minimizing v_obj;
     ); // END IF BUILDING
@@ -29,5 +31,4 @@ $ontext
     if (mSolve('invest'),
         invest.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
         solve invest using mip minimizing v_obj;
-    );
-$offtext
+    ); // END IF INVEST

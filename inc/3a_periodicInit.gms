@@ -43,6 +43,20 @@ loop(m,
     // Set the time for the next available forecast.
     tForecastNext(m) = mSettings(m, 't_forecastStart');
 
+    // Select samples for the model
+    if (not sum(s, ms(m, s)),  // unless they have been provided as input
+        ms(m, s)$(ord(s) <= mSettings(m, 'samples')) = yes;
+        if (mSettings(m, 'samples') = 0,     // Use all samples if mSettings/samples is 0
+            ms(m, s) = yes;
+        );
+    );
+
+    // Select forecasts in use for the models
+    if (not sum(f, mf(m, f)),  // unless they have been provided as input
+        mf(m, f)$(ord(f) <= 1 + mSettings(m, 'forecasts')) = yes;  // realization needs one f, therefore 1 + number of forecasts
+    );
+    msf(m, s, f)$(ms(m, s) and mf(m, f)) = yes;
+
     // Check the modelSolves for preset patterns for model solve timings
     // If not found, then use mSettings to set the model solve timings
     if(sum(modelSolves(m, tFull(t)), 1) = 0,
@@ -62,20 +76,6 @@ loop(m,
             t_skip_counter = t_skip_counter + 1;
         );
     );
-
-    // Select samples for the model
-    if (not sum(s, ms(m, s)),  // unless they have been provided as input
-        ms(m, s)$(ord(s) <= mSettings(m, 'samples')) = yes;
-        if (mSettings(m, 'samples') = 0,     // Use all samples if mSettings/samples is 0
-            ms(m, s) = yes;
-        );
-    );
-
-    // Set forecasts in use for the models
-    if (not sum(f, mf(m, f)),  // unless they have been provided as input
-        mf(m, f)$(ord(f) <= 1 + mSettings(m, 'forecasts')) = yes;  // realization needs one f, therefore 1 + number of forecasts
-    );
-    msf(m, s, f)$(ms(m, s) and mf(m, f)) = yes;
 
 * --- Intervals and Time Series -----------------------------------------------
 

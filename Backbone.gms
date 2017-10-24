@@ -94,12 +94,18 @@ $include 'inc\2a_variables.gms'     // Define variables for the models
 $include 'inc\2b_equations.gms'     // Define equations for the models
 
 * === Model definition files ==================================================
-$include 'input\3a_modelsInit.gms'  // Sets that are defined over the whole modelling loop
+$include 'defModels\schedule.gms'
+$include 'defModels\building.gms'
+$include 'defModels\invest.gms'
+
+// Load model input parameters
+$include 'input\modelsInit.gms'
 
 * === Simulation ==============================================================
+$$include 'inc\3a_periodicInit.gms' // Initialize modelling loop
 loop(modelSolves(mSolve, tSolve),
     $$include 'inc\3b_inputsLoop.gms'           // Read input data that is updated within the loop
-    $$include 'input\3c_modelsLoop.gms'         // Set sets that define model scope
+    $$include 'inc\3c_periodicLoop.gms'         // Update modelling loop
     $$include 'inc\3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
     $$include 'inc\3e_solve.gms'                // Solve model(s)
     $$include 'inc\4a_outputVariant.gms'  // Store results from the loop
