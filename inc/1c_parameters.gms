@@ -21,7 +21,6 @@ Scalars
     tSolveFirst "counter (ord) for the first t in the solve"
     tSolveLast "counter for the last t in the solve"
     tCounter "counter for t" /0/
-    tMaxRequiredHistory "Maximum number of time intervals required for constraints dependent on variable history (e.g. startup type)"
     lastCounter "last member in use of the general counter"
     ts_length "Length of time series (t)"
     continueLoop "Helper to stop the looping early"

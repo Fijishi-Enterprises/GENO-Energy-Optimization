@@ -31,13 +31,6 @@ loop(m,
                 }
         = yes;
 
-    // Determine the maximum length of historical information required by model constraints
-    Option clear = tMaxRequiredHistory;
-    tmp = smax((unit, starttype), p_uNonoperational(unit, starttype, 'max')) / mSettings(m, 'intervalInHours');
-    tmp_ = smax(unit, p_unit(unit, 'minOperationTime')) / mSettings(m, 'intervalInHours');
-    tmp__ = smax(unit, p_unit(unit, 'minShutDownTime')) / mSettings(m, 'intervalInHours');
-    tMaxRequiredHistory = max(tmp, tmp_, tmp__);
-
 * --- Samples and Forecasts ---------------------------------------------------
 
     // Set the time for the next available forecast.
