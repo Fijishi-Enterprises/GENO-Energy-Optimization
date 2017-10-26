@@ -196,7 +196,9 @@ $offtext
                     + p_msft_probability(m, s, f, t)
                     ) // END sum(s)
             ) // END sum(mftStart)
-        - sum(mftLastSteps(m, f, t)${p_storageValue(grid, node, t)},
+        - sum(mftLastSteps(m, f, t)${   p_storageValue(grid, node, t)
+                                        and active(m, 'storageValue')
+                                        },
             + v_state(grid, node, f, t)
                 * p_storageValue(grid, node, t)
                 * sum(ms(m, s)${p_msft_probability(m, s, f, t)},
