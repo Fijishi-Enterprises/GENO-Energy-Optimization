@@ -19,13 +19,17 @@ $offtext
 * --- Generate model rules from basic patterns defined in the model definition files
 * =============================================================================
 
+// Initialize various sets
+Option clear = tFull;
+Option clear = fSolve;
+Option clear = tmp;
+
 // Loop over m
 loop(m,
 
 * --- Time Steps within Model Horizon -----------------------------------------
 
     // Determine the full set of timesteps to be considered by the defined simulation
-    Option clear = tFull;
     tFull(t)${  ord(t) >= mSettings(m, 't_start')
                 and ord(t) <= mSettings(m, 't_end') + mSettings(m, 't_horizon')
                 }
@@ -50,6 +54,10 @@ loop(m,
     );
     msf(m, s, f)$(ms(m, s) and mf(m, f)) = yes;
 
+    // Select the forecasts included in the modes to be solved
+    fSolve(f)${ mf(m,f) }
+        = yes;
+
     // Check the modelSolves for preset patterns for model solve timings
     // If not found, then use mSettings to set the model solve timings
     if(sum(modelSolves(m, tFull(t)), 1) = 0,
@@ -73,9 +81,8 @@ loop(m,
 * --- Intervals and Time Series -----------------------------------------------
 
     // Check whether the defined intervals are feasible
-    tmp = 0;
     continueLoop = 1;
-    loop(counter$continueLoop,
+    loop(counter${ continueLoop },
         if(not mInterval(m, 'intervalEnd', counter),
             continueLoop = 0;
         else
@@ -84,20 +91,23 @@ loop(m,
         );
     );
 
-    // Calculate the length of the time series
-    Option clear = tmp;
+    // Calculate the length of the time series data (based on realized forecast)
     loop(gn(grid, node),
-        tmp = max(sum(t${ts_influx(grid, node, 'f00', t)}, 1), tmp); // Find the maximum length of the given influx time series
-        tmp = max(sum(t${ts_nodeState(grid, node, 'reference', 'f00', t)}, 1), tmp); // Find the maximum length of the given node state time series
+        tmp = max(sum((mfRealization(m, f), t)${ts_influx(grid, node, f, t)}, 1), tmp); // Find the maximum length of the given influx time series
+        tmp = max(sum((mfRealization(m, f), t)${ts_nodeState(grid, node, 'reference', f, t)}, 1), tmp); // Find the maximum length of the given node state time series
     ); // END loop(gn)
-    ts_length = tmp;
-
-    // Circular displacement of time index for data loop
-    dt_circular(tFull(t))${ ord(t) > ts_length }
-        = - ts_length
-            * floor(ord(t) / ts_length);
 
 ); // END loop(m)
+
+* --- Calculate Time Series Length and Circular Time Displacement -------------
+
+// Maximum time series length based on 'tmp' calculated in the above loop.
+ts_length = tmp;
+
+// Circular displacement of time index for data loop
+dt_circular(tFull(t))${ ord(t) > ts_length }
+    = - ts_length
+        * floor(ord(t) / ts_length);
 
 * =============================================================================
 * --- Initialize Unit Efficiency Approximations -------------------------------

@@ -121,10 +121,6 @@ $endif.debug
 * --- Determine the forecast-time indeces included in the current solve -------
 * =============================================================================
 
-// Select the forecasts included in the current solve
-Option clear = fSolve;
-fSolve(f)${mf(mSolve,f)} = yes;
-
 // Determine the first and last timesteps of the current solve
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 used only for initial values
 tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
