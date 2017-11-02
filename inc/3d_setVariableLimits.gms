@@ -372,10 +372,6 @@ loop(mftStart(mSolve, f, t),
         // State and online variable initial values for the subsequent solves
         v_state.fx(gn_state(grid, node), f, t)
             = r_state(grid, node, f, t);
-        v_online_LP.fx(uft_onlineLP(unit, f, t))
-            = r_online(unit, f, t);
-        v_online_MIP.fx(uft_onlineMIP(unit, f, t))
-            = r_online(unit, f, t);
 
         ); // END if(tSolveFirst)
     ) // END loop(mftStart)

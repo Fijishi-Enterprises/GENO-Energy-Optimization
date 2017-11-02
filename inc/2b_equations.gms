@@ -550,8 +550,13 @@ q_startup(uft_online(unit, f, t)) ..
     =E=
 
     // Units previously online
-    + v_online_LP(unit, f+df(f,t+dt(t)), t+dt(t))${uft_onlineLP(unit, f, t+dt(t))} // This reaches to tFirstSolve when pt = -1
-    + v_online_MIP(unit, f+df(f,t+dt(t)), t+dt(t))${uft_onlineMIP(unit, f, t+dt(t))}
+    + v_online_LP(unit, f+df(f,t+dt(t)), t+dt(t))${uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t))} // This reaches to tFirstSolve when pt = -1
+    + v_online_MIP(unit, f+df(f,t+dt(t)), t+dt(t))${uft_onlineMIP(unit, f+df(f,t+dt(t)), t+dt(t))}
+
+    // Unit online history (solve initial value), required because uft_online doesn't extend to before active modelling
+    + r_online(unit, f+df(f,t+dt(t)), t+dt(t))${    not uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t))
+                                                    and not uft_onlineMIP(unit, f+df(f,t+dt(t)), t+dt(t))
+                                                    }
 
     // Unit startup and shutdown
     + sum(starttype,
