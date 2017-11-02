@@ -391,7 +391,6 @@ sufts(suft(effGroup, unit, f, t), effSelector)${    effGroupSelector(effGroup, e
 Option clear = uft_online;
 Option clear = uft_onlineLP;
 Option clear = uft_onlineMIP;
-*Option clear = uft_online_last;
 
 // Determine the time steps when units need to have online variables.
 loop(effOnline(effSelector),
