@@ -15,7 +15,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-* --- Load updates made for BackBone ------------------------------------------
+* =============================================================================
+* --- Load Input Data ---------------------------------------------------------
+* =============================================================================
+
 $gdxin  'input/inputData.gdx'
 $loaddc grid
 $loaddc node
@@ -74,52 +77,158 @@ $ifthen exist 'input/changes.inc'
    $$include 'input/changes.inc'
 $endif
 
+* =============================================================================
+* --- Initialize Unit Related Sets & Parameters Based on Input Data -----------
+* =============================================================================
 
-* --- Initial setup of sets & parameters based on input data ------------------
+* --- Unit Aggregation --------------------------------------------------------
 
-* Define unit aggregation sets
-unit_aggregate(unit)$sum(unit_, unitUnit_aggregate(unit, unit_)) = yes; // Set of aggregate units
-unit_noAggregate(unit)$(unit(unit) - unit_aggregate(unit) - sum(unit_, unitUnit_aggregate(unit_, unit))) = yes; // Set of units that are not aggregated into any aggregate, or are not aggregates themselves
+// Define unit aggregation sets
+unit_aggregate(unit)${ sum(unit_, unitUnit_aggregate(unit, unit_)) }
+    = yes; // Set of aggregate units
+unit_noAggregate(unit)${ unit(unit) - unit_aggregate(unit) - sum(unit_, unitUnit_aggregate(unit_, unit))}
+    = yes; // Set of units that are not aggregated into any aggregate, or are not aggregates themselves
 
-* Process data for unit aggregations
-p_gnu(grid, node, unit_aggregate(unit), 'maxGen') = sum(unit_$unitUnit_aggregate(unit, unit_), p_gnu(grid, node, unit_, 'maxGen')); // Aggregate maxGen as the sum of aggregated maxGen
-p_gnu(grid, node, unit_aggregate(unit), 'maxCons') = sum(unit_$unitUnit_aggregate(unit, unit_), p_gnu(grid, node, unit_, 'maxCons')); // Aggregate maxCons as the sum of aggregated maxCons
+// Process data for unit aggregations
+// Aggregate maxGen as the sum of aggregated maxGen
+p_gnu(grid, node, unit_aggregate(unit), 'maxGen')
+    = sum(unit_${unitUnit_aggregate(unit, unit_)},
+        + p_gnu(grid, node, unit_, 'maxGen')
+        );
+// Aggregate maxCons as the sum of aggregated maxCons
+p_gnu(grid, node, unit_aggregate(unit), 'maxCons')
+    = sum(unit_${unitUnit_aggregate(unit, unit_)},
+        + p_gnu(grid, node, unit_, 'maxCons')
+        );
 
-* Generate unit related sets based on input data
-gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'maxGen') or p_gnu(grid, node, unit, 'maxCons')) = yes;
-gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'maxGen') = yes;
-gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'maxCons') = yes;
-gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'unitSizeGen') or p_gnu(grid, node, unit, 'unitSizeCons')) = yes;
-gnu(grid, node, unit)$(p_gnu(grid, node, unit, 'maxGenCap') or p_gnu(grid, node, unit, 'maxConsCap')) = yes;
-gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'maxGenCap') = yes;
-gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'maxConsCap') = yes;
-gnu_output(grid, node, unit)$p_gnu(grid, node, unit, 'unitSizeGen') = yes;
-gnu_input(grid, node, unit)$p_gnu(grid, node, unit, 'unitSizeCons') = yes;
-gn2gnu(grid_, node_input, grid, node, unit)$(gnu_input(grid_, node_input, unit) and gnu_output(grid, node, unit)) = yes;
-nu(node, unit)$sum(grid, gnu(grid, node, unit)) = yes;
-nuRescapable(restype, up_down, node, unit)$p_nuReserves(node, unit, restype, up_down) = yes;
-unit_minload(unit)$[p_unit(unit, 'op00') > 0 and p_unit(unit, 'op00') < 1] = yes;   // If the first point is between 0 and 1, then the unit has a min load limit
-unit_flow(unit)$sum(flow, flowUnit(flow, unit)) = yes;
-unit_fuel(unit)$sum[fuel, uFuel(unit, 'main', fuel)] = yes;
-*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGen')) = yes;
-*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxCons')) = yes;
-*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxGenCap')) = yes;
-*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'maxConsCap')) = yes;
-*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'unitSizeGen')) = yes;
-*unit_elec(unit)$sum(gnu(grid, node, unit), p_gnu('elec', node, unit, 'unitSizeCons')) = yes;
+* --- Generate Unit Related Sets ----------------------------------------------
+
+// Set of all existing gnu
+gnu(grid, node, unit)${ p_gnu(grid, node, unit, 'maxGen')
+                        or p_gnu(grid, node, unit, 'maxCons')
+                        or p_gnu(grid, node, unit, 'unitSizeGen')
+                        or p_gnu(grid, node, unit, 'unitSizeCons')
+                        or p_gnu(grid, node, unit, 'maxGenCap')
+                        or p_gnu(grid, node, unit, 'maxConsCap')
+                        }
+    = yes;
+// Reduce the grid dimension
+nu(node, unit) = sum(grid, gnu(grid, node, unit));
+
+// Separation of gnu into inputs and outputs
+gnu_output(gnu(grid, node, unit))${ p_gnu(grid, node, unit, 'maxGen')
+                                    or p_gnu(grid, node, unit, 'maxGenCap')
+                                    or p_gnu(grid, node, unit, 'unitSizeGen')
+                                    }
+    = yes;
+gnu_input(gnu(grid, node, unit))${  p_gnu(grid, node, unit, 'maxCons')
+                                    or p_gnu(grid, node, unit, 'maxConsCap')
+                                    or p_gnu(grid, node, unit, 'unitSizeCons')
+                                    }
+    = yes;
+
+// Units connecting gn-gn pairs
+gn2gnu(grid, node_input, grid_, node_output, unit)${    gnu_input(grid, node_input, unit)
+                                                        and gnu_output(grid_, node_output, unit)
+                                                        }
+    = yes;
+
+// Units with reserve provision capabilities
+nuRescapable(restypeDirection(restype, up_down), nu(node, unit))${ p_nuReserves(node, unit, restype, up_down) }
+    = yes;
+
+// Units with minimum load requirements
+unit_minload(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operating point is between 0 and 1, then the unit is considered to have a min load limit
+                        and p_unit(unit, 'op00') < 1
+                        }
+    = yes;
+
+// Units with flows/fuels
+unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
+    = yes;
+unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
+    = yes;
+
+// Units with investment variables
 unit_investLP(unit)${  not p_unit(unit, 'investMIP')
                        and sum(gnu(grid, node, unit),
-                             p_gnu(grid, node, unit, 'maxGenCap') + p_gnu(grid, node, unit, 'maxConsCap')
-                           )
-  } = yes;
-unit_investMIP(unit)${p_unit(unit, 'investMIP') and p_unit(unit, 'maxUnitCount')} = yes;
+                            p_gnu(grid, node, unit, 'maxGenCap') + p_gnu(grid, node, unit, 'maxConsCap')
+                            )
+                        }
+    = yes;
+unit_investMIP(unit)${  p_unit(unit, 'investMIP')
+                        and p_unit(unit, 'maxUnitCount')
+                        }
+    = yes;
 
-* Assume values for critical unit related parameters, if not provided by input data
-p_unit(unit, 'eff00')$(not p_unit(unit, 'eff00')) = 1; // If the unit does not have efficiency set, it is 1
-p_unit(unit, 'unitCount')$(not p_unit(unit, 'unitCount') and not p_unit(unit, 'investMIP')) = 1;  // In case number of units has not been defined it is 1 except for units with integer investments allowed.
-p_unit(unit, 'outputCapacityTotal')$(not p_unit(unit, 'outputCapacityTotal')) = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));  // By default add outputs in order to get the total capacity of the unit
+* --- Unit Related Parameters -------------------------------------------------
+
+// Assume values for critical unit related parameters, if not provided by input data
+// If the unit does not have efficiency set, it is 1
+p_unit(unit, 'eff00')${ not p_unit(unit, 'eff00') }
+    = 1;
+
+// In case number of units has not been defined it is 1 except for units with integer investments allowed.
+p_unit(unit, 'unitCount')${ not p_unit(unit, 'unitCount')
+                            and not p_unit(unit, 'investMIP')
+                            }
+    = 1;
+
+// By default add outputs in order to get the total capacity of the unit
+p_unit(unit, 'outputCapacityTotal')${ not p_unit(unit, 'outputCapacityTotal') }
+    = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));
+
+// Assume unit sizes based on given maximum capacity parameters and unit counts if able
+p_gnu(grid, node, unit, 'unitSizeGen')${    p_gnu(grid, node, unit, 'maxGen')
+                                            and p_unit(unit, 'unitCount')
+                                            }
+    = p_gnu(grid, node, unit, 'maxGen') / p_unit(unit, 'unitCount');  // If maxGen and unitCount are given, calculate unitSizeGen based on them.
+p_gnu(grid, node, unit, 'unitSizeCons')${   p_gnu(grid, node, unit, 'maxCons')
+                                            and p_unit(unit, 'unitCount')
+                                            }
+    = p_gnu(grid, node, unit, 'maxCons') / p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
+p_gnu(grid, node, unit, 'unitSizeTot')
+    = p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons');
+p_gnu(grid, node, unit, 'unitSizeGenNet')
+    = p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons');
+
+// Determine unit startup parameters based on data
+// Hot startup parameters
+p_uNonoperational(unit, 'hot', 'min')
+    = p_unit(unit, 'minShutDownTime');
+p_uNonoperational(unit, 'hot', 'max')
+    = p_unit(unit, 'startWarm');
+p_uStartup(unit, 'hot', 'cost', 'unit')
+    = p_unit(unit, 'startCostHot')
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+p_uStartup(unit, 'hot', 'consumption', 'unit')
+    = p_unit(unit, 'startFuelConsHot')
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+
+// Warm startup parameters
+p_uNonoperational(unit, 'warm', 'min')
+    = p_unit(unit, 'startWarm');
+p_uNonoperational(unit, 'warm', 'max')
+    = p_unit(unit, 'startCold');
+p_uStartup(unit, 'warm', 'cost', 'unit')
+    = p_unit(unit, 'startCostWarm')
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+p_uStartup(unit, 'warm', 'consumption', 'unit')
+    = p_unit(unit, 'startFuelConsWarm')
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+
+// Cold startup parameters
+p_uStartup(unit, 'cold', 'cost', 'unit')
+    = p_unit(unit, 'startCost')
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+p_uStartup(unit, 'cold', 'consumption', 'unit')
+    = p_unit(unit, 'startFuelCons')
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+
+// Determine unit emission costs
 p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_fuel, param_fuel, fuel)) }
-    = p_fuelEmission(fuel, emission) / 1e3
+    = p_fuelEmission(fuel, emission)
+        / 1e3 // NOTE!!! Conversion to t/MWh from t/GWh in data
         * sum(gnu_output(grid, node, unit_fuel),
             + p_gnPolicy(grid, node, 'emissionTax', emission)  // Weighted average of emission costs from different output energy types
                 * [ + p_gnu(grid, node, unit_fuel, 'maxGen')
@@ -131,65 +240,92 @@ p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_f
             + p_gnu(grid, node, unit_fuel, 'unitSizeGen')$(not p_gnu(grid, node, unit_fuel, 'maxGen'))
         ) // END sum(gnu_output)
 ;
-p_uNonoperational(unit, 'hot', 'min') = p_unit(unit, 'minShutDownTime');
-p_uNonoperational(unit, 'hot', 'max') = p_unit(unit, 'startWarm');
-p_uNonoperational(unit, 'warm', 'min') = p_unit(unit, 'startWarm');
-p_uNonoperational(unit, 'warm', 'max') = p_unit(unit, 'startCold');
-p_uStartup(unit, 'hot', 'cost', 'unit') = p_unit(unit, 'startCostHot');
-p_uStartup(unit, 'hot', 'consumption', 'unit') = p_unit(unit, 'startFuelConsHot');
-p_uStartup(unit, 'warm', 'cost', 'unit') = p_unit(unit, 'startCostWarm');
-p_uStartup(unit, 'warm', 'consumption', 'unit') = p_unit(unit, 'startFuelConsWarm');
-p_uStartup(unit, 'cold', 'cost', 'unit') = p_unit(unit, 'startCost');
-p_uStartup(unit, 'cold', 'consumption', 'unit') = p_unit(unit, 'startFuelCons');
-p_gnu(grid, node, unit, 'unitSizeGen')$(p_gnu(grid, node, unit, 'maxGen') and p_unit(unit, 'unitCount')) = p_gnu(grid, node, unit, 'maxGen')/p_unit(unit, 'unitCount');  // If maxGen and unitCount are given, calculate unitSizeGen based on them.
-p_gnu(grid, node, unit, 'unitSizeCons')$(p_gnu(grid, node, unit, 'maxCons') and p_unit(unit, 'unitCount')) = p_gnu(grid, node, unit, 'maxCons')/p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
-p_gnu(grid, node, unit, 'unitSizeTot') = p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons');
-p_gnu(grid, node, unit, 'unitSizeGenNet') = p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons');
 
-* Generate node related sets based on input data // NOTE! These will need to change if p_gnn is required to work with only one row per link.
-gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCap') OR p_gnn(grid, from_node, to_node, 'transferLoss')} = yes;
-gn2n(grid, from_node, to_node)${p_gnn(grid, from_node, to_node, 'transferCapBidirectional') OR p_gnn(grid, to_node, from_node, 'transferCapBidirectional')} = yes;
-gn2n(grid, from_node, to_node)$p_gnn(grid, from_node, to_node, 'transferCapInvLimit') = yes;
-gnn_boundState(grid, node, node_)$(p_gnn(grid, node, node_, 'boundStateOffset')) = yes;
-gnn_state(grid, node, node_)$(p_gnn(grid, node, node_, 'diffCoeff') or gnn_boundState(grid, node, node_)) = yes;
-gn_stateSlack(grid, node)$(sum((upwardSlack,   useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node,   upwardSlack, useConstantOrTimeSeries))) = yes;
-gn_stateSlack(grid, node)$(sum((downwardSlack, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, downwardSlack, useConstantOrTimeSeries))) = yes;
-gn_state(grid, node)$gn_stateSlack(grid, node) = yes;
-gn_state(grid, node)$p_gn(grid, node, 'energyStoredPerUnitOfState') = yes;
-gn_state(grid, node)$(sum((stateLimits, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, stateLimits, useConstantOrTimeSeries))) = yes;
-gn_state(grid, node)$(sum(useConstantOrTimeSeries, p_gnBoundaryPropertiesForStates(grid, node, 'reference', useConstantOrTimeSeries))) = yes;
-gn(grid, node)$(sum(unit, gnu(grid, node, unit) or gn_state(grid, node))) = yes;
-node_spill(node)$(sum((grid, spillLimits, useConstantOrTimeSeries)$gn(grid, node), p_gnBoundaryPropertiesForStates(grid, node, spillLimits, useConstantOrTimeSeries))) = yes;
+* =============================================================================
+* --- Generate Node Related Sets Based on Input Data --------------------------
+* =============================================================================
 
-* Generate the set for transfer links where the order of the first node must be smaller than the order of the second node
-gn2n_directional(grid, node, node_) = no;
-gn2n_directional(grid, node, node_)${gn2n(grid, node, node_) and ord(node)<ord(node_)} = yes;
-gn2n_directional(grid, node, node_)${gn2n(grid, node_, node) and ord(node)<ord(node_)} = yes;
+* --- Node Connectivity -------------------------------------------------------
 
-* Assume values for critical node related parameters, if not provided by input data
+// Node pairs connected via transfer links
+gn2n(grid, from_node, to_node)${    p_gnn(grid, from_node, to_node, 'transferCap')
+                                    or p_gnn(grid, from_node, to_node, 'transferLoss')
+                                    or p_gnn(grid, from_node, to_node, 'transferCapBidirectional')
+                                    or p_gnn(grid, to_node, from_node, 'transferCapBidirectional')
+                                    or p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
+                                    }
+    = yes;
+
+// Node pairs with relatively bound states
+gnn_boundState(grid, node, node_)${ p_gnn(grid, node, node_, 'boundStateMaxDiff') }
+    = yes;
+
+// Node pairs connected via energy diffusion
+gnn_state(grid, node, node_)${  p_gnn(grid, node, node_, 'diffCoeff')
+                                or gnn_boundState(grid, node, node_)
+                                }
+    = yes;
+
+// Generate the set for transfer links where the order of the first node must be smaller than the order of the second node
+Option clear = gn2n_directional;
+gn2n_directional(gn2n(grid, node, node_))${ ord(node) < ord(node_) }
+    = yes;
+gn2n_directional(gn2n(grid, node, node_))${ ord(node) > ord(node_)
+                                            and not gn2n(grid, node_, node)
+                                            }
+    = yes;
+
+* --- Node States -------------------------------------------------------------
+
+// States with slack variables
+gn_stateSlack(grid, node)${ sum((slack, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, slack, useConstantOrTimeSeries)) }
+    = yes;
+
+// Nodes with states
+gn_state(grid, node)${  gn_stateSlack(grid, node)
+                        or p_gn(grid, node, 'energyStoredPerUnitOfState')
+                        or sum((stateLimits, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, stateLimits, useConstantOrTimeSeries))
+                        or sum(useConstantOrTimeSeries, p_gnBoundaryPropertiesForStates(grid, node, 'reference', useConstantOrTimeSeries))
+                        }
+    = yes;
+
+// Existing grid-node pairs
+gn(grid, node)${    sum(unit, gnu(grid, node, unit)
+                    or gn_state(grid, node))
+                    }
+    = yes;
+
+// Nodes with spill permitted
+node_spill(node)${ sum((grid, spillLimits, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, spillLimits, useConstantOrTimeSeries)) }
+    = yes;
+
+// Assume values for critical node related parameters, if not provided by input data
+// Boundary multiplier
 p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multiplier')${  not p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'multiplier')
                                                                                         and sum(param_gnBoundaryProperties, p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, param_gnBoundaryProperties))
     } = 1; // If multiplier has not been set, set it to 1 by default
-*p_gn(gn(grid, node), 'energyStoredPerUnitOfState')$(not p_gn(grid, node, 'energyStoredPerUnitOfState') and not p_gn(grid, node, 'boundAll')) = 1; // If unitConversion has not been set, default to 1; If the state is bound, there is no need for the term
 
-* -----------------------------------------------------------------------------
-* --- Reserves ----------------------------------------------------------------
-* -----------------------------------------------------------------------------
+* =============================================================================
+* --- Reserves Sets & Parameters ----------------------------------------------
+* =============================================================================
 
 // Nodes with reserve requirements
-*loop(gn(grid, node),
 restypeDirectionNode(restypeDirection(restype, up_down), node)${    p_nReserves(node, restype, up_down)
                                                                     or p_nReserves(node, restype, 'use_time_series')
                                                                     }
     = yes;
-*);
 
-* Assume values for critical reserve related parameters, if not provided by input data
+// Assume values for critical reserve related parameters, if not provided by input data
+// Reserve contribution "reliability" assumed to be perfect if not provided in data
 p_nuReserves(nu(node, unit), restype, 'reserveContribution')${  not p_nuReserves(node, unit, restype, 'reserveContribution')
                                                                 and sum(up_down, nuRescapable(restype, up_down, node, unit))
-    } = 1;
+                                                                }
+    = 1;
 
-* --- Perform various data checks, and abort if errors are detected -----------
+* =============================================================================
+* --- Data Integrity Checks ---------------------------------------------------
+* =============================================================================
+
 * Check the integrity of node connection related data
 Option clear = count;
 loop(gn2n(grid, node, node_),
