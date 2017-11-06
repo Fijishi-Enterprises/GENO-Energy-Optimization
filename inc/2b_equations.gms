@@ -567,8 +567,9 @@ q_startup(uft_online(unit, f, t)) ..
 
 *--- Startup Type -------------------------------------------------------------
 // !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// This formulation doesn't work as intended, as one recent shutdown allows for
-// multiple hot/warm startups on subsequent time steps. Pending changes.
+// This formulation doesn't work as intended when unitCount > 1, as one recent
+// shutdown allows for multiple hot/warm startups on subsequent time steps.
+// Pending changes.
 
 q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t)) ..
 
@@ -579,7 +580,7 @@ q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t)) ..
 
     // Subunit shutdowns within special startup timeframe
     + sum(counter${dt_starttypeUnitCounter(starttype, unit, counter)},
-          + v_shutdown(unit, f+df(f,t+dt_starttypeUnitCounter(starttype, unit, counter)), t+dt_starttypeUnitCounter(starttype, unit, counter))
+        + v_shutdown(unit, f+df(f,t+dt_starttypeUnitCounter(starttype, unit, counter)), t+dt_starttypeUnitCounter(starttype, unit, counter))
     ) // END sum(t_)
 ;
 
