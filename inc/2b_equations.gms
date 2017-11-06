@@ -566,6 +566,9 @@ q_startup(uft_online(unit, f, t)) ..
 ;
 
 *--- Startup Type -------------------------------------------------------------
+// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// This formulation doesn't work as intended, as one recent shutdown allows for
+// multiple hot/warm startups on subsequent time steps. Pending changes.
 
 q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t)) ..
 
