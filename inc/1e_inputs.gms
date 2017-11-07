@@ -149,6 +149,19 @@ unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
 unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
     = yes;
 
+// Units with special startup properties
+// All units can cold start (default start category)
+unitStarttype(unit, starttype('cold')) = yes;
+// Units with parameters regarding hot/warm starts
+unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarm')
+                                            or p_unit(unit, 'startCostHot')
+                                            or p_unit(unit, 'startFuelConsHot')
+                                            or p_unit(unit, 'startCostWarm')
+                                            or p_unit(unit, 'startFuelConsWarm')
+                                            or p_unit(unit, 'startCold')
+                                            }
+    = yes;
+
 // Units with investment variables
 unit_investLP(unit)${  not p_unit(unit, 'investMIP')
                        and sum(gnu(grid, node, unit),
@@ -194,26 +207,26 @@ p_gnu(grid, node, unit, 'unitSizeGenNet')
 
 // Determine unit startup parameters based on data
 // Hot startup parameters
-p_uNonoperational(unit, 'hot', 'min')
+p_uNonoperational(unitStarttype(unit, 'hot'), 'min')
     = p_unit(unit, 'minShutDownTime');
-p_uNonoperational(unit, 'hot', 'max')
+p_uNonoperational(unitStarttype(unit, 'hot'), 'max')
     = p_unit(unit, 'startWarm');
-p_uStartup(unit, 'hot', 'cost', 'unit')
+p_uStartup(unitStarttype(unit, 'hot'), 'cost', 'unit')
     = p_unit(unit, 'startCostHot')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
-p_uStartup(unit, 'hot', 'consumption', 'unit')
+p_uStartup(unitStarttype(unit, 'hot'), 'consumption', 'unit')
     = p_unit(unit, 'startFuelConsHot')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Warm startup parameters
-p_uNonoperational(unit, 'warm', 'min')
+p_uNonoperational(unitStarttype(unit, 'warm'), 'min')
     = p_unit(unit, 'startWarm');
-p_uNonoperational(unit, 'warm', 'max')
+p_uNonoperational(unitStarttype(unit, 'warm'), 'max')
     = p_unit(unit, 'startCold');
-p_uStartup(unit, 'warm', 'cost', 'unit')
+p_uStartup(unitStarttype(unit, 'warm'), 'cost', 'unit')
     = p_unit(unit, 'startCostWarm')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
-p_uStartup(unit, 'warm', 'consumption', 'unit')
+p_uStartup(unitStarttype(unit, 'warm'), 'consumption', 'unit')
     = p_unit(unit, 'startFuelConsWarm')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
