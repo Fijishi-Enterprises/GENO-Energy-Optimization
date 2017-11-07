@@ -152,7 +152,7 @@ q_obj ..
 
                 // Start-up costs
                 + sum(uft_online(unit, f, t),
-                    + sum(starttype,
+                    + sum(unitStarttype(unit, starttype),
                         + v_startup(unit, starttype, f, t) // Cost of starting up
                             * [ // Startup variable costs
                                 + p_uStartup(unit, starttype, 'cost', 'unit')
@@ -624,7 +624,7 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationTime')
 
     // Units that have minimum operation time requirements active
     + sum(counter${dt_uptimeUnitCounter(unit, counter)},
-        + sum(starttype,
+        + sum(unitStarttype(unit, starttype),
             + v_startup(unit, starttype, f+df(f,t+dt_uptimeUnitCounter(unit, counter)), t+dt_uptimeUnitCounter(unit, counter))
             ) // END sum(starttype)
     ) // END sum(t_)
@@ -1483,7 +1483,7 @@ q_emissioncap(gngroup, emission)${  p_gngroupPolicy(gngroup, 'emissionCap', emis
 
             // Start-up emissions
             + sum(uft_online(unit_fuel, f, t),
-                + sum(starttype,
+                + sum(unitStarttype(unit_fuel, starttype),
                     + v_startup(unit_fuel, starttype, f, t)
                         * sum(uFuel(unit_fuel, 'startup', fuel),
                             + p_uStartup(unit_fuel, starttype, 'consumption', 'unit')
