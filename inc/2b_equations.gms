@@ -559,7 +559,7 @@ q_startup(uft_online(unit, f, t)) ..
                                                     }
 
     // Unit startup and shutdown
-    + sum(starttype,
+    + sum(unitStarttype(unit, starttype),
         + v_startup(unit, starttype, f, t)
         ) // END sum(starttype)
     - v_shutdown(unit, f, t)
@@ -571,7 +571,7 @@ q_startup(uft_online(unit, f, t)) ..
 // shutdown allows for multiple hot/warm startups on subsequent time steps.
 // Pending changes.
 
-q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t)) ..
+q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t))${ unitStarttype(unit, starttype) } ..
 
     // Startup type
     + v_startup(unit, starttype, f, t)

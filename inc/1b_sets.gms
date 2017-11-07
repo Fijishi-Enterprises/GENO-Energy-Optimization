@@ -37,6 +37,7 @@ Sets
     unitUnit_aggregate(unit, unit) "Aggregate unit linked to aggregated units"
     flowUnit(flow, *) "Units or storages linked to a certain energy flow time series"
     unitUnittype(unit, *) "Link generation technologies to types"
+    unitStarttype(unit, starttype) "Units with special startup properties"
     uFuel(unit, param_fuel, fuel) "Units linked with fuels"
     unittype "Unit technology types"
     unit_investLP(unit) "Units with continuous investments allowed"
