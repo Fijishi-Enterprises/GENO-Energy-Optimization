@@ -85,4 +85,5 @@ Option clear = r_shutdown;
 Parameters
     d_cop(unit, f, t) "Coefficients of performance of conversion units"
     d_eff(unit, f, t) "Efficiency of generation units using fuel"
+    d_capacityFactor(flow, node, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
 ;

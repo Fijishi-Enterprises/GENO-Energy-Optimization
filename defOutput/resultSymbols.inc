@@ -53,6 +53,7 @@ r_totalRealizedCost
 // Diagnostics
 d_cop
 d_eff
+d_capacityFactor
 
 // Dummy variables for solution feasibility reasons
 r_qGen

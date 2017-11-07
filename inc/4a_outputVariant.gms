@@ -192,6 +192,10 @@ d_eff(uft(unit_fuel, ft_realized(f, t)))
             + 1${not sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, f, t))}
             ]
 ;
+d_capacityFactor(flow, node, fSolve(f), tActive(t))${ sum(flowUnit(flow, unit), nu(node, unit)) }
+    = ts_cf_(flow, node, f, t)
+        + ts_cf(flow, node, f, t)${ not ts_cf_(flow, node, f, t) }
+        - 1e-3${ not ts_cf_(flow, node, f, t) and not ts_cf(flow, node, f, t) }
 
 * --- Model Solve & Status ----------------------------------------------------
 
