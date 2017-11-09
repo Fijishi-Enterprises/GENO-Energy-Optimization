@@ -42,7 +42,7 @@ Positive variables
     v_resTransferLeftward(restype, up_down, node, node, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
     v_reserve(restype, up_down, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
     v_investTransfer_LP(grid, node, node, t) "Invested transfer capacity (MW)"
-    v_online_LP(unit, f, t) "Amount of invested generation 'units' (LP variant)"
+    v_online_LP(unit, f, t) "Number of units online for 'units' with unit commitment restrictions (LP variant)"
     v_invest_LP(unit, t) "Amount of invested generation 'units' (LP variant)"
 ;
 
