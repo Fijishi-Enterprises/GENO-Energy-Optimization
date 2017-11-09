@@ -426,7 +426,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
 
     // Generation units, greater than minload
     + p_gnu(grid, node, unit, 'unitSizeGen')
-        * sum(effGroup, // Uses the minimum 'lb' for the current efficiency approximation
+        * sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
             + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
             ) // END sum(effGroup)
@@ -500,7 +500,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
 
     // Consuming units
     + p_gnu(grid, node, unit, 'unitSizeCons')
-        * sum(effGroup, // Uses the minimum 'lb' for the current efficiency approximation
+        * sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
             + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
             ) // END sum(effGroup)
@@ -846,7 +846,7 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
     + sum(gnu_output(grid, node, unit),
         + v_gen(grid, node, unit, f, t)
             * [ // Heat rate
-                + p_effUnit(effGroup, unit, effGroup, 'slope')${not ts_effUnit(effGroup, unit, effGroup, 'slope', f, t)}
+                + p_effUnit(effGroup, unit, effGroup, 'slope')${ not ts_effUnit(effGroup, unit, effGroup, 'slope', f, t) }
                 + ts_effUnit(effGroup, unit, effGroup, 'slope', f, t)
                 ] // END * v_gen
         ) // END sum(gnu_output)
@@ -885,7 +885,7 @@ q_conversionSOS2InputIntermediate(suft(effLambda(effGroup), unit, f, t)) ..
     + sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'))
         * [
             // Consumption of generation
-            + sum(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)},
+            + sum(effGroupSelectorUnit(effGroup, unit, effSelector),
                 + v_sos2(unit, f, t, effSelector)
                     * [ // Operation points convert the v_sos2 variables into share of capacity used for generation
                         + p_effUnit(effGroup, unit, effSelector, 'op')${not ts_effUnit(effGroup, unit, effSelector, 'op', f, t)}
@@ -908,7 +908,7 @@ q_conversionSOS2InputIntermediate(suft(effLambda(effGroup), unit, f, t)) ..
 q_conversionSOS2Constraint(suft(effLambda(effGroup), unit, f, t)) ..
 
     // Total value of the v_sos2 equals the number of online units
-    + sum(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)},
+    + sum(effGroupSelectorUnit(effGroup, unit, effSelector),
         + v_sos2(unit, f, t, effSelector)
         ) // END sum(effSelector)
 
@@ -926,7 +926,7 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
     + sum(gnu_output(grid, node, unit),
         + p_gnu(grid, node, unit, 'unitSizeGen')
         ) // END sum(gnu_output)
-        * sum(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)},
+        * sum(effGroupSelectorUnit(effGroup, unit, effSelector),
             + v_sos2(unit, f, t, effSelector)
             * [ // Operation points convert v_sos2 into share of capacity used for generation
                 + p_effUnit(effGroup, unit, effSelector, 'op')${not ts_effUnit(effGroup, unit, effSelector, 'op', f, t)}
@@ -1170,7 +1170,7 @@ q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, nod
                                 and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')
                                 },
                     + v_reserve(restype, 'down', node_input, unit, f+df_nReserves(node_input, restype, f, t), t)
-                        / sum(effGroup${suft(effGroup, unit, f, t)},
+                        / sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
@@ -1184,7 +1184,7 @@ q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, nod
                                 and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')
                                 },
                     + v_reserve(restype, 'down', node_output, unit, f+df_nReserves(node_output, restype, f, t), t)
-                        * sum(effGroup${suft(effGroup, unit, f, t)},
+                        * sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
@@ -1237,7 +1237,7 @@ q_stateDownwardLimit(gn_state(grid, node), mft(m, f, t))${  sum(gn2gnu(grid, nod
                                 and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')
                                 },
                     + v_reserve(restype, 'up', node_input, unit, f+df_nReserves(node_input, restype, f, t), t)
-                        / sum(effGroup${suft(effGroup, unit, f, t)},
+                        / sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
@@ -1251,7 +1251,7 @@ q_stateDownwardLimit(gn_state(grid, node), mft(m, f, t))${  sum(gn2gnu(grid, nod
                                 and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')
                                 },
                     + v_reserve(restype, 'up', node_output, unit, f+df_nReserves(node_output, restype, f, t), t)
-                        * sum(effGroup${suft(effGroup, unit, f, t)},
+                        * sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
@@ -1281,7 +1281,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                                                                     and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')
                                                                     },
                 + v_reserve(restype, 'down', node_input, unit, f+df_nReserves(node_input, restype, f, t), t)
-                    / sum(effGroup${suft(effGroup, unit, f, t)},
+                    / sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
@@ -1293,7 +1293,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                                                                         and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')
                                                                         },
                 + v_reserve(restype, 'down', node_output, unit, f+df_nReserves(node_output, restype, f, t), t)
-                    / sum(effGroup${suft(effGroup, unit, f, t)},
+                    / sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
@@ -1322,7 +1322,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                                                                     and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')
                                                                     },
                 + v_reserve(restype, 'up', node_input, unit, f+df_nReserves(node_input, restype, f, t), t)
-                    / sum(effGroup${suft(effGroup, unit, f, t)},
+                    / sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
@@ -1334,7 +1334,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                                                                     and ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')
                                                                     },
                 + v_reserve(restype, 'up', node_output, unit, f+df_nReserves(node_output, restype, f, t), t)
-                    / sum(effGroup${suft(effGroup, unit, f, t)},
+                    / sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
