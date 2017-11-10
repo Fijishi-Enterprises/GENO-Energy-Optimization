@@ -25,25 +25,26 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
     execute_load ts_forecast = forecast;
 
     // Update the next forecast
-    tForecastNext(mSolve)${ ord(tSolve) >= tForecastNext(mSolve)
-        } = tForecastNext(mSolve) + mSettings(mSolve, 't_ForecastJump');
+    tForecastNext(mSolve)${ ord(tSolve) >= tForecastNext(mSolve) }
+        = tForecastNext(mSolve) + mSettings(mSolve, 't_forecastJump');
 
     // Define tLatestForecast
     Option clear = tLatestForecast;
-    tLatestForecast(t)$(ord(t) = ord(tSolve)) = yes;
+    tLatestForecast(tSolve) = yes;
 
     // Define updated time window
     Option clear = tt_;
-    tt_(t)${    ord(t) >= ord(tSolve)
-                and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_forecastLength') + mSettings(mSolve, 't_ForecastJump')
-                }
+    tt_(tFull(t))${ ord(t) >= ord(tSolve)
+                    and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_forecastLength') + mSettings(mSolve, 't_ForecastJump')
+                    }
         = yes;
 
     // Update capacity factor data
     loop(tLatestForecast,  // There should be only one latest forecast
-        ts_cf(flow, node, f, tt_(t))${  ts_forecast(flow, node, tLatestForecast, f, t) // Only update data for capacity factors with forecast. NOTE! This results in problems if the forecast has values of zero!
-                                        and mf(mSolve, f)
-            } = ts_forecast(flow,node,tLatestForecast,f,t);
+        ts_cf(flow, node, fSolve(f), tt_(t))${  ts_forecast(flow, node, tLatestForecast, f, t) // Only update data for capacity factors with forecast. NOTE! This results in problems if the forecast has values of zero!
+                                                and mf(mSolve, f)
+                                                }
+            = ts_forecast(flow,node,tLatestForecast,f,t);
     );
 
     // Read the tertiary reserve requirements
@@ -61,7 +62,7 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
 putclose log;
 
 * --- Improve forecasts -------------------------------------------------------
-
+$ontext
 // !!! TEMPORARY MEASURES !!!
 if(mSettings(mSolve, 'forecasts') > 0,
 
@@ -83,3 +84,4 @@ if(mSettings(mSolve, 'forecasts') > 0,
                 ) / f_improve;
     );
 ); // END IF forecasts
+$offtext

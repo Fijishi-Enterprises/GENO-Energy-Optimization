@@ -21,6 +21,7 @@ $offtext
 
     if (mSolve('schedule'),
         schedule.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
+        execute_loadpoint 'schedule_p';
         solve schedule using mip minimizing v_obj;
     ); // END IF SCHEDULE
 

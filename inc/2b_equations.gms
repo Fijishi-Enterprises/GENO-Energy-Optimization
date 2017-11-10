@@ -19,7 +19,7 @@ $offtext
 * --- Penalty Definitions -----------------------------------------------------
 * =============================================================================
 
-$setlocal def_penalty 1e6
+$setlocal def_penalty 1e9
 Scalars
     PENALTY "Default equation violation penalty" / %def_penalty% /
 ;
