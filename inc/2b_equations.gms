@@ -115,10 +115,8 @@ q_obj ..
                         // Fuel and emission costs
                         + sum(uFuel(unit, 'main', fuel)${uft(unit, f, t)},
                             + v_fuelUse(fuel, unit, f, t)
-                                * [ // !!! NOTE !!! Sum over tFull is needlessly time consuming. Price time series could be calculated beforehand.
-                                    + sum(tFull(tFuel)$[ord(tFuel) <= ord(t)], // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
-                                        + ts_fuelPriceChange(fuel, tFuel)
-                                        )
+                                * [
+                                    + ts_fuelPrice(fuel ,t)
                                     + sum(emission, // Emission taxes
                                         + p_unitFuelEmissionCost(unit, fuel, emission)
                                         )
@@ -161,9 +159,7 @@ q_obj ..
                                 + sum(uFuel(unit, 'startup', fuel),
                                     + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
                                         * [
-                                            + sum(tFull(tFuel)$[ord(tFuel) <= ord(t)], // Fuel costs for start-up fuel use
-                                                + ts_fuelPriceChange(fuel, tFuel)
-                                                ) // END sum(tFuel)
+                                            + ts_fuelPrice(fuel, t)
                                             + sum(emission, // Emission taxes of startup fuel use
                                                 + p_unitFuelEmissionCost(unit, fuel, emission)
                                                 ) // END sum(emission)
@@ -581,7 +577,7 @@ q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t))${ unit
     // Subunit shutdowns within special startup timeframe
     + sum(counter${dt_starttypeUnitCounter(starttype, unit, counter)},
         + v_shutdown(unit, f+df(f,t+dt_starttypeUnitCounter(starttype, unit, counter)), t+dt_starttypeUnitCounter(starttype, unit, counter))
-    ) // END sum(t_)
+    ) // END sum(counter)
 ;
 
 *--- Online Limits with Startup Type Constraints and Investments --------------
@@ -602,7 +598,7 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutDownTime')
     // Number of units unable to start due to restrictions
     - sum(counter${dt_downtimeUnitCounter(unit, counter)},
         + v_shutdown(unit, f+df(f,t+dt_downtimeUnitCounter(unit, counter)), t+dt_downtimeUnitCounter(unit, counter))
-    ) // END sum(t_)
+    ) // END sum(counter)
 
     // Investments into units
     + sum(t_invest(t_)${ord(t_)<=ord(t)},
@@ -627,7 +623,7 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationTime')
         + sum(unitStarttype(unit, starttype),
             + v_startup(unit, starttype, f+df(f,t+dt_uptimeUnitCounter(unit, counter)), t+dt_uptimeUnitCounter(unit, counter))
             ) // END sum(starttype)
-    ) // END sum(t_)
+    ) // END sum(counter)
 ;
 
 * --- Ramp Constraints --------------------------------------------------------

@@ -115,10 +115,8 @@ r_gnRealizedCost(gn(grid, node), ft_realized(f, t))
             // Fuel and emission costs
             + sum(uFuel(unit, 'main', fuel)${ gnuft(grid, node, unit, f, t) },
                 + v_fuelUse.l(fuel, unit, f, t)
-                    * [ // !!! NOTE !!! Sum over tFull is needlessly time consuming. Price time series could be calculated beforehand.
-                        + sum(tFull(tFuel)$[ord(tFuel) <= ord(t)], // Fuel costs, sum initial fuel price plus all subsequent changes to the fuelprice
-                            + ts_fuelPriceChange(fuel, tFuel)
-                            ) // END sum(tFull)
+                    * [
+                        + ts_fuelPrice(fuel, t)
                         + sum(emission, // Emission taxes
                             + p_unitFuelEmissionCost(unit, fuel, emission)
                             ) // END sum(emission)
@@ -145,10 +143,8 @@ r_gnRealizedCost(gn(grid, node), ft_realized(f, t))
                     // Start-up fuel and emission costs
                     + sum(uFuel(unit, 'startup', fuel),
                         + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
-                            * [ // !!! NOTE !!! Sum over tFull is needlessly time consuming. Price time series could be calculated beforehand.
-                                + sum(tFull(tFuel)$[ord(tFuel) <= ord(t)], // Fuel costs for start-up fuel use
-                                    + ts_fuelPriceChange(fuel, tFuel)
-                                    ) // END sum(tFuel)
+                            * [
+                                + ts_fuelPrice(fuel, t)
                                 + sum(emission, // Emission taxes of startup fuel use
                                     + p_unitFuelEmissionCost(unit, fuel, emission)
                                     ) // END sum(emission)
