@@ -103,56 +103,59 @@ r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), ft_realized(f,
 
 r_gnRealizedCost(gn(grid, node), ft_realized(f, t))
     // Time step length dependent costs
-    = p_stepLength(mSolve, f, t)
-        * 1e-6 // Scaling to MEUR
+    = 1e-6 // Scaling to MEUR
         * [
-            // Variable O&M costs
-            + sum(gnuft(gnu_output(grid, node, unit), f, t),  // Calculated only for output energy
-                + v_gen.l(grid, node, unit, f, t)
-                    * p_unit(unit, 'omCosts')
-                ) // END sum(gnu_output)
+            // Time step length dependent costs
+            + p_stepLength(mSolve, f, t)
+                * [
+                    // Variable O&M costs
+                    + sum(gnuft(gnu_output(grid, node, unit), f, t),  // Calculated only for output energy
+                        + v_gen.l(grid, node, unit, f, t)
+                            * p_unit(unit, 'omCosts')
+                        ) // END sum(gnu_output)
 
-            // Fuel and emission costs
-            + sum(uFuel(unit, 'main', fuel)${ gnuft(grid, node, unit, f, t) },
-                + v_fuelUse.l(fuel, unit, f, t)
-                    * [
-                        + ts_fuelPrice(fuel, t)
-                        + sum(emission, // Emission taxes
-                            + p_unitFuelEmissionCost(unit, fuel, emission)
-                            ) // END sum(emission)
-                        ] // END * v_fuelUse
-                ) // END sum(uFuel)
-
-            // Node state slack variable penalties
-            + sum(gn_stateSlack(grid, node),
-                + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
-                    + v_stateSlack.l(grid, node, slack, f, t)
-                        * p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
-                    ) // END sum(slack)
-                ) // END sum(gn_stateSlack)
-
-            ] // END * p_stepLength
-
-    // Start-up costs
-    + sum(gnuft(grid, node, unit, f, t)${ uft_online(unit, f, t) },
-        + sum(starttype,
-            + v_startup.l(unit, starttype, f, t) // Cost of starting up
-                * [ // Startup variable costs
-                    + p_uStartup(unit, starttype, 'cost', 'unit')
-
-                    // Start-up fuel and emission costs
-                    + sum(uFuel(unit, 'startup', fuel),
-                        + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
+                    // Fuel and emission costs
+                    + sum(uFuel(unit, 'main', fuel)${ gnuft(grid, node, unit, f, t) },
+                        + v_fuelUse.l(fuel, unit, f, t)
                             * [
                                 + ts_fuelPrice(fuel, t)
-                                + sum(emission, // Emission taxes of startup fuel use
+                                + sum(emission, // Emission taxes
                                     + p_unitFuelEmissionCost(unit, fuel, emission)
                                     ) // END sum(emission)
-                                ] // END * p_uStartup
+                                ] // END * v_fuelUse
                         ) // END sum(uFuel)
-                    ] // END * v_startup
-            ) // END sum(starttype)
-        ) // END sum(uft_online)
+
+                    // Node state slack variable penalties
+                    + sum(gn_stateSlack(grid, node),
+                        + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
+                            + v_stateSlack.l(grid, node, slack, f, t)
+                                * p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
+                            ) // END sum(slack)
+                        ) // END sum(gn_stateSlack)
+
+                    ] // END * p_stepLength
+
+            // Start-up costs
+            + sum(gnuft(grid, node, unit, f, t)${ uft_online(unit, f, t) },
+                + sum(starttype,
+                    + v_startup.l(unit, starttype, f, t) // Cost of starting up
+                        * [ // Startup variable costs
+                            + p_uStartup(unit, starttype, 'cost', 'unit')
+
+                            // Start-up fuel and emission costs
+                            + sum(uFuel(unit, 'startup', fuel),
+                                + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
+                                    * [
+                                        + ts_fuelPrice(fuel, t)
+                                        + sum(emission, // Emission taxes of startup fuel use
+                                            + p_unitFuelEmissionCost(unit, fuel, emission)
+                                            ) // END sum(emission)
+                                        ] // END * p_uStartup
+                                ) // END sum(uFuel)
+                            ] // END * v_startup
+                    ) // END sum(starttype)
+                ) // END sum(gnuft)
+            ] // END * 1e-6
 ;
 
 * --- Feasibility results -----------------------------------------------------
