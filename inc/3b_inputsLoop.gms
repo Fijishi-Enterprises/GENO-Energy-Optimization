@@ -164,6 +164,10 @@ $offtext
 *        = min(500, ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
         = max(p_nReserves(node, 'primary', up_down), ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
 
+); // END IF readForecastsInTheLoop
+
+putclose log;
+
 * --- Improve forecasts -------------------------------------------------------
 *$ontext
 // !!! TEMPORARY MEASURES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -172,9 +176,9 @@ $offtext
 
         // Define updated time window
         Option clear = tt_;
-        tt_(tt(t))${    ord(t) >= ord(tSolve)
-                        and ord(t) <= ord(tSolve) + f_improve
-                        }
+        tt(t)${ ord(t) >= ord(tSolve)
+                and ord(t) <= ord(tSolve) + f_improve
+                }
             = yes;
 
         // Improve forecasts during the dispatch
@@ -226,7 +230,3 @@ $offtext
         ); // END loop(mfRealization)
     ); // END IF forecasts
 *$offtext
-
-); // END IF readForecastsInTheLoop
-
-putclose log;
