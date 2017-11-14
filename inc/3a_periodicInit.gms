@@ -319,6 +319,17 @@ loop(m,
 
 tOrd(t) = ord(t);
 
+* --- Calculating fuel price time series --------------------------------------
+
+loop(fuel,
+    // Determine the time steps where the prices change
+    Option clear = tt;
+    tt(tFull(t))${ ts_fuelPriceChange(fuel, t) }
+        = yes;
+    // Calculate the fuel price time series based on the input price changes
+    ts_fuelPrice(fuel, tFull(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
+); // END loop(fuel)
+
 * --- Slack Direction ---------------------------------------------------------
 
 // Upwards slack is positive, downward slack negative
