@@ -81,6 +81,7 @@ Sets
     tInterval(t) "Temporary time steps when forming the ft structure"
     t_invest(t) "Time steps when investments can be made"
     tt(t) "Temporary subset for time steps used for calculations"
+    tt_forecast(t) "Temporary subset for time steps used for forecast updating during solve loop"
     mf(mType, f) "Forecasts present in the models"
     ms(mType, s) "Samples present in the models"
     mstStart(mType, s, t) "Start point of samples"
@@ -125,7 +126,6 @@ mfRealization(mType, 'f00') = yes;
 
 alias(m, mSolve);
 alias(t, t_, t__, tSolve, tFuel);
-alias(tt, tt_, tt__);
 alias(f, f_, f__);
 alias(s, s_, s__);
 alias(grid, grid_, grid_output);

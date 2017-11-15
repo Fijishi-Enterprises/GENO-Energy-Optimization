@@ -321,7 +321,9 @@ p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multipli
 * --- Other Node Properties ---------------------------------------------------
 
 // Nodes with flows
-flowNode(flow, node)${ sum((f, t), ts_cf(flow, node, f, t)) }
+flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
+                        and sum(grid, gn(grid, node))
+                        }
     = yes;
 
 * =============================================================================

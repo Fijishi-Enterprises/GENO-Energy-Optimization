@@ -252,7 +252,7 @@ loop(counter${mInterval(mSolve, 'intervalLength', counter)},
             // Loop over the t:s of the interval
             loop(ft(fSolve, tInterval(t)),
                 // Select t:s within the interval
-                Option clear = tt_;
+                Option clear = tt;
                 tt(tFull(t_))${ ord(t_) >= ord(t)
                                 and ord(t_) < ord(t) + mInterval(mSolve, 'intervalLength', counter)
                                 }
