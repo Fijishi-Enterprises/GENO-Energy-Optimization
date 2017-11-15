@@ -317,9 +317,10 @@ df(fSolve(f), tActive(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') 
 
 // Forecast displacement between central and forecasted timesteps at the end of forecast horizon
 Option clear = df_central; // This can be reset.
-df_central(ft(f,t+dt(t)))${ not ft(f,t)
-                            and not mfRealization(mSolve, f)
-                            }
+df_central(fSolve(f), tActive(t))${ ft(f,t+dt(t))
+                                    and not ft(f,t)
+                                    and not mfRealization(mSolve, f)
+                                    }
     = sum(mfCentral(mSolve, f_), ord(f_) - ord(f));
 
 // Forecast index displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
