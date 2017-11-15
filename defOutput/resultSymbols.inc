@@ -36,18 +36,25 @@ r_spill
 r_balanceMarginal
 r_resDemandMarginal
 
+// Results requiring calculations
+r_gnConsumption
+r_gnRealizedCost
+
 // Total result arrays
 r_totalObj
 r_gnuTotalGen
+r_gnTotalGen
+r_gTotalGen
 r_gnTotalGenFuel
+r_gTotalGenFuel
+r_totalGenFuel
 r_gnnTotalTransfer
 r_gnTotalSpill
-
-// Results requiring calculations
-r_gnConsumption
+r_gTotalSpill
 r_gnTotalConsumption
-r_gnRealizedCost
+r_gTotalConsumption
 r_gnTotalRealizedCost
+r_gTotalRealizedCost
 r_totalRealizedCost
 
 // Diagnostics

@@ -28,9 +28,10 @@ r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, t))
             ) // END sum(gnu_input)
 ;
 
-* --- Calculate totals for nodes ----------------------------------------------
+* --- Calculate total results -------------------------------------------------
 
-loop(m, // Need to loop over the model dimension, as this file is no longer contained in the modelSolves loop...
+// Need to loop over the model dimension, as this file is no longer contained in the modelSolves loop...
+loop(m,
     // Total generation on each node
     r_gnuTotalGen(gnu_output(grid, node, unit))
         = sum(ft_realizedNoReset(f, t),
@@ -57,29 +58,38 @@ loop(m, // Need to loop over the model dimension, as this file is no longer cont
             ); // END sum(ft_realizedNoReset)
 ); // END loop(m)
 
-* --- Calculate system totals -------------------------------------------------
+// Total generation in gn
+r_gnTotalGen(gn(grid, node))
+    = sum(gnu_output(grid, node, unit), r_gnuTotalGen(grid, node, unit)); // END sum(gnu_output)
+// Total generation in g
+r_gTotalGen(grid)
+    = sum(gn(grid, node), r_gnTotalGen(grid, node));
 
 // Total consumption on each gn over the simulation
 r_gnTotalConsumption(gn(grid, node))
-    = sum(ft_realizedNoReset(f, t),
-        + r_gnConsumption(grid, node, f ,t)
-        ); // END sum(ft_realizedNoReset)
+    = sum(ft_realizedNoReset(f, t), r_gnConsumption(grid, node, f ,t));
+// Total consumption in each grid over the simulation
+r_gTotalConsumption(grid)
+    = sum(gn(grid, node), r_gnTotalConsumption(grid, node));
 
+// Total fuel consumption in grids over the simulation
+r_gTotalGenFuel(grid, fuel)
+    = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, fuel));
 // Total fuel consumption over the simulation
 r_totalGenFuel(fuel)
-    = sum(gn(grid, node),
-        + r_gnTotalGenFuel(grid, node, fuel)
-        ); // END sum(gn)
+    = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, fuel));
 
-// Total realized costs on each gn
+// Total spilled energy in each grid over the simulation
+r_gTotalSpill(grid)
+    = sum(gn(grid, node_spill(node)), r_gnTotalSpill(grid, node));
+
+// Total realized costs on each gn over the simulation
 r_gnTotalRealizedCost(gn(grid, node))
-    = sum(ft_realizedNoReset(f, t),
-        + r_gnRealizedCost(grid, node, f ,t)
-        ); // END sum(ft_realizedNoReset)
-
+    = sum(ft_realizedNoReset(f, t), r_gnRealizedCost(grid, node, f ,t));
+// Total realized costs on each grid over the simulation
+r_gTotalRealizedCost(grid)
+    = sum(gn(grid, node), r_gnTotalRealizedCost(grid, node));
 // Total realized costs over the simulation
 r_totalRealizedCost
-    = sum(gn(grid, node),
-        + r_gnTotalRealizedCost(grid, node)
-        ); // END sum(gn)
+    = sum(gn(grid, node), r_gnTotalRealizedCost(grid, node));
 
