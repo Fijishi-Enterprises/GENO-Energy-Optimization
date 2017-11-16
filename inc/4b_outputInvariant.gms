@@ -44,18 +44,44 @@ loop(m,
             + r_genFuel(grid, node, fuel, f, t)
                 * p_stepLengthNoReset(m, f, t)
             ); // END sum(ft_realizedNoReset)
+
     // Total transfer of energy between nodes
     r_gnnTotalTransfer(gn2n(grid, from_node, to_node))
         = sum(ft_realizedNoReset(f, t),
             + r_transfer(grid, from_node, to_node, f, t)
                 * p_stepLengthNoReset(m, f, t)
             ); // END sum(ft_realizedNoReset)
+
     // Total energy spill from nodes
     r_gnTotalSpill(grid, node_spill(node))
         = sum(ft_realizedNoReset(f, t),
             + r_spill(grid, node, f, t)
                 * p_stepLengthNoReset(m, f, t)
             ); // END sum(ft_realizedNoReset)
+
+    // Total reserve provisions over the simulation
+    r_nuTotalReserve(nuRescapable(restype, up_down, node, unit))
+        = sum(ft_realizedNoReset(f, t),
+            + r_reserve(restype, up_down, node, unit, f, t)
+                * p_stepLengthNoReset(m, f, t)
+            ); // END sum(ft_realizedNoReset)
+
+    // Total sub-unit-hours for units over the simulation
+    r_uTotalOnline(unit)
+        = sum(ft_realizedNoReset(f, t),
+            + r_online(unit, f, t)
+                * p_stepLengthNoReset(m, f, t)
+            ); // END sum(ft_realizedNoReset)
+
+    // Approximate utilization rates for gnus over the simulation
+    r_gnuUtilizationRate(gnu_output(grid, node, unit))
+        = r_gnuTotalGen(grid, node, unit)
+            / [
+                + p_gnu(grid, node, unit, 'maxGen')
+                    * (mSettings(m, 't_end') - mSettings(m, 't_start') + 1)
+                    * mSettings(m, 'intervalInHours')
+                ]; // END division
+
 ); // END loop(m)
 
 // Total generation in gn
@@ -92,4 +118,14 @@ r_gTotalRealizedCost(grid)
 // Total realized costs over the simulation
 r_totalRealizedCost
     = sum(gn(grid, node), r_gnTotalRealizedCost(grid, node));
+
+// Total reserve provision in nodes over the simulation
+r_nTotalReserve(restypeDirectionNode(restype, up_down, node))
+    = sum(nuRescapable(restype, up_down, node, unit), r_nuTotalReserve(restype, up_down, node, unit));
+
+// Total unit online hours per sub-unit over the simulation
+r_uTotalOnlinePerUnit(unit)
+    = r_uTotalOnline(unit)
+        / p_unit(unit, 'unitCount');
+
 

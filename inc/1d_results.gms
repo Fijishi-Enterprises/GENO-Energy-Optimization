@@ -37,11 +37,12 @@ Parameters
 
     // Total variable value arrays
     r_totalObj "Total operating cost over the simulation (€)" / 0 /
+    r_uTotalOnline(unit) "Total online sub-unit-hours of units over the simulation"
     r_gnuTotalGen(grid, node, unit) "Total energy generation/consumption in gnu over the simulation (MWh)"
     r_gnTotalGen(grid, node) "Total energy generation/consumption in gn over the simulation (MWh)"
     r_gTotalGen(grid) "Total energy generation/consumption in g over the simulation (MWh)"
-*    r_nuTotalReserve(restype, up_down, node, unit) "Total nu reserve provision over the simulation (MW*h)"
-*    r_nTotalReserve(restype, up_down, node) "Total reserve provisions in nodes over the simulation (MW*h)"
+    r_nuTotalReserve(restype, up_down, node, unit) "Total nu reserve provision over the simulation (MW*h)"
+    r_nTotalReserve(restype, up_down, node) "Total reserve provisions in nodes over the simulation (MW*h)"
     r_gnTotalGenFuel(grid, node, fuel) "Total energy generation/consumption in gn per fuel over the simulation (MWh)"
     r_gTotalGenFuel(grid, fuel) "Total energy generation/consumption in g per fuel over the simulation (MWh)"
     r_totalGenFuel(fuel) "Total overall energy generation/consumption per fuel over the simulation (MWh)"
@@ -57,6 +58,8 @@ Parameters
     r_gnTotalRealizedCost(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
     r_gTotalRealizedCost(grid) "Total realized system costs in g over the simulation (MEUR)"
     r_totalRealizedCost "Total realized system costs over the simulation (MEUR)" / 0 /
+    r_uTotalOnlinePerUnit(unit) "Total unit online hours per sub-unit over the simulation"
+    r_gnuUtilizationRate(grid, node, unit) "Approximate utilization rates of gnus over the simulation"
 
     // Old results arrays
 *    r_genNodeType(grid, node, unitType, t) "Energy generation/consumption based on unittypes (MW)"

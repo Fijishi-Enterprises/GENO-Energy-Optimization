@@ -56,6 +56,11 @@ r_gTotalConsumption
 r_gnTotalRealizedCost
 r_gTotalRealizedCost
 r_totalRealizedCost
+r_nuTotalReserve
+r_nTotalReserve
+r_uTotalOnline
+r_uTotalOnlinePerUnit
+r_gnuUtilizationRate
 
 // Diagnostics
 d_cop
