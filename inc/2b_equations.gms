@@ -183,7 +183,7 @@ $offtext
 
     // Value of energy storage change
     + sum(gn_state(grid, node),
-        + sum(mftStart(m, f, t)${   p_storageValue(grid, node, t)
+        + sum(mft_start(m, f, t)${   p_storageValue(grid, node, t)
                                     and active(m, 'storageValue')
                                     },
             + v_state(grid, node, f, t)
@@ -192,7 +192,7 @@ $offtext
                     + p_msft_probability(m, s, f, t)
                     ) // END sum(s)
             ) // END sum(mftStart)
-        - sum(mftLastSteps(m, f, t)${   p_storageValue(grid, node, t)
+        - sum(mft_lastSteps(m, f, t)${   p_storageValue(grid, node, t)
                                         and active(m, 'storageValue')
                                         },
             + v_state(grid, node, f, t)
@@ -238,7 +238,7 @@ $offtext
 
 $ontext
     // "Value" of online units, !!! TEMPORARY MEASURES !!!
-  - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mftStart(m, f, t),
+  - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mft_start(m, f, t),
         + p_sft_probability(s, f, t) * 0.5
             * (
                 + v_online(unit, f+cf(f,t), t) * p_unit(unit, 'startCost')
@@ -1360,11 +1360,11 @@ q_boundCyclic(gn_state(grid, node), ms(m, s), s_)${ ms(m, s_)
                                                     }..
 
     // Initial value of the state of the node at the start of the sample
-    + sum(mftStart(m, f, t)${   p_gn(grid, node, 'boundCyclic')},
+    + sum(mft_start(m, f, t)${   p_gn(grid, node, 'boundCyclic')},
         + v_state(grid, node, f, t)
         ) // END sum(mftStart)
 
-    + sum(mftStart(m, f, t)${   p_gn(grid, node, 'boundCyclicBetweenSamples')
+    + sum(mft_start(m, f, t)${  p_gn(grid, node, 'boundCyclicBetweenSamples')
                                 and ord(t) = msStart(m, s)
                                 },
         + v_state(grid, node, f, t)
@@ -1373,14 +1373,14 @@ q_boundCyclic(gn_state(grid, node), ms(m, s), s_)${ ms(m, s_)
     =E=
 
     // State of the node at the end of horizon
-    + sum(mftLastSteps(mfCentral(m, f_), t_)${ p_gn(grid, node, 'boundCyclic') },
+    + sum(mft_lastSteps(mf_central(m, f_), t_)${ p_gn(grid, node, 'boundCyclic') },
         + v_state(grid, node, f_, t_)
         ) // END sum(mftLastSteps)
 
     // State of the node at the end of the sample, BoundCyclicBetweenSamples
-    + sum(mftLastSteps(mfCentral(m, f_), t_)${  p_gn(grid, node, 'boundCyclicBetweenSamples')
-                                                and ord(t_) =  msEnd(m, s_)
-                                                },
+    + sum(mft_lastSteps(mf_central(m, f_), t_)${    p_gn(grid, node, 'boundCyclicBetweenSamples')
+                                                    and ord(t_) =  msEnd(m, s_)
+                                                    },
         + v_state(grid, node, f_, t_)
         ) // END sum(ft)
 ;

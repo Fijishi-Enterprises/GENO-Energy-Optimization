@@ -76,11 +76,12 @@ Sets
 * --- Sets to define time, forecasts and samples -----------------------------------------------
     $$include 'input/timeAndSamples.inc'
     m(mType) "model(s) in use"
-    tFull(t) "Full set of time steps in the current model"
-    tActive(t) "Set of active t:s in the current solve"
-    tInterval(t) "Temporary time steps when forming the ft structure"
+    t_full(t) "Full set of time steps in the current model"
+    t_current(t) "Set of time steps within the current solve horizon"
+    t_active(t) "Set of active t:s within the current solve horizon"
     t_invest(t) "Time steps when investments can be made"
     tt(t) "Temporary subset for time steps used for calculations"
+    tt_interval(t) "Temporary time steps when forming the ft structure"
     tt_forecast(t) "Temporary subset for time steps used for forecast updating during solve loop"
     mf(mType, f) "Forecasts present in the models"
     ms(mType, s) "Samples present in the models"
@@ -92,16 +93,16 @@ Sets
     mft(mType, f, t) "Combination of forecasts and time periods in the models"
     msf(mType, s, f) "Model, sample, forecast"
     msft(mType, s, f, t) "Combination of samples, forecasts and time periods in the models"
-    mftStart(mType, f, t) "Start point of simulation"
-    mfRealization(mType, f) "fRealization of the forecasts"
-    mfCentral(mType, f) "Forecast that continues as sample(s) after the forecast horizon ends"
-    msInitial(mType, s) "Sample that presents the realized/forecasted period"
-    msCentral(mType, s) "Sample that continues the central forecast after the forecast horizon ends"
-    mftLastForecast(mType, f, t) "Last time period where the forecast extends"
-    mftLastSteps(mType, f, t) "Last time periods of the model (can be end of forecasts or end of samples)"
+    mft_start(mType, f, t) "Start point of simulation"
+    mf_realization(mType, f) "fRealization of the forecasts"
+    mf_central(mType, f) "Forecast that continues as sample(s) after the forecast horizon ends"
+    ms_initial(mType, s) "Sample that presents the realized/forecasted period"
+    ms_central(mType, s) "Sample that continues the central forecast after the forecast horizon ends"
+*    mft_lastForecast(mType, f, t) "Last time period where the forecast extends"
+    mft_lastSteps(mType, f, t) "Last time period of the model"
     modelSolves(mType, t) "when different models are to be solved"
-    fSolve(f) "forecasts in the model to be solved next"
-    tLatestForecast(t) "t for the latest forecast that is available"
+    f_solve(f) "forecasts in the model to be solved next"
+    t_latestForecast(t) "t for the latest forecast that is available"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Active units on time steps, enables aggregation of units for later time periods"
@@ -122,7 +123,7 @@ Sets
 Option clear = modelSolves;
 Option clear = ms;
 Option clear = mf;
-mfRealization(mType, 'f00') = yes;
+mf_realization(mType, 'f00') = yes;
 
 alias(m, mSolve);
 alias(t, t_, t__, tSolve, tFuel);

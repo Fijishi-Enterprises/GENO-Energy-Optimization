@@ -34,20 +34,20 @@ r_online(uft_online(unit, ft_realized(f, t)))
         + v_online_MIP.l(unit, f, t)${  uft_onlineMIP(unit, f, t)   }
 ;
 // Reserve provisions of units
-r_reserve(nuRescapable(restype, up_down, node, unit), fSolve(f), tActive(t))${  mft_nReserves(node, restype, mSolve, f, t)
+r_reserve(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${  mft_nReserves(node, restype, mSolve, f, t)
                                                                                 or sum(f_, df_nReserves(node, restype, f_, t))
                                                                                 }
     = v_reserve.l(restype, up_down, node, unit, f, t)
 ;
 // Reserve transfer capacity
-r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, fSolve(f), tActive(t))${ restypeDirectionNode(restype, up_down, to_node)
+r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${ restypeDirectionNode(restype, up_down, to_node)
                                                                                                             and [   mft_nReserves(from_node, restype, mSolve, f, t)
                                                                                                                 or sum(f_, df_nReserves(from_node, restype, f_, t))
                                                                                                                 ]
                                                                                                             }
     = v_resTransferRightward.l(restype, up_down, from_node, to_node, f, t)
 ;
-r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, fSolve(f), tActive(t))${  restypeDirectionNode(restype, up_down, to_node)
+r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${  restypeDirectionNode(restype, up_down, to_node)
                                                                                                             and [   mft_nReserves(from_node, restype, mSolve, f, t)
                                                                                                                 or sum(f_, df_nReserves(from_node, restype, f_, t))
                                                                                                                 ]
@@ -191,7 +191,7 @@ d_eff(uft(unit_fuel, ft_realized(f, t)))
             + 1${not sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, f, t))}
             ]
 ;
-d_capacityFactor(flow, node, fSolve(f), tActive(t))${ sum(flowUnit(flow, unit), nu(node, unit)) }
+d_capacityFactor(flow, node, f_solve(f), t_active(t))${ sum(flowUnit(flow, unit), nu(node, unit)) }
     = ts_cf_(flow, node, f, t)
         + ts_cf(flow, node, f, t)${ not ts_cf_(flow, node, f, t) }
         - 1e-3${ not ts_cf_(flow, node, f, t) and not ts_cf(flow, node, f, t) }
