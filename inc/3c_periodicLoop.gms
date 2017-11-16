@@ -121,9 +121,14 @@ $endif.debug
 * --- Determine the forecast-time indeces included in the current solve -------
 * =============================================================================
 
-// Determine the first and last timesteps of the current solve
+// Determine the timesteps of the current solve
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 used only for initial values
 tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
+Option clear = t_current;
+t_current(t_full(t))${  ord(t) >= tSolveFirst
+                        and ord (t) <= tSolveLast
+                        }
+    = yes;
 
 // Initializing sets and counters
 Option clear = tCounter;
@@ -153,11 +158,11 @@ loop(cc(counter),
 
         // If intervalLength equals one, simply use all the steps within the interval
         if(mInterval(mSolve, 'intervalLength', counter) = 1,
-            tt_interval(t_full(t))${   ord(t) > tSolveFirst + tCounter
-                                    and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
-                                    and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                    and ord(t) <= msEnd(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                    }
+            tt_interval(t_current(t))${ ord(t) > tSolveFirst + tCounter
+                                        and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
+                                        and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
+                                        and ord(t) <= msEnd(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
+                                        }
                 = yes; // Include all time steps within the interval
 
             // Calculate the time step length in hours
@@ -169,17 +174,17 @@ loop(cc(counter),
 
             // Determine the forecast-time steps
             // Include the t_jump for the realization
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${    ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
+            msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
                                                             and mf_realization(mSolve, f_solve)
                                                             }
                 = yes;
             // Include the full horizon for the central forecast
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${    ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+            msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
                                                             and mf_central(mSolve, f_solve)
                                                             }
                 = yes;
             // Include up to forecastLength for remaining forecasts
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${    not mf_central(mSolve, f_solve)
+            msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
                                                             and not mf_realization(mSolve, f_solve)
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
                                                             and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
@@ -190,11 +195,11 @@ loop(cc(counter),
             mft(mf(mSolve, f_solve), tt_interval(t)) = msft(mSolve, s, f_solve, t);
 
             // Set of locked forecast-time steps for the reserves
-            mft_nReserves(node, restype, mf_realization(mSolve, f), tt_interval(t))${  p_nReserves(node, restype, 'update_frequency')
-                                                                                    and p_nReserves(node, restype, 'gate_closure')
-                                                                                    and ord(t) > tSolveFirst
-                                                                                    and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
-                                                                                    }
+            mft_nReserves(node, restype, mf_realization(mSolve, f), tt_interval(t))${   p_nReserves(node, restype, 'update_frequency')
+                                                                                        and p_nReserves(node, restype, 'gate_closure')
+                                                                                        and ord(t) > tSolveFirst
+                                                                                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
+                                                                                        }
                 = yes;
 
             // Reduce the model dimension
@@ -203,7 +208,7 @@ loop(cc(counter),
             // Select time series data matching the intervals, for intervalLength = 1, this is trivial.
             ts_influx_(gn(grid, node), ft(f_solve, tt_interval(t))) = ts_influx(grid, node, f_solve, t+dt_circular(t));
             ts_cf_(flowNode(flow, node), ft(f_solve, tt_interval(t))) = ts_cf(flow, node, f_solve, t+dt_circular(t));
-            ts_unit_(unit, param_unit, ft(f_solve, tt_interval(t)))${  p_unit(unit, 'useTimeseries')   } // Only include units that have timeseries attributed to them
+            ts_unit_(unit, param_unit, ft(f_solve, tt_interval(t)))${ p_unit(unit, 'useTimeseries') } // Only include units that have timeseries attributed to them
                 = ts_unit(unit, param_unit, f_solve, t+dt_circular(t));
             // Reserve demand relevant only up until t_reserveLength
             ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(f_solve, tt_interval(t)))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')    }
@@ -213,12 +218,12 @@ loop(cc(counter),
 
         // If intervalLength exceeds 1 (intervalLength < 1 not defined)
         elseif mInterval(mSolve, 'intervalLength', counter) > 1,
-            tt_interval(t_full(t))${   ord(t) > tSolveFirst + tCounter
-                                    and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
-                                    and mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'intervalLength', counter)) = 0
-                                    and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                    and ord(t) <= msEnd(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                    }
+            tt_interval(t_current(t))${ ord(t) > tSolveFirst + tCounter
+                                        and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
+                                        and mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'intervalLength', counter)) = 0
+                                        and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
+                                        and ord(t) <= msEnd(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
+                                        }
                 = yes;
 
             // Length of the time step in hours
@@ -230,17 +235,17 @@ loop(cc(counter),
 
             // Determine the forecast-time steps
             // Include the t_jump for the realization
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${    ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
+            msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
                                                             and mf_realization(mSolve, f_solve)
                                                             }
                 = yes;
             // Include the full horizon for the central forecast
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${    ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+            msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
                                                             and mf_central(mSolve, f_solve)
                                                             }
                 = yes;
             // Include up to forecastLength for remaining forecasts
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${    not mf_central(mSolve, f_solve)
+            msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
                                                             and not mf_realization(mSolve, f_solve)
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
                                                             and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
@@ -258,7 +263,7 @@ loop(cc(counter),
             loop(ft(f_solve, tt_interval(t)),
                 // Select t:s within the interval
                 Option clear = tt;
-                tt(t_full(t_))${    ord(t_) >= ord(t)
+                tt(t_current(t_))${ ord(t_) >= ord(t)
                                     and ord(t_) < ord(t) + mInterval(mSolve, 'intervalLength', counter)
                                     }
                     = yes;
@@ -342,16 +347,16 @@ df_nReserves(node, restype, ft(f, t))${ p_nReserves(node, restype, 'update_frequ
 
 // Units active on each forecast-time step
 Option clear = uft;
-uft(unit, ft(f, t))${   ord(t) <= tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
-                        and not unit_aggregate(unit) // Non-aggregate units
+uft(unit, ft(f, t))${   [
+                            ord(t) <= tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
+                            and not unit_aggregate(unit) // Non-aggregate units
+                            ]
+                        or [
+                            ord(t) > tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
+                            and (unit_aggregate(unit) or unit_noAggregate(unit)) // Aggregate units
+                            ]
                         }
     = yes;
-
-uft(unit, ft(f, t))${   ord(t) > tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
-                        and (unit_aggregate(unit) or unit_noAggregate(unit)) // Aggregate units
-                        }
-    = yes;
-
 
 // Active units in nodes on each forecast-time step
 Option clear = nuft;
