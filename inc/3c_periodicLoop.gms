@@ -184,7 +184,7 @@ loop(cc(counter),
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
                                                             and not mf_realization(mSolve, f_solve)
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
+                                                            and ord(t) < tSolveFirst + mSettings(mSolve, 't_forecastLength')
                                                             }
                 = yes;
 
@@ -242,7 +242,7 @@ loop(cc(counter),
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
                                                             and not mf_realization(mSolve, f_solve)
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLength')
+                                                            and ord(t) < tSolveFirst + mSettings(mSolve, 't_forecastLength')
                                                             }
                 = yes;
 
@@ -311,7 +311,7 @@ Option clear = mft_lastSteps;
 // !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Why is the realization not used? Because it "continues" in the form of the
 // central forecast? Is it necessary to account for anything but the central-f?
-mft_lastSteps(mSolve, ft(f,t))${ ord(t) + p_stepLength(mSolve, f, t) = tSolveLast }
+mft_lastSteps(mSolve, ft(f,t))${ ord(t) + p_stepLength(mSolve, f, t) / mSettings(mSolve, 'intervalInHours') = tSolveLast }
     = yes
 ;
 
@@ -329,10 +329,9 @@ df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump'
 
 // Forecast displacement between central and forecasted timesteps at the end of forecast horizon
 Option clear = df_central; // This can be reset.
-df_central(f_solve(f), t_active(t))${   ft(f,t+dt(t))
-                                        and not ft(f,t)
-                                        and not mf_realization(mSolve, f)
-                                        }
+df_central(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLength') - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'intervalInHours')
+                        and not mf_realization(mSolve, f)
+                        }
     = sum(mf_central(mSolve, f_), ord(f_) - ord(f));
 
 // Forecast index displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.

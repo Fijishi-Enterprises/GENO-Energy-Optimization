@@ -235,24 +235,6 @@ $offtext
                     ] // END * v_investTransfer_MIP
             ) // END sum(gn2n_directional)
         ) // END sum(t_invest)
-
-$ontext
-    // "Value" of online units, !!! TEMPORARY MEASURES !!!
-  - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mft_start(m, f, t),
-        + p_sft_probability(s, f, t) * 0.5
-            * (
-                + v_online(unit, f+cf(f,t), t) * p_unit(unit, 'startCost')
-                + v_online_LP(unit, f+cf(f,t), t) * p_unit(unit, 'startCost_MW')
-              )
-        ) // minus value of avoiding startup costs before
-  - sum((s, uft_online_last(unit, ft_dynamic(f,t))),
-        + p_sft_probability(s, f, t) * 0.5
-            * (
-                + v_online(unit, f+cf(f,t), t) * p_unit(unit, 'startCost')
-                + v_online_LP(unit, f+cf(f,t), t) * p_unit(unit, 'startCost_MW')
-              )
-        ) // or after the model solve
-$offtext
 ;
 
 * --- Energy Balance ----------------------------------------------------------
@@ -427,8 +409,8 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
             ) // END sum(effGroup)
         * [ // Online variables should only be generated for units with restrictions
-            + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)} // LP online variant
-            + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)} // MIP online variant
+            + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)} // LP online variant
+            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)} // MIP online variant
             ] // END v_online
 
     // Consuming units, greater than maxCons
@@ -447,8 +429,8 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
             + p_gnu(grid, node, unit, 'unitSizeCons')
                 * [
                     // Capacity online
-                    + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
-                    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+                    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+                    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
                     // Investments to additional non-online capacity
                     + sum(t_invest(t_)${    ord(t_)<=ord(t)
@@ -501,8 +483,8 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
             ) // END sum(effGroup)
         * [
-            + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
-            + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
+            + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
+            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
             ] // END * p_gnu(unitSizeCons)
 
     // Generation units
@@ -521,8 +503,8 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
             + p_gnu(grid, node, unit, 'unitSizeGen')
                 * [
                     // Capacity online
-                    + v_online_LP(unit, f, t)${uft_onlineLP(unit, f ,t)}
-                    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+                    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f ,t)}
+                    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
                     // Investments to non-online capacity
                     + sum(t_invest(t_)${    ord(t_)<=ord(t)
@@ -540,8 +522,8 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
 q_startup(uft_online(unit, f, t)) ..
 
     // Units currently online
-    + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
-    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
     =E=
 
@@ -587,8 +569,8 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutDownTime')
                                             or unit_investMIP(unit)
                                             } ..
     // Online variables
-    + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
-    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f ,t)}
+    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f ,t)}
 
     =L=
 
@@ -613,8 +595,8 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationTime')
                                                 } ..
 
     // Units currently online
-    + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
-    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
     =G=
 
@@ -852,8 +834,8 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
         + p_gnu(grid, node, unit, 'unitSizeGen')
         ) // END sum(gnu_output)
         * [
-            + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
-            + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+            + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
             ] // END * sum(gnu_output)
         * [
             + p_effGroupUnit(effGroup, unit, 'section')${not ts_effUnit(effGroup, unit, effDirect, 'section', f, t)}
@@ -894,7 +876,7 @@ q_conversionSOS2InputIntermediate(suft(effLambda(effGroup), unit, f, t)) ..
                 ) // END sum(effSelector)
 
             // Consumption of keeping units online
-            + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
                 * p_effGroupUnit(effGroup, unit, 'section')
             ] // END * sum(gnu_output)
 ;
@@ -911,7 +893,7 @@ q_conversionSOS2Constraint(suft(effLambda(effGroup), unit, f, t)) ..
     =E=
 
     // Number of units online
-    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 ;
 
 * --- SOS 2 Efficiency Approximation Output Generation ------------------------
@@ -1099,6 +1081,7 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), ft(f, t))${ sum(
 * --- State Variable Slack ----------------------------------------------------
 
 q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))${  p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
+                                                            and not df_central(f, t)
                                                             } ..
 
     // Slack value
@@ -1109,7 +1092,7 @@ q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))${  p_gnBoundaryProperti
     // Slack limits
     + p_slackDirection(slack)
         * [
-            + v_state(grid, node, f+df_central(f,t), t)
+            + v_state(grid, node, f, t)
             - p_gnBoundaryPropertiesForStates(grid, node, slack, 'constant')$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useConstant')
             - ts_nodeState_(grid, node, slack, f, t)$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries')
             ] // END * p_slackDirection
@@ -1430,13 +1413,13 @@ q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin
     // Diffusion to node
     + sum(gnn_state(grid, from_node, node),
         + p_gnn(grid, from_node, node, 'diffCoeff')
-            * v_state(grid, from_node, f, t)
+            * v_state(grid, from_node, f+df_central(f,t), t)
         ) // END sum(gnn_state)
 
     // Diffusion from node
     - sum(gnn_state(grid, node, to_node),
         + p_gnn(grid, node, to_node, 'diffCoeff')
-            * v_state(grid, node, f, t)
+            * v_state(grid, node, f+df_central(f,t), t)
         ) // END sum(gnn_state)
 
     // Conversion unit inputs might require additional capacity
@@ -1667,8 +1650,8 @@ q_inertiaMin(gngroup, ft(f, t))${   p_gngroupPolicy(gngroup, 'kineticEnergyMin',
         + p_gnu(grid, node, unit, 'inertia')
             * p_gnu(grid ,node, unit, 'unitSizeMVA')
             * [
-                + v_online_LP(unit, f, t)${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, f, t)${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
+                + v_online_LP(unit, f+df_central(f,t), t)${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, f+df_central(f,t), t)${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
                 + v_gen(grid, node, unit, f, t)${not uft_online(unit, f, t)}
                     / p_gnu(grid, node, unit, 'unitSizeGen')
                 ] // * p_gnu
