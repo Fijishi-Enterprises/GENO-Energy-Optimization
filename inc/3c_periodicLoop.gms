@@ -130,19 +130,19 @@ t_current(t_full(t))${  ord(t) >= tSolveFirst
                         }
     = yes;
 
-// Initializing sets and counters
-Option clear = tCounter;
+* --- Build the forecast-time structure using the intervals -------------------
+
+// Initializing forecast-time structure sets
 Option clear = p_stepLength;
 Option clear = msft;
 Option clear = mft;
 Option clear = ft;
 Option clear = mft_nReserves;
 
-* --- Build the forecast-time structure using the intervals -------------------
-
 // Initialize the set of active time steps and counters
 Option clear = t_active;
 Option clear = cc;
+tCounter = 1;
 
 // Determine the set of active interval counters
 cc(counter)${ mInterval(mSolve, 'intervalLength', counter) }
@@ -158,19 +158,16 @@ loop(cc(counter),
 
         // If intervalLength equals one, simply use all the steps within the interval
         if(mInterval(mSolve, 'intervalLength', counter) = 1,
-            tt_interval(t_current(t))${ ord(t) > tSolveFirst + tCounter
-                                        and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
+            tt_interval(t_current(t))${ ord(t) >= tSolveFirst + tCounter
+                                        and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
                                         and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                        and ord(t) <= msEnd(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
+                                        and ord(t) < msEnd(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
                                         }
                 = yes; // Include all time steps within the interval
 
             // Calculate the time step length in hours
             p_stepLength(mf(mSolve, f_solve), tt_interval(t)) = mSettings(mSolve, 'intervalInHours');
             p_stepLengthNoReset(mf(mSolve, f_solve), tt_interval(t)) = mSettings(mSolve, 'intervalInHours');
-
-            // Time index displacement to reach previous timestep
-            dt(tt_interval(t)) = -1;
 
             // Determine the forecast-time steps
             // Include the t_jump for the realization
@@ -218,20 +215,17 @@ loop(cc(counter),
 
         // If intervalLength exceeds 1 (intervalLength < 1 not defined)
         elseif mInterval(mSolve, 'intervalLength', counter) > 1,
-            tt_interval(t_current(t))${ ord(t) > tSolveFirst + tCounter
-                                        and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
+            tt_interval(t_current(t))${ ord(t) >= tSolveFirst + tCounter
+                                        and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
                                         and mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'intervalLength', counter)) = 0
                                         and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                        and ord(t) <= msEnd(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
+                                        and ord(t) < msEnd(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
                                         }
                 = yes;
 
             // Length of the time step in hours
             p_stepLength(mf(mSolve, f_solve), tt_interval(t)) = mInterval(mSolve, 'intervalLength', counter) * mSettings(mSolve, 'intervalInHours');
             p_stepLengthNoReset(mf(mSolve, f_solve), tt_interval(t)) = mInterval(mSolve, 'intervalLength', counter) * mSettings(mSolve, 'intervalInHours');
-
-            // Time index displacement to reach the previous time step
-            dt(tt_interval(t)) = - mInterval(mSolve, 'intervalLength', counter);
 
             // Determine the forecast-time steps
             // Include the t_jump for the realization
@@ -299,6 +293,14 @@ loop(cc(counter),
     ); // END loop(ms)
 ); // END loop(counter)
 
+// Time step displacement to reach previous time step
+option clear = tmp;
+tmp = tSolveFirst;
+loop(t_active(t),
+    dt(t) = tmp - ord(t);
+    tmp = ord(t);
+); // END loop(t_active)
+
 // Initial model ft
 Option clear = mft_start;
 mft_start(mf_realization(mSolve, f), tSolve)
@@ -309,7 +311,7 @@ Option clear = mft_lastSteps;
 // !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Why is the realization not used? Because it "continues" in the form of the
 // central forecast? Is it necessary to account for anything but the central-f?
-mft_lastSteps(mSolve, ft(f,t))${ ord(t)-dt(t) = tSolveLast }
+mft_lastSteps(mSolve, ft(f,t))${ ord(t) + p_stepLength(mSolve, f, t) = tSolveLast }
     = yes
 ;
 
