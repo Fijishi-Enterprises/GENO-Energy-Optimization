@@ -92,7 +92,7 @@ r_totalObj
 ;
 // q_balance marginal values
 r_balanceMarginal(gn(grid, node), ft_realized(f, t))
-    = q_balance.m(grid, node, mSolve, f, t)
+    = 1e6 * q_balance.m(grid, node, mSolve, f, t)
 ;
 // q_resDemand marginal values
 r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
