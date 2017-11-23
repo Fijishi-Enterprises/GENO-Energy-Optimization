@@ -159,9 +159,9 @@ loop(cc(counter),
         // If intervalLength equals one, simply use all the steps within the interval
         if(mInterval(mSolve, 'intervalLength', counter) = 1,
             tt_interval(t_current(t))${ ord(t) >= tSolveFirst + tCounter
-                                        and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
+                                        and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)
                                         and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                        and ord(t) < msEnd(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
+                                        and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
                                         }
                 = yes; // Include all time steps within the interval
 
@@ -216,10 +216,10 @@ loop(cc(counter),
         // If intervalLength exceeds 1 (intervalLength < 1 not defined)
         elseif mInterval(mSolve, 'intervalLength', counter) > 1,
             tt_interval(t_current(t))${ ord(t) >= tSolveFirst + tCounter
-                                        and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast - 1)
+                                        and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)
                                         and mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'intervalLength', counter)) = 0
                                         and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                        and ord(t) < msEnd(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
+                                        and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
                                         }
                 = yes;
 
@@ -308,9 +308,6 @@ mft_start(mf_realization(mSolve, f), tSolve)
 ;
 // Last steps of model fts
 Option clear = mft_lastSteps;
-// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Why is the realization not used? Because it "continues" in the form of the
-// central forecast? Is it necessary to account for anything but the central-f?
 mft_lastSteps(mSolve, ft(f,t))${ ord(t) + p_stepLength(mSolve, f, t) / mSettings(mSolve, 'intervalInHours') = tSolveLast }
     = yes
 ;
