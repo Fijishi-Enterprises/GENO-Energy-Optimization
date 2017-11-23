@@ -87,6 +87,10 @@ r_shutdown
 r_uTotalOnline
 r_uTotalOnlinePerUnit
 
+// Interesting unit startup and shutdown results
+r_uTotalStartup
+r_uTotalShutdown
+
 * --- Reserve Provision Result Symbols ----------------------------------------
 
 // Reserve provision results required for model structure !!!!!!!!!!!!!!!!!!!!!

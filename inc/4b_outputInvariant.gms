@@ -182,4 +182,17 @@ r_uTotalOnlinePerUnit(unit)${ p_unit(unit, 'unitCount') }
     = r_uTotalOnline(unit)
         / p_unit(unit, 'unitCount');
 
+// Total sub-unit startups over the simulation
+r_uTotalStartup(unit, starttype)
+    = sum(ft_realizedNoReset(f, t),
+        + r_startup(unit, starttype, f, t)
+        ); // END sum(ft_realizedNoReset)
+
+// Total sub-unit shutdowns over the simulation
+r_uTotalShutdown(unit)
+    = sum(ft_realizedNoReset(f, t),
+        + r_shutdown(unit, f, t)
+        ); // END sum(ft_realizedNoReset)
+
+
 

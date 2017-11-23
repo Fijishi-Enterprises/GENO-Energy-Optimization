@@ -89,6 +89,10 @@ Parameters
     r_uTotalOnline(unit) "Total online sub-unit-hours of units over the simulation"
     r_uTotalOnlinePerUnit(unit) "Total unit online hours per sub-unit over the simulation"
 
+    // Interesting unit startup and shutdown results
+    r_uTotalStartup(unit, starttype) "Number of sub-unit startups over the simulation"
+    r_uTotalShutdown(unit) "Number of sub-unit shutdowns over the simulation"
+
 * --- Reserve Provision Results -----------------------------------------------
 
     // Reserve provision results required for model structure
