@@ -23,18 +23,23 @@ $offtext
 
 // When using constant values and to supplement time series with constant values (time series will override when data available)
 // Upper bound
-v_state.up(gn_state(grid, node), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant') }
+v_state.up(gn_state(grid, node), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
+                                                and not df_central(f,t)
+                                                }
     = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant')
         * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier')
 ;
 // Lower bound
-v_state.lo(gn_state(grid, node), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant') }
+v_state.lo(gn_state(grid, node), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+                                                and not df_central(f,t)
+                                                }
     = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
         * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier')
 ;
 // Fixed value
 v_state.fx(gn_state(grid, node), ft(f, t))${    p_gn(grid, node, 'boundAll')
                                                 and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                                and not df_central(f,t)
                                                 }
     = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
@@ -195,7 +200,7 @@ v_transferLeftward.up(gn2n_directional(grid, node, node_), ft(f, t))${  not p_gn
 // Reserve provision limits without investments
 loop(f_solve(f),
     // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
-    v_reserve.up(nuRescapable(restype, 'up', node, unit), f+df_nReserves(node, restype, f, t), t_active(t))${    gnuft('elec', node, unit, f, t)
+    v_reserve.up(nuRescapable(restype, 'up', node, unit), f+df_nReserves(node, restype, f, t), t_active(t))${   gnuft('elec', node, unit, f, t)
                                                                                                                 and not (unit_investLP(unit) or unit_investMIP(unit))
                                                                                                                 and ord(t) < tSolveFirst + mSettings(mSolve, 't_reserveLength')
                                                                                                                 }
@@ -222,39 +227,40 @@ loop(f_solve(f),
 ); // END loop(fSolve)
 
 // Fix reserves between t_jump and gate_closure based on previous allocations
-loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
-    // Fix non-flow unit reserves ahead of time
-    v_reserve.fx(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${   mft_nReserves(node, restype, mSolve, f, t)
-                                                                                        and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
-                                                                                        and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
-                                                                                        }
-        = r_reserve(restype, up_down, node, unit, f, t);
+if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix the reserves with on the first solve.
+    loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
+        // Fix non-flow unit reserves ahead of time
+        v_reserve.fx(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${ mft_nReserves(node, restype, mSolve, f, t)
+                                                                                            and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
+                                                                                            and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
+                                                                                            }
+            = r_reserve(restype, up_down, node, unit, f, t);
 
-    // Fix transfer of reserves ahead of time
-    // Rightward
-    v_resTransferRightward.fx(restype, up_down, node, node_, f_solve(f), t_active(t))${   mft_nReserves(node, restype, mSolve, f, t)
-                                                                                        and restypeDirectionNode(restype, up_down, node_)
-                                                                                        and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
-                                                                                        and sum(grid, gn2n(grid, node, node_))
-                                                                                        }
-        = r_resTransferRightward(restype, up_down, node, node_, f, t);
-    // Leftward
-    v_resTransferLeftward.fx(restype, up_down, node, node_, f_solve(f), t_active(t))${  mft_nReserves(node, restype, mSolve, f, t)
-                                                                                        and restypeDirectionNode(restype, up_down, node_)
-                                                                                        and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
-                                                                                        and sum(grid, gn2n(grid, node, node_))
-                                                                                        }
-        = r_resTransferLeftward(restype, up_down, node, node_, f, t);
+        // Fix transfer of reserves ahead of time
+        // Rightward
+        v_resTransferRightward.fx(restype, up_down, node, node_, f_solve(f), t_active(t))${   mft_nReserves(node, restype, mSolve, f, t)
+                                                                                            and restypeDirectionNode(restype, up_down, node_)
+                                                                                            and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
+                                                                                            and sum(grid, gn2n(grid, node, node_))
+                                                                                            }
+            = r_resTransferRightward(restype, up_down, node, node_, f, t);
+        // Leftward
+        v_resTransferLeftward.fx(restype, up_down, node, node_, f_solve(f), t_active(t))${  mft_nReserves(node, restype, mSolve, f, t)
+                                                                                            and restypeDirectionNode(restype, up_down, node_)
+                                                                                            and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
+                                                                                            and sum(grid, gn2n(grid, node, node_))
+                                                                                            }
+            = r_resTransferLeftward(restype, up_down, node, node_, f, t);
 
-    // Free the tertiary reserves for the realization
-    v_reserve.fx(nuRescapable('tertiary', up_down, node, unit), ft_realized(f,t))${ nuft(node, unit, f, t) }
-        = 0;
-    v_resTransferRightward.fx('tertiary', up_down, node, node_, ft_realized(f,t))${ sum(grid, gn2n(grid, node, node_))  }
-        = 0;
-    v_resTransferLeftward.fx('tertiary', up_down, node, node_, ft_realized(f,t))${  sum(grid, gn2n(grid, node, node_))  }
-        = 0;
-    ) // END loop(restypeDirectionNode)
-;
+        // Free the tertiary reserves for the realization
+        v_reserve.fx(nuRescapable('tertiary', up_down, node, unit), ft_realized(f,t))${ nuft(node, unit, f, t) }
+            = 0;
+        v_resTransferRightward.fx('tertiary', up_down, node, node_, ft_realized(f,t))${ sum(grid, gn2n(grid, node, node_))  }
+            = 0;
+        v_resTransferLeftward.fx('tertiary', up_down, node, node_, ft_realized(f,t))${  sum(grid, gn2n(grid, node, node_))  }
+            = 0;
+    ); // END loop(restypeDirectionNode)
+); // END if(tSolveFirst)
 
 * --- Investment Variable Boundaries ------------------------------------------
 
@@ -378,15 +384,7 @@ loop(mft_start(mSolve, f, t),
         ); // END if(tSolveFirst)
     ) // END loop(mftStart)
 ;
-$ontext
-v_startup.fx(unit, starttype, fRealization(f), t)${  ord(t) < tSolveFirst
-                                                     and p_stepLengthNoReset(mSolve, f, t)
-    } = r_startup(unit, starttype, f, t);
 
-v_shutdown.fx(unit, fRealization(f), t)${  ord(t) < tSolveFirst
-                                           and p_stepLengthNoReset(mSolve, f, t)
-    } = r_shutdown(unit, f, t);
-$offtext
 // BoundStartToEnd
 v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
                                     and p_gn(grid, node, 'boundStartToEnd')
