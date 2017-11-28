@@ -75,7 +75,7 @@ equations
     q_stateDownwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
 *    q_boundState(grid, node, node, mType, f, t) "Node state variables bounded by other nodes"
     q_boundStateMaxDiff(grid, node, node, mType, f, t) "Node state variables bounded by other nodes (maximum state difference)"
-    q_boundCyclic(grid, node, mType, s, s_) "Cyclic bound for the first and the last states of samples"
+    q_boundCyclic(grid, node, mType, s, s) "Cyclic bound for the first and the last states of samples"
 *    q_boundCyclicSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound inside or between samples"
 
     // Policy
@@ -148,8 +148,8 @@ q_obj ..
 
                         ] // END * p_stepLength
 
-                // Start-up costs
-                + sum(uft_online(unit, f, t),
+                // Start-up costs, initial startup free as units could have been online before model started
+                + sum(uft_online(unit, f, t)${ ord(t) + dt(t) > mSettings(m, 't_start') },
                     + sum(unitStarttype(unit, starttype),
                         + v_startup(unit, starttype, f, t) // Cost of starting up
                             * [ // Startup variable costs
@@ -181,9 +181,9 @@ $offtext
                 ]  // END * p_sft_probability(s,f,t)
         ) // END sum over msft(m, s, f, t)
 
-    // Value of energy storage change
+    // Cost of energy storage change
     + sum(gn_state(grid, node),
-        + sum(mft_start(m, f, t)${   p_storageValue(grid, node, t)
+        + sum(mft_start(m, f, t)${  p_storageValue(grid, node, t)
                                     and active(m, 'storageValue')
                                     },
             + v_state(grid, node, f, t)
@@ -192,7 +192,7 @@ $offtext
                     + p_msft_probability(m, s, f, t)
                     ) // END sum(s)
             ) // END sum(mftStart)
-        - sum(mft_lastSteps(m, f, t)${   p_storageValue(grid, node, t)
+        - sum(mft_lastSteps(m, f, t)${  p_storageValue(grid, node, t)
                                         and active(m, 'storageValue')
                                         },
             + v_state(grid, node, f, t)
@@ -528,8 +528,8 @@ q_startup(uft_online(unit, f, t)) ..
     =E=
 
     // Units previously online
-    + v_online_LP(unit, f+df(f,t+dt(t)), t+dt(t))${uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t))} // This reaches to tFirstSolve when pt = -1
-    + v_online_MIP(unit, f+df(f,t+dt(t)), t+dt(t))${uft_onlineMIP(unit, f+df(f,t+dt(t)), t+dt(t))}
+    + v_online_LP(unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t)) } // This reaches to tFirstSolve when pt = -1
+    + v_online_MIP(unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineMIP(unit, f+df(f,t+dt(t)), t+dt(t)) }
 
     // Unit online history (solve initial value), required because uft_online doesn't extend to before active modelling
     + r_online(unit, f+df(f,t+dt(t)), t+dt(t))${    not uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t))
