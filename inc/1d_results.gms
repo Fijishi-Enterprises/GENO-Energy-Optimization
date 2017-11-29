@@ -110,7 +110,10 @@ Parameters
 
     // Results regarding solution feasibility
     r_qGen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
+    r_gnTotalqGen(inc_dec, grid, node) "Total dummy energy generation/consumption in gn over the simulation (MWh)."
+    r_gTotalqGen(inc_dec, grid) "Total dummy energy generation/consumption in g over the simulation (MWh)."
     r_qResDemand(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW)"
+    r_nTotalqResDemand(restype, up_down, node) "Total dummy reserve provisions in n over the simulation"
     r_solveStatus(t, solve_info) "Information about the solve"
 
 $ontext

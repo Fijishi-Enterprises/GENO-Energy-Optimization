@@ -46,6 +46,13 @@ loop(m,
                 * p_stepLengthNoReset(m, f, t)
             ); // END sum(ft_realizedNoReset)
 
+    // Total dummy generation/consumption
+    r_gnTotalqGen(inc_dec, gn(grid, node))
+        = sum(ft_realizedNoReset(f,t),
+            + r_qGen(inc_dec, grid, node, f, t)
+                * p_stepLengthNoReset(m, f, t)
+            ); // END sum(ft_realizedNoReset)
+
     // Total transfer of energy between nodes
     r_gnnTotalTransfer(gn2n(grid, from_node, to_node))
         = sum(ft_realizedNoReset(f, t),
@@ -64,6 +71,13 @@ loop(m,
     r_nuTotalReserve(nuRescapable(restype, up_down, node, unit))
         = sum(ft_realizedNoReset(f, t),
             + r_reserve(restype, up_down, node, unit, f, t)
+                * p_stepLengthNoReset(m, f, t)
+            ); // END sum(ft_realizedNoReset)
+
+    // Total dummy reserve provisions over the simulation
+    r_nTotalqResDemand(restypeDirectionNode(restype, up_down, node))
+        = sum(ft_realizedNoReset(f, t),
+            + r_qResDemand(restype, up_down, node, f, t)
                 * p_stepLengthNoReset(m, f, t)
             ); // END sum(ft_realizedNoReset)
 
@@ -104,6 +118,12 @@ r_gnuTotalGenShare(gnu_output(grid, node, unit))${ r_gnTotalGen(grid, node) }
 r_gnTotalGenShare(gn(grid, node))${ r_gTotalGen(grid) }
     = r_gnTotalGen(grid, node)
         / r_gTotalGen(grid);
+
+* --- Total Dummy Generation Results ------------------------------------------
+
+// Total dummy generaion in g
+r_gTotalqGen(inc_dec, grid)
+    = sum(gn(grid, node), r_gnTotalqGen(inc_dec, grid, node));
 
 * --- Total Energy Consumption Results ----------------------------------------
 

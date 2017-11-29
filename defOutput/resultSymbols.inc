@@ -108,7 +108,10 @@ r_nTotalReserve
 
 // Results regarding solution feasibility
 r_qGen
+r_gnTotalqGen
+r_gTotalqGen
 r_qResDemand
+r_nTotalqResDemand
 r_solveStatus
 
 // Diagnostics
