@@ -227,8 +227,8 @@ loop(f_solve(f),
 ); // END loop(fSolve)
 
 // Fix reserves between t_jump and gate_closure based on previous allocations
-if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix the reserves with on the first solve.
-    loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
+loop(restypeDirectionNode(restypeDirection(restype, up_down), node),
+    if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix the reserves with on the first solve.
         // Fix non-flow unit reserves ahead of time
         v_reserve.fx(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${ mft_nReserves(node, restype, mSolve, f, t)
                                                                                             and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
@@ -251,16 +251,16 @@ if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix th
                                                                                             and sum(grid, gn2n(grid, node, node_))
                                                                                             }
             = r_resTransferLeftward(restype, up_down, node, node_, f, t);
+    ); // END if(tSolveFirst)
 
-        // Free the tertiary reserves for the realization
-        v_reserve.fx(nuRescapable('tertiary', up_down, node, unit), ft_realized(f,t))${ nuft(node, unit, f, t) }
-            = 0;
-        v_resTransferRightward.fx('tertiary', up_down, node, node_, ft_realized(f,t))${ sum(grid, gn2n(grid, node, node_))  }
-            = 0;
-        v_resTransferLeftward.fx('tertiary', up_down, node, node_, ft_realized(f,t))${  sum(grid, gn2n(grid, node, node_))  }
-            = 0;
-    ); // END loop(restypeDirectionNode)
-); // END if(tSolveFirst)
+    // Free the tertiary reserves for the realization
+    v_reserve.fx(nuRescapable('tertiary', up_down, node, unit), ft_realized(f,t))${ nuft(node, unit, f, t) }
+        = 0;
+    v_resTransferRightward.fx('tertiary', up_down, node, node_, ft_realized(f,t))${ sum(grid, gn2n(grid, node, node_))  }
+        = 0;
+    v_resTransferLeftward.fx('tertiary', up_down, node, node_, ft_realized(f,t))${  sum(grid, gn2n(grid, node, node_))  }
+        = 0;
+); // END loop(restypeDirectionNode)
 
 * --- Investment Variable Boundaries ------------------------------------------
 
