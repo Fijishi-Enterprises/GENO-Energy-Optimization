@@ -37,7 +37,7 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
     // Define updated time window
     Option clear = tt_forecast;
     tt_forecast(t_full(t))${    ord(t) >= ord(tSolve)
-                                and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_forecastLength') + mSettings(mSolve, 't_ForecastJump')
+                                and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_forecastLength') + mSettings(mSolve, 't_forecastJump')
                                 }
         = yes;
 
@@ -156,12 +156,14 @@ $offtext
 
     put_utility 'gdxin' / 'input\tertiary\' tSolve.tl:0 '.gdx';
     execute_load ts_tertiary;
-    ts_reserveDemand('tertiary', up_down, node, f, tt_forecast(t))${    mf(mSolve, f)
-                                                                        and gn('elec', node)
-                                                                        and not mf_realization(mSolve, f)
-                                                                        }
-*        = min(500, ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
-        = max(p_nReserves(node, 'primary', up_down), ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen')));
+    ts_reserveDemand(restypeDirectionNode('tertiary', up_down, node), f_solve(f), tt_forecast(t))${ mf(mSolve, f)
+                                                                                                    and not mf_realization(mSolve, f)
+                                                                                                    and flowNode('wind', node)
+                                                                                                    }
+        = ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen'));
+
+    // Initialize ts_tertiary to conserve memory
+    Option clear = ts_tertiary;
 
 ); // END IF readForecastsInTheLoop
 
@@ -175,7 +177,7 @@ if(mSettings(mSolve, 'forecasts') > 0,
 
     // Define updated time window
     Option clear = tt;
-    tt(tt_forecast(t))${    ord(t) >= ord(tSolve)
+    tt(tt_forecast(t))${    ord(t) > ord(tSolve)
                             and ord(t) <= ord(tSolve) + f_improve
                             }
         = yes;
