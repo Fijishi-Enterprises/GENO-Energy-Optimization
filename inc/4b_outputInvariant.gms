@@ -16,14 +16,75 @@ along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
 * =============================================================================
-* --- Time independent results ------------------------------------------------
+* --- Time Step Dependent Results ---------------------------------------------
 * =============================================================================
-
-* --- Calculate time step length dependent results ----------------------------
 
 // Need to loop over the model dimension, as this file is no longer contained in the modelSolves loop...
 loop(m,
-    // Realized energy consumption !!! NOTE !!! This is a bit of an approximation at the moment
+
+* --- Realized Nodal System Costs ---------------------------------------------
+
+    r_gnRealizedCost(gn(grid, node), ft_realizedNoReset(f, t))
+        // Time step length dependent costs
+        = 1e-6 // Scaling to MEUR
+            * [ // Time step length dependent costs
+                + p_stepLengthNoReset(m, f, t)
+                    * [
+                        // Variable O&M costs
+                        + sum(gnu_output(grid, node, unit),  // Calculated only for output energy
+                            + r_gen(grid, node, unit, f, t)
+                                * p_unit(unit, 'omCosts')
+                            ) // END sum(gnu_output)
+
+                        // Fuel and emission costs, allocated based on outputs
+                        + sum(uFuel(unit, 'main', fuel)${ gnu_output(grid, node, unit) },
+                            + r_fuelUse(fuel, unit, f, t)
+                                * p_gnu(grid, node, unit, 'maxGen')
+                                / p_unit(unit, 'outputCapacityTotal')
+                                * [
+                                    + ts_fuelPrice(fuel, t)
+                                    + sum(emission, // Emission taxes
+                                        + p_unitFuelEmissionCost(unit, fuel, emission)
+                                        ) // END sum(emission)
+                                    ] // END * v_fuelUse
+                            ) // END sum(uFuel)
+
+                        // Node state slack variable penalties
+                        + sum(gn_stateSlack(grid, node),
+                            + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
+                                + r_stateSlack(grid, node, slack, f, t)
+                                    * p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
+                                ) // END sum(slack)
+                            ) // END sum(gn_stateSlack)
+
+                        ] // END * p_stepLengthNoReset
+
+                // Start-up costs
+                + sum(unitStarttype(unit, starttype)${ gnu_output(grid, node, unit) },
+                    + r_startup(unit, starttype, f, t) // Cost of starting up
+                        * p_gnu(grid, node, unit, 'maxGen')
+                        / p_unit(unit, 'outputCapacityTotal')
+                        * [ // Startup variable costs
+                            + p_uStartup(unit, starttype, 'cost', 'unit')
+
+                            // Start-up fuel and emission costs
+                            + sum(uFuel(unit, 'startup', fuel),
+                                + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
+                                    * [
+                                        + ts_fuelPrice(fuel, t)
+                                        + sum(emission, // Emission taxes of startup fuel use
+                                            + p_unitFuelEmissionCost(unit, fuel, emission)
+                                            ) // END sum(emission)
+                                        ] // END * p_uStartup
+                                ) // END sum(uFuel)
+                            ] // END * r_startup
+                    ) // END sum(unitStarttype)
+                ]; // END * 1e-6
+
+
+* --- Realized Nodal Energy Consumption ---------------------------------------
+// !!! NOTE !!! This is a bit of an approximation at the moment !!!!!!!!!!!!!!!
+
     r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, t))
         = p_stepLengthNoReset(m, f, t)
             * [
@@ -33,12 +94,21 @@ loop(m,
                     ) // END sum(gnu_input)
                 ];
 
-    // Total generation on each node
+* --- Total Energy Generation -------------------------------------------------
+
+    // Total energy generation
     r_gnuTotalGen(gnu_output(grid, node, unit))
         = sum(ft_realizedNoReset(f, t),
             + r_gen(grid, node, unit, f, t)
                 * p_stepLengthNoReset(m, f, t)
             ); // END sum(ft_realizedNoReset)
+
+    // Energy generation by fuels
+    r_genFuel(gn(grid, node), fuel, ft_realizedNoReset(f, t))
+        = sum(uFuel(unit, 'main', fuel)${ gnu_output(grid, node, unit) },
+            + r_gen(grid, node, unit, f, t)
+            ); // END sum(uFuel)
+
     // Total generation on each node by fuels
     r_gnTotalGenFuel(gn(grid, node), fuel)
         = sum(ft_realizedNoReset(f, t),
@@ -53,33 +123,7 @@ loop(m,
                 * p_stepLengthNoReset(m, f, t)
             ); // END sum(ft_realizedNoReset)
 
-    // Total transfer of energy between nodes
-    r_gnnTotalTransfer(gn2n(grid, from_node, to_node))
-        = sum(ft_realizedNoReset(f, t),
-            + r_transfer(grid, from_node, to_node, f, t)
-                * p_stepLengthNoReset(m, f, t)
-            ); // END sum(ft_realizedNoReset)
-
-    // Total energy spill from nodes
-    r_gnTotalSpill(grid, node_spill(node))
-        = sum(ft_realizedNoReset(f, t),
-            + r_spill(grid, node, f, t)
-                * p_stepLengthNoReset(m, f, t)
-            ); // END sum(ft_realizedNoReset)
-
-    // Total reserve provisions over the simulation
-    r_nuTotalReserve(nuRescapable(restype, up_down, node, unit))
-        = sum(ft_realizedNoReset(f, t),
-            + r_reserve(restype, up_down, node, unit, f, t)
-                * p_stepLengthNoReset(m, f, t)
-            ); // END sum(ft_realizedNoReset)
-
-    // Total dummy reserve provisions over the simulation
-    r_nTotalqResDemand(restypeDirectionNode(restype, up_down, node))
-        = sum(ft_realizedNoReset(f, t),
-            + r_qResDemand(restype, up_down, node, f, t)
-                * p_stepLengthNoReset(m, f, t)
-            ); // END sum(ft_realizedNoReset)
+* --- Total Unit Online Results -----------------------------------------------
 
     // Total sub-unit-hours for units over the simulation
     r_uTotalOnline(unit)
@@ -97,7 +141,53 @@ loop(m,
                     * mSettings(m, 'intervalInHours')
                 ]; // END division
 
+* --- Total Reserve Provision -------------------------------------------------
+
+    // Total reserve provisions over the simulation
+    r_nuTotalReserve(nuRescapable(restype, up_down, node, unit))
+        = sum(ft_realizedNoReset(f, t),
+            + r_reserve(restype, up_down, node, unit, f, t)
+                * p_stepLengthNoReset(m, f, t)
+            ); // END sum(ft_realizedNoReset)
+
+    // Total dummy reserve provisions over the simulation
+    r_nTotalqResDemand(restypeDirectionNode(restype, up_down, node))
+        = sum(ft_realizedNoReset(f, t),
+            + r_qResDemand(restype, up_down, node, f, t)
+                * p_stepLengthNoReset(m, f, t)
+            ); // END sum(ft_realizedNoReset)
+
+* --- Total Transfer and Spill ------------------------------------------------
+
+    // Total transfer of energy between nodes
+    r_gnnTotalTransfer(gn2n(grid, from_node, to_node))
+        = sum(ft_realizedNoReset(f, t),
+            + r_transfer(grid, from_node, to_node, f, t)
+                * p_stepLengthNoReset(m, f, t)
+            ); // END sum(ft_realizedNoReset)
+
+    // Total energy spill from nodes
+    r_gnTotalSpill(grid, node_spill(node))
+        = sum(ft_realizedNoReset(f, t),
+            + r_spill(grid, node, f, t)
+                * p_stepLengthNoReset(m, f, t)
+            ); // END sum(ft_realizedNoReset)
+
 ); // END loop(m)
+
+* =============================================================================
+* --- Futher Time Step Independent Results ------------------------------------
+* =============================================================================
+
+* --- Scaling Marginal Values to EUR/MWh --------------------------------------
+
+// Energy balance
+r_balanceMarginal(gn(grid, node), ft_realizedNoReset(f, t))
+    = 1e6 * r_balanceMarginal(grid, node, f, t);
+
+// Reserve balance
+r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), ft_realizedNoReset(f, t))
+    = 1e6 * r_resDemandMarginal(restype, up_down, node, f, t);
 
 * --- Total Generation Results ------------------------------------------------
 
@@ -151,9 +241,9 @@ r_totalGenFuel(fuel)
     = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, fuel));
 
 // Total fuel consumption gn/g shares
-r_gnTotalGenFuelShare(gn(grid, node), fuel)${ r_gTotalGenFuel(grid, fuel) }
+r_gnTotalGenFuelShare(gn(grid, node), fuel)${ r_gnTotalGen(grid, node) }
     = r_gnTotalGenFuel(grid, node, fuel)
-        / r_gTotalGenFuel(grid, fuel);
+        / r_gnTotalGen(grid, node);
 
 * --- Total Spilled Energy Results --------------------------------------------
 
@@ -213,6 +303,30 @@ r_uTotalShutdown(unit)
     = sum(ft_realizedNoReset(f, t),
         + r_shutdown(unit, f, t)
         ); // END sum(ft_realizedNoReset)
+
+* --- Diagnostic Results ------------------------------------------------------
+
+// Estimated coefficients of performance
+d_cop(unit, ft_realizedNoReset(f, t))${ sum(gnu_input(grid, node, unit), 1) }
+    = sum(gnu_output(grid, node, unit),
+        + r_gen(grid, node, unit, f, t)
+        ) // END sum(gnu_output)
+        / [ sum(gnu_input(grid_, node_, unit),
+                -r_gen(grid_, node_, unit, f, t)
+                ) // END sum(gnu_input)
+            + 1${not sum(gnu_input(grid_, node_, unit), -r_gen(grid_, node_, unit, f, t))}
+            ];
+
+// Estimated efficiency
+d_eff(unit_fuel(unit), ft_realizedNoReset(f, t))
+    = sum(gnu_output(grid, node, unit),
+        + r_gen(grid, node, unit, f, t)
+        ) // END sum(gnu_output)
+        / [ sum(uFuel(unit, 'main', fuel),
+                + r_fuelUse(fuel, unit, f, t)
+                ) // END sum(uFuel)
+            + 1${not sum(uFuel(unit, 'main', fuel), r_fuelUse(fuel, unit, f, t))}
+            ];
 
 
 

@@ -35,6 +35,8 @@ r_totalRealizedCost
 
 // State variable results, required for model structure !!!!!!!!!!!!!!!!!!!!!!!
 r_state
+// State variable slack results
+r_stateSlack
 
 // Energy transfer and spill variable results
 r_transfer

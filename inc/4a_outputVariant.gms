@@ -34,24 +34,24 @@ r_online(uft_online(unit, ft_realized(f, t)))
         + v_online_MIP.l(unit, f, t)${  uft_onlineMIP(unit, f, t)   }
 ;
 // Reserve provisions of units
-r_reserve(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${  mft_nReserves(node, restype, mSolve, f, t)
-                                                                                or sum(f_, df_nReserves(node, restype, f_, t))
-                                                                                }
+r_reserve(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${    mft_nReserves(node, restype, mSolve, f, t)
+                                                                                    or sum(f_, df_nReserves(node, restype, f_, t))
+                                                                                    }
     = v_reserve.l(restype, up_down, node, unit, f, t)
 ;
 // Reserve transfer capacity
-r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${ restypeDirectionNode(restype, up_down, to_node)
-                                                                                                            and [   mft_nReserves(from_node, restype, mSolve, f, t)
-                                                                                                                or sum(f_, df_nReserves(from_node, restype, f_, t))
-                                                                                                                ]
-                                                                                                            }
+r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${   restypeDirectionNode(restype, up_down, to_node)
+                                                                                                                and [   mft_nReserves(from_node, restype, mSolve, f, t)
+                                                                                                                    or sum(f_, df_nReserves(from_node, restype, f_, t))
+                                                                                                                    ]
+                                                                                                                }
     = v_resTransferRightward.l(restype, up_down, from_node, to_node, f, t)
 ;
-r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${  restypeDirectionNode(restype, up_down, to_node)
-                                                                                                            and [   mft_nReserves(from_node, restype, mSolve, f, t)
-                                                                                                                or sum(f_, df_nReserves(from_node, restype, f_, t))
-                                                                                                                ]
-                                                                                                            }
+r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${    restypeDirectionNode(restype, up_down, to_node)
+                                                                                                                and [   mft_nReserves(from_node, restype, mSolve, f, t)
+                                                                                                                    or sum(f_, df_nReserves(from_node, restype, f_, t))
+                                                                                                                    ]
+                                                                                                                }
     = v_resTransferLeftward.l(restype, up_down, from_node, to_node, f, t)
 ;
 // Unit startup and shutdown history
@@ -61,8 +61,6 @@ r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t)  }
 r_shutdown(uft_online(unit, ft_realized(f, t)))
     = v_shutdown.l(unit, f, t)
 ;
-// Last realized timestep
-*r_realizedLast = tRealizedLast;
 
 * --- Interesting results -----------------------------------------------------
 
@@ -73,10 +71,6 @@ r_gen(gnuft(grid, node, unit, ft_realized(f, t)))
 // Fuel use of units
 r_fuelUse(fuel, uft(unit_fuel, ft_realized(f, t)))
     = v_fuelUse.l(fuel, unit_fuel, f, t)
-;
-// Fuel used for generation
-r_genFuel(gn(grid, node), fuel, ft_realized(f, t))
-    = sum(gnu(grid, node, unit), v_fuelUse.l(fuel, unit, f, t))
 ;
 // Transfer of energy between nodes
 r_transfer(gn2n(grid, from_node, to_node), ft_realized(f, t))
@@ -92,70 +86,15 @@ r_totalObj
 ;
 // q_balance marginal values
 r_balanceMarginal(gn(grid, node), ft_realized(f, t))
-    = 1e6 * q_balance.m(grid, node, mSolve, f, t)
+    = q_balance.m(grid, node, mSolve, f, t)
 ;
 // q_resDemand marginal values
 r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
     = q_resDemand.m(restype, up_down, node, f, t)
 ;
-
-* --- Realized system costs ---------------------------------------------------
-
-r_gnRealizedCost(gn(grid, node), ft_realized(f, t))
-    // Time step length dependent costs
-    = 1e-6 // Scaling to MEUR
-        * [
-            // Time step length dependent costs
-            + p_stepLength(mSolve, f, t)
-                * [
-                    // Variable O&M costs
-                    + sum(gnuft(gnu_output(grid, node, unit), f, t),  // Calculated only for output energy
-                        + v_gen.l(grid, node, unit, f, t)
-                            * p_unit(unit, 'omCosts')
-                        ) // END sum(gnu_output)
-
-                    // Fuel and emission costs
-                    + sum(uFuel(unit, 'main', fuel)${ gnuft(grid, node, unit, f, t) },
-                        + v_fuelUse.l(fuel, unit, f, t)
-                            * [
-                                + ts_fuelPrice(fuel, t)
-                                + sum(emission, // Emission taxes
-                                    + p_unitFuelEmissionCost(unit, fuel, emission)
-                                    ) // END sum(emission)
-                                ] // END * v_fuelUse
-                        ) // END sum(uFuel)
-
-                    // Node state slack variable penalties
-                    + sum(gn_stateSlack(grid, node),
-                        + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
-                            + v_stateSlack.l(grid, node, slack, f, t)
-                                * p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
-                            ) // END sum(slack)
-                        ) // END sum(gn_stateSlack)
-
-                    ] // END * p_stepLength
-
-            // Start-up costs
-            + sum(gnuft(grid, node, unit, f, t)${ uft_online(unit, f, t) },
-                + sum(starttype,
-                    + v_startup.l(unit, starttype, f, t) // Cost of starting up
-                        * [ // Startup variable costs
-                            + p_uStartup(unit, starttype, 'cost', 'unit')
-
-                            // Start-up fuel and emission costs
-                            + sum(uFuel(unit, 'startup', fuel),
-                                + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
-                                    * [
-                                        + ts_fuelPrice(fuel, t)
-                                        + sum(emission, // Emission taxes of startup fuel use
-                                            + p_unitFuelEmissionCost(unit, fuel, emission)
-                                            ) // END sum(emission)
-                                        ] // END * p_uStartup
-                                ) // END sum(uFuel)
-                            ] // END * v_startup
-                    ) // END sum(starttype)
-                ) // END sum(gnuft)
-            ] // END * 1e-6
+// v_stateSlack values for calculation of realized costs later on
+r_stateSlack(gn_stateSlack(grid, node), slack, ft_realized(f, t))
+    = v_stateSlack.l(grid, node, slack, f, t)
 ;
 
 * --- Feasibility results -----------------------------------------------------
@@ -171,26 +110,7 @@ r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
 
 * --- Diagnostics Results -----------------------------------------------------
 
-d_cop(uft(unit, ft_realized(f, t)))${sum(gnu_input(grid, node, unit), 1)}
-    = sum(gnu_output(grid, node, unit),
-        + r_gen(grid, node, unit, f, t)
-        ) // END sum(gnu_output)
-        / [ sum(gnu_input(grid_, node_, unit),
-                -r_gen(grid_, node_, unit, f, t)
-                ) // END sum(gnu_input)
-            + 1${not sum(gnu_input(grid_, node_, unit), -r_gen(grid_, node_, unit, f, t))}
-            ]
-;
-d_eff(uft(unit_fuel, ft_realized(f, t)))
-    = sum(gnu_output(grid, node, unit_fuel),
-        + r_gen(grid, node, unit_fuel, f, t)
-        ) // END sum(gnu_output)
-        / [ sum(uFuel(unit_fuel, param_fuel, fuel),
-                + r_fuelUse(fuel, unit_fuel, f, t)
-                ) // END sum(uFuel)
-            + 1${not sum(uFuel(unit_fuel, param_fuel, fuel), r_fuelUse(fuel, unit_fuel, f, t))}
-            ]
-;
+// Capacity factors for examining forecast errors
 d_capacityFactor(flow, node, f_solve(f), t_active(t))${ sum(flowUnit(flow, unit), nu(node, unit)) }
     = ts_cf_(flow, node, f, t)
         + ts_cf(flow, node, f, t)${ not ts_cf_(flow, node, f, t) }

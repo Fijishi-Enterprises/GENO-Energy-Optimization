@@ -37,6 +37,8 @@ Parameters
 
     // State variable results, required for model structure
     r_state(grid, node, f, t) "Node state at timestep t"
+    // State variable slack values
+    r_stateSlack(grid, node, slack, f, t) "Note state slack at timestep t"
 
     // Energy transfer and spill variable results
     r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
