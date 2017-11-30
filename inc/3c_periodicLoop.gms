@@ -108,6 +108,10 @@ $$iftheni.debug NOT '%debug%' == 'yes'
 
 * --- Temporary Time Series ---------------------------------------------------
 
+    // Forecast Related Time Series
+    Option clear = ts_forecast;
+    Option clear = ts_tertiary;
+
     // Initialize temporary time series
     Option clear = ts_influx_;
     Option clear = ts_cf_;
@@ -407,15 +411,6 @@ loop(effOnline(effSelector),
 uft_onlineLP(uft(unit, f, t))${ suft('directOnLP', unit, f, t) }
     = yes;
 uft_onlineMIP(uft_online(unit, f, t)) = uft_online(unit, f, t) - uft_onlineLP(unit, f, t);
-
-// Determine the last timestep with online variables
-// !!! NOTE !!! THIS ROW CONSUMES TOO MUCH TIME !!! IMPROVEMENTS NEEDED !!!!!!!
-*uft_online_last(uft_online(unit, f+df(f,t+dt(t)), t+dt(t)))${   not uft_online(unit, f, t)  }
-*    = yes;
-
-*Option clear = uft_online_incl_previous;
-*uft_online_incl_previous(uft_online(unit, f, t)) = yes;
-*uft_online_incl_previous(unit, f, t+pt(t))${uft_online(unit, f, t) and ord(t) = tSolveFirst and fRealization(f)} = yes;
 
 // Calculate time series form parameters for units using direct input output conversion without online variable
 // Always constant 'lb', 'rb', and 'section', so need only to define 'slope'.

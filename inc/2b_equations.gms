@@ -19,7 +19,7 @@ $offtext
 * --- Penalty Definitions -----------------------------------------------------
 * =============================================================================
 
-$setlocal def_penalty 1e9
+$setlocal def_penalty 1e3
 Scalars
     PENALTY "Default equation violation penalty" / %def_penalty% /
 ;
@@ -94,14 +94,15 @@ equations
 * --- Objective Function ------------------------------------------------------
 
 q_obj ..
-    + v_obj * 1000000
+
+    + v_obj * 1e6
 
     =E=
 
     // Sum over all the samples, forecasts, and time steps in the current model
     + sum(msft(m, s, f, t),
         // Probability (weight coefficient) of (s,f,t)
-        + p_msft_Probability(m, s, f, t)
+        + p_msft_probability(m, s, f, t)
             * [
                 // Time step length dependent costs
                 + p_stepLength(m, f, t)
@@ -121,9 +122,9 @@ q_obj ..
                                         + p_unitFuelEmissionCost(unit, fuel, emission)
                                         )
                                     ] // END * v_fuelUse
-                            ) // END sum(uft)
+                            ) // END sum(uFuel)
 
-                        // Node state slack variable penalties
+                        // Node state slack variable costs
                         + sum(gn_stateSlack(grid, node),
                             + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
                                 + v_stateSlack(grid, node, slack, f, t)
@@ -157,7 +158,7 @@ q_obj ..
 
                                 // Start-up fuel and emission costs
                                 + sum(uFuel(unit, 'startup', fuel),
-                                    + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
+                                    + p_uStartup(unit, starttype, 'consumption', 'unit')${ not unit_investLP(unit) }
                                         * [
                                             + ts_fuelPrice(fuel, t)
                                             + sum(emission, // Emission taxes of startup fuel use
@@ -1328,7 +1329,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
 * --- Cyclic Boundary Conditions ----------------------------------------------
 
 q_boundCyclic(gn_state(grid, node), ms(m, s), s_)${ ms(m, s_)
-                                                    and tSolveFirst = mSettings(m, 't_start') // Only apply for the very first solve
+                                                    //and tSolveFirst = mSettings(m, 't_start') // Only apply for the very first solve
                                                     and [
                                                         [   p_gn(grid, node, 'boundCyclic') // Bind variables if parameter found
                                                             and ord(s) = ord(s_) // Select the same sample

@@ -98,7 +98,6 @@ Sets
     mf_central(mType, f) "Forecast that continues as sample(s) after the forecast horizon ends"
     ms_initial(mType, s) "Sample that presents the realized/forecasted period"
     ms_central(mType, s) "Sample that continues the central forecast after the forecast horizon ends"
-*    mft_lastForecast(mType, f, t) "Last time period where the forecast extends"
     mft_lastSteps(mType, f, t) "Last time period of the model"
     modelSolves(mType, t) "when different models are to be solved"
     f_solve(f) "forecasts in the model to be solved next"

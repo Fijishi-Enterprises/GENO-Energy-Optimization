@@ -315,10 +315,6 @@ loop(m,
 * --- Various Initial Values and Calculations ---------------------------------
 * =============================================================================
 
-* --- Calculating the order of time periods -----------------------------------
-
-tOrd(t) = ord(t);
-
 * --- Calculating fuel price time series --------------------------------------
 
 loop(fuel,
