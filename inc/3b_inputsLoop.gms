@@ -41,116 +41,81 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
                                 }
         = yes;
 
+    // Define temporary time displacement to reach t_latestForecast
+    Option clear = ddt;
+    ddt(tt_forecast(t)) = ord(tSolve) - ord(t);
+
 * --- Update Forecast Data ----------------------------------------------------
 
-    loop(t_latestForecast,  // There should be only one latest forecast
-        ts_cf(flowNode(flow, node), f_solve(f), tt_forecast(t))${   ts_forecast(flow, node, t_latestForecast, f, t) // Only update data for capacity factors with forecast. NOTE! This results in problems if the forecast has values of zero!
-                                                                    and mf(mSolve, f)
-                                                                    }
-            = ts_forecast(flow, node, t_latestForecast, f, t);
+    ts_cf(flowNode(flow, node), f_solve(f), tt_forecast(t))${   ts_forecast(flow, node, t+ddt(t), f, t) // Only update data for capacity factors with forecast. NOTE! This results in problems if the forecast has values of zero!
+                                                                and mf(mSolve, f)
+                                                                }
+        = ts_forecast(flow, node, t+ddt(t), f, t);
 
-        // !!! REALVALUE SPECIFIC !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-$ontext
-        // Force the upper and lower forecasts to include the realization
-        ts_cf(flow, node, 'f01', tt(t))${   mf(mSolve, 'f01')
-                                            and not fRealization('f01')
-                                            and not fCentral('f01')
-            } = min(ts_cf(flow, node, 'f01', t), sum(fRealization(f_), ts_cf(flow, node, f_, t)));
-        ts_cf(flow, node, 'f03', tt(t))${   mf(mSolve, 'f03')
-                                            and not fRealization('f03')
-                                            and not fCentral('f03')
-            } = max(ts_cf(flow, node, 'f03', t), sum(fRealization(f_), ts_cf(flow, node, f_, t)));
-$offtext
-
-        // Ambient temperatures, need to be weighted with the GFA densities of the different regions that are aggregated into the nodes
-        ts_nodeState('heat', '74FI_ambient', 'reference', f_solve(f), tt_forecast(t))${  gn_state('heat', '74FI_ambient')
-                                                                                        and mf_central(mSolve, f)
-                                                                                        and not mf_realization(mSolve, f)
-                                                                                        }
-            = + 0.1075 * ts_forecast('temperature', 'FI_1', t_latestForecast, f, t)
-                + 0.8925 * ts_forecast('temperature', 'FI_2', t_latestForecast, f, t)
-        ;
-        ts_nodeState('heat', '75FI_ambient', 'reference', f_solve(f), tt_forecast(t))${  gn_state('heat', '75FI_ambient')
-                                                                                        and mf_central(mSolve, f)
-                                                                                        and not mf_realization(mSolve, f)
-                                                                                        }
-            = + 0.3332 * ts_forecast('temperature', 'FI_3', t_latestForecast, f, t)
-                + 0.1644 * ts_forecast('temperature', 'FI_4', t_latestForecast, f, t)
-                + 0.0848 * ts_forecast('temperature', 'FI_5', t_latestForecast, f, t)
-                + 0.1086 * ts_forecast('temperature', 'FI_6', t_latestForecast, f, t)
-                + 0.3090 * ts_forecast('temperature', 'FI_7', t_latestForecast, f, t)
-        ;
+    // Ambient temperatures, need to be weighted with the GFA densities of the different regions that are aggregated into the nodes
+    ts_nodeState('heat', '74FI_ambient', 'reference', f_solve(f), tt_forecast(t))${ gn_state('heat', '74FI_ambient')
+                                                                                    and mf_central(mSolve, f)
+                                                                                    and not mf_realization(mSolve, f)
+                                                                                    }
+        = + 0.1075 * ts_forecast('temperature', 'FI_1', t+ddt(t), f, t)
+            + 0.8925 * ts_forecast('temperature', 'FI_2', t+ddt(t), f, t)
+    ;
+    ts_nodeState('heat', '75FI_ambient', 'reference', f_solve(f), tt_forecast(t))${ gn_state('heat', '75FI_ambient')
+                                                                                    and mf_central(mSolve, f)
+                                                                                    and not mf_realization(mSolve, f)
+                                                                                    }
+        = + 0.3332 * ts_forecast('temperature', 'FI_3', t+ddt(t), f, t)
+            + 0.1644 * ts_forecast('temperature', 'FI_4', t+ddt(t), f, t)
+            + 0.0848 * ts_forecast('temperature', 'FI_5', t+ddt(t), f, t)
+            + 0.1086 * ts_forecast('temperature', 'FI_6', t+ddt(t), f, t)
+            + 0.3090 * ts_forecast('temperature', 'FI_7', t+ddt(t), f, t)
+    ;
 *$ontext
-        // Minimum forecasts
-        ts_nodeState('heat', '74FI_ambient', 'reference', 'f01', tt_forecast(t))${  gn_state('heat', '74FI_ambient')
-                                                                                    and not mf_realization(mSolve, 'f01')
-                                                                                    and not mf_central(mSolve, 'f01')
-                                                                                    }
-            = min(
-                ts_forecast('temperature', 'FI_1', t_latestForecast, 'f01', t),
-                ts_forecast('temperature', 'FI_2', t_latestForecast, 'f01', t)
-                )
-        ;
-        ts_nodeState('heat', '75FI_ambient', 'reference', 'f01', tt_forecast(t))${  gn_state('heat', '75FI_ambient')
-                                                                                    and not mf_realization(mSolve, 'f01')
-                                                                                    and not mf_central(mSolve, 'f01')
-                                                                                    }
-            = min(
-                ts_forecast('temperature', 'FI_3', t_latestForecast, 'f01', t),
-                ts_forecast('temperature', 'FI_4', t_latestForecast, 'f01', t),
-                ts_forecast('temperature', 'FI_5', t_latestForecast, 'f01', t),
-                ts_forecast('temperature', 'FI_6', t_latestForecast, 'f01', t),
-                ts_forecast('temperature', 'FI_7', t_latestForecast, 'f01', t)
-                )
-        ;
-        // Maximum forecasts
-        ts_nodeState('heat', '74FI_ambient', 'reference', 'f03', tt_forecast(t))${  gn_state('heat', '74FI_ambient')
-                                                                                    and not mf_realization(mSolve, 'f03')
-                                                                                    and not mf_central(mSolve, 'f03')
-                                                                                    }
-            = max(
-                ts_forecast('temperature', 'FI_1', t_latestForecast, 'f03', t),
-                ts_forecast('temperature', 'FI_2', t_latestForecast, 'f03', t)
-                )
-        ;
-        ts_nodeState('heat', '75FI_ambient', 'reference', 'f03', tt_forecast(t))${  gn_state('heat', '75FI_ambient')
-                                                                                    and not mf_realization(mSolve, 'f03')
-                                                                                    and not mf_central(mSolve, 'f03')
-                                                                                    }
-            = max(
-                ts_forecast('temperature', 'FI_3', t_latestForecast, 'f03', t),
-                ts_forecast('temperature', 'FI_4', t_latestForecast, 'f03', t),
-                ts_forecast('temperature', 'FI_5', t_latestForecast, 'f03', t),
-                ts_forecast('temperature', 'FI_6', t_latestForecast, 'f03', t),
-                ts_forecast('temperature', 'FI_7', t_latestForecast, 'f03', t)
-                )
-        ;
+    // Minimum forecasts
+    ts_nodeState('heat', '74FI_ambient', 'reference', 'f01', tt_forecast(t))${  gn_state('heat', '74FI_ambient')
+                                                                                and not mf_realization(mSolve, 'f01')
+                                                                                and not mf_central(mSolve, 'f01')
+                                                                                }
+        = min(
+            ts_forecast('temperature', 'FI_1', t+ddt(t), 'f01', t),
+            ts_forecast('temperature', 'FI_2', t+ddt(t), 'f01', t)
+            )
+    ;
+    ts_nodeState('heat', '75FI_ambient', 'reference', 'f01', tt_forecast(t))${  gn_state('heat', '75FI_ambient')
+                                                                                and not mf_realization(mSolve, 'f01')
+                                                                                and not mf_central(mSolve, 'f01')
+                                                                                }
+        = min(
+            ts_forecast('temperature', 'FI_3', t+ddt(t), 'f01', t),
+            ts_forecast('temperature', 'FI_4', t+ddt(t), 'f01', t),
+            ts_forecast('temperature', 'FI_5', t+ddt(t), 'f01', t),
+            ts_forecast('temperature', 'FI_6', t+ddt(t), 'f01', t),
+            ts_forecast('temperature', 'FI_7', t+ddt(t), 'f01', t)
+            )
+    ;
+    // Maximum forecasts
+    ts_nodeState('heat', '74FI_ambient', 'reference', 'f03', tt_forecast(t))${  gn_state('heat', '74FI_ambient')
+                                                                                and not mf_realization(mSolve, 'f03')
+                                                                                and not mf_central(mSolve, 'f03')
+                                                                                }
+        = max(
+            ts_forecast('temperature', 'FI_1', t+ddt(t), 'f03', t),
+            ts_forecast('temperature', 'FI_2', t+ddt(t), 'f03', t)
+            )
+    ;
+    ts_nodeState('heat', '75FI_ambient', 'reference', 'f03', tt_forecast(t))${  gn_state('heat', '75FI_ambient')
+                                                                                and not mf_realization(mSolve, 'f03')
+                                                                                and not mf_central(mSolve, 'f03')
+                                                                                }
+        = max(
+            ts_forecast('temperature', 'FI_3', t+ddt(t), 'f03', t),
+            ts_forecast('temperature', 'FI_4', t+ddt(t), 'f03', t),
+            ts_forecast('temperature', 'FI_5', t+ddt(t), 'f03', t),
+            ts_forecast('temperature', 'FI_6', t+ddt(t), 'f03', t),
+            ts_forecast('temperature', 'FI_7', t+ddt(t), 'f03', t)
+            )
+    ;
 *$offtext
-$ontext
-        // Correction to the level of the central temperature forecast, starting from the current temperature
-        ts_nodeState(gn_state(grid, node), 'reference', f, tt(t))${ mf(mSolve, f)
-                                                                    and sum(param_gnBoundaryTypes, p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries'))
-                                                                    and not fRealization(f)
-            } = + ts_nodeState(grid, node, 'reference', f, t)
-                - sum(fCentral(f_), ts_nodeState(grid, node, 'reference', f_, t_latestForecast))
-                + sum(fRealization(f_), ts_nodeState(grid, node, 'reference', f_, t_latestForecast))
-        ;
-
-        // Force the minimum and maximum forecasts to include the realization
-        ts_nodeState(gn_state(grid, node), 'reference', 'f01', tt(t))${ mf(mSolve, 'f01')
-                                                                        and not fRealization('f01')
-                                                                        and not fCentral('f01')
-                                                                        and ts_nodeState(grid, node, 'reference', 'f01', t)
-            } = min(ts_nodeState(grid, node, 'reference', 'f01', t), sum(fRealization(f_), ts_nodeState(grid, node, 'reference', f_, t)))
-        ;
-        ts_nodeState(gn_state(grid, node), 'reference', 'f03', tt(t))${ mf(mSolve, 'f03')
-                                                                        and not fRealization('f03')
-                                                                        and not fCentral('f03')
-                                                                        and ts_nodeState(grid, node, 'reference', 'f03', t)
-            } = max(ts_nodeState(grid, node, 'reference', 'f03', t), sum(fRealization(f_), ts_nodeState(grid, node, 'reference', f_, t)))
-        ;
-$offtext
-    ); // END loop(t_latestForecast)
 
 * --- Read the Tertiary Reserve Requirements ----------------------------------
 
@@ -160,10 +125,8 @@ $offtext
                                                                                                     and not mf_realization(mSolve, f)
                                                                                                     and flowNode('wind', node)
                                                                                                     }
-        = ts_tertiary('wind', node, tSolve, up_down, t) * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen'));
-
-    // Initialize ts_tertiary to conserve memory
-    Option clear = ts_tertiary;
+        = ts_tertiary('wind', node, t+ddt(t), up_down, t)
+            * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen'));
 
 ); // END IF readForecastsInTheLoop
 
@@ -182,52 +145,49 @@ if(mSettings(mSolve, 'forecasts') > 0,
                             }
         = yes;
 
+    // Temporary forecast displacement to reach the central forecast
+    Option clear = ddf;
+    ddf(f_solve(f), tt(t))${ not mf_central(mSolve, f) }
+        = sum(mf_central(mSolve, f_), ord(f_) - ord(f));
+
+    // Temporary forecast displacement to reach the realized forecast
+    Option clear = ddf_;
+    ddf_(f_solve(f), tt(t))${ not mf_realization(mSolve, f) }
+        = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
+
+    // Update the upper and lower forecasts based on the original central forecast
+    ts_cf(flowNode(flow, node), f_solve(f), tt(t))${    not mf_realization(mSolve, f)
+                                                        and not mf_central(mSolve, f)
+                                                        }
+                = ts_cf(flow, node, f, t) - ts_cf(flow, node, f+ddf(f,t), t);
+
     // Improve forecasts during the dispatch
-    loop(mf_realization(mSolve, f_),
-        // Improve central capacity factors, linear improvement towards fRealization
-        ts_cf(flowNode(flow, node), f_solve(f), tt(t))${ not mf_realization(mSolve, f)
+    // Improve central capacity factors, linear improvement towards fRealization
+    ts_cf(flowNode(flow, node), f_solve(f), tt(t))${    not mf_realization(mSolve, f)
                                                         and mf_central(mSolve, f)
                                                         }
-            = (
-                (ord(t) - ord(tSolve)) * ts_cf(flow, node, f, t)
-                + (f_improve + ord(tSolve) - ord(t)) * ts_cf(flow, node, f_, t)
-                )
-                    / f_improve;
+        = (
+            (ord(t) - ord(tSolve)) * ts_cf(flow, node, f, t)
+            + (f_improve + ord(tSolve) - ord(t)) * ts_cf(flow, node, f+ddf_(f,t), t)
+            )
+                / f_improve;
 
-        // Upper and lower forecasts include realization?
-        ts_cf(flowNode(flow, node), f_solve('f01'), tt(t))
-            = min(
-                    ts_cf(flow, node, 'f01', t),
-                    ts_cf(flow, node, f_, t)
-                    );
-        ts_cf(flowNode(flow, node), f_solve('f03'), tt(t))
-            = max(
-                    ts_cf(flow, node, 'f03', t),
-                    ts_cf(flow, node, f_, t)
-                    );
-
-        // !!! REALVALUE SPECIFIC !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // Also improve ambient temperature forecasts
-        ts_nodeState(gn_state(grid, node), 'reference', f_solve(f), tt(t))${ not mf_realization(mSolve, f)
+    // !!! REALVALUE SPECIFIC !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Also improve ambient temperature forecasts
+    ts_nodeState(gn_state(grid, node), 'reference', f_solve(f), tt(t))${    not mf_realization(mSolve, f)
                                                                             and mf_central(mSolve, f)
                                                                             }
-            = (
-                (ord(t) - ord(tSolve)) * ts_nodeState(grid, node, 'reference', f, t)
-                + (f_improve + ord(tSolve) - ord(t)) * ts_nodeState(grid, node, 'reference', f_, t)
-                )
-                    / f_improve;
+        = (
+            (ord(t) - ord(tSolve)) * ts_nodeState(grid, node, 'reference', f, t)
+            + (f_improve + ord(tSolve) - ord(t)) * ts_nodeState(grid, node, 'reference', f+ddf_(f,t), t)
+            )
+                / f_improve;
 
-        // Upper and lower forecasts include realization?
-        ts_nodeState(gn_state(grid, node), 'reference', f_solve('f01'), tt(t))
-            = min(
-                    ts_nodeState(grid, node, 'reference', 'f01', t),
-                    ts_nodeState(grid, node, 'reference', f_, t)
-                    );
-        ts_nodeState(gn_state(grid, node), 'reference', f_solve('f03'), tt(t))
-            = max(
-                    ts_nodeState(grid, node, 'reference', 'f03', t),
-                    ts_nodeState(grid, node, 'reference', f_, t)
-                    );
-    ); // END loop(mfRealization)
+    // Update the upper and lower forecasts based on the improved central forecast
+    ts_cf(flowNode(flow, node), f_solve(f), tt(t))${    not mf_realization(mSolve, f)
+                                                        and not mf_central(mSolve, f)
+                                                        }
+        = min(max( ts_cf(flow, node, f, t) + ts_cf(flow, node, f+ddf(f,t), t), 0),1);
+
 ); // END IF forecasts
 *$offtext

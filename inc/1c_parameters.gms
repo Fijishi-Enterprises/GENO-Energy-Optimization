@@ -91,6 +91,11 @@ Parameters
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
     df_nReserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves."
 
+    // Temporary displacement arrays
+    ddt(t) "Temporary time displacement array."
+    ddf(f, t) "Temporary forecast displacement array."
+    ddf_(f, t) "Temporary forecast displacement array."
+
     // Other
     p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
     tForecastNext(mType) "When the next forecast will be availalbe (ord time)"
