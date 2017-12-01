@@ -121,7 +121,7 @@ Parameters
     ts_cf_(flow, node, f, t)
     ts_reserveDemand_(restype, up_down, node, f, t)
     ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
-    ts_fuelPrice_(fuel, t)       
+    ts_fuelPrice_(fuel, t)
 
     // Temporary data time series for updating forecasts and reserve demand
     ts_forecast(flow, node, t, f, t)

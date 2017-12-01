@@ -26,6 +26,18 @@ Parameters
     // Total Objective Function
     r_totalObj "Total operating cost over the simulation (€)" / 0 /
 
+    // Unit Operational Cost Components
+    r_gnuVOM(grid, node, unit, f, t) "Variable O&M costs for energy outputs (MEUR)"
+    r_gnuTotalVOM(grid, node, unit) "Total gnu VOM costs over the simulation (MEUR)"
+    r_uFuelEmissionCost(fuel, unit, f, t) "Unit fuel & emission costs for normal operation (MEUR)"
+    r_uTotalFuelEmissionCost(fuel, unit) "Total unit fuel & emission costs over the simulation for normal operation (MEUR)"
+    r_uStartupCost(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
+    r_uTotalStartupCost(unit) "Total unit startup costs over the simulation (MEUR)"
+
+    // Nodal Cost Components
+    r_gnStateSlackCost(grid, node, f, t) "Costs for states requiring slack (MEUR)"
+    r_gnStorageValueChange(grid, node) "Change in storage values over the simulation (MEUR)"
+
     // Realized System Costs
     r_gnRealizedCost(grid, node, f, t) "Realized system costs in gn for each t (MEUR)"
     r_gnTotalRealizedCost(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
@@ -118,21 +130,7 @@ Parameters
     r_nTotalqResDemand(restype, up_down, node) "Total dummy reserve provisions in n over the simulation"
     r_solveStatus(t, solve_info) "Information about the solve"
 
-$ontext
-    // Old results arrays
-*    r_genNodeType(grid, node, unitType, t) "Energy generation/consumption based on unittypes (MW)"
-*    r_genType(grid, unitType, t) "Energy generation/consumption based on unittypes (MW)"
-*    r_elec_type(unittype, t) "Average electricity generation rate of generator type (MW)"
-*    r_demand(grid, node, t) "Average energy demand (MW)"
-*    r_capacity_type(unittype) "Available generation capacity by type (MW)"
-*    r_elecConsumption(unit, t) "Average electricity consumption rate during hour (MW)"
-*    r_storageValue(node, t) "Storage value (€/MWh)"
-*    r_storageControl(node, t) "Storage control during hour (MWh)"
-*    r_energyPrice(grid, node, t) "Marginal cost of energy generation (MWh)"
-*    r_cost(t) "Total operating cost for each hour, without value of state or online changes (€)"
-
-;
-$offtext
+; // END PARAMETER DECLARATION
 
 Scalar r_realizedLast "Order of last realised time step";
 
@@ -156,4 +154,5 @@ Parameters
     d_cop(unit, f, t) "Coefficients of performance of conversion units"
     d_eff(unit, f, t) "Efficiency of generation units using fuel"
     d_capacityFactor(flow, node, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
+    d_nodeState(grid, node, param_gnBoundaryTypes, f, t) "Diagnostic temperature forecasts (accounting for GAMS plotting error)"
 ;

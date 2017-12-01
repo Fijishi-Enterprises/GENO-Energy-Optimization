@@ -111,10 +111,21 @@ r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
 * --- Diagnostics Results -----------------------------------------------------
 
 // Capacity factors for examining forecast errors
-d_capacityFactor(flow, node, f_solve(f), t_active(t))${ sum(flowUnit(flow, unit), nu(node, unit)) }
+d_capacityFactor(flowNode(flow, node), f_solve(f), t_active(t))${ sum(flowUnit(flow, unit), nu(node, unit)) }
     = ts_cf_(flow, node, f, t)
         + ts_cf(flow, node, f, t)${ not ts_cf_(flow, node, f, t) }
-        - 1e-3${ not ts_cf_(flow, node, f, t) and not ts_cf(flow, node, f, t) }
+        - 1e-3${    not ts_cf_(flow, node, f, t)
+                    and not ts_cf(flow, node, f, t)
+                    }
+;
+// Temperature forecast for examining the error
+d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, f_solve(f), t_active(t))${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
+    = ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
+        + ts_nodeState(grid, node, param_gnBoundaryTypes, f, t)${ not ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t) }
+        - 1e-3${    not ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
+                    and not ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
+                    }
+;
 
 * --- Model Solve & Status ----------------------------------------------------
 

@@ -22,6 +22,71 @@ $offtext
 // Need to loop over the model dimension, as this file is no longer contained in the modelSolves loop...
 loop(m,
 
+* --- Realized Individual Costs ----------------------------------------------
+
+    // Variable O&M costs
+    r_gnuVOM(gnu_output(grid, node, unit), ft_realizedNoReset(f,t))
+        = 1e-6 // Scaling to MEUR
+            * p_stepLengthNoReset(m, f, t)
+            * r_gen(grid, node, unit, f, t)
+            * p_unit(unit, 'omCosts');
+
+    // Fuel and emission costs during normal operation
+    r_uFuelEmissionCost(fuel, unit_fuel(unit), ft_realizedNoReset(f,t))${ uFuel(unit, 'main', fuel) }
+        = 1e-6 // Scaling to MEUR
+            * p_stepLengthNoReset(m, f, t)
+            * r_fuelUse(fuel, unit, f, t)
+            * [ // Fuel price
+                + ts_fuelPrice(fuel, t)
+                // Emission costs
+                + sum(emission, p_unitFuelEmissionCost(unit, fuel, emission))
+                ];
+
+    // Unit startup costs
+    r_uStartupCost(unit, ft_realizedNoReset(f,t))${ sum(starttype, unitStarttype(unit, starttype)) }
+        = 1e-6 // Scaling to MEUR
+            * sum(unitStarttype(unit, starttype),
+                + r_startup(unit, starttype, f, t)
+                    * [ // Startup VOM
+                        + p_uStartup(unit, starttype, 'cost', 'unit')
+
+                        // Startup fuel consumption and emissions
+                        + sum(uFuel(unit, 'startup', fuel),
+                            + p_uStartup(unit, starttype, 'consumption', 'unit')
+                                * [ // Fuel price
+                                    + ts_fuelPrice(fuel, t)
+                                    // Emission costs
+                                    + sum(emission, // Emission taxes
+                                        + p_unitFuelEmissionCost(unit, fuel, emission)
+                                        ) // END sum(emission)
+                                    ] // END * p_uStartup
+                            ) // END sum(uFuel)
+                        ] // END * r_startup
+                ); // END sum(unitStarttype)
+
+    // Node state slack costs
+    r_gnStateSlackCost(gn_stateSlack(grid, node), ft_realizedNoReset(f,t))
+        = 1e-6 // Scaling to MEUR
+            * p_stepLengthNoReset(m, f, t)
+            * sum(slack${ p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost') },
+                + r_stateSlack(grid, node, slack, f, t)
+                    * p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
+                ); // END sum(slack)
+
+    // Storage Value Change
+    r_gnStorageValueChange(gn_state(grid, node))${ sum(t_full(t), p_storageValue(grid, node, t)) }
+        = 1e-6
+            * [
+                + sum(ft_realizedNoReset(f,t)${ ord(t) = mSettings(m, 't_end') + 1 },
+                    + p_storageValue(grid, node, t)
+                        * r_state(grid, node, f, t)
+                    ) // END sum(ft_realizedNoReset)
+                - sum(ft_realizedNoReset(f,t)${ ord(t) = mSettings(m, 't_start') + 1 }, // INITIAL v_state NOT INCLUDED IN THE RESULTS
+                    + p_storageValue(grid, node, t)
+                        * r_state(grid, node, f, t)
+                    ) // END sum(ft_realizedNoReset)
+                ]; // END * 1e-6
+
 * --- Realized Nodal System Costs ---------------------------------------------
 
     r_gnRealizedCost(gn(grid, node), ft_realizedNoReset(f, t))

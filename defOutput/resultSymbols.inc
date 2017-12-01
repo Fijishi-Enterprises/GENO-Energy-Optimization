@@ -24,6 +24,15 @@ $offtext
 // Total Objective Function
 r_totalObj
 
+// Unit Operational Cost Components
+r_gnuVOM
+r_uFuelEmissionCost
+r_uStartupCost
+
+// Nodal Cost Components
+r_gnStateSlackCost
+r_gnStorageValueChange
+
 // Realized System Costs
 r_gnRealizedCost
 r_gnTotalRealizedCost
@@ -120,6 +129,7 @@ r_solveStatus
 d_cop
 d_eff
 d_capacityFactor
+d_nodeState
 
 // Metadata and settings
 metadata
