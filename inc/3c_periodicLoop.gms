@@ -216,6 +216,9 @@ loop(cc(counter),
                 = ts_reserveDemand(restype, up_down, node, f_solve, t+dt_circular(t));
             ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft(f_solve, tt_interval(t)))${  p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
                 = ts_nodeState(grid, node, param_gnBoundaryTypes, f_solve, t+dt_circular(t));
+            // Fuel price time series
+            ts_fuelPrice_(fuel, tt_interval(t))
+                = ts_fuelPrice(fuel, t+dt_circular(t));
 
         // If intervalLength exceeds 1 (intervalLength < 1 not defined)
         elseif mInterval(mSolve, 'intervalLength', counter) > 1,
@@ -280,6 +283,10 @@ loop(cc(counter),
                         / p_stepLength(mSolve, f_solve, t);
                 ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t)${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
                     = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, f_solve, t_+dt_circular(t_)))
+                        / p_stepLength(mSolve, f_solve, t);
+                // Fuel price time series
+                ts_fuelPrice_(fuel, t)
+                    = sum(tt(t_), ts_fuelPrice(fuel, t_+dt_circular(t_)))
                         / p_stepLength(mSolve, f_solve, t);
                 ); // END loop(ft)
 

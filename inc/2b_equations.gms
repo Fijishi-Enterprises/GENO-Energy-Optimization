@@ -117,7 +117,7 @@ q_obj ..
                         + sum(uFuel(unit, 'main', fuel)${uft(unit, f, t)},
                             + v_fuelUse(fuel, unit, f, t)
                                 * [
-                                    + ts_fuelPrice(fuel ,t)
+                                    + ts_fuelPrice_(fuel ,t)
                                     + sum(emission, // Emission taxes
                                         + p_unitFuelEmissionCost(unit, fuel, emission)
                                         )
@@ -160,7 +160,7 @@ q_obj ..
                                 + sum(uFuel(unit, 'startup', fuel),
                                     + p_uStartup(unit, starttype, 'consumption', 'unit')${ not unit_investLP(unit) }
                                         * [
-                                            + ts_fuelPrice(fuel, t)
+                                            + ts_fuelPrice_(fuel, t)
                                             + sum(emission, // Emission taxes of startup fuel use
                                                 + p_unitFuelEmissionCost(unit, fuel, emission)
                                                 ) // END sum(emission)
