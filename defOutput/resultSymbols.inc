@@ -25,7 +25,7 @@ $offtext
 r_totalObj
 
 // Unit Operational Cost Components
-r_gnuVOM
+r_gnuVOMCost
 r_uFuelEmissionCost
 r_uStartupCost
 

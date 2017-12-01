@@ -25,7 +25,7 @@ loop(m,
 * --- Realized Individual Costs ----------------------------------------------
 
     // Variable O&M costs
-    r_gnuVOM(gnu_output(grid, node, unit), ft_realizedNoReset(f,t))
+    r_gnuVOMCost(gnu_output(grid, node, unit), ft_realizedNoReset(f,t))
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * r_gen(grid, node, unit, f, t)
