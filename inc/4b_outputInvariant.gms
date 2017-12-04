@@ -87,65 +87,52 @@ loop(m,
                     ) // END sum(ft_realizedNoReset)
                 ]; // END * 1e-6
 
+* --- Total Cost Components ---------------------------------------------------
+
+    // Total VOM costs
+    r_gnuTotalVOMCost(gnu_output(grid, node, unit))
+        = sum(ft_realizedNoReset(f,t),
+            + r_gnuVOMCost(grid, node, unit, f, t)
+            );
+
+    // Total fuel & emission costs
+    r_uTotalFuelEmissionCost(fuel, unit)${ uFuel(unit, 'main', fuel) }
+        = sum(ft_realizedNoReset(f,t),
+            + r_uFuelEmissionCost(fuel, unit, f, t)
+            );
+
+    // Total unit startup costs
+    r_uTotalStartupCost(unit)${ sum(starttype, unitStarttype(unit, starttype)) }
+        = sum(ft_realizedNoReset(f,t),
+            + r_uStartupCost(unit, f, t)
+            );
+
+    // Total state variable slack costs
+    r_gnTotalStateSlackCost(gn_stateSlack(grid, node))
+        = sum(ft_realizedNoReset(f,t),
+            + r_gnStateSlackCost(grid, node, f, t)
+            );
+
 * --- Realized Nodal System Costs ---------------------------------------------
 
+    // Total realized gn costs
     r_gnRealizedCost(gn(grid, node), ft_realizedNoReset(f, t))
-        // Time step length dependent costs
-        = 1e-6 // Scaling to MEUR
-            * [ // Time step length dependent costs
-                + p_stepLengthNoReset(m, f, t)
-                    * [
-                        // Variable O&M costs
-                        + sum(gnu_output(grid, node, unit),  // Calculated only for output energy
-                            + r_gen(grid, node, unit, f, t)
-                                * p_unit(unit, 'omCosts')
-                            ) // END sum(gnu_output)
+        = sum(gnu_output(grid, node, unit),
 
-                        // Fuel and emission costs, allocated based on outputs
-                        + sum(uFuel(unit, 'main', fuel)${ gnu_output(grid, node, unit) },
-                            + r_fuelUse(fuel, unit, f, t)
-                                * p_gnu(grid, node, unit, 'maxGen')
-                                / p_unit(unit, 'outputCapacityTotal')
-                                * [
-                                    + ts_fuelPrice(fuel, t)
-                                    + sum(emission, // Emission taxes
-                                        + p_unitFuelEmissionCost(unit, fuel, emission)
-                                        ) // END sum(emission)
-                                    ] // END * v_fuelUse
-                            ) // END sum(uFuel)
+            // VOM costs
+            + r_gnuVOMCost(grid, node, unit, f, t)
 
-                        // Node state slack variable penalties
-                        + sum(gn_stateSlack(grid, node),
-                            + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
-                                + r_stateSlack(grid, node, slack, f, t)
-                                    * p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
-                                ) // END sum(slack)
-                            ) // END sum(gn_stateSlack)
+            // Divide fuel and startup costs based on output capacities
+            + p_gnu(grid, node, unit, 'maxGen')
+                / p_unit(unit, 'outputCapacityTotal')
+                * [
+                    + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
+                    + r_uStartupCost(unit, f, t)
+                    ] // END *
+            ) // END sum(gnu_output)
 
-                        ] // END * p_stepLengthNoReset
-
-                // Start-up costs
-                + sum(unitStarttype(unit, starttype)${ gnu_output(grid, node, unit) },
-                    + r_startup(unit, starttype, f, t) // Cost of starting up
-                        * p_gnu(grid, node, unit, 'maxGen')
-                        / p_unit(unit, 'outputCapacityTotal')
-                        * [ // Startup variable costs
-                            + p_uStartup(unit, starttype, 'cost', 'unit')
-
-                            // Start-up fuel and emission costs
-                            + sum(uFuel(unit, 'startup', fuel),
-                                + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
-                                    * [
-                                        + ts_fuelPrice(fuel, t)
-                                        + sum(emission, // Emission taxes of startup fuel use
-                                            + p_unitFuelEmissionCost(unit, fuel, emission)
-                                            ) // END sum(emission)
-                                        ] // END * p_uStartup
-                                ) // END sum(uFuel)
-                            ] // END * r_startup
-                    ) // END sum(unitStarttype)
-                ]; // END * 1e-6
-
+            // Node state slack costs
+            + r_gnStateSlackCost(grid, node, f, t);
 
 * --- Realized Nodal Energy Consumption ---------------------------------------
 // !!! NOTE !!! This is a bit of an approximation at the moment !!!!!!!!!!!!!!!

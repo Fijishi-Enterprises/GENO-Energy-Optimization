@@ -28,7 +28,7 @@ Parameters
 
     // Unit Operational Cost Components
     r_gnuVOMCost(grid, node, unit, f, t) "Variable O&M costs for energy outputs (MEUR)"
-    r_gnuTotalVOM(grid, node, unit) "Total gnu VOM costs over the simulation (MEUR)"
+    r_gnuTotalVOMCost(grid, node, unit) "Total gnu VOM costs over the simulation (MEUR)"
     r_uFuelEmissionCost(fuel, unit, f, t) "Unit fuel & emission costs for normal operation (MEUR)"
     r_uTotalFuelEmissionCost(fuel, unit) "Total unit fuel & emission costs over the simulation for normal operation (MEUR)"
     r_uStartupCost(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
@@ -36,6 +36,7 @@ Parameters
 
     // Nodal Cost Components
     r_gnStateSlackCost(grid, node, f, t) "Costs for states requiring slack (MEUR)"
+    r_gnTotalStateSlackCost(grid, node) "Total costs for state slacks over the simulation (MEUR)"
     r_gnStorageValueChange(grid, node) "Change in storage values over the simulation (MEUR)"
 
     // Realized System Costs

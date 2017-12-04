@@ -26,11 +26,15 @@ r_totalObj
 
 // Unit Operational Cost Components
 r_gnuVOMCost
+r_gnuTotalVOMCost
 r_uFuelEmissionCost
+r_uTotalFuelEmissionCost
 r_uStartupCost
+r_uTotalStartupCost
 
 // Nodal Cost Components
 r_gnStateSlackCost
+r_gnTotalStateSlackCost
 r_gnStorageValueChange
 
 // Realized System Costs
