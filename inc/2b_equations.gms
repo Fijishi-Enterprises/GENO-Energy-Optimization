@@ -28,7 +28,7 @@ Parameters
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
 ;
 PENALTY_BALANCE(grid) = %def_penalty%;
-PENALTY_RES(restype, up_down) = %def_penalty%;
+PENALTY_RES(restype, up_down) = 0.9*%def_penalty%;
 
 
 * =============================================================================
@@ -44,7 +44,7 @@ equations
     // Unit Operation
     q_maxDownward(mType, grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(mType, grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
-    q_startup(unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
+    q_startup(mType, unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
     q_startuptype(mType, starttype, unit, f, t) "Startup type depends on the time the unit has been non-operational"
     q_onlineLimit(mType, unit, f, t) "Number of online units limited for units with startup constraints and investment possibility"
     q_onlineMinUptime(mType, unit, f, t) "Unit must stay operational if it has started up during the previous minOperationTime hours"
@@ -150,7 +150,7 @@ q_obj ..
                         ] // END * p_stepLength
 
                 // Start-up costs, initial startup free as units could have been online before model started
-                + sum(uft_online(unit, f, t)${ ord(t) + dt(t) > mSettings(m, 't_start') },
+                + sum(uft_online(unit, f, t),
                     + sum(unitStarttype(unit, starttype),
                         + v_startup(unit, starttype, f, t) // Cost of starting up
                             * [ // Startup variable costs
@@ -180,6 +180,7 @@ $ontext
                     ) // END sum(gnuft_ramp)
 $offtext
                 ]  // END * p_sft_probability(s,f,t)
+
         ) // END sum over msft(m, s, f, t)
 
     // Cost of energy storage change
@@ -206,6 +207,7 @@ $offtext
 
     // Investment Costs
     + sum(t_invest(t),
+
         // Unit investment costs
         + sum(gnu(grid, node, unit),
             + v_invest_LP(unit, t)${ unit_investLP(unit) }
@@ -333,6 +335,9 @@ q_balance(gn(grid, node), mft(m, f, t))${   not p_gn(grid, node, 'boundAll')
 * --- Reserve Demand ----------------------------------------------------------
 
 q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) < tSolveFirst + sum[mf(m, f), mSettings(m, 't_reserveLength')]
+                                                                        and not [ restypeDirectionNode('tertiary', up_down, node)
+                                                                                    and ft_realized(f, t)
+                                                                                    ]
                                                                         } ..
     // Reserve provision by capable units on this node
     + sum(nuft(node, unit, f, t)${nuRescapable(restype, up_down, node, unit)},
@@ -520,7 +525,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
 
 * --- Unit Startup and Shutdown -----------------------------------------------
 
-q_startup(uft_online(unit, f, t)) ..
+q_startup(m, uft_online(unit, f, t))${ ord(t) + dt(t) > mSettings(m, 't_start') } ..
 
     // Units currently online
     + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
