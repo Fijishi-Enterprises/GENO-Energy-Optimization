@@ -41,8 +41,11 @@ r_gnStorageValueChange
 r_gnRealizedCost
 r_gnTotalRealizedCost
 r_gnTotalRealizedCostShare
+r_gnTotalRealizedNetCost
 r_gTotalRealizedCost
+r_gTotalRealizedNetCost
 r_totalRealizedCost
+r_totalRealizedNetCost
 
 * --- Node Result Symbols -----------------------------------------------------
 

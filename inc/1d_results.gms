@@ -43,8 +43,11 @@ Parameters
     r_gnRealizedCost(grid, node, f, t) "Realized system costs in gn for each t (MEUR)"
     r_gnTotalRealizedCost(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
     r_gnTotalRealizedCostShare(grid, node) "Total realized system cost gn/g shares over the simulation"
+    r_gnTotalRealizedNetCost(grid, node) "Total realized system costs in gn over the simulation, minus the increase in storage values (MEUR)"
     r_gTotalRealizedCost(grid) "Total realized system costs in g over the simulation (MEUR)"
+    r_gTotalRealizedNetCost(grid) "Total realized system costs in g over the simulation, minus the increase in storage values (MEUR)"
     r_totalRealizedCost "Total realized system costs over the simulation (MEUR)" / 0 /
+    r_totalRealizedNetCost "Total realized system costs over the simulation (MEUR)" / 0 /
 
 * --- Node Results ------------------------------------------------------------
 

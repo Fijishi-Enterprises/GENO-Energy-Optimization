@@ -314,9 +314,17 @@ r_gnTotalSpillShare(gn(grid, node_spill))${ r_gTotalSpill(grid) }
 r_gnTotalRealizedCost(gn(grid, node))
     = sum(ft_realizedNoReset(f, t), r_gnRealizedCost(grid, node, f ,t));
 
+// Total realized net costs on each gn over the simulation
+r_gnTotalRealizedNetCost(gn(grid, node))
+    = r_gnTotalRealizedCost(grid, node) - r_gnStorageValueChange(grid, node);
+
 // Total realized costs on each grid over the simulation
 r_gTotalRealizedCost(grid)
     = sum(gn(grid, node), r_gnTotalRealizedCost(grid, node));
+
+// Total realized net costs on each grid over the simulation
+r_gTotalRealizedNetCost(grid)
+    = sum(gn(grid, node), r_gnTotalRealizedNetCost(grid, node));
 
 // Total realized costs gn/g share
 r_gnTotalRealizedCostShare(gn(grid, node))${ r_gTotalRealizedCost(grid) }
@@ -326,6 +334,10 @@ r_gnTotalRealizedCostShare(gn(grid, node))${ r_gTotalRealizedCost(grid) }
 // Total realized costs over the simulation
 r_totalRealizedCost
     = sum(gn(grid, node), r_gnTotalRealizedCost(grid, node));
+
+// Total realized net costs over the simulation
+r_totalRealizedNetCost
+    = sum(gn(grid, node), r_gnTotalRealizedNetCost(grid, node));
 
 * --- Total Reserve Provision Results -----------------------------------------
 
