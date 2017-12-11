@@ -75,7 +75,7 @@ options
     solvelink = %Solvelink.Loadlibrary%
 *    bratio = 0.25
 *    solveopt = merge
-    savepoint = 1
+*    savepoint = 1
     threads = 1
 $ifi not '%debug%' == 'yes'
     solprint = Silent
@@ -102,7 +102,7 @@ $include 'defModels\invest.gms'
 $include 'input\modelsInit.gms'
 
 * === Simulation ==============================================================
-$$include 'inc\3a_periodicInit.gms' // Initialize modelling loop
+$include 'inc\3a_periodicInit.gms'  // Initialize modelling loop
 loop(modelSolves(mSolve, tSolve),
     $$include 'inc\3b_inputsLoop.gms'           // Read input data that is updated within the loop
     $$include 'inc\3c_periodicLoop.gms'         // Update modelling loop
