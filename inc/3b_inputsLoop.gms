@@ -155,7 +155,7 @@ if(mSettings(mSolve, 'forecasts') > 0,
     ddf_(f_solve(f), tt(t))${ not mf_realization(mSolve, f) }
         = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
 
-    // Update the upper and lower forecasts based on the original central forecast
+    // Calculate the upper and lower forecasts based on the original central forecast
     ts_cf(flowNode(flow, node), f_solve(f), tt(t))${    not mf_realization(mSolve, f)
                                                         and not mf_central(mSolve, f)
                                                         }

@@ -236,15 +236,17 @@ if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix th
                                                                                         and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                                         and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
                                                                                         }
-        = r_reserve(restype, up_down, node, unit, f, t)
-            + r_reserve('tertiary', up_down, node, unit, f, t)${ ft_realized(f, t) };
+        = r_reserve(restype, up_down, node, unit, f, t)${ r_reserve(restype, up_down, node, unit, f, t) > 0 }
+            + r_reserve('tertiary', up_down, node, unit, f, t)${    ft_realized(f, t)
+                                                                    and r_reserve('tertiary', up_down, node, unit, f, t) > 0
+                                                                    };
 
     // Lower bound remains fixed to commitments
     v_reserve.lo(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${ mft_nReserves(node, restype, mSolve, f, t)
                                                                                         and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                                         and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
                                                                                         }
-        = r_reserve(restype, up_down, node, unit, f, t);
+        = r_reserve(restype, up_down, node, unit, f, t)${ r_reserve(restype, up_down, node, unit, f, t) > 0 };
 
     // Fix transfer of reserves ahead of time
     // Rightward upper
@@ -394,9 +396,7 @@ loop(mft_start(mSolve, f, t),
     if(tSolveFirst = mSettings(mSolve, 't_start'),
 
         // First solve, state variables (only if boundStart flag is true)
-        v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart') // !!! NOTE !!! The check fails if value is zero
-*                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant') // !!! NOTE !!! The check fails if value is zero
-                                                    }
+        v_state.fx(gn_state(grid, node), f, t)${ p_gn(grid, node, 'boundStart') }
             = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
                 * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
