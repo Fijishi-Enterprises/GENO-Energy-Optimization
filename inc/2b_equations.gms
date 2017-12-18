@@ -19,7 +19,7 @@ $offtext
 * --- Penalty Definitions -----------------------------------------------------
 * =============================================================================
 
-$setlocal def_penalty 1e6
+$setlocal def_penalty 1e4
 Scalars
     PENALTY "Default equation violation penalty" / %def_penalty% /
 ;
@@ -28,7 +28,7 @@ Parameters
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
 ;
 PENALTY_BALANCE(grid) = %def_penalty%;
-PENALTY_RES(restype, up_down) = %def_penalty%;
+PENALTY_RES(restype, up_down) = 0.9*%def_penalty%;
 
 
 * =============================================================================
@@ -44,7 +44,7 @@ equations
     // Unit Operation
     q_maxDownward(mType, grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(mType, grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
-    q_startup(unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
+    q_startup(mType, unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
     q_startuptype(mType, starttype, unit, f, t) "Startup type depends on the time the unit has been non-operational"
     q_onlineLimit(mType, unit, f, t) "Number of online units limited for units with startup constraints and investment possibility"
     q_onlineMinUptime(mType, unit, f, t) "Unit must stay operational if it has started up during the previous minOperationTime hours"
@@ -75,7 +75,7 @@ equations
     q_stateDownwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
 *    q_boundState(grid, node, node, mType, f, t) "Node state variables bounded by other nodes"
     q_boundStateMaxDiff(grid, node, node, mType, f, t) "Node state variables bounded by other nodes (maximum state difference)"
-    q_boundCyclic(grid, node, mType, s, s_) "Cyclic bound for the first and the last states of samples"
+    q_boundCyclic(grid, node, mType, s, s) "Cyclic bound for the first and the last states of samples"
 *    q_boundCyclicSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound inside or between samples"
 
     // Policy
@@ -94,14 +94,15 @@ equations
 * --- Objective Function ------------------------------------------------------
 
 q_obj ..
-    + v_obj * 1000000
+
+    + v_obj * 1e6
 
     =E=
 
     // Sum over all the samples, forecasts, and time steps in the current model
     + sum(msft(m, s, f, t),
         // Probability (weight coefficient) of (s,f,t)
-        + p_msft_Probability(m, s, f, t)
+        + p_msft_probability(m, s, f, t)
             * [
                 // Time step length dependent costs
                 + p_stepLength(m, f, t)
@@ -116,14 +117,14 @@ q_obj ..
                         + sum(uFuel(unit, 'main', fuel)${uft(unit, f, t)},
                             + v_fuelUse(fuel, unit, f, t)
                                 * [
-                                    + ts_fuelPrice(fuel, t)
+                                    + ts_fuelPrice_(fuel ,t)
                                     + sum(emission, // Emission taxes
                                         + p_unitFuelEmissionCost(unit, fuel, emission)
                                         )
                                     ] // END * v_fuelUse
                             ) // END sum(uFuel)
 
-                        // Node state slack variable penalties
+                        // Node state slack variable costs
                         + sum(gn_stateSlack(grid, node),
                             + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
                                 + v_stateSlack(grid, node, slack, f, t)
@@ -148,7 +149,7 @@ q_obj ..
 
                         ] // END * p_stepLength
 
-                // Start-up costs
+                // Start-up costs, initial startup free as units could have been online before model started
                 + sum(uft_online(unit, f, t),
                     + sum(unitStarttype(unit, starttype),
                         + v_startup(unit, starttype, f, t) // Cost of starting up
@@ -157,9 +158,9 @@ q_obj ..
 
                                 // Start-up fuel and emission costs
                                 + sum(uFuel(unit, 'startup', fuel),
-                                    + p_uStartup(unit, starttype, 'consumption', 'unit')${not unit_investLP(unit)}
+                                    + p_uStartup(unit, starttype, 'consumption', 'unit')${ not unit_investLP(unit) }
                                         * [
-                                            + ts_fuelPrice(fuel, t)
+                                            + ts_fuelPrice_(fuel, t)
                                             + sum(emission, // Emission taxes of startup fuel use
                                                 + p_unitFuelEmissionCost(unit, fuel, emission)
                                                 ) // END sum(emission)
@@ -179,11 +180,12 @@ $ontext
                     ) // END sum(gnuft_ramp)
 $offtext
                 ]  // END * p_sft_probability(s,f,t)
+
         ) // END sum over msft(m, s, f, t)
 
-    // Value of energy storage change
+    // Cost of energy storage change
     + sum(gn_state(grid, node),
-        + sum(mftStart(m, f, t)${   p_storageValue(grid, node, t)
+        + sum(mft_start(m, f, t)${  p_storageValue(grid, node, t)
                                     and active(m, 'storageValue')
                                     },
             + v_state(grid, node, f, t)
@@ -192,7 +194,7 @@ $offtext
                     + p_msft_probability(m, s, f, t)
                     ) // END sum(s)
             ) // END sum(mftStart)
-        - sum(mftLastSteps(m, f, t)${   p_storageValue(grid, node, t)
+        - sum(mft_lastSteps(m, f, t)${  p_storageValue(grid, node, t)
                                         and active(m, 'storageValue')
                                         },
             + v_state(grid, node, f, t)
@@ -205,6 +207,7 @@ $offtext
 
     // Investment Costs
     + sum(t_invest(t),
+
         // Unit investment costs
         + sum(gnu(grid, node, unit),
             + v_invest_LP(unit, t)${ unit_investLP(unit) }
@@ -235,24 +238,6 @@ $offtext
                     ] // END * v_investTransfer_MIP
             ) // END sum(gn2n_directional)
         ) // END sum(t_invest)
-
-$ontext
-    // "Value" of online units, !!! TEMPORARY MEASURES !!!
-  - sum([s, m, uft_online(unit, ft_dynamic(f,t))]$mftStart(m, f, t),
-        + p_sft_probability(s, f, t) * 0.5
-            * (
-                + v_online(unit, f+cf(f,t), t) * p_unit(unit, 'startCost')
-                + v_online_LP(unit, f+cf(f,t), t) * p_unit(unit, 'startCost_MW')
-              )
-        ) // minus value of avoiding startup costs before
-  - sum((s, uft_online_last(unit, ft_dynamic(f,t))),
-        + p_sft_probability(s, f, t) * 0.5
-            * (
-                + v_online(unit, f+cf(f,t), t) * p_unit(unit, 'startCost')
-                + v_online_LP(unit, f+cf(f,t), t) * p_unit(unit, 'startCost_MW')
-              )
-        ) // or after the model solve
-$offtext
 ;
 
 * --- Energy Balance ----------------------------------------------------------
@@ -350,6 +335,9 @@ q_balance(gn(grid, node), mft(m, f, t))${   not p_gn(grid, node, 'boundAll')
 * --- Reserve Demand ----------------------------------------------------------
 
 q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) < tSolveFirst + sum[mf(m, f), mSettings(m, 't_reserveLength')]
+                                                                        and not [ restypeDirectionNode('tertiary', up_down, node)
+                                                                                    and ft_realized(f, t)
+                                                                                    ]
                                                                         } ..
     // Reserve provision by capable units on this node
     + sum(nuft(node, unit, f, t)${nuRescapable(restype, up_down, node, unit)},
@@ -427,8 +415,8 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
             ) // END sum(effGroup)
         * [ // Online variables should only be generated for units with restrictions
-            + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)} // LP online variant
-            + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)} // MIP online variant
+            + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)} // LP online variant
+            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)} // MIP online variant
             ] // END v_online
 
     // Consuming units, greater than maxCons
@@ -447,8 +435,8 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
             + p_gnu(grid, node, unit, 'unitSizeCons')
                 * [
                     // Capacity online
-                    + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
-                    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+                    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+                    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
                     // Investments to additional non-online capacity
                     + sum(t_invest(t_)${    ord(t_)<=ord(t)
@@ -501,8 +489,8 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
             ) // END sum(effGroup)
         * [
-            + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
-            + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
+            + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
+            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
             ] // END * p_gnu(unitSizeCons)
 
     // Generation units
@@ -521,8 +509,8 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
             + p_gnu(grid, node, unit, 'unitSizeGen')
                 * [
                     // Capacity online
-                    + v_online_LP(unit, f, t)${uft_onlineLP(unit, f ,t)}
-                    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+                    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f ,t)}
+                    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
                     // Investments to non-online capacity
                     + sum(t_invest(t_)${    ord(t_)<=ord(t)
@@ -537,17 +525,17 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
 
 * --- Unit Startup and Shutdown -----------------------------------------------
 
-q_startup(uft_online(unit, f, t)) ..
+q_startup(m, uft_online(unit, f, t))${ ord(t) + dt(t) > mSettings(m, 't_start') } ..
 
     // Units currently online
-    + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
-    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
     =E=
 
     // Units previously online
-    + v_online_LP(unit, f+df(f,t+dt(t)), t+dt(t))${uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t))} // This reaches to tFirstSolve when pt = -1
-    + v_online_MIP(unit, f+df(f,t+dt(t)), t+dt(t))${uft_onlineMIP(unit, f+df(f,t+dt(t)), t+dt(t))}
+    + v_online_LP(unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t)) } // This reaches to tFirstSolve when pt = -1
+    + v_online_MIP(unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineMIP(unit, f+df(f,t+dt(t)), t+dt(t)) }
 
     // Unit online history (solve initial value), required because uft_online doesn't extend to before active modelling
     + r_online(unit, f+df(f,t+dt(t)), t+dt(t))${    not uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t))
@@ -587,8 +575,8 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutDownTime')
                                             or unit_investMIP(unit)
                                             } ..
     // Online variables
-    + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
-    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f ,t)}
+    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f ,t)}
 
     =L=
 
@@ -613,8 +601,8 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationTime')
                                                 } ..
 
     // Units currently online
-    + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
-    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
     =G=
 
@@ -852,8 +840,8 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
         + p_gnu(grid, node, unit, 'unitSizeGen')
         ) // END sum(gnu_output)
         * [
-            + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
-            + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+            + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
             ] // END * sum(gnu_output)
         * [
             + p_effGroupUnit(effGroup, unit, 'section')${not ts_effUnit(effGroup, unit, effDirect, 'section', f, t)}
@@ -894,7 +882,7 @@ q_conversionSOS2InputIntermediate(suft(effLambda(effGroup), unit, f, t)) ..
                 ) // END sum(effSelector)
 
             // Consumption of keeping units online
-            + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
                 * p_effGroupUnit(effGroup, unit, 'section')
             ] // END * sum(gnu_output)
 ;
@@ -911,7 +899,7 @@ q_conversionSOS2Constraint(suft(effLambda(effGroup), unit, f, t)) ..
     =E=
 
     // Number of units online
-    + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 ;
 
 * --- SOS 2 Efficiency Approximation Output Generation ------------------------
@@ -1099,6 +1087,7 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), ft(f, t))${ sum(
 * --- State Variable Slack ----------------------------------------------------
 
 q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))${  p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
+                                                            and not df_central(f, t)
                                                             } ..
 
     // Slack value
@@ -1109,7 +1098,7 @@ q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))${  p_gnBoundaryProperti
     // Slack limits
     + p_slackDirection(slack)
         * [
-            + v_state(grid, node, f+df_central(f,t), t)
+            + v_state(grid, node, f, t)
             - p_gnBoundaryPropertiesForStates(grid, node, slack, 'constant')$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useConstant')
             - ts_nodeState_(grid, node, slack, f, t)$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries')
             ] // END * p_slackDirection
@@ -1360,11 +1349,11 @@ q_boundCyclic(gn_state(grid, node), ms(m, s), s_)${ ms(m, s_)
                                                     }..
 
     // Initial value of the state of the node at the start of the sample
-    + sum(mftStart(m, f, t)${   p_gn(grid, node, 'boundCyclic')},
+    + sum(mft_start(m, f, t)${   p_gn(grid, node, 'boundCyclic')},
         + v_state(grid, node, f, t)
         ) // END sum(mftStart)
 
-    + sum(mftStart(m, f, t)${   p_gn(grid, node, 'boundCyclicBetweenSamples')
+    + sum(mft_start(m, f, t)${  p_gn(grid, node, 'boundCyclicBetweenSamples')
                                 and ord(t) = msStart(m, s)
                                 },
         + v_state(grid, node, f, t)
@@ -1373,14 +1362,14 @@ q_boundCyclic(gn_state(grid, node), ms(m, s), s_)${ ms(m, s_)
     =E=
 
     // State of the node at the end of horizon
-    + sum(mftLastSteps(mfCentral(m, f_), t_)${ p_gn(grid, node, 'boundCyclic') },
+    + sum(mft_lastSteps(mf_central(m, f_), t_)${ p_gn(grid, node, 'boundCyclic') },
         + v_state(grid, node, f_, t_)
         ) // END sum(mftLastSteps)
 
     // State of the node at the end of the sample, BoundCyclicBetweenSamples
-    + sum(mftLastSteps(mfCentral(m, f_), t_)${  p_gn(grid, node, 'boundCyclicBetweenSamples')
-                                                and ord(t_) =  msEnd(m, s_)
-                                                },
+    + sum(mft_lastSteps(mf_central(m, f_), t_)${    p_gn(grid, node, 'boundCyclicBetweenSamples')
+                                                    and ord(t_) =  msEnd(m, s_)
+                                                    },
         + v_state(grid, node, f_, t_)
         ) // END sum(ft)
 ;
@@ -1430,13 +1419,13 @@ q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin
     // Diffusion to node
     + sum(gnn_state(grid, from_node, node),
         + p_gnn(grid, from_node, node, 'diffCoeff')
-            * v_state(grid, from_node, f, t)
+            * v_state(grid, from_node, f+df_central(f,t), t)
         ) // END sum(gnn_state)
 
     // Diffusion from node
     - sum(gnn_state(grid, node, to_node),
         + p_gnn(grid, node, to_node, 'diffCoeff')
-            * v_state(grid, node, f, t)
+            * v_state(grid, node, f+df_central(f,t), t)
         ) // END sum(gnn_state)
 
     // Conversion unit inputs might require additional capacity
@@ -1667,8 +1656,8 @@ q_inertiaMin(gngroup, ft(f, t))${   p_gngroupPolicy(gngroup, 'kineticEnergyMin',
         + p_gnu(grid, node, unit, 'inertia')
             * p_gnu(grid ,node, unit, 'unitSizeMVA')
             * [
-                + v_online_LP(unit, f, t)${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, f, t)${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
+                + v_online_LP(unit, f+df_central(f,t), t)${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, f+df_central(f,t), t)${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
                 + v_gen(grid, node, unit, f, t)${not uft_online(unit, f, t)}
                     / p_gnu(grid, node, unit, 'unitSizeGen')
                 ] // * p_gnu

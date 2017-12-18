@@ -25,6 +25,7 @@ $offtext
     ); // END IF SCHEDULE
 
     if (mSolve('building'),
+        building.holdfixed = 1;
         solve building using mip minimizing v_obj;
     ); // END IF BUILDING
 

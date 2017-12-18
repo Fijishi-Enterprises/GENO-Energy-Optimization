@@ -15,51 +15,132 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-* --- Results required for the model structure --------------------------------
+* =============================================================================
+* --- Results Symbols Included in Output --------------------------------------
+* =============================================================================
 
-r_state // Conserves state variable values between solves
-r_online // Conserves online variable values between solves
-r_reserve // Conserves locked reserve variables between solves
-r_resTransferRightward // Conserves locked reserve transfer variables between solves
-r_resTransferLeftward // Conserves locked reserve transfer variables between solves
-r_gen // Conserves locked generation variables between solves
-r_startup // Conserves locked startup variables between solves
-r_shutdown // Conserves locked shutdown variables between solves
+* --- Cost Result Symbols -----------------------------------------------------
 
-* --- Other desired results ---------------------------------------------------
-
-// Interesting variable and equation values
-r_fuelUse
-r_genFuel
-r_transfer
-r_spill
-r_balanceMarginal
-r_resDemandMarginal
-
-// Total result arrays
+// Total Objective Function
 r_totalObj
-r_gnuTotalGen
-r_gnTotalGenFuel
-r_gnnTotalTransfer
-r_gnTotalSpill
 
-// Results requiring calculations
-r_gnConsumption
-r_gnTotalConsumption
+// Unit Operational Cost Components
+r_gnuVOMCost
+r_gnuTotalVOMCost
+r_uFuelEmissionCost
+r_uTotalFuelEmissionCost
+r_uStartupCost
+r_uTotalStartupCost
+
+// Nodal Cost Components
+r_gnStateSlackCost
+r_gnTotalStateSlackCost
+r_gnStorageValueChange
+
+// Realized System Costs
 r_gnRealizedCost
 r_gnTotalRealizedCost
+r_gnTotalRealizedCostShare
+r_gnTotalRealizedNetCost
+r_gTotalRealizedCost
+r_gTotalRealizedNetCost
 r_totalRealizedCost
+r_totalRealizedNetCost
+
+* --- Node Result Symbols -----------------------------------------------------
+
+// State variable results, required for model structure !!!!!!!!!!!!!!!!!!!!!!!
+r_state
+// State variable slack results
+r_stateSlack
+
+// Energy transfer and spill variable results
+r_transfer
+r_spill
+
+// Interesting node related results
+r_balanceMarginal
+r_gnnTotalTransfer
+r_gnTotalSpill
+r_gnTotalSpillShare
+r_gTotalSpill
+
+* --- Energy Generation/Consumption Result Symbols ----------------------------
+
+// Results required for model structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+r_gen
+
+// Fuel use results
+r_fuelUse
+r_genFuel
+r_gnTotalGenFuel
+r_gnTotalGenFuelShare
+r_gTotalGenFuel
+r_totalGenFuel
+
+// Interesting energy generation results
+r_gnuTotalGen
+r_gnuTotalGenShare
+r_gnTotalGen
+r_gnTotalGenShare
+r_gTotalGen
+
+// Approximate utilization rates
+r_gnuUtilizationRate
+
+// Interesting energy consumption results
+r_gnConsumption
+r_gnTotalConsumption
+r_gnTotalConsumptionShare
+r_gTotalConsumption
+
+* --- Unit Online State Result Symbols ----------------------------------------
+
+// Online results required for model structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+r_online
+r_startup
+r_shutdown
+
+// Interesting unit online results
+r_uTotalOnline
+r_uTotalOnlinePerUnit
+
+// Interesting unit startup and shutdown results
+r_uTotalStartup
+r_uTotalShutdown
+
+* --- Reserve Provision Result Symbols ----------------------------------------
+
+// Reserve provision results required for model structure !!!!!!!!!!!!!!!!!!!!!
+r_reserve
+r_resTransferRightward
+r_resTransferLeftward
+
+// Interesting reserve results
+r_resDemandMarginal
+r_nuTotalReserve
+r_nuTotalReserveShare
+r_nTotalReserve
+
+* --- Dummy and Diagnostic Variable Result Symbols ----------------------------
+
+// Results regarding solution feasibility
+r_qGen
+r_gnTotalqGen
+r_gTotalqGen
+r_qResDemand
+r_nTotalqResDemand
+r_solveStatus
 
 // Diagnostics
 d_cop
 d_eff
+d_capacityFactor
+d_nodeState
 
-// Dummy variables for solution feasibility reasons
-r_qGen
-r_qResDemand
-
-// Solve/model information
-r_solveStatus
+// Metadata and settings
+metadata
+mSettings
 
 // OLD RESULTS, mostly here for inspiration
 *r_elec_type
@@ -72,8 +153,3 @@ r_solveStatus
 *r_storageControl
 *r_elecPrice
 *r_cost
-
-// Metadata and settings
-metadata
-mSettings
-

@@ -20,8 +20,8 @@ $offtext
 * =============================================================================
 
 // Initialize various sets
-Option clear = tFull;
-Option clear = fSolve;
+Option clear = t_full;
+Option clear = f_solve;
 Option clear = tmp;
 
 // Loop over m
@@ -30,7 +30,7 @@ loop(m,
 * --- Time Steps within Model Horizon -----------------------------------------
 
     // Determine the full set of timesteps to be considered by the defined simulation
-    tFull(t)${  ord(t) >= mSettings(m, 't_start')
+    t_full(t)${ ord(t) >= mSettings(m, 't_start')
                 and ord(t) <= mSettings(m, 't_end') + mSettings(m, 't_horizon')
                 }
         = yes;
@@ -55,14 +55,14 @@ loop(m,
     msf(m, s, f)$(ms(m, s) and mf(m, f)) = yes;
 
     // Select the forecasts included in the modes to be solved
-    fSolve(f)${ mf(m,f) }
+    f_solve(f)${ mf(m,f) }
         = yes;
 
     // Check the modelSolves for preset patterns for model solve timings
     // If not found, then use mSettings to set the model solve timings
-    if(sum(modelSolves(m, tFull(t)), 1) = 0,
+    if(sum(modelSolves(m, t_full(t)), 1) = 0,
         t_skip_counter = 0;
-        loop(tFull(t)${ ord(t) = mSettings(m, 't_start') + mSettings(m, 't_jump') * t_skip_counter
+        loop(t_full(t)${ ord(t) = mSettings(m, 't_start') + mSettings(m, 't_jump') * t_skip_counter
                         and ord(t) <= mSettings(m, 't_end')
                         },
             modelSolves(m, t) = yes;
@@ -71,7 +71,7 @@ loop(m,
             df(f, t)${  mf(m, f)
                         and ord(t) = mSettings(m, 't_start')
                         }
-            = sum(mfRealization(m, f_), ord(f_) - ord(f));
+            = sum(mf_realization(m, f_), ord(f_) - ord(f));
 
             // Increase the t_skip counter
             t_skip_counter = t_skip_counter + 1;
@@ -93,8 +93,8 @@ loop(m,
 
     // Calculate the length of the time series data (based on realized forecast)
     loop(gn(grid, node),
-        tmp = max(sum((mfRealization(m, f), t)${ts_influx(grid, node, f, t)}, 1), tmp); // Find the maximum length of the given influx time series
-        tmp = max(sum((mfRealization(m, f), t)${ts_nodeState(grid, node, 'reference', f, t)}, 1), tmp); // Find the maximum length of the given node state time series
+        tmp = max(sum((mf_realization(m, f), t)${ ts_influx(grid, node, f, t) }, 1), tmp); // Find the maximum length of the given influx time series
+        tmp = max(sum((mf_realization(m, f), t)${ ts_nodeState(grid, node, 'reference', f, t) }, 1), tmp); // Find the maximum length of the given node state time series
     ); // END loop(gn)
 
 ); // END loop(m)
@@ -105,7 +105,7 @@ loop(m,
 ts_length = tmp;
 
 // Circular displacement of time index for data loop
-dt_circular(tFull(t))${ ord(t) > ts_length }
+dt_circular(t_full(t))${ ord(t) > ts_length }
     = - ts_length
         * floor(ord(t) / ts_length);
 
@@ -315,19 +315,25 @@ loop(m,
 * --- Various Initial Values and Calculations ---------------------------------
 * =============================================================================
 
-* --- Calculating the order of time periods -----------------------------------
+* --- Calculating fuel price time series --------------------------------------
 
-tOrd(t) = ord(t);
+loop(fuel,
+    // Determine the time steps where the prices change
+    Option clear = tt;
+    tt(t_full(t))${ ts_fuelPriceChange(fuel ,t) }
+        = yes;
+    ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
+); // END loop(fuel)
 
 * --- Calculating fuel price time series --------------------------------------
 
 loop(fuel,
     // Determine the time steps where the prices change
     Option clear = tt;
-    tt(tFull(t))${ ts_fuelPriceChange(fuel, t) }
+    tt(t_full(t))${ ts_fuelPriceChange(fuel, t) }
         = yes;
     // Calculate the fuel price time series based on the input price changes
-    ts_fuelPrice(fuel, tFull(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
+    ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
 ); // END loop(fuel)
 
 * --- Slack Direction ---------------------------------------------------------
