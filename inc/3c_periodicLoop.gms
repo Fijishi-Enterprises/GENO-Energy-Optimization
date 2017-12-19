@@ -164,8 +164,8 @@ loop(cc(counter),
         if(mInterval(mSolve, 'intervalLength', counter) = 1,
             tt_interval(t_current(t))${ ord(t) >= tSolveFirst + tCounter
                                         and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)
-                                        and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                        and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
+                                        and ord(t) > msStart(mSolve, s) // Sample boundaries
+                                        and ord(t) < msEnd(mSolve, s) // Sample boundaries
                                         }
                 = yes; // Include all time steps within the interval
 
@@ -225,8 +225,8 @@ loop(cc(counter),
             tt_interval(t_current(t))${ ord(t) >= tSolveFirst + tCounter
                                         and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)
                                         and mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'intervalLength', counter)) = 0
-                                        and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                        and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
+                                        and ord(t) > msStart(mSolve, s) // Sample boundaries
+                                        and ord(t) < msEnd(mSolve, s) // Sample boundaries
                                         }
                 = yes;
 
