@@ -19,7 +19,7 @@ $offtext
 * --- Penalty Definitions -----------------------------------------------------
 * =============================================================================
 
-$setlocal def_penalty 1e4
+$setlocal def_penalty 1e3
 Scalars
     PENALTY "Default equation violation penalty" / %def_penalty% /
 ;
@@ -28,7 +28,7 @@ Parameters
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
 ;
 PENALTY_BALANCE(grid) = %def_penalty%;
-PENALTY_RES(restype, up_down) = 0.9*%def_penalty%;
+PENALTY_RES(restype, up_down) = %def_penalty%;
 
 
 * =============================================================================
