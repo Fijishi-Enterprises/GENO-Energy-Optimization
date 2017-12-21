@@ -153,10 +153,12 @@ Option clear = r_shutdown;
 * =============================================================================
 * --- Diagnostics Results Arrays ----------------------------------------------
 * =============================================================================
-
+// Only calculate these if the 'diag' option is turned on on the command line
+$iftheni.diag '%diag%' == 'yes'
 Parameters
     d_cop(unit, f, t) "Coefficients of performance of conversion units"
     d_eff(unit, f, t) "Efficiency of generation units using fuel"
     d_capacityFactor(flow, node, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
     d_nodeState(grid, node, param_gnBoundaryTypes, f, t) "Diagnostic temperature forecasts (accounting for GAMS plotting error)"
 ;
+$endif.diag

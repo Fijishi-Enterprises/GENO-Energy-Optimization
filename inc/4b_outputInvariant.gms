@@ -370,6 +370,7 @@ r_uTotalShutdown(unit)
 
 * --- Diagnostic Results ------------------------------------------------------
 
+$iftheni.diag '%diag%' == 'yes'
 // Estimated coefficients of performance
 d_cop(unit, ft_realizedNoReset(f, t))${ sum(gnu_input(grid, node, unit), 1) }
     = sum(gnu_output(grid, node, unit),
@@ -391,6 +392,6 @@ d_eff(unit_fuel(unit), ft_realizedNoReset(f, t))
                 ) // END sum(uFuel)
             + 1${not sum(uFuel(unit, 'main', fuel), r_fuelUse(fuel, unit, f, t))}
             ];
-
+$endif.diag
 
 

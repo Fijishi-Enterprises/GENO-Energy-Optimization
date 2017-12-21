@@ -110,6 +110,7 @@ r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
 
 * --- Diagnostics Results -----------------------------------------------------
 
+$iftheni.diag '%diag%' == 'yes'
 // Capacity factors for examining forecast errors
 d_capacityFactor(flowNode(flow, node), f_solve(f), t_active(t))${ sum(flowUnit(flow, unit), nu(node, unit)) }
     = ts_cf_(flow, node, f, t)
@@ -126,6 +127,7 @@ d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, f_solve(f), t_active(t)
                     and not ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
                     }
 ;
+$endif.diag
 
 * --- Model Solve & Status ----------------------------------------------------
 
