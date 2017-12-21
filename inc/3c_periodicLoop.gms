@@ -118,6 +118,7 @@ $$iftheni.debug NOT '%debug%' == 'yes'
     Option clear = ts_unit_;
     Option clear = ts_reserveDemand_;
     Option clear = ts_nodeState_;
+    Option clear = ts_fuelPrice_;
 
 $endif.debug
 
