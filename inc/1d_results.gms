@@ -76,13 +76,14 @@ Parameters
     r_fuelUse(fuel, unit, f, t) "Fuel use of units"
     r_genFuel(grid, node, fuel, f, t) "Energy generation/consumption based on fuels / flows (MW)"
     r_gnTotalGenFuel(grid, node, fuel) "Total energy generation in gn per fuel over the simulation (MWh)"
-    r_gnTotalGenFuelShare(grid, node, fuel) "Total energy generation fuel consumption gn/g share"
+    r_gnTotalGenFuelShare(grid, node, fuel) "Total energy generation fuel consumption gn shares"
     r_gTotalGenFuel(grid, fuel) "Total energy generation in g per fuel over the simulation (MWh)"
+    r_gTotalGenFuelShare(grid, fuel) "Total energy generation fuel consumption g shares "
     r_totalGenFuel(fuel) "Total overall energy generation/consumption per fuel over the simulation (MWh)"
 
     // Interesting energy generation results
     r_gnuTotalGen(grid, node, unit) "Total energy generation in gnu over the simulation (MWh)"
-    r_gnuTotalGenShare(grid, node, unit) "Total energy generation gnu/gn share"
+    r_gnuTotalGenShare(grid, node, unit) "Total energy generation gnu share"
     r_gnTotalGen(grid, node) "Total energy generation in gn over the simulation (MWh)"
     r_gnTotalGenShare(grid, node) "Total energy generation gn/g share"
     r_gTotalGen(grid) "Total energy generation in g over the simulation (MWh)"
@@ -154,7 +155,7 @@ Option clear = r_shutdown;
 * --- Diagnostics Results Arrays ----------------------------------------------
 * =============================================================================
 // Only calculate these if the 'diag' option is turned on on the command line
-$iftheni.diag '%diag%' == 'yes'
+$iftheni.diag NOT '%diag%' == 'no'
 Parameters
     d_cop(unit, f, t) "Coefficients of performance of conversion units"
     d_eff(unit, f, t) "Efficiency of generation units using fuel"

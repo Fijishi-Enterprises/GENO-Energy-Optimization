@@ -76,6 +76,7 @@ r_genFuel
 r_gnTotalGenFuel
 r_gnTotalGenFuelShare
 r_gTotalGenFuel
+r_gTotalGenFuelShare
 r_totalGenFuel
 
 // Interesting energy generation results
@@ -133,7 +134,7 @@ r_nTotalqResDemand
 r_solveStatus
 
 // Diagnostics
-$iftheni.diag '%diag%' == 'yes'
+$iftheni.diag NOT '%diag%' == 'no'
 d_cop
 d_eff
 d_capacityFactor

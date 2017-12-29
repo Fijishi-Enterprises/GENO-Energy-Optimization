@@ -443,9 +443,9 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
         = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
 ); // END loop(effLevelGroupUnit)
 
-* -----------------------------------------------------------------------------
+* =============================================================================
 * --- Probabilities -----------------------------------------------------------
-* -----------------------------------------------------------------------------
+* =============================================================================
 
 // Update probabilities
 Option clear = p_msft_probability;

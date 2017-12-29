@@ -292,10 +292,15 @@ r_gTotalGenFuel(grid, fuel)
 r_totalGenFuel(fuel)
     = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, fuel));
 
-// Total fuel consumption gn/g shares
+// Total fuel consumption gn shares
 r_gnTotalGenFuelShare(gn(grid, node), fuel)${ r_gnTotalGen(grid, node) }
     = r_gnTotalGenFuel(grid, node, fuel)
         / r_gnTotalGen(grid, node);
+
+// Total fuel consumption g shares
+r_gTotalGenFuelShare(grid, fuel)${ r_gTotalGen(grid) }
+    = r_gTotalGenFuel(grid, fuel)
+        / r_gTotalGen(grid);
 
 * --- Total Spilled Energy Results --------------------------------------------
 
@@ -370,7 +375,7 @@ r_uTotalShutdown(unit)
 
 * --- Diagnostic Results ------------------------------------------------------
 
-$iftheni.diag '%diag%' == 'yes'
+$iftheni.diag NOT '%diag%' == 'no'
 // Estimated coefficients of performance
 d_cop(unit, ft_realizedNoReset(f, t))${ sum(gnu_input(grid, node, unit), 1) }
     = sum(gnu_output(grid, node, unit),

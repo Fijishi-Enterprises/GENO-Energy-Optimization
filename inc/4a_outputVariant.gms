@@ -110,7 +110,7 @@ r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
 
 * --- Diagnostics Results -----------------------------------------------------
 
-$iftheni.diag '%diag%' == 'yes'
+$iftheni.diag NOT '%diag%' == 'no'
 // Capacity factors for examining forecast errors
 d_capacityFactor(flowNode(flow, node), f_solve(f), t_active(t))${ sum(flowUnit(flow, unit), nu(node, unit)) }
     = ts_cf_(flow, node, f, t)
