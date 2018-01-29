@@ -113,27 +113,6 @@ loop(m,
             + r_gnStateSlackCost(grid, node, f, t)
             );
 
-* --- Realized Nodal System Costs ---------------------------------------------
-
-    // Total realized gn costs
-    r_gnRealizedCost(gn(grid, node), ft_realizedNoReset(f, t))
-        = sum(gnu_output(grid, node, unit),
-
-            // VOM costs
-            + r_gnuVOMCost(grid, node, unit, f, t)
-
-            // Divide fuel and startup costs based on output capacities
-            + p_gnu(grid, node, unit, 'maxGen')
-                / p_unit(unit, 'outputCapacityTotal')
-                * [
-                    + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
-                    + r_uStartupCost(unit, f, t)
-                    ] // END *
-            ) // END sum(gnu_output)
-
-            // Node state slack costs
-            + r_gnStateSlackCost(grid, node, f, t);
-
 * --- Realized Nodal Energy Consumption ---------------------------------------
 // !!! NOTE !!! This is a bit of an approximation at the moment !!!!!!!!!!!!!!!
 
@@ -145,6 +124,60 @@ loop(m,
                     + r_gen(grid, node, unit, f, t)
                     ) // END sum(gnu_input)
                 ];
+
+* --- Realized Nodal System Costs ---------------------------------------------
+
+    // Realized gnu Costs
+    r_gnuRealizedCost(gnu_output(grid, node, unit), ft_realizedNoReset(f, t))
+        =   // VOM costs
+            + r_gnuVOMCost(grid, node, unit, f, t)
+
+            // Divide fuel and startup costs based on output capacities
+            + p_gnu(grid, node, unit, 'maxGen')
+                / p_unit(unit, 'outputCapacityTotal')
+                * [
+                    + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
+                    + r_uStartupCost(unit, f, t)
+                    ]; // END *
+
+    // Realized gnu Costs Per Generation
+    r_gnuRealizedCostPerGen(gnu_output(grid, node, unit), ft_realizedNoReset(f, t))${ r_gen(grid, node, unit, f, t) }
+        = 1e6
+            * [ // VOM costs
+                + r_gnuVOMCost(grid, node, unit, f, t)
+
+                // Divide fuel and startup costs based on output capacities
+                + p_gnu(grid, node, unit, 'maxGen')
+                    / p_unit(unit, 'outputCapacityTotal')
+                    * [
+                        + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
+                        + r_uStartupCost(unit, f, t)
+                        ] // END *
+                ]
+                    / r_gen(grid, node, unit, f, t)
+                    / p_stepLengthNoReset(m, f, t);
+
+    // Realized gn Costs
+    r_gnRealizedCost(gn(grid, node), ft_realizedNoReset(f, t))
+        = sum(gnu_output(grid, node, unit),
+            + r_gnuRealizedCost(grid, node, unit, f, t)
+            ) // END sum(gnu_output)
+
+            // Node state slack costs
+            + r_gnStateSlackCost(grid, node, f, t);
+
+    // Realized gn Costs Per Consumption
+    r_gnRealizedCostPerCons(gn(grid, node), ft_realizedNoReset(f, t))${ r_gnConsumption(grid, node, f, t) }
+        = - 1e6
+            * [
+                + sum(gnu_output(grid, node, unit),
+                    + r_gnuRealizedCost(grid, node, unit, f, t)
+                    ) // END sum(gnu_output)
+
+                    // Node state slack costs
+                    + r_gnStateSlackCost(grid, node, f, t)
+                    ]
+                / r_gnConsumption(grid, node, f, t);
 
 * --- Total Energy Generation -------------------------------------------------
 
@@ -397,6 +430,24 @@ d_eff(unit_fuel(unit), ft_realizedNoReset(f, t))
                 ) // END sum(uFuel)
             + 1${not sum(uFuel(unit, 'main', fuel), r_fuelUse(fuel, unit, f, t))}
             ];
+
+// Node Energy Capacity (Maximum)
+d_gnStateEnergyCapacityMax(gn_state(grid, node))${ sum(useConstantOrTimeseries, p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', useConstantOrTimeseries)) }
+    = p_gn(grid, node, 'energyStoredPerUnitOfState')
+        * [ + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant') }
+                * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier')
+            - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')${ p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant') }
+                * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier')
+            ];
+
+d_gnStateEnergyCapacityMin(gn_state(grid, node))${ sum(useConstantOrTimeseries, p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', useConstantOrTimeseries)) }
+    = p_gn(grid, node, 'energyStoredPerUnitOfState')
+        * [ + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant') }
+                * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier')
+            - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')${ p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant') }
+                * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier')
+            ];
+
 $endif.diag
 
 

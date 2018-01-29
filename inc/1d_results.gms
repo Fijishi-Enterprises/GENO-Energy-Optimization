@@ -40,7 +40,10 @@ Parameters
     r_gnStorageValueChange(grid, node) "Change in storage values over the simulation (MEUR)"
 
     // Realized System Costs
+    r_gnuRealizedCost(grid, node, unit, f, t) "Realized system costs in gnu for each t (MEUR)"
+    r_gnuRealizedCostPerGen(grid, node, unit, f, t) "Realized system costs in gnu for each t per generated MWh (EUR/MWh)"
     r_gnRealizedCost(grid, node, f, t) "Realized system costs in gn for each t (MEUR)"
+    r_gnRealizedCostPerCons(grid, node, f, t) "Realized system costs in gn for each t per consumed MWh (EUR/MWh)"
     r_gnTotalRealizedCost(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
     r_gnTotalRealizedCostShare(grid, node) "Total realized system cost gn/g shares over the simulation"
     r_gnTotalRealizedNetCost(grid, node) "Total realized system costs in gn over the simulation, minus the increase in storage values (MEUR)"
@@ -161,5 +164,7 @@ Parameters
     d_eff(unit, f, t) "Efficiency of generation units using fuel"
     d_capacityFactor(flow, node, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
     d_nodeState(grid, node, param_gnBoundaryTypes, f, t) "Diagnostic temperature forecasts (accounting for GAMS plotting error)"
+    d_gnStateEnergyCapacityMax(grid, node) "Permitted maximum energy content range of a node"
+    d_gnStateEnergyCapacityMin(grid, node) "Permitted minimum energy content range of a node"
 ;
 $endif.diag

@@ -38,7 +38,10 @@ r_gnTotalStateSlackCost
 r_gnStorageValueChange
 
 // Realized System Costs
+r_gnuRealizedCost
+r_gnuRealizedCostPerGen
 r_gnRealizedCost
+r_gnRealizedCostPerCons
 r_gnTotalRealizedCost
 r_gnTotalRealizedCostShare
 r_gnTotalRealizedNetCost
@@ -139,6 +142,8 @@ d_cop
 d_eff
 d_capacityFactor
 d_nodeState
+d_gnStateEnergyCapacityMax
+d_gnStateEnergyCapacityMin
 $endif.diag
 
 // Metadata and settings
