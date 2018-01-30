@@ -144,6 +144,8 @@ unit_minload(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operati
     = yes;
 
 // Units with flows/fuels
+unitFuel(unit, fuel)${ sum(param_fuel, uFuel(unit, param_fuel, fuel)) }
+    = yes;
 unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
 unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }

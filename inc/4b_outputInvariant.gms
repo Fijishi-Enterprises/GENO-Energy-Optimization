@@ -32,7 +32,7 @@ loop(m,
             * p_unit(unit, 'omCosts');
 
     // Fuel and emission costs during normal operation
-    r_uFuelEmissionCost(fuel, unit_fuel(unit), ft_realizedNoReset(f,t))${ uFuel(unit, 'main', fuel) }
+    r_uFuelEmissionCost(fuel, unit_fuel(unit), ft_realizedNoReset(f,t))${ unitFuel(unit, fuel) }
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * r_fuelUse(fuel, unit, f, t)
@@ -96,7 +96,7 @@ loop(m,
             );
 
     // Total fuel & emission costs
-    r_uTotalFuelEmissionCost(fuel, unit)${ uFuel(unit, 'main', fuel) }
+    r_uTotalFuelEmissionCost(fuel, unit_fuel(unit))${ unitFuel(unit, fuel) }
         = sum(ft_realizedNoReset(f,t),
             + r_uFuelEmissionCost(fuel, unit, f, t)
             );
@@ -136,26 +136,16 @@ loop(m,
             + p_gnu(grid, node, unit, 'maxGen')
                 / p_unit(unit, 'outputCapacityTotal')
                 * [
-                    + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
+                    + sum(unitFuel(unit, fuel), r_uFuelEmissionCost(fuel, unit, f, t))
                     + r_uStartupCost(unit, f, t)
                     ]; // END *
 
     // Realized gnu Costs Per Generation
     r_gnuRealizedCostPerGen(gnu_output(grid, node, unit), ft_realizedNoReset(f, t))${ r_gen(grid, node, unit, f, t) }
         = 1e6
-            * [ // VOM costs
-                + r_gnuVOMCost(grid, node, unit, f, t)
-
-                // Divide fuel and startup costs based on output capacities
-                + p_gnu(grid, node, unit, 'maxGen')
-                    / p_unit(unit, 'outputCapacityTotal')
-                    * [
-                        + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
-                        + r_uStartupCost(unit, f, t)
-                        ] // END *
-                ]
-                    / r_gen(grid, node, unit, f, t)
-                    / p_stepLengthNoReset(m, f, t);
+            * r_gnuRealizedCost(grid, node, unit, f, t)
+            / r_gen(grid, node, unit, f, t)
+            / p_stepLengthNoReset(m, f, t);
 
     // Realized gn Costs
     r_gnRealizedCost(gn(grid, node), ft_realizedNoReset(f, t))
@@ -169,15 +159,8 @@ loop(m,
     // Realized gn Costs Per Consumption
     r_gnRealizedCostPerCons(gn(grid, node), ft_realizedNoReset(f, t))${ r_gnConsumption(grid, node, f, t) }
         = - 1e6
-            * [
-                + sum(gnu_output(grid, node, unit),
-                    + r_gnuRealizedCost(grid, node, unit, f, t)
-                    ) // END sum(gnu_output)
-
-                    // Node state slack costs
-                    + r_gnStateSlackCost(grid, node, f, t)
-                    ]
-                / r_gnConsumption(grid, node, f, t);
+            * r_gnRealizedCost(grid, node, f, t)
+            / r_gnConsumption(grid, node, f, t);
 
 * --- Total Energy Generation -------------------------------------------------
 

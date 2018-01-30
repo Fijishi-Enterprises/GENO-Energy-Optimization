@@ -75,6 +75,7 @@ $$iftheni.debug NOT '%debug%' == 'yes'
 *    q_rampDownLimit(grid, node, mType, s, unit, f, t) "Down ramping limited for units"
     Option clear = q_outputRatioFixed;
     Option clear = q_outputRatioConstrained;
+    Option clear = q_maxFuelFraction;
     Option clear = q_conversionDirectInputOutput;
     Option clear = q_conversionSOS2InputIntermediate;
     Option clear = q_conversionSOS2Constraint;

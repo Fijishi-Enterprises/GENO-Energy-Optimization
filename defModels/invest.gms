@@ -38,6 +38,7 @@ Model invest /
 *    q_rampDownLimit
     q_outputRatioFixed
     q_outputRatioConstrained
+    q_maxFuelFraction
     q_conversionDirectInputOutput
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint

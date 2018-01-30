@@ -87,7 +87,25 @@ v_spill.up(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(
         * p_gnBoundaryPropertiesForStates(grid, node_spill, 'maxSpill', 'multiplier')
 ;
 
-* --- Unit Related Variable Boundaries ----------------------------------------
+* --- Energy Transfer Boundaries ----------------------------------------------
+
+// Restrictions on transferring energy between nodes without investments
+// Total transfer variable restricted from both above and below (free variable)
+v_transfer.up(gn2n_directional(grid, node, node_), ft(f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
+    = p_gnn(grid, node, node_, 'transferCap')
+;
+v_transfer.lo(gn2n_directional(grid, node, node_), ft(f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
+    = -p_gnn(grid, node_, node, 'transferCap')
+;
+// Directional transfer variables only restricted from above (positive variables)
+v_transferRightward.up(gn2n_directional(grid, node, node_), ft(f, t))${ not p_gnn(grid, node, node_, 'transferCapInvLimit') }
+    = p_gnn(grid, node, node_, 'transferCap')
+;
+v_transferLeftward.up(gn2n_directional(grid, node, node_), ft(f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
+    = p_gnn(grid, node_, node, 'transferCap')
+;
+
+* --- Unit Generation and Consumption Boundaries ------------------------------
 
 // Constant max. energy generation if investments disabled
 v_gen.up(gnuft(gnu_output(grid, node, unit), f, t))${   not unit_flow(unit)
@@ -136,6 +154,29 @@ v_gen.lo(gnuft(gnu_output(grid, node, unit), f, t))${   p_gnu(grid, node, unit, 
 v_gen.up(gnuft(gnu_output(grid, node, unit), f, t))${   p_gnu(grid, node, unit, 'maxGen') < 0   }
     = 0;
 
+* --- Unit Fuel Consumption Boundaries ----------------------------------------
+
+// Defined absolute fuel use limits
+loop(uFuel(unit, param_fuel, fuel)${ p_uFuel(unit, param_fuel, fuel, 'maxFuelCons') },
+    v_fuelUse.up(fuel, uft(unit, f, t))
+        = p_uFuel(unit, param_fuel, fuel, 'maxFuelCons');
+    ) // END loop(uFuel)
+;
+
+* --- Unit Online Boundaries --------------------------------------------------
+
+// v_online cannot exceed unit count if investments disabled
+// LP variant
+v_online_LP.up(uft_onlineLP(unit, f, t))${  not unit_investLP(unit) }
+    = p_unit(unit, 'unitCount')
+;
+// MIP variant
+v_online_MIP.up(uft_onlineMIP(unit, f, t))${    not unit_investMIP(unit) }
+    = p_unit(unit, 'unitCount')
+;
+
+* --- Unit Ramping Boundaries -------------------------------------------------
+
 // Ramping capability of units without online variable and not part of investment set
 // !!! PENDING CHANGES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 $ontext
@@ -166,34 +207,6 @@ loop(ms(mSolve, s),
             * 60 / 100;  // Unit conversion from [p.u./min] to [MW/h]
 );
 $offtext
-
-// v_online cannot exceed unit count if investments disabled
-// LP variant
-v_online_LP.up(uft_onlineLP(unit, f, t))${  not unit_investLP(unit) }
-    = p_unit(unit, 'unitCount')
-;
-// MIP variant
-v_online_MIP.up(uft_onlineMIP(unit, f, t))${    not unit_investMIP(unit) }
-    = p_unit(unit, 'unitCount')
-;
-
-* --- Energy Transfer Boundaries ----------------------------------------------
-
-// Restrictions on transferring energy between nodes without investments
-// Total transfer variable restricted from both above and below (free variable)
-v_transfer.up(gn2n_directional(grid, node, node_), ft(f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = p_gnn(grid, node, node_, 'transferCap')
-;
-v_transfer.lo(gn2n_directional(grid, node, node_), ft(f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = -p_gnn(grid, node_, node, 'transferCap')
-;
-// Directional transfer variables only restricted from above (positive variables)
-v_transferRightward.up(gn2n_directional(grid, node, node_), ft(f, t))${ not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = p_gnn(grid, node, node_, 'transferCap')
-;
-v_transferLeftward.up(gn2n_directional(grid, node, node_), ft(f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = p_gnn(grid, node_, node, 'transferCap')
-;
 
 * --- Reserve Provision Boundaries --------------------------------------------
 

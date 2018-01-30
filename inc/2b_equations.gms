@@ -55,6 +55,7 @@ equations
 *    q_rampDownLimit(grid, node, mType, s, unit, f, t) "Down ramping limited for units"
     q_outputRatioFixed(grid, node, grid, node, unit, f, t) "Force fixed ratio between two energy outputs into different energy grids"
     q_outputRatioConstrained(grid, node, grid, node, unit, f, t) "Constrained ratio between two grids of energy output; e.g. electricity generation is greater than cV times unit_heat generation in extraction plants"
+    q_maxFuelFraction(unit, param_fuel, fuel, f, t) "Impose a maximum ratio of consumed fuel in the fuel mix"
     q_conversionDirectInputOutput(effSelector, unit, f, t) "Direct conversion of inputs to outputs (no piece-wise linear part-load efficiencies)"
     q_conversionSOS2InputIntermediate(effSelector, unit, f, t)   "Intermediate output when using SOS2 variable based part-load piece-wise linearization"
     q_conversionSOS2Constraint(effSelector, unit, f, t)          "Sum of v_sos2 has to equal v_online"
@@ -114,7 +115,7 @@ q_obj ..
                             ) // END sum(gnu_output)
 
                         // Fuel and emission costs
-                        + sum(uFuel(unit, 'main', fuel)${uft(unit, f, t)},
+                        + sum(unitFuel(unit, fuel)${uft(unit, f, t)},
                             + v_fuelUse(fuel, unit, f, t)
                                 * [
                                     + ts_fuelPrice_(fuel ,t)
@@ -810,6 +811,24 @@ q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, 
         / p_gnu(grid_, node_, unit, 'cB')
 ;
 
+* --- Maximum Fuel Mix Ratio --------------------------------------------------
+
+q_maxFuelFraction(uFuel(unit, param_fuel, fuel), ft(f, t))${    p_uFuel(unit, param_fuel, fuel, 'maxFuelFraction')
+                                                                and uft(unit, f, t)
+                                                                } ..
+
+    // Consumption of Restricted Fuel
+    + v_fuelUse(fuel, unit, f, t)
+
+    =L=
+
+    // Desired Fraction of Total Fuel Consumed in the param_fuel Group
+    + p_uFuel(unit, param_fuel, fuel, 'maxFuelFraction')
+        * sum(unitFuel(unit, fuel_)${ uFuel(unit, param_fuel, fuel_) },
+            + v_fuelUse(fuel_, unit, f, t)
+            ) // END sum(uFuel)
+;
+
 * --- Direct Input-Output Conversion ------------------------------------------
 
 q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
@@ -836,7 +855,7 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
         ) // END sum(gnu_output)
 
     // Consumption of keeping units online
-    + sum(gnu_output(grid, node, unit),
+    + sum(gnu_output(grid, node, unit)${ effDirectOn(effGroup) },
         + p_gnu(grid, node, unit, 'unitSizeGen')
         ) // END sum(gnu_output)
         * [
@@ -1455,7 +1474,7 @@ q_emissioncap(gngroup, emission)${  p_gngroupPolicy(gngroup, 'emissionCap', emis
         * [
             // Time step length dependent emissions
             + p_stepLength(m, f, t)
-                * sum((uft(unit_fuel, f, t), fuel)${uFuel(unit_fuel, 'main', fuel)},
+                * sum((uft(unit_fuel, f, t), fuel)${ unitFuel(unit_fuel, fuel) },
                     + v_fuelUse(fuel, unit_fuel, f, t)
                         * p_fuelEmission(fuel, emission) / 1e3
                         * sum(gnu_output(grid, node, unit_fuel)${gn_gngroup(grid, node, gngroup)},

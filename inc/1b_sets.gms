@@ -38,7 +38,8 @@ Sets
     flowUnit(flow, *) "Units or storages linked to a certain energy flow time series"
     unitUnittype(unit, *) "Link generation technologies to types"
     unitStarttype(unit, starttype) "Units with special startup properties"
-    uFuel(unit, param_fuel, fuel) "Units linked with fuels"
+    uFuel(unit, param_fuel, fuel) "Units linked with fuels, including fuel type"
+    unitFuel(unit, fuel) "Fuels used by units, excluding fuel type."
     unittype "Unit technology types"
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
@@ -130,6 +131,7 @@ alias(f, f_, f__);
 alias(s, s_, s__);
 alias(grid, grid_, grid_output);
 alias(unit, unit_);
+alias(fuel, fuel_);
 alias(node, from_node, to_node, node_, node_input, node_output);
 alias(node, from_node, to_node);
 alias(effSelector, effSelector_);
