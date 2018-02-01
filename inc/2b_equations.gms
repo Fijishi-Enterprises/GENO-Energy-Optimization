@@ -19,16 +19,20 @@ $offtext
 * --- Penalty Definitions -----------------------------------------------------
 * =============================================================================
 
-$setlocal def_penalty 1e3
 Scalars
-    PENALTY "Default equation violation penalty" / %def_penalty% /
+    PENALTY "Default equation violation penalty"
 ;
+
+// Define default penalty if not given from command line
+$If set def_penalty PENALTY=%def_penalty%;
+$If not set def_penalty PENALTY=1e3;
+
 Parameters
     PENALTY_BALANCE(grid) "Penalty on violating energy balance eq. (EUR/MWh)"
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
 ;
-PENALTY_BALANCE(grid) = %def_penalty%;
-PENALTY_RES(restype, up_down) = %def_penalty%;
+PENALTY_BALANCE(grid) = PENALTY;
+PENALTY_RES(restype, up_down) = PENALTY;
 
 
 * =============================================================================
