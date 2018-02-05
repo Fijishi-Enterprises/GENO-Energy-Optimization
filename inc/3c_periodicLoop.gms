@@ -179,9 +179,9 @@ loop(cc(counter),
                                                             and mf_realization(mSolve, f_solve)
                                                             }
                 = yes;
-            // Include the full horizon for the central forecast
+            // Include the full horizon for the central forecast and for a deterministic model
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and mf_central(mSolve, f_solve)
+                                                            and (mf_central(mSolve, f_solve) or mSettings('schedule', 'forecasts') = 0)
                                                             }
                 = yes;
             // Include up to forecastLength for remaining forecasts
@@ -242,7 +242,7 @@ loop(cc(counter),
                 = yes;
             // Include the full horizon for the central forecast
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and mf_central(mSolve, f_solve)
+                                                            and (mf_central(mSolve, f_solve) or mSettings('schedule', 'forecasts') = 0)
                                                             }
                 = yes;
             // Include up to forecastLength for remaining forecasts
