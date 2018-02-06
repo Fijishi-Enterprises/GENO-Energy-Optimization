@@ -47,8 +47,8 @@ equations
     q_startup(mType, unit, f, t) "Capacity started up is greater than the difference of online cap. now and in the previous time step"
     q_startuptype(mType, starttype, unit, f, t) "Startup type depends on the time the unit has been non-operational"
     q_onlineLimit(mType, unit, f, t) "Number of online units limited for units with startup constraints and investment possibility"
-    q_onlineMinUptime(mType, unit, f, t) "Unit must stay operational if it has started up during the previous minOperationTime hours"
-*    q_minDown(mType, unit, f, t) "Unit must stay non-operational if it has shut down during the previous minShutDownTime hours"
+    q_onlineMinUptime(mType, unit, f, t) "Unit must stay operational if it has started up during the previous minOperationHours hours"
+*    q_minDown(mType, unit, f, t) "Unit must stay non-operational if it has shut down during the previous minShutdownHours hours"
 *    q_genRamp(grid, node, mType, s, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
 *    q_genRampChange(grid, node, mType, s, unit, f, t) "Record the ramp rates of units with ramping costs"
 *    q_rampUpLimit(grid, node, mType, s, unit, f, t) "Up ramping limited for units"
@@ -570,7 +570,7 @@ q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t))${ unit
 
 *--- Online Limits with Startup Type Constraints and Investments --------------
 
-q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutDownTime')
+q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutdownHours')
                                             or unit_investLP(unit)
                                             or unit_investMIP(unit)
                                             } ..
@@ -597,7 +597,7 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutDownTime')
 
 *--- Minimum Unit Uptime ------------------------------------------------------
 
-q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationTime')
+q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationHours')
                                                 } ..
 
     // Units currently online

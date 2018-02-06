@@ -299,13 +299,13 @@ loop(m,
 
         // Find the time step displacements needed to define the downtime requirements
         Option clear = cc;
-        cc(counter)${ ord(counter) <= p_unit(unit, 'minShutDownTime') / mSettings(m, 'intervalInHours') }
+        cc(counter)${ ord(counter) <= p_unit(unit, 'minShutdownHours') / mSettings(m, 'intervalInHours') }
             = yes;
         dt_downtimeUnitCounter(unit, cc(counter)) = - ord(counter);
 
         // Find the time step displacements needed to define the uptime requirements
         Option clear = cc;
-        cc(counter)${ ord(counter) <= p_unit(unit, 'minOperationTime') / mSettings(m, 'intervalInHours')}
+        cc(counter)${ ord(counter) <= p_unit(unit, 'minOperationHours') / mSettings(m, 'intervalInHours')}
             = yes;
         dt_uptimeUnitCounter(unit, cc(counter)) = - ord(counter);
     ); // END loop(effLevelGroupUnit)

@@ -380,8 +380,8 @@ v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ 
 // !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // These should not be necessary,as if the time window is not defined, warm and
 // hot starts should be impossible according to q_startuptype
-*v_startup.fx(unit, 'hot', ft_dynamic(f, t))${not p_unit(unit, 'startWarm')} = 0;
-*v_startup.fx(unit, 'warm', ft_dynamic(f, t))${not p_unit(unit, 'startCold')} = 0;
+*v_startup.fx(unit, 'hot', ft_dynamic(f, t))${not p_unit(unit, 'startWarmAfterXhours')} = 0;
+*v_startup.fx(unit, 'warm', ft_dynamic(f, t))${not p_unit(unit, 'startColdAfterXhours')} = 0;
 
 * =============================================================================
 * --- Bounds for the first timestep -------------------------------------------
