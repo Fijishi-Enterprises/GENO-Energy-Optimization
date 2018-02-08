@@ -21,11 +21,16 @@ $offtext
 
 Scalars
     PENALTY "Default equation violation penalty"
+    FUEL_PENALTY "Possible penalty multiplier for fuel use in the objective function"
 ;
 
 // Define default penalty if not given from command line
 $If set def_penalty PENALTY=%def_penalty%;
 $If not set def_penalty PENALTY=1e3;
+
+// Define fuel penalty if not given from command line
+$If set fuel_penalty FUEL_PENALTY=%fuel_penalty%;
+$If not set fuel_penalty FUEL_PENALTY=1;
 
 Parameters
     PENALTY_BALANCE(grid) "Penalty on violating energy balance eq. (EUR/MWh)"
@@ -112,10 +117,16 @@ q_obj ..
                 // Time step length dependent costs
                 + p_stepLength(m, f, t)
                     * [
-                        // Variable O&M costs
-                        + sum(gnuft(gnu_output(grid, node, unit), f, t),  // Calculated only for output energy
+                        // Variable O&M costs, output dependent
+                        + sum(gnuft(gnu_output(grid, node, unit), f, t),
                             + v_gen(grid, node, unit, f, t)
                                 * p_unit(unit, 'omCosts')
+                            ) // END sum(gnu_output)
+
+                        // Variable O&M costs, input dependent
+                        + sum(gnuft(gnu_input(grid, node, unit), f, t),
+                            - v_gen(grid, node, unit, f, t) // Negative due to input being consumption
+                                * p_unit(unit, 'omCosts_input')
                             ) // END sum(gnu_output)
 
                         // Fuel and emission costs
@@ -123,6 +134,7 @@ q_obj ..
                             + v_fuelUse(fuel, unit, f, t)
                                 * [
                                     + ts_fuelPrice_(fuel ,t)
+                                        * FUEL_PENALTY
                                     + sum(emission, // Emission taxes
                                         + p_unitFuelEmissionCost(unit, fuel, emission)
                                         )

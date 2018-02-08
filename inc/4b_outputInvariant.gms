@@ -25,11 +25,14 @@ loop(m,
 * --- Realized Individual Costs ----------------------------------------------
 
     // Variable O&M costs
-    r_gnuVOMCost(gnu_output(grid, node, unit), ft_realizedNoReset(f,t))
+    r_gnuVOMCost(gnu(grid, node, unit), ft_realizedNoReset(f,t))
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * r_gen(grid, node, unit, f, t)
-            * p_unit(unit, 'omCosts');
+            * [ // Parameter and sign depend on whether input or output dependent VOM
+                + p_unit(unit, 'omCosts')${gnu_output(grid, node, unit)}
+                - p_unit(unit, 'omCosts_input')${gnu_input(grid, node, unit)}
+                ];
 
     // Fuel and emission costs during normal operation
     r_uFuelEmissionCost(fuel, unit_fuel(unit), ft_realizedNoReset(f,t))${ unitFuel(unit, fuel) }
@@ -90,7 +93,7 @@ loop(m,
 * --- Total Cost Components ---------------------------------------------------
 
     // Total VOM costs
-    r_gnuTotalVOMCost(gnu_output(grid, node, unit))
+    r_gnuTotalVOMCost(gnu(grid, node, unit))
         = sum(ft_realizedNoReset(f,t),
             + r_gnuVOMCost(grid, node, unit, f, t)
             );
@@ -128,12 +131,12 @@ loop(m,
 * --- Realized Nodal System Costs ---------------------------------------------
 
     // Realized gnu Costs
-    r_gnuRealizedCost(gnu_output(grid, node, unit), ft_realizedNoReset(f, t))
+    r_gnuRealizedCost(gnu(grid, node, unit), ft_realizedNoReset(f, t))
         =   // VOM costs
             + r_gnuVOMCost(grid, node, unit, f, t)
 
             // Divide fuel and startup costs based on output capacities
-            + p_gnu(grid, node, unit, 'maxGen')
+            + p_gnu(grid, node, unit, 'maxGen')${ gnu_output(grid, node, unit) }
                 / p_unit(unit, 'outputCapacityTotal')
                 * [
                     + sum(unitFuel(unit, fuel), r_uFuelEmissionCost(fuel, unit, f, t))
@@ -149,9 +152,9 @@ loop(m,
 
     // Realized gn Costs
     r_gnRealizedCost(gn(grid, node), ft_realizedNoReset(f, t))
-        = sum(gnu_output(grid, node, unit),
+        = sum(gnu(grid, node, unit),
             + r_gnuRealizedCost(grid, node, unit, f, t)
-            ) // END sum(gnu_output)
+            ) // END sum(gnu)
 
             // Node state slack costs
             + r_gnStateSlackCost(grid, node, f, t);
