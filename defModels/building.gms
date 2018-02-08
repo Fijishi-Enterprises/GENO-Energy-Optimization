@@ -68,3 +68,10 @@ Model building /
 *    q_energyShareMin(gngroup, group) "Minimum energy share of generation and import from a group of units"
 *    q_inertiaMin(gngroup, f, t) "Minimum inertia in a group of nodes"
 /;
+
+* =============================================================================
+* --- Building Model Attributes -----------------------------------------------
+* =============================================================================
+
+building.holdfixed = 1; // Fixed variables are treated as constants
+building.trylinear = 1; // Try to solve using LP if possible

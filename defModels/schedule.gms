@@ -69,3 +69,9 @@ Model schedule /
 *    q_inertiaMin(gngroup, f, t) "Minimum inertia in a group of nodes"
 /;
 
+* =============================================================================
+* --- Schedule Model Attributes -----------------------------------------------
+* =============================================================================
+
+schedule.holdfixed = 1; // Fixed variables are treated as constants
+schedule.trylinear = 1; // Try to solve using LP if possible

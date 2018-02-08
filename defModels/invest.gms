@@ -68,3 +68,10 @@ Model invest /
     q_energyShareMin
     q_inertiaMin
 /;
+
+* =============================================================================
+* --- Invest Model Attributes -------------------------------------------------
+* =============================================================================
+
+invest.holdfixed = 1; // Fixed variables are treated as constants
+invest.trylinear = 1; // Try to solve using LP if possible
