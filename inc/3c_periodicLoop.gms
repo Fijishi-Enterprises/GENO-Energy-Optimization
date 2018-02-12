@@ -329,7 +329,7 @@ mft_lastSteps(mSolve, ft(f,t))${ ord(t) + p_stepLength(mSolve, f, t) / mSettings
 
 // Set of realized time steps in the solve
 Option clear = ft_realized;
-ft_realized(f_solve, t_active(t))${ mf_realization(mSolve, f_solve) }
+ft_realized(f_solve, t)${ mf_realization(mSolve, f_solve) and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = ft(f_solve, t);
 ft_realizedNoReset(ft_realized(f, t)) = yes;
 
