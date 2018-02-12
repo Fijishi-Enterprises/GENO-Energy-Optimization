@@ -334,8 +334,8 @@ q_balance(gn(grid, node), mft(m, f, t))${   not p_gn(grid, node, 'boundAll')
 
 * --- Reserve Demand ----------------------------------------------------------
 
-q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) < tSolveFirst + sum[mf(m, f), mSettings(m, 't_reserveLength')]
-                                                                        and not [ restypeDirectionNode('tertiary', up_down, node)
+q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t)) ${   ord(t) < tSolveFirst + sum[mf(m, f), mSettings(m, 't_reserveLength')]
+                                                                        and not [ restypeReleasedForRealization(restype)
                                                                                     and ft_realized(f, t)
                                                                                     ]
                                                                         } ..

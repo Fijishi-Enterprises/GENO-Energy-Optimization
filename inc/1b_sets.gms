@@ -72,6 +72,7 @@ Sets
 * --- Reserve types -----------------------------------------------------------
     restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
     nuRescapable(restype, up_down, node, unit) "Units capable and available to provide particular reserves"
+    restypeReleasedForRealization(restype) "Reserve types that are released for the realized time periods"   /tertiary/
 
 * --- Sets to define time, forecasts and samples -----------------------------------------------
     $$include 'input/timeAndSamples.inc'
