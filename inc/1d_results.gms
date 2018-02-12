@@ -93,6 +93,7 @@ Parameters
 
     // Approximate utilization rates
     r_gnuUtilizationRate(grid, node, unit) "Approximate utilization rates of gnus over the simulation"
+    r_gnuFlowUtilizationRate(flow, grid, node, unit) "Approximate flow utilization rates of flow gnus over the simulation"
 
     // Interesting energy consumption results
     r_gnConsumption(grid, node, f, t) "Consumption of energy in gn for each t (MWh)"

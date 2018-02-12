@@ -212,6 +212,17 @@ loop(m,
                     * mSettings(m, 'intervalInHours')
                 ]; // END division
 
+    // Approximate utilization rates for gnus over the simulation
+    r_gnuFlowUtilizationRate(flow, gnu_output(grid, node, unit))${  flowUnit(flow, unit)
+                                                                    and sum(ft_realizedNoReset(f, t), ts_cf(flow, node, f, t))
+                                                                    }
+        = r_gnuTotalGen(grid, node, unit)
+            / [
+                + p_gnu(grid, node, unit, 'maxGen')
+                    * sum(ft_realizedNoReset(f, t), ts_cf(flow, node, f, t))
+                    * mSettings(m, 'intervalInHours')
+                ]; // END division
+
 * --- Total Reserve Provision -------------------------------------------------
 
     // Total reserve provisions over the simulation

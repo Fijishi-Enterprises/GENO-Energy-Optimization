@@ -91,6 +91,7 @@ r_gTotalGen
 
 // Approximate utilization rates
 r_gnuUtilizationRate
+r_gnuFlowUtilizationRate
 
 // Interesting energy consumption results
 r_gnConsumption
