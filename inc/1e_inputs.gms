@@ -371,11 +371,11 @@ loop(gn2n(grid, node, node_),
 * Check the integrity of efficiency approximation related data
 Option clear = tmp; // Log the unit index for finding the error easier.
 loop( unit,
-    tmp = tmp + 1; // Increase the unit counter
+    tmp = ord(unit); // Increase the unit counter
     // Check that 'op' is defined correctly
     Option clear = count; // Initialize the previous op to zero
     loop( op,
-        abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!";
+        abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!", tmp, count;
         count = p_unit(unit, op);
     );
     // Check that efficiency approximations have sufficient data
