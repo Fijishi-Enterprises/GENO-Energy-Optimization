@@ -299,6 +299,10 @@ r_gTotalqGen(inc_dec, grid)
 
 * --- Total Energy Consumption Results ----------------------------------------
 
+// Peak consumption in gn over the simulation
+r_gnConsumptionPeak(gn(grid, node))
+    = smax(ft_realizedNoReset(f, t), r_gnConsumption(grid, node, f, t));
+
 // Total consumption on each gn over the simulation
 r_gnTotalConsumption(gn(grid, node))
     = sum(ft_realizedNoReset(f, t), r_gnConsumption(grid, node, f ,t));

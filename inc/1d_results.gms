@@ -97,6 +97,7 @@ Parameters
 
     // Interesting energy consumption results
     r_gnConsumption(grid, node, f, t) "Consumption of energy in gn for each t (MWh)"
+    r_gnConsumptionPeak(grid, node) "Peak energy consumption in gn over the simulation (MWh/h)"
     r_gnTotalConsumption(grid, node) "Total consumption of energy in gn over the simulation (MWh)"
     r_gnTotalConsumptionShare(grid, node) "Total consumption gn/g share"
     r_gTotalConsumption(grid) "Total consumption of energy in g over the simulation (MWh)"

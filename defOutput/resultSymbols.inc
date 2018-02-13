@@ -95,6 +95,7 @@ r_gnuFlowUtilizationRate
 
 // Interesting energy consumption results
 r_gnConsumption
+r_gnConsumptionPeak
 r_gnTotalConsumption
 r_gnTotalConsumptionShare
 r_gTotalConsumption
