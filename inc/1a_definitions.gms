@@ -134,6 +134,9 @@ Sets
         secondary "Fast frequency restoration reserves"
         tertiary "Replacement reserves"
         /
+    restypeTertiary(restype) "Tertiary reserves, not realized but prepared for" /
+        tertiary "Replacement reserves"
+        /
     restypeDirection(restype, up_down) "Different combinations of reserve types and directions" /
         primary.up
         primary.down

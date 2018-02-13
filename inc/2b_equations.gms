@@ -352,9 +352,7 @@ q_balance(gn(grid, node), mft(m, f, t))${   not p_gn(grid, node, 'boundAll')
 * --- Reserve Demand ----------------------------------------------------------
 
 q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))${   ord(t) < tSolveFirst + sum[mf(m, f), mSettings(m, 't_reserveLength')]
-                                                                        and not [ restypeDirectionNode('tertiary', up_down, node)
-                                                                                    and ft_realized(f, t)
-                                                                                    ]
+                                                                        and not [ restypeTertiary(restype) and ft_realized(f, t) ]
                                                                         } ..
     // Reserve provision by capable units on this node
     + sum(nuft(node, unit, f, t)${nuRescapable(restype, up_down, node, unit)},
