@@ -279,10 +279,9 @@ loop(cc(counter),
                 ts_unit_(unit, param_unit, f_solve, t)${ p_unit(unit, 'useTimeseries')   } // Only include units with timeseries attributed to them
                     = sum(tt(t_), ts_unit(unit, param_unit, f_solve, t_+dt_circular(t_)))
                         / p_stepLength(mSolve, f_solve, t);
-                // Reserves relevant only until t_reserveLength
+                // Reserves relevant only until t_reserveLength, !!! USE MAXIMUM DEMAND INSTEAD OF AVERAGE DEMAND !!!
                 ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)${    ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')    }
-                    = sum(tt(t_), ts_reserveDemand(restype, up_down, node, f_solve, t_+dt_circular(t_)))
-                        / p_stepLength(mSolve, f_solve, t);
+                    = smax(tt(t_), ts_reserveDemand(restype, up_down, node, f_solve, t_+dt_circular(t_)));
                 ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t)${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
                     = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, f_solve, t_+dt_circular(t_)))
                         / p_stepLength(mSolve, f_solve, t);
