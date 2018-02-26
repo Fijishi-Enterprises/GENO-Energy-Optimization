@@ -240,48 +240,22 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit), f_solve(f+df_nReserves(n
 
 // Fix reserves between t_jump and gate_closure based on previous allocations
 // !!! EXPERIMENTAL !!! Lower borders fixed instead of total fix !!!!!!!!!!!!!!
-// Primary reserves can use tertiary reserves as backup.
 if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix the reserves with on the first solve.
 
     // Fix non-flow unit reserves ahead of time
-    // Upper bound can be supplemented from the tertiary reserves when realized.
-    v_reserve.up(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${ mft_nReserves(node, restype, mSolve, f, t)
-                                                                                        and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
-                                                                                        }
-        = r_reserve(restype, up_down, node, unit, f, t)${ r_reserve(restype, up_down, node, unit, f, t) > 0 }
-            + r_reserve('tertiary', up_down, node, unit, f, t)${    ft_realized(f, t)
-                                                                    and r_reserve('tertiary', up_down, node, unit, f, t) > 0
-                                                                    };
-
-    // Lower bound remains fixed to commitments
+    // Lower bound fixed to commitments
     v_reserve.lo(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${ mft_nReserves(node, restype, mSolve, f, t)
                                                                                         and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
                                                                                         }
         = r_reserve(restype, up_down, node, unit, f, t)${ r_reserve(restype, up_down, node, unit, f, t) > 0 };
 
     // Fix transfer of reserves ahead of time
-    // Rightward upper
-    v_resTransferRightward.up(restypeDirectionNode(restype, up_down, node), node_, f_solve(f), t_active(t))${   mft_nReserves(node, restype, mSolve, f, t)
-                                                                                                                and restypeDirectionNode(restype, up_down, node_)
-                                                                                                                and sum(grid, gn2n(grid, node, node_))
-                                                                                                                }
-        = r_resTransferRightward(restype, up_down, node, node_, f, t)
-            + r_resTransferRightward('tertiary', up_down, node, node_, f, t)${ ft_realized(f, t) };
-
     // Rightward  lower
     v_resTransferRightward.lo(restypeDirectionNode(restype, up_down, node), node_, f_solve(f), t_active(t))${   mft_nReserves(node, restype, mSolve, f, t)
                                                                                                                 and restypeDirectionNode(restype, up_down, node_)
                                                                                                                 and sum(grid, gn2n(grid, node, node_))
                                                                                                                 }
         = r_resTransferRightward(restype, up_down, node, node_, f, t);
-
-    // Leftward upper
-    v_resTransferLeftward.up(restypeDirectionNode(restype, up_down, node), node_, f_solve(f), t_active(t))${    mft_nReserves(node, restype, mSolve, f, t)
-                                                                                                                and restypeDirectionNode(restype, up_down, node_)
-                                                                                                                and sum(grid, gn2n(grid, node, node_))
-                                                                                                                }
-        = r_resTransferLeftward(restype, up_down, node, node_, f, t)
-            + r_resTransferLeftward('tertiary', up_down, node, node_, f, t)${ ft_realized(f, t)};
 
     // Leftward lower
     v_resTransferLeftward.lo(restypeDirectionNode(restype, up_down, node), node_, f_solve(f), t_active(t))${  mft_nReserves(node, restype, mSolve, f, t)
