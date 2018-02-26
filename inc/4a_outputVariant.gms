@@ -120,7 +120,7 @@ d_capacityFactor(flowNode(flow, node), f_solve(f), t_active(t))${ sum(flowUnit(f
                     }
 ;
 // Temperature forecast for examining the error
-d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, f_solve(f), t_active(t))${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
+d_nodeState(gn_stateTimeseries(grid, node), param_gnBoundaryTypes, f_solve(f), t_active(t))${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
     = ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
         + ts_nodeState(grid, node, param_gnBoundaryTypes, f, t)${ not ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t) }
         - 1e-3${    not ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
