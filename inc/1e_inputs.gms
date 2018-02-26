@@ -304,6 +304,10 @@ gn_state(grid, node)${  gn_stateSlack(grid, node)
                         }
     = yes;
 
+// Nodes with states and time series boundaries
+gn_stateTimeseries(gn_state(grid, node))${ sum(param_gnBoundaryTypes, p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')) }
+    = yes;
+
 // Existing grid-node pairs
 gn(grid, node)${    sum(unit, gnu(grid, node, unit)
                     or gn_state(grid, node))

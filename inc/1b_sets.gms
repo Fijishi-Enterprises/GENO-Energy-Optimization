@@ -60,6 +60,7 @@ Sets
     nu(node, unit) "Units attached to particular nodes"
     gn_state(grid, node) "Nodes with a state variable"
     gn_stateSlack(grid, node) "Nodes with a state slack variable"
+    gn_stateTimeseries(grid, node) "Nodes with states and timeseries boundaries"
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
     gnn_boundState(grid, node, node) "Nodes with state variables bound by other nodes"
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
