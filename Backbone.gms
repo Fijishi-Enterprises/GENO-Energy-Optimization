@@ -21,6 +21,7 @@ Created by:
     Juha Kiviluoma <juha.kiviluoma@vtt.fi>
     Erkka Rinne <erkka.rinne@vtt.fi>
     Topi Rasku <topi.rasku@vtt.fi>
+	Niina Helisto <niina.helisto@vtt.fi>
 
 - Based on Stochastic Model Predictive Control method [1].
 - Enables multiple different models (m) to be implemented by changing
