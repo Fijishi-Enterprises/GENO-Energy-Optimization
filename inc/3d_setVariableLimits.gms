@@ -234,17 +234,18 @@ if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix th
                                                                                         and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                                         and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
                                                                                         }
-        = r_reserve(restype, up_down, node, unit, f, t)${ r_reserve(restype, up_down, node, unit, f, t) > 0 }
-            + r_reserve('tertiary', up_down, node, unit, f, t)${    ft_realized(f, t)
-                                                                    and r_reserve('tertiary', up_down, node, unit, f, t) > 0
-                                                                    };
+        = min [ r_reserve(restype, up_down, node, unit, f, t)
+                + r_reserve(restype, up_down, node, unit, f, t)${restypeReleasedForRealization(restype) and ft_realized(f,t)},
+                v_reserve.up(restype, up_down, node, unit, f, t)
+              ];
+
 
     // Lower bound remains fixed to commitments
     v_reserve.lo(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${ mft_nReserves(node, restype, mSolve, f, t)
                                                                                         and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                                         and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
                                                                                         }
-        = r_reserve(restype, up_down, node, unit, f, t)${ r_reserve(restype, up_down, node, unit, f, t) > 0 };
+        = r_reserve(restype, up_down, node, unit, f, t);
 
     // Fix transfer of reserves ahead of time
     // Rightward upper
@@ -254,7 +255,7 @@ if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix th
                                                                                                                 and sum(grid, gn2n(grid, node, node_))
                                                                                                                 }
         = r_resTransferRightward(restype, up_down, node, node_, f, t)
-            + r_resTransferRightward('tertiary', up_down, node, node_, f, t)${ ft_realized(f, t) };
+            + r_resTransferRightward(restype, up_down, node, node_, f, t)${restypeReleasedForRealization(restype) and ft_realized(f, t) };
 
     // Rightward  lower
     v_resTransferRightward.lo(restypeDirectionNode(restype, up_down, node), node_, f_solve(f), t_active(t))${   mft_nReserves(node, restype, mSolve, f, t)
@@ -271,7 +272,7 @@ if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix th
                                                                                                                 and sum(grid, gn2n(grid, node, node_))
                                                                                                                 }
         = r_resTransferLeftward(restype, up_down, node, node_, f, t)
-            + r_resTransferLeftward('tertiary', up_down, node, node_, f, t)${ ft_realized(f, t)};
+            + r_resTransferLeftward(restype, up_down, node, node_, f, t)${restypeReleasedForRealization(restype) and ft_realized(f, t)};
 
     // Leftward lower
     v_resTransferLeftward.lo(restypeDirectionNode(restype, up_down, node), node_, f_solve(f), t_active(t))${  mft_nReserves(node, restype, mSolve, f, t)
