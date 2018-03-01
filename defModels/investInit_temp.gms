@@ -41,27 +41,27 @@ if (mType('invest'),
     mSettingsEff('invest', 'level4') = 4392;
 
     // Define active model features
-    active('storageValue') = yes;
+    active('invest', 'storageValue') = yes;
 
     // Define model stochastic parameters
     mSettings('invest', 'samples') = 1;
     mSettings('invest', 'forecasts') = 0;
     mSettings('invest', 'readForecastsInTheLoop') = 0;
     mf('invest', f)$[ord(f)-1 <= mSettings('invest', 'forecasts')] = yes;
-    fRealization(f) = no;
-    fRealization('f00') = yes;
-    fCentral(f) = no;
-    fCentral('f00') = yes;
-    sInitial(s) = no;
-    sInitial('s000') = yes;
-    sCentral(s) = no;
-    sCentral('s000') = yes;
+    mf_realization('invest', f) = no;
+    mf_realization('invest', 'f00') = yes;
+    mf_central('invest', f) = no;
+    mf_central('invest', 'f00') = yes;
+    ms_initial('invest', s) = no;
+    ms_initial('invest', 's000') = yes;
+    ms_central('invest', s) = no;
+    ms_central('invest', 's000') = yes;
 
     p_stepLength('invest', f, t)$(ord(f)=1 and ord(t)=1) = 0;   // set one p_stepLength value, so that unassigned values will not cause an error later
-    p_sProbability(s) = 0;
-    p_sProbability('s000') = 1;
-    p_fProbability(f) = 0;
-    p_fProbability(fRealization) = 1;
+    p_msProbability('invest', s) = 0;
+    p_msProbability('invest', 's000') = 1;
+    p_mfProbability('invest', f) = 0;
+    p_mfProbability(mf_realization('invest', f)) = 1;
 
     msStart('invest', 's000') = 1;
     msEnd('invest', 's000') = msStart('invest', 's000') + 48;

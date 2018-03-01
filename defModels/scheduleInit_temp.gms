@@ -42,10 +42,10 @@ if (mType('schedule'),
     mSettings('schedule', 'samples') = 1;
 
     // Define Initial and Central samples
-    msInitial('schedule', s) = no;
-    msInitial('schedule', 's000') = yes;
-    msCentral('schedule', s) = no;
-    msCentral('schedule', 's000') = yes;
+    ms_initial('schedule', s) = no;
+    ms_initial('schedule', 's000') = yes;
+    ms_central('schedule', s) = no;
+    ms_central('schedule', 's000') = yes;
 
     // Define time span of samples
     msStart('schedule', 's000') = mSettings('schedule', 't_start');
@@ -86,14 +86,14 @@ if (mType('schedule'),
     mSettings('schedule', 'readForecastsInTheLoop') = 1;
 
     // Define Realized and Central forecasts
-    mfRealization('schedule', f) = no;
-    mfRealization('schedule', 'f00') = yes;
-    mfCentral('schedule', f) = no;
-    mfCentral('schedule', 'f02') = yes;
+    mf_realization('schedule', f) = no;
+    mf_realization('schedule', 'f00') = yes;
+    mf_central('schedule', f) = no;
+    mf_central('schedule', 'f02') = yes;
 
     // Define forecast probabilities (weights)
     p_mfProbability('schedule', f) = 0;
-    p_mfProbability(mfRealization('schedule', f)) = 1;
+    p_mfProbability(mf_realization('schedule', f)) = 1;
     p_mfProbability('schedule', 'f01') = 0.2;
     p_mfProbability('schedule', 'f02') = 0.6;
     p_mfProbability('schedule', 'f03') = 0.2;

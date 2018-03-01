@@ -40,6 +40,8 @@ Most of these files are under *\inc* in the Backbone folder, except for the mode
 * timeAndSamples.inc - Contains definitions for the time, forecast and sample index ranges.
 * modelsInit.gms - Contains model parameters for the solve (or a link to a template under *\defModels* to be used). Useful for any additional GAMS scripting.
 
+Backbone folder contains two template files *timeAndSamples_temp.inc* and *modelsInit_temp.gms* to provide examples of the input format. These files can be copied into *\input* and renamed to *timeAndSamples.inc* and *modelsInit.gms*.
+
 ## When Simply Using Backbone
 
 When starting to use Backbone, there is no immediate need to understand every single file that makes up the model. The files below list the most important files to understand, if one’s aim is simply to use Backbone for modelling/simulation purposes, without the need to modify the way the model works.
