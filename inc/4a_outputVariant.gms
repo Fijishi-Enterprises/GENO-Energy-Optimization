@@ -100,11 +100,11 @@ r_stateSlack(gn_stateSlack(grid, node), slack, ft_realized(f, t))
 * --- Feasibility results -----------------------------------------------------
 
 // Dummy generation & consumption
-r_qGen(inc_dec, gn(grid, node), ft_realized(f, t))
+r_qGen(inc_dec, gn(grid, node), f_solve(f), t_active(t))
     = vq_gen.l(inc_dec, grid, node, f, t)
 ;
 // Dummy reserve demand changes
-r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
+r_qResDemand(restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))
     = vq_resDemand.l(restype, up_down, node, f, t)
 ;
 
