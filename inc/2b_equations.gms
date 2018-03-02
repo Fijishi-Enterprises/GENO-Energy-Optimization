@@ -1174,7 +1174,7 @@ q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, nod
                         + p_gnn(grid, node, to_node, 'diffCoeff')
                         ) // END sum(to_node)
                     ]
-            ] // END * Headroom
+            ] // END * Conversion
 
     =G=
 
@@ -1192,6 +1192,8 @@ q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, nod
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
+                        // Reserve contribution < 0 exaggerates the effects of providing reserves
+                        / p_nuReserves(node_input, unit, restype, 'reserveContribution')
                     ) // END sum(restype)
                 ) // END sum(gn2gnu)
 
@@ -1206,6 +1208,8 @@ q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, nod
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
+                        // Reserve contribution < 0 exaggerates the effects of providing reserves
+                        / p_nuReserves(node_output, unit, restype, 'reserveContribution')
                     ) // END sum(restype)
                 ) // END sum(gn2gnu)
 
@@ -1259,6 +1263,8 @@ q_stateDownwardLimit(gn_state(grid, node), mft(m, f, t))${  sum(gn2gnu(grid, nod
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
+                        // Reserve contribution < 0 exaggerates the effects of providing reserves
+                        / p_nuReserves(node_input, unit, restype, 'reserveContribution')
                     ) // END sum(restype)
                 ) // END sum(gn2gnu)
 
@@ -1273,6 +1279,8 @@ q_stateDownwardLimit(gn_state(grid, node), mft(m, f, t))${  sum(gn2gnu(grid, nod
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
+                        // Reserve contribution < 0 exaggerates the effects of providing reserves
+                        / p_nuReserves(node_output, unit, restype, 'reserveContribution')
                     ) // END sum(restype)
                 ) // END sum(gn2gnu)
 
@@ -1303,6 +1311,8 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
+                    // Reserve contribution < 0 exaggerates the effects of providing reserves
+                    / p_nuReserves(node_input, unit, restype, 'reserveContribution')
                 ) // END sum(nuRescapable)
 
             // Downwards reserve providewd by output units
@@ -1315,6 +1325,8 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
+                    // Reserve contribution < 0 exaggerates the effects of providing reserves
+                    / p_nuReserves(node_output, unit, restype, 'reserveContribution')
                 ) // END sum(nuRescapable)
 
             // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
@@ -1344,6 +1356,8 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
+                    // Reserve contribution < 0 exaggerates the effects of providing reserves
+                    / p_nuReserves(node_input, unit, restype, 'reserveContribution')
                 ) // END sum(nuRescapable)
 
             // Upwards reserve by output node
@@ -1356,6 +1370,8 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
+                    // Reserve contribution < 0 exaggerates the effects of providing reserves
+                    / p_nuReserves(node_output, unit, restype, 'reserveContribution')
                 ) // END sum(nuRescapable)
 
             // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
