@@ -299,10 +299,11 @@ loop(cc(counter),
         // Update tActive
         t_active(tt_interval) = yes;
 
-        // Update tCounter for the next interval
-        tCounter = mInterval(mSolve, 'intervalEnd', counter);
-
     ); // END loop(ms)
+
+    // Update tCounter for the next interval
+    tCounter = mInterval(mSolve, 'intervalEnd', counter);
+
 ); // END loop(counter)
 
 // Time step displacement to reach previous time step
