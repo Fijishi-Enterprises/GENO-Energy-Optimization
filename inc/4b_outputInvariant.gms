@@ -123,12 +123,18 @@ loop(m,
             + r_gnuVOMCost(grid, node, unit, f, t)
 
             // Divide fuel and startup costs based on output capacities
-            + p_gnu(grid, node, unit, 'maxGen')
-                / p_unit(unit, 'outputCapacityTotal')
-                * [
-                    + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
-                    + r_uStartupCost(unit, f, t)
-                    ] // END *
+            + [
+                + p_gnu(grid, node, unit, 'maxGen')${p_unit(unit, 'outputCapacityTotal')}
+                + p_gnu(grid, node, unit, 'unitSizeGen')${not p_unit(unit, 'outputCapacityTotal')}
+                ]
+                    / [
+                        + p_unit(unit, 'outputCapacityTotal')${p_unit(unit, 'outputCapacityTotal')}
+                        + p_unit(unit, 'unitOutputCapacityTotal')${not p_unit(unit, 'outputCapacityTotal')}
+                        ] // END /
+                    * [
+                        + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
+                        + r_uStartupCost(unit, f, t)
+                        ] // END *
             ) // END sum(gnu_output)
 
             // Node state slack costs
@@ -185,10 +191,10 @@ loop(m,
             ); // END sum(ft_realizedNoReset)
 
     // Approximate utilization rates for gnus over the simulation
-    r_gnuUtilizationRate(gnu_output(grid, node, unit))
+    r_gnuUtilizationRate(gnu_output(grid, node, unit))${r_gnuTotalGen(grid, node, unit)}
         = r_gnuTotalGen(grid, node, unit)
             / [
-                + p_gnu(grid, node, unit, 'maxGen')
+                + (p_gnu(grid, node, unit, 'maxGen') + r_unitInvestment(unit)*p_gnu(grid, node, unit, 'unitSizeGen'))
                     * (mSettings(m, 't_end') - mSettings(m, 't_start') + 1)
                     * mSettings(m, 'intervalInHours')
                 ]; // END division

@@ -59,7 +59,6 @@ equations
     q_conversionSOS2InputIntermediate(effSelector, unit, f, t)   "Intermediate output when using SOS2 variable based part-load piece-wise linearization"
     q_conversionSOS2Constraint(effSelector, unit, f, t)          "Sum of v_sos2 has to equal v_online"
     q_conversionSOS2IntermediateOutput(effSelector, unit, f, t)  "Output is forced equal with v_sos2 output"
-    q_fixedGenCap1U(grid, node, unit, t) "Fixed capacity ratio of a unit in one node versus all nodes it is connected to"
     q_fixedGenCap2U(grid, node, unit, grid, node, unit, t) "Fixed capacity ratio of two (grid, node, unit) pairs"
 
     // Energy Transfer
@@ -208,14 +207,20 @@ $offtext
     // Investment Costs
     + sum(t_invest(t),
 
-        // Unit investment costs
+        // Unit investment costs (including fixed operation and maintenance costs)
         + sum(gnu(grid, node, unit),
             + v_invest_LP(unit, t)${ unit_investLP(unit) }
-                * p_gnu(grid, node, unit, 'invCosts')
-                * p_gnu(grid, node, unit, 'annuity')
+                * p_gnu(grid, node, unit, 'unitSizeTot')
+                * [
+                    + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
+                    + p_gnu(grid, node, unit, 'fomCosts')
+                  ]
             + v_invest_MIP(unit, t)${ unit_investMIP(unit) }
                 * p_gnu(grid, node, unit, 'unitSizeTot')
-                * p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
+                * [
+                    + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
+                    + p_gnu(grid, node, unit, 'fomCosts')
+                  ]
             ) // END sum(gnu)
 
         // Transfer link investment costs
@@ -590,8 +595,8 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutdownHours')
 
     // Investments into units
     + sum(t_invest(t_)${ord(t_)<=ord(t)},
-        + v_invest_LP(unit, t_)
-        + v_invest_MIP(unit, t_)
+        + v_invest_LP(unit, t_)${unit_investLP(unit)}
+        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
         ) // END sum(t_invest)
 ;
 
@@ -926,48 +931,22 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
         ) // END sum(gnu_output)
 ;
 
-*--- Fixed Investment Ratios --------------------------------------------------
-// !!! PENDING FIX !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// v_invest(unit) instead of the old v_invest(grid, node, unit)
-// Are these even necessary anymore, if investment is unitwise?
-// Maybe for batteries etc?
-
-q_fixedGenCap1U(gnu(grid, node, unit), t_invest(t))${   unit_investLP(unit)
-                                                        } ..
-
-    // Investment
-    + v_invest_LP(unit, t)
-
-    =E=
-
-    // Capacity Ratios?
-    + sum(gn(grid_, node_),
-        + v_invest_LP(unit, t)
-        ) // END sum(gn)
-        * p_gnu(grid, node, unit, 'unitSizeTot')
-        / sum(gn(grid_, node_),
-            + p_gnu(grid_, node_, unit, 'unitSizeTot')
-            ) // END sum(gn)
-;
-
-*--- Fixed Investment Ratios 2 ------------------------------------------------
-// !!! PENDING FIX !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// See notes in the above equation
+*--- Fixed Investment Ratios Between Two Units --------------------------------
 
 q_fixedGenCap2U(grid, node, unit, grid_, node_, unit_, t_invest(t))${   p_gnugnu(grid, node, unit, grid_, node_, unit_, 'capacityRatio')
                                                                         } ..
 
     // Investment
-    + v_invest_LP(unit, t)
-    + v_invest_MIP(unit, t)
+    + v_invest_LP(unit, t)${unit_investLP(unit)}
+    + v_invest_MIP(unit, t)${unit_investMIP(unit)}
 
     =E=
 
-    // Capacity Ratio?
+    // Capacity Ratio
     + p_gnugnu(grid, node, unit, grid_, node_, unit_, 'capacityRatio')
         * [
-            + v_invest_LP(unit_, t)
-            + v_invest_MIP(unit_, t)
+            + v_invest_LP(unit_, t)${unit_investLP(unit_)}
+            + v_invest_MIP(unit_, t)${unit_investMIP(unit_)}
             ] // END * p_gngnu(capacityRatio)
 ;
 
@@ -1384,11 +1363,15 @@ q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin
     // Availability of units, including capacity factors
     + sum(gnu_output(grid, node, unit),
         + p_unit(unit, 'availability')
-            * sum(flow${    flowUnit(flow, unit)
-                            and nu(node, unit)
-                            },
-                + ts_cf_(flow, node, f, t)
-                ) // END sum(flow)
+            * [
+                // Capacity factors for flow units
+                + sum(flow${    flowUnit(flow, unit)
+                                and nu(node, unit)
+                                },
+                    + ts_cf_(flow, node, f, t)
+                    ) // END sum(flow)
+                + 1${not unit_flow(unit)}
+                ]
             * [
                 // Output capacity before investments
                 + p_gnu(grid, node, unit, 'maxGen')

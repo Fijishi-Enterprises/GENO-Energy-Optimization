@@ -42,7 +42,6 @@ Model invest /
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
-    q_fixedGenCap1U
     q_fixedGenCap2U
 
     // Energy Transfer
@@ -60,10 +59,10 @@ Model invest /
     q_boundCyclic
 
     // Policy
+    q_inertiaMin
+    q_instantaneousShareMax
     q_capacityMargin
     q_emissioncap
-    q_instantaneousShareMax
     q_energyShareMax
     q_energyShareMin
-    q_inertiaMin
 /;

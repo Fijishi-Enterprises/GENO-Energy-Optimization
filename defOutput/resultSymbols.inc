@@ -122,6 +122,11 @@ r_nuTotalReserve
 r_nuTotalReserveShare
 r_nTotalReserve
 
+* --- Investment Result Symbols -----------------------------------------------
+
+// Interesting investment results
+r_unitInvestment
+
 * --- Dummy and Diagnostic Variable Result Symbols ----------------------------
 
 // Results regarding solution feasibility

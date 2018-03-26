@@ -297,68 +297,20 @@ v_resTransferLeftward.fx(restypeDirectionNode('tertiary', up_down, node), node_,
 
 * --- Investment Variable Boundaries ------------------------------------------
 
-// Unit Investments, Generation
+// Unit Investments
 // LP variant
 v_invest_LP.up(unit, t_invest)${    unit_investLP(unit) }
-    = min(  smax(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGenCap')) // Maximum permitted gnu_output capacity investment
-                / p_unit(unit, 'unitSizeGen')
-            ,
-            p_unit(unit, 'maxUnitCount')
-        ) // END min
+    = p_unit(unit, 'maxUnitCount')
 ;
 v_invest_LP.lo(unit, t_invest)${    unit_investLP(unit) }
-    = min(  smax(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'minGenCap')) // Maximum defined gnu_output minimun capacity requirement
-                / p_unit(unit, 'unitSizeGen')
-            ,
-            p_unit(unit, 'minUnitCount')
-        ) // END min
+    = p_unit(unit, 'minUnitCount')
 ;
 // MIP variant
 v_invest_MIP.up(unit, t_invest)${   unit_investMIP(unit)    }
-    = min(  smax(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGenCap')) // Maximum permitted gnu_output capacity investment
-                / p_unit(unit, 'unitSizeGen')
-            ,
-            p_unit(unit, 'maxUnitCount')
-        ) // END min
+    = p_unit(unit, 'maxUnitCount')
 ;
 v_invest_MIP.lo(unit, t_invest)${   unit_investMIP(unit)    }
-    = min(  smax(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'minGenCap'))
-                / p_unit(unit, 'unitSizeGen')
-            ,
-            p_unit(unit, 'minUnitCount')
-        ) // END min
-;
-
-// Unit Investments, Consumption
-// LP variant
-v_invest_LP.up(unit, t_invest)${    unit_investLP(unit) }
-    = min(  smax(gnu_input(grid, node, unit), p_gnu(grid, node, unit, 'maxConsCap')) // Maximum permitted gnu_output capacity investment
-                / p_unit(unit, 'unitSizeCons')
-            ,
-            p_unit(unit, 'maxUnitCount')
-        ) // END min
-;
-v_invest_LP.lo(unit, t_invest)${    unit_investLP(unit) }
-    = min(  smax(gnu_input(grid, node, unit), p_gnu(grid, node, unit, 'minConsCap')) // Maximum defined gnu_output minimun capacity requirement
-                / p_unit(unit, 'unitSizeCons')
-            ,
-            p_unit(unit, 'minUnitCount')
-        ) // END min
-;
-// MIP variant
-v_invest_MIP.up(unit, t_invest)${   unit_investMIP(unit)    }
-    = min(  smax(gnu_input(grid, node, unit), p_gnu(grid, node, unit, 'maxConsCap')) // Maximum permitted gnu_output capacity investment
-                / p_unit(unit, 'unitSizeCons')
-            ,
-            p_unit(unit, 'maxUnitCount')
-        ) // END min
-;
-v_invest_MIP.lo(unit, t_invest)${   unit_investMIP(unit)    }
-    = min(  smax(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'minConsCap'))
-                / p_unit(unit, 'unitSizeCons')
-            ,
-            p_unit(unit, 'minUnitCount')
-        ) // END min
+    = p_unit(unit, 'minUnitCount')
 ;
 
 // Transfer Capacity Investments

@@ -342,6 +342,11 @@ loop(fuel,
 p_slackDirection(upwardSlack) = 1;
 p_slackDirection(downwardSlack) = -1;
 
+* --- Using default value for reserves update frequency -----------------------
 
+loop(m,
+    p_nReserves(node, restype, 'update_frequency')${  not p_nReserves(node, restype, 'update_frequency')  }
+        = mSettings(m, 't_jump');
+);
 
 

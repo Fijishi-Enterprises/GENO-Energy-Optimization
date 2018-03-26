@@ -124,6 +124,11 @@ Parameters
     r_nuTotalReserveShare(restype, up_down, node, unit) "Total nu/n reserve provision share over the simulation"
     r_nTotalReserve(restype, up_down, node) "Total reserve provisions in nodes over the simulation (MW*h)"
 
+* --- Investment Results ------------------------------------------------------
+
+    // Interesting investment results
+    r_unitInvestment(unit) "Number/amount of invested units"
+
 * --- Dummy Variable Results --------------------------------------------------
 
     // Results regarding solution feasibility

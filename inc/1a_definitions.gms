@@ -273,14 +273,16 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     unitSizeTot "Sum of output and loading capacity of one unit (MW)"
     unitSizeGenNet "Output minus loading capacity of one unit (MW)"
     invCosts    "Investment costs (€/MW)"
-    annuity     "Investment annuity"
-    inertia  "Inertia of the unit (s)"
+    annuity     "Investment annuity factor"
+    fomCosts    "Fixed operation and maintenance costs (€/MW/a)"
+    inertia     "Inertia of the unit (s)"
     unitSizeMVA "Generator MVA rating (MVA)"
 /
 
 param_unit "Set of possible data parameters for units" /
     unitCount   "Number of subunits if aggregated"
     outputCapacityTotal "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"
+    unitOutputCapacityTotal "Output capacity of the unit, calculated by summing all the unit output sizes together by default"
     availability "Availability of given energy conversion technology (p.u.)"
     omCosts     "Variable operation and maintenance costs (€/MWh)"
     startCostCold "Variable start-up costs for cold starts excluding fuel costs (€/MW)"
