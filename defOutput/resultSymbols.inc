@@ -73,6 +73,7 @@ r_gen
 // Fuel use results
 r_fuelUse
 r_genFuel
+r_genUnittype
 r_gnTotalGenFuel
 r_gnTotalGenFuelShare
 r_gTotalGenFuel
