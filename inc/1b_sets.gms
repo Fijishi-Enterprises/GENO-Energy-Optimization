@@ -42,7 +42,6 @@ Sets
     unittype "Unit technology types"
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
-    group "A group of units and transfer links"
 
 * --- Nodes -----------------------------------------------------------------
     node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
@@ -64,10 +63,6 @@ Sets
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
     gngnu_fixedOutputRatio(grid, node, grid, node, unit) "Units with a fixed ratio between two different grids of output (e.g. backpressure)"
     gngnu_constrainedOutputRatio(grid, node, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
-    gnu_group(grid, node, unit, group) "Units in particular groups"
-    gn2n_group(grid, node, node, group) "Transfer links in particular groups"
-    gngroup "A group of grid, node pairs"
-    gn_gngroup(grid, node, gngroup) "Grid, node pairs in particular gngroups"
 
 * --- Reserve types -----------------------------------------------------------
     restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
@@ -118,6 +113,13 @@ Sets
     effGroupSelector(effSelector, effSelector) "Efficiency selectors included in efficiency groups, e.g. Lambda02 contains Lambda01 and Lambda02."
     effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
+
+* --- Sets used for grouping of units, transfer links, nodes, etc.
+    group "A group of units, transfer links, nodes, etc."
+    u_group(unit, group) "Units in particular groups"
+    gnu_group(grid, node, unit, group) "Grid, node, unit combinations in particular groups"
+    gn2n_group(grid, node, node, group) "Transfer links in particular groups"
+    gn_group(grid, node, group) "Grid, node combinations in particular gngroups"
 ;
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 Option clear = modelSolves;

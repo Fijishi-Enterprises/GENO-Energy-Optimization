@@ -53,11 +53,11 @@ $loaddc ts_nodeState
 $loaddc p_gnugnu
 $loaddc t_invest
 $loaddc group
+$loaddc u_group
 $loaddc gnu_group
 $loaddc gn2n_group
-$loaddc gngroup
-$loaddc gn_gngroup
-$loaddc p_gngroupPolicy
+$loaddc gn_group
+$loaddc p_groupPolicy
 $gdxin
 
 $ontext

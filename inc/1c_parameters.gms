@@ -50,7 +50,7 @@ Parameters
     p_nReserves(node, restype, *) "Data defining the reserve rules in each node"
     p_nuReserves(node, unit, restype, *) "Reserve provision data for units"
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
-    p_gngroupPolicy(gngroup, param_policy, *) "Policy data for groups of grid, node"
+    p_groupPolicy(group, param_policy, *) "Policy data for groups of grid, node"
     p_fuelEmission(fuel, emission) "Fuel emission content"
     p_uFuel(unit, param_fuel, fuel, param_unitFuel) "Parameters interacting between units and fuels"
     p_unitFuelEmissionCost(unit, fuel, emission) "Emission costs for each unit, calculated from input data"

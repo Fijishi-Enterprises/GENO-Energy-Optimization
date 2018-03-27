@@ -79,11 +79,11 @@ equations
 
     // Policy
     q_capacityMargin(grid, node, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
-    q_emissioncap(gngroup, emission) "Limit for emissions"
-    q_instantaneousShareMax(gngroup, group, f, t) "Maximum instantaneous share of generation and controlled import from a group of units and links"
-    q_energyShareMax(gngroup, group) "Maximum energy share of generation and import from a group of units"
-    q_energyShareMin(gngroup, group) "Minimum energy share of generation and import from a group of units"
-    q_inertiaMin(gngroup, f, t) "Minimum inertia in a group of nodes"
+    q_emissioncap(group, emission) "Limit for emissions"
+    q_instantaneousShareMax(group, f, t) "Maximum instantaneous share of generation and controlled import from a group of units and links"
+    q_energyShareMax(group) "Maximum energy share of generation and import from a group of units"
+    q_energyShareMin(group) "Minimum energy share of generation and import from a group of units"
+    q_inertiaMin(group, f, t) "Minimum inertia in a group of nodes"
 ;
 
 * =============================================================================
@@ -1430,7 +1430,7 @@ q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin
 // This equation doesn't really make sense for rolling planning simulations.
 // Is there any way to make it work?
 
-q_emissioncap(gngroup, emission)${  p_gngroupPolicy(gngroup, 'emissionCap', emission)
+q_emissioncap(group, emission)${  p_groupPolicy(group, 'emissionCap', emission)
                                     } ..
 
     + sum(msft(m, s, f, t),
@@ -1441,7 +1441,7 @@ q_emissioncap(gngroup, emission)${  p_gngroupPolicy(gngroup, 'emissionCap', emis
                 * sum((uft(unit_fuel, f, t), fuel)${uFuel(unit_fuel, 'main', fuel)},
                     + v_fuelUse(fuel, unit_fuel, f, t)
                         * p_fuelEmission(fuel, emission) / 1e3
-                        * sum(gnu_output(grid, node, unit_fuel)${gn_gngroup(grid, node, gngroup)},
+                        * sum(gnu_output(grid, node, unit_fuel)${gn_group(grid, node, group)},
                             + p_gnu(grid, node, unit_fuel, 'unitSizeGen')
                             ) // END sum(gnu_output)
                         / sum(gnu_output(grid_, node_, unit_fuel),
@@ -1456,7 +1456,7 @@ q_emissioncap(gngroup, emission)${  p_gngroupPolicy(gngroup, 'emissionCap', emis
                         * sum(uFuel(unit_fuel, 'startup', fuel),
                             + p_uStartup(unit_fuel, starttype, 'consumption', 'unit')
                                 * p_fuelEmission(fuel, emission) / 1e3
-                                * sum(gnu_output(grid, node, unit_fuel)${gn_gngroup(grid, node, gngroup)},
+                                * sum(gnu_output(grid, node, unit_fuel)${gn_group(grid, node, group)},
                                     + p_gnu(grid, node, unit_fuel, 'unitSizeGen')
                                     ) // END sum(gnu_output)
                                 / sum(gnu_output(grid_, node_, unit_fuel),
@@ -1471,18 +1471,18 @@ q_emissioncap(gngroup, emission)${  p_gngroupPolicy(gngroup, 'emissionCap', emis
     =L=
 
     // Permitted nodal emission cap
-    + p_gngroupPolicy(gngroup, 'emissionCap', emission)
+    + p_groupPolicy(group, 'emissionCap', emission)
 ;
 
 *--- Maximum Share of Instantaneous Generation --------------------------------
 
-q_instantaneousShareMax(gngroup, group, ft(f, t))${ p_gngroupPolicy(gngroup, 'instantaneousShareMax', group)
+q_instantaneousShareMax(group, ft(f, t))${ p_groupPolicy(group, 'instantaneousShareMax', '')
                                                     } ..
 
     // Generation of units in the group
     + sum(gnu(grid, node, unit)${   gnu_group(grid, node, unit, group)
                                     and p_gnu(grid, node, unit, 'unitSizeGen')
-                                    and gn_gngroup(grid, node, gngroup)
+                                    and gn_group(grid, node, group)
                                     },
         + v_gen(grid, node, unit, f, t)
         ) // END sum(gnu)
@@ -1490,31 +1490,31 @@ q_instantaneousShareMax(gngroup, group, ft(f, t))${ p_gngroupPolicy(gngroup, 'in
     // Controlled transfer to this node group
     // Set gn2n_group controls whether transfer is included in the equation
     + sum(gn2n_directional(grid, node, node_)${ gn2n_group(grid, node, node_, group)
-                                                and gn_gngroup(grid, node, gngroup)
-                                                and not gn_gngroup(grid, node_, gngroup)
+                                                and gn_group(grid, node, group)
+                                                and not gn_group(grid, node_, group)
                                                 },
         + v_transferLeftward(grid, node, node_, f, t) * (1-p_gnn(grid, node, node_, 'transferLoss'))
         ) // END sum(gn2n_directional)
 
     + sum(gn2n_directional(grid, node_, node)${ gn2n_group(grid, node_, node, group)
-                                                and gn_gngroup(grid, node, gngroup)
-                                                and not gn_gngroup(grid, node_, gngroup)
+                                                and gn_group(grid, node, group)
+                                                and not gn_group(grid, node_, group)
                                                 },
         + v_transferRightward(grid, node_, node, f, t) * (1-p_gnn(grid, node_, node, 'transferLoss'))
         ) // END sum(gn2n_directional)
 
     =L=
 
-    + p_gngroupPolicy(gngroup, 'instantaneousShareMax', group)
+    + p_groupPolicy(group, 'instantaneousShareMax', '')
         * [
             // External power inflow/outflow
-            - sum(gn_gngroup(grid, node, gngroup),
+            - sum(gn_group(grid, node, group),
                 + ts_influx_(grid, node, f, t)
-                ) // END sum(gn_gngroup)
+                ) // END sum(gn_group)
 
             // Consumption of units
             - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
-                                                and gn_gngroup(grid, node, gngroup)
+                                                and gn_group(grid, node, group)
                                                 },
                 + v_gen(grid, node, unit, f, t)
                 ) // END sum(gnu)
@@ -1522,15 +1522,15 @@ q_instantaneousShareMax(gngroup, group, ft(f, t))${ p_gngroupPolicy(gngroup, 'in
             // Controlled transfer from this node group
             // Set gn2n_group controls whether transfer is included in the equation
             + sum(gn2n_directional(grid, node, node_)${ gn2n_group(grid, node, node_, group)
-                                                        and gn_gngroup(grid, node, gngroup)
-                                                        and not gn_gngroup(grid, node_, gngroup)
+                                                        and gn_group(grid, node, group)
+                                                        and not gn_group(grid, node_, group)
                                                         },
                 + v_transferRightward(grid, node, node_, f, t)
                 ) // END sum(gn2n_directional)
 
             + sum(gn2n_directional(grid, node_, node)${ gn2n_group(grid, node_, node, group)
-                                                        and gn_gngroup(grid, node, gngroup)
-                                                        and not gn_gngroup(grid, node_, gngroup)
+                                                        and gn_group(grid, node, group)
+                                                        and not gn_group(grid, node_, group)
                                                         },
                 + v_transferLeftward(grid, node_, node, f, t)
                 ) // END sum(gn2n_directional)
@@ -1539,23 +1539,23 @@ $ontext
         // for one synchronous area which does not have any external AC links
 
         // Energy diffusion from this node to neighbouring nodes
-      + sum(gnn_state(grid, node, node_)${  gn_gngroup(grid, node, gngroup)
-                                            and not gn_gngroup(grid, node_, gngroup)
+      + sum(gnn_state(grid, node, node_)${  gn_group(grid, node, group)
+                                            and not gn_group(grid, node_, group)
             }, p_gnn(grid, node, node_, 'diffCoeff') * v_state(grid, node, f+df_central(f,t), t)
         )
         // Energy diffusion from neighbouring nodes to this node
-      - sum(gnn_state(grid, node_, node)${  gn_gngroup(grid, node, gngroup)
-                                            and not gn_gngroup(grid, node_, gngroup)
+      - sum(gnn_state(grid, node_, node)${  gn_group(grid, node, group)
+                                            and not gn_group(grid, node_, group)
             }, p_gnn(grid, node_, node, 'diffCoeff') * v_state(grid, node_, f+df_central(f,t), t)
         )
 $offtext
-            ] // END * p_gngroupPolicy
+            ] // END * p_groupPolicy
 
 ;
 
 *--- Maximum Energy Share -----------------------------------------------------
 
-q_energyShareMax(gngroup, group)${  p_gngroupPolicy(gngroup, 'energyShareMax', group)
+q_energyShareMax(group)${  p_groupPolicy(group, 'energyShareMax', '')
                                     } ..
 
     + sum(msft(m, s, f, t),
@@ -1565,23 +1565,23 @@ q_energyShareMax(gngroup, group)${  p_gngroupPolicy(gngroup, 'energyShareMax', g
                 // Generation of units in the group
                 + sum(gnu_output(grid, node, unit)${    gnu_group(grid, node, unit, group)
                                                         and p_gnu(grid, node, unit, 'unitSizeGen')
-                                                        and gn_gngroup(grid, node, gngroup)
+                                                        and gn_group(grid, node, group)
                                                         },
                     + v_gen(grid, node, unit, f, t)
                     ) // END sum(gnu)
 
                 // External power inflow/outflow and consumption of units times the maximum share
-                - p_gngroupPolicy(gngroup, 'energyShareMax', group)
+                - p_groupPolicy(group, 'energyShareMax', '')
                   * [
-                    - sum(gn_gngroup(grid, node, gngroup),
+                    - sum(gn_group(grid, node, group),
                         + ts_influx_(grid, node, f, t)
-                        ) // END sum(gn_gngroup)
+                        ) // END sum(gn_group)
                     - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
-                                                        and gn_gngroup(grid, node, gngroup)
+                                                        and gn_group(grid, node, group)
                                                         },
                         + v_gen(grid, node, unit, f, t)
                         ) // END sum(gnu_input)
-                    ] // END * p_gngroupPolicy
+                    ] // END * p_groupPolicy
                 ] // END * p_stepLength
         ) // END sum(msft)
 
@@ -1592,7 +1592,7 @@ q_energyShareMax(gngroup, group)${  p_gngroupPolicy(gngroup, 'energyShareMax', g
 
 *--- Minimum Energy Share -----------------------------------------------------
 
-q_energyShareMin(gngroup, group)${  p_gngroupPolicy(gngroup, 'energyShareMin', group)
+q_energyShareMin(group)${  p_groupPolicy(group, 'energyShareMin', '')
                                     } ..
 
     + sum(msft(m, s, f, t),
@@ -1602,23 +1602,23 @@ q_energyShareMin(gngroup, group)${  p_gngroupPolicy(gngroup, 'energyShareMin', g
                 // Generation of units in the group
                 + sum(gnu_output(grid, node, unit)${    gnu_group(grid, node, unit, group)
                                                         and p_gnu(grid, node, unit, 'unitSizeGen')
-                                                        and gn_gngroup(grid, node, gngroup)
+                                                        and gn_group(grid, node, group)
                                                         },
                     + v_gen(grid, node, unit, f, t)
                     ) // END sum(gnu)
 
                 // External power inflow/outflow and consumption of units times the maximum share
-                - p_gngroupPolicy(gngroup, 'energyShareMin', group)
+                - p_groupPolicy(group, 'energyShareMin', '')
                   * [
-                    - sum(gn_gngroup(grid, node, gngroup),
+                    - sum(gn_group(grid, node, group),
                         + ts_influx_(grid, node, f, t)
-                        ) // END sum(gn_gngroup)
+                        ) // END sum(gn_group)
                     - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
-                                                        and gn_gngroup(grid, node, gngroup)
+                                                        and gn_group(grid, node, group)
                                                         },
                         + v_gen(grid, node, unit, f, t)
                         ) // END sum(gnu_input)
-                    ] // END * p_gngroupPolicy
+                    ] // END * p_groupPolicy
                 ] // END * p_stepLength
         ) // END sum(msft)
 
@@ -1629,12 +1629,12 @@ q_energyShareMin(gngroup, group)${  p_gngroupPolicy(gngroup, 'energyShareMin', g
 
 *--- Minimum Inertia ----------------------------------------------------------
 
-q_inertiaMin(gngroup, ft(f, t))${   p_gngroupPolicy(gngroup, 'kineticEnergyMin', '')
+q_inertiaMin(group, ft(f, t))${   p_groupPolicy(group, 'kineticEnergyMin', '')
                                     } ..
 
     // Kinectic energy in the system
     + sum(gnu_output(grid, node, unit)${    p_gnu(grid, node, unit, 'unitSizeGen')
-                                            and gn_gngroup(grid, node, gngroup)
+                                            and gn_group(grid, node, group)
                                             },
         + p_gnu(grid, node, unit, 'inertia')
             * p_gnu(grid ,node, unit, 'unitSizeMVA')
@@ -1648,5 +1648,5 @@ q_inertiaMin(gngroup, ft(f, t))${   p_gngroupPolicy(gngroup, 'kineticEnergyMin',
 
     =G=
 
-    + p_gngroupPolicy(gngroup, 'kineticEnergyMin', '')
+    + p_groupPolicy(group, 'kineticEnergyMin', '')
 ;
