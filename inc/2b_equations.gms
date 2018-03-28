@@ -59,7 +59,6 @@ equations
     q_conversionSOS2InputIntermediate(effSelector, unit, f, t)   "Intermediate output when using SOS2 variable based part-load piece-wise linearization"
     q_conversionSOS2Constraint(effSelector, unit, f, t)          "Sum of v_sos2 has to equal v_online"
     q_conversionSOS2IntermediateOutput(effSelector, unit, f, t)  "Output is forced equal with v_sos2 output"
-    q_constrainedCapMultiUnit(group, t) "Constrained unit number ratios and sums for a group of units"
 
     // Energy Transfer
     q_transfer(grid, node, node, f, t) "Rightward and leftward transfer must match the total transfer"
@@ -78,12 +77,13 @@ equations
 *    q_boundCyclicSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound inside or between samples"
 
     // Policy
-    q_capacityMargin(grid, node, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
-    q_emissioncap(group, emission) "Limit for emissions"
+    q_inertiaMin(group, f, t) "Minimum inertia in a group of nodes"
     q_instantaneousShareMax(group, f, t) "Maximum instantaneous share of generation and controlled import from a group of units and links"
+    q_capacityMargin(grid, node, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
+    q_constrainedCapMultiUnit(group, t) "Constrained unit number ratios and sums for a group of units"
+    q_emissioncap(group, emission) "Limit for emissions"
     q_energyShareMax(group) "Maximum energy share of generation and import from a group of units"
     q_energyShareMin(group) "Minimum energy share of generation and import from a group of units"
-    q_inertiaMin(group, f, t) "Minimum inertia in a group of nodes"
 ;
 
 * =============================================================================
@@ -931,27 +931,6 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
         ) // END sum(gnu_output)
 ;
 
-*--- Constrained Investment Ratios and Sums For Groups of Units -----------
-
-q_constrainedCapMultiUnit(group, t_invest(t))${   p_groupPolicy(group, 'constrainedCapTotalMax')
-                                                  or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)))
-                                                  } ..
-
-    // Sum of multiplied investments
-    + sum(unit$uGroup(unit, group),
-        + p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
-            * [
-                + v_invest_LP(unit, t)${unit_investLP(unit)}
-                + v_invest_MIP(unit, t)${unit_investMIP(unit)}
-                ] // END * p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
-        ) // END sum(unit)
-
-    =L=
-
-    // Total maximum of multiplied investments
-    + p_groupPolicy(group, 'constrainedCapTotalMax')
-;
-
 * --- Total Transfer Limits ---------------------------------------------------
 
 q_transfer(gn2n_directional(grid, node, node_), ft(f, t)) ..
@@ -1355,125 +1334,28 @@ q_boundCyclic(gn_state(grid, node), ms(m, s), s_)${ ms(m, s_)
         ) // END sum(ft)
 ;
 
-*--- Required Capacity Margin -------------------------------------------------
-// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Niina needs to check these, currently uses maximum conversion output cap.
+*--- Minimum Inertia ----------------------------------------------------------
 
-q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin')
-                                                } ..
+q_inertiaMin(group, ft(f, t))${  p_groupPolicy(group, 'kineticEnergyMin')
+                                 } ..
 
-    // Availability of units, including capacity factors
-    + sum(gnu_output(grid, node, unit),
-        + p_unit(unit, 'availability')
+    // Kinectic energy in the system
+    + sum(gnu_output(grid, node, unit)${    p_gnu(grid, node, unit, 'unitSizeGen')
+                                            and gnGroup(grid, node, group)
+                                            },
+        + p_gnu(grid, node, unit, 'inertia')
+            * p_gnu(grid ,node, unit, 'unitSizeMVA')
             * [
-                // Capacity factors for flow units
-                + sum(flow${    flowUnit(flow, unit)
-                                and nu(node, unit)
-                                },
-                    + ts_cf_(flow, node, f, t)
-                    ) // END sum(flow)
-                + 1${not unit_flow(unit)}
-                ]
-            * [
-                // Output capacity before investments
-                + p_gnu(grid, node, unit, 'maxGen')
-
-                // Output capacity investments
-                + p_gnu(grid, node, unit, 'unitSizeGen')
-                    * sum(t_invest(t_)${ord(t_)<=ord(t)},
-                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                        ) // END sum(t_invest)
-                ] // END * p_unit(availability)
+                + v_online_LP(unit, f+df_central(f,t), t)${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, f+df_central(f,t), t)${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
+                + v_gen(grid, node, unit, f, t)${not uft_online(unit, f, t)}
+                    / p_gnu(grid, node, unit, 'unitSizeGen')
+                ] // * p_gnu
         ) // END sum(gnu_output)
-
-    // Transfer to node
-    + sum(gn2n_directional(grid, node_, node),
-        + v_transfer(grid, node_, node, f, t)
-        - v_transferRightward(grid, node_, node, f, t)
-            * p_gnn(grid, node_, node, 'transferLoss')
-        ) // END sum(gn2n_directional)
-
-    // Transfer from node
-    - sum(gn2n_directional(grid, node, node_),
-        + v_transfer(grid, node, node_, f, t)
-        + v_transferLeftward(grid, node, node_, f, t)
-            * p_gnn(grid, node, node_, 'transferLoss')
-        ) // END sum(gn2n_directional)
-
-    // Diffusion to node
-    + sum(gnn_state(grid, from_node, node),
-        + p_gnn(grid, from_node, node, 'diffCoeff')
-            * v_state(grid, from_node, f+df_central(f,t), t)
-        ) // END sum(gnn_state)
-
-    // Diffusion from node
-    - sum(gnn_state(grid, node, to_node),
-        + p_gnn(grid, node, to_node, 'diffCoeff')
-            * v_state(grid, node, f+df_central(f,t), t)
-        ) // END sum(gnn_state)
-
-    // Conversion unit inputs might require additional capacity
-    + sum(gnu_input(grid, node, unit),
-        + v_gen(grid, node, unit, f, t)
-        ) // END sum(gnu_input)
-
-    // Energy influx
-    + ts_influx_(grid, node, f, t)
 
     =G=
 
-    // Capacity minus influx must be greated than the desired margin
-    + p_gn(grid, node, 'capacityMargin')
-;
-
-*--- Required Emission Cap ----------------------------------------------------
-// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// This equation doesn't really make sense for rolling planning simulations.
-// Is there any way to make it work?
-
-q_emissioncap(group, emission)${  p_groupPolicy3D(group, 'emissionCap', emission)
-                                  } ..
-
-    + sum(msft(m, s, f, t),
-        + p_msft_Probability(m,s,f,t)
-        * [
-            // Time step length dependent emissions
-            + p_stepLength(m, f, t)
-                * sum((uft(unit_fuel, f, t), fuel)${uFuel(unit_fuel, 'main', fuel)},
-                    + v_fuelUse(fuel, unit_fuel, f, t)
-                        * p_fuelEmission(fuel, emission) / 1e3
-                        * sum(gnu_output(grid, node, unit_fuel)${gnGroup(grid, node, group)},
-                            + p_gnu(grid, node, unit_fuel, 'unitSizeGen')
-                            ) // END sum(gnu_output)
-                        / sum(gnu_output(grid_, node_, unit_fuel),
-                            + p_gnu(grid_, node_, unit_fuel, 'unitSizeGen')
-                            ) // END sum(gnu_output)
-                    ) // END sum(uft)
-
-            // Start-up emissions
-            + sum(uft_online(unit_fuel, f, t),
-                + sum(unitStarttype(unit_fuel, starttype),
-                    + v_startup(unit_fuel, starttype, f, t)
-                        * sum(uFuel(unit_fuel, 'startup', fuel),
-                            + p_uStartup(unit_fuel, starttype, 'consumption', 'unit')
-                                * p_fuelEmission(fuel, emission) / 1e3
-                                * sum(gnu_output(grid, node, unit_fuel)${gnGroup(grid, node, group)},
-                                    + p_gnu(grid, node, unit_fuel, 'unitSizeGen')
-                                    ) // END sum(gnu_output)
-                                / sum(gnu_output(grid_, node_, unit_fuel),
-                                    + p_gnu(grid_, node_, unit_fuel, 'unitSizeGen')
-                                    ) // END sum(gnu_output)
-                            ) // END sum(uFuel)
-                    ) // END sum(starttype)
-                ) // sum(uft_online)
-            ] // END * p_sft_Probability
-        ) // END sum(msft)
-
-    =L=
-
-    // Permitted nodal emission cap
-    + p_groupPolicy3D(group, 'emissionCap', emission)
+    + p_groupPolicy(group, 'kineticEnergyMin')
 ;
 
 *--- Maximum Share of Instantaneous Generation --------------------------------
@@ -1555,6 +1437,148 @@ $offtext
 
 ;
 
+*--- Required Capacity Margin -------------------------------------------------
+// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Niina needs to check these, currently uses maximum conversion output cap.
+
+q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin')
+                                                } ..
+
+    // Availability of units, including capacity factors
+    + sum(gnu_output(grid, node, unit),
+        + p_unit(unit, 'availability')
+            * [
+                // Capacity factors for flow units
+                + sum(flow${    flowUnit(flow, unit)
+                                and nu(node, unit)
+                                },
+                    + ts_cf_(flow, node, f, t)
+                    ) // END sum(flow)
+                + 1${not unit_flow(unit)}
+                ]
+            * [
+                // Output capacity before investments
+                + p_gnu(grid, node, unit, 'maxGen')
+
+                // Output capacity investments
+                + p_gnu(grid, node, unit, 'unitSizeGen')
+                    * sum(t_invest(t_)${ord(t_)<=ord(t)},
+                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
+                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
+                        ) // END sum(t_invest)
+                ] // END * p_unit(availability)
+        ) // END sum(gnu_output)
+
+    // Transfer to node
+    + sum(gn2n_directional(grid, node_, node),
+        + v_transfer(grid, node_, node, f, t)
+        - v_transferRightward(grid, node_, node, f, t)
+            * p_gnn(grid, node_, node, 'transferLoss')
+        ) // END sum(gn2n_directional)
+
+    // Transfer from node
+    - sum(gn2n_directional(grid, node, node_),
+        + v_transfer(grid, node, node_, f, t)
+        + v_transferLeftward(grid, node, node_, f, t)
+            * p_gnn(grid, node, node_, 'transferLoss')
+        ) // END sum(gn2n_directional)
+
+    // Diffusion to node
+    + sum(gnn_state(grid, from_node, node),
+        + p_gnn(grid, from_node, node, 'diffCoeff')
+            * v_state(grid, from_node, f+df_central(f,t), t)
+        ) // END sum(gnn_state)
+
+    // Diffusion from node
+    - sum(gnn_state(grid, node, to_node),
+        + p_gnn(grid, node, to_node, 'diffCoeff')
+            * v_state(grid, node, f+df_central(f,t), t)
+        ) // END sum(gnn_state)
+
+    // Conversion unit inputs might require additional capacity
+    + sum(gnu_input(grid, node, unit),
+        + v_gen(grid, node, unit, f, t)
+        ) // END sum(gnu_input)
+
+    // Energy influx
+    + ts_influx_(grid, node, f, t)
+
+    =G=
+
+    // Capacity minus influx must be greated than the desired margin
+    + p_gn(grid, node, 'capacityMargin')
+;
+
+*--- Constrained Investment Ratios and Sums For Groups of Units -----------
+
+q_constrainedCapMultiUnit(group, t_invest(t))${   p_groupPolicy(group, 'constrainedCapTotalMax')
+                                                  or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)))
+                                                  } ..
+
+    // Sum of multiplied investments
+    + sum(unit$uGroup(unit, group),
+        + p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
+            * [
+                + v_invest_LP(unit, t)${unit_investLP(unit)}
+                + v_invest_MIP(unit, t)${unit_investMIP(unit)}
+                ] // END * p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
+        ) // END sum(unit)
+
+    =L=
+
+    // Total maximum of multiplied investments
+    + p_groupPolicy(group, 'constrainedCapTotalMax')
+;
+
+*--- Required Emission Cap ----------------------------------------------------
+// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// This equation doesn't really make sense for rolling planning simulations.
+// Is there any way to make it work?
+
+q_emissioncap(group, emission)${  p_groupPolicy3D(group, 'emissionCap', emission)
+                                  } ..
+
+    + sum(msft(m, s, f, t),
+        + p_msft_Probability(m,s,f,t)
+        * [
+            // Time step length dependent emissions
+            + p_stepLength(m, f, t)
+                * sum((uft(unit_fuel, f, t), fuel)${uFuel(unit_fuel, 'main', fuel)},
+                    + v_fuelUse(fuel, unit_fuel, f, t)
+                        * p_fuelEmission(fuel, emission) / 1e3
+                        * sum(gnu_output(grid, node, unit_fuel)${gnGroup(grid, node, group)},
+                            + p_gnu(grid, node, unit_fuel, 'unitSizeGen')
+                            ) // END sum(gnu_output)
+                        / sum(gnu_output(grid_, node_, unit_fuel),
+                            + p_gnu(grid_, node_, unit_fuel, 'unitSizeGen')
+                            ) // END sum(gnu_output)
+                    ) // END sum(uft)
+
+            // Start-up emissions
+            + sum(uft_online(unit_fuel, f, t),
+                + sum(unitStarttype(unit_fuel, starttype),
+                    + v_startup(unit_fuel, starttype, f, t)
+                        * sum(uFuel(unit_fuel, 'startup', fuel),
+                            + p_uStartup(unit_fuel, starttype, 'consumption', 'unit')
+                                * p_fuelEmission(fuel, emission) / 1e3
+                                * sum(gnu_output(grid, node, unit_fuel)${gnGroup(grid, node, group)},
+                                    + p_gnu(grid, node, unit_fuel, 'unitSizeGen')
+                                    ) // END sum(gnu_output)
+                                / sum(gnu_output(grid_, node_, unit_fuel),
+                                    + p_gnu(grid_, node_, unit_fuel, 'unitSizeGen')
+                                    ) // END sum(gnu_output)
+                            ) // END sum(uFuel)
+                    ) // END sum(starttype)
+                ) // sum(uft_online)
+            ] // END * p_sft_Probability
+        ) // END sum(msft)
+
+    =L=
+
+    // Permitted nodal emission cap
+    + p_groupPolicy3D(group, 'emissionCap', emission)
+;
+
 *--- Maximum Energy Share -----------------------------------------------------
 
 q_energyShareMax(group)${  p_groupPolicy(group, 'energyShareMax')
@@ -1629,26 +1653,4 @@ q_energyShareMin(group)${  p_groupPolicy(group, 'energyShareMin')
     0
 ;
 
-*--- Minimum Inertia ----------------------------------------------------------
 
-q_inertiaMin(group, ft(f, t))${  p_groupPolicy(group, 'kineticEnergyMin')
-                                 } ..
-
-    // Kinectic energy in the system
-    + sum(gnu_output(grid, node, unit)${    p_gnu(grid, node, unit, 'unitSizeGen')
-                                            and gnGroup(grid, node, group)
-                                            },
-        + p_gnu(grid, node, unit, 'inertia')
-            * p_gnu(grid ,node, unit, 'unitSizeMVA')
-            * [
-                + v_online_LP(unit, f+df_central(f,t), t)${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, f+df_central(f,t), t)${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
-                + v_gen(grid, node, unit, f, t)${not uft_online(unit, f, t)}
-                    / p_gnu(grid, node, unit, 'unitSizeGen')
-                ] // * p_gnu
-        ) // END sum(gnu_output)
-
-    =G=
-
-    + p_groupPolicy(group, 'kineticEnergyMin')
-;

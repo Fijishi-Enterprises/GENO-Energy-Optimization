@@ -24,7 +24,7 @@ Model invest /
     q_balance
     q_resDemand
 
-    // Unit Equations
+    // Unit Operation
     q_maxDownward
     q_maxUpward
     q_startup
@@ -42,7 +42,6 @@ Model invest /
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
-    q_constrainedCapMultiUnit
 
     // Energy Transfer
     q_transfer
@@ -62,6 +61,7 @@ Model invest /
     q_inertiaMin
     q_instantaneousShareMax
     q_capacityMargin
+    q_constrainedCapMultiUnit
     q_emissioncap
     q_energyShareMax
     q_energyShareMin
