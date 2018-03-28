@@ -116,10 +116,10 @@ Sets
 
 * --- Sets used for grouping of units, transfer links, nodes, etc.
     group "A group of units, transfer links, nodes, etc."
-    u_group(unit, group) "Units in particular groups"
-    gnu_group(grid, node, unit, group) "Grid, node, unit combinations in particular groups"
-    gn2n_group(grid, node, node, group) "Transfer links in particular groups"
-    gn_group(grid, node, group) "Grid, node combinations in particular gngroups"
+    uGroup(unit, group) "Units in particular groups"
+    gnuGroup(grid, node, unit, group) "Grid, node, unit combinations in particular groups"
+    gn2nGroup(grid, node, node, group) "Transfer links in particular groups"
+    gnGroup(grid, node, group) "Grid, node combinations in particular gngroups"
 ;
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 Option clear = modelSolves;

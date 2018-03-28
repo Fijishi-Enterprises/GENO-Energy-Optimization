@@ -50,14 +50,14 @@ $loaddc ts_cf
 $loaddc ts_fuelPriceChange
 $loaddc ts_influx
 $loaddc ts_nodeState
-$loaddc p_gnugnu
 $loaddc t_invest
 $loaddc group
-$loaddc u_group
-$loaddc gnu_group
-$loaddc gn2n_group
-$loaddc gn_group
+$loaddc uGroup
+$loaddc gnuGroup
+$loaddc gn2nGroup
+$loaddc gnGroup
 $loaddc p_groupPolicy
+$loaddc p_groupPolicy3D
 $gdxin
 
 $ontext

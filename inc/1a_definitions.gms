@@ -332,10 +332,8 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     energyShareMax "Maximum energy share of generation from a particular group of units"
     energyShareMin "Minimum energy share of generation from a particular group of units"
     kineticEnergyMin "Minimum system kinetic energy (MWs)"
-/
-
-param_gnugnu "Set of possible data parameters for grid, node, unit, grid, node, unit" /
-    capacityRatio "Fixed ratio of the capacity of the first unit to the second"
+    constrainedCapMultiplier "Multiplier a(i) for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
+    constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
 /
 
 * --- Counters and Directional Sets -------------------------------------------

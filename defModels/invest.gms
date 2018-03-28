@@ -42,7 +42,7 @@ Model invest /
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
-    q_fixedGenCap2U
+    q_constrainedCapMultiUnit
 
     // Energy Transfer
     q_transfer
