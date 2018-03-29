@@ -79,8 +79,6 @@ $$iftheni.debug NOT '%debug%' == 'yes'
     Option clear = q_conversionSOS2InputIntermediate;
     Option clear = q_conversionSOS2Constraint;
     Option clear = q_conversionSOS2IntermediateOutput;
-    Option clear = q_fixedGenCap1U;
-    Option clear = q_fixedGenCap2U;
 
     // Energy Transfer
     Option clear = q_transfer;
@@ -99,12 +97,13 @@ $$iftheni.debug NOT '%debug%' == 'yes'
 *    q_boundCyclicSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound inside or between samples"
 
     // Policy
-    Option clear = q_capacityMargin;
-    Option clear = q_emissioncap;
+    Option clear = q_inertiaMin;
     Option clear = q_instantaneousShareMax;
+    Option clear = q_capacityMargin;
+    Option clear = q_constrainedCapMultiUnit;
+    Option clear = q_emissioncap;
     Option clear = q_energyShareMax;
     Option clear = q_energyShareMin;
-    Option clear = q_inertiaMin;
 
 * --- Temporary Time Series ---------------------------------------------------
 
