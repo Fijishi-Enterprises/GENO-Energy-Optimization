@@ -49,9 +49,11 @@ equations
     q_onlineLimit(mType, unit, f, t) "Number of online units limited for units with startup constraints and investment possibility"
     q_onlineMinUptime(mType, unit, f, t) "Unit must stay operational if it has started up during the previous minOperationHours hours"
 *    q_minDown(mType, unit, f, t) "Unit must stay non-operational if it has shut down during the previous minShutdownHours hours"
-*    q_genRamp(grid, node, mType, s, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
+    q_genRamp(mType, grid, node, s, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
 *    q_genRampChange(grid, node, mType, s, unit, f, t) "Record the ramp rates of units with ramping costs"
-*    q_rampUpLimit(grid, node, mType, s, unit, f, t) "Up ramping limited for units"
+    q_rampUpLimit(mType, grid, node, s, unit, f, t) "Up ramping limited for units"
+    q_runUp(mType, grid, node, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
+    q_runUpLastInterval(mType, grid, node, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
 *    q_rampDownLimit(grid, node, mType, s, unit, f, t) "Down ramping limited for units"
     q_outputRatioFixed(grid, node, grid, node, unit, f, t) "Force fixed ratio between two energy outputs into different energy grids"
     q_outputRatioConstrained(grid, node, grid, node, unit, f, t) "Constrained ratio between two grids of energy output; e.g. electricity generation is greater than cV times unit_heat generation in extraction plants"
@@ -534,7 +536,7 @@ q_startup(m, uft_online(unit, f, t))${ ord(t) + dt(t) > mSettings(m, 't_start') 
     =E=
 
     // Units previously online
-    + v_online_LP(unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t)) } // This reaches to tFirstSolve when pt = -1
+    + v_online_LP(unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t)) } // This reaches to tFirstSolve when dt = -1
     + v_online_MIP(unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineMIP(unit, f+df(f,t+dt(t)), t+dt(t)) }
 
     // Unit online history (solve initial value), required because uft_online doesn't extend to before active modelling
@@ -544,7 +546,7 @@ q_startup(m, uft_online(unit, f, t))${ ord(t) + dt(t) > mSettings(m, 't_start') 
 
     // Unit startup and shutdown
     + sum(unitStarttype(unit, starttype),
-        + v_startup(unit, starttype, f, t)
+        + v_startup(unit, starttype, f, t-ceil[p_uRunUpTimeIntervals(unit)])  // THIS DOESN'T WORK WITH TIME STEPS LARGER THAN THE BASE INTERVAL
         ) // END sum(starttype)
     - v_shutdown(unit, f, t)
 ;
@@ -567,6 +569,7 @@ q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t))${ unit
         + v_shutdown(unit, f+df(f,t+dt_starttypeUnitCounter(starttype, unit, counter)), t+dt_starttypeUnitCounter(starttype, unit, counter))
     ) // END sum(counter)
 ;
+
 
 *--- Online Limits with Startup Type Constraints and Investments --------------
 
@@ -616,27 +619,21 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationHours'
 
 * --- Ramp Constraints --------------------------------------------------------
 // !!! CURRENTLY REMOVED, PENDING CHANGE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-$ontext
-q_genRamp(gn(grid, node), m, s, uft(unit, f, t))${  gnuft_ramp(grid, node, unit, f, t)
+q_genRamp(m, gn(grid, node), s, uft(unit, f, t))${  gnuft_ramp(grid, node, unit, f, t)
                                                     and ord(t) > msStart(m, s)
                                                     and ord(t) <= msEnd(m, s)
                                                     } ..
 
-    + sum(ramp, // Sum over the ramp categories
-        + v_genRamp(ramp, grid, node, unit, f, t)
-            * p_stepLength(m, f, t)
-        ) // END sum(ramp)
-
+    + v_genRamp(grid, node, unit, f, t)
+        / p_stepLength(m, f, t)
     =E=
-
     // Change in generation over the time step
     + v_gen(grid, node, unit, f, t)
     - v_gen(grid, node, unit, f+df(f,t), t+dt(t))
 ;
-$offtext
 * -----------------------------------------------------------------------------
 $ontext
-q_genRampChange(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
+q_genRampChange(m, gn(grid, node), s, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
 *                                                     and ord(t) > mSettings(m, 't_start')
                                                      and ord(t) > msStart(m, s)
                                                      and ord(t) <= msEnd(m, s)
@@ -644,108 +641,106 @@ q_genRampChange(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, u
                                                            or p_gnu(grid, node, unit, 'rampDownCost')
                                                            ]
                                                      } ..
-    + v_genRampChange(grid, node, unit, 'up', f+pf(f,t), t+pt(t))
-    - v_genRampChange(grid, node, unit, 'down', f+pf(f,t), t+pt(t))
+    + v_genRampChange(grid, node, unit, 'up', f+pf(f,t), t+dt(t))
+    - v_genRampChange(grid, node, unit, 'down', f+pf(f,t), t+dt(t))
     =E=
     + v_genRamp(grid, node, unit, f, t)
-    - v_genRamp(grid, node, unit, f+pf(f,t), t+pt(t));
+    - v_genRamp(grid, node, unit, f+pf(f,t), t+dt(t));
 $offtext
 
 * --- Ramp Up Limits ----------------------------------------------------------
 // !!! PENDING CHANGES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // The way ramp limits are defined are waiting changes, so these equations have
 // to be rewritten in the future.
-$ontext
-q_rampUpLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
+q_rampUpLimit(m, gn(grid, node), s, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
                                                    and ord(t) > msStart(m, s)
                                                    and msft(m, s, f, t)
                                                    and p_gnu(grid, node, unit, 'maxRampUp')
-                                                   and (uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))
-                                                           or unit_investLP(unit)
-                                                           or unit_investMIP(unit))
                                                    } ..
-  + v_genRamp(grid, node, unit, f, t+pt(t))
+  + v_genRamp(grid, node, unit, f, t+dt(t))
+  + sum(resType, v_reserve(resType, 'up', node, unit, f, t+dt(t)))
   =L=
-    // Ramping capability of units without online variable
+    // Ramping capability of units without an online variable in the previous and in the current time steps
   + (
-      + ( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )${not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
-      + sum(t_$(ord(t_)<=ord(t)),
-          + v_invest_LP(grid, node, unit, t_)${not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t)) and p_gnu(grid, node, unit, 'maxGenCap')}
-          - v_invest_LP(grid, node, unit, t_)${not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t)) and p_gnu(grid, node, unit, 'maxConsCap')}
-          + v_invest_MIP(unit, t_)${not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
-              * p_gnu(grid, node, unit, 'unitSizeGenNet')
+      + ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f, t)}
+      + sum(t_$(t_invest(t_) and ord(t_)<=ord(t)),
+          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f+df(f,t), t+dt(t)) and p_gnu(grid, node, unit, 'maxGenCap')}
+          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f+df(f,t), t+dt(t)) and p_gnu(grid, node, unit, 'maxConsCap')}
+          + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f+df(f,t), t+dt(t))}
+              * p_gnu(grid, node, unit, 'unitSizeTot')
         )
     )
       * p_gnu(grid, node, unit, 'maxRampUp')
-      * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
-    // Ramping capability of units that were online both in the previous time step and the current time step
+      * 60   // Unit conversion from [p.u./min] to [p.u./h]
+    // Ramping capability of units with an online variable both in the previous time step and the current time step
   + (
-      + v_online_LP(unit, f+cpf(f,t), t+pt(t))${uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
-      + v_online(unit, f+cpf(f,t), t+pt(t))${uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
-      - v_shutdown(unit, f+cf(f,t), t+pt(t))${uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
+      + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
+      + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+      - v_shutdown(unit, f, t)${uft_online(unit, f, t)}
     )
-      * p_gnu(grid, node, unit, 'unitSizeGenNet')
-      / {
-          + 1${  not unit_investLP(unit)
-                 or not p_gnu(grid, node, unit, 'unitSizeGenNet')
-              }
-          + sum(gnu(grid_, node_, unit)${ unit_investLP(unit)
-                                          and p_gnu(grid, node, unit, 'unitSizeGenNet')
-                }, p_gnu(grid_, node_, unit, 'unitSizeTot')
-            )
-        } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
+      * p_gnu(grid, node, unit, 'unitSizeTot')
+      // I don't see why we need to scale - v_online_LP should contain number of units started up just like v_online_MIP (Juha) / {
+      //    + 1${  not unit_investLP(unit)
+      //           or not p_gnu(grid, node, unit, 'unitSizeGenTot')
+      //        }
+      //    + sum(gnu(grid_, node_, unit)${ unit_investLP(unit)
+      //                                    and p_gnu(grid, node, unit, 'unitSizeGenNet')
+      //          }, p_gnu(grid_, node_, unit, 'unitSizeTot')
+      //      )
+      //  } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
       * p_gnu(grid, node, unit, 'maxRampUp')
-      * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
-  // Newly started units are assumed to start to their minload and
+      * 60   // Unit conversion from [p.u./min] to [p.u./h]
+  // Units started up in the previous time-step are assumed to start to their minload and
   // newly shutdown units are assumed to be shut down from their minload.
+$ontext
   + (
-      + sum(starttype, v_startup(unit, starttype, f+cf(f,t), t+pt(t)))
-      - v_shutdown(unit, f+cf(f,t), t+pt(t))
-    )${uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
-      * p_gnu(grid, node, unit, 'unitSizeGenNet')
+      + sum(starttype${unitStarttype(unit, starttype)}, v_startup(unit, starttype, f, t)) )
+      * p_gnu(grid, node, unit, 'unitSizeTot')
       / {
-          + 1${not unit_investLP(unit) or not p_gnu(grid, node, unit, 'unitSizeGenNet')}
+          + 1${not unit_investLP(unit) or not p_gnu(grid, node, unit, 'unitSizeTot')}
           + sum(gnu(grid_, node_, unit)${ unit_investLP(unit)
-                                          and p_gnu(grid, node, unit, 'unitSizeGenNet')
+                                          and p_gnu(grid, node, unit, 'unitSizeTot')
                 }, p_gnu(grid_, node_, unit, 'unitSizeTot')
             )
         } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
-      * sum(suft(effGroup, unit, f+cf(f,t), t), p_effGroupUnit(effGroup, unit, 'lb'))
-// Reserve provision?
+      * sum(suft(effGroup, unit, f+df(f,t), t), p_effGroupUnit(effGroup, unit, 'lb')
+    )$uft_online(unit, f, t)
+$offtext
 // Note: This constraint does not limit ramping properly for example if online subunits are
 // producing at full capacity (= not possible to ramp up) and more subunits are started up.
 // Take this into account in q_maxUpward or in another equation?:
 // v_gen =L= (v_online(t-1) - v_shutdown(t-1)) * unitSize + v_startup(t-1) * unitSize * minLoad
 ;
-
+$ontext
 * --- Ramp Down Limits --------------------------------------------------------
 q_rampDownLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
                                                      and ord(t) > msStart(m, s)
                                                      and msft(m, s, f, t)
                                                      and p_gnu(grid, node, unit, 'maxRampDown')
-                                                     and (uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))
+                                                     and (uft_online_incl_previous(unit, f+df(f,t), t+dt(t))
                                                              or unit_investLP(unit)
                                                              or unit_investMIP(unit))
                                                      } ..
-  + v_genRamp(grid, node, unit, f, t+pt(t))
+  + v_genRamp(grid, node, unit, f, t+dt(t))
+  + sum(resType, v_reserve(resType, 'down', node, unit, f, t+dt(t)))
   =G=
     // Ramping capability of units without online variable
   - (
-      + ( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )${not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
+      + ( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )${not uft_online_incl_previous(unit, f+df(f,t), t+dt(t))}
       + sum(t_$(ord(t_)<=ord(t)),
-          + v_invest_LP(grid, node, unit, t_)${not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t)) and p_gnu(grid, node, unit, 'maxGenCap')}
-          - v_invest_LP(grid, node, unit, t_)${not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t)) and p_gnu(grid, node, unit, 'maxConsCap')}
-          + v_invest_MIP(unit, t_)${not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
+          + v_invest_LP(grid, node, unit, t_)${not uft_online_incl_previous(unit, f+df(f,t), t+dt(t)) and p_gnu(grid, node, unit, 'maxGenCap')}
+          - v_invest_LP(grid, node, unit, t_)${not uft_online_incl_previous(unit, f+df(f,t), t+dt(t)) and p_gnu(grid, node, unit, 'maxConsCap')}
+          + v_invest_MIP(unit, t_)${not uft_online_incl_previous(unit, f+df(f,t), t+dt(t))}
               * p_gnu(grid, node, unit, 'unitSizeGenNet')
         )
     )
       * p_gnu(grid, node, unit, 'maxRampDown')
-      * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
+      * 60   // Unit conversion from [p.u./min] to [p.u./h]
     // Ramping capability of units that were online both in the previous time step and the current time step
   - (
-      + v_online_LP(unit, f+cpf(f,t), t+pt(t))${uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
-      + v_online(unit, f+cpf(f,t), t+pt(t))${uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
-      - v_shutdown(unit, f+cf(f,t), t+pt(t))${uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
+      + v_online_LP(unit, f+df(f,t), t+dt(t))${uft_online_incl_previous(unit, f+df(f,t), t+dt(t))}
+      + v_online(unit, f+df(f,t), t+dt(t))${uft_online_incl_previous(unit, f+df(f,t), t+dt(t))}
+      - v_shutdown(unit, f+cf(f,t), t+dt(t))${uft_online_incl_previous(unit, f+df(f,t), t+dt(t))}
     )
       * p_gnu(grid, node, unit, 'unitSizeGenNet')
       / {
@@ -758,13 +753,13 @@ q_rampDownLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, u
             )
         } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
       * p_gnu(grid, node, unit, 'maxRampDown')
-      * 60 / 100  // Unit conversion from [p.u./min] to [MW/h]
+      * 60   // Unit conversion from [p.u./min] to [p.u./h]
   // Newly started units are assumed to start to their minload and
   // newly shutdown units are assumed to be shut down from their minload.
   + (
-      + sum(starttype, v_startup(unit, starttype, f+cf(f,t), t+pt(t)))
-      - v_shutdown(unit, f+cf(f,t), t+pt(t))
-    )${uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))}
+      + sum(starttype$unitStarttype(unit, starttype), v_startup(unit, starttype, f+cf(f,t), t+dt(t)))
+      - v_shutdown(unit, f+cf(f,t), t+dt(t))
+    )${uft_online_incl_previous(unit, f+df(f,t), t+dt(t))}
       * p_gnu(grid, node, unit, 'unitSizeGenNet')
       / {
           + 1${not unit_investLP(unit) or not p_gnu(grid, node, unit, 'unitSizeGenNet')}
@@ -774,9 +769,34 @@ q_rampDownLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, u
             )
         } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
       * sum(suft(effGroup, unit, f+cf(f,t), t), p_effGroupUnit(effGroup, unit, 'lb'))
-// Reserve provision?
 ;
 $offtext
+
+q_runUp(m, gn(grid,node), uft_online(unit, f, t))$(p_uRunUpTimeIntervals(unit) > 1) ..
+    // Energy generation/consumption
+    + v_genRamp(grid, node, unit, f, t)
+
+    =E=
+
+    + sum(t_$(ord(t_) <= ord(t) + floor[p_uRunUpTimeIntervals(unit)] and uft_online(unit, f, t_)),
+        + sum(unitStarttype(unit, starttype),
+            + v_startup(unit, starttype, f, t_)
+          )
+      ) * p_unit(unit, 'rampSpeedToMinLoad')
+;
+
+q_runUpLastInterval(m, gn(grid,node), uft_online(unit, f, t))$(p_unit(unit, 'op00') > 0 and p_unit(unit, 'rampSpeedToMinLoad')) ..
+    // Energy generation/consumption
+    + v_genRamp(grid, node, unit, f, t)
+
+    =L=
+
+    + sum(t_$(ord(t_) = ord(t) + ceil[p_uRunUpTimeIntervals(unit)] and uft_online(unit, f, t_)),
+        + sum(unitStarttype(unit, starttype),
+            + v_startup(unit, starttype, f, t_)
+          )
+      ) * p_uMaxRampInLastRunUpInterval(unit)
+;
 
 * --- Fixed Output Ratio ------------------------------------------------------
 
@@ -835,7 +855,7 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
                 ] // END * v_gen
         ) // END sum(gnu_output)
 
-    // Consumption of keeping units online
+    // Consumption of keeping units online (no-load fuel use)
     + sum(gnu_output(grid, node, unit),
         + p_gnu(grid, node, unit, 'unitSizeGen')
         ) // END sum(gnu_output)
@@ -1569,6 +1589,8 @@ $offtext
             ] // END * p_gngroupPolicy
 
 ;
+
+*q_gnu_group_min_online(
 
 *--- Maximum Energy Share -----------------------------------------------------
 

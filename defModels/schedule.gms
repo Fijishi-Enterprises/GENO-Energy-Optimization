@@ -32,9 +32,11 @@ Model schedule /
     q_onlineLimit
     q_onlineMinUptime
 *    q_minDown
-*    q_genRamp
+    q_genRamp
 *    q_genRampChange
-*    q_rampUpLimit
+    q_rampUpLimit
+    q_runUp
+    q_runUpLastInterval
 *    q_rampDownLimit
     q_outputRatioFixed
     q_outputRatioConstrained

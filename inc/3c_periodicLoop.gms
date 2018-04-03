@@ -39,7 +39,7 @@ $$iftheni.debug NOT '%debug%' == 'yes'
     Option clear = v_fuelUse;
     Option clear = v_startup;
     Option clear = v_shutdown;
-    Option clear = v_genRampChange;
+*    Option clear = v_genRampChange;
     Option clear = v_spill;
     Option clear = v_transferRightward;
     Option clear = v_transferLeftward;
@@ -365,6 +365,7 @@ uft(unit, ft(f, t))${   [
                             and (unit_aggregate(unit) or unit_noAggregate(unit)) // Aggregate units
                             ]
                         }
+// only units with capacities or investment option
     = yes;
 
 // Active units in nodes on each forecast-time step

@@ -311,6 +311,16 @@ loop(m,
     ); // END loop(effLevelGroupUnit)
 ); // END loop(m)
 
+loop(m,
+    loop(unit$(p_unit(unit, 'rampSpeedToMinLoad') and p_unit(unit,'op00')),
+        tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'intervalInHours'); // rampToMinLoadInTimeIntervals
+        p_uRunUpTimeIntervals(unit) = tmp;
+        p_uMaxRampInLastRunUpInterval(unit) =
+          + p_unit(unit, 'rampSpeedToMinLoad') * (tmp-floor(tmp)) / mSettings(m, 'intervalInHours')
+          + smin(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampUp')) * (ceil(tmp)-tmp) / mSettings(m, 'intervalInHours');
+    ) // END loop(unit)
+); // END loop(m)
+
 * =============================================================================
 * --- Various Initial Values and Calculations ---------------------------------
 * =============================================================================

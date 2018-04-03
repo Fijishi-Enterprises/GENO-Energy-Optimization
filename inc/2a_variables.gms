@@ -34,7 +34,7 @@ Positive variables
     v_fuelUse(fuel, unit, f, t) "Fuel use of a unit during time period (MWh_fuel)"
     v_startup(unit, starttype, f, t) "Capacity started up after/during the time period/slice (MW)"
     v_shutdown(unit, f, t) "Capacity shut down after/during the time period/slice (MW)"
-    v_genRampChange(grid, node, unit, up_down, f, t) "Rate of change in energy generation between time steps (MW/h)"
+//    v_genRampChange(grid, node, unit, up_down, f, t) "Rate of change in energy generation between time steps (MW/h)"
     v_spill(grid, node, f, t) "Spill of energy from storage node during time period (MWh)"
     v_transferRightward(grid, node, node, f, t) "Average electricity transmission level from the first node to the second node during time period/slice (MW)"
     v_transferLeftward(grid, node, node, f, t) "Average electricity transmission level from the second node to the first node during time period/slice (MW)"
