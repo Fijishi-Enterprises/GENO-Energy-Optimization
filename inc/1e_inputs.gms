@@ -73,9 +73,6 @@ $ifthen exist 'input/changes.inc'
    $$include 'input/changes.inc'
 $endif
 
-$ifthen exist 'input/changes.inc'
-   $$include 'input/changes.inc'
-$endif
 
 * =============================================================================
 * --- Initialize Unit Related Sets & Parameters Based on Input Data -----------

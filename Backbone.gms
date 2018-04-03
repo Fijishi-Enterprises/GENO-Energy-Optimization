@@ -101,6 +101,7 @@ $include 'defModels\invest.gms'
 
 // Load model input parameters
 $include 'input\modelsInit.gms'
+$if exist 'input\changes.inc' $include 'input\changes.inc'
 
 * === Simulation ==============================================================
 $include 'inc\3a_periodicInit.gms'  // Initialize modelling loop
