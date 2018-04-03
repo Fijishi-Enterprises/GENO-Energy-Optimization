@@ -70,8 +70,8 @@ $onempty   // Allow empty data definitions
 files log /''/, gdx, f_info /'output\info.txt'/;
 
 options
-*    optca = 0
-*    optcr = 1e-4
+optca = 0
+optcr = 0.0004
 *    profile = 8
     solvelink = %Solvelink.Loadlibrary%
 *    bratio = 0.25
