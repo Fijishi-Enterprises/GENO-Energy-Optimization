@@ -59,8 +59,10 @@ Parameters
     p_gnugnu(grid, node, unit, grid, node, unit, param_gnugnu) "Data connecting units in nodes and grids"
     p_uNonoperational(unit, starttype, min_max) "Non-operational time after being shut down before start up"
     p_uStartup(unit, starttype, cost_consumption, unit_capacity) "Startup cost and fuel consumption"
-    p_uMaxRampInLastRunUpInterval(unit) "Ramp speed in the last interval for the run-up to min. load"
-    p_uRunUpTimeIntervals(unit) "Time intervals required for the run-up phase"
+    p_u_maxRampInLastRunUpInterval(unit) "Ramp speed in the last interval for the run-up to min. load"
+    p_u_runUpTimeIntervals(unit) "Time intervals required for the run-up phase"
+    p_ut_startup(unit, t)
+    p_ut_runUp(unit, t)
 // Time dependent unit & fuel parameters
     ts_unit(unit, *, f, t) "Time dependent unit data, where energy type doesn't matter"
     ts_effUnit(effSelector, unit, effSelector, *, f, t) "Time dependent data for piece-wise linear efficiency blocks"
@@ -87,6 +89,7 @@ Parameters
     dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints"
     dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints"
     dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints"
+    dtt(t, t) "Displacement needed to reach any previous time period (in time periods)"
 
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"

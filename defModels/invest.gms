@@ -26,14 +26,15 @@ Model invest /
 
     // Unit Equations
     q_maxDownward
+*    q_noReserveInRunUp
     q_maxUpward
-    q_startup
-    q_startuptype
-    q_onlineLimit
-    q_onlineMinUptime
-*    q_minDown
+*    q_startshut
+*    q_startuptype
+*    q_onlineOnStartUp
+*    q_offlineAfterShutDown
+*    q_onlineLimit
+*    q_onlineMinUptime
 *    q_genRamp
-*    q_genRampChange
 *    q_rampUpLimit
 *    q_rampDownLimit
     q_outputRatioFixed

@@ -313,11 +313,22 @@ loop(m,
 
 loop(m,
     loop(unit$(p_unit(unit, 'rampSpeedToMinLoad') and p_unit(unit,'op00')),
+        p_unit(unit, 'rampSpeedToMinLoad') = p_unit(unit, 'rampSpeedToMinLoad');
         tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'intervalInHours'); // rampToMinLoadInTimeIntervals
-        p_uRunUpTimeIntervals(unit) = tmp;
-        p_uMaxRampInLastRunUpInterval(unit) =
+        p_u_runUpTimeIntervals(unit) = tmp;
+        loop(t${ord(t)<=ceil(p_u_runUpTimeIntervals(unit))},
+            p_ut_runUp(unit, t)=p_unit(unit, 'rampSpeedToMinLoad') * (ceil(p_u_runUpTimeIntervals(unit) - ord(t) + 1));
+        );
+        p_u_maxRampInLastRunUpInterval(unit) =
           + p_unit(unit, 'rampSpeedToMinLoad') * (tmp-floor(tmp)) / mSettings(m, 'intervalInHours')
           + smin(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampUp')) * (ceil(tmp)-tmp) / mSettings(m, 'intervalInHours');
+        unitStarttype(unit, 'cold') = no;
+        unitStarttype(unit, 'cold')${ p_unit(unit, 'startCostCold')
+                                         or p_unit(unit, 'startFuelConsCold')
+                                         or p_u_runUpTimeIntervals(unit) > 1
+                                         or (p_u_runUpTimeIntervals(unit) <= 1 and p_u_maxRampInLastRunUpInterval(unit) < 1)
+                                       }
+         = yes;
     ) // END loop(unit)
 ); // END loop(m)
 

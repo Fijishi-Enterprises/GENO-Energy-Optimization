@@ -148,7 +148,11 @@ unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
 
 // Units with special startup properties
 // All units can cold start (default start category)
-unitStarttype(unit, starttype('cold')) = yes;
+unitStarttype(unit, starttype('cold'))${ p_unit(unit, 'startCostCold')
+                                         or p_unit(unit, 'startFuelConsCold')
+                                         or p_unit(unit, 'rampSpeedToMinLoad')
+                                       }
+    = yes;
 // Units with parameters regarding hot/warm starts
 unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
                                             or p_unit(unit, 'startCostHot')
