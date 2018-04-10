@@ -24,7 +24,7 @@ Model schedule /
     q_balance
     q_resDemand
 
-    // Unit Equations
+    // Unit Operation
     q_maxDownward
     q_noReserveInRunUp
     q_maxUpward
@@ -43,8 +43,6 @@ Model schedule /
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
-*    q_fixedGenCap1U
-*    q_fixedGenCap2U
 
     // Energy Transfer
     q_transfer
@@ -61,11 +59,12 @@ Model schedule /
     q_boundCyclic
 
     // Policy
-*    q_capacityMargin(grid, node, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
-*    q_emissioncap(gngroup, emission) "Limit for emissions"
-*    q_instantaneousShareMax(gngroup, group, f, t) "Maximum instantaneous share of generation and controlled import from a group of units and links"
-*    q_energyShareMax(gngroup, group) "Maximum energy share of generation and import from a group of units"
-*    q_energyShareMin(gngroup, group) "Minimum energy share of generation and import from a group of units"
-*    q_inertiaMin(gngroup, f, t) "Minimum inertia in a group of nodes"
+*    q_inertiaMin
+*    q_instantaneousShareMax
+*    q_capacityMargin
+*    q_constrainedCapMultiUnit
+*    q_emissioncap
+*    q_energyShareMax
+*    q_energyShareMin
 /;
 

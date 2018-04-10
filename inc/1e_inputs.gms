@@ -50,14 +50,14 @@ $loaddc ts_cf
 $loaddc ts_fuelPriceChange
 $loaddc ts_influx
 $loaddc ts_nodeState
-$loaddc p_gnugnu
 $loaddc t_invest
 $loaddc group
-$loaddc gnu_group
-$loaddc gn2n_group
-$loaddc gngroup
-$loaddc gn_gngroup
-$loaddc p_gngroupPolicy
+$loaddc uGroup
+$loaddc gnuGroup
+$loaddc gn2nGroup
+$loaddc gnGroup
+$loaddc p_groupPolicy
+$loaddc p_groupPolicy3D
 $gdxin
 
 $ontext
@@ -165,9 +165,7 @@ unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
 
 // Units with investment variables
 unit_investLP(unit)${  not p_unit(unit, 'investMIP')
-                       and sum(gnu(grid, node, unit),
-                            p_gnu(grid, node, unit, 'maxGenCap') + p_gnu(grid, node, unit, 'maxConsCap')
-                            )
+                       and p_unit(unit, 'maxUnitCount')
                         }
     = yes;
 unit_investMIP(unit)${  p_unit(unit, 'investMIP')
@@ -182,15 +180,18 @@ unit_investMIP(unit)${  p_unit(unit, 'investMIP')
 p_unit(unit, 'eff00')${ not p_unit(unit, 'eff00') }
     = 1;
 
-// In case number of units has not been defined it is 1 except for units with integer investments allowed.
+// In case number of units has not been defined it is 1 except for units with investments allowed.
 p_unit(unit, 'unitCount')${ not p_unit(unit, 'unitCount')
-                            and not p_unit(unit, 'investMIP')
+                            and not unit_investMIP(unit)
+                            and not unit_investLP(unit)
                             }
     = 1;
 
 // By default add outputs in order to get the total capacity of the unit
 p_unit(unit, 'outputCapacityTotal')${ not p_unit(unit, 'outputCapacityTotal') }
     = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));
+p_unit(unit, 'unitOutputCapacityTotal')
+    = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Assume unit sizes based on given maximum capacity parameters and unit counts if able
 p_gnu(grid, node, unit, 'unitSizeGen')${    p_gnu(grid, node, unit, 'maxGen')

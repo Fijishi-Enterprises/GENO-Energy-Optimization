@@ -15,54 +15,104 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
+* =============================================================================
+* --- Model Definition - Schedule ---------------------------------------------
+* =============================================================================
+
 if (mType('invest'),
     m('invest') = yes; // Definition, that the model exists by its name
 
-    // Define the temporal structure of the model in time indeces
-    mSettings('invest', 'intervalInHours') = 1; // Define the duration of a single time-step in hours
-    mInterval('invest', 'intervalLength', 'c000') = 1;
-    mInterval('invest', 'intervalEnd', 'c000') = 504;
+* --- Define Key Execution Parameters in Time Indeces -------------------------
 
-    // Define the model execution parameters in time indeces
+    // Define simulation start and end time indeces
     mSettings('invest', 't_start') = 1;  // Ord of first solve (i.e. >0)
+    mSettings('invest', 't_end') = 8760;
+
+    // Define simulation horizon and moving horizon optimization "speed"
     mSettings('invest', 't_horizon') = 8760;
-    mSettings('invest', 't_jump') = 2184;
-    mSettings('invest', 't_forecastStart') = 1; // Ord of first forecast available
-    mSettings('invest', 't_forecastLength') = 2184;
-    mSettings('invest', 't_forecastJump') = 2184;
-    mSettings('invest', 't_end') = 2180;
-    mSettings('invest', 't_reserveLength') = 36;
+    mSettings('invest', 't_jump') = 8760;
 
-    // Define unit aggregation and efficiency levels starting indeces
-    mSettings('invest', 't_aggregate') = 4392;
-    mSettingsEff('invest', 'level1') = 1;
-    mSettingsEff('invest', 'level2') = 1;
-    mSettingsEff('invest', 'level3') = 1;
-    mSettingsEff('invest', 'level4') = 4392;
+* =============================================================================
+* --- Model Time Structure ----------------------------------------------------
+* =============================================================================
 
-    // Define active model features
-    active('invest', 'storageValue') = yes;
+* --- Define Samples ----------------------------------------------------------
 
-    // Define model stochastic parameters
-    mSettings('invest', 'samples') = 1;
-    mSettings('invest', 'forecasts') = 0;
-    mSettings('invest', 'readForecastsInTheLoop') = 0;
-    mf('invest', f)$[ord(f)-1 <= mSettings('invest', 'forecasts')] = yes;
-    mf_realization('invest', f) = no;
-    mf_realization('invest', 'f00') = yes;
-    mf_central('invest', f) = no;
-    mf_central('invest', 'f00') = yes;
+    // Number of samples used by the model
+    mSettings('invest', 'samples') = 3;
+
+    // Define Initial and Central samples
     ms_initial('invest', s) = no;
     ms_initial('invest', 's000') = yes;
     ms_central('invest', s) = no;
     ms_central('invest', 's000') = yes;
 
-    p_stepLength('invest', f, t)$(ord(f)=1 and ord(t)=1) = 0;   // set one p_stepLength value, so that unassigned values will not cause an error later
+    // Define time span of samples
+    msStart('invest', 's000') = mSettings('invest', 't_start');
+    msEnd('invest', 's000') = msStart('invest', 's000') + 168;
+    msStart('invest', 's001') = mSettings('invest', 't_start') + 18*168;
+    msEnd('invest', 's001') = msStart('invest', 's001') + 168;
+    msStart('invest', 's002') = mSettings('invest', 't_start') + 35*168;
+    msEnd('invest', 's002') = msStart('invest', 's002') + 168;
+
+    // Define the probability (weight) of samples
     p_msProbability('invest', s) = 0;
-    p_msProbability('invest', 's000') = 1;
+    p_msProbability('invest', 's000') = 8760/504;
+    p_msProbability('invest', 's001') = 8760/504;
+    p_msProbability('invest', 's002') = 8760/504;
+
+* --- Define Time Step Intervals ----------------------------------------------
+
+    // Define the duration of a single time-step in hours
+    mSettings('invest', 'intervalInHours') = 1;
+
+    // Define the time step intervals in time-steps
+    mInterval('invest', 'intervalLength', 'c000') = 1;
+    mInterval('invest', 'intervalEnd', 'c000') = 8760;
+
+* =============================================================================
+* --- Model Forecast Structure ------------------------------------------------
+* =============================================================================
+
+    // Define the number of forecasts used by the model
+    mSettings('invest', 'forecasts') = 0;
+
+    // Define forecast properties and features
+    mSettings('invest', 't_forecastStart') = 0;
+    mSettings('invest', 't_forecastLength') = 0;
+    mSettings('invest', 't_forecastJump') = 0;
+    mSettings('invest', 'readForecastsInTheLoop') = 0;
+
+    // Define Realized and Central forecasts
+    mf_realization('invest', f) = no;
+    mf_realization('invest', 'f00') = yes;
+    mf_central('invest', f) = no;
+    mf_central('invest', 'f00') = yes;
+
+    // Define forecast probabilities (weights)
     p_mfProbability('invest', f) = 0;
     p_mfProbability(mf_realization('invest', f)) = 1;
 
-    msStart('invest', 's000') = 1;
-    msEnd('invest', 's000') = msStart('invest', 's000') + 48;
-);
+    // Define active model features
+    active('invest', 'storageValue') = yes;
+
+* =============================================================================
+* --- Model Features ----------------------------------------------------------
+* =============================================================================
+
+* --- Define Reserve Properties -----------------------------------------------
+
+    // Lenght of reserve horizon
+    mSettings('invest', 't_reserveLength') = 36; // CHECK THIS
+
+* --- Define Unit Efficiency Approximations -----------------------------------
+
+    // Define unit aggregation threshold
+    mSettings('invest', 't_aggregate') = 8761;
+
+    // Define unit aggregation and efficiency levels starting indeces
+    mSettingsEff('invest', 'level1') = 1;
+
+); // END if(mType)
+
+
