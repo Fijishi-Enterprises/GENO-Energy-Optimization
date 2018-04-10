@@ -154,7 +154,7 @@ Sets
     cost_consumption "Startup cost or startup fuel consumption"
         / cost, consumption /
     unit_capacity "Unit or capacity based parameter"
-        / unit, capacity /
+        / unit, capacity / // Is capacity needed anymore?
 
     // Other Features
     feature "Set of optional model features" /

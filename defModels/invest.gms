@@ -26,17 +26,17 @@ Model invest /
 
     // Unit Operation
     q_maxDownward
-*    q_noReserveInRunUp
+    q_noReserveInRunUp
     q_maxUpward
-*    q_startshut
-*    q_startuptype
-*    q_onlineOnStartUp
-*    q_offlineAfterShutDown
-*    q_onlineLimit
-*    q_onlineMinUptime
-*    q_genRamp
-*    q_rampUpLimit
-*    q_rampDownLimit
+    q_startshut
+    q_startuptype
+    q_onlineOnStartUp
+    q_offlineAfterShutDown
+    q_onlineLimit
+    q_onlineMinUptime
+    q_genRamp
+    q_rampUpLimit
+    q_rampDownLimit
     q_outputRatioFixed
     q_outputRatioConstrained
     q_conversionDirectInputOutput

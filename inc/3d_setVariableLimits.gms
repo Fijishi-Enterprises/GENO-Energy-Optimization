@@ -176,8 +176,8 @@ v_online_LP.up(uft_onlineLP(unit, f, t))${  not unit_investLP(unit) }
 v_online_MIP.up(uft_onlineMIP(unit, f, t))${    not unit_investMIP(unit) }
     = p_unit(unit, 'unitCount')
 ;
-// v_startup cannot exceed untCount
-v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not unit_investLP(unit) }
+// v_startup cannot exceed unitCount
+v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not unit_investLP(unit)  and not unit_investMIP(unit) }
     = p_unit(unit, 'unitCount')
 ;
 v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not t_active(t-p_ut_startup(unit,t))} = 0;
@@ -186,8 +186,8 @@ v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and n
 *v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 *v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 
-// v_shutdown cannot exceed untCount
-v_shutdown.up(uft_online(unit, f, t))${  not unit_investLP(unit) }
+// v_shutdown cannot exceed unitCount
+v_shutdown.up(uft_online(unit, f, t))${  not unit_investLP(unit)  and not unit_investMIP(unit) }
     = p_unit(unit, 'unitCount')
 ;
 

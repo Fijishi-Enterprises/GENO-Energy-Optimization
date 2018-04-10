@@ -676,8 +676,8 @@ q_offlineAfterShutdown(uft_online(unit, f, t))${sum(starttype, unitStarttype(uni
 
     // Investments into units
     + sum(t_invest(t_)${ord(t_)<=ord(t)},
-        + v_invest_LP(unit, t_)
-        + v_invest_MIP(unit, t_)
+        + v_invest_LP(unit, t_)${unit_investLP(unit)}
+        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
         ) // END sum(t_invest)
 
     // Units currently online
@@ -735,9 +735,9 @@ q_rampUpLimit(m, gn(grid, node), s, unit, ft(f, t))${ gnuft_ramp(grid, node, uni
   + (
       + ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f, t)}
       + sum(t_$(t_invest(t_) and ord(t_)<=ord(t)),
-          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f+df(f,t), t+dt(t)) and p_gnu(grid, node, unit, 'maxGenCap')}
-          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f+df(f,t), t+dt(t)) and p_gnu(grid, node, unit, 'maxConsCap')}
-          + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f+df(f,t), t+dt(t))}
+          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f+df(f,t), t+dt(t)) and unit_investLP(unit)}
+              * p_gnu(grid, node, unit, 'unitSizeTot')
+          + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f+df(f,t), t+dt(t)) and unit_investMIP(unit)}
               * p_gnu(grid, node, unit, 'unitSizeTot')
         )
     )
@@ -750,15 +750,6 @@ q_rampUpLimit(m, gn(grid, node), s, unit, ft(f, t))${ gnuft_ramp(grid, node, uni
       - v_shutdown(unit, f, t)${uft_online(unit, f, t)}
     )
       * p_gnu(grid, node, unit, 'unitSizeTot')
-      // I don't see why we need to scale - v_online_LP should contain number of units started up just like v_online_MIP (Juha) / {
-      //    + 1${  not unit_investLP(unit)
-      //           or not p_gnu(grid, node, unit, 'unitSizeGenTot')
-      //        }
-      //    + sum(gnu(grid_, node_, unit)${ unit_investLP(unit)
-      //                                    and p_gnu(grid, node, unit, 'unitSizeGenNet')
-      //          }, p_gnu(grid_, node_, unit, 'unitSizeTot')
-      //      )
-      //  } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
       * p_gnu(grid, node, unit, 'maxRampUp')
       * 60   // Unit conversion from [p.u./min] to [p.u./h]
 // Note: This constraint does not limit ramping properly for example if online subunits are
@@ -783,9 +774,9 @@ q_rampDownLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, u
   - (
       + ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f+df(f,t), t+dt(t))}
       + sum(t_$(t_invest(t_) and ord(t_)<=ord(t)),
-          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f, t_) and p_gnu(grid, node, unit, 'maxGenCap')}
-          - v_invest_LP(unit, t_)${not uft_onlineLP(unit, f, t_) and p_gnu(grid, node, unit, 'maxConsCap')}
-          + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f, t_)}
+          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f, t_) and unit_investLP(unit)}
+              * p_gnu(grid, node, unit, 'unitSizeTot')
+          + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f, t_) and unit_investMIP(unit)}
               * p_gnu(grid, node, unit, 'unitSizeTot')
         )
     )
@@ -798,15 +789,6 @@ q_rampDownLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, u
       - v_shutdown(unit, f, t)${uft_online(unit, f, t)}
     )
       * p_gnu(grid, node, unit, 'unitSizeTot')
-      // I don't see why we need to scale - v_online_LP should contain number of units started up just like v_online_MIP (Juha) / {
-      //    + 1${  not unit_investLP(unit)
-      //           or not p_gnu(grid, node, unit, 'unitSizeGenNet')
-      //        }
-      //    + sum(gnu(grid_, node_, unit)${ unit_investLP(unit)
-      //                                    and p_gnu(grid, node, unit, 'unitSizeGenNet')
-      //          }, p_gnu(grid_, node_, unit, 'unitSizeTot')
-      //      )
-      //  } // Scaling factor to calculate online capacity in gn(grid, node) in the case of continuous investments
       * p_gnu(grid, node, unit, 'maxRampDown')
       * 60   // Unit conversion from [p.u./min] to [p.u./h]
 ;
