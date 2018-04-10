@@ -647,6 +647,10 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutdownHours')
         ) // END sum(t_invest)
 ;
 
+*--- Both q_offlineAfterShutdown and q_onlineOnStartup work when there is only one unit.
+*    These equations prohibit single units turning on and off at the same time step.
+*    Unfortunately there seems to be no way to prohibit this when unit count is > 1.
+*    (it shouldn't be worthwhile anyway if there is a startup cost, but it can fall within the solution gap).
 q_onlineOnStartUp(uft_online(unit, f, t))${sum(starttype, unitStarttype(unit, starttype))}..
 
     // Units currently online
@@ -662,13 +666,18 @@ q_onlineOnStartUp(uft_online(unit, f, t))${sum(starttype, unitStarttype(unit, st
 
 q_offlineAfterShutdown(uft_online(unit, f, t))${sum(starttype, unitStarttype(unit, starttype))}..
 
-    + 1
+    // Number of existing units
+    + p_unit(unit, 'unitCount')
+
+    // Investments into units
+    + sum(t_invest(t_)${ord(t_)<=ord(t)},
+        + v_invest_LP(unit, t_)
+        + v_invest_MIP(unit, t_)
+        ) // END sum(t_invest)
+
     // Units currently online
     - v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
     - v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
-    // Units previously online
-*    + v_online_LP(unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t)) } // This reaches to tFirstSolve when dt = -1
-*    + v_online_MIP(unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineMIP(unit, f+df(f,t+dt(t)), t+dt(t)) }
 
     =G=
 
