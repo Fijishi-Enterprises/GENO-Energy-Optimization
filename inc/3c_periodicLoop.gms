@@ -63,15 +63,17 @@ $$iftheni.debug NOT '%debug%' == 'yes'
 
     // Unit Operation
     Option clear = q_maxDownward;
+    Option clear = q_noReserveInRunUp;
     Option clear = q_maxUpward;
+    Option clear = q_startshut;
     Option clear = q_startuptype;
     Option clear = q_onlineLimit;
     Option clear = q_onlineMinUptime;
-*    q_minDown(mType, unit, f, t) "Unit must stay non-operational if it has shut down during the previous minShutdownHours hours"
-*    q_genRamp(grid, node, mType, s, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
-*    q_genRampChange(grid, node, mType, s, unit, f, t) "Record the ramp rates of units with ramping costs"
-*    q_rampUpLimit(grid, node, mType, s, unit, f, t) "Up ramping limited for units"
-*    q_rampDownLimit(grid, node, mType, s, unit, f, t) "Down ramping limited for units"
+    Option clear = q_onlineOnStartUp;
+    Option clear = q_offlineAfterShutdown;
+    Option clear = q_genRamp;
+    Option clear = q_rampUpLimit;
+    Option clear = q_rampDownLimit;
     Option clear = q_outputRatioFixed;
     Option clear = q_outputRatioConstrained;
     Option clear = q_conversionDirectInputOutput;
