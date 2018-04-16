@@ -456,18 +456,18 @@ p_msft_probability(msft(mSolve, s, f, t))
 Option clear = dtt;
 dtt(t,t_)$(t_active(t) and (t_active(t_) or ord(t_) = tSolveFirst) and ord(t_)<=ord(t)) = sum(t__$(ord(t__)>ord(t_) and ord(t__) <= ord(t)), dt(t__));
 
-Option clear = p_ut_startUp;
+Option clear = dt_toStartup;
 loop(unit$(p_u_runUpTimeIntervals(unit)),
     loop(t$t_active(t),
         tmp = 1;
         loop(t_${t_active(t_) and ord(t_) <= ord(t) and tmp = 1},
             if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit),
-                p_ut_startup(unit, t) = dtt(t,t_+dt(t));
+                dt_toStartup(unit, t) = dtt(t,t_+dt(t));
                 tmp = 0;
             );
         );
         if (tmp = 1,
-            p_ut_startup(unit, t) = dt(t);
+            dt_toStartup(unit, t) = dt(t);
             tmp=0;
         );
     );

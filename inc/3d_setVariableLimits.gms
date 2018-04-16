@@ -180,7 +180,7 @@ v_online_MIP.up(uft_onlineMIP(unit, f, t))${    not unit_investMIP(unit) }
 v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not unit_investLP(unit)  and not unit_investMIP(unit) }
     = p_unit(unit, 'unitCount')
 ;
-v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not t_active(t-p_ut_startup(unit,t))} = 0;
+v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not t_active(t-dt_toStartup(unit,t))} = 0;
 
 //These might speed up, but they should be applied only to the new part of the horizon (should be explored)
 *v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
@@ -379,7 +379,7 @@ loop(mft_start(mSolve, f, t),
         v_state.fx(gn_state(grid, node), f, t)
             = r_state(grid, node, f, t);
         v_startup.fx(unitStarttype(unit, starttype), f, t)
-            = r_startup(unit, starttype, f, t);
+            = round(r_startup(unit, starttype, f, t), 4);
 
     ); // END if(tSolveFirst)
 ) // END loop(mftStart)

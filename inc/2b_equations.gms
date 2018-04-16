@@ -397,14 +397,13 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
                                                         and [unit_investLP(unit) or unit_investMIP(unit)]
                                                         ]
                                                     } ..
-
     // Energy generation/consumption
     + v_gen(grid, node, unit, f, t)
 
     // Considering output constraints (e.g. cV line)
-    + sum(gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit),
-        + p_gnu(grid_, node_, unit, 'cV')
-            * v_gen(grid_, node_, unit, f, t)
+    + sum(gngnu_constrainedOutputRatio(grid, node, grid_output, node_, unit),
+        + p_gnu(grid_output, node_, unit, 'cV')
+            * v_gen(grid_output, node_, unit, f, t)
         ) // END sum(gngnu_constrainedOutputRatio)
 
     // Downward reserve participation
@@ -425,8 +424,9 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
             + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)} // MIP online variant
             ] // END v_online
 
+    // Units that are in the run-up phase need to keep up with the run-up ramp rate (contained in p_ut_runUp)
     + p_gnu(grid, node, unit, 'unitSizeGen')
-        * sum(t_$(ord(t_) > ord(t) + p_ut_startup(unit, t) and ord(t_) <= ord(t) and uft_online(unit, f, t_)),
+        * sum(t_$(ord(t_) > ord(t) + dt_toStartup(unit, t) and ord(t_) <= ord(t) and uft_online(unit, f, t_)),
             + sum(unitStarttype(unit, starttype),
                 + v_startup(unit, starttype, f, t_) * sum(t__${ord(t__) = ord(t) - ord(t_) + 1}, p_ut_runUp(unit, t__))  //t+dtt(t,t_)
             )
@@ -469,7 +469,7 @@ q_noReserveInRunUp(m, gnuft(grid, node, unit, f, t))$[   ord(t) < tSolveFirst + 
     v_gen(grid, node, unit, f, t)
     =G=
     + p_gnu(grid, node, unit, 'unitSizeGen')
-        * sum(t_$(ord(t_) > ord(t) + p_ut_startup(unit, t) and ord(t_) <= ord(t) and uft_online(unit, f, t_)),
+        * sum(t_$(ord(t_) > ord(t) + dt_toStartup(unit, t) and ord(t_) <= ord(t) and uft_online(unit, f, t_)),
             + sum(unitStarttype(unit, starttype),
                 + v_startup(unit, starttype, f, t_) * sum(t__${ord(t__) = ord(t) - ord(t_) + 1}, p_ut_runUp(unit, t__))  //t+dtt(t,t_)
             )
@@ -483,7 +483,7 @@ $ontext
                + v_invest_LP(unit, t_)${unit_investLP(unit)} // NOTE! v_invest_LP also for consuming units is positive
                + v_invest_MIP(unit, t_)${unit_investMIP(unit)} // NOTE! v_invest_MIP also for consuming units is positive
             ) // END sum(t_invest)
-          - sum(t_$(ord(t_) >= ord(t) + p_ut_startup(unit, t) and ord(t_) < ord(t) and uft_online(unit, f, t_)),
+          - sum(t_$(ord(t_) >= ord(t) + dt_toStartup(unit, t) and ord(t_) < ord(t) and uft_online(unit, f, t_)),
               + sum(unitStarttype(unit, starttype),
                   + v_startup(unit, starttype, f, t_)
                 )
@@ -565,16 +565,18 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
                     ] // END * p_gnu(unitSizeGen)
             ] // END * p_unit(availability)
 
+    // Units that are in the run-up phase need to keep up with the run-up ramp rate (contained in p_ut_runUp)
     + p_gnu(grid, node, unit, 'unitSizeGen')
-        * sum(t_$(ord(t_) > ord(t) + p_ut_startup(unit, t) and ord(t_) < ord(t) and uft_online(unit, f, t_)),
+        * sum(t_$(ord(t_) > ord(t) + dt_toStartup(unit, t) and ord(t_) < ord(t) and uft_online(unit, f, t_)),
             + sum(unitStarttype(unit, starttype),
-                + v_startup(unit, starttype, f, t_) * sum(t__${ord(t__) = ord(t) - ord(t_) + 1}, p_ut_runUp(unit, t__))  //t+dtt(t,t_)
+                + v_startup(unit, starttype, f, t_) * sum(t__${ord(t__) = ord(t) - ord(t_) + 1}, p_ut_runUp(unit, t__))
               )
           )$p_u_runUpTimeIntervals(unit)
+    // Units that are in the last time interval of the run-up phase are limited by the p_u_maxOutputInLastRunUpInterval
     + p_gnu(grid, node, unit, 'unitSizeGen')
-        * sum(t_$(ord(t_) = ord(t) and uft_online(unit, f, t_)),
+        * sum(t_$(ord(t_) = ord(t) + dt_toStartup(unit, t) and uft_online(unit, f, t_)),
             + sum(unitStarttype(unit, starttype),
-                + v_startup(unit, starttype, f, t_) * p_u_maxRampInLastRunUpInterval(unit)  //t+dtt(t,t_)
+                + v_startup(unit, starttype, f, t_) * p_u_maxOutputInLastRunUpInterval(unit)
               )
           )$p_u_runUpTimeIntervals(unit)
 ;
@@ -599,7 +601,7 @@ q_startshut(m, uft_online(unit, f, t))${ ord(t) + dt(t) > mSettings(m, 't_start'
 
     // Unit startup and shutdown
     + sum(unitStarttype(unit, starttype),
-        + v_startup(unit, starttype, f+df_central(f,t+p_ut_startup(unit,t)), t+p_ut_startup(unit, t))
+        + v_startup(unit, starttype, f+df_central(f,t+dt_toStartup(unit,t)), t+dt_toStartup(unit, t))
         ) // END sum(starttype)
     - v_shutdown(unit, f, t)
 ;
@@ -614,7 +616,7 @@ q_startshut(m, uft_online(unit, f, t))${ ord(t) + dt(t) > mSettings(m, 't_start'
 q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t))${ unitStarttype(unit, starttype) } ..
 
     // Startup type
-    + v_startup(unit, starttype, f+df_central(f,t+p_ut_startup(unit,t)), t+p_ut_startup(unit, t))
+    + v_startup(unit, starttype, f+df_central(f,t+dt_toStartup(unit,t)), t+dt_toStartup(unit, t))
 
     =L=
 
@@ -665,7 +667,7 @@ q_onlineOnStartUp(uft_online(unit, f, t))${sum(starttype, unitStarttype(unit, st
     =G=
 
     + sum(unitStarttype(unit, starttype),
-        + v_startup(unit, starttype, f+df(f,t+p_ut_startUp(unit, t)), t+p_ut_startUp(unit, t))
+        + v_startup(unit, starttype, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t))  //dt_toStartup displaces the time step to the one where the unit would be started up in order to reach online at t
       ) // END sum(starttype)
 ;
 
@@ -703,7 +705,7 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationHours'
     // Units that have minimum operation time requirements active
     + sum(counter${dt_uptimeUnitCounter(unit, counter)},
         + sum(unitStarttype(unit, starttype),
-            + v_startup(unit, starttype, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+p_ut_startUp(unit, t))), t+(dt_uptimeUnitCounter(unit, counter)+p_ut_startUp(unit, t)))
+            + v_startup(unit, starttype, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t))), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t)))
             ) // END sum(starttype)
     ) // END sum(counter)
 ;
@@ -937,7 +939,7 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
     + sum(gnu_output(grid, node, unit)$p_u_runUpTimeIntervals(unit),
         + p_gnu(grid, node, unit, 'unitSizeGen')
       ) // END sum(gnu_output)
-        * sum(t_$(ord(t_) > ord(t) + p_ut_startup(unit, t) and ord(t_) <= ord(t) and uft_online(unit, f, t_)),
+        * sum(t_$(ord(t_) > ord(t) + dt_toStartup(unit, t) and ord(t_) <= ord(t) and uft_online(unit, f, t_)),
             + sum(unitStarttype(unit, starttype),
                 + v_startup(unit, starttype, f, t_) * sum(t__${ord(t__) = ord(t) - ord(t_) + 1}, p_ut_runUp(unit, t__))  //t+dtt(t,t_)
             )
