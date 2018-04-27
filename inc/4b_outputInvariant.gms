@@ -188,10 +188,10 @@ loop(m,
             + r_gen(grid, node, unit, f, t)
             ); // END sum(uFuel)
 
-    // Energy generation by fuels
-    r_genUnittype(gn(grid, node), unittype, t)$(sum(f,ft_realizedNoReset(f,t)) and sum(unit,gnu_output(grid, node, unit)))
-        = sum(unit${unitUnittype(unit, unittype) and gnu_output(grid, node, unit)},
-            + sum(f,r_gen(grid, node, unit, f, t))
+    // Energy generation by unit type
+    r_genUnittype(gn(grid, node), unittype, ft_realizedNoReset(f, t))${ sum(unitUnittype(unit, unittype), gnu_output(grid, node, unit)) }
+        = sum(gnu_output(grid, node, unit)${ unitUnittype(unit, unittype) },
+            + r_gen(grid, node, unit, f, t)
             ); // END sum(unit)
 
     // Total generation on each node by fuels
