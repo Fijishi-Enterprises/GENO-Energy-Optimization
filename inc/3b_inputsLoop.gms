@@ -111,7 +111,7 @@ if(mSettings(mSolve, 'forecasts') > 0,
     ts_cf(flowNode(flow, node), f_solve(f), tt(t))${    not mf_realization(mSolve, f)
                                                         and not mf_central(mSolve, f)
                                                         }
-        = ts_cf(flow, node, f, t) + ts_cf(flow, node, f+ddf(f,t), t);
+        = min(max(ts_cf(flow, node, f, t) + ts_cf(flow, node, f+ddf(f,t), t),0),1);
 
 ); // END IF forecasts
 *$offtext
