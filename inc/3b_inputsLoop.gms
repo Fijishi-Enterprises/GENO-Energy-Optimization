@@ -107,11 +107,11 @@ if(mSettings(mSolve, 'forecasts') > 0,
             )
                 / f_improve;
 
-    // Update the upper and lower forecasts based on the improved central forecast
-    ts_nodeState(gn_stateTimeseries(grid, node), 'reference', f_solve(f), tt(t))${    not mf_realization(mSolve, f)
-                                                                            and not mf_central(mSolve, f)
-                                                                            }
-        = ts_nodeState(grid, node, 'reference', f, t) + ts_nodeState(grid, node, 'reference', f+ddf(f,t), t);
+    // Recalculate the upper and lower forecasts based on the central forecast
+    ts_cf(flowNode(flow, node), f_solve(f), tt(t))${    not mf_realization(mSolve, f)
+                                                        and not mf_central(mSolve, f)
+                                                        }
+        = ts_cf(flow, node, f, t) + ts_cf(flow, node, f+ddf(f,t), t);
 
 ); // END IF forecasts
 *$offtext

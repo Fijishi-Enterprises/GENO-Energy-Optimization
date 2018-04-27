@@ -132,7 +132,8 @@ loop(m,
 
     // Realized gnu Costs
     r_gnuRealizedCost(gnu(grid, node, unit), ft_realizedNoReset(f, t))
-        =   // VOM costs
+        = sum(gnu_output(grid, node, unit),
+            // VOM costs
             + r_gnuVOMCost(grid, node, unit, f, t)
 
             // Divide fuel and startup costs based on output capacities
@@ -148,7 +149,7 @@ loop(m,
                         + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
                         + r_uStartupCost(unit, f, t)
                         ] // END *
-            ) // END sum(gnu_output)
+            ); // END sum(gnu_output)
 
     // Realized gnu Costs Per Generation
     r_gnuRealizedCostPerGen(gnu_output(grid, node, unit), ft_realizedNoReset(f, t))${ r_gen(grid, node, unit, f, t) }
