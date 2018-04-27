@@ -42,10 +42,10 @@ if (mType('building'),
     mSettings('building', 'samples') = 1;
 
     // Define Initial and Central samples
-    msInitial('building', s) = no;
-    msInitial('building', 's000') = yes;
-    msCentral('building', s) = no;
-    msCentral('building', 's000') = yes;
+    ms_initial('building', s) = no;
+    ms_initial('building', 's000') = yes;
+    ms_central('building', s) = no;
+    ms_central('building', 's000') = yes;
 
     // Define time span of samples
     msStart('building', 's000') = mSettings('building', 't_start');
@@ -78,14 +78,14 @@ if (mType('building'),
     mSettings('building', 'readForecastsInTheLoop') = 0;
 
     // Define Realized and Central forecasts
-*    mfRealization('building', f) = no;
-    mfRealization('building', 'f00') = yes;
-*    mfCentral('building', f) = no;
-    mfCentral('building', 'f00') = yes;
+*    mf_realization('building', f) = no;
+    mf_realization('building', 'f00') = yes;
+*    mf_central('building', f) = no;
+    mf_central('building', 'f00') = yes;
 
     // Define forecast probabilities (weights)
 *    p_mfProbability('building', f) = 0;
-    p_mfProbability(mfRealization('building', f)) = 1;
+    p_mfProbability(mf_realization('building', f)) = 1;
 
     // Define active model features
 *    active('building', 'storageValue') = yes;

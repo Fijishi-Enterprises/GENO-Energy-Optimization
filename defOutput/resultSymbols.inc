@@ -76,6 +76,7 @@ r_gen
 // Fuel use results
 r_fuelUse
 r_genFuel
+r_genUnittype
 r_gnTotalGenFuel
 r_gnTotalGenFuelShare
 r_gTotalGenFuel
@@ -127,6 +128,11 @@ r_resDemandMarginal
 r_nuTotalReserve
 r_nuTotalReserveShare
 r_nTotalReserve
+
+* --- Investment Result Symbols -----------------------------------------------
+
+// Interesting investment results
+r_unitInvestment
 
 * --- Dummy and Diagnostic Variable Result Symbols ----------------------------
 

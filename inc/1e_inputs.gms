@@ -50,14 +50,14 @@ $loaddc ts_cf
 $loaddc ts_fuelPriceChange
 $loaddc ts_influx
 $loaddc ts_nodeState
-$loaddc p_gnugnu
 $loaddc t_invest
 $loaddc group
-$loaddc gnu_group
-$loaddc gn2n_group
-$loaddc gngroup
-$loaddc gn_gngroup
-$loaddc p_gngroupPolicy
+$loaddc uGroup
+$loaddc gnuGroup
+$loaddc gn2nGroup
+$loaddc gnGroup
+$loaddc p_groupPolicy
+$loaddc p_groupPolicy3D
 $gdxin
 
 $ontext
@@ -155,20 +155,18 @@ unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
 // All units can cold start (default start category)
 unitStarttype(unit, starttype('cold')) = yes;
 // Units with parameters regarding hot/warm starts
-unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarm')
+unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
                                             or p_unit(unit, 'startCostHot')
                                             or p_unit(unit, 'startFuelConsHot')
                                             or p_unit(unit, 'startCostWarm')
                                             or p_unit(unit, 'startFuelConsWarm')
-                                            or p_unit(unit, 'startCold')
+                                            or p_unit(unit, 'startColdAfterXhours')
                                             }
     = yes;
 
 // Units with investment variables
 unit_investLP(unit)${  not p_unit(unit, 'investMIP')
-                       and sum(gnu(grid, node, unit),
-                            p_gnu(grid, node, unit, 'maxGenCap') + p_gnu(grid, node, unit, 'maxConsCap')
-                            )
+                       and p_unit(unit, 'maxUnitCount')
                         }
     = yes;
 unit_investMIP(unit)${  p_unit(unit, 'investMIP')
@@ -183,15 +181,18 @@ unit_investMIP(unit)${  p_unit(unit, 'investMIP')
 p_unit(unit, 'eff00')${ not p_unit(unit, 'eff00') }
     = 1;
 
-// In case number of units has not been defined it is 1 except for units with integer investments allowed.
+// In case number of units has not been defined it is 1 except for units with investments allowed.
 p_unit(unit, 'unitCount')${ not p_unit(unit, 'unitCount')
-                            and not p_unit(unit, 'investMIP')
+                            and not unit_investMIP(unit)
+                            and not unit_investLP(unit)
                             }
     = 1;
 
 // By default add outputs in order to get the total capacity of the unit
 p_unit(unit, 'outputCapacityTotal')${ not p_unit(unit, 'outputCapacityTotal') }
     = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));
+p_unit(unit, 'unitOutputCapacityTotal')
+    = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Assume unit sizes based on given maximum capacity parameters and unit counts if able
 p_gnu(grid, node, unit, 'unitSizeGen')${    p_gnu(grid, node, unit, 'maxGen')
@@ -210,9 +211,9 @@ p_gnu(grid, node, unit, 'unitSizeGenNet')
 // Determine unit startup parameters based on data
 // Hot startup parameters
 p_uNonoperational(unitStarttype(unit, 'hot'), 'min')
-    = p_unit(unit, 'minShutDownTime');
+    = p_unit(unit, 'minShutdownHours');
 p_uNonoperational(unitStarttype(unit, 'hot'), 'max')
-    = p_unit(unit, 'startWarm');
+    = p_unit(unit, 'startWarmAfterXhours');
 p_uStartup(unitStarttype(unit, 'hot'), 'cost', 'unit')
     = p_unit(unit, 'startCostHot')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
@@ -222,9 +223,9 @@ p_uStartup(unitStarttype(unit, 'hot'), 'consumption', 'unit')
 
 // Warm startup parameters
 p_uNonoperational(unitStarttype(unit, 'warm'), 'min')
-    = p_unit(unit, 'startWarm');
+    = p_unit(unit, 'startWarmAfterXhours');
 p_uNonoperational(unitStarttype(unit, 'warm'), 'max')
-    = p_unit(unit, 'startCold');
+    = p_unit(unit, 'startColdAfterXhours');
 p_uStartup(unitStarttype(unit, 'warm'), 'cost', 'unit')
     = p_unit(unit, 'startCostWarm')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
@@ -233,11 +234,13 @@ p_uStartup(unitStarttype(unit, 'warm'), 'consumption', 'unit')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Cold startup parameters
+p_uNonoperational(unitStarttype(unit, 'cold'), 'min')
+    = p_unit(unit, 'startColdAfterXhours');
 p_uStartup(unit, 'cold', 'cost', 'unit')
-    = p_unit(unit, 'startCost')
+    = p_unit(unit, 'startCostCold')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 p_uStartup(unit, 'cold', 'consumption', 'unit')
-    = p_unit(unit, 'startFuelCons')
+    = p_unit(unit, 'startFuelConsCold')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Determine unit emission costs
@@ -375,11 +378,11 @@ loop(gn2n(grid, node, node_),
 * Check the integrity of efficiency approximation related data
 Option clear = tmp; // Log the unit index for finding the error easier.
 loop( unit,
-    tmp = tmp + 1; // Increase the unit counter
+    tmp = ord(unit); // Increase the unit counter
     // Check that 'op' is defined correctly
     Option clear = count; // Initialize the previous op to zero
     loop( op,
-        abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!";
+        abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!", tmp, count;
         count = p_unit(unit, op);
     );
     // Check that efficiency approximations have sufficient data

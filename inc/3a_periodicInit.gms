@@ -299,13 +299,13 @@ loop(m,
 
         // Find the time step displacements needed to define the downtime requirements
         Option clear = cc;
-        cc(counter)${ ord(counter) <= p_unit(unit, 'minShutDownTime') / mSettings(m, 'intervalInHours') }
+        cc(counter)${ ord(counter) <= p_unit(unit, 'minShutdownHours') / mSettings(m, 'intervalInHours') }
             = yes;
         dt_downtimeUnitCounter(unit, cc(counter)) = - ord(counter);
 
         // Find the time step displacements needed to define the uptime requirements
         Option clear = cc;
-        cc(counter)${ ord(counter) <= p_unit(unit, 'minOperationTime') / mSettings(m, 'intervalInHours')}
+        cc(counter)${ ord(counter) <= p_unit(unit, 'minOperationHours') / mSettings(m, 'intervalInHours')}
             = yes;
         dt_uptimeUnitCounter(unit, cc(counter)) = - ord(counter);
     ); // END loop(effLevelGroupUnit)
@@ -325,12 +325,28 @@ loop(fuel,
     ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
 ); // END loop(fuel)
 
+* --- Calculating fuel price time series --------------------------------------
+
+loop(fuel,
+    // Determine the time steps where the prices change
+    Option clear = tt;
+    tt(t_full(t))${ ts_fuelPriceChange(fuel, t) }
+        = yes;
+    // Calculate the fuel price time series based on the input price changes
+    ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
+); // END loop(fuel)
+
 * --- Slack Direction ---------------------------------------------------------
 
 // Upwards slack is positive, downward slack negative
 p_slackDirection(upwardSlack) = 1;
 p_slackDirection(downwardSlack) = -1;
 
+* --- Using default value for reserves update frequency -----------------------
 
+loop(m,
+    p_nReserves(node, restype, 'update_frequency')${  not p_nReserves(node, restype, 'update_frequency')  }
+        = mSettings(m, 't_jump');
+);
 
 

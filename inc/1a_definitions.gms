@@ -276,27 +276,28 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     unitSizeTot "Sum of output and loading capacity of one unit (MW)"
     unitSizeGenNet "Output minus loading capacity of one unit (MW)"
     invCosts    "Investment costs (€/MW)"
-    annuity     "Investment annuity"
-    inertia  "Inertia of the unit (s)"
+    annuity     "Investment annuity factor"
+    fomCosts    "Fixed operation and maintenance costs (€/MW/a)"
+    inertia     "Inertia of the unit (s)"
     unitSizeMVA "Generator MVA rating (MVA)"
 /
 
 param_unit "Set of possible data parameters for units" /
     unitCount   "Number of subunits if aggregated"
     outputCapacityTotal "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"
+    unitOutputCapacityTotal "Output capacity of the unit, calculated by summing all the unit output sizes together by default"
     availability "Availability of given energy conversion technology (p.u.)"
-    omCosts     "Variable operation and maintenance costs dependent on output energy (€/MWh)"
-    omCosts_input "Variable operation and maintenance costs dependent on input energy (EUR/MWh)"
-    startCost "Variable start-up costs for cold starts excluding fuel costs (€/MW)"
+    omCosts     "Variable operation and maintenance costs (€/MWh)"
+    startCostCold "Variable start-up costs for cold starts excluding fuel costs (€/MW)"
     startCostWarm "Variable start-up costs for warm starts excluding fuel costs (€/MW)"
     startCostHot "Variable start-up costs for hot starts excluding fuel costs (€/MW)"
-    startFuelCons "Consumption of start-up fuel per cold subunit started up (MWh_fuel/MW)"
+    startFuelConsCold "Consumption of start-up fuel per cold subunit started up (MWh_fuel/MW)"
     startFuelConsWarm "Consumption of start-up fuel per warm subunit started up (MWh_fuel/MW)"
     startFuelConsHot "Consumption of start-up fuel per hot subunit started up (MWh_fuel/MW)"
-    startCold   "Offline hours after which the start-up will be a cold start (h)"
-    startWarm   "Offline hours after which the start-up will be a warm start (h)"
-    minOperationTime "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
-    minShutDownTime "Minimum shut down time (h), prevents starting up again after the defined amount of time has passed"
+    startColdAfterXhours   "Offline hours after which the start-up will be a cold start (h)"
+    startWarmAfterXhours   "Offline hours after which the start-up will be a warm start (h)"
+    minOperationHours "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
+    minShutdownHours "Minimum shut down time (h), prevents starting up again after the defined amount of time has passed"
     SO2         "SO2 emissions (tonne per MWh_fuel)"
     NOx         "NOx emissions (tonne per MWh_fuel)"
     CH4         "CH4 emissions (tonne per MWh_fuel)"
@@ -335,10 +336,8 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     energyShareMax "Maximum energy share of generation from a particular group of units"
     energyShareMin "Minimum energy share of generation from a particular group of units"
     kineticEnergyMin "Minimum system kinetic energy (MWs)"
-/
-
-param_gnugnu "Set of possible data parameters for grid, node, unit, grid, node, unit" /
-    capacityRatio "Fixed ratio of the capacity of the first unit to the second"
+    constrainedCapMultiplier "Multiplier a(i) for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
+    constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
 /
 
 * --- Counters and Directional Sets -------------------------------------------

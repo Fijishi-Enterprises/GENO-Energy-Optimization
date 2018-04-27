@@ -136,12 +136,19 @@ loop(m,
             + r_gnuVOMCost(grid, node, unit, f, t)
 
             // Divide fuel and startup costs based on output capacities
-            + p_gnu(grid, node, unit, 'maxGen')${ gnu_output(grid, node, unit) }
-                / p_unit(unit, 'outputCapacityTotal')
-                * [
-                    + sum(unitFuel(unit, fuel), r_uFuelEmissionCost(fuel, unit, f, t))
-                    + r_uStartupCost(unit, f, t)
-                    ]; // END *
+            + [
+                + p_gnu(grid, node, unit, 'maxGen')${p_unit(unit, 'outputCapacityTotal')}
+                + p_gnu(grid, node, unit, 'unitSizeGen')${not p_unit(unit, 'outputCapacityTotal')}
+                ]
+                    / [
+                        + p_unit(unit, 'outputCapacityTotal')${p_unit(unit, 'outputCapacityTotal')}
+                        + p_unit(unit, 'unitOutputCapacityTotal')${not p_unit(unit, 'outputCapacityTotal')}
+                        ] // END /
+                    * [
+                        + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
+                        + r_uStartupCost(unit, f, t)
+                        ] // END *
+            ) // END sum(gnu_output)
 
     // Realized gnu Costs Per Generation
     r_gnuRealizedCostPerGen(gnu_output(grid, node, unit), ft_realizedNoReset(f, t))${ r_gen(grid, node, unit, f, t) }
@@ -180,6 +187,12 @@ loop(m,
             + r_gen(grid, node, unit, f, t)
             ); // END sum(uFuel)
 
+    // Energy generation by fuels
+    r_genUnittype(gn(grid, node), unittype, t)$(sum(f,ft_realizedNoReset(f,t)) and sum(unit,gnu_output(grid, node, unit)))
+        = sum(unit${unitUnittype(unit, unittype) and gnu_output(grid, node, unit)},
+            + sum(f,r_gen(grid, node, unit, f, t))
+            ); // END sum(unit)
+
     // Total generation on each node by fuels
     r_gnTotalGenFuel(gn(grid, node), fuel)
         = sum(ft_realizedNoReset(f, t),
@@ -204,10 +217,10 @@ loop(m,
             ); // END sum(ft_realizedNoReset)
 
     // Approximate utilization rates for gnus over the simulation
-    r_gnuUtilizationRate(gnu_output(grid, node, unit))
+    r_gnuUtilizationRate(gnu_output(grid, node, unit))${r_gnuTotalGen(grid, node, unit)}
         = r_gnuTotalGen(grid, node, unit)
             / [
-                + p_gnu(grid, node, unit, 'maxGen')
+                + (p_gnu(grid, node, unit, 'maxGen') + r_unitInvestment(unit)*p_gnu(grid, node, unit, 'unitSizeGen'))
                     * (mSettings(m, 't_end') - mSettings(m, 't_start') + 1)
                     * mSettings(m, 'intervalInHours')
                 ]; // END division

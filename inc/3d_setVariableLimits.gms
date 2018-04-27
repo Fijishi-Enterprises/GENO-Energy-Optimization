@@ -236,7 +236,6 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit), f_solve(f+df_nReserves(n
             + p_nuReserves(node, unit, restype, 'reserveContribution')${not mft_nReserves(node, restype, mSolve, f+df_nReserves(node, restype, f, t), t)}
             ] // END * min
     ;
-*); // END loop(fSolve)
 
 // Fix reserves between t_jump and gate_closure based on previous allocations
 // !!! EXPERIMENTAL !!! Lower borders fixed instead of total fix !!!!!!!!!!!!!!
@@ -244,10 +243,11 @@ if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix th
 
     // Fix non-flow unit reserves ahead of time
     // Lower bound fixed to commitments
+
     v_reserve.lo(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${ mft_nReserves(node, restype, mSolve, f, t)
                                                                                         and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
                                                                                         }
-        = r_reserve(restype, up_down, node, unit, f, t)${ r_reserve(restype, up_down, node, unit, f, t) > 0 };
+        = r_reserve(restype, up_down, node, unit, f, t);
 
     // Fix transfer of reserves ahead of time
     // Rightward  lower
@@ -265,82 +265,34 @@ if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix th
         = r_resTransferLeftward(restype, up_down, node, node_, f, t);
 ); // END if(tSolveFirst)
 
-// Free the tertiary reserves for the realization
-v_reserve.fx(nuRescapable('tertiary', up_down, node, unit), ft_realized(f,t))${ nuft(node, unit, f, t) }
+// Free the designated reserves for the realization
+v_reserve.fx(nuRescapable(restypeReleasedForRealization(restype), up_down, node, unit), ft_realized(f,t))${ nuft(node, unit, f, t) }
     = 0;
-v_resTransferRightward.fx(restypeDirectionNode('tertiary', up_down, node), node_, ft_realized(f,t))${   sum(grid, gn2n(grid, node, node_))
-                                                                                                        and restypeDirectionNode('tertiary', up_down, node_)
-                                                                                                        }
+v_resTransferRightward.fx(restypeDirectionNode(restypeReleasedForRealization(restype), up_down, node), node_, ft_realized(f,t))${   sum(grid, gn2n(grid, node, node_))
+                                                                                                                                    and restypeDirectionNode('tertiary', up_down, node_)
+                                                                                                                                    }
     = 0;
-v_resTransferLeftward.fx(restypeDirectionNode('tertiary', up_down, node), node_, ft_realized(f,t))${    sum(grid, gn2n(grid, node, node_))
-                                                                                                        and restypeDirectionNode('tertiary', up_down, node_)
-                                                                                                        }
+v_resTransferLeftward.fx(restypeDirectionNode(restypeReleasedForRealization(restype), up_down, node), node_, ft_realized(f,t))${    sum(grid, gn2n(grid, node, node_))
+                                                                                                                                    and restypeDirectionNode('tertiary', up_down, node_)
+                                                                                                                                    }
     = 0;
 
 * --- Investment Variable Boundaries ------------------------------------------
 
-// Unit Investments, Generation
+// Unit Investments
 // LP variant
 v_invest_LP.up(unit, t_invest)${    unit_investLP(unit) }
-    = min(  smax(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGenCap')) // Maximum permitted gnu_output capacity investment
-                / p_unit(unit, 'unitSizeGen')
-            ,
-            p_unit(unit, 'maxUnitCount')
-        ) // END min
+    = p_unit(unit, 'maxUnitCount')
 ;
 v_invest_LP.lo(unit, t_invest)${    unit_investLP(unit) }
-    = min(  smax(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'minGenCap')) // Maximum defined gnu_output minimun capacity requirement
-                / p_unit(unit, 'unitSizeGen')
-            ,
-            p_unit(unit, 'minUnitCount')
-        ) // END min
+    = p_unit(unit, 'minUnitCount')
 ;
 // MIP variant
 v_invest_MIP.up(unit, t_invest)${   unit_investMIP(unit)    }
-    = min(  smax(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGenCap')) // Maximum permitted gnu_output capacity investment
-                / p_unit(unit, 'unitSizeGen')
-            ,
-            p_unit(unit, 'maxUnitCount')
-        ) // END min
+    = p_unit(unit, 'maxUnitCount')
 ;
 v_invest_MIP.lo(unit, t_invest)${   unit_investMIP(unit)    }
-    = min(  smax(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'minGenCap'))
-                / p_unit(unit, 'unitSizeGen')
-            ,
-            p_unit(unit, 'minUnitCount')
-        ) // END min
-;
-
-// Unit Investments, Consumption
-// LP variant
-v_invest_LP.up(unit, t_invest)${    unit_investLP(unit) }
-    = min(  smax(gnu_input(grid, node, unit), p_gnu(grid, node, unit, 'maxConsCap')) // Maximum permitted gnu_output capacity investment
-                / p_unit(unit, 'unitSizeCons')
-            ,
-            p_unit(unit, 'maxUnitCount')
-        ) // END min
-;
-v_invest_LP.lo(unit, t_invest)${    unit_investLP(unit) }
-    = min(  smax(gnu_input(grid, node, unit), p_gnu(grid, node, unit, 'minConsCap')) // Maximum defined gnu_output minimun capacity requirement
-                / p_unit(unit, 'unitSizeCons')
-            ,
-            p_unit(unit, 'minUnitCount')
-        ) // END min
-;
-// MIP variant
-v_invest_MIP.up(unit, t_invest)${   unit_investMIP(unit)    }
-    = min(  smax(gnu_input(grid, node, unit), p_gnu(grid, node, unit, 'maxConsCap')) // Maximum permitted gnu_output capacity investment
-                / p_unit(unit, 'unitSizeCons')
-            ,
-            p_unit(unit, 'maxUnitCount')
-        ) // END min
-;
-v_invest_MIP.lo(unit, t_invest)${   unit_investMIP(unit)    }
-    = min(  smax(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'minConsCap'))
-                / p_unit(unit, 'unitSizeCons')
-            ,
-            p_unit(unit, 'minUnitCount')
-        ) // END min
+    = p_unit(unit, 'minUnitCount')
 ;
 
 // Transfer Capacity Investments
@@ -363,8 +315,8 @@ v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ 
 // !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // These should not be necessary,as if the time window is not defined, warm and
 // hot starts should be impossible according to q_startuptype
-*v_startup.fx(unit, 'hot', ft_dynamic(f, t))${not p_unit(unit, 'startWarm')} = 0;
-*v_startup.fx(unit, 'warm', ft_dynamic(f, t))${not p_unit(unit, 'startCold')} = 0;
+*v_startup.fx(unit, 'hot', ft_dynamic(f, t))${not p_unit(unit, 'startWarmAfterXhours')} = 0;
+*v_startup.fx(unit, 'warm', ft_dynamic(f, t))${not p_unit(unit, 'startColdAfterXhours')} = 0;
 
 * =============================================================================
 * --- Bounds for the first timestep -------------------------------------------

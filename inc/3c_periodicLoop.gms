@@ -68,7 +68,7 @@ $$iftheni.debug NOT '%debug%' == 'yes'
     Option clear = q_startuptype;
     Option clear = q_onlineLimit;
     Option clear = q_onlineMinUptime;
-*    q_minDown(mType, unit, f, t) "Unit must stay non-operational if it has shut down during the previous minShutDownTime hours"
+*    q_minDown(mType, unit, f, t) "Unit must stay non-operational if it has shut down during the previous minShutdownHours hours"
 *    q_genRamp(grid, node, mType, s, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
 *    q_genRampChange(grid, node, mType, s, unit, f, t) "Record the ramp rates of units with ramping costs"
 *    q_rampUpLimit(grid, node, mType, s, unit, f, t) "Up ramping limited for units"
@@ -80,8 +80,6 @@ $$iftheni.debug NOT '%debug%' == 'yes'
     Option clear = q_conversionSOS2InputIntermediate;
     Option clear = q_conversionSOS2Constraint;
     Option clear = q_conversionSOS2IntermediateOutput;
-    Option clear = q_fixedGenCap1U;
-    Option clear = q_fixedGenCap2U;
 
     // Energy Transfer
     Option clear = q_transfer;
@@ -100,12 +98,13 @@ $$iftheni.debug NOT '%debug%' == 'yes'
 *    q_boundCyclicSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound inside or between samples"
 
     // Policy
-    Option clear = q_capacityMargin;
-    Option clear = q_emissioncap;
+    Option clear = q_inertiaMin;
     Option clear = q_instantaneousShareMax;
+    Option clear = q_capacityMargin;
+    Option clear = q_constrainedCapMultiUnit;
+    Option clear = q_emissioncap;
     Option clear = q_energyShareMax;
     Option clear = q_energyShareMin;
-    Option clear = q_inertiaMin;
 
 * --- Temporary Time Series ---------------------------------------------------
 
@@ -181,9 +180,9 @@ loop(cc(counter),
                                                             and mf_realization(mSolve, f_solve)
                                                             }
                 = yes;
-            // Include the full horizon for the central forecast
+            // Include the full horizon for the central forecast and for a deterministic model
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and mf_central(mSolve, f_solve)
+                                                            and (mf_central(mSolve, f_solve) or mSettings('schedule', 'forecasts') = 0)
                                                             }
                 = yes;
             // Include up to forecastLength for remaining forecasts
@@ -244,7 +243,7 @@ loop(cc(counter),
                 = yes;
             // Include the full horizon for the central forecast
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and mf_central(mSolve, f_solve)
+                                                            and (mf_central(mSolve, f_solve) or mSettings('schedule', 'forecasts') = 0)
                                                             }
                 = yes;
             // Include up to forecastLength for remaining forecasts
