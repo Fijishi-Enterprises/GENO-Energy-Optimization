@@ -60,6 +60,47 @@ $loaddc p_groupPolicy
 $loaddc p_groupPolicy3D
 $gdxin
 
+$gdxin  'input/inputData_WWTP.gdx'
+$loaddcm grid
+$loaddcm node
+$loaddcm flow
+$loaddcm unittype
+$loaddcm unit
+$loaddcm unitUnittype
+$loaddcm fuel
+$loaddcm unitUnit_aggregate
+$loaddcm uFuel
+$loaddcm effLevelGroupUnit
+$loaddcm p_gn
+$loaddcm p_gnn
+$loaddcm p_gnu
+$loaddcm p_unit
+$loaddcm ts_unit
+$loaddcm p_nReserves
+$loaddcm p_nuReserves
+$loaddcm ts_reserveDemand
+$loaddcm p_gnBoundaryPropertiesForStates
+$loaddcm p_gnPolicy
+$loaddcm p_uFuel
+$loaddcm flowUnit
+$loaddcm gngnu_fixedOutputRatio
+$loaddcm gngnu_constrainedOutputRatio
+$loaddcm emission
+$loaddcm p_fuelEmission
+$loaddcm ts_cf
+$loaddcm ts_fuelPriceChange
+$loaddcm ts_influx
+$loaddcm ts_nodeState
+$loaddcm t_invest
+$loaddcm group
+$loaddcm uGroup
+$loaddcm gnuGroup
+$loaddcm gn2nGroup
+$loaddcm gnGroup
+$loaddcm p_groupPolicy
+$loaddcm p_groupPolicy3D
+$gdxin
+
 $ontext
  * Load stochastic scenarios
  $batinclude 'inc/gdxload_fluctuation.inc' wind
@@ -69,6 +110,7 @@ $ontext
  $endif
  $gdxin
 $offtext
+
 $ifthen exist 'input/changes.inc'
    $$include 'input/changes.inc'
 $endif
