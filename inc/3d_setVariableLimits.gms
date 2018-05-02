@@ -298,16 +298,20 @@ if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix th
         = r_resTransferLeftward(restype, up_down, node, node_, f, t);
 ); // END if(tSolveFirst)
 
-// Free the tertiary reserves for the realization
-v_reserve.fx(nuRescapable('tertiary', up_down, node, unit), ft_realized(f,t))${ nuft(node, unit, f, t) }
+// Free reserves for the realization if needed
+v_reserve.fx(nuRescapable(restype, up_down, node, unit), ft_realized(f,t))${   nuft(node, unit, f, t)
+                                                                               and restypeReleasedForRealization(restype)
+                                                                               }
     = 0;
-v_resTransferRightward.fx(restypeDirectionNode('tertiary', up_down, node), node_, ft_realized(f,t))${   sum(grid, gn2n(grid, node, node_))
-                                                                                                        and restypeDirectionNode('tertiary', up_down, node_)
-                                                                                                        }
+v_resTransferRightward.fx(restypeDirectionNode(restype, up_down, node), node_, ft_realized(f,t))${   sum(grid, gn2n(grid, node, node_))
+                                                                                                     and restypeDirectionNode(restype, up_down, node_)
+                                                                                                     and restypeReleasedForRealization(restype)
+                                                                                                     }
     = 0;
-v_resTransferLeftward.fx(restypeDirectionNode('tertiary', up_down, node), node_, ft_realized(f,t))${    sum(grid, gn2n(grid, node, node_))
-                                                                                                        and restypeDirectionNode('tertiary', up_down, node_)
-                                                                                                        }
+v_resTransferLeftward.fx(restypeDirectionNode(restype, up_down, node), node_, ft_realized(f,t))${    sum(grid, gn2n(grid, node, node_))
+                                                                                                     and restypeDirectionNode(restype, up_down, node_)
+                                                                                                     and restypeReleasedForRealization(restype)
+                                                                                                     }
     = 0;
 
 * --- Investment Variable Boundaries ------------------------------------------

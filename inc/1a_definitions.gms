@@ -128,21 +128,6 @@ Sets
 
 * --- Model Feature Sets ------------------------------------------------------
 
-    // Reserve Provision Related Sets
-    restype "Reserve types" /
-        primary "Automatic frequency containment reserves"
-        secondary "Fast frequency restoration reserves"
-        tertiary "Replacement reserves"
-        /
-    restypeDirection(restype, up_down) "Different combinations of reserve types and directions" /
-        primary.up
-        primary.down
-        secondary.up
-        secondary.down
-        tertiary.up
-        tertiary.down
-        /
-
     // Unit Startup Related Sets
     starttype "Startup types" /
         hot "Hot start"
