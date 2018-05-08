@@ -180,7 +180,9 @@ v_online_MIP.up(uft_onlineMIP(unit, f, t))${    not unit_investMIP(unit) }
 v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not unit_investLP(unit)  and not unit_investMIP(unit) }
     = p_unit(unit, 'unitCount')
 ;
-v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not t_active(t-dt_toStartup(unit,t))} = 0;
+// Cannot start a unit if the time when the unit would become online is outside
+// the solve horizon or outside the horizon when the unit has an online variable
+v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not (t_active(t-dt_toStartup(unit,t)) and uft_online(unit, f, t-dt_toStartup(unit,t)))} = 0;
 
 //These might speed up, but they should be applied only to the new part of the horizon (should be explored)
 *v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
@@ -377,17 +379,23 @@ loop(mft_start(mSolve, f, t),
             = ts_nodeState(grid, node, 'reference', f, t) // NOTE!!! ts_nodeState_ doesn't contain initial values so using raw data instead.
                 * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
-    else // For all other solves, fix the initial state and online variable values based on previous results.
+    else // For all other solves, fix the initial state values based on previous results.
 
         // State and online variable initial values for the subsequent solves
         v_state.fx(gn_state(grid, node), f, t)
             = r_state(grid, node, f, t);
-        v_startup.fx(unitStarttype(unit, starttype), f, t)
-            = round(r_startup(unit, starttype, f, t), 4);
 
     ); // END if(tSolveFirst)
 ) // END loop(mftStart)
 ;
+
+// Fix previously realized start-up and shutown decisions.
+// Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up phases.
+v_startup.fx(unitStarttype(unit, starttype), ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
+    } = round(r_startup(unit, starttype, f, t), 4);
+
+v_shutdown.fx(unit, ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
+    } = round(r_shutdown(unit, f, t), 4);
 
 // BoundStartToEnd
 v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
