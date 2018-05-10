@@ -354,7 +354,7 @@ df_nReserves(node, restype, ft(f, t))${ p_nReserves(node, restype, 'update_frequ
 * --- Defining unit aggregations and ramps ------------------------------------
 * =============================================================================
 
-// Units active on each forecast-time step
+// Units active on each forecast-time step based on aggregations
 Option clear = uft;
 uft(unit, ft(f, t))${   [
                             ord(t) <= tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
@@ -366,6 +366,12 @@ uft(unit, ft(f, t))${   [
                             ]
                         }
     = yes;
+
+// Units are not active before or after their lifetime
+uft(unit, ft(f, t))${   [ord(t) < p_unit(unit, 'start') and p_unit(unit, 'start')]
+                        or [ord(t) >= p_unit(unit, 'end') and p_unit(unit, 'end')]
+                        }
+    = no;
 
 // Active units in nodes on each forecast-time step
 Option clear = nuft;

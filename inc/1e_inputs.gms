@@ -51,6 +51,7 @@ $loaddc ts_fuelPriceChange
 $loaddc ts_influx
 $loaddc ts_nodeState
 $loaddc t_invest
+$loaddc ut
 $loaddc group
 $loaddc uGroup
 $loaddc gnuGroup
@@ -256,6 +257,10 @@ p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_f
             + p_gnu(grid, node, unit_fuel, 'unitSizeGen')$(not p_gnu(grid, node, unit_fuel, 'maxGen'))
         ) // END sum(gnu_output)
 ;
+
+// Unit lifetime
+loop(ut(unit, t, start_end),
+    p_unit(unit, start_end) = ord(t));
 
 * =============================================================================
 * --- Generate Node Related Sets Based on Input Data --------------------------

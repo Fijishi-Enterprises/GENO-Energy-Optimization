@@ -125,6 +125,8 @@ Sets
         / increase, decrease /
     min_max "Minimum and maximum"
         / min, max /
+    start_end "Start and end, e.g. of unit lifetime"
+        / start, end /
 
 * --- Model Feature Sets ------------------------------------------------------
 
