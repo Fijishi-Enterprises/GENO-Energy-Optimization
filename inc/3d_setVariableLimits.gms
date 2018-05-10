@@ -243,9 +243,11 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit), f_solve(f+df_nReserves(n
 // Primary reserves can use tertiary reserves as backup.
 if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix the reserves with on the first solve.
 
+$ontext
+
     // Fix non-flow unit reserves ahead of time
     // Upper bound can be supplemented from the tertiary reserves when realized.
-    v_reserve.up(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${ mft_nReserves(node, restype, mSolve, f, t)
+    v_reserve.up(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${ mft_nReserves(node, restype, mSolve, f, t)  // This set contains the combination of reserve types and time periods that should be fixed
                                                                                         and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                                         and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
                                                                                         }
@@ -261,6 +263,7 @@ if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix th
                                                                                         and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
                                                                                         }
         = r_reserve(restype, up_down, node, unit, f, t);
+$offtext
 
     // Fix transfer of reserves ahead of time
     // Rightward upper

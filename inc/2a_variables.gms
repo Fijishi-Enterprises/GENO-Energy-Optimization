@@ -50,6 +50,7 @@ Positive variables
 Positive variables
     v_stateSlack(grid, node, slack, f, t) "Slack variable for different v_state slack categories, permits e.g. costs for exceeding acceptable v_states (MWh, unless modified by energyCapacity parameter)"
     vq_gen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
-    vq_resDemand(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW)"
+    vq_resDemand(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW) before the reserve has been locked"
+    vq_resMissing(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW) after the reserve has been locked"
 ;
 

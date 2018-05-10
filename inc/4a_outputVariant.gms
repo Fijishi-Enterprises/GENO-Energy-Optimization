@@ -34,9 +34,9 @@ r_online(uft_online(unit, ft_realized(f, t)))
         + v_online_MIP.l(unit, f, t)${  uft_onlineMIP(unit, f, t)   }
 ;
 // Reserve provisions of units
-r_reserve(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${    mft_nReserves(node, restype, mSolve, f, t)
-                                                                                    or sum(f_, df_nReserves(node, restype, f_, t))
-                                                                                    or [     ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+r_reserve(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${   mft_nReserves(node, restype, mSolve, f, t) or
+                                                                                   sum(f_, df_nReserves(node, restype, f_, t)) or
+                                                                                       [     ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
                                                                                          and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(node, restype, 'update_frequency'))
                                                                                          and tSolveFirst <= mSettings(mSolve, 't_end') - mSettings(mSolve, 't_jump')
                                                                                        ]

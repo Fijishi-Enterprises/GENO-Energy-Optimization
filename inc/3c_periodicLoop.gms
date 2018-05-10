@@ -198,8 +198,8 @@ loop(cc(counter),
             // Set of locked forecast-time steps for the reserves
             mft_nReserves(node, restype, mf_realization(mSolve, f), tt_interval(t))${   p_nReserves(node, restype, 'update_frequency')
                                                                                         and p_nReserves(node, restype, 'gate_closure')
-                                                                                        and ord(t) > tSolveFirst
-                                                                                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
+                                                                                        and ord(t) > tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
+                                                                                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
                                                                                         }
                 = yes;
 
