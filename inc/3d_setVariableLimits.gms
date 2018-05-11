@@ -299,17 +299,17 @@ v_resTransferLeftward.fx(restypeDirectionNode('tertiary', up_down, node), node_,
 
 // Unit Investments
 // LP variant
-v_invest_LP.up(unit, t_invest)${    unit_investLP(unit) }
+v_invest_LP.up(unit)${    unit_investLP(unit) }
     = p_unit(unit, 'maxUnitCount')
 ;
-v_invest_LP.lo(unit, t_invest)${    unit_investLP(unit) }
+v_invest_LP.lo(unit)${    unit_investLP(unit) }
     = p_unit(unit, 'minUnitCount')
 ;
 // MIP variant
-v_invest_MIP.up(unit, t_invest)${   unit_investMIP(unit)    }
+v_invest_MIP.up(unit)${   unit_investMIP(unit)    }
     = p_unit(unit, 'maxUnitCount')
 ;
-v_invest_MIP.lo(unit, t_invest)${   unit_investMIP(unit)    }
+v_invest_MIP.lo(unit)${   unit_investMIP(unit)    }
     = p_unit(unit, 'minUnitCount')
 ;
 

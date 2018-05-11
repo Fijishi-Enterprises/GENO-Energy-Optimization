@@ -80,7 +80,7 @@ equations
     q_inertiaMin(group, f, t) "Minimum inertia in a group of nodes"
     q_instantaneousShareMax(group, f, t) "Maximum instantaneous share of generation and controlled import from a group of units and links"
     q_capacityMargin(grid, node, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
-    q_constrainedCapMultiUnit(group, t) "Constrained unit number ratios and sums for a group of units"
+    q_constrainedCapMultiUnit(group) "Constrained unit number ratios and sums for a group of units"
     q_emissioncap(group, emission) "Limit for emissions"
     q_energyShareMax(group) "Maximum energy share of generation and import from a group of units"
     q_energyShareMin(group) "Minimum energy share of generation and import from a group of units"
@@ -204,26 +204,24 @@ $offtext
             ) // END sum(mftLastSteps)
         ) // END sum(gn_state)
 
-    // Investment Costs
+    // Unit investment costs (including fixed operation and maintenance costs)
+    + sum(gnu(grid, node, unit),
+        + v_invest_LP(unit)${ unit_investLP(unit) }
+            * p_gnu(grid, node, unit, 'unitSizeTot')
+            * [
+                + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
+                + p_gnu(grid, node, unit, 'fomCosts')
+              ]
+        + v_invest_MIP(unit)${ unit_investMIP(unit) }
+            * p_gnu(grid, node, unit, 'unitSizeTot')
+            * [
+                + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
+                + p_gnu(grid, node, unit, 'fomCosts')
+              ]
+    ) // END sum(gnu)
+
+    // Transfer link investment costs
     + sum(t_invest(t),
-
-        // Unit investment costs (including fixed operation and maintenance costs)
-        + sum(gnu(grid, node, unit),
-            + v_invest_LP(unit, t)${ unit_investLP(unit) }
-                * p_gnu(grid, node, unit, 'unitSizeTot')
-                * [
-                    + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
-                    + p_gnu(grid, node, unit, 'fomCosts')
-                  ]
-            + v_invest_MIP(unit, t)${ unit_investMIP(unit) }
-                * p_gnu(grid, node, unit, 'unitSizeTot')
-                * [
-                    + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
-                    + p_gnu(grid, node, unit, 'fomCosts')
-                  ]
-            ) // END sum(gnu)
-
-        // Transfer link investment costs
         + sum(gn2n_directional(grid, from_node, to_node),
             + v_investTransfer_LP(grid, from_node, to_node, t)${ not p_gnn(grid, from_node, to_node, 'investMIP') }
                 * [
@@ -436,20 +434,16 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
             ] // END * p_unit(availability)
         * [
             // Online capacity restriction
-            + p_gnu(grid, node, unit, 'maxCons')${not uft_online(unit, f, t)} // Use initial maximum if no online variables
+            + p_gnu(grid, node, unit, 'maxCons')${uft(unit, f, t) and not uft_online(unit, f, t)} // Use initial maximum if no online variables
             + p_gnu(grid, node, unit, 'unitSizeCons')
                 * [
                     // Capacity online
                     + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
                     + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
-                    // Investments to additional non-online capacity
-                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
-                                            and not uft_online(unit, f, t)
-                                            },
-                        + v_invest_LP(unit, t_)${unit_investLP(unit)} // NOTE! v_invest_LP also for consuming units is positive
-                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)} // NOTE! v_invest_MIP also for consuming units is positive
-                        ) // END sum(t_invest)
+                    // Investments to additional capacity without online variable
+                    + v_invest_LP(unit)${unit_investLP(unit) and uft(unit, f, t) and not uft_online(unit, f, t)} // NOTE! v_invest_LP also for consuming units is positive
+                    + v_invest_MIP(unit)${unit_investMIP(unit) and uft(unit, f, t) and not uft_online(unit, f, t)} // NOTE! v_invest_MIP also for consuming units is positive
                     ] // END * p_gnu(unitSizeCons)
             ] // END * p_unit(availability)
 ;
@@ -510,20 +504,16 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
             ] // END * p_unit(availability)
         * [
             // Online capacity restriction
-            + p_gnu(grid, node, unit, 'maxGen')${not uft_online(unit, f, t)} // Use initial maxGen if no online variables
+            + p_gnu(grid, node, unit, 'maxGen')${uft(unit, f, t) and not uft_online(unit, f, t)} // Use initial maxGen if no online variables
             + p_gnu(grid, node, unit, 'unitSizeGen')
                 * [
                     // Capacity online
                     + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f ,t)}
                     + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
-                    // Investments to non-online capacity
-                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
-                                            and not uft_online(unit, f ,t)
-                                            },
-                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                        ) // END sum(t_invest)
+                    // Investments to additional capacity without online variable
+                    + v_invest_LP(unit)${unit_investLP(unit) and uft(unit, f, t) and not uft_online(unit, f, t)}
+                    + v_invest_MIP(unit)${unit_investMIP(unit) and uft(unit, f, t) and not uft_online(unit, f, t)}
                     ] // END * p_gnu(unitSizeGen)
             ] // END * p_unit(availability)
 ;
@@ -594,10 +584,8 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutdownHours')
     ) // END sum(counter)
 
     // Investments into units
-    + sum(t_invest(t_)${ord(t_)<=ord(t)},
-        + v_invest_LP(unit, t_)${unit_investLP(unit)}
-        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-        ) // END sum(t_invest)
+    + v_invest_LP(unit)${unit_investLP(unit)}
+    + v_invest_MIP(unit)${unit_investMIP(unit)}
 ;
 
 *--- Minimum Unit Uptime ------------------------------------------------------
@@ -1081,10 +1069,10 @@ q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, nod
         + sum(gnu(grid, node, unit),
             + p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
                 * p_gnu(grid, node, unit, 'unitSizeTot')
-                * sum(t_invest(t_)${ord(t_)<=ord(t)},
-                    + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                    + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                    ) // END sum(t_invest)
+                * (
+                    + v_invest_LP(unit)${unit_investLP(unit) and uft(unit, f, t)}
+                    + v_invest_MIP(unit)${unit_investMIP(unit) and uft(unit, f, t)}
+                    )
             ) // END sum(gnu)
 
         // Current state of the variable
@@ -1346,9 +1334,9 @@ q_inertiaMin(group, ft(f, t))${  p_groupPolicy(group, 'kineticEnergyMin')
         + p_gnu(grid, node, unit, 'inertia')
             * p_gnu(grid ,node, unit, 'unitSizeMVA')
             * [
-                + v_online_LP(unit, f+df_central(f,t), t)${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, f+df_central(f,t), t)${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
-                + v_gen(grid, node, unit, f, t)${not uft_online(unit, f, t)}
+                + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+                + v_gen(grid, node, unit, f, t)${uft(unit, f, t) and not uft_online(unit, f, t)}
                     / p_gnu(grid, node, unit, 'unitSizeGen')
                 ] // * p_gnu
         ) // END sum(gnu_output)
@@ -1367,6 +1355,7 @@ q_instantaneousShareMax(group, ft(f, t))${  p_groupPolicy(group, 'instantaneousS
     + sum(gnu(grid, node, unit)${   gnuGroup(grid, node, unit, group)
                                     and p_gnu(grid, node, unit, 'unitSizeGen')
                                     and gnGroup(grid, node, group)
+                                    and gnuft(grid, node, unit, f, t)
                                     },
         + v_gen(grid, node, unit, f, t)
         ) // END sum(gnu)
@@ -1399,6 +1388,7 @@ q_instantaneousShareMax(group, ft(f, t))${  p_groupPolicy(group, 'instantaneousS
             // Consumption of units
             - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
                                                 and gnGroup(grid, node, group)
+                                                and gnuft(grid, node, unit, f, t)
                                                 },
                 + v_gen(grid, node, unit, f, t)
                 ) // END sum(gnu)
@@ -1458,14 +1448,14 @@ q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin
                 ]
             * [
                 // Output capacity before investments
-                + p_gnu(grid, node, unit, 'maxGen')
+                + p_gnu(grid, node, unit, 'maxGen')${gnuft(grid, node, unit, f, t)}
 
                 // Output capacity investments
                 + p_gnu(grid, node, unit, 'unitSizeGen')
-                    * sum(t_invest(t_)${ord(t_)<=ord(t)},
-                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                        ) // END sum(t_invest)
+                    * (
+                        + v_invest_LP(unit)${unit_investLP(unit) and uft(unit, f, t)}
+                        + v_invest_MIP(unit)${unit_investMIP(unit) and uft(unit, f, t)}
+                        ) // END * p_gnu(grid, node, unit, 'unitSizeGen')
                 ] // END * p_unit(availability)
         ) // END sum(gnu_output)
 
@@ -1496,7 +1486,7 @@ q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin
         ) // END sum(gnn_state)
 
     // Conversion unit inputs might require additional capacity
-    + sum(gnu_input(grid, node, unit),
+    + sum(gnu_input(grid, node, unit)${gnuft(grid, node, unit, f, t)},
         + v_gen(grid, node, unit, f, t)
         ) // END sum(gnu_input)
 
@@ -1511,16 +1501,16 @@ q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin
 
 *--- Constrained Investment Ratios and Sums For Groups of Units -----------
 
-q_constrainedCapMultiUnit(group, t_invest(t))${   p_groupPolicy(group, 'constrainedCapTotalMax')
-                                                  or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)))
-                                                  } ..
+q_constrainedCapMultiUnit(group)${   p_groupPolicy(group, 'constrainedCapTotalMax')
+                                     or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)))
+                                     } ..
 
     // Sum of multiplied investments
     + sum(unit$uGroup(unit, group),
         + p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
             * [
-                + v_invest_LP(unit, t)${unit_investLP(unit)}
-                + v_invest_MIP(unit, t)${unit_investMIP(unit)}
+                + v_invest_LP(unit)${unit_investLP(unit)}
+                + v_invest_MIP(unit)${unit_investMIP(unit)}
                 ] // END * p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
         ) // END sum(unit)
 
@@ -1592,6 +1582,7 @@ q_energyShareMax(group)${  p_groupPolicy(group, 'energyShareMax')
                 + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
                                                         and p_gnu(grid, node, unit, 'unitSizeGen')
                                                         and gnGroup(grid, node, group)
+                                                        and gnuft(grid, node, unit, f, t)
                                                         },
                     + v_gen(grid, node, unit, f, t)
                     ) // END sum(gnu)
@@ -1604,6 +1595,7 @@ q_energyShareMax(group)${  p_groupPolicy(group, 'energyShareMax')
                         ) // END sum(gnGroup)
                     - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
                                                         and gnGroup(grid, node, group)
+                                                        and gnuft(grid, node, unit, f, t)
                                                         },
                         + v_gen(grid, node, unit, f, t)
                         ) // END sum(gnu_input)
@@ -1629,6 +1621,7 @@ q_energyShareMin(group)${  p_groupPolicy(group, 'energyShareMin')
                 + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
                                                         and p_gnu(grid, node, unit, 'unitSizeGen')
                                                         and gnGroup(grid, node, group)
+                                                        and gnuft(grid, node, unit, f, t)
                                                         },
                     + v_gen(grid, node, unit, f, t)
                     ) // END sum(gnu)
@@ -1641,6 +1634,7 @@ q_energyShareMin(group)${  p_groupPolicy(group, 'energyShareMin')
                         ) // END sum(gnGroup)
                     - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
                                                         and gnGroup(grid, node, group)
+                                                        and gnuft(grid, node, unit, f, t)
                                                         },
                         + v_gen(grid, node, unit, f, t)
                         ) // END sum(gnu_input)

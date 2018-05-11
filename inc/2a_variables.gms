@@ -24,7 +24,7 @@ Free variables
 ;
 Integer variables
     v_online_MIP(unit, f, t) "Number of units online for units with unit commitment restrictions"
-    v_invest_MIP(unit, t) "Number of invested generation units"
+    v_invest_MIP(unit) "Number of invested generation units"
     v_investTransfer_MIP(grid, node, node, t) "Number of invested transfer links"
 ;
 SOS2 variables
@@ -43,7 +43,7 @@ Positive variables
     v_reserve(restype, up_down, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
     v_investTransfer_LP(grid, node, node, t) "Invested transfer capacity (MW)"
     v_online_LP(unit, f, t) "Number of units online for 'units' with unit commitment restrictions (LP variant)"
-    v_invest_LP(unit, t) "Amount of invested generation 'units' (LP variant)"
+    v_invest_LP(unit) "Amount of invested generation 'units' (LP variant)"
 ;
 
 * --- Feasibility control -----------------------------------------------------

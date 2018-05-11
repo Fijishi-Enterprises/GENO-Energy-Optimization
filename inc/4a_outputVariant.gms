@@ -110,7 +110,7 @@ r_stateSlack(gn_stateSlack(grid, node), slack, ft_realized(f, t))
 ;
 // Unit investments
 r_unitInvestment(unit)${unit_investLP(unit) or unit_investMIP(unit)}
-    = sum(t_invest, v_invest_LP.l(unit, t_invest) + v_invest_MIP.l(unit, t_invest))
+    = v_invest_LP.l(unit) + v_invest_MIP.l(unit)
 ;
 
 * --- Feasibility results -----------------------------------------------------
