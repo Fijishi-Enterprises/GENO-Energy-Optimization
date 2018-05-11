@@ -69,7 +69,7 @@ Parameters
 
 * --- Probability -------------------------------------------------------------
 Parameters
-    p_msWeight(mType, s) "Weight of sample"
+    p_msWeight(mType, s) "Weight of sample when calculating annual payments"
     p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"

@@ -205,20 +205,23 @@ $offtext
         ) // END sum(gn_state)
 
     // Unit investment costs (including fixed operation and maintenance costs)
-    + sum(gnu(grid, node, unit),
-        + v_invest_LP(unit)${ unit_investLP(unit) }
-            * p_gnu(grid, node, unit, 'unitSizeTot')
-            * [
-                + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
-                + p_gnu(grid, node, unit, 'fomCosts')
-              ]
-        + v_invest_MIP(unit)${ unit_investMIP(unit) }
-            * p_gnu(grid, node, unit, 'unitSizeTot')
-            * [
-                + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
-                + p_gnu(grid, node, unit, 'fomCosts')
-              ]
-    ) // END sum(gnu)
+    + sum(ms(m, s),
+        + sum(gnu(grid, node, unit),
+            + v_invest_LP(unit)${ unit_investLP(unit) and sum(msft(m, s, f, t), uft(unit, f, t)) }
+                * p_gnu(grid, node, unit, 'unitSizeTot')
+                * [
+                    + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
+                    + p_gnu(grid, node, unit, 'fomCosts')
+                  ]
+            + v_invest_MIP(unit)${ unit_investMIP(unit) and sum(msft(m, s, f, t), uft(unit, f, t)) }
+                * p_gnu(grid, node, unit, 'unitSizeTot')
+                * [
+                    + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
+                    + p_gnu(grid, node, unit, 'fomCosts')
+                  ]
+        ) // END sum(gnu)
+        / p_msWeight(m, s)
+    ) // END sum(ms)
 
     // Transfer link investment costs
     + sum(t_invest(t),
