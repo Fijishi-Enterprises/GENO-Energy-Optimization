@@ -180,7 +180,9 @@ v_online_MIP.up(uft_onlineMIP(unit, f, t))${    not unit_investMIP(unit) }
 v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not unit_investLP(unit)  and not unit_investMIP(unit) }
     = p_unit(unit, 'unitCount')
 ;
-v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not t_active(t-dt_toStartup(unit,t))} = 0;
+// Cannot start a unit if the time when the unit would become online is outside
+// the solve horizon or outside the horizon when the unit has an online variable
+v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not (t_active(t-dt_toStartup(unit,t)) and uft_online(unit, f, t-dt_toStartup(unit,t)))} = 0;
 
 //These might speed up, but they should be applied only to the new part of the horizon (should be explored)
 *v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
@@ -243,9 +245,11 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit), f_solve(f+df_nReserves(n
 // Primary reserves can use tertiary reserves as backup.
 if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix the reserves with on the first solve.
 
+$ontext
+
     // Fix non-flow unit reserves ahead of time
     // Upper bound can be supplemented from the tertiary reserves when realized.
-    v_reserve.up(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${ mft_nReserves(node, restype, mSolve, f, t)
+    v_reserve.up(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${ mft_nReserves(node, restype, mSolve, f, t)  // This set contains the combination of reserve types and time periods that should be fixed
                                                                                         and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
                                                                                         and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
                                                                                         }
@@ -261,6 +265,7 @@ if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix th
                                                                                         and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
                                                                                         }
         = r_reserve(restype, up_down, node, unit, f, t);
+$offtext
 
     // Fix transfer of reserves ahead of time
     // Rightward upper
@@ -298,16 +303,20 @@ if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix th
         = r_resTransferLeftward(restype, up_down, node, node_, f, t);
 ); // END if(tSolveFirst)
 
-// Free the tertiary reserves for the realization
-v_reserve.fx(nuRescapable('tertiary', up_down, node, unit), ft_realized(f,t))${ nuft(node, unit, f, t) }
+// Free reserves for the realization if needed
+v_reserve.fx(nuRescapable(restype, up_down, node, unit), ft_realized(f,t))${   nuft(node, unit, f, t)
+                                                                               and restypeReleasedForRealization(restype)
+                                                                               }
     = 0;
-v_resTransferRightward.fx(restypeDirectionNode('tertiary', up_down, node), node_, ft_realized(f,t))${   sum(grid, gn2n(grid, node, node_))
-                                                                                                        and restypeDirectionNode('tertiary', up_down, node_)
-                                                                                                        }
+v_resTransferRightward.fx(restypeDirectionNode(restype, up_down, node), node_, ft_realized(f,t))${   sum(grid, gn2n(grid, node, node_))
+                                                                                                     and restypeDirectionNode(restype, up_down, node_)
+                                                                                                     and restypeReleasedForRealization(restype)
+                                                                                                     }
     = 0;
-v_resTransferLeftward.fx(restypeDirectionNode('tertiary', up_down, node), node_, ft_realized(f,t))${    sum(grid, gn2n(grid, node, node_))
-                                                                                                        and restypeDirectionNode('tertiary', up_down, node_)
-                                                                                                        }
+v_resTransferLeftward.fx(restypeDirectionNode(restype, up_down, node), node_, ft_realized(f,t))${    sum(grid, gn2n(grid, node, node_))
+                                                                                                     and restypeDirectionNode(restype, up_down, node_)
+                                                                                                     and restypeReleasedForRealization(restype)
+                                                                                                     }
     = 0;
 
 * --- Investment Variable Boundaries ------------------------------------------
@@ -373,17 +382,23 @@ loop(mft_start(mSolve, f, t),
             = ts_nodeState(grid, node, 'reference', f, t) // NOTE!!! ts_nodeState_ doesn't contain initial values so using raw data instead.
                 * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
-    else // For all other solves, fix the initial state and online variable values based on previous results.
+    else // For all other solves, fix the initial state values based on previous results.
 
         // State and online variable initial values for the subsequent solves
         v_state.fx(gn_state(grid, node), f, t)
             = r_state(grid, node, f, t);
-        v_startup.fx(unitStarttype(unit, starttype), f, t)
-            = round(r_startup(unit, starttype, f, t), 4);
 
     ); // END if(tSolveFirst)
 ) // END loop(mftStart)
 ;
+
+// Fix previously realized start-up and shutown decisions.
+// Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up phases.
+v_startup.fx(unitStarttype(unit, starttype), ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
+    } = round(r_startup(unit, starttype, f, t), 4);
+
+v_shutdown.fx(unit, ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
+    } = round(r_shutdown(unit, f, t), 4);
 
 // BoundStartToEnd
 v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)

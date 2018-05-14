@@ -35,6 +35,9 @@ $loaddc p_gnn
 $loaddc p_gnu
 $loaddc p_unit
 $loaddc ts_unit
+$loaddc restype
+$loaddc restypeDirection
+$loaddc restypeReleasedForRealization
 $loaddc p_nReserves
 $loaddc p_nuReserves
 $loaddc ts_reserveDemand

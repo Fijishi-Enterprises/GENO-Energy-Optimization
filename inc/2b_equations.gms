@@ -26,9 +26,11 @@ Scalars
 Parameters
     PENALTY_BALANCE(grid) "Penalty on violating energy balance eq. (EUR/MWh)"
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
+    PENALTY_RES_MISSING(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
 ;
 PENALTY_BALANCE(grid) = %def_penalty%;
 PENALTY_RES(restype, up_down) = 0.9*%def_penalty%;
+PENALTY_RES_MISSING(restype, up_down) = 0.1*%def_penalty%;
 
 
 * =============================================================================
@@ -145,6 +147,8 @@ q_obj ..
                         + sum(restypeDirectionNode(restype, up_down, node),
                             + vq_resDemand(restype, up_down, node, f, t)
                                 * PENALTY_RES(restype, up_down)
+                            + vq_resMissing(restype, up_down, node, f, t)$(ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency')))
+                                * PENALTY_RES_MISSING(restype, up_down)
                             ) // END sum(restypeDirectionNode)
 
                         ] // END * p_stepLength
@@ -376,7 +380,7 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t)) ${   ord(t) 
 
     // Reserve demand feasibility dummy variables
     - vq_resDemand(restype, up_down, node, f, t)
-
+    - vq_resMissing(restype, up_down, node, f, t)$(ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency')))
 ;
 
 * --- Maximum Downward Capacity -----------------------------------------------
