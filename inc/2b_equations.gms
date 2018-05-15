@@ -807,13 +807,13 @@ q_outputRatioFixed(gngnu_fixedOutputRatio(grid, node, grid_, node_, unit), ft(f,
 
     // Generation in grid
     + v_gen(grid, node, unit, f, t)
-        / p_gnu(grid, node, unit, 'cB')
+        / p_gnu(grid, node, unit, 'outputshare')
 
     =E=
 
     // Generation in grid_
     + v_gen(grid_, node_, unit, f, t)
-        / p_gnu(grid_, node_, unit, 'cB')
+        / p_gnu(grid_, node_, unit, 'outputshare')
 ;
 
 * --- Constrained Output Ratio ------------------------------------------------
@@ -851,7 +851,7 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
     // Sum over energy outputs
     + sum(gnu_output(grid, node, unit),
         + v_gen(grid, node, unit, f, t)
-            * [ // Heat rate
+            * [ // efficiency rate
                 + p_effUnit(effGroup, unit, effGroup, 'slope')${ not ts_effUnit(effGroup, unit, effGroup, 'slope', f, t) }
                 + ts_effUnit(effGroup, unit, effGroup, 'slope', f, t)
                 ] // END * v_gen
