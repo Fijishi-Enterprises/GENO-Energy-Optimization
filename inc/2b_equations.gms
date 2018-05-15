@@ -823,13 +823,13 @@ q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, 
 
     // Generation in grid
     + v_gen(grid, node, unit, f, t)
-        / p_gnu(grid, node, unit, 'cB')
+        / p_gnu(grid, node, unit, 'outputshare')
 
     =G=
 
     // Generation in grid_
     + v_gen(grid_, node_, unit, f, t)
-        / p_gnu(grid_, node_, unit, 'cB')
+        / p_gnu(grid_, node_, unit, 'outputshare')
 ;
 
 * --- Direct Input-Output Conversion ------------------------------------------
