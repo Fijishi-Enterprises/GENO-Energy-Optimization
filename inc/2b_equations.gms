@@ -178,11 +178,12 @@ $ontext
                     + p_gnu(grid, node, unit, 'rampDownCost') * v_genRampChange(grid, node, unit, 'down', f, t)
                     ) // END sum(gnuft_ramp)
 $offtext
-                ]  // END * p_sft_probability(s,f,t)
-
+                ]  // END * p_msft_probability(m,s,f,t)
+            // Discount costs
+            * p_discountFactor(s)
         ) // END sum over msft(m, s, f, t)
 
-    // Cost of energy storage change
+    // Cost of energy storage change (not discounted)
     + sum(gn_state(grid, node),
         + sum(mft_start(m, f, t)${  p_storageValue(grid, node, t)
                                     and active(m, 'storageValue')
@@ -219,31 +220,40 @@ $offtext
                     + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
                     + p_gnu(grid, node, unit, 'fomCosts')
                   ]
-        ) // END sum(gnu)
-        / p_msWeight(m, s)
-    ) // END sum(ms)
+            ) // END sum(gnu)
+            // Sample weighting to calculate annual costs
+            * p_msWeight(m, s)
+            // Discount costs
+            * p_discountFactor(s)
+        ) // END sum(ms)
 
     // Transfer link investment costs
-    + sum(t_invest(t),
-        + sum(gn2n_directional(grid, from_node, to_node),
-            + v_investTransfer_LP(grid, from_node, to_node, t)${ not p_gnn(grid, from_node, to_node, 'investMIP') }
-                * [
-                    + p_gnn(grid, from_node, to_node, 'invCost')
-                        * p_gnn(grid, from_node, to_node, 'annuity')
-                    + p_gnn(grid, to_node, from_node, 'invCost')
-                        * p_gnn(grid, to_node, from_node, 'annuity')
-                    ] // END * v_investTransfer_LP
-            + v_investTransfer_MIP(grid, from_node, to_node, t)${ p_gnn(grid, from_node, to_node, 'investMIP') }
-                * [
-                    + p_gnn(grid, from_node, to_node, 'unitSize')
-                        * p_gnn(grid, from_node, to_node, 'invCost')
-                        * p_gnn(grid, from_node, to_node, 'annuity')
-                    + p_gnn(grid, to_node, from_node, 'unitSize')
-                        * p_gnn(grid, to_node, from_node, 'invCost')
-                        * p_gnn(grid, to_node, from_node, 'annuity')
-                    ] // END * v_investTransfer_MIP
-            ) // END sum(gn2n_directional)
-        ) // END sum(t_invest)
+    + sum(ms(m, s),
+        + sum(t_invest(t)${ord(t) <= msEnd(m, s)},
+            + sum(gn2n_directional(grid, from_node, to_node),
+                + v_investTransfer_LP(grid, from_node, to_node, t)${ not p_gnn(grid, from_node, to_node, 'investMIP') }
+                    * [
+                        + p_gnn(grid, from_node, to_node, 'invCost')
+                            * p_gnn(grid, from_node, to_node, 'annuity')
+                        + p_gnn(grid, to_node, from_node, 'invCost')
+                            * p_gnn(grid, to_node, from_node, 'annuity')
+                        ] // END * v_investTransfer_LP
+                + v_investTransfer_MIP(grid, from_node, to_node, t)${ p_gnn(grid, from_node, to_node, 'investMIP') }
+                    * [
+                        + p_gnn(grid, from_node, to_node, 'unitSize')
+                            * p_gnn(grid, from_node, to_node, 'invCost')
+                            * p_gnn(grid, from_node, to_node, 'annuity')
+                        + p_gnn(grid, to_node, from_node, 'unitSize')
+                            * p_gnn(grid, to_node, from_node, 'invCost')
+                            * p_gnn(grid, to_node, from_node, 'annuity')
+                        ] // END * v_investTransfer_MIP
+                ) // END sum(gn2n_directional)
+            ) // END sum(t_invest)
+            // Sample weighting to calculate annual costs
+            * p_msWeight(m, s)
+            // Discount costs
+            * p_discountFactor(s)
+        ) // END sum(ms)
 ;
 
 * --- Energy Balance ----------------------------------------------------------

@@ -50,6 +50,7 @@ $loaddc ts_cf
 $loaddc ts_fuelPriceChange
 $loaddc ts_influx
 $loaddc ts_nodeState
+$loaddc p_discountFactor
 $loaddc t_invest
 $loaddc ut
 $loaddc group

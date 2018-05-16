@@ -133,5 +133,6 @@ Parameters
     p_storageValue(grid, node, t) "Value of stored something at the end of a time step"
     p_stepLength(mType, f, t) "Length of a time step (t)"
     p_stepLengthNoReset(mType, f, t) "Length of a time step (t)"
+    p_discountFactor(s) "Discount factor for samples when using a multi-year horizon"
 ;
 Option clear = p_storageValue; // Required for whatever reason.
