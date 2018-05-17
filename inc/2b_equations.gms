@@ -717,7 +717,7 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationHours'
 * --- Ramp Constraints --------------------------------------------------------
 q_genRamp(m, gn(grid, node), s, uft(unit, f, t))${  gnuft_ramp(grid, node, unit, f, t)
                                                     and ord(t) > msStart(m, s)
-                                                    and ord(t) <= msEnd(m, s)
+                                                    and msft(m, s, f, t)
                                                     } ..
 
     + v_genRamp(grid, node, unit, f, t)
