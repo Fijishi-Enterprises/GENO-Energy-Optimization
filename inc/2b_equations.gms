@@ -737,23 +737,22 @@ q_rampUpLimit(m, gn(grid, node), s, unit, ft(f, t))${ gnuft_ramp(grid, node, uni
   + v_genRamp(grid, node, unit, f, t)
   + sum(resType, v_reserve(resType, 'up', node, unit, f, t))
   =L=
-    // Ramping capability of units without an online variable in the previous and in the current time steps
+    // Ramping capability of units without an online variable
   + (
       + ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f, t)}
       + sum(t_$(t_invest(t_) and ord(t_)<=ord(t)),
-          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f+df(f,t), t+dt(t)) and unit_investLP(unit)}
+          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f, t) and unit_investLP(unit)}
               * p_gnu(grid, node, unit, 'unitSizeTot')
-          + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f+df(f,t), t+dt(t)) and unit_investMIP(unit)}
+          + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f, t) and unit_investMIP(unit)}
               * p_gnu(grid, node, unit, 'unitSizeTot')
         )
     )
       * p_gnu(grid, node, unit, 'maxRampUp')
       * 60   // Unit conversion from [p.u./min] to [p.u./h]
-    // Ramping capability of units with an online variable in the current time step
+    // Ramping capability of units with an online variable
   + (
       + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
       + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
-      - v_shutdown(unit, f, t)${uft_online(unit, f, t)}
     )
       * p_gnu(grid, node, unit, 'unitSizeTot')
       * p_gnu(grid, node, unit, 'maxRampUp')
@@ -769,30 +768,26 @@ q_rampDownLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, u
                                                      and ord(t) > msStart(m, s)
                                                      and msft(m, s, f, t)
                                                      and p_gnu(grid, node, unit, 'maxRampDown')
-                                                     and (uft_online(unit, f, t)
-                                                             or unit_investLP(unit)
-                                                             or unit_investMIP(unit))
                                                      } ..
   + v_genRamp(grid, node, unit, f, t)
   + sum(resType, v_reserve(resType, 'down', node, unit, f, t))
   =G=
     // Ramping capability of units without online variable
   - (
-      + ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f+df(f,t), t+dt(t))}
+      + ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f, t)}
       + sum(t_$(t_invest(t_) and ord(t_)<=ord(t)),
-          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f, t_) and unit_investLP(unit)}
+          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f, t) and unit_investLP(unit)}
               * p_gnu(grid, node, unit, 'unitSizeTot')
-          + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f, t_) and unit_investMIP(unit)}
+          + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f, t) and unit_investMIP(unit)}
               * p_gnu(grid, node, unit, 'unitSizeTot')
         )
     )
       * p_gnu(grid, node, unit, 'maxRampDown')
       * 60   // Unit conversion from [p.u./min] to [p.u./h]
-    // Ramping capability of units that were online both in the previous time step and the current time step
+    // Ramping capability of units that are online
   - (
       + v_online_LP(unit, f, t)${uft_online(unit, f, t)}
       + v_online_MIP(unit, f, t)${uft_online(unit, f, t)}
-      - v_shutdown(unit, f, t)${uft_online(unit, f, t)}
     )
       * p_gnu(grid, node, unit, 'unitSizeTot')
       * p_gnu(grid, node, unit, 'maxRampDown')
