@@ -83,7 +83,7 @@ Sets
         sumInfes "Sum of infeasibilities"
         objEst "Estimate for the best possible objective value"
         objVal "Objectiv value"
-    /
+        /
 
 * --- Efficiency Approximation Related Sets -----------------------------------
 
@@ -102,14 +102,6 @@ Sets
         / lambda01*lambda12 /
     effOnline(effSelector) "Efficiency selectors that use online variables"
         / directOnLP, directOnMIP, lambda01*lambda12 / // IMPORTANT! Online variables are generated based on this, so keep it up to date!
-
-    // Efficiency Approximation related Counters
-    op "Operating points in the efficiency curves, also functions as index for data points"
-        /op00*op12/ // IMPORTANT! Has to equal the same param_unit!
-    eff "Effiency for the corresponding operating point ('op') in the efficiency curves, also used for data indexing"
-        /eff00*eff12/ // IMPORTANT! Has to equal the same param_unit!
-    lambda "Lambda approximation indeces"
-        /lambda01*lambda12/ // IMPORTANT! Has to equal effLambda!
 
 * --- General and Directional Sets --------------------------------------------
 
@@ -335,6 +327,16 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     constrainedCapMultiplier "Multiplier a(i) for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
 /
+
+* --- Efficiency Approximation Related Sets -----------------------------------
+
+// Efficiency Approximation related Counters
+op(param_unit) "Operating points in the efficiency curves, also functions as index for data points"
+        /op00*op12/ // IMPORTANT! Has to equal the same param_unit!
+eff(param_unit) "Effiency for the corresponding operating point ('op') in the efficiency curves, also used for data indexing"
+        /eff00*eff12/ // IMPORTANT! Has to equal the same param_unit!
+lambda "Lambda approximation indeces"
+        /lambda01*lambda12/ // IMPORTANT! Has to equal effLambda!
 
 * --- Counters and Directional Sets -------------------------------------------
 
