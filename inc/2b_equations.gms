@@ -1541,7 +1541,7 @@ q_constrainedCapMultiUnit(group)${   p_groupPolicy(group, 'constrainedCapTotalMa
 q_emissioncap(group, emission)${  p_groupPolicy3D(group, 'emissionCap', emission)
                                   } ..
 
-    + sum(msft(m, s, f, t),
+    + sum(msft(m, s, f, t)${sGroup(s, group)},
         + p_msft_Probability(m,s,f,t)
         * [
             // Time step length dependent emissions
@@ -1587,7 +1587,7 @@ q_emissioncap(group, emission)${  p_groupPolicy3D(group, 'emissionCap', emission
 q_energyShareMax(group)${  p_groupPolicy(group, 'energyShareMax')
                            } ..
 
-    + sum(msft(m, s, f, t),
+    + sum(msft(m, s, f, t)${sGroup(s, group)},
         + p_msft_Probability(m,s,f,t)
             * p_stepLength(m, f, t)
             * [
@@ -1626,7 +1626,7 @@ q_energyShareMax(group)${  p_groupPolicy(group, 'energyShareMax')
 q_energyShareMin(group)${  p_groupPolicy(group, 'energyShareMin')
                            } ..
 
-    + sum(msft(m, s, f, t),
+    + sum(msft(m, s, f, t)${sGroup(s, group)},
         + p_msft_Probability(m,s,f,t)
             * p_stepLength(m, f, t)
             * [

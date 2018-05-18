@@ -121,6 +121,7 @@ Sets
     gnuGroup(grid, node, unit, group) "Grid, node, unit combinations in particular groups"
     gn2nGroup(grid, node, node, group) "Transfer links in particular groups"
     gnGroup(grid, node, group) "Grid, node combinations in particular gngroups"
+    sGroup(s, group) "Samples in particular groups"
 ;
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 Option clear = modelSolves;

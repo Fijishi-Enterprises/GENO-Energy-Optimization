@@ -117,8 +117,6 @@ Sets
         / increase, decrease /
     min_max "Minimum and maximum"
         / min, max /
-    start_end "Start and end, e.g. of unit lifetime"
-        / start, end /
 
 * --- Model Feature Sets ------------------------------------------------------
 
@@ -302,6 +300,8 @@ param_unit "Set of possible data parameters for units" /
     investMIP   "Choice of making integer investment instead of continous investment (number of units versus MW)"
     maxUnitCount "Maximum number of units when making integer investments"
     minUnitCount "Minimum number of units when making integer investments"
+    start        "The relative position of the time step when the unit becomes available (calculated from ut(unit, t, start_end))"
+    end          "The relative position of the time step when the unit becomes unavailable (calculated from ut(unit, t, start_end))"
 /
 
 param_fuel "Parameters for fuels" /
@@ -357,4 +357,8 @@ spillLimits(param_gnBoundaryTypes) "set of upward and downward state limits"
        / maxSpill, minSpill /
 useConstantOrTimeSeries(param_gnBoundaryProperties) "useTimeSeries and useConstant property together"
        / useTimeSeries, useConstant /
+
+// Other
+start_end(param_unit) "Start and end, e.g. of unit lifetime"
+        / start, end /
 ; // END parameter set declarations

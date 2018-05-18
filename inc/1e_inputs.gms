@@ -58,6 +58,7 @@ $loaddc uGroup
 $loaddc gnuGroup
 $loaddc gn2nGroup
 $loaddc gnGroup
+$loaddc sGroup
 $loaddc p_groupPolicy
 $loaddc p_groupPolicy3D
 $gdxin
