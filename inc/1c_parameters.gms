@@ -46,7 +46,7 @@ Parameters
     p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, param_gnBoundaryProperties) "Properties of different state boundaries and limits"
     p_gnn(grid, node, node, param_gnn) "Data for interconnections between energy nodes"
     p_gnu(grid, node, unit, param_gnu) "Unit data where energy type matters"
-    p_unit(unit, *) "Unit data where energy type does not matter"
+    p_unit(unit, param_unit) "Unit data where energy type does not matter"
     p_nReserves(node, restype, *) "Data defining the reserve rules in each node"
     p_nuReserves(node, unit, restype, *) "Reserve provision data for units"
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
