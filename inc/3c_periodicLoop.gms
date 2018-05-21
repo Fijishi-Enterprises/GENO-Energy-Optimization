@@ -308,6 +308,7 @@ loop(cc(counter),
 // Time step displacement to reach previous time step
 option clear = tmp;
 tmp = tSolveFirst;
+option clear = dt;
 loop(t_active(t),
     dt(t) = tmp - ord(t);
     tmp = ord(t);

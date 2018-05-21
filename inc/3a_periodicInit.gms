@@ -290,7 +290,7 @@ loop(m,
         loop(starttypeConstrained(starttype),
             // Find the time step displacements needed to define the startup time frame
             Option clear = cc;
-            cc(counter)${   ord(counter) <= p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'intervalInHours')
+            cc(counter)${   ord(counter) < p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'intervalInHours')
                             and ord(counter) >= p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'intervalInHours')
                             }
                 = yes;

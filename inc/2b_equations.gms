@@ -626,7 +626,7 @@ q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t))${ unit
 
     // Subunit shutdowns within special startup timeframe
     + sum(counter${dt_starttypeUnitCounter(starttype, unit, counter)},
-        + v_shutdown(unit, f+df(f,t+dt_starttypeUnitCounter(starttype, unit, counter)), t+dt_starttypeUnitCounter(starttype, unit, counter))
+        + v_shutdown(unit, f+df(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
     ) // END sum(counter)
 ;
 
@@ -786,8 +786,8 @@ q_rampDownLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, u
       * 60   // Unit conversion from [p.u./min] to [p.u./h]
     // Ramping capability of units that are online
   - (
-      + v_online_LP(unit, f, t)${uft_online(unit, f, t)}
-      + v_online_MIP(unit, f, t)${uft_online(unit, f, t)}
+      + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
+      + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
     )
       * p_gnu(grid, node, unit, 'unitSizeTot')
       * p_gnu(grid, node, unit, 'maxRampDown')
