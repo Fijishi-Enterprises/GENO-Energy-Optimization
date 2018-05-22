@@ -735,7 +735,9 @@ q_rampUpLimit(m, gn(grid, node), s, unit, ft(f, t))${ gnuft_ramp(grid, node, uni
                                                    and p_gnu(grid, node, unit, 'maxRampUp')
                                                    } ..
   + v_genRamp(grid, node, unit, f, t)
-  + sum(resType, v_reserve(resType, 'up', node, unit, f, t))
+  + sum(nuRescapable(restype, 'up', node, unit)${ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')},
+      + v_reserve(restype, 'up', node, unit, f+df_nReserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+      ) // END sum(nuRescapable)
   =L=
     // Ramping capability of units without an online variable
   + (
@@ -757,6 +759,9 @@ q_rampUpLimit(m, gn(grid, node), s, unit, ft(f, t))${ gnuft_ramp(grid, node, uni
       * p_gnu(grid, node, unit, 'unitSizeTot')
       * p_gnu(grid, node, unit, 'maxRampUp')
       * 60   // Unit conversion from [p.u./min] to [p.u./h]
+    // Shutdown of consumption units from full load
+  + v_shutdown(unit, f+df_central(f,t), t)${uft_online(unit, f, t) and gnu_input(grid, node, unit)}
+      * p_gnu(grid, node, unit, 'unitSizeTot')
 // Note: This constraint does not limit ramping properly for example if online subunits are
 // producing at full capacity (= not possible to ramp up) and more subunits are started up.
 // Take this into account in q_maxUpward or in another equation?:
@@ -770,7 +775,9 @@ q_rampDownLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, u
                                                      and p_gnu(grid, node, unit, 'maxRampDown')
                                                      } ..
   + v_genRamp(grid, node, unit, f, t)
-  + sum(resType, v_reserve(resType, 'down', node, unit, f, t))
+  - sum(nuRescapable(restype, 'down', node, unit)${ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')},
+      + v_reserve(restype, 'down', node, unit, f+df_nReserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+      ) // END sum(nuRescapable)
   =G=
     // Ramping capability of units without online variable
   - (
@@ -792,6 +799,9 @@ q_rampDownLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, u
       * p_gnu(grid, node, unit, 'unitSizeTot')
       * p_gnu(grid, node, unit, 'maxRampDown')
       * 60   // Unit conversion from [p.u./min] to [p.u./h]
+    // Shutdown of generation units from full load
+  - v_shutdown(unit, f+df_central(f,t), t)${uft_online(unit, f, t) and gnu_output(grid, node, unit)}
+      * p_gnu(grid, node, unit, 'unitSizeTot')
 ;
 
 
