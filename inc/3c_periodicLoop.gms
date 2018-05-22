@@ -30,15 +30,15 @@ $$iftheni.debug NOT '%debug%' == 'yes'
     Option clear = v_genRamp;
     Option clear = v_transfer;
     // Integer Variables
-    Option clear = v_online_MIP;
+*    Option clear = v_online_MIP;
     Option clear = v_invest_MIP;
     Option clear = v_investTransfer_MIP;
     // SOS2 Variables
     Option clear = v_sos2;
     // Positive Variables
     Option clear = v_fuelUse;
-    Option clear = v_startup;
-    Option clear = v_shutdown;
+*    Option clear = v_startup;
+*    Option clear = v_shutdown;
 *    Option clear = v_genRampChange;
     Option clear = v_spill;
     Option clear = v_transferRightward;
@@ -47,7 +47,7 @@ $$iftheni.debug NOT '%debug%' == 'yes'
     Option clear = v_resTransferLeftward;
     Option clear = v_reserve;
     Option clear = v_investTransfer_LP;
-    Option clear = v_online_LP;
+*    Option clear = v_online_LP;
     Option clear = v_invest_LP;
     // Feasibility control
     Option clear = v_stateSlack;

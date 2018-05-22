@@ -394,11 +394,16 @@ loop(mft_start(mSolve, f, t),
 
 // Fix previously realized start-up and shutown decisions.
 // Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up phases.
-v_startup.fx(unitStarttype(unit, starttype), ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
+v_startup.fx(unitStarttype(unit, starttype), ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst and sum[ft(f_,t_), uft_online(unit,f_,t_)]
     } = round(r_startup(unit, starttype, f, t), 4);
 
-v_shutdown.fx(unit, ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
+v_shutdown.fx(unit, ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst and sum[ft(f_,t_), uft_online(unit,f_,t_)]
     } = round(r_shutdown(unit, f, t), 4);
+
+v_online_MIP.fx(unit,ft_realizedNoReset(f, t))${ord(t) <= tSolveFirst and sum[ft(f_,t_), uft_onlineMIP(unit,f_,t_)]}
+  = v_online_MIP.l(unit, f, t);
+v_online_LP.fx(unit,ft_realizedNoReset(f, t))${ord(t) <= tSolveFirst and sum[ft(f_,t_), uft_onlineLP(unit,f_,t_)]}
+  = v_online_LP.l(unit, f, t);
 
 // BoundStartToEnd
 v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
