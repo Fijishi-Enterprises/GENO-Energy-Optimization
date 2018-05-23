@@ -388,6 +388,10 @@ loop(mft_start(mSolve, f, t),
         v_state.fx(gn_state(grid, node), f, t)
             = r_state(grid, node, f, t);
 
+        // Generation initial value (needed at least for ramp constraints)
+        v_gen.fx(gnu(grid, node, unit), f, t)
+            = r_gen(grid, node, unit, f, t);
+
     ); // END if(tSolveFirst)
 ) // END loop(mftStart)
 ;
