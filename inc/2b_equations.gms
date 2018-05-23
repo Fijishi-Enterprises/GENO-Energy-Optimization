@@ -621,6 +621,7 @@ q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t))${ unit
 
     // Startup type
     + v_startup(unit, starttype, f+df_central(f,t+dt_toStartup(unit,t)), t+dt_toStartup(unit, t))
+*Experimental    + sum[ft(f_, t_)${uft_online(unit, f_, t_) and ord(t_) < ord(t)}, v_startup(unit, starttype, f+df_central(f,t_+dt_toStartup(unit,t_)), t_+dt_toStartup(unit, t_))]
 
     =L=
 
