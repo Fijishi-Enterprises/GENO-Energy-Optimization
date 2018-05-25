@@ -461,6 +461,8 @@ Option clear = dt_toStartup;
 loop(unit$(p_u_runUpTimeIntervals(unit)),
     loop(t$t_active(t),
         tmp = 1;
+        dt_toStartup(unit, t) = -ceil(p_u_runUpTimeIntervals(unit)); // intervalLength > 1???
+$ontext
         loop(t_${t_active(t_) and ord(t_) <= ord(t) and tmp = 1},
             if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit),
                 dt_toStartup(unit, t) = dtt(t,t_+dt(t));
@@ -471,5 +473,6 @@ loop(unit$(p_u_runUpTimeIntervals(unit)),
             dt_toStartup(unit, t) = dt(t);
             tmp=0;
         );
+$offtext
     );
 );
