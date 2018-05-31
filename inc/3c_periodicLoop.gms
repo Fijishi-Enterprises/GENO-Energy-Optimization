@@ -309,9 +309,20 @@ loop(cc(counter),
 option clear = tmp;
 tmp = tSolveFirst;
 option clear = dt;
+dt_noReset(t)${ord(t) > tSolveFirst} = 0;
 loop(t_active(t),
     dt(t) = tmp - ord(t);
+    dt_noReset(t) = dt(t);
     tmp = ord(t);
+); // END loop(t_active)
+
+// Time step displacement to reach next time step
+option clear = dt_next;
+loop(t_active(t),
+    dt_next(t)
+        = sum(f$mf(mSolve, f), p_stepLength(mSolve, f, t))
+            / sum(f${mf(mSolve, f) and p_stepLength(mSolve, f, t)}, 1)
+            / mSettings(mSolve, 'intervalInHours');
 ); // END loop(t_active)
 
 // Initial model ft
@@ -454,25 +465,38 @@ Option clear = p_msft_probability;
 p_msft_probability(msft(mSolve, s, f, t))
     = p_mfProbability(mSolve, f) / sum(f_${ft(f_, t)}, p_mfProbability(mSolve, f_)) * p_msProbability(mSolve, s);
 
+* -----------------------------------------------------------------------------
+* --- Displacements for start-up decisions ------------------------------------
+* -----------------------------------------------------------------------------
+
 Option clear = dtt;
-dtt(t,t_)$(t_active(t) and (t_active(t_) or ord(t_) = tSolveFirst) and ord(t_)<=ord(t)) = sum(t__$(ord(t__)>ord(t_) and ord(t__) <= ord(t)), dt(t__));
+loop(f${mf_realization(mSolve, f)},
+    dtt(t,t_)${ t_active(t)
+                and ord(t_) <= ord(t)
+              }
+        = sum(t__${ord(t__) > ord(t_) and ord(t__) <= ord(t)},
+            + dt_noReset(t__))
+);
 
 Option clear = dt_toStartup;
-loop(unit$(p_u_runUpTimeIntervals(unit)),
-    loop(t$t_active(t),
-        tmp = 1;
-        dt_toStartup(unit, t) = -ceil(p_u_runUpTimeIntervals(unit)); // intervalLength > 1???
-$ontext
-        loop(t_${t_active(t_) and ord(t_) <= ord(t) and tmp = 1},
-            if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit),
-                dt_toStartup(unit, t) = dtt(t,t_+dt(t));
-                tmp = 0;
+loop(f${mf_realization(mSolve, f)},
+    loop(unit$(p_u_runUpTimeIntervals(unit)),
+        loop(t$t_active(t),
+            tmp = 1;
+            loop(t_${ ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit)
+                      and ord(t_) <= ord(t)
+                      and p_stepLengthNoReset(mSolve, f, t_)
+                      and tmp = 1
+                    },
+                if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit),
+                    dt_toStartup(unit, t) = dtt(t,t_ + dt_noReset(t_));
+                    tmp = 0;
+                );
+            );
+            if (tmp = 1,
+                dt_toStartup(unit, t) = dt(t);
+                tmp=0;
             );
         );
-        if (tmp = 1,
-            dt_toStartup(unit, t) = dt(t);
-            tmp=0;
-        );
-$offtext
     );
 );

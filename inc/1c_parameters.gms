@@ -61,6 +61,7 @@ Parameters
     p_uStartup(unit, starttype, cost_consumption, unit_capacity) "Startup cost and fuel consumption"
     p_u_maxOutputInLastRunUpInterval(unit) "Maximum output in the last interval for the run-up to min. load (p.u.)"
     p_u_runUpTimeIntervals(unit) "Time intervals required for the run-up phase"
+    p_u_runUpTimeIntervalsCeil(unit) "Ceiling of time intervals required for the run-up phase"
     p_ut_runUp(unit, t) "Output for the time intervals where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
 // Time dependent unit & fuel parameters
     ts_unit(unit, *, f, t) "Time dependent unit data, where energy type doesn't matter"
@@ -84,7 +85,9 @@ Scalar p_sWeightSum "Sum of sample weights";
 Parameters
     // Time displacement arrays
     dt(t) "Displacement needed to reach the previous time period (in time periods)"
+    dt_noReset(t) "Displacement needed to reach the previous time period (in time periods)"
     dt_circular(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
+    dt_next(t) "Displacement needed to reach the next time period (in time periods)"
     dtt(t, t) "Displacement needed to reach any previous time period (in time periods)"
     dt_toStartup(unit, t) "Displacement from the current time period to the time period where the unit has been started up in case online variable changes from 0 to 1"
     dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints"

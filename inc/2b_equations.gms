@@ -430,13 +430,23 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
 
     // Units that are in the run-up phase need to keep up with the run-up ramp rate (contained in p_ut_runUp)
     + p_gnu(grid, node, unit, 'unitSizeGen')
-        * sum(t_${ord(t_) > ord(t) + dt_toStartup(unit, t) and ord(t_) <= ord(t) and uft_online(unit, f, t)}, // uft_online(unit, f, t_) might cause troubles if the start-up decision was made in the previous solve
+        * sum(t_${ ord(t_) > ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
+                   and ord(t_) <= ord(t) and uft_online(unit, f, t)},
             + sum(unitStarttype(unit, starttype),
                 + v_startup(unit, starttype, f+df_central(f,t), t_)
-                    * sum(t__${ord(t__) = ord(t) - ord(t_) + 1},
-                        + p_ut_runUp(unit, t__)  //t+dtt(t,t_)
-                            * 1 // test values [0,1] to provide some flexibility
+                    * sum(t__${ord(t__) = p_u_runUpTimeIntervalsCeil(unit) - ord(t) - dt_next(t) + 1 + ord(t_)}, // last step in the interval
+                        + p_ut_runUp(unit, t__)
+*                            * 1 // test values [0,1] to provide some flexibility
                         ) // END sum(t__)
+                ) // END sum(unitStarttype)
+            )$p_u_runUpTimeIntervals(unit)  // END sum(t_)
+    // Units that are in the last time interval of the run-up phase are limited by the minimum load (contained in p_ut_runUp(unit, 't00000'))
+    + p_gnu(grid, node, unit, 'unitSizeGen')
+        * sum(t_${ ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
+                   and uft_online(unit, f, t)},
+            + sum(unitStarttype(unit, starttype),
+                + v_startup(unit, starttype, f+df_central(f,t), t_)
+                    * sum(t__${ord(t) = 1}, p_ut_runUp(unit, t__))
                 ) // END sum(unitStarttype)
             )$p_u_runUpTimeIntervals(unit)  // END sum(t_)
 
@@ -576,17 +586,19 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
 
     // Units that are in the run-up phase need to keep up with the run-up ramp rate (contained in p_ut_runUp)
     + p_gnu(grid, node, unit, 'unitSizeGen')
-        * sum(t_${ord(t_) > ord(t) + dt_toStartup(unit, t) + 1 and ord(t_) <= ord(t) and uft_online(unit, f, t)}, // uft_online(unit, f, t_) might cause troubles if the start-up decision was made in the previous solve; doesn't work with intervalLenght>1
+        * sum(t_${ ord(t_) > ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
+                   and ord(t_) <= ord(t) and uft_online(unit, f, t)},
             + sum(unitStarttype(unit, starttype),
                 + v_startup(unit, starttype, f+df_central(f,t), t_)
-                    * sum(t__${ord(t__) = ord(t) - ord(t_) + 1},
+                    * sum(t__${ord(t__) = p_u_runUpTimeIntervalsCeil(unit) - ord(t) - dt_next(t) + 1 + ord(t_)}, // last step in the interval
                         + p_ut_runUp(unit, t__)
                       ) // END sum(t__)
               ) // END sum(unitStarttype)
           )$p_u_runUpTimeIntervals(unit) // END sum(t_)
     // Units that are in the last time interval of the run-up phase are limited by the p_u_maxOutputInLastRunUpInterval
     + p_gnu(grid, node, unit, 'unitSizeGen')
-        * sum(t_${ord(t_) = ord(t) + dt_toStartup(unit, t) + 1 and uft_online(unit, f, t)}, // uft_online(unit, f, t_) might cause troubles if the start-up decision was made in the previous solve
+        * sum(t_${ ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
+                   and uft_online(unit, f, t)},
             + sum(unitStarttype(unit, starttype),
                 + v_startup(unit, starttype, f+df_central(f,t), t_) * p_u_maxOutputInLastRunUpInterval(unit)
               ) // END sum(unitStarttype)
@@ -726,21 +738,21 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationHours'
 
 * --- Ramp Constraints --------------------------------------------------------
 q_genRamp(m, gn(grid, node), s, uft(unit, f, t))${  gnuft_ramp(grid, node, unit, f, t)
-                                                    and ord(t) > msStart(m, s)
+                                                    and ord(t) > msStart(m, s) + 1
                                                     and msft(m, s, f, t)
                                                     } ..
 
     + v_genRamp(grid, node, unit, f, t)
-        / p_stepLength(m, f, t)
+        * p_stepLength(m, f, t)
     =E=
     // Change in generation over the time step
     + v_gen(grid, node, unit, f, t)
-    - v_gen(grid, node, unit, f+df(f,t), t+dt(t))
+    - v_gen(grid, node, unit, f+df(f,t+dt(t)), t+dt(t))
 ;
 
 * --- Ramp Up Limits ----------------------------------------------------------
 q_rampUpLimit(m, gn(grid, node), s, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
-                                                   and ord(t) > msStart(m, s)
+                                                   and ord(t) > msStart(m, s) + 1
                                                    and msft(m, s, f, t)
                                                    and p_gnu(grid, node, unit, 'maxRampUp')
                                                    } ..
@@ -771,7 +783,8 @@ q_rampUpLimit(m, gn(grid, node), s, unit, ft(f, t))${ gnuft_ramp(grid, node, uni
       * 60   // Unit conversion from [p.u./min] to [p.u./h]
     // Units that are in the run-up phase need to keep up with the run-up ramp rate (contained in p_ut_runUp)
   + p_gnu(grid, node, unit, 'unitSizeGen')
-      * sum(t_${ord(t_) > ord(t) + dt_toStartup(unit, t) + 1 and ord(t_) <= ord(t) and uft_online(unit, f, t)}, // uft_online(unit, f, t_) might cause troubles if the start-up decision was made in the previous solve
+      * sum(t_${ ord(t_) > ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
+                 and ord(t_) <= ord(t) and uft_online(unit, f, t)},
           + sum(unitStarttype(unit, starttype),
               + v_startup(unit, starttype, f+df_central(f,t), t_)
                   * p_unit(unit, 'rampSpeedToMinLoad')
@@ -780,7 +793,8 @@ q_rampUpLimit(m, gn(grid, node), s, unit, ft(f, t))${ gnuft_ramp(grid, node, uni
         )$p_u_runUpTimeIntervals(unit) // END sum(t_)
     // Units that are in the last time interval of the run-up phase are limited by the p_u_maxOutputInLastRunUpInterval
   + p_gnu(grid, node, unit, 'unitSizeGen')
-      * sum(t_${ord(t_) = ord(t) + dt_toStartup(unit, t) + 1 and uft_online(unit, f, t)}, // uft_online(unit, f, t_) might cause troubles if the start-up decision was made in the previous solve
+      * sum(t_${ ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
+                 and uft_online(unit, f, t)},
           + sum(unitStarttype(unit, starttype),
               + v_startup(unit, starttype, f+df_central(f,t), t_)
                   * max(p_unit(unit, 'rampSpeedToMinLoad'), p_gnu(grid, node, unit, 'maxRampUp')) // could also be weighted average from 'maxRampUp' and 'rampSpeedToMinLoad'
@@ -798,7 +812,7 @@ q_rampUpLimit(m, gn(grid, node), s, unit, ft(f, t))${ gnuft_ramp(grid, node, uni
 
 * --- Ramp Down Limits --------------------------------------------------------
 q_rampDownLimit(gn(grid, node), m, s, unit, ft(f, t))${ gnuft_ramp(grid, node, unit, f, t)
-                                                     and ord(t) > msStart(m, s)
+                                                     and ord(t) > msStart(m, s) + 1
                                                      and msft(m, s, f, t)
                                                      and p_gnu(grid, node, unit, 'maxRampDown')
                                                      } ..
@@ -975,17 +989,31 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
               ] // END * v_sos2
           ) // END sum(effSelector)
 
+    // Units that are in the run-up phase need to keep up with the run-up ramp rate (contained in p_ut_runUp)
     + sum(gnu_output(grid, node, unit)$p_u_runUpTimeIntervals(unit),
         + p_gnu(grid, node, unit, 'unitSizeGen')
       ) // END sum(gnu_output)
-        * sum(t_${ord(t_) > ord(t) + dt_toStartup(unit, t) and ord(t_) <= ord(t) and uft_online(unit, f, t)},
+        * sum(t_${ ord(t_) > ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
+                   and ord(t_) <= ord(t) and uft_online(unit, f, t)},
             + sum(unitStarttype(unit, starttype),
                 + v_startup(unit, starttype, f+df_central(f,t), t_)
-                    * sum(t__${ord(t__) = ord(t) - ord(t_) + 1},
+                    * sum(t__${ord(t__) = p_u_runUpTimeIntervalsCeil(unit) - ord(t) - dt_next(t) + 1 + ord(t_)}, // last step in the interval
                         + p_ut_runUp(unit, t__)
-                      ) // END sum(t__) //t+dtt(t,t_)
+                      ) // END sum(t__)
               ) // END sum(unitStarttype)
           )  // END sum(t_)
+    // Units that are in the last time interval of the run-up phase are limited by the minimum load (contained in p_ut_runUp(unit, 't00000'))
+    + sum(gnu_output(grid, node, unit)$p_u_runUpTimeIntervals(unit),
+        + p_gnu(grid, node, unit, 'unitSizeGen')
+      ) // END sum(gnu_output)
+        * sum(t_${ ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
+                   and uft_online(unit, f, t)},
+            + sum(unitStarttype(unit, starttype),
+                + v_startup(unit, starttype, f+df_central(f,t), t_)
+                    * sum(t__${ord(t) = 1}, p_ut_runUp(unit, t__))
+              ) // END sum(unitStarttype)
+          )  // END sum(t_)
+
     =E=
 
     // Energy output into v_gen
