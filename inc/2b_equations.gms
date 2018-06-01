@@ -446,7 +446,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
                    and uft_online(unit, f, t)},
             + sum(unitStarttype(unit, starttype),
                 + v_startup(unit, starttype, f+df_central(f,t), t_)
-                    * sum(t__${ord(t) = 1}, p_ut_runUp(unit, t__))
+                    * sum(t__${ord(t__) = 1}, p_ut_runUp(unit, t__))
                 ) // END sum(unitStarttype)
             )$p_u_runUpTimeIntervals(unit)  // END sum(t_)
 
@@ -1010,7 +1010,7 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
                    and uft_online(unit, f, t)},
             + sum(unitStarttype(unit, starttype),
                 + v_startup(unit, starttype, f+df_central(f,t), t_)
-                    * sum(t__${ord(t) = 1}, p_ut_runUp(unit, t__))
+                    * sum(t__${ord(t__) = 1}, p_ut_runUp(unit, t__))
               ) // END sum(unitStarttype)
           )  // END sum(t_)
 
