@@ -21,6 +21,7 @@ $offtext
 
 // Initialize various sets
 Option clear = t_full;
+Option clear = dt_noReset;
 Option clear = f_solve;
 Option clear = tmp;
 
@@ -86,7 +87,7 @@ loop(m,
         if(not mInterval(m, 'intervalEnd', counter),
             continueLoop = 0;
         else
-            abort$(mod(mInterval(m, 'intervalEnd', counter) - mInterval(m, 'intervalEnd', counter-1), mInterval(m, 'intervalLength', counter))) "IntervalLength is not evenly divisible within the interval", m, continueLoop;
+            abort$(mod(mInterval(m, 'intervalEnd', counter) - mInterval(m, 'intervalEnd', counter-1) -1${ not mInterval(m, 'intervalEnd', counter-1) }, mInterval(m, 'intervalLength', counter))) "IntervalLength is not evenly divisible within the interval", m, continueLoop;
             continueLoop = continueLoop + 1;
         );
     );

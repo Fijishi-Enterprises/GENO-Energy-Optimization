@@ -307,9 +307,8 @@ loop(cc(counter),
 
 // Time step displacement to reach previous time step
 option clear = tmp;
-tmp = tSolveFirst;
+tmp = tSolveFirst + dt_noReset(tSolve + 1) + 1${ dt_noReset(tSolve + 1) };
 option clear = dt;
-dt_noReset(t)${ord(t) > tSolveFirst} = 0;
 loop(t_active(t),
     dt(t) = tmp - ord(t);
     dt_noReset(t) = dt(t);
