@@ -20,7 +20,7 @@ $offtext
 * =============================================================================
 
 // This is only done if debug mode is not specifically enabled
-$$iftheni.debug NOT '%debug%' == 'yes'
+$iftheni.debug NOT '%debug%' == 'yes'
 
 * --- Variables ---------------------------------------------------------------
 
