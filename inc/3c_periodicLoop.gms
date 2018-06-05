@@ -475,12 +475,8 @@ p_msft_probability(msft(mSolve, s, f, t))
 
 // Calculate dtt: displacement needed to reach any previous time period (needed to calculate dt_toStartup)
 Option clear = dtt;
-dtt(t,t_)${ t_active(t)
-            and t_activeNoReset(t_)
-            and ord(t_) <= ord(t)
-          }
-    = sum(t_activeNoReset(t__)${ord(t__) > ord(t_) and ord(t__) <= ord(t)},
-        + dt_noReset(t__));
+dtt(t_active(t),t_activeNoReset(t_))${ ord(t_) <= ord(t) }
+    = ord(t_) - ord(t);
 
 // Calculate dt_toStartup: in case the unit becomes online in the current time period,
 // displacement needed to reach the time period where the unit was started up
@@ -488,11 +484,10 @@ Option clear = dt_toStartup;
 loop(unit$(p_u_runUpTimeIntervals(unit)),
     loop(t_active(t),
         tmp = 1;
-        loop(t_${ t_activeNoReset(t_) // active or realized time periods
-                  and ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time periods after the start up
-                  and ord(t_) <= ord(t) // time periods before and including the current time period
-                  and tmp = 1
-                  },
+        loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time periods after the start up
+                                    and ord(t_) <= ord(t) // time periods before and including the current time period
+                                    and tmp = 1
+                                    },
             if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit), // if the displacement between the two time periods is smaller than the number of time periods required for start-up phase
                 dt_toStartup(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time period just before the time period found
                 tmp = 0;
