@@ -74,10 +74,8 @@ equations
     q_stateSlack(grid, node, slack, f, t) "Slack variable greater than the difference between v_state and the slack boundary"
     q_stateUpwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_stateDownwardLimit(grid, node, mType, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
-*    q_boundState(grid, node, node, mType, f, t) "Node state variables bounded by other nodes"
     q_boundStateMaxDiff(grid, node, node, mType, f, t) "Node state variables bounded by other nodes (maximum state difference)"
     q_boundCyclic(grid, node, mType, s, s) "Cyclic bound for the first and the last states of samples"
-*    q_boundCyclicSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound inside or between samples"
 
     // Policy
     q_inertiaMin(group, f, t) "Minimum inertia in a group of nodes"
@@ -266,79 +264,52 @@ q_balance(gn(grid, node), mft(m, f, t))${   not p_gn(grid, node, 'boundAll')
 
     // The right side of the equation contains all the changes converted to energy terms
     + p_stepLength(m, f, t) // Multiply with the length of the timestep to convert power into energy
-        $$ifi '%rampSched%' == 'yes' / 2    // Averaging all the terms on the right side of the equation over the timestep here.
         * (
             // Self discharge out of the model boundaries
-            - p_gn(grid, node, 'selfDischargeLoss')${gn_state(grid, node)}
-                * [
-                    + v_state(grid, node, f+df_central(f,t), t) // The current state of the node
-                    $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+df(f,t+dt(t)), t+dt(t)) // and possibly averaging with the previous state of the node
-                    ]
+            - p_gn(grid, node, 'selfDischargeLoss')${ gn_state(grid, node) }
+                * v_state(grid, node, f+df_central(f,t), t) // The current state of the node
 
             // Energy diffusion from this node to neighbouring nodes
-            - sum(to_node${gnn_state(grid, node, to_node)},
+            - sum(to_node${ gnn_state(grid, node, to_node) },
                 + p_gnn(grid, node, to_node, 'diffCoeff')
-                    * [
-                        + v_state(grid, node, f+df_central(f,t), t)
-                        $$ifi '%rampSched%' == 'yes' + v_state(grid, node, f+df(f,t+dt(t)), t+dt(t))
-                        ]
+                    * v_state(grid, node, f+df_central(f,t), t)
                 ) // END sum(to_node)
 
             // Energy diffusion from neighbouring nodes to this node
-            + sum(from_node${gnn_state(grid, from_node, node)},
+            + sum(from_node${ gnn_state(grid, from_node, node) },
                 + p_gnn(grid, from_node, node, 'diffCoeff')
-                    * [
-                        + v_state(grid, from_node, f+df_central(f,t), t) // Incoming diffusion based on the state of the neighbouring node
-                        $$ifi '%rampSched%' == 'yes' + v_state(grid, from_node, f+df(f,t+dt(t)), t+dt(t)) // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
-                        ]
+                    * v_state(grid, from_node, f+df_central(f,t), t) // Incoming diffusion based on the state of the neighbouring node
                 ) // END sum(from_node)
 
             // Controlled energy transfer, applies when the current node is on the left side of the connection
-            - sum(node_${gn2n_directional(grid, node, node_)},
+            - sum(node_${ gn2n_directional(grid, node, node_) },
                 + (1 - p_gnn(grid, node, node_, 'transferLoss')) // Reduce transfer losses
-                    * [
-                        + v_transfer(grid, node, node_, f, t)
-                        $$ifi '%rampSched%' == 'yes' + v_transfer(grid, node, node_, f, t+dt(t)) // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
-                        ]
+                    * v_transfer(grid, node, node_, f, t)
                 + p_gnn(grid, node, node_, 'transferLoss') // Add transfer losses back if transfer is from this node to another node
-                    * [
-                        + v_transferRightward(grid, node, node_, f, t)
-                        $$ifi '%rampSched%' == 'yes' + v_transferRightward(grid, node, node_, f, t+dt(t)) // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
-                        ]
+                    * v_transferRightward(grid, node, node_, f, t)
                 ) // END sum(node_)
 
             // Controlled energy transfer, applies when the current node is on the right side of the connection
-            + sum(node_${gn2n_directional(grid, node_, node)},
-                + [
-                    + v_transfer(grid, node_, node, f, t)
-                    $$ifi '%rampSched%' == 'yes' + v_transfer(grid, node_, node, f, t+dt(t)) // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
-                    ]
+            + sum(node_${ gn2n_directional(grid, node_, node) },
+                + v_transfer(grid, node_, node, f, t)
                 - p_gnn(grid, node_, node, 'transferLoss') // Reduce transfer losses if transfer is from another node to this node
-                    * [
-                        + v_transferRightward(grid, node_, node, f, t)
-                        $$ifi '%rampSched%' == 'yes' + v_transferRightward(grid, node_, node, f, t+dt(t)) // Ramp schedule averaging, NOTE! State and other terms use different indeces for non-ramp-schedule!
-                        ]
+                    * v_transferRightward(grid, node_, node, f, t)
                 ) // END sum(node_)
 
             // Interactions between the node and its units
             + sum(gnuft(grid, node, unit, f, t),
                 + v_gen(grid, node, unit, f, t) // Unit energy generation and consumption
-                $$ifi '%rampSched%' == 'yes' + v_gen(grid, node, unit, f, t+dt(t))
                 )
 
             // Spilling energy out of the endogenous grids in the model
             - v_spill(grid, node, f, t)${node_spill(node)}
-            $$ifi '%rampSched%' == 'yes' - v_spill(grid, node, f, t)${node_spill(node)}
 
             // Power inflow and outflow timeseries to/from the node
             + ts_influx_(grid, node, f, t)   // Incoming (positive) and outgoing (negative) absolute value time series
-            $$ifi '%rampSched%' == 'yes' + ts_influx_(grid, node, f, t+dt(t))
 
             // Dummy generation variables, for feasibility purposes
             + vq_gen('increase', grid, node, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-            $$ifi '%rampSched%' == 'yes' + vq_gen('increase', grid, node, f, t+dt(t))
             - vq_gen('decrease', grid, node, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-            $$ifi '%rampSched%' == 'yes' - vq_gen('decrease', grid, node, f, t+dt(t))
     ) // END * p_stepLength
 ;
 
@@ -615,11 +586,6 @@ q_startshut(m, uft_online(unit, f, t))${ ord(t) + dt(t) > mSettings(m, 't_start'
     // Units previously online
     - v_online_LP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineLP(unit, f, t) } // This reaches to tFirstSolve when dt = -1
     - v_online_MIP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineMIP(unit, f, t) }
-
-    // Unit online history (solve initial value), required because uft_online doesn't extend to before active modelling
-*    - r_online(unit, f+df_central(f,t+dt(t)), t+dt(t))${    not uft_onlineLP(unit, f+df(f,t+dt(t)), t+dt(t))
-*                                                    and not uft_onlineMIP(unit, f+df(f,t+dt(t)), t+dt(t))
-*                                                    }
 
     =E=
 
