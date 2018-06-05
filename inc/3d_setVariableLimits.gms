@@ -447,14 +447,14 @@ v_shutdown.fx(unit, ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
 ;
 
 
-v_online_MIP.fx(unit,ft_realizedNoReset(f, t))${ ord(t) <= tSolveFirst
-                                                 and sum[ft(f_,t_), uft_onlineMIP(unit,f_,t_)]
-                                                 }
-    = v_online_MIP.l(unit, f, t);
-v_online_LP.fx(unit,ft_realizedNoReset(f, t))${ ord(t) <= tSolveFirst
-                                                and sum[ft(f_,t_), uft_onlineLP(unit,f_,t_)]
-                                                }
-    = v_online_LP.l(unit, f, t);
+v_online_MIP.fx(unit, ft_realizedNoReset(f, t))${   ord(t) <= tSolveFirst
+                                                    and sum[ft(f_,t_), uft_onlineMIP(unit,f_,t_)]
+                                                    }
+    = r_online(unit, f, t);
+v_online_LP.fx(unit, ft_realizedNoReset(f, t))${    ord(t) <= tSolveFirst
+                                                    and sum[ft(f_,t_), uft_onlineLP(unit,f_,t_)]
+                                                    }
+    = r_online(unit, f, t);
 
 // BoundStartToEnd
 v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)

@@ -30,16 +30,15 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = v_genRamp;
     Option clear = v_transfer;
     // Integer Variables
-*    Option clear = v_online_MIP;
+    Option clear = v_online_MIP;
     Option clear = v_invest_MIP;
     Option clear = v_investTransfer_MIP;
     // SOS2 Variables
     Option clear = v_sos2;
     // Positive Variables
     Option clear = v_fuelUse;
-*    Option clear = v_startup;
-*    Option clear = v_shutdown;
-*    Option clear = v_genRampChange;
+    Option clear = v_startup;
+    Option clear = v_shutdown;
     Option clear = v_spill;
     Option clear = v_transferRightward;
     Option clear = v_transferLeftward;
@@ -47,7 +46,7 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = v_resTransferLeftward;
     Option clear = v_reserve;
     Option clear = v_investTransfer_LP;
-*    Option clear = v_online_LP;
+    Option clear = v_online_LP;
     Option clear = v_invest_LP;
     // Feasibility control
     Option clear = v_stateSlack;
@@ -92,10 +91,8 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = q_stateSlack;
     Option clear = q_stateUpwardLimit;
     Option clear = q_stateDownwardLimit;
-*    q_boundState(grid, node, node, mType, f, t) "Node state variables bounded by other nodes"
     Option clear = q_boundStateMaxDiff;
     Option clear = q_boundCyclic;
-*    q_boundCyclicSamples(grid, node, mType, s, f, t, s_, f_, t_) "Cyclic bound inside or between samples"
 
     // Policy
     Option clear = q_inertiaMin;
