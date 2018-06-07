@@ -320,6 +320,8 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     kineticEnergyMin "Minimum system kinetic energy (MWs)"
     constrainedCapMultiplier "Multiplier a(i) for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
+    constrainedOnlineMultiplier "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
+    constrainedOnlineTotalMax "Total maximum b for online units in equation Sum(i, a(i)*v_online(i)) <= b"
 /
 
 * --- Counters and Directional Sets -------------------------------------------

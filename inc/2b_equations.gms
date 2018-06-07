@@ -82,6 +82,7 @@ equations
     // Policy
     q_inertiaMin(group, f, t) "Minimum inertia in a group of nodes"
     q_instantaneousShareMax(group, f, t) "Maximum instantaneous share of generation and controlled import from a group of units and links"
+    q_constrainedOnlineMultiUnit(group, f, t) "Constrained number of online units for a group of units"
     q_capacityMargin(grid, node, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
     q_constrainedCapMultiUnit(group, t) "Constrained unit number ratios and sums for a group of units"
     q_emissioncap(group, emission) "Limit for emissions"
@@ -1526,6 +1527,27 @@ $ontext
 $offtext
             ] // END * p_groupPolicy
 
+;
+
+*--- Constrained Number of Online Units ---------------------------------------
+
+q_constrainedOnlineMultiUnit(group, ft(f, t))${   p_groupPolicy(group, 'constrainedOnlineTotalMax')
+                                                  or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit))
+                                                  } ..
+
+    // Sum of multiplied online units
+    + sum(unit$uGroup(unit, group),
+        + p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
+            * [
+                + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+                ] // END * p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
+        ) // END sum(unit)
+
+    =L=
+
+    // Total maximum of multiplied online units
+    + p_groupPolicy(group, 'constrainedOnlineTotalMax')
 ;
 
 *--- Required Capacity Margin -------------------------------------------------
