@@ -376,3 +376,23 @@ v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
         + r_state(grid, node, f_, tSolve)
         ) // END sum(fRealization)
 ;
+
+// Fix investment results
+v_invest_LP.fx(unit_investLP(unit))${ p_unit(unit, 'start') <= tSolveFirst }
+    = r_invest(unit)
+;
+v_invest_MIP.fx(unit_investMIP(unit))${ p_unit(unit, 'start') <= tSolveFirst }
+    = r_invest(unit)
+;
+v_investTransfer_LP.fx(gn2n_directional(grid, node, node_), t_invest(t))${    not p_gnn(grid, node, node_, 'investMIP')
+                                                                              and p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                              and ord(t) <= tSolveFirst
+                                                                              }
+    = r_investTransfer(grid, node, node_, t)
+;
+v_investTransfer_MIP.fx(gn2n_directional(grid, node, node_), t_invest(t))${   p_gnn(grid, node, node_, 'investMIP')
+                                                                              and p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                              and ord(t) <= tSolveFirst
+                                                                              }
+    = r_investTransfer(grid, node, node_, t) / p_gnn(grid, node, node_, 'unitSize')
+;

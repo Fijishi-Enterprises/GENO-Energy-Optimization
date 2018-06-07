@@ -126,7 +126,8 @@ r_nTotalReserve
 * --- Investment Result Symbols -----------------------------------------------
 
 // Interesting investment results
-r_unitInvestment
+r_invest
+r_investTransfer
 
 * --- Dummy and Diagnostic Variable Result Symbols ----------------------------
 

@@ -109,8 +109,16 @@ r_stateSlack(gn_stateSlack(grid, node), slack, ft_realized(f, t))
     = v_stateSlack.l(grid, node, slack, f, t)
 ;
 // Unit investments
-r_unitInvestment(unit)${unit_investLP(unit) or unit_investMIP(unit)}
+r_invest(unit)${unit_investLP(unit) or unit_investMIP(unit)}
     = v_invest_LP.l(unit) + v_invest_MIP.l(unit)
+;
+// Link investments
+r_investTransfer(grid, node, node_, t_invest(t))${ p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                   and t_current(t)
+                                                   and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
+                                                   }
+    = v_investTransfer_LP.l(grid, node, node_, t)
+        + v_investTransfer_MIP.l(grid, node, node_, t) * p_gnn(grid, node, node_, 'unitSize')
 ;
 
 * --- Feasibility results -----------------------------------------------------

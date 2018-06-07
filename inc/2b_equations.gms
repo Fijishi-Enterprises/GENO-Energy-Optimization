@@ -228,7 +228,7 @@ $offtext
         ) // END sum(ms)
 
     // Transfer link investment costs
-    + sum(ms(m, s),
+    + sum(ms(m, s)${ sum(msft(m, s, f, t), 1) },
         + sum(t_invest(t)${ord(t) <= msEnd(m, s)},
             + sum(gn2n_directional(grid, from_node, to_node),
                 + v_investTransfer_LP(grid, from_node, to_node, t)${ not p_gnn(grid, from_node, to_node, 'investMIP') }

@@ -128,7 +128,8 @@ Parameters
 * --- Investment Results ------------------------------------------------------
 
     // Interesting investment results
-    r_unitInvestment(unit) "Number/amount of invested units"
+    r_invest(unit) "Number/amount of invested units"
+    r_investTransfer(grid, node, node, t) "Amount of invested transfer link capacity"
 
 * --- Dummy Variable Results --------------------------------------------------
 
@@ -155,6 +156,8 @@ Option clear = r_gen;
 Option clear = r_realizedLast;
 Option clear = r_startup;
 Option clear = r_shutdown;
+Option clear = r_invest;
+Option clear = r_investTransfer;
 
 * =============================================================================
 * --- Diagnostics Results Arrays ----------------------------------------------
