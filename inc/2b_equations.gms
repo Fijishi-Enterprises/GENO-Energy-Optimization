@@ -1532,7 +1532,7 @@ $offtext
 *--- Constrained Number of Online Units ---------------------------------------
 
 q_constrainedOnlineMultiUnit(group, ft(f, t))${   p_groupPolicy(group, 'constrainedOnlineTotalMax')
-                                                  or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit))
+                                                  or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)))
                                                   } ..
 
     // Sum of multiplied online units
