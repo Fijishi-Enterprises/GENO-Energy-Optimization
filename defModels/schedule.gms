@@ -26,7 +26,7 @@ Model schedule /
 
     // Unit Operation
     q_maxDownward
-    q_noReserveInRunUp
+*    q_noReserveInRunUp
     q_maxUpward
     q_startshut
     q_startuptype
@@ -61,6 +61,7 @@ Model schedule /
     // Policy
 *    q_inertiaMin
 *    q_instantaneousShareMax
+    q_constrainedOnlineMultiUnit
 *    q_capacityMargin
 *    q_constrainedCapMultiUnit
 *    q_emissioncap

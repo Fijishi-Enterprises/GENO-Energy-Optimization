@@ -30,15 +30,15 @@ $$iftheni.debug NOT '%debug%' == 'yes'
     Option clear = v_genRamp;
     Option clear = v_transfer;
     // Integer Variables
-    Option clear = v_online_MIP;
+*    Option clear = v_online_MIP;
     Option clear = v_invest_MIP;
     Option clear = v_investTransfer_MIP;
     // SOS2 Variables
     Option clear = v_sos2;
     // Positive Variables
     Option clear = v_fuelUse;
-    Option clear = v_startup;
-    Option clear = v_shutdown;
+*    Option clear = v_startup;
+*    Option clear = v_shutdown;
 *    Option clear = v_genRampChange;
     Option clear = v_spill;
     Option clear = v_transferRightward;
@@ -47,7 +47,7 @@ $$iftheni.debug NOT '%debug%' == 'yes'
     Option clear = v_resTransferLeftward;
     Option clear = v_reserve;
     Option clear = v_investTransfer_LP;
-    Option clear = v_online_LP;
+*    Option clear = v_online_LP;
     Option clear = v_invest_LP;
     // Feasibility control
     Option clear = v_stateSlack;
@@ -305,12 +305,28 @@ loop(cc(counter),
 
 ); // END loop(counter)
 
+// Updating the set of active and realized t:s
+t_activeNoReset(t_current(t))${ord(t) > tSolveFirst} = no;
+t_activeNoReset(t_active(t)) = yes;
+
 // Time step displacement to reach previous time step
 option clear = tmp;
-tmp = tSolveFirst;
+tmp = tSolveFirst + dt_noReset(tSolve + 1) + 1${ dt_noReset(tSolve + 1) };
+option clear = dt;
+dt_noReset(t_current(t))${ord(t) > tSolveFirst} = 0; // clean up old values (needed for t:s which are in the horizon but not in t_active)
 loop(t_active(t),
     dt(t) = tmp - ord(t);
+    dt_noReset(t) = dt(t);
     tmp = ord(t);
+); // END loop(t_active)
+
+// Time step displacement to reach next time step
+option clear = dt_next;
+loop(t_active(t),
+    dt_next(t)
+        = sum(f$mf(mSolve, f), p_stepLength(mSolve, f, t))
+            / sum(f${mf(mSolve, f) and p_stepLength(mSolve, f, t)}, 1)
+            / mSettings(mSolve, 'intervalInHours');
 ); // END loop(t_active)
 
 // Initial model ft
@@ -453,16 +469,32 @@ Option clear = p_msft_probability;
 p_msft_probability(msft(mSolve, s, f, t))
     = p_mfProbability(mSolve, f) / sum(f_${ft(f_, t)}, p_mfProbability(mSolve, f_)) * p_msProbability(mSolve, s);
 
-Option clear = dtt;
-dtt(t,t_)$(t_active(t) and (t_active(t_) or ord(t_) = tSolveFirst) and ord(t_)<=ord(t)) = sum(t__$(ord(t__)>ord(t_) and ord(t__) <= ord(t)), dt(t__));
+* -----------------------------------------------------------------------------
+* --- Displacements for start-up decisions ------------------------------------
+* -----------------------------------------------------------------------------
 
+// Calculate dtt: displacement needed to reach any previous time period (needed to calculate dt_toStartup)
+Option clear = dtt;
+dtt(t,t_)${ t_active(t)
+            and t_activeNoReset(t_)
+            and ord(t_) <= ord(t)
+          }
+    = sum(t_activeNoReset(t__)${ord(t__) > ord(t_) and ord(t__) <= ord(t)},
+        + dt_noReset(t__));
+
+// Calculate dt_toStartup: in case the unit becomes online in the current time period,
+// displacement needed to reach the time period where the unit was started up
 Option clear = dt_toStartup;
 loop(unit$(p_u_runUpTimeIntervals(unit)),
-    loop(t$t_active(t),
+    loop(t_active(t),
         tmp = 1;
-        loop(t_${t_active(t_) and ord(t_) <= ord(t) and tmp = 1},
-            if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit),
-                dt_toStartup(unit, t) = dtt(t,t_+dt(t));
+        loop(t_${ t_activeNoReset(t_) // active or realized time periods
+                  and ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time periods after the start up
+                  and ord(t_) <= ord(t) // time periods before and including the current time period
+                  and tmp = 1
+                  },
+            if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit), // if the displacement between the two time periods is smaller than the number of time periods required for start-up phase
+                dt_toStartup(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time period just before the time period found
                 tmp = 0;
             );
         );

@@ -77,6 +77,7 @@ Sets
     t_full(t) "Full set of time steps in the current model"
     t_current(t) "Set of time steps within the current solve horizon"
     t_active(t) "Set of active t:s within the current solve horizon"
+    t_activeNoReset(t) "Set of active t:s within the current solve horizon and previously realized t:s"
     t_invest(t) "Time steps when investments can be made"
     tt(t) "Temporary subset for time steps used for calculations"
     tt_interval(t) "Temporary time steps when forming the ft structure"

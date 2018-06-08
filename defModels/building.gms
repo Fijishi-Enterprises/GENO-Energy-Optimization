@@ -60,6 +60,7 @@ Model building /
     // Policy
 *    q_inertiaMin
 *    q_instantaneousShareMax
+*    q_constrainedOnlineMultiUnit
 *    q_capacityMargin
 *    q_constrainedCapMultiUnit
 *    q_emissioncap

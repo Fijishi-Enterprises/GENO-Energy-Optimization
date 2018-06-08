@@ -111,13 +111,13 @@ loop(modelSolves(mSolve, tSolve),
     $$include 'inc\3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
     $$include 'inc\3e_solve.gms'                // Solve model(s)
     $$include 'inc\4a_outputVariant.gms'  // Store results from the loop
-*    $$ifi.debug '%debug%' == 'yes'
-*        putclose gdx;
-*        put_utility 'gdxout' / 'output\'mSolve.tl:0, '-', tSolve.tl:0, '.gdx';
-*            execute_unload
-*            $$include defOutput\debugSymbols.inc
-*        ;
-*    $$endifi.debug
+$$iftheni.debug '%debug%' == 'yes'
+        putclose gdx;
+        put_utility 'gdxout' / 'output\'mSolve.tl:0, '-', tSolve.tl:0, '.gdx';
+            execute_unload
+            $$include defOutput\debugSymbols.inc
+        ;
+$$endif.debug
 );
 
 $if exist 'input\3z_modelsClose.gms' $include 'input\3z_modelsClose.gms';

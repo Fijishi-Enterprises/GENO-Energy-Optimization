@@ -278,7 +278,7 @@ param_unit "Set of possible data parameters for units" /
     startFuelConsHot "Consumption of start-up fuel per hot subunit started up (MWh_fuel/MW)"
     startColdAfterXhours   "Offline hours after which the start-up will be a cold start (h)"
     startWarmAfterXhours   "Offline hours after which the start-up will be a warm start (h)"
-    rampSpeedToMinLoad "Ramping speed from start-up to mininimum load (p.u. / min.)"
+    rampSpeedToMinLoad "Ramping speed from start-up to minimum load (p.u. / min.)"
     minOperationHours "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
     minShutdownHours "Minimum shut down time (h), prevents starting up again after the defined amount of time has passed"
     SO2         "SO2 emissions (tonne per MWh_fuel)"
@@ -320,6 +320,8 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     kineticEnergyMin "Minimum system kinetic energy (MWs)"
     constrainedCapMultiplier "Multiplier a(i) for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
+    constrainedOnlineMultiplier "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
+    constrainedOnlineTotalMax "Total maximum b for online units in equation Sum(i, a(i)*v_online(i)) <= b"
 /
 
 * --- Counters and Directional Sets -------------------------------------------

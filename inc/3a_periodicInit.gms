@@ -21,6 +21,8 @@ $offtext
 
 // Initialize various sets
 Option clear = t_full;
+Option clear = dt_noReset;
+Option clear = t_activeNoReset;
 Option clear = f_solve;
 Option clear = tmp;
 
@@ -86,7 +88,7 @@ loop(m,
         if(not mInterval(m, 'intervalEnd', counter),
             continueLoop = 0;
         else
-            abort$(mod(mInterval(m, 'intervalEnd', counter) - mInterval(m, 'intervalEnd', counter-1), mInterval(m, 'intervalLength', counter))) "IntervalLength is not evenly divisible within the interval", m, continueLoop;
+            abort$(mod(mInterval(m, 'intervalEnd', counter) - mInterval(m, 'intervalEnd', counter-1) -1${ not mInterval(m, 'intervalEnd', counter-1) }, mInterval(m, 'intervalLength', counter))) "IntervalLength is not evenly divisible within the interval", m, continueLoop;
             continueLoop = continueLoop + 1;
         );
     );
@@ -284,44 +286,37 @@ loop(m,
 * --- Unit Startup and Shutdown Counters --------------------------------------
 
 loop(m,
-    // Loop over units with online approximations in the model
-    loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit)${mSettingsEff(m, effLevel)},
-        // Loop over the constrained starttypes
-        loop(starttypeConstrained(starttype),
-            // Find the time step displacements needed to define the startup time frame
-            Option clear = cc;
-            cc(counter)${   ord(counter) <= p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'intervalInHours')
-                            and ord(counter) >= p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'intervalInHours')
-                            }
-                = yes;
-            dt_starttypeUnitCounter(starttype, unit, cc(counter)) = - ord(counter);
-        ); // END loop(starttypeConstrained)
-
-        // Find the time step displacements needed to define the downtime requirements
-        Option clear = cc;
-        cc(counter)${ ord(counter) <= p_unit(unit, 'minShutdownHours') / mSettings(m, 'intervalInHours') }
-            = yes;
-        dt_downtimeUnitCounter(unit, cc(counter)) = - ord(counter);
-
-        // Find the time step displacements needed to define the uptime requirements
-        Option clear = cc;
-        cc(counter)${ ord(counter) <= p_unit(unit, 'minOperationHours') / mSettings(m, 'intervalInHours')}
-            = yes;
-        dt_uptimeUnitCounter(unit, cc(counter)) = - ord(counter);
-    ); // END loop(effLevelGroupUnit)
-); // END loop(m)
-
-loop(m,
     loop(unit$(p_unit(unit, 'rampSpeedToMinLoad') and p_unit(unit,'op00')),
-        p_unit(unit, 'rampSpeedToMinLoad') = p_unit(unit, 'rampSpeedToMinLoad');
-        tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'intervalInHours'); // rampToMinLoadInTimeIntervals
+        p_unit(unit, 'rampSpeedToMinLoad') = p_unit(unit, 'rampSpeedToMinLoad');  // Is something happening here?
+        // Calculate time intervals needed for the run-up phase
+        tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'intervalInHours');
         p_u_runUpTimeIntervals(unit) = tmp;
-        loop(t${ord(t)<=ceil(p_u_runUpTimeIntervals(unit))},
-            p_ut_runUp(unit, t)=p_unit(unit, 'rampSpeedToMinLoad') * (ceil(p_u_runUpTimeIntervals(unit) - ord(t) + 1));
+        p_u_runUpTimeIntervalsCeil(unit) = ceil(p_u_runUpTimeIntervals(unit))
+
+        // Calculate output during the run-up phase
+        loop(t${ord(t)<=p_u_runUpTimeIntervalsCeil(unit)},
+            p_ut_runUp(unit, t) =
+              + p_unit(unit, 'rampSpeedToMinLoad') * (ceil(p_u_runUpTimeIntervals(unit) - ord(t) + 1))
+              * 60 // Unit conversion from [p.u./min] to [p.u./h]
+              * mSettings(m, 'intervalInHours')
         );
+
+        // Combine output in the second last interval and the weighted average of rampSpeedToMinLoad and maxRampUp
         p_u_maxOutputInLastRunUpInterval(unit) =
-          + p_unit(unit, 'rampSpeedToMinLoad') * (tmp-floor(tmp)) / mSettings(m, 'intervalInHours')
-          + smin(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampUp')) * (ceil(tmp)-tmp) / mSettings(m, 'intervalInHours');
+            (
+              + p_unit(unit, 'rampSpeedToMinLoad') * (tmp-floor(tmp)) * mSettings(m, 'intervalInHours')
+              + smin(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampUp')) * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
+            )
+              * 60 // Unit conversion from [p.u./min] to [p.u./h]
+              + sum(t${ord(t) = 2}, p_ut_runUp(unit, t));
+
+        // Maximum output in the last time interval of the run-up phase can't exceed the maximum capacity
+        p_u_maxOutputInLastRunUpInterval(unit) = min(p_u_maxOutputInLastRunUpInterval(unit), 1);
+
+        // Minimum output in the last time interval of the run-up phase equals minimum load
+        p_ut_runUp(unit, t)${ord(t) = 1} = p_unit(unit,'op00');
+
+        // Not all units can cold start?
         unitStarttype(unit, 'cold') = no;
         unitStarttype(unit, 'cold')${ p_unit(unit, 'startCostCold')
                                          or p_unit(unit, 'startFuelConsCold')
@@ -330,6 +325,34 @@ loop(m,
                                        }
          = yes;
     ) // END loop(unit)
+); // END loop(m)
+
+loop(m,
+    // Loop over units with online approximations in the model
+    loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit)${mSettingsEff(m, effLevel)},
+        // Loop over the constrained starttypes
+        loop(starttypeConstrained(starttype),
+            // Find the time step displacements needed to define the startup time frame
+            Option clear = cc;
+            cc(counter)${   ord(counter) <= p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'intervalInHours')
+                            and ord(counter) > p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'intervalInHours')
+                            }
+                = yes;
+            dt_starttypeUnitCounter(starttype, unit, cc(counter)) = - ord(counter);
+        ); // END loop(starttypeConstrained)
+
+        // Find the time step displacements needed to define the downtime requirements (include run-up phase)
+        Option clear = cc;
+        cc(counter)${ ord(counter) <= ceil(p_unit(unit, 'minShutdownHours') / mSettings(m, 'intervalInHours')) + ceil(p_u_runUpTimeIntervals(unit)) }
+            = yes;
+        dt_downtimeUnitCounter(unit, cc(counter)) = - ord(counter);
+
+        // Find the time step displacements needed to define the uptime requirements
+        Option clear = cc;
+        cc(counter)${ ord(counter) <= ceil(p_unit(unit, 'minOperationHours') / mSettings(m, 'intervalInHours'))}
+            = yes;
+        dt_uptimeUnitCounter(unit, cc(counter)) = - ord(counter);
+    ); // END loop(effLevelGroupUnit)
 ); // END loop(m)
 
 * =============================================================================
