@@ -242,7 +242,8 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
 param_gnu "Set of possible data parameters for grid, node, unit" /
     maxGen      "Maximum output capacity (MW)"
     maxCons     "Maximum loading capacity (MW)"
-    cB          "Share of output"
+    conversionFactor "Conversion factor for inputs or outputs (for changing the unit of measurement)"
+    doNotOutput "Flag for inputs that are not included in the output commodities"
     cV          "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
     maxRampUp   "Speed to ramp up (p.u. / min)"
     maxRampDown "Speed to ramp down (p.u. / min)"

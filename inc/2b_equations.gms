@@ -855,13 +855,13 @@ q_outputRatioFixed(gngnu_fixedOutputRatio(grid, node, grid_, node_, unit), ft(f,
 
     // Generation in grid
     + v_gen(grid, node, unit, f, t)
-        / p_gnu(grid, node, unit, 'outputshare')
+        / p_gnu(grid, node, unit, 'conversionFactor')
 
     =E=
 
     // Generation in grid_
     + v_gen(grid_, node_, unit, f, t)
-        / p_gnu(grid_, node_, unit, 'outputshare')
+        / p_gnu(grid_, node_, unit, 'conversionFactor')
 ;
 
 * --- Constrained Output Ratio ------------------------------------------------
@@ -871,13 +871,13 @@ q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, 
 
     // Generation in grid
     + v_gen(grid, node, unit, f, t)
-        / p_gnu(grid, node, unit, 'outputshare')
+        / p_gnu(grid, node, unit, 'conversionFactor')
 
     =G=
 
     // Generation in grid_
     + v_gen(grid_, node_, unit, f, t)
-        / p_gnu(grid_, node_, unit, 'outputshare')
+        / p_gnu(grid_, node_, unit, 'conversionFactor')
 ;
 
 * --- Direct Input-Output Conversion ------------------------------------------
@@ -885,7 +885,7 @@ q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, 
 q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
 
     // Sum over endogenous energy inputs
-    - sum(gnu_input(grid, node, unit),
+    - sum(gnu_input(grid, node, unit)${not p_gnu(grid, node, unit, 'doNotOutput')},
         + v_gen(grid, node, unit, f, t)
         ) // END sum(gnu_input)
 
@@ -926,7 +926,7 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
 q_conversionSOS2InputIntermediate(suft(effLambda(effGroup), unit, f, t)) ..
 
     // Sum over endogenous energy inputs
-    - sum(gnu_input(grid, node, unit),
+    - sum(gnu_input(grid, node, unit)${not p_gnu(grid, node, unit, 'doNotOutput')},
         + v_gen(grid, node, unit, f, t)
         ) // END sum(gnu_input)
 
@@ -1532,7 +1532,7 @@ $offtext
 *--- Constrained Number of Online Units ---------------------------------------
 
 q_constrainedOnlineMultiUnit(group, ft(f, t))${   p_groupPolicy(group, 'constrainedOnlineTotalMax')
-                                                  or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit))
+                                                  or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)))
                                                   } ..
 
     // Sum of multiplied online units
