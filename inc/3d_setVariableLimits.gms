@@ -178,33 +178,32 @@ v_online_MIP.up(uft_onlineMIP(unit, f, t))${    not unit_investMIP(unit) }
 ;
 
 // Free the upper bound of start-up and shutdown variables (if previously bounded)
-v_startup.up(unitStarttype(unit, starttype), f, t) = inf;
-v_shutdown.up(unit, f, t) = inf;
+v_startup.up(unitStarttype(unit, starttype), ft(f, t)) = inf;
+v_shutdown.up(uft(unit, f, t)) = inf;
 
 // v_startup cannot exceed unitCount
-v_startup.up(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and not unit_investLP(unit)  and not unit_investMIP(unit) }
+v_startup.up(unitStarttype(unit, starttype), ft(f, t))${    uft_online(unit, f, t)
+                                                            and not unit_investLP(unit)
+                                                            and not unit_investMIP(unit)
+                                                            }
     = p_unit(unit, 'unitCount')
 ;
 // Cannot start a unit if the time when the unit would become online is outside
 // the horizon when the unit has an online variable
-v_startup.up(unitStarttype(unit, starttype), f, t)${ uft_online(unit, f, t)
-                                                     and not sum(t_active(t_)${ord(t) = ord(t_) + dt_toStartup(unit,t_)}, uft_online(unit, f, t_))
-                                                     }
+v_startup.up(unitStarttype(unit, starttype), ft(f, t))${    uft_online(unit, f, t)
+                                                            and not sum(t_active(t_)${ord(t) = ord(t_) + dt_toStartup(unit,t_)}, uft_online(unit, f, t_))
+                                                            }
     = 0;
 // Cannot start up or shut down a unit if the time time step is not active in the current horizon
-v_startup.up(unitStarttype(unit, starttype), f, t)${ sum(ft(f_, t_), uft_online(unit, f_, t_))
-                                                     and mf(mSolve, f)
-                                                     and ord(t) > tSolveFirst
-                                                     and ord(t) <= tSolveLast
-                                                     and not t_active(t)
-                                                     }
+v_startup.up(unitStarttype(unit, starttype), ft(f, t))${    ord(t) > tSolveFirst
+                                                            and ord(t) <= tSolveLast
+                                                            and not t_active(t)
+                                                            }
     = 0;
-v_shutdown.up(unit, f, t)${ sum(ft(f_, t_), uft_online(unit, f_, t_))
-                            and mf(mSolve, f)
-                            and ord(t) > tSolveFirst
-                            and ord(t) <= tSolveLast
-                            and not t_active(t)
-                            }
+v_shutdown.up(uft(unit, f, t))${    ord(t) > tSolveFirst
+                                    and ord(t) <= tSolveLast
+                                    and not t_active(t)
+                                    }
     = 0;
 
 //These might speed up, but they should be applied only to the new part of the horizon (should be explored)
@@ -421,6 +420,7 @@ loop(mft_start(mSolve, f, t),
 
 // Fix previously realized start-up and shutdown decisions.
 // Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up phases.
+$ontext
 v_startup.up(unitStarttype(unit, starttype), f, t)${ sum(ft(f_, t_), uft_online(unit, f_, t_))
                                                      and mf_realization(mSolve, f)
                                                      and ord(t) <= tSolveFirst
@@ -433,6 +433,7 @@ v_shutdown.up(unit, f, t)${ sum(ft(f_, t_), uft_online(unit, f_, t_))
                             }
     = 0
 ;
+$offtext
 v_startup.fx(unitStarttype(unit, starttype), ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
                                                                           and sum[ft(f_,t_), uft_online(unit,f_,t_)]
                                                                           }
@@ -446,14 +447,14 @@ v_shutdown.fx(unit, ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
 ;
 
 
-v_online_MIP.fx(unit,ft_realizedNoReset(f, t))${ ord(t) <= tSolveFirst
-                                                 and sum[ft(f_,t_), uft_onlineMIP(unit,f_,t_)]
-                                                 }
-    = v_online_MIP.l(unit, f, t);
-v_online_LP.fx(unit,ft_realizedNoReset(f, t))${ ord(t) <= tSolveFirst
-                                                and sum[ft(f_,t_), uft_onlineLP(unit,f_,t_)]
-                                                }
-    = v_online_LP.l(unit, f, t);
+v_online_MIP.fx(unit, ft_realizedNoReset(f, t))${   ord(t) <= tSolveFirst
+                                                    and sum[ft(f_,t_), uft_onlineMIP(unit,f_,t_)]
+                                                    }
+    = r_online(unit, f, t);
+v_online_LP.fx(unit, ft_realizedNoReset(f, t))${    ord(t) <= tSolveFirst
+                                                    and sum[ft(f_,t_), uft_onlineLP(unit,f_,t_)]
+                                                    }
+    = r_online(unit, f, t);
 
 // BoundStartToEnd
 v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
