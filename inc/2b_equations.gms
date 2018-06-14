@@ -579,7 +579,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
 
 * --- Unit Startup and Shutdown -----------------------------------------------
 
-q_startshut(m, uft_online(unit, f, t))
+q_startshut(m, uft_online(unit, f, t)) ..
     // Units currently online
     + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
     + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
