@@ -392,6 +392,20 @@ loop(mft_start(mSolve, f, t),
     // If this is the very first solve, set boundStart
     if(tSolveFirst = mSettings(mSolve, 't_start'),
 
+        // Upper bound
+        v_state.up(gn_state(grid, node), f, t)${    p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
+                                                    and not df_central(f,t)
+                                                    }
+            = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant')
+                * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
+
+        // Lower bound
+        v_state.lo(gn_state(grid, node), f, t)${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+                                                    and not df_central(f,t)
+                                                    }
+            = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
+                * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
+
         // First solve, state variables (only if boundStart flag is true)
         v_state.fx(gn_state(grid, node), f, t)${ p_gn(grid, node, 'boundStart') }
             = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
