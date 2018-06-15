@@ -1,0 +1,37 @@
+{
+    "name": "Backbone",
+    "description": "Backbone",
+    "tooltype": "gams",
+    "includes": [
+        "Backbone.gms",
+        "inc\\1a_definitions.gms",
+        "inc\\1b_sets.gms",
+        "inc\\1c_parameters.gms",
+        "inc\\1d_results.gms",
+        "inc\\1e_inputs.gms",
+        "inc\\2a_variables.gms",
+        "inc\\2b_equations.gms",
+        "inc\\3a_periodicInit.gms",
+        "inc\\3b_inputsLoop.gms",
+        "inc\\3c_periodicLoop.gms",
+        "inc\\3d_setVariableLimits.gms",
+        "inc\\3e_solve.gms",
+        "inc\\4a_outputVariant.gms",
+        "inc\\4b_outputInvariant.gms",
+        "inc\\4c_outputQuickFile.gms",
+        "defModels\\building.gms",
+        "defModels\\invest.gms",
+        "defModels\\schedule.gms",
+        "defOutput\\debugSymbols.inc",
+        "defOutput\\resultSymbols.inc",
+        "cplex.opt"
+    ],
+    "inputfiles": [
+        "input/inputdata.gdx",
+        "input/modelsInit.gms"
+    ],
+    "inputfiles_opt": [],
+    "outputfiles": [],
+    "cmdline_args": "",
+    "includes_main_path": "."
+}
