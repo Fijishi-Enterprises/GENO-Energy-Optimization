@@ -92,7 +92,7 @@ $include 'inc\1e_inputs.gms'        // Load input data
 
 * === Variables and equations =================================================
 $include 'inc\2a_variables.gms'                         // Define variables for the models
-$include 'inc\2b_equations.gms'                         // Equation declarations
+$include 'inc\2b_eqDeclarations.gms'                    // Equation declarations
 $ifthen exist 'input\2c_alternative_objective.gms'      // Objective function - either the default or an alternative from input files
     $$include 'input\2c_alternative_objective.gms';
 $else
