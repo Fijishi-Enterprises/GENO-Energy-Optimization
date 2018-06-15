@@ -1,7 +1,7 @@
 $title Backbone
 $ontext
 Backbone - chronological energy systems model
-Copyright (C) 2016 - 2017  VTT Technical Research Centre of Finland
+Copyright (C) 2016 - 2018  VTT Technical Research Centre of Finland
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -91,8 +91,18 @@ $include 'inc\1d_results.gms'       // Parameter definitions for model results
 $include 'inc\1e_inputs.gms'        // Load input data
 
 * === Variables and equations =================================================
-$include 'inc\2a_variables.gms'     // Define variables for the models
-$include 'inc\2b_equations.gms'     // Define equations for the models
+$include 'inc\2a_variables.gms'                         // Define variables for the models
+$include 'inc\2b_equations.gms'                         // Equation declarations
+$ifthen exist 'input\2c_alternative_objective.gms'      // Objective function - either the default or an alternative from input files
+    $$include 'input\2c_alternative_objective.gms';
+$else
+    $$include 'inc\2c_objective.gms'
+$endif
+$include 'inc\2d_constraints.gms'                       // Define constraint equations for the models
+$ifthen exist 'input/2e_additional_constraints.gms'
+   $$include 'input/2e_additional_constraints.gms'      // Define additional constraints from the input data
+$endif
+
 
 * === Model definition files ==================================================
 $include 'defModels\schedule.gms'
@@ -109,7 +119,8 @@ loop(modelSolves(mSolve, tSolve),
     $$include 'inc\3c_periodicLoop.gms'         // Update modelling loop
     $$include 'inc\3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
     $$include 'inc\3e_solve.gms'                // Solve model(s)
-    $$include 'inc\4a_outputVariant.gms'  // Store results from the loop
+    $$include 'inc\3f_afterSolve.gms'           // Post-processing variables after the solve
+    $$include 'inc\4a_outputVariant.gms'        // Store results from the loop
 $iftheni.debug '%debug%' == 'yes'
         putclose gdx;
         put_utility 'gdxout' / 'output\'mSolve.tl:0, '-', tSolve.tl:0, '.gdx';
