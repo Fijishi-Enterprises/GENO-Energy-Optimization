@@ -21,15 +21,28 @@ $offtext
 
 put log 'ord tSolve: ';
 put log ord(tSolve) /;
+putclose log;
 
-if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext(mSolve),
-    put_utility 'gdxin' / 'input\forecasts\' tSolve.tl:0 '.gdx';
-    execute_load ts_forecast = forecast;
+loop(mTimeseries_loop_read(mSolve, timeseries)${ord(tSolve) >= tForecastNext(mSolve)},
+    put_utility 'gdxin' / 'input\' timeseries.tl:0 '\' tSolve.tl:0 '.gdx';
+    if (mTimeseries_loop_read(mSolve, 'ts_unit'), execute_load ts_unit);
+    if (mTimeseries_loop_read(mSolve, 'ts_effUnit'), execute_load ts_effUnit);
+    if (mTimeseries_loop_read(mSolve, 'ts_effGroupUnit'), execute_load ts_effGroupUnit);
+    if (mTimeseries_loop_read(mSolve, 'ts_influx'), execute_load ts_influx);
+    if (mTimeseries_loop_read(mSolve, 'ts_cf'), execute_load ts_cf);
+    if (mTimeseries_loop_read(mSolve, 'ts_reserveDemand'), execute_load ts_reserveDemand);
+    if (mTimeseries_loop_read(mSolve, 'ts_nodeState'), execute_load ts_nodeState);
+    if (mTimeseries_loop_read(mSolve, 'ts_fuelPriceChange'), execute_load ts_fuelPriceChange);
+    if (mTimeseries_loop_read(mSolve, 'ts_unavailability'), execute_load ts_unavailability);
+);
 
+if (ord(tSolve) >= tForecastNext(mSolve),
     // Update the next forecast
-    tForecastNext(mSolve)${ ord(tSolve) >= tForecastNext(mSolve) }
+    tForecastNext(mSolve)
         = tForecastNext(mSolve) + mSettings(mSolve, 't_forecastJump');
+);
 
+$ontext
     // Define t_latestForecast
     Option clear = t_latestForecast;
     t_latestForecast(tSolve) = yes;
@@ -37,7 +50,7 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
     // Define updated time window
     Option clear = tt_forecast;
     tt_forecast(t_full(t))${    ord(t) >= ord(tSolve)
-                                and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_forecastLength') + mSettings(mSolve, 't_forecastJump')
+                                and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_forecastLengthUnchanging') + mSettings(mSolve, 't_forecastJump')
                                 }
         = yes;
 
@@ -63,15 +76,21 @@ if (mSettings(mSolve, 'readForecastsInTheLoop') and ord(tSolve) >= tForecastNext
         = ts_tertiary('wind', node, t+ddt(t), up_down, t)
             * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen'));
 
-); // END IF readForecastsInTheLoop
+$offtext
 
-putclose log;
 
 * --- Improve forecasts -------------------------------------------------------
 *$ontext
 // !!! TEMPORARY MEASURES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 if(mSettings(mSolve, 'forecasts') > 0,
+
+    // Define updated time window
+    Option clear = tt_forecast;
+    tt_forecast(t_full(t))${    ord(t) >= ord(tSolve)
+                                and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_forecastLengthUnchanging') + mSettings(mSolve, 't_forecastJump')
+                                }
+        = yes;
 
     // Define updated time window
     Option clear = tt;

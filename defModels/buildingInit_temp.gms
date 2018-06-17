@@ -73,9 +73,9 @@ if (mType('building'),
 
     // Define forecast properties and features
     mSettings('building', 't_forecastStart') = 0;
-    mSettings('building', 't_forecastLength') = 0;
+    mSettings('building', 't_forecastLengthUnchanging') = 0;  // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
+    mSettings('building', 't_forecastLengthDecreasesFrom') = 0;  // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
     mSettings('building', 't_forecastJump') = 0;
-    mSettings('building', 'readForecastsInTheLoop') = 0;
 
     // Define Realized and Central forecasts
 *    mf_realization('building', f) = no;

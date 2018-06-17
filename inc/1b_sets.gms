@@ -123,6 +123,9 @@ Sets
     gnuGroup(grid, node, unit, group) "Grid, node, unit combinations in particular groups"
     gn2nGroup(grid, node, node, group) "Transfer links in particular groups"
     gnGroup(grid, node, group) "Grid, node combinations in particular gngroups"
+
+* --- Set of timeseries that will be read from files between solves
+    mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"
 ;
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 Option clear = modelSolves;

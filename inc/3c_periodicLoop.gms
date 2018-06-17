@@ -124,7 +124,7 @@ $endif.debug
 
 // Determine the timesteps of the current solve
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 used only for initial values
-tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
+tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLengthUnchanging'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
 Option clear = t_current;
 t_current(t_full(t))${  ord(t) >= tSolveFirst
                         and ord (t) <= tSolveLast
@@ -148,6 +148,10 @@ tCounter = 1;
 // Determine the set of active interval counters
 cc(counter)${ mInterval(mSolve, 'intervalLength', counter) }
     = yes;
+
+currentForecastLength = min(  mSettings(mSolve, 't_forecastLengthUnchanging'),  // Unchanging forecast length would remain the same
+                              mSettings(mSolve, 't_forecastLengthDecreasesFrom') - [mSettings(mSolve, 't_forecastJump') - {tForecastNext(mSolve) - tSolveFirst}] // While decreasing forecast length has a fixed horizon point and thus gets shorter
+                           );   // Smallest forecast horizon is selected
 
 // Loop over the defined intervals
 loop(cc(counter),
@@ -185,7 +189,7 @@ loop(cc(counter),
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
                                                             and not mf_realization(mSolve, f_solve)
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and ord(t) < tSolveFirst + mSettings(mSolve, 't_forecastLength')
+                                                            and ord(t) < tSolveFirst + currentForecastLength
                                                             }
                 = yes;
 
@@ -246,7 +250,7 @@ loop(cc(counter),
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
                                                             and not mf_realization(mSolve, f_solve)
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and ord(t) < tSolveFirst + mSettings(mSolve, 't_forecastLength')
+                                                            and ord(t) < tSolveFirst + currentForecastLength
                                                             }
                 = yes;
 
@@ -351,7 +355,7 @@ df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump'
 
 // Forecast displacement between central and forecasted timesteps at the end of forecast horizon
 Option clear = df_central; // This can be reset.
-df_central(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLength') - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'intervalInHours')
+df_central(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLengthUnchanging') - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'intervalInHours')
                         and not mf_realization(mSolve, f)
                         }
     = sum(mf_central(mSolve, f_), ord(f_) - ord(f));

@@ -49,7 +49,7 @@ loop((m, feature)$active(m, feature),
 put /;
 f_info.nd = 0; // Set number of decimals to zero
 put "Start time:                 ", mSettings('schedule', 't_start')/;
-put "Length of forecasts:        ", mSettings('schedule', 't_forecastLength')/;
+put "Length of forecasts:        ", mSettings('schedule', 't_forecastLengthUnchanging')/;
 put "Model horizon:              ", mSettings('schedule', 't_horizon')/;
 put "Model jumps after solve:    ", mSettings('schedule', 't_jump')/;
 put "Last time period to solve:  ", mSettings('schedule', 't_end')/;
