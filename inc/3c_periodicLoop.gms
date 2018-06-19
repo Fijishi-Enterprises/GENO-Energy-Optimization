@@ -333,7 +333,7 @@ mft_start(mf_realization(mSolve, f), tSolve)
 ;
 // Last steps of model fts
 Option clear = mft_lastSteps;
-mft_lastSteps(mSolve, ft(f,t))${ ord(t) + p_stepLength(mSolve, f, t) / mSettings(mSolve, 'intervalInHours') = tSolveLast }
+mft_lastSteps(mSolve, ft(f,t))${ ord(t) + p_stepLength(mSolve, f, t) / mSettings(mSolve, 'intervalInHours') >= tSolveLast }
     = yes
 ;
 
