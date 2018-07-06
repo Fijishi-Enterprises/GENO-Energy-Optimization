@@ -82,7 +82,6 @@ v_invest_MIP
 
     // Unit Operation
     q_maxDownward
-    q_noReserveInRunUp
     q_maxUpward
     q_startshut
     q_startuptype

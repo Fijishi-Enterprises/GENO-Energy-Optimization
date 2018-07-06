@@ -223,37 +223,6 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + m
             ] // END * p_unit(availability)
 ;
 
-// Not sure if this is needed because we already have q_maxDownward
-q_noReserveInRunUp(m, gnuft(grid, node, unit, f, t))$[   ord(t) < tSolveFirst + mSettings(m, 't_reserveLength') // Unit is both providing
-                                                    and sum(restype, nuRescapable(restype, 'up', node, unit)) // upward reserves
-                                                    and p_u_runUpTimeIntervals(unit)   // and unit has run up constraint
-                                                    ]..
-    v_gen(grid, node, unit, f, t)
-    =G=
-    + p_gnu(grid, node, unit, 'unitSizeGen')
-        * sum(t_activeNoReset(t_)$(ord(t_) > ord(t) + dt_toStartup(unit, t) and ord(t_) <= ord(t) and uft_online(unit, f, t_)),
-            + sum(unitStarttype(unit, starttype),
-                + v_startup(unit, starttype, f+df_central(f,t), t_) * sum(t__${ord(t__) = ord(t) - ord(t_) + 1}, p_ut_runUp(unit, t__))  //t+dtt(t,t_)
-            )
-          )$p_u_runUpTimeIntervals(unit)
-
-$ontext
-    p_nuReserves(node, unit, resType, 'up')
-      * (
-          + p_unit(unit, 'unitCount')
-          + sum(t_invest(t_)${ ord(t_)<=ord(t) },
-               + v_invest_LP(unit, t_)${unit_investLP(unit)} // NOTE! v_invest_LP also for consuming units is positive
-               + v_invest_MIP(unit, t_)${unit_investMIP(unit)} // NOTE! v_invest_MIP also for consuming units is positive
-            ) // END sum(t_invest)
-          - sum(t_$(ord(t_) >= ord(t) + dt_toStartup(unit, t) and ord(t_) < ord(t) and uft_online(unit, f, t_)),
-              + sum(unitStarttype(unit, starttype),
-                  + v_startup(unit, starttype, f+df_central(f,t), t_)
-                )
-            )
-        ) * p_gnu(grid, node, unit, 'unitSizeGen')
-$offtext
-;
-
 * --- Maximum Upwards Capacity ------------------------------------------------
 
 q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSettings(m, 't_reserveLength') // Unit is either providing

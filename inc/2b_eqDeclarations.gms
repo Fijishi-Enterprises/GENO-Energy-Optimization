@@ -47,7 +47,6 @@ equations
 
     // Unit Operation
     q_maxDownward(mType, grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
-    q_noReserveInRunUp(mType, grid, node, unit, f, t)
     q_maxUpward(mType, grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
     q_startshut(mType, unit, f, t) "Online cap. now minus online cap in the previous time step is equal to started up minus shut down capacity"
     q_startuptype(mType, starttype, unit, f, t) "Startup type depends on the time the unit has been non-operational"
