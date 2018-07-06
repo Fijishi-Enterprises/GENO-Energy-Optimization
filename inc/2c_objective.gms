@@ -15,7 +15,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-* --- Objective Function ------------------------------------------------------
+
+* =============================================================================
+* --- Objective Function Definition -------------------------------------------
+* =============================================================================
+
 q_obj ..
 
     + v_obj * 1e6
