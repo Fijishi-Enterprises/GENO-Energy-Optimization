@@ -50,7 +50,8 @@ Sets
 
         // Features
         t_reserveLength, // Length of reserve provision horizon in time steps
-        t_aggregate // Unit aggregation threshold time index
+        t_aggregate, // Unit aggregation threshold time index
+        results_t_start  // time period where results outputting starts
         /
 
     // Solve info
