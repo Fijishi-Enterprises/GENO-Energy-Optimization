@@ -264,6 +264,11 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     unitSizeMVA "Generator MVA rating (MVA)"
 /
 
+param_gnuBoundaryProperties "Properties that can be set for the different boundaries" /
+    rampLimit    "Maximum ramp speed (p.u. / min)"
+    rampCost     "Wear and tear cost of ramping up (€/MW)"
+/
+
 param_unit "Set of possible data parameters for units" /
     unitCount   "Number of subunits if aggregated"
     outputCapacityTotal "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"

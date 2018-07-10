@@ -444,10 +444,10 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationHours'
 ;
 
 * --- Ramp Constraints --------------------------------------------------------
-q_genRamp(m, gn(grid, node), s, uft(unit, f, t))${  gnuft_ramp(grid, node, unit, f, t)
-                                                    and ord(t) > msStart(m, s) + 1
-                                                    and msft(m, s, f, t)
-                                                    } ..
+
+q_genRamp(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s) + 1
+                                                       and msft(m, s, f, t)
+                                                       } ..
 
     + v_genRamp(grid, node, unit, f, t)
         * p_stepLength(m, f, t)
@@ -458,11 +458,11 @@ q_genRamp(m, gn(grid, node), s, uft(unit, f, t))${  gnuft_ramp(grid, node, unit,
 ;
 
 * --- Ramp Up Limits ----------------------------------------------------------
-q_rampUpLimit(m, gn(grid, node), s, uft(unit, f, t))${  gnuft_ramp(grid, node, unit, f, t)
-                                                        and ord(t) > msStart(m, s) + 1
-                                                        and msft(m, s, f, t)
-                                                        and p_gnu(grid, node, unit, 'maxRampUp')
-                                                   } ..
+
+q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s) + 1
+                                                           and msft(m, s, f, t)
+                                                           and p_gnu(grid, node, unit, 'maxRampUp')
+                                                           } ..
   + v_genRamp(grid, node, unit, f, t)
   + sum(nuRescapable(restype, 'up', node, unit)${ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')},
       + v_reserve(restype, 'up', node, unit, f+df_nReserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
@@ -518,11 +518,11 @@ q_rampUpLimit(m, gn(grid, node), s, uft(unit, f, t))${  gnuft_ramp(grid, node, u
 ;
 
 * --- Ramp Down Limits --------------------------------------------------------
-q_rampDownLimit(gn(grid, node), m, s, uft(unit, f, t))${    gnuft_ramp(grid, node, unit, f, t)
-                                                            and ord(t) > msStart(m, s) + 1
-                                                            and msft(m, s, f, t)
-                                                            and p_gnu(grid, node, unit, 'maxRampDown')
-                                                            } ..
+
+q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s) + 1
+                                                             and msft(m, s, f, t)
+                                                             and p_gnu(grid, node, unit, 'maxRampDown')
+                                                             } ..
   + v_genRamp(grid, node, unit, f, t)
   - sum(nuRescapable(restype, 'down', node, unit)${ord(t) < tSolveFirst + mSettings(m, 't_reserveLength')},
       + v_reserve(restype, 'down', node, unit, f+df_nReserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
@@ -553,6 +553,79 @@ q_rampDownLimit(gn(grid, node), m, s, uft(unit, f, t))${    gnuft_ramp(grid, nod
       * p_gnu(grid, node, unit, 'unitSizeTot')
 ;
 
+* --- Ramps separated into upward and downward ramps --------------------------
+
+q_rampUpDown(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s) + 1
+                                                          and msft(m, s, f, t)
+                                                          and sum(slack, gnuft_rampCost(grid, node, unit, slack, f, t))
+                                                          } ..
+
+  + v_genRamp(grid, node, unit, f, t)
+
+  =E=
+
+  // Upward and downward ramp categories
+  + sum(slack${ gnuft_rampCost(grid, node, unit, slack, f, t) },
+      + v_genRampUpDown(grid, node, unit, slack, f, t)$upwardSlack(slack)
+      - v_genRampUpDown(grid, node, unit, slack, f, t)$downwardSlack(slack)
+    ) // END sum(slack)
+;
+
+* --- Upward and downward ramps constrained by slack boundaries -----------------------
+
+q_rampSlack(m, s, gnuft_rampCost(grid, node, unit, slack, f, t))${  ord(t) > msStart(m, s) + 1
+                                                                    and msft(m, s, f, t)
+                                                                    } ..
+
+  + v_genRampUpDown(grid, node, unit, slack, f, t)
+
+  =L=
+
+    // Ramping capability of units without an online variable
+  + (
+      + ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f, t)}
+      + sum(t_invest(t_)${ ord(t_)<=ord(t) },
+          + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f, t) and unit_investLP(unit)}
+              * p_gnu(grid, node, unit, 'unitSizeTot')
+          + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f, t) and unit_investMIP(unit)}
+              * p_gnu(grid, node, unit, 'unitSizeTot')
+        )
+    )
+      * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
+      * 60   // Unit conversion from [p.u./min] to [p.u./h]
+
+    // Ramping capability of units with an online variable
+  + (
+      + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+      + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+    )
+      * p_gnu(grid, node, unit, 'unitSizeTot')
+      * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
+      * 60   // Unit conversion from [p.u./min] to [p.u./h]
+
+    // Units that are in the run-up phase need to keep up with the run-up ramp rate (contained in p_ut_runUp)
+  + p_gnu(grid, node, unit, 'unitSizeGen')
+      * sum(t_activeNoReset(t_)${   ord(t_) >= ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
+                                    and ord(t_) <= ord(t) and uft_online(unit, f, t)},
+          + sum(unitStarttype(unit, starttype),
+              + v_startup(unit, starttype, f+df_central(f,t), t_)
+                  * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
+                  * 60   // Unit conversion from [p.u./min] to [p.u./h]
+            ) // END sum(unitStarttype)
+        )$p_u_runUpTimeIntervals(unit) // END sum(t_)
+
+    // Shutdown of consumption units from full load
+  + v_shutdown(unit, f+df_central(f,t), t)${uft_online(unit, f, t) and gnu_input(grid, node, unit)}
+      * p_gnu(grid, node, unit, 'unitSizeTot')
+      * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
+      * 60   // Unit conversion from [p.u./min] to [p.u./h]
+
+    // Shutdown of generation units from full load
+  + v_shutdown(unit, f+df_central(f,t), t)${uft_online(unit, f, t) and gnu_output(grid, node, unit)}
+      * p_gnu(grid, node, unit, 'unitSizeTot')
+      * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
+      * 60   // Unit conversion from [p.u./min] to [p.u./h]
+;
 
 * --- Fixed Output Ratio ------------------------------------------------------
 

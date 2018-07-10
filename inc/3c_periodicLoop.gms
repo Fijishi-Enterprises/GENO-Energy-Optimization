@@ -39,6 +39,7 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = v_fuelUse;
     Option clear = v_startup;
     Option clear = v_shutdown;
+    Option clear = v_genRampUpDown;
     Option clear = v_spill;
     Option clear = v_transferRightward;
     Option clear = v_transferLeftward;
@@ -72,6 +73,8 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = q_genRamp;
     Option clear = q_rampUpLimit;
     Option clear = q_rampDownLimit;
+    Option clear = q_rampUpDown;
+    Option clear = q_rampSlack;
     Option clear = q_outputRatioFixed;
     Option clear = q_outputRatioConstrained;
     Option clear = q_conversionDirectInputOutput;
@@ -391,12 +394,17 @@ Option clear = gnuft;
 gnuft(gn(grid, node), uft(unit, f, t))${    nuft(node, unit, f, t)  }
     = yes
 ;
+// Active (grid, node, unit, slack, up_down) on each forecast-time step with ramp restrictions
+Option clear = gnuft_rampCost;
+gnuft_rampCost(gnu(grid, node, unit), slack, ft(f, t))${ gnuft(grid, node, unit, f, t)
+                                                         and p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
+                                                         }
+    = yes;
 // Active (grid, node, unit) on each forecast-time step with ramp restrictions
 Option clear = gnuft_ramp;
 gnuft_ramp(gnuft(grid, node, unit, f, t))${ p_gnu(grid, node, unit, 'maxRampUp')
                                             OR p_gnu(grid, node, unit, 'maxRampDown')
-                                            OR p_gnu(grid, node, unit, 'rampUpCost')
-                                            OR p_gnu(grid, node, unit, 'rampDownCost')
+                                            OR sum(slack, gnuft_rampCost(grid, node, unit, slack, f, t))
                                             }
     = yes;
 

@@ -67,6 +67,7 @@ v_online_LP
 v_online_MIP
 v_startup
 v_shutdown
+v_genRampUpDown
 v_resTransferRightward
 v_resTransferLeftward
 v_reserve
@@ -92,6 +93,8 @@ v_invest_MIP
     q_genRamp
     q_rampUpLimit
     q_rampDownLimit
+    q_rampUpDown
+    q_rampSlack
     q_outputRatioFixed
     q_outputRatioConstrained
     q_conversionDirectInputOutput

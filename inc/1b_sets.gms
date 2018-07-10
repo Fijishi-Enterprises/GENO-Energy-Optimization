@@ -110,6 +110,7 @@ Sets
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later time periods"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"
+    gnuft_rampCost(grid, node, unit, slack, f, t) "Units with ramp costs"
     suft(effSelector, unit, f, t) "Selecting conversion efficiency equations"
     sufts(effSelector, unit, f, t, effSelector) "Selecting conversion efficiency equations"
     effGroup(effSelector) "Group name for efficiency selector set, e.g. DirectOff and Lambda02"

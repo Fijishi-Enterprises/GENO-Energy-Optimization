@@ -36,6 +36,8 @@ Model schedule /
     q_genRamp
     q_rampUpLimit
     q_rampDownLimit
+    q_rampUpDown
+    q_rampSlack
     q_outputRatioFixed
     q_outputRatioConstrained
     q_conversionDirectInputOutput

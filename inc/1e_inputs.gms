@@ -33,6 +33,7 @@ $loaddc effLevelGroupUnit
 $loaddc p_gn
 $loaddc p_gnn
 $loaddc p_gnu
+$loaddc p_gnuBoundaryProperties
 $loaddc p_unit
 $loaddc ts_unit
 $loaddc restype
