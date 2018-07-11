@@ -328,6 +328,39 @@ loop(m,
 ); // END loop(m)
 
 loop(m,
+    loop(unit$(p_unit(unit, 'rampSpeedFromMinLoad') and p_unit(unit,'op00')),
+        // Calculate time intervals needed for the shutdown phase
+        tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedFromMinLoad') * 60) ] / mSettings(m, 'intervalInHours');
+        p_u_shutdownTimeIntervals(unit) = tmp;
+        p_u_shutdownTimeIntervalsCeil(unit) = ceil(p_u_shutdownTimeIntervals(unit))
+
+        // Calculate output during the shutdown phase
+        loop(t${ord(t)<=p_u_shutdownTimeIntervalsCeil(unit)},
+            p_ut_shutdown(unit, t) =
+              + p_unit(unit, 'rampSpeedFromMinLoad') * (ceil(p_u_shutdownTimeIntervals(unit) - ord(t) + 1))
+              * 60 // Unit conversion from [p.u./min] to [p.u./h]
+              * mSettings(m, 'intervalInHours')
+        );
+
+        // Combine output in the second interval and the weighted average of rampSpeedFromMinLoad and maxRampDown
+        p_u_maxOutputInFirstShutdownInterval(unit) =
+            (
+              + p_unit(unit, 'rampSpeedFromMinLoad') * (tmp-floor(tmp)) * mSettings(m, 'intervalInHours')
+              + smin(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampDown')) * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
+            )
+              * 60 // Unit conversion from [p.u./min] to [p.u./h]
+              + sum(t${ord(t) = 2}, p_ut_shutdown(unit, t));
+
+        // Maximum output in the first time interval of the shutdown phase can't exceed the maximum capacity
+        p_u_maxOutputInFirstShutdownInterval(unit) = min(p_u_maxOutputInFirstShutdownInterval(unit), 1);
+
+        // Minimum output in the first time interval of the shutdown phase equals minimum load
+        p_ut_shutdown(unit, t)${ord(t) = 1} = p_unit(unit,'op00');
+
+    ) // END loop(unit)
+); // END loop(m)
+
+loop(m,
     // Loop over units with online approximations in the model
     loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit)${mSettingsEff(m, effLevel)},
         // Loop over the constrained starttypes

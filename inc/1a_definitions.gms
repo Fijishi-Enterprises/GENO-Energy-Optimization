@@ -284,6 +284,7 @@ param_unit "Set of possible data parameters for units" /
     startColdAfterXhours   "Offline hours after which the start-up will be a cold start (h)"
     startWarmAfterXhours   "Offline hours after which the start-up will be a warm start (h)"
     rampSpeedToMinLoad "Ramping speed from start-up to minimum load (p.u. / min.)"
+    rampSpeedFromMinLoad "Ramping speed from shutdown decision to zero load (p.u. / min.)" 
     minOperationHours "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
     minShutdownHours "Minimum shut down time (h), prevents starting up again after the defined amount of time has passed"
     SO2         "SO2 emissions (tonne per MWh_fuel)"

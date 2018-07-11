@@ -52,6 +52,10 @@ p_u_maxOutputInLastRunUpInterval
 p_u_runUpTimeIntervals
 dt_toStartup
 p_ut_runUp
+p_u_maxOutputInFirstShutdownInterval
+p_u_shutdownTimeIntervals
+dt_toShutdown
+p_ut_shutdown
 
 * Variables
 v_obj

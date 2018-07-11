@@ -64,6 +64,10 @@ Parameters
     p_u_runUpTimeIntervals(unit) "Time intervals required for the run-up phase"
     p_u_runUpTimeIntervalsCeil(unit) "Ceiling of time intervals required for the run-up phase"
     p_ut_runUp(unit, t) "Output for the time intervals where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
+    p_u_maxOutputInFirstShutdownInterval(unit) "Maximum output in the first interval for the shutdown from min. load (p.u.)"
+    p_u_shutdownTimeIntervals(unit) "Time intervals required for the shutdown phase"
+    p_u_shutdownTimeIntervalsCeil(unit) "Ceiling of time intervals required for the shutdown phase"
+    p_ut_shutdown(unit, t) "Output for the time intervals where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
 // Time dependent unit & fuel parameters
     ts_unit(unit, *, f, t) "Time dependent unit data, where energy type doesn't matter"
     ts_effUnit(effSelector, unit, effSelector, *, f, t) "Time dependent data for piece-wise linear efficiency blocks"
@@ -91,6 +95,7 @@ Parameters
     dt_next(t) "Displacement needed to reach the next time period (in time periods)"
     dtt(t, t) "Displacement needed to reach any previous time period (in time periods)"
     dt_toStartup(unit, t) "Displacement from the current time period to the time period where the unit has been started up in case online variable changes from 0 to 1"
+    dt_toShutdown(unit, t) "Displacement from the current time period to the time period where the shutdown phase was started in case generation becomes 0"
     dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints"
     dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints"
     dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints"

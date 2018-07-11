@@ -503,3 +503,31 @@ loop(unit$(p_u_runUpTimeIntervals(unit)),
         );
     );
 );
+
+* -----------------------------------------------------------------------------
+* --- Displacements for shutdown decisions ------------------------------------
+* -----------------------------------------------------------------------------
+
+// Calculate dt_toShutdown: in case the generation of the unit becomes zero in
+// the current time period, displacement needed to reach the time period where
+// the shutdown decisions was made
+Option clear = dt_toShutdown;
+loop(unit$(p_u_shutdownTimeIntervals(unit)),
+    loop(t_active(t),
+        tmp = 1;
+        loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_shutdownTimeIntervals(unit) // time periods after the shutdown decision
+                                    and ord(t_) <= ord(t) // time periods before and including the current time period
+                                    and tmp = 1
+                                    },
+            if (-dtt(t,t_) < p_u_shutdownTimeIntervals(unit), // if the displacement between the two time periods is smaller than the number of time periods required for shutdown phase
+                dt_toShutdown(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time period just before the time period found
+                tmp = 0;
+            );
+        );
+        if (tmp = 1,
+            dt_toShutdown(unit, t) = dt(t);
+            tmp=0;
+        );
+    );
+);
+
