@@ -109,8 +109,6 @@ gnu(grid, node, unit)${ p_gnu(grid, node, unit, 'maxGen')
                         or p_gnu(grid, node, unit, 'maxCons')
                         or p_gnu(grid, node, unit, 'unitSizeGen')
                         or p_gnu(grid, node, unit, 'unitSizeCons')
-                        or p_gnu(grid, node, unit, 'maxGenCap')
-                        or p_gnu(grid, node, unit, 'maxConsCap')
                         }
     = yes;
 // Reduce the grid dimension
@@ -118,12 +116,10 @@ nu(node, unit) = sum(grid, gnu(grid, node, unit));
 
 // Separation of gnu into inputs and outputs
 gnu_output(gnu(grid, node, unit))${ p_gnu(grid, node, unit, 'maxGen')
-                                    or p_gnu(grid, node, unit, 'maxGenCap')
                                     or p_gnu(grid, node, unit, 'unitSizeGen')
                                     }
     = yes;
 gnu_input(gnu(grid, node, unit))${  p_gnu(grid, node, unit, 'maxCons')
-                                    or p_gnu(grid, node, unit, 'maxConsCap')
                                     or p_gnu(grid, node, unit, 'unitSizeCons')
                                     }
     = yes;
@@ -208,8 +204,6 @@ p_gnu(grid, node, unit, 'unitSizeCons')${   p_gnu(grid, node, unit, 'maxCons')
     = p_gnu(grid, node, unit, 'maxCons') / p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
 p_gnu(grid, node, unit, 'unitSizeTot')
     = p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons');
-p_gnu(grid, node, unit, 'unitSizeGenNet')
-    = p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons');
 
 // Determine unit startup parameters based on data
 // Hot startup parameters
@@ -217,10 +211,10 @@ p_uNonoperational(unitStarttype(unit, 'hot'), 'min')
     = p_unit(unit, 'minShutdownHours');
 p_uNonoperational(unitStarttype(unit, 'hot'), 'max')
     = p_unit(unit, 'startWarmAfterXhours');
-p_uStartup(unitStarttype(unit, 'hot'), 'cost', 'unit')
+p_uStartup(unitStarttype(unit, 'hot'), 'cost')
     = p_unit(unit, 'startCostHot')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
-p_uStartup(unitStarttype(unit, 'hot'), 'consumption', 'unit')
+p_uStartup(unitStarttype(unit, 'hot'), 'consumption')
     = p_unit(unit, 'startFuelConsHot')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
@@ -229,27 +223,27 @@ p_uNonoperational(unitStarttype(unit, 'warm'), 'min')
     = p_unit(unit, 'startWarmAfterXhours');
 p_uNonoperational(unitStarttype(unit, 'warm'), 'max')
     = p_unit(unit, 'startColdAfterXhours');
-p_uStartup(unitStarttype(unit, 'warm'), 'cost', 'unit')
+p_uStartup(unitStarttype(unit, 'warm'), 'cost')
     = p_unit(unit, 'startCostWarm')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
-p_uStartup(unitStarttype(unit, 'warm'), 'consumption', 'unit')
+p_uStartup(unitStarttype(unit, 'warm'), 'consumption')
     = p_unit(unit, 'startFuelConsWarm')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Cold startup parameters
 p_uNonoperational(unitStarttype(unit, 'cold'), 'min')
     = p_unit(unit, 'startColdAfterXhours');
-p_uStartup(unit, 'cold', 'cost', 'unit')
+p_uStartup(unit, 'cold', 'cost')
     = p_unit(unit, 'startCostCold')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
-p_uStartup(unit, 'cold', 'consumption', 'unit')
+p_uStartup(unit, 'cold', 'consumption')
     = p_unit(unit, 'startFuelConsCold')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Determine unit emission costs
 p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_fuel, param_fuel, fuel)) }
     = p_fuelEmission(fuel, emission)
-        / 1e3 // NOTE!!! Conversion to t/MWh from t/GWh in data
+        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
         * sum(gnu_output(grid, node, unit_fuel),
             + p_gnPolicy(grid, node, 'emissionTax', emission)  // Weighted average of emission costs from different output energy types
                 * [ + p_gnu(grid, node, unit_fuel, 'maxGen')

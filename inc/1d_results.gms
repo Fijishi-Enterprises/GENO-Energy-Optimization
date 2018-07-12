@@ -24,7 +24,7 @@ Parameters
 * --- Cost Results ------------------------------------------------------------
 
     // Total Objective Function
-    r_totalObj "Total operating cost over the simulation (€)" / 0 /
+    r_totalObj "Total operating cost over the simulation (EUR)" / 0 /
 
     // Unit Operational Cost Components
     r_gnuVOMCost(grid, node, unit, f, t) "Variable O&M costs for energy outputs (MEUR)"
@@ -52,13 +52,13 @@ Parameters
 * --- Node Results ------------------------------------------------------------
 
     // State variable results, required for model structure
-    r_state(grid, node, f, t) "Node state at timestep t"
+    r_state(grid, node, f, t) "Node state at time step t"
     // State variable slack values
-    r_stateSlack(grid, node, slack, f, t) "Note state slack at timestep t"
+    r_stateSlack(grid, node, slack, f, t) "Note state slack at time step t"
 
     // Energy transfer and spill variable results
     r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
-    r_spill(grid, node, f, t) "Spill of energy from storage node during time period (MWh)"
+    r_spill(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
 
     // Interesting node related results
     r_balanceMarginal(grid, node, f, t) "Marginal values of the q_balance equation"
@@ -100,9 +100,9 @@ Parameters
 * --- Unit Online State Results -----------------------------------------------
 
     // Online results required for model structure
-    r_online(unit, f, t) "Units online"
-    r_startup(unit, starttype, f, t) "Units started up"
-    r_shutdown(unit, f, t) "Units shut down"
+    r_online(unit, f, t) "Sub-units online"
+    r_startup(unit, starttype, f, t) "Sub-units started up"
+    r_shutdown(unit, f, t) "Sub-units shut down"
 
     // Interesting unit online results
     r_uTotalOnline(unit) "Total online sub-unit-hours of units over the simulation"
@@ -128,7 +128,7 @@ Parameters
 * --- Investment Results ------------------------------------------------------
 
     // Interesting investment results
-    r_unitInvestment(unit) "Number/amount of invested units"
+    r_unitInvestment(unit) "Number/amount of invested sub-units"
 
 * --- Dummy Variable Results --------------------------------------------------
 

@@ -83,11 +83,11 @@ q_obj ..
                     + sum(unitStarttype(unit, starttype),
                         + v_startup(unit, starttype, f+df_central(f,t), t) // Cost of starting up
                             * [ // Startup variable costs
-                                + p_uStartup(unit, starttype, 'cost', 'unit')
+                                + p_uStartup(unit, starttype, 'cost')
 
                                 // Start-up fuel and emission costs
                                 + sum(uFuel(unit, 'startup', fuel),
-                                    + p_uStartup(unit, starttype, 'consumption', 'unit')  //${ not unit_investLP(unit) }  WHY THIS CONDITIONAL WOULD BE NEEDED?
+                                    + p_uStartup(unit, starttype, 'consumption')
                                         * [
                                             + ts_fuelPrice_(fuel, t)
                                             + sum(emission, // Emission taxes of startup fuel use
