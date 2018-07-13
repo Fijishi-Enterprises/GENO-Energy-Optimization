@@ -38,6 +38,12 @@ loop(m,
         = yes;
 
 * --- Samples and Forecasts ---------------------------------------------------
+$ontext
+    // Check that forecast length is feasible
+    if(mSettings(m, 't_forecastLength') > mSettings(m, 't_horizon'),
+        abort "t_forecastLength should be less than or equal to t_horizon";
+    );
+$offtext
 
     // Set the time for the next available forecast.
     tForecastNext(m) = mSettings(m, 't_forecastStart');
@@ -283,7 +289,11 @@ loop(m,
     );
 );
 
-* --- Unit Startup and Shutdown Counters --------------------------------------
+* =============================================================================
+* --- Initialize Unit Startup and Shutdown Counters ---------------------------
+* =============================================================================
+
+* --- Unit Start-up Generation Levels -----------------------------------------
 
 loop(m,
     loop(unit$(p_unit(unit, 'rampSpeedToMinLoad') and p_unit(unit,'op00')),
@@ -327,6 +337,8 @@ loop(m,
     ) // END loop(unit)
 ); // END loop(m)
 
+* --- Unit Shutdown Generation Levels -----------------------------------------
+
 loop(m,
     loop(unit$(p_unit(unit, 'rampSpeedFromMinLoad') and p_unit(unit,'op00')),
         // Calculate time intervals needed for the shutdown phase
@@ -360,12 +372,14 @@ loop(m,
     ) // END loop(unit)
 ); // END loop(m)
 
+* --- Unit Startup and Shutdown Counters --------------------------------------
+
 loop(m,
     // Loop over units with online approximations in the model
     loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit)${mSettingsEff(m, effLevel)},
-        // Loop over the constrained starttypes
+        // Loop over the constrained start types
         loop(starttypeConstrained(starttype),
-            // Find the time step displacements needed to define the startup time frame
+            // Find the time step displacements needed to define the start-up time frame
             Option clear = cc;
             cc(counter)${   ord(counter) <= p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'intervalInHours')
                             and ord(counter) > p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'intervalInHours')
@@ -374,9 +388,12 @@ loop(m,
             dt_starttypeUnitCounter(starttype, unit, cc(counter)) = - ord(counter);
         ); // END loop(starttypeConstrained)
 
-        // Find the time step displacements needed to define the downtime requirements (include run-up phase)
+        // Find the time step displacements needed to define the downtime requirements (include run-up phase and shutdown phase)
         Option clear = cc;
-        cc(counter)${ ord(counter) <= ceil(p_unit(unit, 'minShutdownHours') / mSettings(m, 'intervalInHours')) + ceil(p_u_runUpTimeIntervals(unit)) }
+        cc(counter)${   ord(counter) <= ceil(p_unit(unit, 'minShutdownHours') / mSettings(m, 'intervalInHours'))
+                                        + ceil(p_u_runUpTimeIntervals(unit))
+                                        + ceil(p_u_shutdownTimeIntervals(unit))
+                        }
             = yes;
         dt_downtimeUnitCounter(unit, cc(counter)) = - ord(counter);
 
@@ -399,17 +416,6 @@ loop(fuel,
     Option clear = tt;
     tt(t_full(t))${ ts_fuelPriceChange(fuel ,t) }
         = yes;
-    ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
-); // END loop(fuel)
-
-* --- Calculating fuel price time series --------------------------------------
-
-loop(fuel,
-    // Determine the time steps where the prices change
-    Option clear = tt;
-    tt(t_full(t))${ ts_fuelPriceChange(fuel, t) }
-        = yes;
-    // Calculate the fuel price time series based on the input price changes
     ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
 ); // END loop(fuel)
 

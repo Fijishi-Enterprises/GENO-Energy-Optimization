@@ -65,13 +65,14 @@ v_transfer
 v_state
 v_fuelUse
 v_sos2
-v_startup
 v_spill
 v_online_LP
 v_online_MIP
 v_startup
 v_shutdown
 v_genRampUpDown
+v_transferRightward
+v_transferLeftward
 v_resTransferRightward
 v_resTransferLeftward
 v_reserve
@@ -120,7 +121,18 @@ v_invest_MIP
     q_boundStateMaxDiff
     q_boundCyclic
 
+    // Policy
+    q_inertiaMin
+    q_instantaneousShareMax
+    q_constrainedOnlineMultiUnit
+    q_capacityMargin
+    q_constrainedCapMultiUnit
+    q_emissioncap
+    q_energyShareMax
+    q_energyShareMin
+
 * Dummy variables
 vq_gen
 vq_resDemand
+vq_resMissing
 v_stateSlack
