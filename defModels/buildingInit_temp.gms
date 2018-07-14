@@ -109,6 +109,6 @@ if (mType('building'),
 
 * ---- Define output settings for results
 
-    // Define when to start outputting results - allows to skip an initialization period. Uses ord(t) >= results_t_start in the code.
+    // Define when to start outputting results - allows to skip an initialization period. Uses ord(t) > results_t_start in the code.
     mSettings('schedule', 'results_t_start') = 1;
 ); // END if(mType)
