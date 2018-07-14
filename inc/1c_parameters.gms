@@ -38,7 +38,8 @@ Scalars
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
     f_improve / 12 /
-    tRealizedLast "counter (ord) for the last realized t in the solve";
+    tRealizedLast "counter (ord) for the last realized t in the solve"
+    firstResultsOutputSolve /1/;
 ;
 
 * --- Power plant and fuel data -----------------------------------------------
