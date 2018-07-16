@@ -24,72 +24,91 @@ $offtext
 
 * --- Result arrays required by model dynamics --------------------------------
 
+
+if(tSolveFirst >= mSettings(mSolve, 'results_t_start') - mSettings(mSolve, 't_jump') and firstResultsOutputSolve,
+    firstResultsOutputSolve = 0;
+    r_state(gn_state(grid, node), f_solve, t) $[ord(t) = mSettings(mSolve, 'results_t_start')]
+      = v_state.l(grid, node, f_solve, t);
+    r_online(unit, f_solve, t)$[unit_online(unit) and ord(t) = mSettings(mSolve, 'results_t_start')]
+      = v_online_LP.l(unit, f_solve, t)$unit_online_LP(unit)
+          + v_online_MIP.l(unit, f_solve, t)$unit_online_MIP(unit);
+);
 // Realized state history
-r_state(gn_state(grid, node), ft_realized(f, t))
+r_state(gn_state(grid, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = v_state.l(grid, node, f, t)
 ;
 // Realized unit online history
-r_online(uft_online(unit, ft_realized(f, t)))
+r_online(uft_online(unit, ft_realized(f, t)))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = v_online_LP.l(unit, f, t)${ uft_onlineLP(unit, f, t)    }
         + v_online_MIP.l(unit, f, t)${  uft_onlineMIP(unit, f, t)   }
 ;
 // Reserve provisions of units
-r_reserve(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${   mft_nReserves(node, restype, mSolve, f, t) or
-                                                                                   sum(f_, df_nReserves(node, restype, f_, t)) or
-                                                                                       [     ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                                                         and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(node, restype, 'update_frequency'))
-                                                                                         and tSolveFirst <= mSettings(mSolve, 't_end') - mSettings(mSolve, 't_jump')
-                                                                                       ]
-                                                                                    }
+r_reserve(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${   [ord(t) > mSettings(mSolve, 'results_t_start')] and
+                                                                                      (
+                                                                                        mft_nReserves(node, restype, mSolve, f, t) or
+                                                                                        sum(f_, df_nReserves(node, restype, f_, t)) or
+                                                                                            [       ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+                                                                                                and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(node, restype, 'update_frequency'))
+                                                                                                and tSolveFirst <= mSettings(mSolve, 't_end') - mSettings(mSolve, 't_jump')
+                                                                                            ]
+                                                                                      )
+                                                                               }
     = v_reserve.l(restype, up_down, node, unit, f, t)
 ;
 // Reserve transfer capacity
-r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${   restypeDirectionNode(restype, up_down, to_node)
-                                                                                                                and [   mft_nReserves(from_node, restype, mSolve, f, t)
-                                                                                                                    or sum(f_, df_nReserves(from_node, restype, f_, t))
-                                                                                                                    or [     ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                                                                                         and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(from_node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(from_node, restype, 'update_frequency'))
-                                                                                                                         and tSolveFirst <= mSettings(mSolve, 't_end') - mSettings(mSolve, 't_jump')
-                                                                                                                       ]
-                                                                                                                    ]
-                                                                                                                }
+r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${   [ord(t) > mSettings(mSolve, 'results_t_start')] and
+                                                                                                                (
+                                                                                                                    restypeDirectionNode(restype, up_down, to_node)
+                                                                                                                    and [   mft_nReserves(from_node, restype, mSolve, f, t)
+                                                                                                                        or sum(f_, df_nReserves(from_node, restype, f_, t))
+                                                                                                                        or [     ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+                                                                                                                             and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(from_node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(from_node, restype, 'update_frequency'))
+                                                                                                                             and tSolveFirst <= mSettings(mSolve, 't_end') - mSettings(mSolve, 't_jump')
+                                                                                                                           ]
+                                                                                                                        ]
+                                                                                                                )
+                                                                                                            }
     = v_resTransferRightward.l(restype, up_down, from_node, to_node, f, t)
 ;
-r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${    restypeDirectionNode(restype, up_down, to_node)
-                                                                                                                and [   mft_nReserves(from_node, restype, mSolve, f, t)
-                                                                                                                    or sum(f_, df_nReserves(from_node, restype, f_, t))
-                                                                                                                    or [     ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                                                                                         and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(from_node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(from_node, restype, 'update_frequency'))
-                                                                                                                         and tSolveFirst <= mSettings(mSolve, 't_end') - mSettings(mSolve, 't_jump')
-                                                                                                                       ]
-                                                                                                                    ]
-                                                                                                                }
+r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${   [ord(t) > mSettings(mSolve, 'results_t_start')] and
+                                                                                                                (
+                                                                                                                    {    restypeDirectionNode(restype, up_down, to_node)
+                                                                                                                    and [   mft_nReserves(from_node, restype, mSolve, f, t)
+                                                                                                                        or sum(f_, df_nReserves(from_node, restype, f_, t))
+                                                                                                                        or [     ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+                                                                                                                             and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(from_node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(from_node, restype, 'update_frequency'))
+                                                                                                                             and tSolveFirst <= mSettings(mSolve, 't_end') - mSettings(mSolve, 't_jump')
+                                                                                                                           ]
+                                                                                                                        ]
+                                                                                                                    }
+                                                                                                                )
+                                                                                                           }
     = v_resTransferLeftward.l(restype, up_down, from_node, to_node, f, t)
 ;
 // Unit startup and shutdown history
-r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t)  }
+r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t) and [ord(t) > mSettings(mSolve, 'results_t_start')] }
     = v_startup.l(unit, starttype, f, t)
 ;
-r_shutdown(uft_online(unit, ft_realized(f, t)))
+r_shutdown(uft_online(unit, ft_realized(f, t)))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = v_shutdown.l(unit, f, t)
 ;
 
 * --- Interesting results -----------------------------------------------------
 
 // Unit generation and consumption
-r_gen(gnuft(grid, node, unit, ft_realized(f, t)))
+r_gen(gnuft(grid, node, unit, ft_realized(f, t)))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = v_gen.l(grid, node, unit, f, t)
 ;
 // Fuel use of units
-r_fuelUse(fuel, uft(unit_fuel, ft_realized(f, t)))
+r_fuelUse(fuel, uft(unit_fuel, ft_realized(f, t)))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = v_fuelUse.l(fuel, unit_fuel, f, t)
 ;
 // Transfer of energy between nodes
-r_transfer(gn2n(grid, from_node, to_node), ft_realized(f, t))
+r_transfer(gn2n(grid, from_node, to_node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = v_transfer.l(grid, from_node, to_node, f, t)
 ;
 // Energy spilled from nodes
-r_spill(gn(grid, node), ft_realized(f, t))
+r_spill(gn(grid, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = v_spill.l(grid, node, f, t)
 ;
 // Total Objective function
@@ -97,15 +116,15 @@ r_totalObj
     = r_totalObj + v_obj.l
 ;
 // q_balance marginal values
-r_balanceMarginal(gn(grid, node), ft_realized(f, t))
+r_balanceMarginal(gn(grid, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = q_balance.m(grid, node, mSolve, f, t)
 ;
 // q_resDemand marginal values
-r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
+r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = q_resDemand.m(restype, up_down, node, f, t)
 ;
 // v_stateSlack values for calculation of realized costs later on
-r_stateSlack(gn_stateSlack(grid, node), slack, ft_realized(f, t))
+r_stateSlack(gn_stateSlack(grid, node), slack, ft_realized(f, t))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = v_stateSlack.l(grid, node, slack, f, t)
 ;
 // Unit investments
@@ -116,11 +135,11 @@ r_unitInvestment(unit)${unit_investLP(unit) or unit_investMIP(unit)}
 * --- Feasibility results -----------------------------------------------------
 
 // Dummy generation & consumption
-r_qGen(inc_dec, gn(grid, node), ft_realized(f, t))
+r_qGen(inc_dec, gn(grid, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = vq_gen.l(inc_dec, grid, node, f, t)
 ;
 // Dummy reserve demand changes
-r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
+r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = vq_resDemand.l(restype, up_down, node, f, t)
 ;
 

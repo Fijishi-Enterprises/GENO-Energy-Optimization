@@ -18,6 +18,7 @@ $offtext
 * --- Internal counters -------------------------------------------------------
 Scalars
     errorcount /0/
+    solveCount /0/
     tSolveFirst "counter (ord) for the first t in the solve"
     tSolveLast "counter for the last t in the solve"
     tCounter "counter for t" /0/
@@ -25,6 +26,7 @@ Scalars
     ts_length "Length of time series (t)"
     continueLoop "Helper to stop the looping early"
     intervalLength "Legnth of the interval to be calculated, considering end of modelling period"
+    currentForecastLength "Length of the forecast in the curren solve, minimum of unchanging and decreasing forecast lengths"
     count "General counter"
     count_lambda, count_lambda2 "Counter for lambdas"
     cum_slope "Cumulative for slope"
@@ -37,7 +39,8 @@ Scalars
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
     f_improve / 12 /
-    tRealizedLast "counter (ord) for the last realized t in the solve";
+    tRealizedLast "counter (ord) for the last realized t in the solve"
+    firstResultsOutputSolve /1/;
 ;
 
 * --- Power plant and fuel data -----------------------------------------------
@@ -136,10 +139,6 @@ Parameters
     ts_reserveDemand_(restype, up_down, node, f, t)
     ts_nodeState_(grid, node, param_gnBoundaryTypes, f, t)
     ts_fuelPrice_(fuel, t)
-
-    // Temporary data time series for updating forecasts and reserve demand
-    ts_forecast(flow, node, t, f, t)
-    ts_tertiary(*,node,t,*,t)
 ;
 
 * --- Other time dependent parameters -----------------------------------------

@@ -10,7 +10,9 @@
         "inc\\1d_results.gms",
         "inc\\1e_inputs.gms",
         "inc\\2a_variables.gms",
-        "inc\\2b_equations.gms",
+        "inc\\2b_eqDeclarations.gms",
+        "inc\\2c_objective.gms",
+        "inc\\2d_constraints.gms",
         "inc\\3a_periodicInit.gms",
         "inc\\3b_inputsLoop.gms",
         "inc\\3c_periodicLoop.gms",
@@ -27,11 +29,15 @@
         "cplex.opt"
     ],
     "inputfiles": [
-        "input/inputdata.gdx",
-        "input/modelsInit.gms"
+        "input\\inputData.gdx"
+        "input\\modelsInit.gms"
     ],
-    "inputfiles_opt": [],
-    "outputfiles": [],
-    "cmdline_args": "",
-    "includes_main_path": "."
+    "inputfiles_opt": [
+        "input\\*.*"
+    ],
+    "outputfiles": [
+        "Backbone.lst"
+        "output\\results.gdx"
+    ],
+    "cmdline_args": ""
 }

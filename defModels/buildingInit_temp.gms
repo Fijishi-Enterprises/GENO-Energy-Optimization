@@ -73,9 +73,9 @@ if (mType('building'),
 
     // Define forecast properties and features
     mSettings('building', 't_forecastStart') = 0;
-    mSettings('building', 't_forecastLength') = 0;
+    mSettings('building', 't_forecastLengthUnchanging') = 0;  // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
+    mSettings('building', 't_forecastLengthDecreasesFrom') = 0;  // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
     mSettings('building', 't_forecastJump') = 0;
-    mSettings('building', 'readForecastsInTheLoop') = 0;
 
     // Define Realized and Central forecasts
 *    mf_realization('building', f) = no;
@@ -99,7 +99,7 @@ if (mType('building'),
     // Lenght of reserve horizon
     mSettings('building', 't_reserveLength') = 0;
 
-* --- Define Unit Efficiency Approximations -----------------------------------
+* --- Define Unit Approximations ----------------------------------------------
 
     // Define unit aggregation threshold
     mSettings('building', 't_aggregate') = 0;
@@ -109,5 +109,16 @@ if (mType('building'),
 
     // Define threshold for omitting start-up and shutdown trajectories
     mSettings('schedule', 't_omitTrajectories') = 8761;
+
+* --- Define output settings for results --------------------------------------
+
+    // Define when to start outputting results - allows to skip an initialization period. Uses ord(t) > results_t_start in the code.
+    mSettings('schedule', 'results_t_start') = 1;
+
+* --- Control the solver ------------------------------------------------------
+
+    // Control the use of advanced basis
+    mSettings('schedule', 'loadPoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
+    mSettings('schedule', 'savePoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
 
 ); // END if(mType)

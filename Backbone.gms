@@ -69,18 +69,8 @@ $onempty   // Allow empty data definitions
 * Output file streams
 files log /''/, gdx, f_info /'output\info.txt'/;
 
-options
-optca = 0
-optcr = 0.0004
-*    profile = 8
-    solvelink = %Solvelink.Loadlibrary%
-*    bratio = 0.25
-*    solveopt = merge
-*    savepoint = 1
-    threads = 1
-$ifi not '%debug%' == 'yes'
-    solprint = Silent
-;
+* Include options file to control the solver
+$if exist 'input\1_options.gms' $include 'input\1_options.gms';
 
 
 * === Definitions, sets, parameters and input data=============================
@@ -112,9 +102,11 @@ $include 'defModels\invest.gms'
 // Load model input parameters
 $include 'input\modelsInit.gms'
 
+
 * === Simulation ==============================================================
 $include 'inc\3a_periodicInit.gms'  // Initialize modelling loop
 loop(modelSolves(mSolve, tSolve),
+    solveCount = solveCount + 1;
     $$include 'inc\3b_inputsLoop.gms'           // Read input data that is updated within the loop
     $$include 'inc\3c_periodicLoop.gms'         // Update modelling loop
     $$include 'inc\3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
@@ -123,7 +115,7 @@ loop(modelSolves(mSolve, tSolve),
     $$include 'inc\4a_outputVariant.gms'        // Store results from the loop
 $iftheni.debug '%debug%' == 'yes'
         putclose gdx;
-        put_utility 'gdxout' / 'output\'mSolve.tl:0, '-', tSolve.tl:0, '.gdx';
+        put_utility 'gdxout' / 'output\' mSolve.tl:0 '-' tSolve.tl:0 '.gdx';
             execute_unload
             $$include defOutput\debugSymbols.inc
         ;

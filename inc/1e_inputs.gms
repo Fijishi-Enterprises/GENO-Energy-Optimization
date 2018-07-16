@@ -140,6 +140,13 @@ unit_minload(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operati
                         }
     = yes;
 
+// Units with online variables in the effLevel 'level1'
+unit_online(unit)${ sum(effSelector$effOnline(effSelector), effLevelGroupUnit('level1', effSelector, unit)) }
+    = yes;
+unit_online_LP(unit)${ sum(effSelector, effLevelGroupUnit('level1', 'directOnLP', unit)) }
+    = yes;
+unit_online_MIP(unit) = unit_online(unit) - unit_online_LP(unit);
+
 // Units with flows/fuels
 unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;

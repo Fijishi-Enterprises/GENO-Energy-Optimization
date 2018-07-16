@@ -30,6 +30,9 @@ Sets
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
     unit_fuel(unit) "Units using a commercial fuel"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
+    unit_online(unit) "Units that have an online variable in the first effLevel level1"
+    unit_online_LP(unit) "Units that have an LP online variable in the first effLevel level1"
+    unit_online_MIP(unit) "Units that have an MIP online variable in the first effLevel level1"
     unit_aggregate(unit) "Aggregate units aggragating several units"
     unit_noAggregate(unit) "Units that are not aggregated at all"
     unit_slope(unit) "Units with piecewise linear efficiency constraints"
@@ -126,6 +129,9 @@ Sets
     gnuGroup(grid, node, unit, group) "Combination of grids, nodes and units in particular groups"
     gn2nGroup(grid, node, node, group) "Transfer links in particular groups"
     gnGroup(grid, node, group) "Combination of grids and nodes in particular groups"
+
+* --- Set of timeseries that will be read from files between solves
+    mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"
 ;
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 Option clear = modelSolves;

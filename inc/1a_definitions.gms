@@ -36,6 +36,8 @@ Sets
         t_jump, // Number of time steps realized with each solve
         t_horizon, // Length of the simulation horizon in time steps (central forecast)
         t_end, // Last time step of the simulation
+        loadPoint, // load advanced basis; 0 = no basis, 1 = all solves, 2 = first solve
+        savePoint, // save advanced basis; 0 = no basis, 1 = all solves, 2 = first solve
         intervalEnd, // Last time step in the block of intervals with the same length
         intervalLength, // Number of time steps aggregated within interval
         IntervalInHours, // Length of one time step in hours
@@ -43,15 +45,16 @@ Sets
         // Samples and Forecasts
         samples, // Number of active samples
         forecasts, // Number of active forecasts
+        t_forecastLengthUnchanging, // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
+        t_forecastLengthDecreasesFrom, // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
         t_forecastStart, // Time step for first reading the forecasts (not necessarily t_start)
-        t_forecastLength, // Length of forecasts in time steps
         t_forecastJump, // Number of time steps between each update of the forecasts
-        readForecastsInTheLoop, // Flag for updating forecasts in the solve loop
 
         // Features
         t_reserveLength, // Length of reserve provision horizon in time steps
         t_aggregate, // Unit aggregation threshold time index
-        t_omitTrajectories // Threshold time index for omitting start-up and shutdown trajectories
+        t_omitTrajectories, // Threshold time index for omitting start-up and shutdown trajectories
+        results_t_start  // time period where results outputting starts
         /
 
     // Solve info
@@ -149,6 +152,21 @@ Sets
         extraRes         "Use extra tertiary reserves for error in elec. load during time step"
         rampSched        "Use power based scheduling"
         /
+
+* --- Set to declare time series that will be read between solves ------------------------------------------------------
+    timeseries "Names of time series that could be loop read from files between solves" /
+        ts_unit
+        ts_effUnit
+        ts_effGroupUnit
+        ts_influx
+        ts_cf
+        ts_reserveDemand
+        ts_nodeState
+        ts_fuelPriceChange
+        ts_fuelPrice
+        ts_unavailability
+        /
+
 ; // END Sets
 
 * =============================================================================
