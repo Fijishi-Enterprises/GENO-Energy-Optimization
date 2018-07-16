@@ -391,8 +391,8 @@ loop(m,
         // Find the time step displacements needed to define the downtime requirements (include run-up phase and shutdown phase)
         Option clear = cc;
         cc(counter)${   ord(counter) <= ceil(p_unit(unit, 'minShutdownHours') / mSettings(m, 'intervalInHours'))
-                                        + ceil(p_u_runUpTimeIntervals(unit))
-                                        + ceil(p_u_shutdownTimeIntervals(unit))
+                                        + ceil(p_u_runUpTimeIntervals(unit)) // NOTE! Check this
+                                        + ceil(p_u_shutdownTimeIntervals(unit)) // NOTE! Check this
                         }
             = yes;
         dt_downtimeUnitCounter(unit, cc(counter)) = - ord(counter);

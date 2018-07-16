@@ -119,4 +119,7 @@ if (mType('schedule'),
     mSettingsEff('schedule', 'level1') = 1;
     mSettingsEff('schedule', 'level2') = 12;
 
+    // Define threshold for omitting start-up and shutdown trajectories
+    mSettings('schedule', 't_omitTrajectories') = 8761;
+
 ); // END if(mType)

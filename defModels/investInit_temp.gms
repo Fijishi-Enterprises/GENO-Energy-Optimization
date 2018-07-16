@@ -113,6 +113,9 @@ if (mType('invest'),
     // Define unit aggregation and efficiency levels starting indeces
     mSettingsEff('invest', 'level1') = 1;
 
+    // Define threshold for omitting start-up and shutdown trajectories
+    mSettings('schedule', 't_omitTrajectories') = 8761;
+
 ); // END if(mType)
 
 

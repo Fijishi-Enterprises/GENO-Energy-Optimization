@@ -470,6 +470,16 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
         = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
 ); // END loop(effLevelGroupUnit)
 
+// Determine the intervals when units need to follow start-up and shutdown trajectories.
+loop(uft_online(unit, f, t)${ p_u_runUpTimeIntervals(unit) },
+    uft_startupTrajectory(unit, f, t)${ord(t) <= tSolveFirst + mSettings(mSolve, 't_omitTrajectories')}
+        = yes;
+); // END loop(uf_online)
+loop(uft_online(unit, f, t)${ p_u_shutdownTimeIntervals(unit) },
+    uft_shutdownTrajectory(unit, f, t)${ord(t) <= tSolveFirst + mSettings(mSolve, 't_omitTrajectories')}
+        = yes;
+); // END loop(uf_online)
+
 * -----------------------------------------------------------------------------
 * --- Probabilities -----------------------------------------------------------
 * -----------------------------------------------------------------------------
@@ -495,7 +505,7 @@ dtt(t_active(t),t_activeNoReset(t_))${ ord(t_) <= ord(t) }
 // displacement needed to reach the time period where the unit was started up
 Option clear = dt_toStartup;
 loop(unit$(p_u_runUpTimeIntervals(unit)),
-    loop(t_active(t),
+    loop(t_active(t)${sum(f_solve(f), uft_startupTrajectory(unit, f, t))},
         tmp = 1;
         loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time periods after the start up
                                     and ord(t_) <= ord(t) // time periods before and including the current time period
@@ -520,7 +530,7 @@ loop(unit$(p_u_runUpTimeIntervals(unit)),
 // the shutdown decisions was made
 Option clear = dt_toShutdown;
 loop(unit$(p_u_shutdownTimeIntervals(unit)),
-    loop(t_active(t),
+    loop(t_active(t)${sum(f_solve(f), uft_shutdownTrajectory(unit, f, t))},
         tmp = 1;
         loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_shutdownTimeIntervals(unit) // time periods after the shutdown decision
                                     and ord(t_) <= ord(t) // time periods before and including the current time period

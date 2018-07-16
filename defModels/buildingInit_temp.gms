@@ -107,4 +107,7 @@ if (mType('building'),
     // Define unit aggregation and efficiency levels starting indeces
     mSettingsEff('building', 'level1') = 1;
 
+    // Define threshold for omitting start-up and shutdown trajectories
+    mSettings('schedule', 't_omitTrajectories') = 8761;
+
 ); // END if(mType)

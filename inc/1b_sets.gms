@@ -107,6 +107,8 @@ Sets
     uft_online(unit, f, t) "Units with any online and startup variables on intervals"
     uft_onlineLP(unit, f, t) "Units with LP online and startup variables on intervals"
     uft_onlineMIP(unit, f, t) "Units with MIP online and startup variables on intervals"
+    uft_startupTrajectory(unit, f, t) "Units with start-up trajectories on intervals"
+    uft_shutdownTrajectory(unit, f, t) "Units with shutdown trajectories on intervals"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later intervals"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later intervals"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"

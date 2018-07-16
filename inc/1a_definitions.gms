@@ -50,7 +50,8 @@ Sets
 
         // Features
         t_reserveLength, // Length of reserve provision horizon in time steps
-        t_aggregate // Unit aggregation threshold time index
+        t_aggregate, // Unit aggregation threshold time index
+        t_omitTrajectories // Threshold time index for omitting start-up and shutdown trajectories
         /
 
     // Solve info
