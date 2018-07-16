@@ -18,6 +18,7 @@ $offtext
 * --- Internal counters -------------------------------------------------------
 Scalars
     errorcount /0/
+    solveCount /0/
     tSolveFirst "counter (ord) for the first t in the solve"
     tSolveLast "counter for the last t in the solve"
     tCounter "counter for t" /0/

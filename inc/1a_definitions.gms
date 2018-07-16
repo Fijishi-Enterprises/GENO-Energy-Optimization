@@ -36,6 +36,8 @@ Sets
         t_jump, // Number of time steps realized with each solve
         t_horizon, // Length of the simulation horizon (central forecast)
         t_end, // Last time step of the simulation
+        loadPoint, // load advanced basis; 0 = no basis, 1 = all solves, 2 = first solve
+        savePoint, // save advanced basis; 0 = no basis, 1 = all solves, 2 = first solve
         intervalEnd, // End index of a time step interval
         intervalLength, // Number of time steps aggregated within interval
         IntervalInHours, // Length of one time step in hours

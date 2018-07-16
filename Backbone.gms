@@ -112,9 +112,11 @@ $include 'defModels\invest.gms'
 // Load model input parameters
 $include 'input\modelsInit.gms'
 
+
 * === Simulation ==============================================================
 $include 'inc\3a_periodicInit.gms'  // Initialize modelling loop
 loop(modelSolves(mSolve, tSolve),
+    solveCount = solveCount + 1;
     $$include 'inc\3b_inputsLoop.gms'           // Read input data that is updated within the loop
     $$include 'inc\3c_periodicLoop.gms'         // Update modelling loop
     $$include 'inc\3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
