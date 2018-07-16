@@ -40,10 +40,11 @@ Backbone has been designed with a modular structure, making it easier to change 
 Most of these files are under *\inc* in the Backbone folder, except for the model definition files being housed under *\defModels*. Other than the abovementioned files, a few key input files are required for Backbone to work. These are assumed to be found under *\input* and are briefly described below.
 
 * inputData.gdx	- Contains most of the input data about the system to be modelled.
+* 1_options.gms - Contains options to control the solver. Not required but included if exists.
 * timeAndSamples.inc - Contains definitions for the time, forecast and sample index ranges.
 * modelsInit.gms - Contains model parameters for the solve (or a link to a template under *\defModels* to be used). Useful for any additional GAMS scripting.
 
-Backbone folder contains two template files *timeAndSamples_temp.inc* and *modelsInit_temp.gms* to provide examples of the input format. These files can be copied into *\input* and renamed to *timeAndSamples.inc* and *modelsInit.gms*.
+Backbone folder contains three template files *1_options_temp.gms*, *timeAndSamples_temp.inc*, and *modelsInit_temp.gms* to provide examples of the input format. These files can be copied into *\input* and renamed to *1_options.gms*, *timeAndSamples.inc*, and *modelsInit.gms*.
 
 ## When Simply Using Backbone
 
