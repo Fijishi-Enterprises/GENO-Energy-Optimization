@@ -155,6 +155,7 @@ unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
 
 // Units with special startup properties
 // All units can cold start (default start category)
+// NOTE! Juha needs to check why not all units can cold start
 unitStarttype(unit, starttype('cold'))${ p_unit(unit, 'startCostCold')
                                          or p_unit(unit, 'startFuelConsCold')
                                          or p_unit(unit, 'rampSpeedToMinLoad')

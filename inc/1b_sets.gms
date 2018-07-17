@@ -46,11 +46,11 @@ Sets
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
 
-* --- Nodes -----------------------------------------------------------------
+* --- Nodes -------------------------------------------------------------------
     node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
     flowNode(flow, node) "Nodes with flows"
 
-* --- Sets bounding geography and units -------------------------------------
+* --- Sets bounding geography and units ---------------------------------------
     gn(grid, node) "Grids and their nodes"
 * NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
     gn2n(grid, node, node) "All (directional) transfer links between nodes in specific energy grids"
@@ -72,9 +72,9 @@ Sets
     restypeDirection(restype, up_down) "Different combinations of reserve types and directions"
     restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
     nuRescapable(restype, up_down, node, unit) "Units capable and available to provide particular reserves"
-    restypeReleasedForRealization(restype) "Reserve types that are released for the realized time periods"
+    restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
 
-* --- Sets to define time, forecasts and samples -----------------------------------------------
+* --- Sets to define time, forecasts and samples ------------------------------
     $$include 'input/timeAndSamples.inc'
     m(mType) "model(s) in use"
     t_full(t) "Full set of time steps in the current model"
@@ -123,14 +123,14 @@ Sets
     effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
 
-* --- Sets used for grouping of units, transfer links, nodes, etc.
+* --- Sets used for grouping of units, transfer links, nodes, etc. ------------
     group "A group of units, transfer links, nodes, etc."
     uGroup(unit, group) "Units in particular groups"
     gnuGroup(grid, node, unit, group) "Combination of grids, nodes and units in particular groups"
     gn2nGroup(grid, node, node, group) "Transfer links in particular groups"
     gnGroup(grid, node, group) "Combination of grids and nodes in particular groups"
 
-* --- Set of timeseries that will be read from files between solves
+* --- Set of timeseries that will be read from files between solves -----------
     mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"
 ;
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data

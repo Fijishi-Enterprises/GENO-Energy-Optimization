@@ -496,7 +496,7 @@ p_msft_probability(msft(mSolve, s, f, t))
 * --- Displacements for start-up and shutdown decisions -----------------------
 * -----------------------------------------------------------------------------
 
-// Calculate dtt: displacement needed to reach any previous time period
+// Calculate dtt: displacement needed to reach any previous time interval
 // (needed to calculate dt_toStartup and dt_toShutdown)
 Option clear = dtt;
 dtt(t_active(t),t_activeNoReset(t_))${ ord(t_) <= ord(t) }
@@ -504,18 +504,18 @@ dtt(t_active(t),t_activeNoReset(t_))${ ord(t_) <= ord(t) }
 
 * --- Start-up decisions ------------------------------------------------------
 
-// Calculate dt_toStartup: in case the unit becomes online in the current time period,
-// displacement needed to reach the time period where the unit was started up
+// Calculate dt_toStartup: in case the unit becomes online in the current time interval,
+// displacement needed to reach the time interval where the unit was started up
 Option clear = dt_toStartup;
 loop(unit$(p_u_runUpTimeIntervals(unit)),
     loop(t_active(t)${sum(f_solve(f), uft_startupTrajectory(unit, f, t))},
         tmp = 1;
-        loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time periods after the start up
-                                    and ord(t_) <= ord(t) // time periods before and including the current time period
+        loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time intervals after the start up
+                                    and ord(t_) <= ord(t) // time intervals before and including the current time interval
                                     and tmp = 1
                                     },
-            if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit), // if the displacement between the two time periods is smaller than the number of time periods required for start-up phase
-                dt_toStartup(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time period just before the time period found
+            if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for start-up phase
+                dt_toStartup(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time interval just before the time interval found
                 tmp = 0;
             );
         );
@@ -529,18 +529,18 @@ loop(unit$(p_u_runUpTimeIntervals(unit)),
 * --- Shutdown decisions ------------------------------------------------------
 
 // Calculate dt_toShutdown: in case the generation of the unit becomes zero in
-// the current time period, displacement needed to reach the time period where
+// the current time interval, displacement needed to reach the time interval where
 // the shutdown decisions was made
 Option clear = dt_toShutdown;
 loop(unit$(p_u_shutdownTimeIntervals(unit)),
     loop(t_active(t)${sum(f_solve(f), uft_shutdownTrajectory(unit, f, t))},
         tmp = 1;
-        loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_shutdownTimeIntervals(unit) // time periods after the shutdown decision
-                                    and ord(t_) <= ord(t) // time periods before and including the current time period
+        loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_shutdownTimeIntervals(unit) // time intervals after the shutdown decision
+                                    and ord(t_) <= ord(t) // time intervals before and including the current time interval
                                     and tmp = 1
                                     },
-            if (-dtt(t,t_) < p_u_shutdownTimeIntervals(unit), // if the displacement between the two time periods is smaller than the number of time periods required for shutdown phase
-                dt_toShutdown(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time period just before the time period found
+            if (-dtt(t,t_) < p_u_shutdownTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for shutdown phase
+                dt_toShutdown(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time interval just before the time interval found
                 tmp = 0;
             );
         );

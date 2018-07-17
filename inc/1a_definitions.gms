@@ -36,8 +36,8 @@ Sets
         t_jump, // Number of time steps realized with each solve
         t_horizon, // Length of the simulation horizon in time steps (central forecast)
         t_end, // Last time step of the simulation
-        loadPoint, // load advanced basis; 0 = no basis, 1 = all solves, 2 = first solve
-        savePoint, // save advanced basis; 0 = no basis, 1 = all solves, 2 = first solve
+        loadPoint, // Load advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
+        savePoint, // Save advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
         intervalEnd, // Last time step in the block of intervals with the same length
         intervalLength, // Number of time steps aggregated within interval
         IntervalInHours, // Length of one time step in hours
@@ -54,7 +54,7 @@ Sets
         t_reserveLength, // Length of reserve provision horizon in time steps
         t_aggregate, // Unit aggregation threshold time index
         t_omitTrajectories, // Threshold time index for omitting start-up and shutdown trajectories
-        results_t_start  // time period where results outputting starts
+        results_t_start  // Time index where results outputting starts
         /
 
     // Solve info

@@ -327,6 +327,7 @@ loop(m,
         p_ut_runUp(unit, t)${ord(t) = 1} = p_unit(unit,'op00');
 
         // Not all units can cold start?
+        // NOTE! Juha needs to check why not all units can cold start
         unitStarttype(unit, 'cold') = no;
         unitStarttype(unit, 'cold')${ p_unit(unit, 'startCostCold')
                                          or p_unit(unit, 'startFuelConsCold')
