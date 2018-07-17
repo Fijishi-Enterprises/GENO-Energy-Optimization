@@ -114,18 +114,18 @@ if (mType('invest'),
     mSettingsEff('invest', 'level1') = 1;
 
     // Define threshold for omitting start-up and shutdown trajectories
-    mSettings('schedule', 't_omitTrajectories') = 8761;
+    mSettings('invest', 't_omitTrajectories') = 8761;
 
 * --- Define output settings for results --------------------------------------
 
     // Define when to start outputting results - allows to skip an initialization period. Uses ord(t) > results_t_start in the code.
-    mSettings('schedule', 'results_t_start') = 1;
+    mSettings('invest', 'results_t_start') = 1;
 
 * --- Control the solver ------------------------------------------------------
 
     // Control the use of advanced basis
-    mSettings('schedule', 'loadPoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
-    mSettings('schedule', 'savePoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
+    mSettings('invest', 'loadPoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
+    mSettings('invest', 'savePoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
 
 ); // END if(mType)
 
