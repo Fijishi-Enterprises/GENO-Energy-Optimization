@@ -264,6 +264,10 @@ p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_f
         ) // END sum(gnu_output)
 ;
 
+// If the start-up fuel fraction is not defined, it equals 1
+p_uFuel(uFuel(unit_fuel, 'startup', fuel), 'maxFuelFraction')${ not p_uFuel(unit_fuel, 'startup', fuel, 'maxFuelFraction') }
+    = 1;
+
 * =============================================================================
 * --- Generate Node Related Sets Based on Input Data --------------------------
 * =============================================================================
@@ -406,3 +410,11 @@ loop( unit,
     );
 );
 
+* Check the start-up fuel fraction related data
+loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
+    tmp = ord(unit)
+    if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'maxFuelFraction')) <> 1,
+        put log '!!! Error occurred on unit #' tmp;
+        abort "The sum of 'maxFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
+    );
+);

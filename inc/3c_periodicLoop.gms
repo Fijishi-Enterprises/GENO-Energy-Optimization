@@ -81,6 +81,7 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = q_conversionSOS2InputIntermediate;
     Option clear = q_conversionSOS2Constraint;
     Option clear = q_conversionSOS2IntermediateOutput;
+    Option clear = q_fuelUseLimit;
 
     // Energy Transfer
     Option clear = q_transfer;

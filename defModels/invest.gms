@@ -44,6 +44,7 @@ Model invest /
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
+    q_fuelUseLimit
 
     // Energy Transfer
     q_transfer

@@ -65,6 +65,7 @@ equations
     q_conversionSOS2InputIntermediate(effSelector, unit, f, t)   "Intermediate output when using SOS2 variable based part-load piece-wise linearization"
     q_conversionSOS2Constraint(effSelector, unit, f, t)          "Sum of v_sos2 has to equal v_online"
     q_conversionSOS2IntermediateOutput(effSelector, unit, f, t)  "Output is forced equal with v_sos2 output"
+    q_fuelUseLimit(fuel, unit, f, t) "Fuel use cannot exceed limits"
 
     // Energy Transfer
     q_transfer(grid, node, node, f, t) "Rightward and leftward transfer must match the total transfer"

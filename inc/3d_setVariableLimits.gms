@@ -221,6 +221,10 @@ $offtext
 *v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 *v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 
+// Fuel use limitations
+v_fuelUse.up(fuel, uft(unit, f, t))${p_uFuel(unit, 'main', fuel, 'maxFuelCons')}
+    = p_uFuel(unit, 'main', fuel, 'maxFuelCons')
+;
 
 * --- Energy Transfer Boundaries ----------------------------------------------
 

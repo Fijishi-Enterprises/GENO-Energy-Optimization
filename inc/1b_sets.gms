@@ -155,6 +155,7 @@ alias(effLambda, effLambda_);
 alias(lambda, lambda_, lambda__);
 alias(op, op_, op__);
 alias(eff, eff_, eff__);
+alias(fuel, fuel_);
 
 
 *if(active('rampSched'),

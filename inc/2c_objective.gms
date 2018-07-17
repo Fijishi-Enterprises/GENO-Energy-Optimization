@@ -88,6 +88,7 @@ q_obj ..
                                 // Start-up fuel and emission costs
                                 + sum(uFuel(unit, 'startup', fuel),
                                     + p_uStartup(unit, starttype, 'consumption')
+                                        * p_uFuel(unit, 'startup', fuel, 'maxFuelFraction')
                                         * [
                                             + ts_fuelPrice_(fuel, t)
                                             + sum(emission, // Emission taxes of startup fuel use

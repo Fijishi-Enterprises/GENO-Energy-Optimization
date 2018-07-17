@@ -958,6 +958,24 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
         ) // END sum(gnu_output)
 ;
 
+* --- Fuel Use Limitation -----------------------------------------------------
+
+q_fuelUseLimit(fuel, uft(unit, f, t))${   uFuel(unit, 'main', fuel) 
+                                          and p_uFuel(unit, 'main', fuel, 'maxFuelFraction')
+                                          } ..
+
+    // Use of the limited fuel
+    + v_fuelUse(fuel, unit, f, t)
+
+    =L=
+
+    // Sum over fuel energy inputs multiplied by the maximum fraction
+    + p_uFuel(unit, 'main', fuel, 'maxFuelFraction')
+        * sum(uFuel(unit, 'main', fuel_),
+            + v_fuelUse(fuel_, unit, f, t)
+            ) // END sum(uFuel)
+;
+
 * --- Total Transfer Limits ---------------------------------------------------
 
 q_transfer(gn2n_directional(grid, node, node_), ft(f, t)) ..
@@ -1616,8 +1634,6 @@ q_emissioncap(group, emission)${  p_groupPolicy3D(group, 'emissionCap', emission
     // Permitted nodal emission cap
     + p_groupPolicy3D(group, 'emissionCap', emission)
 ;
-
-*q_gnu_group_min_online(
 
 *--- Maximum Energy Share -----------------------------------------------------
 
