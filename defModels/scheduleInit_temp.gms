@@ -82,7 +82,7 @@ if (mType('schedule'),
     // Define forecast properties and features
     mSettings('schedule', 't_forecastStart') = 1;
     mSettings('schedule', 't_forecastLengthUnchanging') = 36;  // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
-    mSettings('building', 't_forecastLengthDecreasesFrom') = 168;  // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
+    mSettings('schedule', 't_forecastLengthDecreasesFrom') = 168;  // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
     mSettings('schedule', 't_forecastJump') = 24;
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
     mTimeseries_loop_read('schedule', 'ts_unit') = no;
