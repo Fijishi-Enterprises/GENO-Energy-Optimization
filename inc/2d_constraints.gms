@@ -942,7 +942,7 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
                     ) // END sum(t__)
             ) // END sum(t_)
     // Units that are in the first time interval of the shutdown phase are limited by the minimum load (contained in p_ut_shutdown(unit, 't00000'))
-    + sum(gnu_output(grid, node, unit)$uft_startupTrajectory(unit, f, t),
+    + sum(gnu_output(grid, node, unit)$uft_shutdownTrajectory(unit, f, t),
         + p_gnu(grid, node, unit, 'unitSizeGen')
       ) // END sum(gnu_output)
         * (
