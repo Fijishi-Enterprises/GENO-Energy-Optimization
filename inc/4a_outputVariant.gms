@@ -37,6 +37,13 @@ if(tSolveFirst >= mSettings(mSolve, 'results_t_start') - mSettings(mSolve, 't_ju
 r_state(gn_state(grid, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = v_state.l(grid, node, f, t)
 ;
+// Realized state history - initial state values in samples
+r_state(gn_state(grid, node), f_solve(f), t+dt(t))${   ord(t) > mSettings(mSolve, 'results_t_start')
+                                                       and sum(ms(mSolve, s), mst_start(mSolve, s, t))
+                                                       and ft_realized(f, t)
+                                                   }
+    = v_state.l(grid, node, f, t+dt(t))
+;
 // Realized unit online history
 r_online(uft_online(unit, ft_realized(f, t)))$[ord(t) > mSettings(mSolve, 'results_t_start')]
     = v_online_LP.l(unit, f, t)${ uft_onlineLP(unit, f, t)    }

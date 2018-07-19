@@ -68,6 +68,23 @@ v_state.fx(gn_state(grid, node), ft(f, t))${    p_gn(grid, node, 'boundAll')
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
 ;
 
+// Bound also the intervals just before the start of each sample - currently just 'upwardLimit'&'useConstant' and 'downwardLimit'&'useConstant'
+// Upper bound
+v_state.up(gn_state(grid, node), f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
+                                                        and not df_central(f_solve,t)
+                                                        and sum(ms(mSolve, s), mst_start(mSolve, s, t))
+                                                        }
+    = p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
+        * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier');
+
+// Lower bound
+v_state.lo(gn_state(grid, node), f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+                                                        and not df_central(f_solve,t)
+                                                        and sum(ms(mSolve, s), mst_start(mSolve, s, t))
+                                                        }
+    = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
+        * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
+
 // Spilling of energy from the nodes
 // Max. & min. spilling, use constant value as base and overwrite with time series if desired
 v_spill.lo(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node_spill, 'minSpill', 'constant')   }
