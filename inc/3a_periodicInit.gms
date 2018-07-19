@@ -311,11 +311,12 @@ loop(m,
               * mSettings(m, 'intervalInHours')
         );
 
-        // Combine output in the second last interval and the weighted average of rampSpeedToMinLoad and maxRampUp
+        // Combine output in the second last interval and the weighted average of rampSpeedToMinLoad and the smallest non-zero maxRampUp
         p_u_maxOutputInLastRunUpInterval(unit) =
             (
               + p_unit(unit, 'rampSpeedToMinLoad') * (tmp-floor(tmp)) * mSettings(m, 'intervalInHours')
-              + smin(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampUp')) * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
+              + smin(gnu(grid, node, unit)${p_gnu(grid, node, unit, 'maxRampUp')}, p_gnu(grid, node, unit, 'maxRampUp')) * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
+              + p_unit(unit, 'rampSpeedToMinLoad')${not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampUp'))} * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
             )
               * 60 // Unit conversion from [p.u./min] to [p.u./h]
               + sum(t${ord(t) = 2}, p_ut_runUp(unit, t));
@@ -355,11 +356,12 @@ loop(m,
               * mSettings(m, 'intervalInHours')
         );
 
-        // Combine output in the second interval and the weighted average of rampSpeedFromMinLoad and maxRampDown
+        // Combine output in the second interval and the weighted average of rampSpeedFromMinLoad and the smallest non-zero maxRampDown
         p_u_maxOutputInFirstShutdownInterval(unit) =
             (
               + p_unit(unit, 'rampSpeedFromMinLoad') * (tmp-floor(tmp)) * mSettings(m, 'intervalInHours')
-              + smin(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampDown')) * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
+              + smin(gnu(grid, node, unit)${p_gnu(grid, node, unit, 'maxRampDown')}, p_gnu(grid, node, unit, 'maxRampDown')) * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
+              + p_unit(unit, 'rampSpeedFromMinLoad')${not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampDown'))} * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
             )
               * 60 // Unit conversion from [p.u./min] to [p.u./h]
               + sum(t${ord(t) = 2}, p_ut_shutdown(unit, t));
