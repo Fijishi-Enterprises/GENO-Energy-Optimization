@@ -474,6 +474,10 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
         = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
 ); // END loop(effLevelGroupUnit)
 
+// Units with start-up and shutdown trajectories
+Option clear = uft_startupTrajectory;
+Option clear = uft_shutdownTrajectory;
+
 // Determine the intervals when units need to follow start-up and shutdown trajectories.
 loop(uft_online(unit, f, t)${ p_u_runUpTimeIntervals(unit) },
     uft_startupTrajectory(unit, f, t)${ord(t) < tSolveFirst + mSettings(mSolve, 't_omitTrajectories')}

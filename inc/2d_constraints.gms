@@ -960,9 +960,9 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
 
 * --- Fuel Use Limitation -----------------------------------------------------
 
-q_fuelUseLimit(fuel, uft(unit, f, t))${   uFuel(unit, 'main', fuel)
-                                          and p_uFuel(unit, 'main', fuel, 'maxFuelFraction')
-                                          } ..
+q_fuelUseLimit(fuel, uft(unit_fuel(unit), f, t))${   uFuel(unit, 'main', fuel)
+                                                     and p_uFuel(unit, 'main', fuel, 'maxFuelFraction')
+                                                     } ..
 
     // Use of the limited fuel
     + v_fuelUse(fuel, unit, f, t)
@@ -1616,6 +1616,7 @@ q_emissioncap(group, emission)${  p_groupPolicy3D(group, 'emissionCap', emission
                     + v_startup(unit_fuel, starttype, f+df_central(f,t), t)
                         * sum(uFuel(unit_fuel, 'startup', fuel),
                             + p_uStartup(unit_fuel, starttype, 'consumption')
+                                * p_uFuel(unit_fuel, 'startup', fuel, 'maxFuelFraction')
                                 * p_fuelEmission(fuel, emission) / 1e3
                                 * sum(gnu_output(grid, node, unit_fuel)${gnGroup(grid, node, group)},
                                     + p_gnu(grid, node, unit_fuel, 'unitSizeGen')
