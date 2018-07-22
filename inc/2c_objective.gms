@@ -15,7 +15,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-* --- Objective Function ------------------------------------------------------
+
+* =============================================================================
+* --- Objective Function Definition -------------------------------------------
+* =============================================================================
+
 q_obj ..
 
     + v_obj * 1e6
@@ -79,11 +83,12 @@ q_obj ..
                     + sum(unitStarttype(unit, starttype),
                         + v_startup(unit, starttype, f+df_central(f,t), t) // Cost of starting up
                             * [ // Startup variable costs
-                                + p_uStartup(unit, starttype, 'cost', 'unit')
+                                + p_uStartup(unit, starttype, 'cost')
 
                                 // Start-up fuel and emission costs
                                 + sum(uFuel(unit, 'startup', fuel),
-                                    + p_uStartup(unit, starttype, 'consumption', 'unit')  //${ not unit_investLP(unit) }  WHY THIS CONDITIONAL WOULD BE NEEDED?
+                                    + p_uStartup(unit, starttype, 'consumption')
+                                        * p_uFuel(unit, 'startup', fuel, 'maxFuelFraction')
                                         * [
                                             + ts_fuelPrice_(fuel, t)
                                             + sum(emission, // Emission taxes of startup fuel use
@@ -94,16 +99,12 @@ q_obj ..
                               ] // END * v_startup
                       ) // END sum(starttype)
                   ) // END sum(uft_online)
-$ontext
-                // !!! PENDING CHANGES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
                 // Ramping costs
-                + sum(gnuft_ramp(grid, node, unit, f, t)${  p_gnu(grid, node, unit, 'rampUpCost')
-                                                            or p_gnu(grid, node, unit, 'rampDownCost')
-                                                            },
-                    + p_gnu(grid, node, unit, 'rampUpCost') * v_genRampChange(grid, node, unit, 'up', f, t)
-                    + p_gnu(grid, node, unit, 'rampDownCost') * v_genRampChange(grid, node, unit, 'down', f, t)
-                    ) // END sum(gnuft_ramp)
-$offtext
+                + sum(gnuft_rampCost(grid, node, unit, slack, f, t),
+                    + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost') * v_genRampUpDown(grid, node, unit, slack, f, t)
+                  ) // END sum(gnuft_rampCost)
+
                 ]  // END * p_sft_probability(s,f,t)
 
         ) // END sum over msft(m, s, f, t)

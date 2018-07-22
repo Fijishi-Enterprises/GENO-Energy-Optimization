@@ -48,11 +48,12 @@ loop(m,
             * sum(unitStarttype(unit, starttype),
                 + r_startup(unit, starttype, f, t)
                     * [ // Startup VOM
-                        + p_uStartup(unit, starttype, 'cost', 'unit')
+                        + p_uStartup(unit, starttype, 'cost')
 
                         // Startup fuel consumption and emissions
                         + sum(uFuel(unit, 'startup', fuel),
-                            + p_uStartup(unit, starttype, 'consumption', 'unit')
+                            + p_uStartup(unit, starttype, 'consumption')
+                                * p_uFuel(unit, 'startup', fuel, 'maxFuelFraction')
                                 * [ // Fuel price
                                     + ts_fuelPrice(fuel, t)
                                     // Emission costs

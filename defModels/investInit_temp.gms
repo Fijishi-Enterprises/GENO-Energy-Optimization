@@ -80,7 +80,7 @@ if (mType('invest'),
     // Define forecast properties and features
     mSettings('invest', 't_forecastStart') = 0;
     mSettings('invest', 't_forecastLengthUnchanging') = 0;  // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
-    mSettings('building', 't_forecastLengthDecreasesFrom') = 0;  // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
+    mSettings('invest', 't_forecastLengthDecreasesFrom') = 0;  // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
     mSettings('invest', 't_forecastJump') = 0;
 
     // Define Realized and Central forecasts
@@ -105,7 +105,7 @@ if (mType('invest'),
     // Lenght of reserve horizon
     mSettings('invest', 't_reserveLength') = 36; // CHECK THIS
 
-* --- Define Unit Efficiency Approximations -----------------------------------
+* --- Define Unit Approximations ----------------------------------------------
 
     // Define unit aggregation threshold
     mSettings('invest', 't_aggregate') = 8761;
@@ -113,16 +113,19 @@ if (mType('invest'),
     // Define unit aggregation and efficiency levels starting indeces
     mSettingsEff('invest', 'level1') = 1;
 
-* ---- Define output settings for results
+    // Define threshold for omitting start-up and shutdown trajectories
+    mSettings('invest', 't_omitTrajectories') = 8761;
+
+* --- Define output settings for results --------------------------------------
 
     // Define when to start outputting results - allows to skip an initialization period. Uses ord(t) > results_t_start in the code.
-    mSettings('schedule', 'results_t_start') = 1;
+    mSettings('invest', 'results_t_start') = 1;
 
-* ---- Control the solver
+* --- Control the solver ------------------------------------------------------
+
     // Control the use of advanced basis
-    mSettings('schedule', 'loadPoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
-    mSettings('schedule', 'savePoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
-
+    mSettings('invest', 'loadPoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
+    mSettings('invest', 'savePoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
 
 ); // END if(mType)
 

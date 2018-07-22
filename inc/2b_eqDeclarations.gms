@@ -47,23 +47,25 @@ equations
 
     // Unit Operation
     q_maxDownward(mType, grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
-    q_noReserveInRunUp(mType, grid, node, unit, f, t)
     q_maxUpward(mType, grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
-    q_startshut(mType, unit, f, t) "Online cap. now minus online cap in the previous time step is equal to started up minus shut down capacity"
+    q_startshut(mType, unit, f, t) "Online capacity now minus online capacity in the previous interval is equal to started up minus shut down capacity"
     q_startuptype(mType, starttype, unit, f, t) "Startup type depends on the time the unit has been non-operational"
     q_onlineOnStartUp(unit, f, t) "Unit must be online after starting up"
     q_offlineAfterShutdown(unit, f, t) "Unit must be offline after shutting down"
-    q_onlineLimit(mType, unit, f, t) "Number of online units limited for units with startup constraints and investment possibility"
-    q_onlineMinUptime(mType, unit, f, t) "Unit must stay operational if it has started up during the previous minOperationHours hours"
-    q_genRamp(mType, grid, node, s, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
-    q_rampUpLimit(mType, grid, node, s, unit, f, t) "Up ramping limited for units"
-    q_rampDownLimit(grid, node, mType, s, unit, f, t) "Down ramping limited for units"
+    q_onlineLimit(mType, unit, f, t) "Number of online units limited for units with startup constraints, minimum down time, or investment possibility"
+    q_onlineMinUptime(mType, unit, f, t) "Number of online units constrained for units with minimum up time"
+    q_genRamp(mType, s, grid, node, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
+    q_rampUpLimit(mType, s, grid, node, unit, f, t) "Up ramping limited for units"
+    q_rampDownLimit(mType, s, grid, node, unit, f, t) "Down ramping limited for units"
+    q_rampUpDown(mType, s, grid, node, unit, f, t) "Ramping separated into possibly several upward and downward parts (for different cost levels)"
+    q_rampSlack(mType, s, grid, node, unit, slack, f, t) "Upward and downward ramps constrained by slack boundaries (for different cost levels)"
     q_outputRatioFixed(grid, node, grid, node, unit, f, t) "Force fixed ratio between two energy outputs into different energy grids"
     q_outputRatioConstrained(grid, node, grid, node, unit, f, t) "Constrained ratio between two grids of energy output; e.g. electricity generation is greater than cV times unit_heat generation in extraction plants"
     q_conversionDirectInputOutput(effSelector, unit, f, t) "Direct conversion of inputs to outputs (no piece-wise linear part-load efficiencies)"
     q_conversionSOS2InputIntermediate(effSelector, unit, f, t)   "Intermediate output when using SOS2 variable based part-load piece-wise linearization"
     q_conversionSOS2Constraint(effSelector, unit, f, t)          "Sum of v_sos2 has to equal v_online"
     q_conversionSOS2IntermediateOutput(effSelector, unit, f, t)  "Output is forced equal with v_sos2 output"
+    q_fuelUseLimit(fuel, unit, f, t) "Fuel use cannot exceed limits"
 
     // Energy Transfer
     q_transfer(grid, node, node, f, t) "Rightward and leftward transfer must match the total transfer"
