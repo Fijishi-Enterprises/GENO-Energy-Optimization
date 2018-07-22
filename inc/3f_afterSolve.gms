@@ -31,3 +31,22 @@ $offtext
                                                                                         }
         = vq_resDemand.l(restype, up_down, node, f, t);
 
+
+$ontext
+// Release some fixed values
+
+// Release BoundEnd for the last time periods in the previous solve
+v_state.up(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
+                                    and p_gn(grid, node, 'boundEnd')
+                                }
+    = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
+        * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+
+// BoundEnd to a timeseries value
+v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
+                                    and p_gn(grid, node, 'boundEnd')
+                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
+                                }
+    = ts_nodeState_(grid, node, 'reference', f, t)
+        * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+$offtext

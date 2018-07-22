@@ -44,6 +44,15 @@ v_state.fx(gn_state(grid, node), ft(f, t))${    p_gn(grid, node, 'boundAll')
     = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
 ;
+// BoundEnd to a constant value
+v_state.fx(gn_state(grid, node), ft(f,t))${   mft_lastSteps(mSolve, f, t)
+                                              and p_gn(grid, node, 'boundEnd')
+                                              and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                          }
+    = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
+        * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+
+
 // When using time series
 // Upper Bound
 v_state.up(gn_state(grid, node), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
@@ -67,6 +76,23 @@ v_state.fx(gn_state(grid, node), ft(f, t))${    p_gn(grid, node, 'boundAll')
     = ts_nodeState_(grid, node, 'reference', f, t)
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
 ;
+// BoundEnd to a timeseries value
+v_state.fx(gn_state(grid, node), ft(f,t))${   mft_lastSteps(mSolve, f, t)
+                                              and p_gn(grid, node, 'boundEnd')
+                                              and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
+                                          }
+    = ts_nodeState_(grid, node, 'reference', f, t)
+        * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+
+//
+// BoundStartToEnd
+v_state.fx(gn_state(grid, node), ft(f,t))${   mft_lastSteps(mSolve, f, t)
+                                              and p_gn(grid, node, 'boundStartToEnd')
+                                          }
+    = sum{mf_realization(mSolve, f_),
+            + r_state(grid, node, f_, tSolve)
+         }; // END sum(fRealization)
+
 
 // Spilling of energy from the nodes
 // Max. & min. spilling, use constant value as base and overwrite with time series if desired
@@ -470,11 +496,3 @@ v_online_LP.fx(unit, ft_realizedNoReset(f, t))${    ord(t) <= tSolveFirst
                                                     }
     = r_online(unit, f, t);
 
-// BoundStartToEnd
-v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
-                                    and p_gn(grid, node, 'boundStartToEnd')
-                                    }
-    = sum(mf_realization(mSolve, f_),
-        + r_state(grid, node, f_, tSolve)
-        ) // END sum(fRealization)
-;
