@@ -388,15 +388,11 @@ v_invest_MIP.lo(unit, t_invest)${   unit_investMIP(unit)    }
 
 // Transfer Capacity Investments
 // LP investments
-v_investTransfer_LP.up(gn2n_directional(grid, from_node, to_node), t_invest)${  not p_gnn(grid, from_node, to_node, 'investMIP')
-                                                                                and p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
-                                                                                }
+v_investTransfer_LP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ gn2n_directional_investLP(grid, from_node, to_node) }
     = p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
 ;
 // MIP investments
-v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ p_gnn(grid, from_node, to_node, 'investMIP')
-                                                                                and p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
-                                                                                }
+v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ gn2n_directional_investMIP(grid, from_node, to_node) }
     = p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
         / p_gnn(grid, from_node, to_node, 'unitSize')
 ;

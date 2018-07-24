@@ -302,6 +302,22 @@ gn2n_directional(gn2n(grid, node, node_))${ ord(node) > ord(node_)
                                             }
     = yes;
 
+// Set for transfer links with investment possibility
+Option clear = gn2n_directional_investLP;
+Option clear = gn2n_directional_investMIP;
+gn2n_directional_investLP(gn2n_directional(grid, node, node_))${ [p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                     or p_gnn(grid, node_, node, 'transferCapInvLimit')]
+                                                                 and [not p_gnn(grid, node, node_, 'investMIP')
+                                                                     and not p_gnn(grid, node_, node, 'investMIP')]
+                                                                 }
+    = yes;
+gn2n_directional_investMIP(gn2n_directional(grid, node, node_))${ [p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                     or p_gnn(grid, node_, node, 'transferCapInvLimit')]
+                                                                 and [p_gnn(grid, node, node_, 'investMIP')
+                                                                     or p_gnn(grid, node_, node, 'investMIP')]
+                                                                 }
+    = yes;
+
 * --- Node States -------------------------------------------------------------
 
 // States with slack variables

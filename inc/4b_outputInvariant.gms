@@ -94,30 +94,58 @@ loop(m,
     r_gnuTotalVOMCost(gnu_output(grid, node, unit))
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_gnuVOMCost(grid, node, unit, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             );
 
     // Total fuel & emission costs
     r_uTotalFuelEmissionCost(fuel, unit)${ uFuel(unit, 'main', fuel) }
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_uFuelEmissionCost(fuel, unit, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             );
 
     // Total unit startup costs
     r_uTotalStartupCost(unit)${ sum(starttype, unitStarttype(unit, starttype)) }
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_uStartupCost(unit, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             );
 
     // Total state variable slack costs
     r_gnTotalStateSlackCost(gn_stateSlack(grid, node))
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_gnStateSlackCost(grid, node, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             );
+
+    // Fixed O&M costs
+    r_gnuFOMCost(gnu(grid, node, unit))
+        = 1e-6 // Scaling to MEUR
+            * (p_gnu(grid, node, unit, 'maxGen') + r_invest(unit)*p_gnu(grid, node, unit, 'unitSizeGen'))
+            * p_gnu(grid, node, unit, 'fomCosts');
+
+    // Unit investment costs
+    r_gnuUnitInvestmentCost(gnu(grid, node, unit))
+        = 1e-6 // Scaling to MEUR
+            * r_invest(unit)*p_gnu(grid, node, unit, 'unitSizeGen')
+            * p_gnu(grid, node, unit, 'invCosts')
+            * p_gnu(grid, node, unit, 'annuity');
+
+    // Transfer link investment costs
+    r_gnnLinkInvestmentCost(grid, from_node, to_node)
+        = 1e-6 // Scaling to MEUR
+            * sum(t_invest, r_investTransfer(grid, from_node, to_node, t_invest))
+            * [
+                + p_gnn(grid, from_node, to_node, 'invCost')
+                    * p_gnn(grid, from_node, to_node, 'annuity')
+                + p_gnn(grid, to_node, from_node, 'invCost')
+                    * p_gnn(grid, to_node, from_node, 'annuity')
+                ]; // END * r_investTransfer;
 
 * --- Realized Nodal System Costs ---------------------------------------------
 
-    // Total realized gn costs
-    r_gnRealizedCost(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 'results_t_start')]
+    // Total realized gn operating costs
+    r_gnRealizedOperatingCost(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 'results_t_start')]
         = sum(gnu_output(grid, node, unit),
 
             // VOM costs
@@ -146,6 +174,7 @@ loop(m,
 
     r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 'results_t_start')]
         = p_stepLengthNoReset(m, f, t)
+            * sum(msft(m, s, f, t), p_msft_probability(m, s, f, t))
             * [
                 + min(ts_influx(grid, node, f, t), 0) // Not necessarily a good idea, as ts_influx contains energy gains as well...
                 + sum(gnu_input(grid, node, unit),
@@ -160,6 +189,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_gen(grid, node, unit, f, t)
                 * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Energy generation by fuels
@@ -179,6 +209,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_genFuel(grid, node, fuel, f, t)
                 * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Total dummy generation/consumption
@@ -186,6 +217,7 @@ loop(m,
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_qGen(inc_dec, grid, node, f, t)
                 * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
 
 * --- Total Unit Online Results -----------------------------------------------
@@ -195,13 +227,14 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_online(unit, f, t)
                 * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Approximate utilization rates for gnus over the simulation
     r_gnuUtilizationRate(gnu_output(grid, node, unit))${r_gnuTotalGen(grid, node, unit)}
         = r_gnuTotalGen(grid, node, unit)
             / [
-                + (p_gnu(grid, node, unit, 'maxGen') + r_unitInvestment(unit)*p_gnu(grid, node, unit, 'unitSizeGen'))
+                + (p_gnu(grid, node, unit, 'maxGen') + r_invest(unit)*p_gnu(grid, node, unit, 'unitSizeGen'))
                     * (mSettings(m, 't_end') - mSettings(m, 'results_t_start') + 1)
                     * mSettings(m, 'intervalInHours')
                 ]; // END division
@@ -213,6 +246,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_reserve(restype, up_down, node, unit, f, t)
                 * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Total dummy reserve provisions over the simulation
@@ -220,6 +254,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_qResDemand(restype, up_down, node, f, t)
                 * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
 
 * --- Total Transfer and Spill ------------------------------------------------
@@ -229,6 +264,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_transfer(grid, from_node, to_node, f, t)
                 * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Total energy spill from nodes
@@ -236,6 +272,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')],
             + r_spill(grid, node, f, t)
                 * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
 
 * =============================================================================
@@ -282,7 +319,10 @@ r_gTotalqGen(inc_dec, grid)
 
 // Total consumption on each gn over the simulation
 r_gnTotalConsumption(gn(grid, node))
-    = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')], r_gnConsumption(grid, node, f ,t));
+    = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')],
+        + r_gnConsumption(grid, node, f ,t)
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+        );
 
 // Total consumption in each grid over the simulation
 r_gTotalConsumption(grid)
@@ -321,9 +361,53 @@ r_gnTotalSpillShare(gn(grid, node_spill))${ r_gTotalSpill(grid) }
 
 * --- Total Costs Results -----------------------------------------------------
 
+// Total realized operating costs on each gn over the simulation
+r_gnTotalRealizedOperatingCost(gn(grid, node))
+    = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')],
+        + r_gnRealizedOperatingCost(grid, node, f ,t)
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+        );
+
+// Total realized net operating costs on each gn over the simulation
+r_gnTotalRealizedNetOperatingCost(gn(grid, node))
+    = r_gnTotalRealizedOperatingCost(grid, node) - r_gnStorageValueChange(grid, node);
+
+// Total realized operating costs on each grid over the simulation
+r_gTotalRealizedOperatingCost(grid)
+    = sum(gn(grid, node), r_gnTotalRealizedOperatingCost(grid, node));
+
+// Total realized net operating costs on each grid over the simulation
+r_gTotalRealizedNetOperatingCost(grid)
+    = sum(gn(grid, node), r_gnTotalRealizedNetOperatingCost(grid, node));
+
+// Total realized operating costs gn/g share
+r_gnTotalRealizedOperatingCostShare(gn(grid, node))${ r_gTotalRealizedOperatingCost(grid) }
+    = r_gnTotalRealizedOperatingCost(grid, node)
+        / r_gTotalRealizedOperatingCost(grid);
+
+// Total realized operating costs over the simulation
+r_totalRealizedOperatingCost
+    = sum(gn(grid, node), r_gnTotalRealizedOperatingCost(grid, node));
+
+// Total realized net operating costs over the simulation
+r_totalRealizedNetOperatingCost
+    = sum(gn(grid, node), r_gnTotalRealizedNetOperatingCost(grid, node));
+
 // Total realized costs on each gn over the simulation
 r_gnTotalRealizedCost(gn(grid, node))
-    = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')], r_gnRealizedCost(grid, node, f ,t));
+    = r_gnTotalRealizedOperatingCost(grid, node)
+        + sum(gnu(grid, node, unit),
+            + r_gnuFOMCost(grid, node, unit)
+            + r_gnuUnitInvestmentCost(grid, node, unit)
+            )
+        + sum(gn2n_directional(grid, from_node, node),
+            + r_gnnLinkInvestmentCost(grid, from_node, node)
+                / 2
+            )
+        + sum(gn2n_directional(grid, node, to_node),
+            + r_gnnLinkInvestmentCost(grid, node, to_node)
+                / 2
+            );
 
 // Total realized net costs on each gn over the simulation
 r_gnTotalRealizedNetCost(gn(grid, node))
@@ -346,7 +430,7 @@ r_gnTotalRealizedCostShare(gn(grid, node))${ r_gTotalRealizedCost(grid) }
 r_totalRealizedCost
     = sum(gn(grid, node), r_gnTotalRealizedCost(grid, node));
 
-// Total realized net costs over the simulation
+// Total realized net operating costs over the simulation
 r_totalRealizedNetCost
     = sum(gn(grid, node), r_gnTotalRealizedNetCost(grid, node));
 
@@ -371,12 +455,14 @@ r_uTotalOnlinePerUnit(unit)${ p_unit(unit, 'unitCount') }
 r_uTotalStartup(unit, starttype)
     = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')],
         + r_startup(unit, starttype, f, t)
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
         ); // END sum(ft_realizedNoReset)
 
 // Total sub-unit shutdowns over the simulation
 r_uTotalShutdown(unit)
     = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 'results_t_start')],
         + r_shutdown(unit, f, t)
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
         ); // END sum(ft_realizedNoReset)
 
 * --- Diagnostic Results ------------------------------------------------------

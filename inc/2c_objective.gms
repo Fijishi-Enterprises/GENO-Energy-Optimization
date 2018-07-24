@@ -152,14 +152,14 @@ q_obj ..
 
         // Transfer link investment costs
         + sum(gn2n_directional(grid, from_node, to_node),
-            + v_investTransfer_LP(grid, from_node, to_node, t)${ not p_gnn(grid, from_node, to_node, 'investMIP') }
+            + v_investTransfer_LP(grid, from_node, to_node, t)${ gn2n_directional_investLP(grid, from_node, to_node) }
                 * [
                     + p_gnn(grid, from_node, to_node, 'invCost')
                         * p_gnn(grid, from_node, to_node, 'annuity')
                     + p_gnn(grid, to_node, from_node, 'invCost')
                         * p_gnn(grid, to_node, from_node, 'annuity')
                     ] // END * v_investTransfer_LP
-            + v_investTransfer_MIP(grid, from_node, to_node, t)${ p_gnn(grid, from_node, to_node, 'investMIP') }
+            + v_investTransfer_MIP(grid, from_node, to_node, t)${ gn2n_directional_investMIP(grid, from_node, to_node) }
                 * [
                     + p_gnn(grid, from_node, to_node, 'unitSize')
                         * p_gnn(grid, from_node, to_node, 'invCost')

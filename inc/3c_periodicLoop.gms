@@ -110,8 +110,8 @@ $iftheni.debug NOT '%debug%' == 'yes'
 * --- Temporary Time Series ---------------------------------------------------
 
     // Forecast Related Time Series
-    Option clear = ts_forecast;
-    Option clear = ts_tertiary;
+*    Option clear = ts_forecast; // NOTE! Forecast Related Time Series have changed, Juha needs to check these
+*    Option clear = ts_tertiary; // NOTE! Forecast Related Time Series have changed, Juha needs to check these
 
     // Initialize temporary time series
     Option clear = ts_influx_;
@@ -373,24 +373,26 @@ dt(t)${sum(ms(mSolve, s), mst_start(mSolve, s, t))} = -1
 
 * --- Determine various other forecast-time sets required for the model -------
 
-// Set of realized time steps in the solve
+// Set of realized intervals in the solve
 Option clear = ft_realized;
 ft_realized(f_solve, t)${ mf_realization(mSolve, f_solve) and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = ft(f_solve, t);
 ft_realizedNoReset(ft_realized(f, t)) = yes;
+// Set of realized intervals in the whole simulation so far, including model and sample dimensions
+msft_realizedNoReset(msft(mSolve, s, ft_realized(f, t))) = yes;
 
-// Forecast index displacement between realized and forecasted timesteps
+// Forecast index displacement between realized and forecasted intervals
 df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
 
-// Forecast displacement between central and forecasted timesteps at the end of forecast horizon
+// Forecast displacement between central and forecasted intervals at the end of forecast horizon
 Option clear = df_central; // This can be reset.
 df_central(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLengthUnchanging') - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'intervalInHours')
                         and not mf_realization(mSolve, f)
                         }
     = sum(mf_central(mSolve, f_), ord(f_) - ord(f));
 
-// Forecast index displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
+// Forecast index displacement between realized and forecasted intervals, required for locking reserves ahead of (dispatch) time.
 Option clear = df_nReserves;
 df_nReserves(node, restype, ft(f, t))${ p_nReserves(node, restype, 'update_frequency')
                                         and p_nReserves(node, restype, 'gate_closure')

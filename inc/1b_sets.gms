@@ -55,6 +55,8 @@ Sets
 * NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
     gn2n(grid, node, node) "All (directional) transfer links between nodes in specific energy grids"
     gn2n_directional(grid, node, node) "Transfer links with positive rightward transfer and negative leftward transfer"
+    gn2n_directional_investLP(grid, node, node) "Transfer links with with continuous investments allowed"
+    gn2n_directional_investMIP(grid, node, node) "Transfer links with with integer investments allowed"
     gnu(grid, node, unit) "Units in specific nodes of particular energy grids"
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
     gnu_output(grid, node, unit) "Forms of energy the unit uses as endogenous outputs"
@@ -96,6 +98,7 @@ Sets
     mft(mType, f, t) "Combination of forecasts and t:s in the current model solve"
     msf(mType, s, f) "Combination of samples and forecasts in the models"
     msft(mType, s, f, t) "Combination of samples, forecasts and t:s in the current model solve"
+    msft_realizedNoReset(mType, s, f, t) "Combination of realized samples, forecasts and t:s in the current model solve and previously realized t:s"
     mft_start(mType, f, t) "Start point of the current model solve"
     mf_realization(mType, f) "fRealization of the forecasts"
     mf_central(mType, f) "Forecast that continues as sample(s) after the forecast horizon ends"

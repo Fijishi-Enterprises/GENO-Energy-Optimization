@@ -24,7 +24,7 @@ Parameters
 * --- Cost Results ------------------------------------------------------------
 
     // Total Objective Function
-    r_totalObj "Total operating cost over the simulation (EUR)" / 0 /
+    r_totalObj "Total cost over the simulation (EUR)" / 0 /
 
     // Unit Operational Cost Components
     r_gnuVOMCost(grid, node, unit, f, t) "Variable O&M costs for energy outputs (MEUR)"
@@ -39,8 +39,22 @@ Parameters
     r_gnTotalStateSlackCost(grid, node) "Total costs for state slacks over the simulation (MEUR)"
     r_gnStorageValueChange(grid, node) "Change in storage values over the simulation (MEUR)"
 
+    // Investment and Fixed Operation and Maintenance Cost Components
+    r_gnuFOMCost(grid, node, unit) "Total gnu fixed O&M costs over the simulation (MEUR)"
+    r_gnuUnitInvestmentCost(grid, node, unit) "Total unit investment costs over the simulation (MEUR)"
+    r_gnnLinkInvestmentCost(grid, node, node) "Total transfer link investment costs over the simulation (MEUR)"
+
+    // Realized System Operating Costs
+    r_gnRealizedOperatingCost(grid, node, f, t) "Realized system operating costs in gn for each t (MEUR)"
+    r_gnTotalRealizedOperatingCost(grid, node) "Total realized system operating costs in gn over the simulation (MEUR)"
+    r_gnTotalRealizedOperatingCostShare(grid, node) "Total realized system operating cost gn/g shares over the simulation"
+    r_gnTotalRealizedNetOperatingCost(grid, node) "Total realized system operating costs in gn over the simulation, minus the increase in storage values (MEUR)"
+    r_gTotalRealizedOperatingCost(grid) "Total realized system operating costs in g over the simulation (MEUR)"
+    r_gTotalRealizedNetOperatingCost(grid) "Total realized system operating costs in g over the simulation, minus the increase in storage values (MEUR)"
+    r_totalRealizedOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
+    r_totalRealizedNetOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
+
     // Realized System Costs
-    r_gnRealizedCost(grid, node, f, t) "Realized system costs in gn for each t (MEUR)"
     r_gnTotalRealizedCost(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
     r_gnTotalRealizedCostShare(grid, node) "Total realized system cost gn/g shares over the simulation"
     r_gnTotalRealizedNetCost(grid, node) "Total realized system costs in gn over the simulation, minus the increase in storage values (MEUR)"
@@ -128,7 +142,8 @@ Parameters
 * --- Investment Results ------------------------------------------------------
 
     // Interesting investment results
-    r_unitInvestment(unit) "Number/amount of invested sub-units"
+    r_invest(unit) "Number/amount of invested sub-units"
+    r_investTransfer(grid, node, node, t) "Amount of invested transfer link capacity"
 
 * --- Dummy Variable Results --------------------------------------------------
 
@@ -155,6 +170,8 @@ Option clear = r_gen;
 Option clear = r_realizedLast;
 Option clear = r_startup;
 Option clear = r_shutdown;
+Option clear = r_invest;
+Option clear = r_investTransfer;
 
 * =============================================================================
 * --- Diagnostics Results Arrays ----------------------------------------------
