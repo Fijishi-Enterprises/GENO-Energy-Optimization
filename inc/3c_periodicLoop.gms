@@ -349,27 +349,30 @@ mft_lastSteps(mSolve, ft(f,t))${ ord(t) + p_stepLength(mSolve, f, t) / mSettings
     = yes
 ;
 
-// Sample start and end intervals
-loop(ms(mSolve, s),
-    tmp = 1;
-    tmp_ = 1;
-    loop(t_active(t),
-        if(tmp and ord(t) > msStart(mSolve, s),
-            mst_start(mSolve, s, t) = yes;
-            tmp = 0;
+// If this is the very first solve
+if(tSolveFirst = mSettings(mSolve, 't_start'),
+    // Sample start and end intervals
+    loop(ms(mSolve, s),
+        tmp = 1;
+        tmp_ = 1;
+        loop(t_active(t),
+            if(tmp and ord(t) > msStart(mSolve, s),
+                mst_start(mSolve, s, t) = yes;
+                tmp = 0;
+            );
+            if(tmp_ and ord(t) > msEnd(mSolve, s),
+                mst_end(mSolve, s, t+dt(t)) = yes;
+                tmp_ = 0;
+            );
+        ); // END loop(t_active)
+        // If the last interval of a sample is in mft_lastSteps, the method above does not work
+        if(tmp_,
+            mst_end(mSolve, s, t)${sum(f_solve, mft_lastSteps(mSolve, f_solve, t))} = yes;
         );
-        if(tmp_ and ord(t) > msEnd(mSolve, s),
-            mst_end(mSolve, s, t+dt(t)) = yes;
-            tmp_ = 0;
-        );
-    ); // END loop(t_active)
-    // If the last interval of a sample is in mft_lastSteps, the method above does not work
-    if(tmp_,
-        mst_end(mSolve, s, t)${sum(f_solve, mft_lastSteps(mSolve, f_solve, t))} = yes;
-    );
-); // END loop(ms)
-// Displacement from the first interval of a sample to the previous interval is always -1
-dt(t)${sum(ms(mSolve, s), mst_start(mSolve, s, t))} = -1
+    ); // END loop(ms)
+    // Displacement from the first interval of a sample to the previous interval is always -1
+    dt(t)${sum(ms(mSolve, s), mst_start(mSolve, s, t))} = -1;
+); // END if(tSolveFirst)
 
 * --- Determine various other forecast-time sets required for the model -------
 
