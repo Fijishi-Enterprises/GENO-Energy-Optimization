@@ -286,6 +286,8 @@ param_unit "Set of possible data parameters for units" /
     outputCapacityTotal "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"
     unitOutputCapacityTotal "Output capacity of the unit, calculated by summing all the subunit output sizes together by default"
     availability  "Availability of given energy conversion technology (p.u.)"
+    useInitialOnlineStatus   "A flag to fix the online status of a unit for the first time step"
+    initialOnlineStatus      "Initial online status of the unit in the first time step (binary)"
     omCosts       "Variable operation and maintenance costs (EUR/MWh)"
     startCostCold "Variable start-up costs for cold starts excluding fuel costs (EUR/MW)"
     startCostWarm "Variable start-up costs for warm starts excluding fuel costs (EUR/MW)"

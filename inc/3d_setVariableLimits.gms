@@ -434,6 +434,16 @@ loop(mft_start(mSolve, f, t),
             = ts_nodeState(grid, node, 'reference', f, t) // NOTE!!! ts_nodeState_ doesn't contain initial values so using raw data instead.
                 * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
+       // Initial online status for units
+       v_online_MIP.fx(unit, f, t)${  p_unit(unit, 'useInitialOnlineStatus') and uft_onlineMIP(unit, f, t+1)    //sets online status for one time step before the first solve
+                                                 }
+            = p_unit(unit, 'initialOnlineStatus');
+
+       v_online_LP.fx(unit, f, t)${p_unit(unit, 'useInitialOnlineStatus') and uft_onlineLP(unit, f, t+1)
+                                                 }
+            = p_unit(unit, 'initialOnlineStatus');
+
+
     else // For all other solves, fix the initial state values based on previous results.
 
         // State and online variable initial values for the subsequent solves
