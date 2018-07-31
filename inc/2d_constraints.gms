@@ -358,21 +358,41 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
 * --- Unit Startup and Shutdown -----------------------------------------------
 
 q_startshut(m, uft_online(unit, f, t)) ..
-    // Units currently online
-    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+    // Units currently online (expect aggregated units right after the aggregation threshold, see next term)
+    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t) and not [unit_aggregate(unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate')]}
+    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t) and not [unit_aggregate(unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate')]}
+
+    // Aggregated units online right after the aggregation threshold
+    + sum(unit_$[unitUnit_aggregate(unit_, unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate') and uft_online(unit_, f, t)],
+        + v_online_LP(unit_, f+df_central(f,t), t)${uft_onlineLP(unit_, f, t)}
+        + v_online_MIP(unit_, f+df_central(f,t), t)${uft_onlineMIP(unit_, f, t)}
+      )
 
     // Units previously online
-    - v_online_LP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineLP(unit, f, t) } // This reaches to tFirstSolve when dt = -1
-    - v_online_MIP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineMIP(unit, f, t) }
+    - v_online_LP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineLP(unit, f, t) and not [unit_aggregate(unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate')] } // This reaches to tFirstSolve when dt = -1
+    - v_online_MIP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineMIP(unit, f, t) and not [unit_aggregate(unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate')] }
 
     =E=
 
     // Unit startup and shutdown
+
+    // Add startup of units dt_toStartup before the current t
     + sum(unitStarttype(unit, starttype),
         + v_startup(unit, starttype, f+df_central(f,t+dt_toStartup(unit,t)), t+dt_toStartup(unit, t))
         ) // END sum(starttype)
-    - v_shutdown(unit, f+df_central(f,t), t)
+
+    // Add startup of units before they were aggreted to the aggregated unit dt_toStartup before the current t
+    + sum(unitStarttype(unit_, starttype)${unitUnit_aggregate(unit, unit_) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate') + dt_toStartup(unit_, t)},
+        + v_startup(unit_, starttype, f+df_central(f,t+dt_toStartup(unit,t)), t+dt_toStartup(unit, t))
+        ) // END sum(starttype)
+
+    // Shutdown of units at time t (expect aggregated units right after the aggregation threshold, see next term)
+    - v_shutdown(unit, f+df_central(f,t), t)${not [unit_aggregate(unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate')]}
+
+    // Shutdown of aggregated units right after the aggregation threshold
+    - sum(unit_$[unitUnit_aggregate(unit_, unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate') and uft_online(unit_, f, t)],
+        + v_shutdown(unit_, f+df_central(f,t), t)
+      )
 ;
 
 
