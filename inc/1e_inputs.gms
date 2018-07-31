@@ -405,16 +405,20 @@ loop(gn2n(grid, node, node_),
 Option clear = tmp; // Log the unit index for finding the error easier.
 loop( unit,
     tmp = ord(unit); // Increase the unit counter
+    unit_current(unit) = Yes;
     // Check that 'op' is defined correctly
     Option clear = count; // Initialize the previous op to zero
     loop( op,
-        abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!", tmp, count;
+        if (p_unit(unit, op) + 1${not p_unit(unit, op)} < count,
+            put log '!!! Error occurred on unit ' unit_current.te(unit); // Display unit that causes error
+            put log /;
+            abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!", unit_current;
+        );
         count = p_unit(unit, op);
     );
     // Check that efficiency approximations have sufficient data
     loop( effLevelGroupUnit(effLevel, effSelector, unit),
         loop( op__${p_unit(unit, op__) = smax(op, p_unit(unit, op))}, // Loop over the 'op's to find the last defined data point.
-            // Lambda  - Has been commented out, since it is ok to improve the efficiency curve by using extra lambda points.
             //loop( lambda${sameas(lambda, effSelector)}, // Loop over the lambdas to find the 'magnitude' of the approximation
                 //display count_lambda, count_lambda2, unit.tl;
             //    if(ord(lambda) > ord(op__), put log '!!! Error occurred on unit ' unit.tl:25 ' with effLevel ' effLevel.tl:10 ' with effSelector ' lambda.tl:8); // Display unit that causes error
@@ -423,12 +427,13 @@ loop( unit,
             // DirectOn
             loop( op_${p_unit(unit, op_) = smin(op${p_unit(unit, op)}, p_unit(unit, op))}, // Loop over the 'op's to find the first nonzero 'op' data point.
                 if(effDirectOn(effSelector) AND ord(op__) = ord(op_) AND not p_unit(unit, 'section') AND not p_unit(unit, 'opFirstCross'),
-                    put log '!!! Error occurred on unit #' tmp; // Display unit that causes error, NEEDS WORK
-                    abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!";
+                    put log '!!! Error occurred on unit ' unit_current.te(unit); // Display unit that causes error
+                    abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!", unit_current;
                 );
             );
         );
     );
+    unit_current(unit) = No;
 );
 
 * Check the start-up fuel fraction related data
