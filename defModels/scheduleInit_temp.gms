@@ -81,9 +81,19 @@ if (mType('schedule'),
 
     // Define forecast properties and features
     mSettings('schedule', 't_forecastStart') = 1;
-    mSettings('schedule', 't_forecastLength') = 36;
+    mSettings('schedule', 't_forecastLengthUnchanging') = 36;  // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
+    mSettings('schedule', 't_forecastLengthDecreasesFrom') = 168;  // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
     mSettings('schedule', 't_forecastJump') = 24;
-    mSettings('schedule', 'readForecastsInTheLoop') = 1;
+    mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
+    mTimeseries_loop_read('schedule', 'ts_unit') = no;
+    mTimeseries_loop_read('schedule', 'ts_effUnit') = no;
+    mTimeseries_loop_read('schedule', 'ts_effGroupUnit') = no;
+    mTimeseries_loop_read('schedule', 'ts_influx') = no;
+    mTimeseries_loop_read('schedule', 'ts_cf') = no;
+    mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
+    mTimeseries_loop_read('schedule', 'ts_nodeState') = no;
+    mTimeseries_loop_read('schedule', 'ts_fuelPriceChange') = no;
+    mTimeseries_loop_read('schedule', 'ts_unavailability') = no;
 
     // Define Realized and Central forecasts
     mf_realization('schedule', f) = no;
@@ -110,7 +120,7 @@ if (mType('schedule'),
     // Lenght of reserve horizon
     mSettings('schedule', 't_reserveLength') = 36;
 
-* --- Define Unit Efficiency Approximations -----------------------------------
+* --- Define Unit Approximations ----------------------------------------------
 
     // Define unit aggregation threshold
     mSettings('schedule', 't_aggregate') = 168;
@@ -118,5 +128,19 @@ if (mType('schedule'),
     // Define unit aggregation and efficiency levels starting indeces
     mSettingsEff('schedule', 'level1') = 1;
     mSettingsEff('schedule', 'level2') = 12;
+
+    // Define threshold for omitting start-up and shutdown trajectories
+    mSettings('schedule', 't_omitTrajectories') = 8761;
+
+* --- Define output settings for results --------------------------------------
+
+    // Define when to start outputting results - allows to skip an initialization period. Uses ord(t) > results_t_start in the code.
+    mSettings('schedule', 'results_t_start') = 1;
+
+* --- Control the solver ------------------------------------------------------
+
+    // Control the use of advanced basis
+    mSettings('schedule', 'loadPoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
+    mSettings('schedule', 'savePoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
 
 ); // END if(mType)

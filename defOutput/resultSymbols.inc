@@ -37,8 +37,22 @@ r_gnStateSlackCost
 r_gnTotalStateSlackCost
 r_gnStorageValueChange
 
+// Investment and Fixed Operation and Maintenance Cost Components
+r_gnuFOMCost
+r_gnuUnitInvestmentCost
+r_gnnLinkInvestmentCost
+
+// Realized System Operating Costs
+r_gnRealizedOperatingCost
+r_gnTotalRealizedOperatingCost
+r_gnTotalRealizedOperatingCostShare
+r_gnTotalRealizedNetOperatingCost
+r_gTotalRealizedOperatingCost
+r_gTotalRealizedNetOperatingCost
+r_totalRealizedOperatingCost
+r_totalRealizedNetOperatingCost
+
 // Realized System Costs
-r_gnRealizedCost
 r_gnTotalRealizedCost
 r_gnTotalRealizedCostShare
 r_gnTotalRealizedNetCost
@@ -126,7 +140,8 @@ r_nTotalReserve
 * --- Investment Result Symbols -----------------------------------------------
 
 // Interesting investment results
-r_unitInvestment
+r_invest
+r_investTransfer
 
 * --- Dummy and Diagnostic Variable Result Symbols ----------------------------
 

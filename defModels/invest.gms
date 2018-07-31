@@ -26,7 +26,6 @@ Model invest /
 
     // Unit Operation
     q_maxDownward
-    q_noReserveInRunUp
     q_maxUpward
     q_startshut
     q_startuptype
@@ -37,12 +36,15 @@ Model invest /
     q_genRamp
     q_rampUpLimit
     q_rampDownLimit
+    q_rampUpDown
+    q_rampSlack
     q_outputRatioFixed
     q_outputRatioConstrained
     q_conversionDirectInputOutput
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
+    q_fuelUseLimit
 
     // Energy Transfer
     q_transfer

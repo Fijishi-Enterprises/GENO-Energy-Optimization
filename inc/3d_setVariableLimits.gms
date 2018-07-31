@@ -68,6 +68,23 @@ v_state.fx(gn_state(grid, node), ft(f, t))${    p_gn(grid, node, 'boundAll')
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
 ;
 
+// Bound also the intervals just before the start of each sample - currently just 'upwardLimit'&'useConstant' and 'downwardLimit'&'useConstant'
+// Upper bound
+v_state.up(gn_state(grid, node), f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
+                                                        and not df_central(f_solve,t)
+                                                        and sum(ms(mSolve, s), mst_start(mSolve, s, t))
+                                                        }
+    = p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
+        * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier');
+
+// Lower bound
+v_state.lo(gn_state(grid, node), f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+                                                        and not df_central(f_solve,t)
+                                                        and sum(ms(mSolve, s), mst_start(mSolve, s, t))
+                                                        }
+    = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
+        * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
+
 // Spilling of energy from the nodes
 // Max. & min. spilling, use constant value as base and overwrite with time series if desired
 v_spill.lo(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node_spill, 'minSpill', 'constant')   }
@@ -136,36 +153,29 @@ v_gen.lo(gnuft(gnu_output(grid, node, unit), f, t))${   p_gnu(grid, node, unit, 
 v_gen.up(gnuft(gnu_output(grid, node, unit), f, t))${   p_gnu(grid, node, unit, 'maxGen') < 0   }
     = 0;
 
-// Ramping capability of units without online variable and not part of investment set
-// !!! PENDING CHANGES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-$ontext
+// Ramping capability of units not part of investment set
+// NOTE: Apply the corresponding equations only to units with investment possibility,
+// online variable, or reserve provision
 loop(ms(mSolve, s),
-    v_genRamp.up(grid, node, unit, f, t+pt(t))${  ft(f, t)
-                                              and gnuft_ramp(grid, node, unit, f, t)
-                                              and msft(mSolve, s, f, t)
-                                              and ord(t) > msStart(mSolve, s)
-                                              and p_gnu(grid, node, unit, 'maxRampUp')
-                                              and not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))
-                                              and not unit_investLP(unit)
-                                              and not unit_investMIP(unit)
+    v_genRamp.up(gnuft_ramp(grid, node, unit, f, t))${ ord(t) > msStart(mSolve, s)
+                                                       and msft(mSolve, s, f, t)
+                                                       and p_gnu(grid, node, unit, 'maxRampUp')
+                                                       and not unit_investLP(unit)
+                                                       and not unit_investMIP(unit)
 
-        } = ( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )
+        } = ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )
             * p_gnu(grid, node, unit, 'maxRampUp')
-            * 60 / 100;  // Unit conversion from [p.u./min] to [MW/h]
-    v_genRamp.lo(grid, node, unit, f, t+pt(t))${  ft(f, t)
-                                              and gnuft_ramp(grid, node, unit, f, t)
-                                              and msft(mSolve, s, f, t)
-                                              and ord(t) > msStart(mSolve, s)
-                                              and p_gnu(grid, node, unit, 'maxRampDown')
-                                              and not uft_online_incl_previous(unit, f+cpf(f,t), t+pt(t))
-                                              and not unit_investLP(unit)
-                                              and not unit_investMIP(unit)
+            * 60;  // Unit conversion from [p.u./min] to [p.u./h]
+    v_genRamp.lo(gnuft_ramp(grid, node, unit, f, t))${ ord(t) > msStart(mSolve, s)
+                                                       and msft(mSolve, s, f, t)
+                                                       and p_gnu(grid, node, unit, 'maxRampDown')
+                                                       and not unit_investLP(unit)
+                                                       and not unit_investMIP(unit)
 
-        } = -( p_gnu(grid, node, unit, 'maxGen') - p_gnu(grid, node, unit, 'maxCons') )
+        } = -( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )
             * p_gnu(grid, node, unit, 'maxRampDown')
-            * 60 / 100;  // Unit conversion from [p.u./min] to [MW/h]
+            * 60;  // Unit conversion from [p.u./min] to [p.u./h]
 );
-$offtext
 
 // v_online cannot exceed unit count if investments disabled
 // LP variant
@@ -178,6 +188,7 @@ v_online_MIP.up(uft_onlineMIP(unit, f, t))${    not unit_investMIP(unit) }
 ;
 
 // Free the upper bound of start-up and shutdown variables (if previously bounded)
+// This should not be needed if t_activeNoReset is used properly?
 v_startup.up(unitStarttype(unit, starttype), ft(f, t)) = inf;
 v_shutdown.up(uft(unit, f, t)) = inf;
 
@@ -188,13 +199,29 @@ v_startup.up(unitStarttype(unit, starttype), ft(f, t))${    uft_online(unit, f, 
                                                             }
     = p_unit(unit, 'unitCount')
 ;
+
+// v_shutdown cannot exceed unitCount
+v_shutdown.up(uft_online(unit, f, t))${  not unit_investLP(unit)  and not unit_investMIP(unit) }
+    = p_unit(unit, 'unitCount')
+;
+
 // Cannot start a unit if the time when the unit would become online is outside
 // the horizon when the unit has an online variable
 v_startup.up(unitStarttype(unit, starttype), ft(f, t))${    uft_online(unit, f, t)
+                                                            and p_u_runUpTimeIntervals(unit)
                                                             and not sum(t_active(t_)${ord(t) = ord(t_) + dt_toStartup(unit,t_)}, uft_online(unit, f, t_))
                                                             }
     = 0;
-// Cannot start up or shut down a unit if the time time step is not active in the current horizon
+// Cannot shut down a unit if the time when the generation of the unit would become
+// zero is outside the horizon when the unit has an online variable
+v_shutdown.up(uft_online(unit, f, t))${  p_u_shutdownTimeIntervals(unit)
+                                         and not sum(t_active(t_)${ord(t) = ord(t_) + dt_toShutdown(unit,t_)}, uft_online(unit, f, t_))
+                                         }
+    = 0;
+
+// Cannot start up or shut down a unit if the interval is not active in the current horizon
+// This should not be needed if t_activeNoReset is used properly
+$ontext
 v_startup.up(unitStarttype(unit, starttype), ft(f, t))${    ord(t) > tSolveFirst
                                                             and ord(t) <= tSolveLast
                                                             and not t_active(t)
@@ -205,16 +232,16 @@ v_shutdown.up(uft(unit, f, t))${    ord(t) > tSolveFirst
                                     and not t_active(t)
                                     }
     = 0;
+$offtext
 
 //These might speed up, but they should be applied only to the new part of the horizon (should be explored)
 *v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 *v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 
-// v_shutdown cannot exceed unitCount
-v_shutdown.up(uft_online(unit, f, t))${  not unit_investLP(unit)  and not unit_investMIP(unit) }
-    = p_unit(unit, 'unitCount')
+// Fuel use limitations
+v_fuelUse.up(fuel, uft(unit, f, t))${p_uFuel(unit, 'main', fuel, 'maxFuelCons')}
+    = p_uFuel(unit, 'main', fuel, 'maxFuelCons')
 ;
-
 
 * --- Energy Transfer Boundaries ----------------------------------------------
 
@@ -264,7 +291,7 @@ v_reserve.up(nuRescapable(restype, 'down', node, unit), f_solve(f+df_nReserves(n
     ;
 
 // Fix reserves between t_jump and gate_closure based on previous allocations
-// Primary reserves can use tertiary reserves as backup.
+// Primary reserves can use tertiary reserves as backup. NOTE! handled using vq_resMissing at the moment
 if(tSolveFirst > mSettings(mSolve, 't_start'), // No previous solution to fix the reserves with on the first solve.
 
 $ontext
@@ -361,32 +388,21 @@ v_invest_MIP.lo(unit, t_invest)${   unit_investMIP(unit)    }
 
 // Transfer Capacity Investments
 // LP investments
-v_investTransfer_LP.up(gn2n_directional(grid, from_node, to_node), t_invest)${  not p_gnn(grid, from_node, to_node, 'investMIP')
-                                                                                and p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
-                                                                                }
+v_investTransfer_LP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ gn2n_directional_investLP(grid, from_node, to_node) }
     = p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
 ;
 // MIP investments
-v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ p_gnn(grid, from_node, to_node, 'investMIP')
-                                                                                and p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
-                                                                                }
+v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ gn2n_directional_investMIP(grid, from_node, to_node) }
     = p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
         / p_gnn(grid, from_node, to_node, 'unitSize')
 ;
 
-// If offline hours after which the start-up will be a warm/cold start is not
-// defined, fix hot/warm start-up to zero.
-// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// These should not be necessary,as if the time window is not defined, warm and
-// hot starts should be impossible according to q_startuptype
-*v_startup.fx(unit, 'hot', ft_dynamic(f, t))${not p_unit(unit, 'startWarmAfterXhours')} = 0;
-*v_startup.fx(unit, 'warm', ft_dynamic(f, t))${not p_unit(unit, 'startColdAfterXhours')} = 0;
 
 * =============================================================================
-* --- Bounds for the first timestep -------------------------------------------
+* --- Bounds for the first (and last) interval --------------------------------
 * =============================================================================
 
-// Loop over the start steps
+// Loop over the start intervals
 loop(mft_start(mSolve, f, t),
 
     // If this is the very first solve, set boundStart
@@ -418,6 +434,16 @@ loop(mft_start(mSolve, f, t),
             = ts_nodeState(grid, node, 'reference', f, t) // NOTE!!! ts_nodeState_ doesn't contain initial values so using raw data instead.
                 * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
+       // Initial online status for units
+       v_online_MIP.fx(unit, f, t)${  p_unit(unit, 'useInitialOnlineStatus') and uft_onlineMIP(unit, f, t+1)    //sets online status for one time step before the first solve
+                                                 }
+            = p_unit(unit, 'initialOnlineStatus');
+
+       v_online_LP.fx(unit, f, t)${p_unit(unit, 'useInitialOnlineStatus') and uft_onlineLP(unit, f, t+1)
+                                                 }
+            = p_unit(unit, 'initialOnlineStatus');
+
+
     else // For all other solves, fix the initial state values based on previous results.
 
         // State and online variable initial values for the subsequent solves
@@ -432,22 +458,21 @@ loop(mft_start(mSolve, f, t),
 ) // END loop(mftStart)
 ;
 
-// Fix previously realized start-up and shutdown decisions.
-// Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up phases.
-$ontext
-v_startup.up(unitStarttype(unit, starttype), f, t)${ sum(ft(f_, t_), uft_online(unit, f_, t_))
-                                                     and mf_realization(mSolve, f)
-                                                     and ord(t) <= tSolveFirst
-                                                     }
-    = 0
+// BoundStartToEnd
+v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
+                                    and p_gn(grid, node, 'boundStartToEnd')
+                                    }
+    = sum(mf_realization(mSolve, f_),
+        + r_state(grid, node, f_, tSolve)
+        ) // END sum(fRealization)
 ;
-v_shutdown.up(unit, f, t)${ sum(ft(f_, t_), uft_online(unit, f_, t_))
-                            and mf_realization(mSolve, f)
-                            and ord(t) <= tSolveFirst
-                            }
-    = 0
-;
-$offtext
+
+
+* =============================================================================
+* --- Fix previously realized start-ups, shutdowns, and online states ---------
+* =============================================================================
+// Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up and shutdown phases.
+
 v_startup.fx(unitStarttype(unit, starttype), ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
                                                                           and sum[ft(f_,t_), uft_online(unit,f_,t_)]
                                                                           }
@@ -460,21 +485,14 @@ v_shutdown.fx(unit, ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
     = round(r_shutdown(unit, f, t), 4)
 ;
 
-
 v_online_MIP.fx(unit, ft_realizedNoReset(f, t))${   ord(t) <= tSolveFirst
                                                     and sum[ft(f_,t_), uft_onlineMIP(unit,f_,t_)]
                                                     }
     = r_online(unit, f, t);
+
 v_online_LP.fx(unit, ft_realizedNoReset(f, t))${    ord(t) <= tSolveFirst
                                                     and sum[ft(f_,t_), uft_onlineLP(unit,f_,t_)]
                                                     }
     = r_online(unit, f, t);
 
-// BoundStartToEnd
-v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
-                                    and p_gn(grid, node, 'boundStartToEnd')
-                                    }
-    = sum(mf_realization(mSolve, f_),
-        + r_state(grid, node, f_, tSolve)
-        ) // END sum(fRealization)
-;
+

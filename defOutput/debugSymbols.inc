@@ -52,6 +52,10 @@ p_u_maxOutputInLastRunUpInterval
 p_u_runUpTimeIntervals
 dt_toStartup
 p_ut_runUp
+p_u_maxOutputInFirstShutdownInterval
+p_u_shutdownTimeIntervals
+dt_toShutdown
+p_ut_shutdown
 
 * Variables
 v_obj
@@ -61,12 +65,14 @@ v_transfer
 v_state
 v_fuelUse
 v_sos2
-v_startup
 v_spill
 v_online_LP
 v_online_MIP
 v_startup
 v_shutdown
+v_genRampUpDown
+v_transferRightward
+v_transferLeftward
 v_resTransferRightward
 v_resTransferLeftward
 v_reserve
@@ -82,7 +88,6 @@ v_invest_MIP
 
     // Unit Operation
     q_maxDownward
-    q_noReserveInRunUp
     q_maxUpward
     q_startshut
     q_startuptype
@@ -93,12 +98,15 @@ v_invest_MIP
     q_genRamp
     q_rampUpLimit
     q_rampDownLimit
+    q_rampUpDown
+    q_rampSlack
     q_outputRatioFixed
     q_outputRatioConstrained
     q_conversionDirectInputOutput
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
+    q_fuelUseLimit
 
     // Energy Transfer
     q_transfer
@@ -114,7 +122,18 @@ v_invest_MIP
     q_boundStateMaxDiff
     q_boundCyclic
 
+    // Policy
+    q_inertiaMin
+    q_instantaneousShareMax
+    q_constrainedOnlineMultiUnit
+    q_capacityMargin
+    q_constrainedCapMultiUnit
+    q_emissioncap
+    q_energyShareMax
+    q_energyShareMin
+
 * Dummy variables
 vq_gen
 vq_resDemand
+vq_resMissing
 v_stateSlack

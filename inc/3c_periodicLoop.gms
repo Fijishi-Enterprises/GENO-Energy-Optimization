@@ -39,6 +39,7 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = v_fuelUse;
     Option clear = v_startup;
     Option clear = v_shutdown;
+    Option clear = v_genRampUpDown;
     Option clear = v_spill;
     Option clear = v_transferRightward;
     Option clear = v_transferLeftward;
@@ -62,7 +63,6 @@ $iftheni.debug NOT '%debug%' == 'yes'
 
     // Unit Operation
     Option clear = q_maxDownward;
-    Option clear = q_noReserveInRunUp;
     Option clear = q_maxUpward;
     Option clear = q_startshut;
     Option clear = q_startuptype;
@@ -73,12 +73,15 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = q_genRamp;
     Option clear = q_rampUpLimit;
     Option clear = q_rampDownLimit;
+    Option clear = q_rampUpDown;
+    Option clear = q_rampSlack;
     Option clear = q_outputRatioFixed;
     Option clear = q_outputRatioConstrained;
     Option clear = q_conversionDirectInputOutput;
     Option clear = q_conversionSOS2InputIntermediate;
     Option clear = q_conversionSOS2Constraint;
     Option clear = q_conversionSOS2IntermediateOutput;
+    Option clear = q_fuelUseLimit;
 
     // Energy Transfer
     Option clear = q_transfer;
@@ -97,6 +100,7 @@ $iftheni.debug NOT '%debug%' == 'yes'
     // Policy
     Option clear = q_inertiaMin;
     Option clear = q_instantaneousShareMax;
+    Option clear = q_constrainedOnlineMultiUnit;
     Option clear = q_capacityMargin;
     Option clear = q_constrainedCapMultiUnit;
     Option clear = q_emissioncap;
@@ -106,8 +110,8 @@ $iftheni.debug NOT '%debug%' == 'yes'
 * --- Temporary Time Series ---------------------------------------------------
 
     // Forecast Related Time Series
-    Option clear = ts_forecast;
-    Option clear = ts_tertiary;
+*    Option clear = ts_forecast; // NOTE! Forecast Related Time Series have changed, Juha needs to check these
+*    Option clear = ts_tertiary; // NOTE! Forecast Related Time Series have changed, Juha needs to check these
 
     // Initialize temporary time series
     Option clear = ts_influx_;
@@ -119,13 +123,15 @@ $iftheni.debug NOT '%debug%' == 'yes'
 $endif.debug
 
 * =============================================================================
-* --- Determine the forecast-time indeces included in the current solve -------
+* --- Determine the forecast-intervals included in the current solve ----------
 * =============================================================================
 
-// Determine the timesteps of the current solve
+// Determine the time steps of the current solve
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 used only for initial values
-tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLength'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
-Option clear = t_current;
+// Is there any case where t_forecastLength should be larger than t_horizon?
+// If not, add a check for mSettings(mSolve, 't_forecastLength') <= mSettings(mSolve, 't_horizon')
+// and change the line below to 'tSolveLast = ord(tSolve) + mSettings(mSolve, 't_horizon');'
+tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLengthUnchanging'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solveOption clear = t_current;
 t_current(t_full(t))${  ord(t) >= tSolveFirst
                         and ord (t) <= tSolveLast
                         }
@@ -140,16 +146,20 @@ Option clear = mft;
 Option clear = ft;
 Option clear = mft_nReserves;
 
-// Initialize the set of active time steps and counters
+// Initialize the set of active t:s and counters
 Option clear = t_active;
 Option clear = cc;
 tCounter = 1;
 
-// Determine the set of active interval counters
+// Determine the set of active interval counters (or blocks of intervals)
 cc(counter)${ mInterval(mSolve, 'intervalLength', counter) }
     = yes;
 
-// Loop over the defined intervals
+currentForecastLength = min(  mSettings(mSolve, 't_forecastLengthUnchanging'),  // Unchanging forecast length would remain the same
+                              mSettings(mSolve, 't_forecastLengthDecreasesFrom') - [mSettings(mSolve, 't_forecastJump') - {tForecastNext(mSolve) - tSolveFirst}] // While decreasing forecast length has a fixed horizon point and thus gets shorter
+                           );   // Smallest forecast horizon is selected
+
+// Loop over the defined blocks of intervals
 loop(cc(counter),
     // Loop over defined samples
     loop(ms(mSolve, s),
@@ -157,20 +167,20 @@ loop(cc(counter),
         // Initialize tInterval
         Option clear = tt_interval;
 
-        // If intervalLength equals one, simply use all the steps within the interval
+        // If intervalLength equals one, simply use all the steps within the block
         if(mInterval(mSolve, 'intervalLength', counter) = 1,
             tt_interval(t_current(t))${ ord(t) >= tSolveFirst + tCounter
                                         and ord(t) < min(tSolveFirst + mInterval(mSolve, 'intervalEnd', counter), tSolveLast)
                                         and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
                                         and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
                                         }
-                = yes; // Include all time steps within the interval
+                = yes; // Include all time steps within the block
 
-            // Calculate the time step length in hours
+            // Calculate the interval length in hours
             p_stepLength(mf(mSolve, f_solve), tt_interval(t)) = mSettings(mSolve, 'intervalInHours');
             p_stepLengthNoReset(mf(mSolve, f_solve), tt_interval(t)) = mSettings(mSolve, 'intervalInHours');
 
-            // Determine the forecast-time steps
+            // Determine the combinations of forecasts and intervals
             // Include the t_jump for the realization
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
                                                             and mf_realization(mSolve, f_solve)
@@ -185,14 +195,14 @@ loop(cc(counter),
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
                                                             and not mf_realization(mSolve, f_solve)
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and ord(t) < tSolveFirst + mSettings(mSolve, 't_forecastLength')
+                                                            and ord(t) < tSolveFirst + currentForecastLength
                                                             }
                 = yes;
 
             // Reduce the sample dimension
             mft(mf(mSolve, f_solve), tt_interval(t)) = msft(mSolve, s, f_solve, t);
 
-            // Set of locked forecast-time steps for the reserves
+            // Set of locked combinations of forecasts and intervals for the reserves
             mft_nReserves(node, restype, mf_realization(mSolve, f), tt_interval(t))${   p_nReserves(node, restype, 'update_frequency')
                                                                                         and p_nReserves(node, restype, 'gate_closure')
                                                                                         and ord(t) > tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
@@ -227,11 +237,11 @@ loop(cc(counter),
                                         }
                 = yes;
 
-            // Length of the time step in hours
+            // Calculate the interval length in hours
             p_stepLength(mf(mSolve, f_solve), tt_interval(t)) = mInterval(mSolve, 'intervalLength', counter) * mSettings(mSolve, 'intervalInHours');
             p_stepLengthNoReset(mf(mSolve, f_solve), tt_interval(t)) = mInterval(mSolve, 'intervalLength', counter) * mSettings(mSolve, 'intervalInHours');
 
-            // Determine the forecast-time steps
+            // Determine the combinations of forecasts and intervals
             // Include the t_jump for the realization
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
                                                             and mf_realization(mSolve, f_solve)
@@ -246,12 +256,14 @@ loop(cc(counter),
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
                                                             and not mf_realization(mSolve, f_solve)
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and ord(t) < tSolveFirst + mSettings(mSolve, 't_forecastLength')
+                                                            and ord(t) < tSolveFirst + currentForecastLength
                                                             }
                 = yes;
 
             // Reduce the sample dimension
             mft(mf(mSolve, f_solve), tt_interval(t)) = msft(mSolve, s, f_solve, t);
+
+            // Set of locked combinations of forecasts and intervals for the reserves?
 
             // Reduce the model dimension
             ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t)
@@ -290,14 +302,14 @@ loop(cc(counter),
         // Abort if intervalLength is less than one
         elseif mInterval(mSolve, 'intervalLength', counter) < 1, abort "intervalLength < 1 is not defined!"
 
-            ); // END IF intervalLenght
+        ); // END IF intervalLenght
 
         // Update tActive
         t_active(tt_interval) = yes;
 
     ); // END loop(ms)
 
-    // Update tCounter for the next interval
+    // Update tCounter for the next block of intervals
     tCounter = mInterval(mSolve, 'intervalEnd', counter);
 
 ); // END loop(counter)
@@ -321,8 +333,8 @@ loop(t_active(t),
 option clear = dt_next;
 loop(t_active(t),
     dt_next(t)
-        = sum(f$mf(mSolve, f), p_stepLength(mSolve, f, t))
-            / sum(f${mf(mSolve, f) and p_stepLength(mSolve, f, t)}, 1)
+        = sum(f_solve$mf(mSolve, f_solve), p_stepLength(mSolve, f_solve, t))
+            / sum(f_solve${mf(mSolve, f_solve) and p_stepLength(mSolve, f_solve, t)}, 1)
             / mSettings(mSolve, 'intervalInHours');
 ); // END loop(t_active)
 
@@ -337,26 +349,53 @@ mft_lastSteps(mSolve, ft(f,t))${ ord(t) + p_stepLength(mSolve, f, t) / mSettings
     = yes
 ;
 
+// If this is the very first solve
+if(tSolveFirst = mSettings(mSolve, 't_start'),
+    // Sample start and end intervals
+    loop(ms(mSolve, s),
+        tmp = 1;
+        tmp_ = 1;
+        loop(t_active(t),
+            if(tmp and ord(t) > msStart(mSolve, s),
+                mst_start(mSolve, s, t) = yes;
+                tmp = 0;
+            );
+            if(tmp_ and ord(t) > msEnd(mSolve, s),
+                mst_end(mSolve, s, t+dt(t)) = yes;
+                tmp_ = 0;
+            );
+        ); // END loop(t_active)
+        // If the last interval of a sample is in mft_lastSteps, the method above does not work
+        if(tmp_,
+            mst_end(mSolve, s, t)${sum(f_solve, mft_lastSteps(mSolve, f_solve, t))} = yes;
+        );
+    ); // END loop(ms)
+    // Displacement from the first interval of a sample to the previous interval is always -1
+    dt(t)${sum(ms(mSolve, s), mst_start(mSolve, s, t))} = -1;
+); // END if(tSolveFirst)
+
 * --- Determine various other forecast-time sets required for the model -------
 
-// Set of realized time steps in the solve
+// Set of realized intervals in the solve
 Option clear = ft_realized;
 ft_realized(f_solve, t)${ mf_realization(mSolve, f_solve) and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = ft(f_solve, t);
 ft_realizedNoReset(ft_realized(f, t)) = yes;
+// Set of realized intervals in the whole simulation so far, including model and sample dimensions
+msft_realizedNoReset(msft(mSolve, s, ft_realized(f, t))) = yes;
 
-// Forecast index displacement between realized and forecasted timesteps
+// Forecast index displacement between realized and forecasted intervals
 df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
 
-// Forecast displacement between central and forecasted timesteps at the end of forecast horizon
+// Forecast displacement between central and forecasted intervals at the end of forecast horizon
 Option clear = df_central; // This can be reset.
-df_central(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLength') - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'intervalInHours')
+df_central(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLengthUnchanging') - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'intervalInHours')
                         and not mf_realization(mSolve, f)
                         }
     = sum(mf_central(mSolve, f_), ord(f_) - ord(f));
 
-// Forecast index displacement between realized and forecasted timesteps, required for locking reserves ahead of (dispatch) time.
+// Forecast index displacement between realized and forecasted intervals, required for locking reserves ahead of (dispatch) time.
 Option clear = df_nReserves;
 df_nReserves(node, restype, ft(f, t))${ p_nReserves(node, restype, 'update_frequency')
                                         and p_nReserves(node, restype, 'gate_closure')
@@ -368,7 +407,7 @@ df_nReserves(node, restype, ft(f, t))${ p_nReserves(node, restype, 'update_frequ
 * --- Defining unit aggregations and ramps ------------------------------------
 * =============================================================================
 
-// Units active on each forecast-time step
+// Units active on each ft
 Option clear = uft;
 uft(unit, ft(f, t))${   [
                             ord(t) <= tSolveFirst + mSettings(mSolve, 't_aggregate') - 1
@@ -382,22 +421,27 @@ uft(unit, ft(f, t))${   [
 // only units with capacities or investment option
     = yes;
 
-// Active units in nodes on each forecast-time step
+// Active units in nodes on each ft
 Option clear = nuft;
 nuft(nu(node, unit), ft(f, t))${    uft(unit, f, t) }
     = yes
 ;
-// Active (grid, node, unit) on each forecast-time step
+// Active (grid, node, unit) on each ft
 Option clear = gnuft;
 gnuft(gn(grid, node), uft(unit, f, t))${    nuft(node, unit, f, t)  }
     = yes
 ;
-// Active (grid, node, unit) on each forecast-time step with ramp restrictions
+// Active (grid, node, unit, slack, up_down) on each ft step with ramp restrictions
+Option clear = gnuft_rampCost;
+gnuft_rampCost(gnu(grid, node, unit), slack, ft(f, t))${ gnuft(grid, node, unit, f, t)
+                                                         and p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
+                                                         }
+    = yes;
+// Active (grid, node, unit) on each ft step with ramp restrictions
 Option clear = gnuft_ramp;
 gnuft_ramp(gnuft(grid, node, unit, f, t))${ p_gnu(grid, node, unit, 'maxRampUp')
                                             OR p_gnu(grid, node, unit, 'maxRampDown')
-                                            OR p_gnu(grid, node, unit, 'rampUpCost')
-                                            OR p_gnu(grid, node, unit, 'rampDownCost')
+                                            OR sum(slack, gnuft_rampCost(grid, node, unit, slack, f, t))
                                             }
     = yes;
 
@@ -420,12 +464,12 @@ sufts(suft(effGroup, unit, f, t), effSelector)${    effGroupSelector(effGroup, e
     = yes
 ;
 
-// Units with online variables on each forecast-time step
+// Units with online variables on each ft
 Option clear = uft_online;
 Option clear = uft_onlineLP;
 Option clear = uft_onlineMIP;
 
-// Determine the time steps when units need to have online variables.
+// Determine the intervals when units need to have online variables.
 loop(effOnline(effSelector),
     uft_online(uft(unit, f, t))${ suft(effOnline, unit, f, t) }
         = yes;
@@ -457,6 +501,20 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
         = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
 ); // END loop(effLevelGroupUnit)
 
+// Units with start-up and shutdown trajectories
+Option clear = uft_startupTrajectory;
+Option clear = uft_shutdownTrajectory;
+
+// Determine the intervals when units need to follow start-up and shutdown trajectories.
+loop(uft_online(unit, f, t)${ p_u_runUpTimeIntervals(unit) },
+    uft_startupTrajectory(unit, f, t)${ord(t) < tSolveFirst + mSettings(mSolve, 't_omitTrajectories')}
+        = yes;
+); // END loop(uf_online)
+loop(uft_online(unit, f, t)${ p_u_shutdownTimeIntervals(unit) },
+    uft_shutdownTrajectory(unit, f, t)${ord(t) < tSolveFirst + mSettings(mSolve, 't_omitTrajectories')}
+        = yes;
+); // END loop(uf_online)
+
 * -----------------------------------------------------------------------------
 * --- Probabilities -----------------------------------------------------------
 * -----------------------------------------------------------------------------
@@ -467,26 +525,29 @@ p_msft_probability(msft(mSolve, s, f, t))
     = p_mfProbability(mSolve, f) / sum(f_${ft(f_, t)}, p_mfProbability(mSolve, f_)) * p_msProbability(mSolve, s);
 
 * -----------------------------------------------------------------------------
-* --- Displacements for start-up decisions ------------------------------------
+* --- Displacements for start-up and shutdown decisions -----------------------
 * -----------------------------------------------------------------------------
 
-// Calculate dtt: displacement needed to reach any previous time period (needed to calculate dt_toStartup)
+// Calculate dtt: displacement needed to reach any previous time interval
+// (needed to calculate dt_toStartup and dt_toShutdown)
 Option clear = dtt;
 dtt(t_active(t),t_activeNoReset(t_))${ ord(t_) <= ord(t) }
     = ord(t_) - ord(t);
 
-// Calculate dt_toStartup: in case the unit becomes online in the current time period,
-// displacement needed to reach the time period where the unit was started up
+* --- Start-up decisions ------------------------------------------------------
+
+// Calculate dt_toStartup: in case the unit becomes online in the current time interval,
+// displacement needed to reach the time interval where the unit was started up
 Option clear = dt_toStartup;
 loop(unit$(p_u_runUpTimeIntervals(unit)),
-    loop(t_active(t),
+    loop(t_active(t)${sum(f_solve(f), uft_startupTrajectory(unit, f, t))},
         tmp = 1;
-        loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time periods after the start up
-                                    and ord(t_) <= ord(t) // time periods before and including the current time period
+        loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time intervals after the start up
+                                    and ord(t_) <= ord(t) // time intervals before and including the current time interval
                                     and tmp = 1
                                     },
-            if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit), // if the displacement between the two time periods is smaller than the number of time periods required for start-up phase
-                dt_toStartup(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time period just before the time period found
+            if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for start-up phase
+                dt_toStartup(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time interval just before the time interval found
                 tmp = 0;
             );
         );
@@ -496,3 +557,29 @@ loop(unit$(p_u_runUpTimeIntervals(unit)),
         );
     );
 );
+
+* --- Shutdown decisions ------------------------------------------------------
+
+// Calculate dt_toShutdown: in case the generation of the unit becomes zero in
+// the current time interval, displacement needed to reach the time interval where
+// the shutdown decisions was made
+Option clear = dt_toShutdown;
+loop(unit$(p_u_shutdownTimeIntervals(unit)),
+    loop(t_active(t)${sum(f_solve(f), uft_shutdownTrajectory(unit, f, t))},
+        tmp = 1;
+        loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_shutdownTimeIntervals(unit) // time intervals after the shutdown decision
+                                    and ord(t_) <= ord(t) // time intervals before and including the current time interval
+                                    and tmp = 1
+                                    },
+            if (-dtt(t,t_) < p_u_shutdownTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for shutdown phase
+                dt_toShutdown(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time interval just before the time interval found
+                tmp = 0;
+            );
+        );
+        if (tmp = 1,
+            dt_toShutdown(unit, t) = dt(t);
+            tmp=0;
+        );
+    );
+);
+

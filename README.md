@@ -23,13 +23,16 @@ Backbone has been designed with a modular structure, making it easier to change 
 * 1d_results.gms - Contains definitions for the model results.
 * 1e_inputs.gms - Contains instructions on how to load input data, as well as forms a lot of helpful sets based on said data, for example in order to facilitate writing the constraints.
 * 2a_variables.gms - Contains variable definitions used by the models.
-* 2b_equations.gms - Contains the equation definitions for the models.
+* 2b_eqDeclarations.gms - Contains equation declarations for the models.
+* 2c_objective.gms - Contains the objective function definition.
+* 2d_constraints.gms - Contains definitions for constraint equations.
 * *Model Definition Files* - Contains GAMS definitions for different models, essentially lists the equations (constraints) that apply. Current files include *schedule.gms*, *building.gms* and *invest.gms*.
 * 3a_periodicInit.gms - Initializes various data and sets for the solve loop.
 * 3b_inputsLoop.gms	- Instructions for possible data import inside the solve loop, as well as forecast in-the-loop improvements.
 * 3c_periodicLoop.gms - Contains instructions for the forecast-time structure of the desired model.
 * 3d_setVariableLimits.gms - Defines the variable boundaries for each solve.
 * 3e_solve.gms - Contains the GAMS solve command for using the solver.
+* 3f_afterSolve.gms - Fixes some variable values after solve.
 * 4a_outputVariant.gms - Contains instructions for storing desired results during the solve loop.
 * 4b_outputInvariant.gms - Calculates further results post-solve.
 * 4c_outputQuickFile.gms
@@ -37,10 +40,11 @@ Backbone has been designed with a modular structure, making it easier to change 
 Most of these files are under *\inc* in the Backbone folder, except for the model definition files being housed under *\defModels*. Other than the abovementioned files, a few key input files are required for Backbone to work. These are assumed to be found under *\input* and are briefly described below.
 
 * inputData.gdx	- Contains most of the input data about the system to be modelled.
+* 1_options.gms - Contains options to control the solver. Not required but included if exists.
 * timeAndSamples.inc - Contains definitions for the time, forecast and sample index ranges.
 * modelsInit.gms - Contains model parameters for the solve (or a link to a template under *\defModels* to be used). Useful for any additional GAMS scripting.
 
-Backbone folder contains two template files *timeAndSamples_temp.inc* and *modelsInit_temp.gms* to provide examples of the input format. These files can be copied into *\input* and renamed to *timeAndSamples.inc* and *modelsInit.gms*.
+Backbone folder contains three template files *1_options_temp.gms*, *timeAndSamples_temp.inc*, and *modelsInit_temp.gms* to provide examples of the input format. These files can be copied into *\input* and renamed to *1_options.gms*, *timeAndSamples.inc*, and *modelsInit.gms*.
 
 ## When Simply Using Backbone
 
