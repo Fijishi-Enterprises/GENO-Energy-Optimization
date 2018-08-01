@@ -38,9 +38,9 @@ Sets
         t_end, // Last time step of the simulation
         loadPoint, // Load advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
         savePoint, // Save advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
-        intervalEnd, // Last time step in the block of intervals with the same length
-        intervalLength, // Number of time steps aggregated within interval
-        IntervalInHours, // Length of one time step in hours
+        lastStepInIntervalBlock, // Last time step in the block of intervals with the same length
+        stepsPerInterval, // Number of time steps aggregated within interval
+        stepLengthInHours, // Length of one time step in hours
 
         // Samples and Forecasts
         samples, // Number of active samples

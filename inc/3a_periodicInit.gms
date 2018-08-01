@@ -91,10 +91,10 @@ $offtext
     // Check whether the defined intervals are feasible
     continueLoop = 1;
     loop(counter${ continueLoop },
-        if(not mInterval(m, 'intervalEnd', counter),
+        if(not mInterval(m, 'lastStepInIntervalBlock', counter),
             continueLoop = 0;
         else
-            abort$(mod(mInterval(m, 'intervalEnd', counter) - mInterval(m, 'intervalEnd', counter-1) -1${ not mInterval(m, 'intervalEnd', counter-1) }, mInterval(m, 'intervalLength', counter))) "IntervalLength is not evenly divisible within the interval", m, continueLoop;
+            abort$(mod(mInterval(m, 'lastStepInIntervalBlock', counter) - mInterval(m, 'lastStepInIntervalBlock', counter-1) -1${ not mInterval(m, 'lastStepInIntervalBlock', counter-1) }, mInterval(m, 'stepsPerInterval', counter))) "stepsPerInterval is not evenly divisible within the interval", m, continueLoop;
             continueLoop = continueLoop + 1;
         );
     );
@@ -120,6 +120,31 @@ dt_circular(t_full(t))${ ord(t) > ts_length }
 * =============================================================================
 * --- Initialize Unit Efficiency Approximations -------------------------------
 * =============================================================================
+
+* --- Ensure that efficiency levels extend to the end of the model horizon and do not go beyond ----
+
+loop(m,
+    continueLoop = 0;
+    // First check how many efficiency levels there are and cut levels going beyond the t_horizon
+    loop(effLevel$mSettingsEff(m, effLevel),
+        continueLoop = continueLoop + 1;
+        if (mSettingsEff(m, effLevel) > mSettings(m, 't_horizon'),
+            mSettingsEff(m, effLevel) = mSettings(m, 't_horizon');
+        );
+    );
+    // Set last effLevel to equal to the t_horizon
+    loop(effLevel$(ord(effLevel) = continueLoop),
+        if (mSettingsEff(m, effLevel) < mSettings(m, 't_horizon'),
+            mSettingsEff(m, effLevel + 1) = mSettings(m, 't_horizon');
+        );
+    );
+    // Remove effLevels with same end time step
+    loop(effLevel$mSettingsEff(m, effLevel),
+        if (mSettingsEff(m, effLevel + 1) = mSettingsEff(m, effLevel),
+            mSettingsEff(m, effLevel + 1) = no;
+        );
+    );
+);
 
 * --- Parse through effLevelGroupUnit and convert selected effSelectors into sets representing those selections
 
@@ -275,19 +300,6 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${sum(m, mSettingsEff(m, effLeve
     p_effGroupUnit(effGroup, unit, 'slope') = smin(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'slope')); // NOTE! Uses maximum efficiency for the group.
 ); // END loop(effLevelGroupUnit)
 
-* --- Ensure that efficiency levels extend to the end of the model horizon ----
-
-loop(m,
-    continueLoop = 0;
-    loop(effLevel$mSettingsEff(m, effLevel),
-        continueLoop = continueLoop + 1;
-    );
-    loop(effLevel$(ord(effLevel) = continueLoop),
-        if (mSettingsEff(m, effLevel) <> mSettings(m, 't_horizon'),
-            mSettingsEff(m, effLevel + 1) = mSettings(m, 't_horizon');
-        );
-    );
-);
 
 * =============================================================================
 * --- Initialize Unit Startup and Shutdown Counters ---------------------------
@@ -299,7 +311,7 @@ loop(m,
     loop(unit$(p_unit(unit, 'rampSpeedToMinLoad') and p_unit(unit,'op00')),
         p_unit(unit, 'rampSpeedToMinLoad') = p_unit(unit, 'rampSpeedToMinLoad');  // Is something happening here?
         // Calculate time intervals needed for the run-up phase
-        tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'intervalInHours');
+        tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours');
         p_u_runUpTimeIntervals(unit) = tmp;
         p_u_runUpTimeIntervalsCeil(unit) = ceil(p_u_runUpTimeIntervals(unit))
 
@@ -308,15 +320,15 @@ loop(m,
             p_ut_runUp(unit, t) =
               + p_unit(unit, 'rampSpeedToMinLoad') * (ceil(p_u_runUpTimeIntervals(unit) - ord(t) + 1))
               * 60 // Unit conversion from [p.u./min] to [p.u./h]
-              * mSettings(m, 'intervalInHours')
+              * mSettings(m, 'stepLengthInHours')
         );
 
         // Combine output in the second last interval and the weighted average of rampSpeedToMinLoad and the smallest non-zero maxRampUp
         p_u_maxOutputInLastRunUpInterval(unit) =
             (
-              + p_unit(unit, 'rampSpeedToMinLoad') * (tmp-floor(tmp)) * mSettings(m, 'intervalInHours')
-              + smin(gnu(grid, node, unit)${p_gnu(grid, node, unit, 'maxRampUp')}, p_gnu(grid, node, unit, 'maxRampUp')) * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
-              + p_unit(unit, 'rampSpeedToMinLoad')${not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampUp'))} * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
+              + p_unit(unit, 'rampSpeedToMinLoad') * (tmp-floor(tmp)) * mSettings(m, 'stepLengthInHours')
+              + smin(gnu(grid, node, unit)${p_gnu(grid, node, unit, 'maxRampUp')}, p_gnu(grid, node, unit, 'maxRampUp')) * (ceil(tmp)-tmp) * mSettings(m, 'stepLengthInHours')
+              + p_unit(unit, 'rampSpeedToMinLoad')${not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampUp'))} * (ceil(tmp)-tmp) * mSettings(m, 'stepLengthInHours')
             )
               * 60 // Unit conversion from [p.u./min] to [p.u./h]
               + sum(t${ord(t) = 2}, p_ut_runUp(unit, t));
@@ -344,7 +356,7 @@ loop(m,
 loop(m,
     loop(unit$(p_unit(unit, 'rampSpeedFromMinLoad') and p_unit(unit,'op00')),
         // Calculate time intervals needed for the shutdown phase
-        tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedFromMinLoad') * 60) ] / mSettings(m, 'intervalInHours');
+        tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedFromMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours');
         p_u_shutdownTimeIntervals(unit) = tmp;
         p_u_shutdownTimeIntervalsCeil(unit) = ceil(p_u_shutdownTimeIntervals(unit))
 
@@ -353,15 +365,15 @@ loop(m,
             p_ut_shutdown(unit, t) =
               + p_unit(unit, 'rampSpeedFromMinLoad') * (ceil(p_u_shutdownTimeIntervals(unit) - ord(t) + 1))
               * 60 // Unit conversion from [p.u./min] to [p.u./h]
-              * mSettings(m, 'intervalInHours')
+              * mSettings(m, 'stepLengthInHours')
         );
 
         // Combine output in the second interval and the weighted average of rampSpeedFromMinLoad and the smallest non-zero maxRampDown
         p_u_maxOutputInFirstShutdownInterval(unit) =
             (
-              + p_unit(unit, 'rampSpeedFromMinLoad') * (tmp-floor(tmp)) * mSettings(m, 'intervalInHours')
-              + smin(gnu(grid, node, unit)${p_gnu(grid, node, unit, 'maxRampDown')}, p_gnu(grid, node, unit, 'maxRampDown')) * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
-              + p_unit(unit, 'rampSpeedFromMinLoad')${not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampDown'))} * (ceil(tmp)-tmp) * mSettings(m, 'intervalInHours')
+              + p_unit(unit, 'rampSpeedFromMinLoad') * (tmp-floor(tmp)) * mSettings(m, 'stepLengthInHours')
+              + smin(gnu(grid, node, unit)${p_gnu(grid, node, unit, 'maxRampDown')}, p_gnu(grid, node, unit, 'maxRampDown')) * (ceil(tmp)-tmp) * mSettings(m, 'stepLengthInHours')
+              + p_unit(unit, 'rampSpeedFromMinLoad')${not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampDown'))} * (ceil(tmp)-tmp) * mSettings(m, 'stepLengthInHours')
             )
               * 60 // Unit conversion from [p.u./min] to [p.u./h]
               + sum(t${ord(t) = 2}, p_ut_shutdown(unit, t));
@@ -384,8 +396,8 @@ loop(m,
         loop(starttypeConstrained(starttype),
             // Find the time step displacements needed to define the start-up time frame
             Option clear = cc;
-            cc(counter)${   ord(counter) <= p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'intervalInHours')
-                            and ord(counter) > p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'intervalInHours')
+            cc(counter)${   ord(counter) <= p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'stepLengthInHours')
+                            and ord(counter) > p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'stepLengthInHours')
                             }
                 = yes;
             dt_starttypeUnitCounter(starttype, unit, cc(counter)) = - ord(counter);
@@ -393,7 +405,7 @@ loop(m,
 
         // Find the time step displacements needed to define the downtime requirements (include run-up phase and shutdown phase)
         Option clear = cc;
-        cc(counter)${   ord(counter) <= ceil(p_unit(unit, 'minShutdownHours') / mSettings(m, 'intervalInHours'))
+        cc(counter)${   ord(counter) <= ceil(p_unit(unit, 'minShutdownHours') / mSettings(m, 'stepLengthInHours'))
                                         + ceil(p_u_runUpTimeIntervals(unit)) // NOTE! Check this
                                         + ceil(p_u_shutdownTimeIntervals(unit)) // NOTE! Check this
                         }
@@ -402,7 +414,7 @@ loop(m,
 
         // Find the time step displacements needed to define the uptime requirements
         Option clear = cc;
-        cc(counter)${ ord(counter) <= ceil(p_unit(unit, 'minOperationHours') / mSettings(m, 'intervalInHours'))}
+        cc(counter)${ ord(counter) <= ceil(p_unit(unit, 'minOperationHours') / mSettings(m, 'stepLengthInHours'))}
             = yes;
         dt_uptimeUnitCounter(unit, cc(counter)) = - ord(counter);
     ); // END loop(effLevelGroupUnit)

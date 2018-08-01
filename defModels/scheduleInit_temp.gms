@@ -25,12 +25,12 @@ if (mType('schedule'),
 * --- Define Key Execution Parameters in Time Indeces -------------------------
 
     // Define simulation start and end time indeces
-    mSettings('schedule', 't_start') = 1;  // Ord of first solve (i.e. >0)
-    mSettings('schedule', 't_end') = 8760;
+    mSettings('schedule', 't_start') = 1;  // First time step to be solved, 1 corresponds to t000001 (t000000 will then be used for initial status of dynamic variables)
+    mSettings('schedule', 't_end') = 8760; // Last time step to be included in the solve (may solve and output more time steps in case t_jump does not match)
 
     // Define simulation horizon and moving horizon optimization "speed"
-    mSettings('schedule', 't_horizon') = 8760;
-    mSettings('schedule', 't_jump') = 3;
+    mSettings('schedule', 't_horizon') = 8760;    // How many active time steps the solve contains (aggregation of time steps does not impact this, unless the aggregation does not match)
+    mSettings('schedule', 't_jump') = 3;          // How many time steps the model rolls forward between each solve
 
 * =============================================================================
 * --- Model Time Structure ----------------------------------------------------
@@ -58,19 +58,19 @@ if (mType('schedule'),
 * --- Define Time Step Intervals ----------------------------------------------
 
     // Define the duration of a single time-step in hours
-    mSettings('schedule', 'intervalInHours') = 1;
+    mSettings('schedule', 'stepLengthInHours') = 1;
 
     // Define the time step intervals in time-steps
-    mInterval('schedule', 'intervalLength', 'c000') = 1;
-    mInterval('schedule', 'intervalEnd', 'c000') = 48;
-    mInterval('schedule', 'intervalLength', 'c001') = 24;
-    mInterval('schedule', 'intervalEnd', 'c001') = 168;
-    mInterval('schedule', 'intervalLength', 'c002') = 168;
-    mInterval('schedule', 'intervalEnd', 'c002') = 840;
-    mInterval('schedule', 'intervalLength', 'c003') = 720;
-    mInterval('schedule', 'intervalEnd', 'c003') = 8760;
-    mInterval('schedule', 'intervalLength', 'c004') = 168;
-    mInterval('schedule', 'intervalEnd', 'c004') = 8760;
+    mInterval('schedule', 'stepsPerInterval', 'c000') = 1;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c000') = 48;
+    mInterval('schedule', 'stepsPerInterval', 'c001') = 24;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c001') = 168;
+    mInterval('schedule', 'stepsPerInterval', 'c002') = 168;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c002') = 840;
+    mInterval('schedule', 'stepsPerInterval', 'c003') = 720;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c003') = 8760;
+    mInterval('schedule', 'stepsPerInterval', 'c004') = 168;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c004') = 8760;
 
 * =============================================================================
 * --- Model Forecast Structure ------------------------------------------------
@@ -80,10 +80,11 @@ if (mType('schedule'),
     mSettings('schedule', 'forecasts') = 3;
 
     // Define forecast properties and features
-    mSettings('schedule', 't_forecastStart') = 1;
-    mSettings('schedule', 't_forecastLengthUnchanging') = 36;  // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
+    mSettings('schedule', 't_forecastStart') = 1;                  // At which time step the first forecast is available ( 1 = t000001 )
+    mSettings('schedule', 't_forecastLengthUnchanging') = 36;      // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
     mSettings('schedule', 't_forecastLengthDecreasesFrom') = 168;  // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
-    mSettings('schedule', 't_forecastJump') = 24;
+    mSettings('schedule', 't_forecastJump') = 24;                  // How many time steps before new forecast is available
+
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
     mTimeseries_loop_read('schedule', 'ts_unit') = no;
     mTimeseries_loop_read('schedule', 'ts_effUnit') = no;
@@ -125,9 +126,9 @@ if (mType('schedule'),
     // Define unit aggregation threshold
     mSettings('schedule', 't_aggregate') = 168;
 
-    // Define unit aggregation and efficiency levels starting indeces
-    mSettingsEff('schedule', 'level1') = 1;
-    mSettingsEff('schedule', 'level2') = 12;
+    // Define the last time step for each unit aggregation and efficiency level (3a_periodicInit.gms ensures that there is a effLevel until t_horizon)
+    mSettingsEff('schedule', 'level1') = 12;
+    mSettingsEff('schedule', 'level2') = 36;
 
     // Define threshold for omitting start-up and shutdown trajectories
     mSettings('schedule', 't_omitTrajectories') = 8761;

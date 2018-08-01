@@ -54,7 +54,7 @@ loop(m,
     put "Model horizon:              ", mSettings(m, 't_horizon')/;
     put "Model jumps after solve:    ", mSettings(m, 't_jump')/;
     put "Last time period to solve:  ", mSettings(m, 't_end')/;
-*    put "Length of each time period: ", mSettings(m, 'intervalLength')/;
+*    put "Length of each time period: ", mSettings(m, 'stepsPerInterval')/;
     put "Number of samples:          ", mSettings(m, 'samples')/;
 );
 

@@ -236,7 +236,7 @@ loop(m,
             / [
                 + (p_gnu(grid, node, unit, 'maxGen') + r_invest(unit)*p_gnu(grid, node, unit, 'unitSizeGen'))
                     * (mSettings(m, 't_end') - mSettings(m, 'results_t_start') + 1)
-                    * mSettings(m, 'intervalInHours')
+                    * mSettings(m, 'stepLengthInHours')
                 ]; // END division
 
 * --- Total Reserve Provision -------------------------------------------------

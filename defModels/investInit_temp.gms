@@ -25,12 +25,12 @@ if (mType('invest'),
 * --- Define Key Execution Parameters in Time Indeces -------------------------
 
     // Define simulation start and end time indeces
-    mSettings('invest', 't_start') = 1;  // Ord of first solve (i.e. >0)
-    mSettings('invest', 't_end') = 8760;
+    mSettings('invest', 't_start') = 1;  // First time step to be solved, 1 corresponds to t000001 (t000000 will then be used for initial status of dynamic variables)
+    mSettings('invest', 't_end') = 8760; // Last time step to be included in the solve (may solve and output more time steps in case t_jump does not match)
 
     // Define simulation horizon and moving horizon optimization "speed"
-    mSettings('invest', 't_horizon') = 8760;
-    mSettings('invest', 't_jump') = 8760;
+    mSettings('invest', 't_horizon') = 8760;   // How many active time steps the solve contains (aggregation of time steps does not impact this, unless the aggregation does not match)
+    mSettings('invest', 't_jump') = 8760;      // How many time steps the model rolls forward between each solve
 
 * =============================================================================
 * --- Model Time Structure ----------------------------------------------------
@@ -64,11 +64,11 @@ if (mType('invest'),
 * --- Define Time Step Intervals ----------------------------------------------
 
     // Define the duration of a single time-step in hours
-    mSettings('invest', 'intervalInHours') = 1;
+    mSettings('invest', 'stepLengthInHours') = 1;
 
     // Define the time step intervals in time-steps
-    mInterval('invest', 'intervalLength', 'c000') = 1;
-    mInterval('invest', 'intervalEnd', 'c000') = 8760;
+    mInterval('invest', 'stepsPerInterval', 'c000') = 1;
+    mInterval('invest', 'lastStepInIntervalBlock', 'c000') = 8760;
 
 * =============================================================================
 * --- Model Forecast Structure ------------------------------------------------
@@ -78,10 +78,10 @@ if (mType('invest'),
     mSettings('invest', 'forecasts') = 0;
 
     // Define forecast properties and features
-    mSettings('invest', 't_forecastStart') = 0;
-    mSettings('invest', 't_forecastLengthUnchanging') = 0;  // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
+    mSettings('invest', 't_forecastStart') = 0;                // At which time step the first forecast is available ( 1 = t000001 )
+    mSettings('invest', 't_forecastLengthUnchanging') = 0;     // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
     mSettings('invest', 't_forecastLengthDecreasesFrom') = 0;  // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
-    mSettings('invest', 't_forecastJump') = 0;
+    mSettings('invest', 't_forecastJump') = 0;                 // How many time steps before new forecast is available
 
     // Define Realized and Central forecasts
     mf_realization('invest', f) = no;
@@ -110,8 +110,8 @@ if (mType('invest'),
     // Define unit aggregation threshold
     mSettings('invest', 't_aggregate') = 8761;
 
-    // Define unit aggregation and efficiency levels starting indeces
-    mSettingsEff('invest', 'level1') = 1;
+    // Define the last time step for each unit aggregation and efficiency level (3a_periodicInit.gms ensures that there is a effLevel until t_horizon)
+    mSettingsEff('invest', 'level1') = inf;
 
     // Define threshold for omitting start-up and shutdown trajectories
     mSettings('invest', 't_omitTrajectories') = 8761;
