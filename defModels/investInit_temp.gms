@@ -107,9 +107,6 @@ if (mType('invest'),
 
 * --- Define Unit Approximations ----------------------------------------------
 
-    // Define unit aggregation threshold
-    mSettings('invest', 't_aggregate') = 8761;
-
     // Define the last time step for each unit aggregation and efficiency level (3a_periodicInit.gms ensures that there is a effLevel until t_horizon)
     mSettingsEff('invest', 'level1') = inf;
 

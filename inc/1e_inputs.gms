@@ -27,7 +27,7 @@ $loaddc unittype
 $loaddc unit
 $loaddc unitUnittype
 $loaddc fuel
-$loaddc unitUnit_aggregate
+$loaddc unitUnitEffLevel
 $loaddc uFuel
 $loaddc effLevelGroupUnit
 $loaddc p_gn
@@ -89,21 +89,25 @@ $endif
 
 * --- Unit Aggregation --------------------------------------------------------
 
+unitAggregator_unit(unit, unit_)$sum(effLevel, unitUnitEffLevel(unit, unit_, effLevel)) = yes;
+
 // Define unit aggregation sets
-unit_aggregate(unit)${ sum(unit_, unitUnit_aggregate(unit, unit_)) }
-    = yes; // Set of aggregate units
-unit_noAggregate(unit)${ unit(unit) - unit_aggregate(unit) - sum(unit_, unitUnit_aggregate(unit_, unit))}
+unit_aggregator(unit)${ sum(unit_, unitAggregator_unit(unit, unit_)) }
+    = yes; // Set of aggregator units
+unit_aggregated(unit)${ sum(unit_, unitAggregator_unit(unit_, unit)) }
+    = yes; // Set of aggregated units
+unit_noAggregate(unit)${ unit(unit) - unit_aggregator(unit) - unit_aggregated(unit) }
     = yes; // Set of units that are not aggregated into any aggregate, or are not aggregates themselves
 
 // Process data for unit aggregations
 // Aggregate maxGen as the sum of aggregated maxGen
-p_gnu(grid, node, unit_aggregate(unit), 'maxGen')
-    = sum(unit_${unitUnit_aggregate(unit, unit_)},
+p_gnu(grid, node, unit_aggregator(unit), 'maxGen')
+    = sum(unit_$unitAggregator_unit(unit, unit_),
         + p_gnu(grid, node, unit_, 'maxGen')
         );
 // Aggregate maxCons as the sum of aggregated maxCons
-p_gnu(grid, node, unit_aggregate(unit), 'maxCons')
-    = sum(unit_${unitUnit_aggregate(unit, unit_)},
+p_gnu(grid, node, unit_aggregator(unit), 'maxCons')
+    = sum(unit_$unitAggregator_unit(unit, unit_),
         + p_gnu(grid, node, unit_, 'maxCons')
         );
 

@@ -410,12 +410,12 @@ df_nReserves(node, restype, ft(f, t))${ p_nReserves(node, restype, 'update_frequ
 // Units active on each ft
 Option clear = uft;
 uft(unit, ft(f, t))${   [
-                            ord(t) <= tSolveFirst + mSettings(mSolve, 't_aggregate')
-                            and not unit_aggregate(unit) // Non-aggregate units
+                            ord(t) <= tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
+                            and (unit_aggregated(unit) or unit_noAggregate(unit)) // Aggregated and non-aggregate units
                             ]
                         or [
-                            ord(t) > tSolveFirst + mSettings(mSolve, 't_aggregate')
-                            and (unit_aggregate(unit) or unit_noAggregate(unit)) // Aggregate units
+                            ord(t) > tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
+                            and (unit_aggregator(unit) or unit_noAggregate(unit)) // Aggregator and non-aggregate units
                             ]
                         }
 // only units with capacities or investment option

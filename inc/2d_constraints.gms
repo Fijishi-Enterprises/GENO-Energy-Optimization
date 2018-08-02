@@ -359,18 +359,18 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + mSett
 
 q_startshut(m, uft_online(unit, f, t)) ..
     // Units currently online (expect aggregated units right after the aggregation threshold, see next term)
-    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t) and not [unit_aggregate(unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate')]}
-    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t) and not [unit_aggregate(unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate')]}
+    + v_online_LP (unit, f+df_central(f,t), t)${uft_onlineLP (unit, f, t) and not [unit_aggregated(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated')]}
+    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t) and not [unit_aggregated(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated')]}
 
-    // Aggregated units online right after the aggregation threshold
-    + sum(unit_$[unitUnit_aggregate(unit_, unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate') and uft_online(unit_, f, t)],
-        + v_online_LP(unit_, f+df_central(f,t), t)${uft_onlineLP(unit_, f, t)}
+    // Aggregated units online right after the aggregation threshold are turned into aggregator units
+    + sum(unit_$[unitAggregator_unit(unit_, unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated') and uft_online(unit_, f, t)],
+        + v_online_LP (unit_, f+df_central(f,t), t)${uft_onlineLP (unit_, f, t)}
         + v_online_MIP(unit_, f+df_central(f,t), t)${uft_onlineMIP(unit_, f, t)}
       )
 
     // Units previously online
-    - v_online_LP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineLP(unit, f, t) and not [unit_aggregate(unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate')] } // This reaches to tFirstSolve when dt = -1
-    - v_online_MIP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineMIP(unit, f, t) and not [unit_aggregate(unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate')] }
+    - v_online_LP (unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineLP (unit, f+df_central(f,t+dt(t)), t+dt(t)) and not [unit_aggregator(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated')] } // This reaches to tFirstSolve when dt = -1
+    - v_online_MIP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineMIP(unit, f+df_central(f,t+dt(t)), t+dt(t)) and not [unit_aggregator(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated')] }
 
     =E=
 
@@ -382,15 +382,15 @@ q_startshut(m, uft_online(unit, f, t)) ..
         ) // END sum(starttype)
 
     // Add startup of units before they were aggreted to the aggregated unit dt_toStartup before the current t
-    + sum(unitStarttype(unit_, starttype)${unitUnit_aggregate(unit, unit_) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate') + dt_toStartup(unit_, t)},
+    + sum(unitStarttype(unit_, starttype)${unitAggregator_unit(unit, unit_) and ord(t) = tSolveFirst + p_unit(unit_, 'lastStepNotAggregated') + dt_toStartup(unit_, t)},
         + v_startup(unit_, starttype, f+df_central(f,t+dt_toStartup(unit,t)), t+dt_toStartup(unit, t))
         ) // END sum(starttype)
 
     // Shutdown of units at time t (expect aggregated units right after the aggregation threshold, see next term)
-    - v_shutdown(unit, f+df_central(f,t), t)${not [unit_aggregate(unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate')]}
+    - v_shutdown(unit, f+df_central(f,t), t)${not [unit_aggregator(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated')]}
 
     // Shutdown of aggregated units right after the aggregation threshold
-    - sum(unit_$[unitUnit_aggregate(unit_, unit) and ord(t) = tSolveFirst + mSettings(m, 't_aggregate') and uft_online(unit_, f, t)],
+    - sum(unit_$[unitAggregator_unit(unit_, unit) and ord(t) = tSolveFirst + p_unit(unit_, 'lastStepNotAggregated') and uft_online(unit_, f, t)],
         + v_shutdown(unit_, f+df_central(f,t), t)
       )
 ;
@@ -507,14 +507,19 @@ q_genRamp(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s) + 
                                                        and msft(m, s, f, t)
                                                        } ..
 
-    + v_genRamp(grid, node, unit, f, t)
-        * p_stepLength(m, f, t)
+    + v_genRamp(grid, node, unit, f, t) * p_stepLength(m, f, t)
 
     =E=
 
-    // Change in generation over the time step
+    // Change in generation over the time step: v_gen(t) - v_gen(t-1)
+
     + v_gen(grid, node, unit, f, t)
-    - v_gen(grid, node, unit, f+df(f,t+dt(t)), t+dt(t))
+
+    // Unit generation at t-1 (expect aggregator units right before the aggregation threshold, see next term)
+    - v_gen(grid, node, unit, f+df(f,t+dt(t)), t+dt(t))$(not [unit_aggregator(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated') + 1])
+    + sum(unit_$[unitAggregator_unit(unit, unit_) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated') + 1],
+        - v_gen(grid, node, unit_, f+df(f,t+dt(t)), t+dt(t))
+      )
 ;
 
 * --- Ramp Up Limits ----------------------------------------------------------
