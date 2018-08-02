@@ -52,7 +52,6 @@ Sets
 
         // Features
         t_reserveLength, // Length of reserve provision horizon in time steps
-        t_aggregate, // Unit aggregation threshold time index
         t_omitTrajectories, // Threshold time index for omitting start-up and shutdown trajectories
         results_t_start  // Time index where results outputting starts
         /
@@ -315,6 +314,7 @@ param_unit "Set of possible data parameters for units" /
     investMIP     "A flag to make integer investment instead of continous investment"
     maxUnitCount  "Maximum number of units when making integer investments"
     minUnitCount  "Minimum number of units when making integer investments"
+    lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in 3b_inputsLoop.gms for units that have aggregation"
 /
 
 param_fuel "Parameters for fuels" /

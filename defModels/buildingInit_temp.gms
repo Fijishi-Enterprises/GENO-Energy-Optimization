@@ -101,9 +101,6 @@ if (mType('building'),
 
 * --- Define Unit Approximations ----------------------------------------------
 
-    // Define unit aggregation threshold
-    mSettings('building', 't_aggregate') = 0;
-
     // Define the last time step for each unit aggregation and efficiency level (3a_periodicInit.gms ensures that there is a effLevel until t_horizon)
     mSettingsEff('building', 'level1') = inf;
 

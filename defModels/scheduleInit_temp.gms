@@ -123,9 +123,6 @@ if (mType('schedule'),
 
 * --- Define Unit Approximations ----------------------------------------------
 
-    // Define unit aggregation threshold
-    mSettings('schedule', 't_aggregate') = 168;
-
     // Define the last time step for each unit aggregation and efficiency level (3a_periodicInit.gms ensures that there is a effLevel until t_horizon)
     mSettingsEff('schedule', 'level1') = 12;
     mSettingsEff('schedule', 'level2') = 36;
