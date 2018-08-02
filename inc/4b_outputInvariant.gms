@@ -53,7 +53,7 @@ loop(m,
                         // Startup fuel consumption and emissions
                         + sum(uFuel(unit, 'startup', fuel),
                             + p_uStartup(unit, starttype, 'consumption')
-                                * p_uFuel(unit, 'startup', fuel, 'maxFuelFraction')
+                                * p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')
                                 * [ // Fuel price
                                     + ts_fuelPrice(fuel, t)
                                     // Emission costs

@@ -1650,7 +1650,7 @@ q_emissioncap(group, emission)${  p_groupPolicy3D(group, 'emissionCap', emission
                     + v_startup(unit_fuel, starttype, f+df_central(f,t), t)
                         * sum(uFuel(unit_fuel, 'startup', fuel),
                             + p_uStartup(unit_fuel, starttype, 'consumption')
-                                * p_uFuel(unit_fuel, 'startup', fuel, 'maxFuelFraction')
+                                * p_uFuel(unit_fuel, 'startup', fuel, 'fixedFuelFraction')
                                 * p_fuelEmission(fuel, emission) / 1e3
                                 * sum(gnu_output(grid, node, unit_fuel)${gnGroup(grid, node, group)},
                                     + p_gnu(grid, node, unit_fuel, 'unitSizeGen')

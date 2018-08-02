@@ -325,7 +325,8 @@ param_fuel "Parameters for fuels" /
 
 param_unitFuel "Parameters for fuel limits in units" /
     maxFuelCons   "Maximum absolute fuel consumption in a unit - not used for start-up fuels"
-    maxFuelFraction "Maximum share of a fuel in the consumption mix - exact share for start-up fuels"
+    maxFuelFraction "Maximum share of a fuel in the consumption mix"   //only for main fuels
+    fixedFuelFraction "Fixed share of a fuel in the consumption mix"   //only for start-up fuels
 /
 
 param_policy "Set of possible data parameters for grid, node, regulation" /

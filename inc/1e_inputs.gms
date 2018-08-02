@@ -274,7 +274,7 @@ p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_f
 ;
 
 // If the start-up fuel fraction is not defined, it equals 1
-p_uFuel(uFuel(unit_fuel, 'startup', fuel), 'maxFuelFraction')${ not p_uFuel(unit_fuel, 'startup', fuel, 'maxFuelFraction') }
+p_uFuel(uFuel(unit_fuel, 'startup', fuel), 'fixedFuelFraction')${ not p_uFuel(unit_fuel, 'startup', fuel, 'fixedFuelFraction') }
     = 1;
 
 * =============================================================================
@@ -443,8 +443,8 @@ loop( unit,
 * Check the start-up fuel fraction related data
 loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
     tmp = ord(unit)
-    if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'maxFuelFraction')) <> 1,
+    if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')) <> 1,
         put log '!!! Error occurred on unit #' tmp;
-        abort "The sum of 'maxFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
+        abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
     );
 );
