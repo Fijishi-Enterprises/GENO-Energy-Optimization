@@ -103,7 +103,12 @@ if (mType('invest'),
 * --- Define Reserve Properties -----------------------------------------------
 
     // Lenght of reserve horizon
-    mSettings('invest', 't_reserveLength') = 36; // CHECK THIS
+    mSettingsReservesInUse('invest', 'primary', 'up') = no;
+    mSettingsReservesInUse('invest', 'primary', 'down') = no;
+    mSettingsReservesInUse('invest', 'secondary', 'up') = no;
+    mSettingsReservesInUse('invest', 'secondary', 'down') = no;
+    mSettingsReservesInUse('invest', 'tertiary', 'up') = no;
+    mSettingsReservesInUse('invest', 'tertiary', 'down') = no;
 
 * --- Define Unit Approximations ----------------------------------------------
 

@@ -139,10 +139,6 @@ gn2gnu(grid, node_input, grid_, node_output, unit)${    gnu_input(grid, node_inp
                                                         }
     = yes;
 
-// Units with reserve provision capabilities
-nuRescapable(restypeDirection(restype, up_down), nu(node, unit))${ p_nuReserves(node, unit, restype, up_down) }
-    = yes;
-
 // Units with minimum load requirements
 unit_minload(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operating point is between 0 and 1, then the unit is considered to have a min load limit
                         and p_unit(unit, 'op00') < 1
@@ -369,18 +365,14 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
 * --- Reserves Sets & Parameters ----------------------------------------------
 * =============================================================================
 
-// Nodes with reserve requirements
-restypeDirectionNode(restypeDirection(restype, up_down), node)${    p_nReserves(node, restype, up_down)
-                                                                    or p_nReserves(node, restype, 'use_time_series')
-                                                                    }
-    = yes;
-
+$ontext
 // Assume values for critical reserve related parameters, if not provided by input data
 // Reserve contribution "reliability" assumed to be perfect if not provided in data
 p_nuReserves(nu(node, unit), restype, 'reserveContribution')${  not p_nuReserves(node, unit, restype, 'reserveContribution')
                                                                 and sum(up_down, nuRescapable(restype, up_down, node, unit))
                                                                 }
     = 1;
+$offtext
 
 * =============================================================================
 * --- Data Integrity Checks ---------------------------------------------------

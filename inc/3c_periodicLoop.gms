@@ -218,8 +218,8 @@ loop(cc(counter),
             ts_cf_(flowNode(flow, node), ft(f_solve, tt_interval(t))) = ts_cf(flow, node, f_solve, t+dt_circular(t));
             ts_unit_(unit, param_unit, ft(f_solve, tt_interval(t)))${ p_unit(unit, 'useTimeseries') } // Only include units that have timeseries attributed to them
                 = ts_unit(unit, param_unit, f_solve, t+dt_circular(t));
-            // Reserve demand relevant only up until t_reserveLength
-            ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(f_solve, tt_interval(t)))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')    }
+            // Reserve demand relevant only up until reserve_length
+            ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(f_solve, tt_interval(t)))${ ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
                 = ts_reserveDemand(restype, up_down, node, f_solve, t+dt_circular(t));
             ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft(f_solve, tt_interval(t)))${  p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
                 = ts_nodeState(grid, node, param_gnBoundaryTypes, f_solve, t+dt_circular(t));
@@ -286,8 +286,8 @@ loop(cc(counter),
                 ts_unit_(unit, param_unit, f_solve, t)${ p_unit(unit, 'useTimeseries')   } // Only include units with timeseries attributed to them
                     = sum(tt(t_), ts_unit(unit, param_unit, f_solve, t_+dt_circular(t_)))
                         / p_stepLength(mSolve, f_solve, t);
-                // Reserves relevant only until t_reserveLength
-                ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)${    ord(t) <= tSolveFirst + mSettings(mSolve, 't_reserveLength')    }
+                // Reserves relevant only until reserve_length
+                ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)${    ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
                     = sum(tt(t_), ts_reserveDemand(restype, up_down, node, f_solve, t_+dt_circular(t_)))
                         / p_stepLength(mSolve, f_solve, t);
                 ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t)${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }

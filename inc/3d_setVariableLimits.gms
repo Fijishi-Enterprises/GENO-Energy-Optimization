@@ -267,7 +267,7 @@ v_transferLeftward.up(gn2n_directional(grid, node, node_), ft(f, t))${  not p_gn
 // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
 v_reserve.up(nuRescapable(restype, 'up', node, unit), f_solve(f+df_nReserves(node, restype, f, t)), t_active(t))${  nuft(node, unit, f, t)
                                                                                                                     and not (unit_investLP(unit) or unit_investMIP(unit))
-                                                                                                                    and ord(t) < tSolveFirst + mSettings(mSolve, 't_reserveLength')
+                                                                                                                    and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                                                                     }
     = min ( p_nuReserves(node, unit, restype, 'up') * [ p_gnu('elec', node, unit, 'maxGen') + p_gnu('elec', node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
             v_gen.up('elec', node, unit, f, t) - v_gen.lo('elec', node, unit, f, t) // Generator + consuming unit available unit_elec. output delta
@@ -279,7 +279,7 @@ v_reserve.up(nuRescapable(restype, 'up', node, unit), f_solve(f+df_nReserves(nod
 ;
 v_reserve.up(nuRescapable(restype, 'down', node, unit), f_solve(f+df_nReserves(node, restype, f, t)), t_active(t))${    nuft(node, unit, f, t)
                                                                                                                         and not (unit_investLP(unit) or unit_investMIP(unit))
-                                                                                                                        and ord(t) < tSolveFirst + mSettings(mSolve, 't_reserveLength')
+                                                                                                                        and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                                                                         }
     = min ( p_nuReserves(node, unit, restype, 'down') * [ p_gnu('elec', node, unit, 'maxGen') + p_gnu('elec', node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
             v_gen.up('elec', node, unit, f, t) - v_gen.lo('elec', node, unit, f, t) // Generator + consuming unit available unit_elec. output delta

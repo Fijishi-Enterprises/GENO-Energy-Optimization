@@ -118,8 +118,13 @@ if (mType('schedule'),
 
 * --- Define Reserve Properties -----------------------------------------------
 
-    // Lenght of reserve horizon
-    mSettings('schedule', 't_reserveLength') = 36;
+    // Define whether reserves are used in the model
+    mSettingsReservesInUse('schedule', 'primary', 'up') = yes;
+    mSettingsReservesInUse('schedule', 'primary', 'down') = yes;
+    mSettingsReservesInUse('schedule', 'secondary', 'up') = yes;
+    mSettingsReservesInUse('schedule', 'secondary', 'down') = yes;
+    mSettingsReservesInUse('schedule', 'tertiary', 'up') = yes;
+    mSettingsReservesInUse('schedule', 'tertiary', 'down') = yes;
 
 * --- Define Unit Approximations ----------------------------------------------
 

@@ -47,6 +47,26 @@ p_unit(unit_aggregated(unit), 'lastStepNotAggregated')
 p_unit(unit_aggregator(unit), 'lastStepNotAggregated')
   = smax{(unit_, effLevel)$unitUnitEffLevel(unit, unit_, effLevel), mSettingsEff(mSolve, effLevel - 1) };
 
+
+// Nodes with reserve requirements
+restypeDirectionNode(restypeDirection(restype, up_down), node) = no;
+restypeDirectionNode(restypeDirection(restype, up_down), node)
+    $ { mSettingsReservesInUse(mSolve, restype, up_down)
+        and ( p_nReserves(node, restype, up_down)
+              or p_nReserves(node, restype, 'use_time_series')
+            )
+      }
+  = yes;
+
+// Units with reserve provision capabilities
+nuRescapable(restypeDirection(restype, up_down), nu(node, unit)) = no;
+nuRescapable(restypeDirection(restype, up_down), nu(node, unit))
+    $ { mSettingsReservesInUse(mSolve, restype, up_down)
+        and p_nuReserves(node, unit, restype, up_down) }
+  = yes;
+
+
+
 $ontext
     // Define t_latestForecast
     Option clear = t_latestForecast;

@@ -96,8 +96,13 @@ if (mType('building'),
 
 * --- Define Reserve Properties -----------------------------------------------
 
-    // Lenght of reserve horizon
-    mSettings('building', 't_reserveLength') = 0;
+    // Define whether reserves are used in the model
+    mSettingsReservesInUse('building', 'primary', 'up') = no;
+    mSettingsReservesInUse('building', 'primary', 'down') = no;
+    mSettingsReservesInUse('building', 'secondary', 'up') = no;
+    mSettingsReservesInUse('building', 'secondary', 'down') = no;
+    mSettingsReservesInUse('building', 'tertiary', 'up') = no;
+    mSettingsReservesInUse('building', 'tertiary', 'down') = no;
 
 * --- Define Unit Approximations ----------------------------------------------
 

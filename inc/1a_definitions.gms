@@ -51,7 +51,6 @@ Sets
         t_forecastJump, // Number of time steps between each update of the forecasts
 
         // Features
-        t_reserveLength, // Length of reserve provision horizon in time steps
         t_omitTrajectories, // Threshold time index for omitting start-up and shutdown trajectories
         results_t_start  // Time index where results outputting starts
         /

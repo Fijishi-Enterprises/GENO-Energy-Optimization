@@ -129,6 +129,7 @@ Sets
     effGroupSelector(effSelector, effSelector) "Efficiency selectors included in efficiency groups, e.g. Lambda02 contains Lambda01 and Lambda02."
     effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
+    mSettingsReservesInUse(mType, *, up_down) "Reserves that are used in each model type" 
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
     group "A group of units, transfer links, nodes, etc."
