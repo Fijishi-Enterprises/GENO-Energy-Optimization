@@ -131,7 +131,8 @@ tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 u
 // Is there any case where t_forecastLength should be larger than t_horizon?
 // If not, add a check for mSettings(mSolve, 't_forecastLength') <= mSettings(mSolve, 't_horizon')
 // and change the line below to 'tSolveLast = ord(tSolve) + mSettings(mSolve, 't_horizon');'
-tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLengthUnchanging'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solveOption clear = t_current;
+tSolveLast = ord(tSolve) + max(mSettings(mSolve, 't_forecastLengthUnchanging'), mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
+Option clear = t_current;
 t_current(t_full(t))${  ord(t) >= tSolveFirst
                         and ord (t) <= tSolveLast
                         }
