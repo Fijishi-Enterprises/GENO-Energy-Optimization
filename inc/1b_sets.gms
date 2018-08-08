@@ -117,6 +117,8 @@ Sets
     uft_online(unit, f, t) "Units with any online and startup variables on intervals"
     uft_onlineLP(unit, f, t) "Units with LP online and startup variables on intervals"
     uft_onlineMIP(unit, f, t) "Units with MIP online and startup variables on intervals"
+    uft_onlineLP_withPrevious(unit,f,t) "Units with LP online and startup variables on intervals, including t0"
+    uft_onlineMIP_withPrevious(unit,f,t) "Units with MIP online and startup variables on intervals, including t0"
     uft_startupTrajectory(unit, f, t) "Units with start-up trajectories on intervals"
     uft_shutdownTrajectory(unit, f, t) "Units with shutdown trajectories on intervals"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later intervals"
@@ -129,7 +131,7 @@ Sets
     effGroupSelector(effSelector, effSelector) "Efficiency selectors included in efficiency groups, e.g. Lambda02 contains Lambda01 and Lambda02."
     effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
-    mSettingsReservesInUse(mType, *, up_down) "Reserves that are used in each model type" 
+    mSettingsReservesInUse(mType, *, up_down) "Reserves that are used in each model type"
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
     group "A group of units, transfer links, nodes, etc."

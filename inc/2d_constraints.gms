@@ -369,10 +369,8 @@ q_startshut(m, uft_online(unit, f, t)) ..
       )
 
     // Units previously online
-*    - v_online_LP (unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineLP (unit, f+df_central(f,t+dt(t)), t+dt(t)) and not [unit_aggregator(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated')] } // This reaches to tFirstSolve when dt = -1
-*    - v_online_MIP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineMIP(unit, f+df_central(f,t+dt(t)), t+dt(t)) and not [unit_aggregator(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated')] }
-    - v_online_LP (unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineLP (unit, f+df_central(f,t), t) and not [unit_aggregator(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated')] } // This reaches to tFirstSolve when dt = -1
-    - v_online_MIP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineMIP(unit, f+df_central(f,t), t) and not [unit_aggregator(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated')] }
+    - v_online_LP (unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineLP_withPrevious(unit, f+df_central(f,t+dt(t)), t+dt(t)) and not [unit_aggregator(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated')] } // This reaches to tFirstSolve when dt = -1
+    - v_online_MIP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineMIP_withPrevious(unit, f+df_central(f,t+dt(t)), t+dt(t)) and not [unit_aggregator(unit) and ord(t) = tSolveFirst + p_unit(unit, 'lastStepNotAggregated')] }
 
     =E=
 
