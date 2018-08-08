@@ -22,6 +22,12 @@ t_active
 t_current
 t_full
 t_invest
+uft
+uft_online
+uft_onlineLP
+uft_onlineMIP
+uft_onlineLP_withPrevious
+uft_onlineMIP_withPrevious
 
 * Parameters
 tSolveFirst
