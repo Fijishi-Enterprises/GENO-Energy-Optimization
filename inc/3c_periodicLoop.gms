@@ -469,6 +469,8 @@ sufts(suft(effGroup, unit, f, t), effSelector)${    effGroupSelector(effGroup, e
 Option clear = uft_online;
 Option clear = uft_onlineLP;
 Option clear = uft_onlineMIP;
+Option clear = uft_onlineLP_withPrevious;
+Option clear = uft_onlineMIP_withPrevious;
 
 // Determine the intervals when units need to have online variables.
 loop(effOnline(effSelector),
@@ -478,6 +480,15 @@ loop(effOnline(effSelector),
 uft_onlineLP(uft(unit, f, t))${ suft('directOnLP', unit, f, t) }
     = yes;
 uft_onlineMIP(uft_online(unit, f, t)) = uft_online(unit, f, t) - uft_onlineLP(unit, f, t);
+
+uft_onlineLP_withPrevious(uft_onlineLP(unit, f, t)) = yes;
+uft_onlineMIP_withPrevious(uft_onlineMIP(unit, f, t)) = yes;
+
+// Units with online variables on each ft starting at t0, depending on setting for effSelector on level1
+uft_onlineLP_withPrevious(unit,f,t)${ord(t)=tSolveFirst and mf_realization(mSolve,f) and unit_online_LP(unit)} //set equals uft_onlineLP if units do not have an LP online variable on level1
+    = yes;
+uft_onlineMIP_withPrevious(unit,f,t)${ord(t)=tSolveFirst  and mf_realization(mSolve,f) and unit_online_MIP(unit)}  //set equals uft_onlineMIP if units do not have an MIP online variable on level1
+    = yes;
 
 // Calculate time series form parameters for units using direct input output conversion without online variable
 // Always constant 'lb', 'rb', and 'section', so need only to define 'slope'.
