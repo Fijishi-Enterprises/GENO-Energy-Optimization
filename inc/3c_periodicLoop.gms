@@ -422,6 +422,18 @@ uft(unit, ft(f, t))${   [
 // only units with capacities or investment option
     = yes;
 
+// First ft:s for each aggregator unit
+Option clear = uft_aggregator_first;
+loop(unit${unit_aggregator(unit)},
+    tmp = card(t);
+    loop(uft(unit, f, t),
+        if(ord(t) < tmp,
+            tmp = ord(t)
+        );
+    );
+    uft_aggregator_first(uft(unit, f, t))${ord(t) = tmp} = yes;
+);
+
 // Active units in nodes on each ft
 Option clear = nuft;
 nuft(nu(node, unit), ft(f, t))${    uft(unit, f, t) }

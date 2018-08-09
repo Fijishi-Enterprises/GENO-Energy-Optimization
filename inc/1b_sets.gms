@@ -121,6 +121,7 @@ Sets
     uft_onlineMIP_withPrevious(unit,f,t) "Units with MIP online and startup variables on intervals, including t0"
     uft_startupTrajectory(unit, f, t) "Units with start-up trajectories on intervals"
     uft_shutdownTrajectory(unit, f, t) "Units with shutdown trajectories on intervals"
+    uft_aggregator_first(unit, f, t) "The first intervals when aggregator units are active"
     nuft(node, unit, f, t) "Enables aggregation of nodes and units for later intervals"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later intervals"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"
