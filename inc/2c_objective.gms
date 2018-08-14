@@ -64,7 +64,9 @@ q_obj ..
                         + sum(inc_dec,
                             + sum(gn(grid, node),
                                 + vq_gen(inc_dec, grid, node, f, t)
-                                    * PENALTY_BALANCE(grid)
+                                    *( PENALTY_BALANCE(grid, node)${not p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
+                                    + ts_node(grid, node, 'balancePenalty', f, t)${p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
+                                      )
                                 ) // END sum(gn)
                             ) // END sum(inc_dec)
 
