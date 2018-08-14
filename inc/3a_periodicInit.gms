@@ -130,18 +130,21 @@ loop(m,
         continueLoop = continueLoop + 1;
         if (mSettingsEff(m, effLevel) > mSettings(m, 't_horizon'),
             mSettingsEff(m, effLevel) = mSettings(m, 't_horizon');
+            // Add a warning that mSettingsEff(m, effLevel) has been changed?
         );
     );
     // Set last effLevel to equal to the t_horizon
     loop(effLevel$(ord(effLevel) = continueLoop),
         if (mSettingsEff(m, effLevel) < mSettings(m, 't_horizon'),
-            mSettingsEff(m, effLevel + 1) = mSettings(m, 't_horizon');
+            mSettingsEff(m, effLevel) = mSettings(m, 't_horizon');
+            // Add a warning that mSettingsEff(m, effLevel) has been changed?
         );
     );
     // Remove effLevels with same end time step
     loop(effLevel$mSettingsEff(m, effLevel),
         if (mSettingsEff(m, effLevel + 1) = mSettingsEff(m, effLevel),
             mSettingsEff(m, effLevel + 1) = no;
+            // Add a warning that mSettingsEff(m, effLevel) has been changed?
         );
     );
 );

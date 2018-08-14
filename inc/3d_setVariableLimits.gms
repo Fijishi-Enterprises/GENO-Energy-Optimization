@@ -44,6 +44,14 @@ v_state.fx(gn_state(grid, node), ft(f, t))${    p_gn(grid, node, 'boundAll')
     = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
 ;
+// BoundEnd to a constant value
+v_state.fx(gn_state(grid, node), ft(f,t))${   mft_lastSteps(mSolve, f, t)
+                                              and p_gn(grid, node, 'boundEnd')
+                                              and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                          }
+    = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
+        * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+
 // When using time series
 // Upper Bound
 v_state.up(gn_state(grid, node), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
@@ -67,6 +75,21 @@ v_state.fx(gn_state(grid, node), ft(f, t))${    p_gn(grid, node, 'boundAll')
     = ts_node_(grid, node, 'reference', f, t)
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
 ;
+// BoundEnd to a timeseries value
+v_state.fx(gn_state(grid, node), ft(f,t))${   mft_lastSteps(mSolve, f, t)
+                                              and p_gn(grid, node, 'boundEnd')
+                                              and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
+                                          }
+    = ts_nodeState_(grid, node, 'reference', f, t)
+        * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+
+// BoundStartToEnd: bound the last interval in the horizon to the value just before the horizon
+v_state.fx(gn_state(grid, node), ft(f,t))${   mft_lastSteps(mSolve, f, t)
+                                              and p_gn(grid, node, 'boundStartToEnd')
+                                          }
+    = sum(mf_realization(mSolve, f_),
+        + r_state(grid, node, f_, tSolve)
+      ); // END sum(mf_realization)
 
 // Bound also the intervals just before the start of each sample - currently just 'upwardLimit'&'useConstant' and 'downwardLimit'&'useConstant'
 // Upper bound
@@ -420,15 +443,6 @@ loop(mft_start(mSolve, f, t),
 
     ); // END if(tSolveFirst)
 ) // END loop(mftStart)
-;
-
-// BoundStartToEnd
-v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
-                                    and p_gn(grid, node, 'boundStartToEnd')
-                                    }
-    = sum(mf_realization(mSolve, f_),
-        + r_state(grid, node, f_, tSolve)
-        ) // END sum(fRealization)
 ;
 
 

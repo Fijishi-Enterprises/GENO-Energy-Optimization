@@ -171,7 +171,7 @@ loop(cc(counter),
         // If stepsPerInterval equals one, simply use all the steps within the block
         if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
             tt_interval(t_current(t))${ ord(t) >= tSolveFirst + tCounter
-                                        and ord(t) < min(tSolveFirst + mInterval(mSolve, 'lastStepInIntervalBlock', counter), tSolveLast)
+                                        and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'lastStepInIntervalBlock', counter), tSolveLast)
                                         and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
                                         and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
                                         }
@@ -311,7 +311,7 @@ loop(cc(counter),
     ); // END loop(ms)
 
     // Update tCounter for the next block of intervals
-    tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter);
+    tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter) + 1;
 
 ); // END loop(counter)
 
