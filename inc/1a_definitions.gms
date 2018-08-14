@@ -230,7 +230,7 @@ param_gnBoundaryTypes "Types of boundaries that can be set for a node with a sta
     reference     "Reference value for a state that can be used to bound a state (unit depends on energyCapacity)"
     maxSpill      "Maximum spill rate from the node (MWh/h)"
     minSpill      "Minimum spill rate from the node (MWh/h)"
-    balancePenalty "Penalty value for violating the energy balance of that particular node (�/MWh) (can be interpretated as the energy price in certain settings)"
+    balancePenalty "Penalty value for violating the energy balance of that particular node (EUR/MWh) (can be interpretated as the energy price in certain settings)"
 /
 
 param_gnBoundaryProperties "Properties that can be set for the different boundaries" /
