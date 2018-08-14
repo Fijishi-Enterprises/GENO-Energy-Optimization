@@ -118,7 +118,7 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = ts_cf_;
     Option clear = ts_unit_;
     Option clear = ts_reserveDemand_;
-    Option clear = ts_nodeState_;
+    Option clear = ts_node_;
 
 $endif.debug
 
@@ -222,8 +222,8 @@ loop(cc(counter),
             // Reserve demand relevant only up until reserve_length
             ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(f_solve, tt_interval(t)))${ ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
                 = ts_reserveDemand(restype, up_down, node, f_solve, t+dt_circular(t));
-            ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, ft(f_solve, tt_interval(t)))${  p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
-                = ts_nodeState(grid, node, param_gnBoundaryTypes, f_solve, t+dt_circular(t));
+            ts_node_(gn_state(grid, node), param_gnBoundaryTypes, ft(f_solve, tt_interval(t)))${  p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
+                = ts_node(grid, node, param_gnBoundaryTypes, f_solve, t+dt_circular(t));
             // Fuel price time series
             ts_fuelPrice_(fuel, tt_interval(t))
                 = ts_fuelPrice(fuel, t+dt_circular(t));
@@ -291,8 +291,8 @@ loop(cc(counter),
                 ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)${    ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
                     = sum(tt(t_), ts_reserveDemand(restype, up_down, node, f_solve, t_+dt_circular(t_)))
                         / p_stepLength(mSolve, f_solve, t);
-                ts_nodeState_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t)${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
-                    = sum(tt(t_), ts_nodeState(grid, node, param_gnBoundaryTypes, f_solve, t_+dt_circular(t_)))
+                ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t)${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
+                    = sum(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_+dt_circular(t_)))
                         / p_stepLength(mSolve, f_solve, t);
                 // Fuel price time series
                 ts_fuelPrice_(fuel, t)

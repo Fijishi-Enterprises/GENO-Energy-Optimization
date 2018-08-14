@@ -31,7 +31,7 @@ loop(mTimeseries_loop_read(mSolve, timeseries)${ord(tSolve) >= tForecastNext(mSo
     if (mTimeseries_loop_read(mSolve, 'ts_influx'), execute_load ts_influx);
     if (mTimeseries_loop_read(mSolve, 'ts_cf'), execute_load ts_cf);
     if (mTimeseries_loop_read(mSolve, 'ts_reserveDemand'), execute_load ts_reserveDemand);
-    if (mTimeseries_loop_read(mSolve, 'ts_nodeState'), execute_load ts_nodeState);
+    if (mTimeseries_loop_read(mSolve, 'ts_node'), execute_load ts_node);
     if (mTimeseries_loop_read(mSolve, 'ts_fuelPriceChange'), execute_load ts_fuelPriceChange);
     if (mTimeseries_loop_read(mSolve, 'ts_unavailability'), execute_load ts_unavailability);
 );

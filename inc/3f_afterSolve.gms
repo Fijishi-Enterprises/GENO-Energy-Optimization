@@ -66,6 +66,6 @@ v_state.fx(grid, node, ft(f,t))${   mft_lastSteps(mSolve, f, t)
                                     and p_gn(grid, node, 'boundEnd')
                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
                                 }
-    = ts_nodeState_(grid, node, 'reference', f, t)
+    = ts_node_(grid, node, 'reference', f, t)
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 $offtext

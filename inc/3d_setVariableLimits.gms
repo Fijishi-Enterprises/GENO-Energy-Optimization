@@ -49,14 +49,14 @@ v_state.fx(gn_state(grid, node), ft(f, t))${    p_gn(grid, node, 'boundAll')
 v_state.up(gn_state(grid, node), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
                                                 and not df_central(f,t)
                                                 }
-    = ts_nodeState_(grid, node,   'upwardLimit', f, t)
+    = ts_node_(grid, node,   'upwardLimit', f, t)
         * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier')
 ;
 // Lower bound
 v_state.lo(gn_state(grid, node), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
                                                 and not df_central(f,t)
                                                 }
-    = ts_nodeState_(grid, node, 'downwardLimit', f, t)
+    = ts_node_(grid, node, 'downwardLimit', f, t)
         * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier')
 ;
 // Fixed value
@@ -64,7 +64,7 @@ v_state.fx(gn_state(grid, node), ft(f, t))${    p_gn(grid, node, 'boundAll')
                                                 and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
                                                 and not df_central(f,t)
                                                     }
-    = ts_nodeState_(grid, node, 'reference', f, t)
+    = ts_node_(grid, node, 'reference', f, t)
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
 ;
 
@@ -92,7 +92,7 @@ v_spill.lo(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(
         * p_gnBoundaryPropertiesForStates(grid, node_spill, 'minSpill', 'multiplier')
 ;
 v_spill.lo(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node_spill, 'minSpill', 'useTimeSeries') }
-    = ts_nodeState_(grid, node_spill, 'minSpill', f, t)
+    = ts_node_(grid, node_spill, 'minSpill', f, t)
         * p_gnBoundaryPropertiesForStates(grid, node_spill, 'minSpill', 'multiplier')
 ;
 v_spill.up(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node_spill, 'maxSpill', 'constant') }
@@ -100,7 +100,7 @@ v_spill.up(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(
         * p_gnBoundaryPropertiesForStates(grid, node_spill, 'maxSpill', 'multiplier')
 ;
 v_spill.up(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node_spill, 'maxSpill', 'useTimeSeries')    }
-    = ts_nodeState_(grid, node_spill, 'maxSpill', f, t)
+    = ts_node_(grid, node_spill, 'maxSpill', f, t)
         * p_gnBoundaryPropertiesForStates(grid, node_spill, 'maxSpill', 'multiplier')
 ;
 
@@ -395,7 +395,7 @@ loop(mft_start(mSolve, f, t),
         v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') // !!! NOTE !!! The check fails if value is zero
                                                     }
-            = ts_nodeState(grid, node, 'reference', f, t) // NOTE!!! ts_nodeState_ doesn't contain initial values so using raw data instead.
+            = ts_node(grid, node, 'reference', f, t) // NOTE!!! ts_nodeState_ doesn't contain initial values so using raw data instead.
                 * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
        // Initial online status for units

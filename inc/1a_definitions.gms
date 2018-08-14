@@ -159,7 +159,7 @@ Sets
         ts_influx
         ts_cf
         ts_reserveDemand
-        ts_nodeState
+        ts_node
         ts_fuelPriceChange
         ts_fuelPrice
         ts_unavailability

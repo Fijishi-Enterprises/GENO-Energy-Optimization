@@ -53,7 +53,7 @@ $loaddc p_fuelEmission
 $loaddc ts_cf
 $loaddc ts_fuelPriceChange
 $loaddc ts_influx
-$loaddc ts_nodeState
+$loaddc ts_node
 $loaddc t_invest
 $loaddc group
 $loaddc uGroup
