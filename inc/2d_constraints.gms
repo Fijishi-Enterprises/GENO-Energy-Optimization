@@ -411,7 +411,7 @@ q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t))${ unit
 
     // Subunit shutdowns within special startup timeframe
     + sum(counter${dt_starttypeUnitCounter(starttype, unit, counter)},
-        + v_shutdown(unit, f+df_central(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
+        + v_shutdown(unit, f+df_central(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))${t_activeNoReset(t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))}
     ) // END sum(counter)
 ;
 
@@ -434,7 +434,7 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutdownHours')
 
     // Number of units unable to become online due to restrictions
     - sum(counter${dt_downtimeUnitCounter(unit, counter)},
-        + v_shutdown(unit, f+df_central(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
+        + v_shutdown(unit, f+df_central(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))${t_activeNoReset(t+(dt_downtimeUnitCounter(unit, counter) + 1))}
     ) // END sum(counter)
     // TODO: for aggregator units, check shutdown calculation
 
@@ -497,7 +497,7 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationHours'
     // Units that have minimum operation time requirements active
     + sum(counter${dt_uptimeUnitCounter(unit, counter)},
         + sum(unitStarttype(unit, starttype),
-            + v_startup(unit, starttype, f+df_central(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
+            + v_startup(unit, starttype, f+df_central(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))${t_activeNoReset(t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))}
             ) // END sum(starttype)
     ) // END sum(counter)
     // TODO: for aggregator units, check start-up calculation
