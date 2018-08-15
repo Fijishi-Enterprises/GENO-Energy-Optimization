@@ -321,7 +321,7 @@ loop(m,
         // Calculate output during the run-up phase
         loop(t${ord(t)<=p_u_runUpTimeIntervalsCeil(unit)},
             p_ut_runUp(unit, t) =
-              + p_unit(unit, 'rampSpeedToMinLoad') * (ceil(p_u_runUpTimeIntervals(unit) - ord(t) + 1))
+              + p_unit(unit, 'rampSpeedToMinLoad') * (ceil(p_u_runUpTimeIntervals(unit) - ord(t)) + 0.5)
               * 60 // Unit conversion from [p.u./min] to [p.u./h]
               * mSettings(m, 'stepLengthInHours')
         );
