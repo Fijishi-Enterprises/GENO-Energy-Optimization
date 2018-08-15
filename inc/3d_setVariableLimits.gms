@@ -80,7 +80,7 @@ v_state.fx(gn_state(grid, node), ft(f,t))${   mft_lastSteps(mSolve, f, t)
                                               and p_gn(grid, node, 'boundEnd')
                                               and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
                                           }
-    = ts_nodeState_(grid, node, 'reference', f, t)
+    = ts_node_(grid, node, 'reference', f, t)
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
 // BoundStartToEnd: bound the last interval in the horizon to the value just before the horizon
@@ -418,7 +418,7 @@ loop(mft_start(mSolve, f, t),
         v_state.fx(gn_state(grid, node), f, t)${    p_gn(grid, node, 'boundStart')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') // !!! NOTE !!! The check fails if value is zero
                                                     }
-            = ts_node(grid, node, 'reference', f, t) // NOTE!!! ts_nodeState_ doesn't contain initial values so using raw data instead.
+            = ts_node(grid, node, 'reference', f, t) // NOTE!!! ts_node_ doesn't contain initial values so using raw data instead.
                 * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
        // Initial online status for units

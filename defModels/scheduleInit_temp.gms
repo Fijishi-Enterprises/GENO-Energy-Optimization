@@ -92,7 +92,7 @@ if (mType('schedule'),
     mTimeseries_loop_read('schedule', 'ts_influx') = no;
     mTimeseries_loop_read('schedule', 'ts_cf') = no;
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
-    mTimeseries_loop_read('schedule', 'ts_nodeState') = no;
+    mTimeseries_loop_read('schedule', 'ts_node') = no;
     mTimeseries_loop_read('schedule', 'ts_fuelPriceChange') = no;
     mTimeseries_loop_read('schedule', 'ts_unavailability') = no;
 
