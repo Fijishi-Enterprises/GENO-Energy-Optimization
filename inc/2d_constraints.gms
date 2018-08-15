@@ -903,11 +903,7 @@ q_conversionSOS2InputIntermediate(suft(effLambda(effGroup), unit, f, t)) ..
                         + ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)
                         ] // END * v_sos2
                 ) // END sum(effSelector)
-
-            // Consumption of keeping units online
-            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
-                * p_effGroupUnit(effGroup, unit, 'section')
-            ] // END * sum(gnu_output)
+           ]
 ;
 
 * --- SOS 2 Efficiency Approximation Online Variables -------------------------
