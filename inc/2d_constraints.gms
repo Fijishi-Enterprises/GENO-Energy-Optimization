@@ -167,8 +167,8 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
             ) // END sum(effGroup)
         * [ // Online variables should only be generated for units with restrictions
-            + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)} // LP online variant
-            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)} // MIP online variant
+            + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f+df_central(f,t), t)} // LP online variant
+            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f+df_central(f,t), t)} // MIP online variant
             ] // END v_online
 
     + [
@@ -177,7 +177,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
             * sum(t_activeNoReset(t_)${ ord(t_) > ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
                                         and ord(t_) <= ord(t)},
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df_central(f,t), t_)
+                    + v_startup(unit, starttype, f+df_central(f,t), t_)${uft_online(unit, f+df_central(f,t), t_)}
                         * sum(t_full(t__)${ord(t__) = p_u_runUpTimeIntervalsCeil(unit) - ord(t) - dt_next(t) + 1 + ord(t_)}, // last step in the interval
                             + p_ut_runUp(unit, t__)
 *                                * 1 // test values [0,1] to provide some flexibility
@@ -188,7 +188,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_activeNoReset(t_)${ ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))},
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df_central(f,t), t_)
+                    + v_startup(unit, starttype, f+df_central(f,t), t_)${uft_online(unit, f+df_central(f,t), t_)}
                         * sum(t_full(t__)${ord(t__) = 1}, p_ut_runUp(unit, t__))
                     ) // END sum(unitStarttype)
                 ) // END sum(t_)
@@ -199,7 +199,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_activeNoReset(t_)${ ord(t_) >= ord(t) + dt_next(t) + dt_toShutdown(unit, t + dt_next(t))
                                         and ord(t_) < ord(t)},
-                + v_shutdown(unit, f+df_central(f,t), t_)
+                + v_shutdown(unit, f+df_central(f,t), t_)${uft_online(unit, f+df_central(f,t), t_)}
                     * sum(t_full(t__)${ord(t__) = ord(t) - ord(t_) + 1},
                         + p_ut_shutdown(unit, t__)
                         ) // END sum(t__)
@@ -207,7 +207,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
         // Units that are in the first time interval of the shutdown phase are limited by the minimum load (contained in p_ut_shutdown(unit, 't00000'))
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * (
-                + v_shutdown(unit, f+df_central(f,t), t)
+                + v_shutdown(unit, f+df_central(f,t), t)${uft_online(unit, f+df_central(f,t), t)}
                     * sum(t_full(t__)${ord(t__) = 1}, p_ut_shutdown(unit, t__))
                 ) // END * p_gnu(unitSizeGen)
         ]${uft_shutdownTrajectory(unit, f, t)}
@@ -321,7 +321,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
             * sum(t_activeNoReset(t_)${ ord(t_) > ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
                                         and ord(t_) <= ord(t)},
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df_central(f,t), t_)
+                    + v_startup(unit, starttype, f+df_central(f,t), t_)${uft_online(unit, f+df_central(f,t), t_)}
                         * sum(t_full(t__)${ord(t__) = p_u_runUpTimeIntervalsCeil(unit) - ord(t) - dt_next(t) + 1 + ord(t_)}, // last step in the interval
                             + p_ut_runUp(unit, t__)
                             ) // END sum(t__)
@@ -331,7 +331,8 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_activeNoReset(t_)${ ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))},
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df_central(f,t), t_) * p_u_maxOutputInLastRunUpInterval(unit)
+                    + v_startup(unit, starttype, f+df_central(f,t), t_)${uft_online(unit, f+df_central(f,t), t_)}
+                        * p_u_maxOutputInLastRunUpInterval(unit)
                     ) // END sum(unitStarttype)
                 ) // END sum(t_)
         ]${uft_startupTrajectory(unit, f, t)}
@@ -341,7 +342,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_activeNoReset(t_)${ ord(t_) >= ord(t) + dt_next(t) + dt_toShutdown(unit, t + dt_next(t))
                                         and ord(t_) < ord(t)},
-                + v_shutdown(unit, f+df_central(f,t), t_)
+                + v_shutdown(unit, f+df_central(f,t), t_)${uft_online(unit, f+df_central(f,t), t_)}
                     * sum(t_full(t__)${ord(t__) = ord(t) - ord(t_) + 1},
                         + p_ut_shutdown(unit, t__)
                         ) // END sum(t__)
@@ -349,7 +350,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
         // Units that are in the first time interval of the shutdown phase are limited by p_u_maxOutputInFirstShutdownInterval
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * (
-                + v_shutdown(unit, f+df_central(f,t), t)
+                + v_shutdown(unit, f+df_central(f,t), t)${uft_online(unit, f+df_central(f,t), t)}
                     * p_u_maxOutputInFirstShutdownInterval(unit)
                 ) // END * p_gnu(unitSizeGen)
         ]${uft_shutdownTrajectory(unit, f, t)}
