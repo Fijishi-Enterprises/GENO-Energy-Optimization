@@ -130,21 +130,23 @@ loop(m,
         continueLoop = continueLoop + 1;
         if (mSettingsEff(m, effLevel) > mSettings(m, 't_horizon'),
             mSettingsEff(m, effLevel) = mSettings(m, 't_horizon');
-            // Add a warning that mSettingsEff(m, effLevel) has been changed?
+            put log '!!! Set mSettingsEff(', m.tl:0, ', ', effLevel.tl:0, ') to ', mSettings(m, 't_horizon'):0:0 /;
         );
     );
     // Set last effLevel to equal to the t_horizon
     loop(effLevel$(ord(effLevel) = continueLoop),
         if (mSettingsEff(m, effLevel) < mSettings(m, 't_horizon'),
             mSettingsEff(m, effLevel) = mSettings(m, 't_horizon');
-            // Add a warning that mSettingsEff(m, effLevel) has been changed?
+            put log '!!! Set mSettingsEff(', m.tl:0, ', ', effLevel.tl:0, ') to ', mSettings(m, 't_horizon'):0:0 /;
         );
     );
     // Remove effLevels with same end time step
     loop(effLevel$mSettingsEff(m, effLevel),
-        if (mSettingsEff(m, effLevel + 1) = mSettingsEff(m, effLevel),
-            mSettingsEff(m, effLevel + 1) = no;
-            // Add a warning that mSettingsEff(m, effLevel) has been changed?
+        loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel) <> ord(effLevel_)},
+            if (mSettingsEff(m, effLevel_) = mSettingsEff(m, effLevel),
+                mSettingsEff(m, effLevel_) = no;
+                put log '!!! Removed mSettingsEff(', m.tl:0, ', ', effLevel_.tl:0, ')' /;
+            );
         );
     );
 );
