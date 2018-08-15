@@ -167,6 +167,7 @@ alias(lambda, lambda_, lambda__);
 alias(op, op_, op__);
 alias(eff, eff_, eff__);
 alias(fuel, fuel_);
+alias(effLevel, effLevel_);
 
 
 *if(active('rampSched'),
