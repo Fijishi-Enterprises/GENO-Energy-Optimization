@@ -69,4 +69,8 @@ Model invest /
     q_emissioncap
     q_energyShareMax
     q_energyShareMin
+
+$ifthen exist 'input/invest_additional_constraints.gms'
+   $$include 'input/invest_additional_constraints.gms'      // Declare additional constraints from the input data
+$endif
 /;
