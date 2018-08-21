@@ -440,3 +440,12 @@ loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
         abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
     );
 );
+
+* Check the shutdown time related data
+loop( unit,
+    if(p_unit(unit, 'minShutdownHours') > p_unit(unit, 'startWarmAfterXhours')
+        or p_unit(unit, 'startWarmAfterXhours') > p_unit(unit, 'startColdAfterXhours'),
+        put log '!!! Error occurred on unit ', unit.tl:0;
+        abort "Units should have p_unit(unit, 'minShutdownHours') <= p_unit(unit, 'startWarmAfterXhours') <= p_unit(unit, 'startColdAfterXhours')!"
+    );
+);
