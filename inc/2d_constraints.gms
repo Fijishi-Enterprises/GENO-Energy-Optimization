@@ -1627,6 +1627,9 @@ q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin
     // Energy influx
     + ts_influx_(grid, node, f, t)
 
+    // Capacity margin feasibility dummy variables
+    + vq_capacity(grid, node, f, t)
+
     =G=
 
     // Capacity minus influx must be greated than the desired margin

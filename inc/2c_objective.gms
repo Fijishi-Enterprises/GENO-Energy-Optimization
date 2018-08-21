@@ -78,6 +78,11 @@ q_obj ..
                                 * PENALTY_RES_MISSING(restype, up_down)
                             ) // END sum(restypeDirectionNode)
 
+                        // Capacity margin feasibility dummy variable penalties
+                        + sum(gn(grid, node),
+                            + vq_capacity(grid, node, f, t)
+                                * PENALTY_CAPACITY(grid, node)
+                            ) // END sum(gn)
                         ] // END * p_stepLength
 
                 // Start-up costs, initial startup free as units could have been online before model started

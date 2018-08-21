@@ -52,5 +52,6 @@ Positive variables
     vq_gen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
     vq_resDemand(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW) before the reserve has been locked"
     vq_resMissing(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW) after the reserve has been locked"
+    vq_capacity(grid, node, f, t) "Dummy variable to ensure capacity margin equation feasibility (MW)"
 ;
 

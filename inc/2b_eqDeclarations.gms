@@ -29,6 +29,7 @@ Parameters
     PENALTY_BALANCE(grid, node) "Penalty on violating energy balance eq. (EUR/MWh)"
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
     PENALTY_RES_MISSING(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
+    PENALTY_CAPACITY(grid, node) "Penalty on violating capacity margin eq. (EUR/MW/h)"
 ;
 *PENALTY_BALANCE(grid)= %def_penalty%;
 
@@ -37,6 +38,7 @@ PENALTY_BALANCE(grid, node) = p_gnBoundaryPropertiesForStates(grid, node, 'balan
 
 PENALTY_RES(restype, up_down) = 0.9*%def_penalty%;
 PENALTY_RES_MISSING(restype, up_down) = 0.1*%def_penalty%;
+PENALTY_CAPACITY(grid, node) = 0.5*%def_penalty%;
 
 
 * =============================================================================
