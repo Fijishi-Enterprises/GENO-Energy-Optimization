@@ -115,13 +115,13 @@ if (mType('invest'),
     // Define the last time step for each unit aggregation and efficiency level (3a_periodicInit.gms ensures that there is a effLevel until t_horizon)
     mSettingsEff('invest', 'level1') = inf;
 
-    // Define threshold for omitting start-up and shutdown trajectories
-    mSettings('invest', 't_omitTrajectories') = 8761;
+    // Define the horizon when start-up and shutdown trajectories are considered
+    mSettings('invest', 't_trajectoryHorizon') = 8760;
 
 * --- Define output settings for results --------------------------------------
 
-    // Define when to start outputting results - allows to skip an initialization period. Uses ord(t) > results_t_start in the code.
-    mSettings('invest', 'results_t_start') = 1;
+    // Define the length of the initialization period. Results outputting starts after the period. Uses ord(t) > t_start + t_initializationPeriod in the code.
+    mSettings('invest', 't_initializationPeriod') = 0;  // r_state and r_online are stored also for the last step in the initialization period, i.e. ord(t) = t_start + t_initializationPeriod
 
 * --- Control the solver ------------------------------------------------------
 

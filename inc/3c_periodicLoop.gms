@@ -531,11 +531,11 @@ Option clear = uft_shutdownTrajectory;
 
 // Determine the intervals when units need to follow start-up and shutdown trajectories.
 loop(uft_online(unit, f, t)${ p_u_runUpTimeIntervals(unit) },
-    uft_startupTrajectory(unit, f, t)${ord(t) < tSolveFirst + mSettings(mSolve, 't_omitTrajectories')}
+    uft_startupTrajectory(unit, f, t)${ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon')}
         = yes;
 ); // END loop(uf_online)
 loop(uft_online(unit, f, t)${ p_u_shutdownTimeIntervals(unit) },
-    uft_shutdownTrajectory(unit, f, t)${ord(t) < tSolveFirst + mSettings(mSolve, 't_omitTrajectories')}
+    uft_shutdownTrajectory(unit, f, t)${ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon')}
         = yes;
 ); // END loop(uf_online)
 

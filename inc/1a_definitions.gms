@@ -51,8 +51,8 @@ Sets
         t_forecastJump, // Number of time steps between each update of the forecasts
 
         // Features
-        t_omitTrajectories, // Threshold time index for omitting start-up and shutdown trajectories
-        results_t_start  // Time index where results outputting starts
+        t_trajectoryHorizon, // Length of the horizon when start-up and shutdown trajectories are considered (in time steps)
+        t_initializationPeriod  // Number of time steps in the beginning of the simulation which are solved but the results of which are not stored
         /
 
     // Solve info
