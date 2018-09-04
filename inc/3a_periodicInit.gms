@@ -121,6 +121,15 @@ dt_circular(t_full(t))${ ord(t) > ts_length }
 * --- Initialize Unit Efficiency Approximations -------------------------------
 * =============================================================================
 
+* --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units (needs to be done before mSettingsEff(m, effLevel) is cleaned up)
+
+loop(m,
+    p_unit(unit_aggregated(unit), 'lastStepNotAggregated')
+      = sum{(unit_, effLevel)$unitUnitEffLevel(unit_, unit, effLevel), mSettingsEff(m, effLevel - 1) };
+    p_unit(unit_aggregator(unit), 'lastStepNotAggregated')
+      = smax{(unit_, effLevel)$unitUnitEffLevel(unit, unit_, effLevel), mSettingsEff(m, effLevel - 1) };
+);
+
 * --- Ensure that efficiency levels extend to the end of the model horizon and do not go beyond ----
 
 loop(m,

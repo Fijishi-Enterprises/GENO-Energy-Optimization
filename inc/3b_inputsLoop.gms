@@ -42,11 +42,6 @@ if (ord(tSolve) >= tForecastNext(mSolve),
         = tForecastNext(mSolve) + mSettings(mSolve, 't_forecastJump');
 );
 
-p_unit(unit_aggregated(unit), 'lastStepNotAggregated')
-  = sum{(unit_, effLevel)$unitUnitEffLevel(unit_, unit, effLevel), mSettingsEff(mSolve, effLevel - 1) };
-p_unit(unit_aggregator(unit), 'lastStepNotAggregated')
-  = smax{(unit_, effLevel)$unitUnitEffLevel(unit, unit_, effLevel), mSettingsEff(mSolve, effLevel - 1) };
-
 
 // Nodes with reserve requirements
 restypeDirectionNode(restypeDirection(restype, up_down), node) = no;
