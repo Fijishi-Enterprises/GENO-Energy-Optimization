@@ -76,6 +76,7 @@ Sets
     restype "Reserve types"
     restypeDirection(restype, up_down) "Different combinations of reserve types and directions"
     restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
+    resTypeDirectionNodeNode(restype, up_down, node, node) "Node node connections that can transfer reserves"
     nuRescapable(restype, up_down, node, unit) "Units capable and available to provide particular reserves"
     restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
 
