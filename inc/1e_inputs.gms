@@ -41,6 +41,7 @@ $loaddc restypeDirection
 $loaddc restypeReleasedForRealization
 $loaddc p_nReserves
 $loaddc p_nuReserves
+$loaddc p_nnReserves
 $loaddc ts_reserveDemand
 $loaddc p_gnBoundaryPropertiesForStates
 $loaddc p_gnPolicy

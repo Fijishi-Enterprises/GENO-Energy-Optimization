@@ -53,6 +53,15 @@ restypeDirectionNode(restypeDirection(restype, up_down), node)
       }
   = yes;
 
+// Node node connections with reserve requirements
+restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_) = no;
+$ontext
+restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_)
+    $ { mSettingsReservesInUse(mSolve, restype, up_down)
+        and p_nnReserves(node, node_, restype, up_down)
+      }
+  = yes;
+$offtext
 // Units with reserve provision capabilities
 nuRescapable(restypeDirection(restype, up_down), nu(node, unit)) = no;
 nuRescapable(restypeDirection(restype, up_down), nu(node, unit))

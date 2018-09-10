@@ -130,7 +130,7 @@ q_obj ..
         - sum(mft_lastSteps(m, f, t)${  p_storageValue(grid, node, t)
                                         and active(m, 'storageValue')
                                         },
-            + v_state(grid, node, f, t)
+            + v_state(grid, node, f+df_central(f,t), t)
                 * p_storageValue(grid, node, t)
                 * sum(ms(m, s)${p_msft_probability(m, s, f, t)},
                     + p_msft_probability(m, s, f, t)

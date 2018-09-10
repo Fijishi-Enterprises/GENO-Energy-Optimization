@@ -98,13 +98,13 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t)) ${  ord(t) <
         ) // END sum(nuft)
 
     // Reserve provision to this node via transfer links
-    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNode(restype, up_down, node_)},
+    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, up_down, node_, node)},
         + (1 - p_gnn(grid, node_, node, 'transferLoss') )
-            * v_resTransferRightward(restype, up_down, node_, node, f+df_nReserves(node_, restype, f, t), t)             // Reserves from another node - reduces the need for reserves in the node
+            * v_resTransferRightward(restype, up_down, node_, node, f+df_nReserves(node_, restype, f, t), t) * p_nnReserves(node_, node, restype, 'ratio')   // Reserves from another node - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
-    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNode(restype, up_down, node_)},
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, up_down, node_, node)},
         + (1 - p_gnn(grid, node, node_, 'transferLoss') )
-            * v_resTransferLeftward(restype, up_down, node, node_, f+df_nReserves(node_, restype, f, t), t)             // Reserves from another node - reduces the need for reserves in the node
+            * v_resTransferLeftward(restype, up_down, node, node_, f+df_nReserves(node_, restype, f, t), t) * p_nnReserves(node, node_, restype, 'ratio')    // Reserves from another node - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
 
     =G=
@@ -114,11 +114,11 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t)) ${  ord(t) <
     + p_nReserves(node, restype, up_down)${not p_nReserves(node, restype, 'use_time_series')}
 
     // Reserve provisions to another nodes via transfer links
-    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNode(restype, up_down, node_)},   // If trasferring reserves to another node, increase your own reserves by same amount
-        + v_resTransferRightward(restype, up_down, node, node_, f+df_nReserves(node, restype, f, t), t)
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, up_down, node_, node)},   // If trasferring reserves to another node, increase your own reserves by same amount
+        + v_resTransferRightward(restype, up_down, node, node_, f+df_nReserves(node, restype, f, t), t) * p_nnReserves(node, node_, restype, 'ratio')
         ) // END sum(gn2n_directional)
-    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNode(restype, up_down, node_)},   // If trasferring reserves to another node, increase your own reserves by same amount
-        + v_resTransferLeftward(restype, up_down, node_, node, f+df_nReserves(node, restype, f, t), t)
+    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, up_down, node_, node)},   // If trasferring reserves to another node, increase your own reserves by same amount
+        + v_resTransferLeftward(restype, up_down, node_, node, f+df_nReserves(node, restype, f, t), t) * p_nnReserves(node_, node, restype, 'ratio')
         ) // END sum(gn2n_directional)
 
     // Reserve demand feasibility dummy variables
@@ -1106,8 +1106,8 @@ q_transferLeftwardLimit(gn2n_directional(grid, node, node_), ft(f, t))${    p_gn
 
 * --- Rightward Reserve Transfer Limits ---------------------------------------
 
-q_resTransferLimitRightward(gn2n_directional(grid, node, node_), ft(f, t))${    sum(restypeDirection(restype, 'up'), restypeDirectionNode(restype, 'up', node_))
-                                                                                or sum(restypeDirection(restype, 'down'), restypeDirectionNode(restype, 'down', node))
+q_resTransferLimitRightward(gn2n_directional(grid, node, node_), ft(f, t))${    sum(restypeDirection(restype, 'up'), restypeDirectionNodeNode(restype, 'up', node, node_))
+                                                                                or sum(restypeDirection(restype, 'down'), restypeDirectionNodeNode(restype, 'down', node_, node))
                                                                                 or p_gnn(grid, node, node_, 'transferCapInvLimit')
                                                                                 } ..
 
@@ -1115,11 +1115,11 @@ q_resTransferLimitRightward(gn2n_directional(grid, node, node_), ft(f, t))${    
     + v_transfer(grid, node, node_, f, t)
 
     // Reserved transfer capacities from node
-    + sum(restypeDirection(restype, 'up')${restypeDirectionNode(restype, 'up', node_)},
-        + v_resTransferRightward(restype, 'up', node, node_, f+df_nReserves(node_, restype, f, t), t)
+    + sum(restypeDirection(restype, 'up')${restypeDirectionNodeNode(restype, 'up', node_, node)},
+        + v_resTransferRightward(restype, 'up', node, node_, f+df_nReserves(node_, restype, f, t), t) * p_nnReserves(node, node_, restype, 'ratio')
         ) // END sum(restypeDirection)
-    + sum(restypeDirection(restype, 'down')${restypeDirectionNode(restype, 'down', node)},
-        + v_resTransferLeftward(restype, 'down', node, node_, f+df_nReserves(node, restype, f, t), t)
+    + sum(restypeDirection(restype, 'down')${restypeDirectionNodeNode(restype, 'down', node, node_)},
+        + v_resTransferLeftward(restype, 'down', node, node_, f+df_nReserves(node, restype, f, t), t) * p_nnReserves(node_, node, restype, 'ratio')
         ) // END sum(restypeDirection)
 
     =L=
@@ -1137,8 +1137,8 @@ q_resTransferLimitRightward(gn2n_directional(grid, node, node_), ft(f, t))${    
 
 * --- Leftward Reserve Transfer Limits ----------------------------------------
 
-q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), ft(f, t))${ sum(restypeDirection(restype, 'up'), restypeDirectionNode(restype, 'up', node_))
-                                                                            or sum(restypeDirection(restype, 'down'), restypeDirectionNode(restype, 'down', node))
+q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), ft(f, t))${ sum(restypeDirection(restype, 'up'), restypeDirectionNodeNode(restype, 'up', node_, node))
+                                                                            or sum(restypeDirection(restype, 'down'), restypeDirectionNodeNode(restype, 'down', node, node_))
                                                                             or p_gnn(grid, node, node_, 'transferCapInvLimit')
                                                                             } ..
 
@@ -1146,11 +1146,11 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), ft(f, t))${ sum(
     + v_transfer(grid, node, node_, f, t)
 
     // Reserved transfer capacities from node
-    - sum(restypeDirection(restype, 'up')${restypeDirectionNode(restype, 'up', node)},
-        + v_resTransferLeftward(restype, 'up', node, node_, f+df_nReserves(node, restype, f, t), t)
+    - sum(restypeDirection(restype, 'up')${restypeDirectionNodeNode(restype, 'up', node, node_)},
+        + v_resTransferLeftward(restype, 'up', node, node_, f+df_nReserves(node, restype, f, t), t) * p_nnReserves(node, node_, restype, 'ratio')
         ) // END sum(restypeDirection)
-    - sum(restypeDirection(restype, 'down')${restypeDirectionNode(restype, 'down', node_)},
-        + v_resTransferRightward(restype, 'down', node, node_, f+df_nReserves(node_, restype, f, t), t)
+    - sum(restypeDirection(restype, 'down')${restypeDirectionNodeNode(restype, 'down', node_, node)},
+        + v_resTransferRightward(restype, 'down', node, node_, f+df_nReserves(node_, restype, f, t), t) * p_nnReserves(node_, node, restype, 'ratio')
         ) // END sum(restypeDirection)
 
   =G=
