@@ -18,6 +18,7 @@
 					  "input/forecasts/*.gdx",
 					  "input/tertiary/*.gdx"],
     "outfiles": ["output/debug.gdx", 
-                 "output/results.gdx", 
+                 "output/results.gdx",
+                 "output/changes.inc",
                  "output/info.txt"]
 }

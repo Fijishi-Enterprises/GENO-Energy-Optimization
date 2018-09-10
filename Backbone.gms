@@ -131,7 +131,7 @@ $include 'inc\4b_outputInvariant.gms'
 $include 'inc\4c_outputQuickFile.gms'
 
 * Post-process results
-$if exist 'inc\4d_postProcess.gms' $include 'defOutput\4d_postProcess.gms'
+$if exist 'input\4d_postProcess.gms' $include 'input\4d_postProcess.gms'
 
 execute_unload 'output\results.gdx',
     $$include 'defOutput\resultSymbols.inc'
