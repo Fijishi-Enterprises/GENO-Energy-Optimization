@@ -18,10 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ==========================================================================
 Created by:
-    Juha Kiviluoma <juha.kiviluoma@vtt.fi>
-    Erkka Rinne <erkka.rinne@vtt.fi>
-    Topi Rasku <topi.rasku@vtt.fi>
-    Niina Helisto <niina.helisto@vtt.fi>
+    Juha Kiviluoma
+    Erkka Rinne
+    Topi Rasku
+    Niina Helisto
 
 - Based on Stochastic Model Predictive Control method [1].
 - Enables multiple different models (m) to be implemented by changing
