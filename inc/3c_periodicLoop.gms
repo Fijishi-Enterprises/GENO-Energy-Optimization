@@ -203,12 +203,13 @@ loop(cc(counter),
             // Reduce the sample dimension
             mft(mf(mSolve, f_solve), tt_interval(t)) = msft(mSolve, s, f_solve, t);
 
-            // Set of locked combinations of forecasts and intervals for the reserves
-            mft_nReserves(node, restype, mf_realization(mSolve, f), tt_interval(t))${   p_nReserves(node, restype, 'update_frequency')
-                                                                                        and p_nReserves(node, restype, 'gate_closure')
-                                                                                        and ord(t) > tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
-                                                                                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
-                                                                                        }
+            // The time periods that need to be locked when the gate closes  t_solve + gate_closure --> t_solve + gate_closure + update_frequency  (with consideration when t_jump is different than update_frequency)
+            mft_nReserves(node, restype, mf_realization(mSolve, f), tt_interval(t))
+                    $ { p_nReserves(node, restype, 'update_frequency')
+                        and p_nReserves(node, restype, 'gate_closure')
+                        and ord(t) > tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
+                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
+                      }
                 = yes;
 
             // Reduce the model dimension
@@ -259,6 +260,15 @@ loop(cc(counter),
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
                                                             and ord(t) < tSolveFirst + currentForecastLength
                                                             }
+                = yes;
+
+            // The time periods that need to be locked when the gate closes  t_solve + gate_closure --> t_solve + gate_closure + update_frequency  (with consideration when t_jump is different than update_frequency)
+            mft_nReserves(node, restype, mf_realization(mSolve, f), tt_interval(t))
+                    $ { p_nReserves(node, restype, 'update_frequency')
+                        and p_nReserves(node, restype, 'gate_closure')
+                        and ord(t) > tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
+                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
+                      }
                 = yes;
 
             // Reduce the sample dimension
