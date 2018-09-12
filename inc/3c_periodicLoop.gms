@@ -507,9 +507,9 @@ uft_onlineLP_withPrevious(uft_onlineLP(unit, f, t)) = yes;
 uft_onlineMIP_withPrevious(uft_onlineMIP(unit, f, t)) = yes;
 
 // Units with online variables on each ft starting at t0, depending on setting for effSelector on level1
-uft_onlineLP_withPrevious(unit,f,t)${ord(t)=tSolveFirst and mf_realization(mSolve,f) and unit_online_LP(unit)} //set equals uft_onlineLP if units do not have an LP online variable on level1
+uft_onlineLP_withPrevious(unit,f,t)${ord(t)=tSolveFirst and mf_realization(mSolve,f) and unit_online_LP(unit)} //set equals uft_onlineLP if units do not have an LP online variable on the first active efficiency level
     = yes;
-uft_onlineMIP_withPrevious(unit,f,t)${ord(t)=tSolveFirst  and mf_realization(mSolve,f) and unit_online_MIP(unit)}  //set equals uft_onlineMIP if units do not have an MIP online variable on level1
+uft_onlineMIP_withPrevious(unit,f,t)${ord(t)=tSolveFirst  and mf_realization(mSolve,f) and unit_online_MIP(unit)}  //set equals uft_onlineMIP if units do not have an MIP online variable on the first active efficiency level
     = yes;
 
 // Calculate time series form parameters for units using direct input output conversion without online variable

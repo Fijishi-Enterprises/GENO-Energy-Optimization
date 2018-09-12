@@ -121,41 +121,71 @@ dt_circular(t_full(t))${ ord(t) > ts_length }
 * --- Initialize Unit Efficiency Approximations -------------------------------
 * =============================================================================
 
-* --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units (needs to be done before mSettingsEff(m, effLevel) is cleaned up)
+* --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units
 
 loop(m,
-    p_unit(unit_aggregated(unit), 'lastStepNotAggregated')
-      = sum{(unit_, effLevel)$unitUnitEffLevel(unit_, unit, effLevel), mSettingsEff(m, effLevel - 1) };
-    p_unit(unit_aggregator(unit), 'lastStepNotAggregated')
-      = smax{(unit_, effLevel)$unitUnitEffLevel(unit, unit_, effLevel), mSettingsEff(m, effLevel - 1) };
+    loop(effLevel$mSettingsEff(m, effLevel),
+        loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) < ord(effLevel)},
+            p_unit(unit_aggregated(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit_, unit, effLevel)) }
+                = mSettingsEff(m, effLevel_);
+            p_unit(unit_aggregator(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit, unit_, effLevel)) }
+                = mSettingsEff(m, effLevel_);
+        );
+    );
 );
 
 * --- Ensure that efficiency levels extend to the end of the model horizon and do not go beyond ----
 
 loop(m,
-    continueLoop = 0;
     // First check how many efficiency levels there are and cut levels going beyond the t_horizon
+    tmp = 0;
     loop(effLevel$mSettingsEff(m, effLevel),
-        continueLoop = continueLoop + 1;
+        continueLoop = ord(effLevel);
+        // Check if the level extends to the end of the t_horizon
+        if (mSettingsEff(m, effLevel) = mSettings(m, 't_horizon'),
+            tmp = 1;
+        );
         if (mSettingsEff(m, effLevel) > mSettings(m, 't_horizon'),
-            mSettingsEff(m, effLevel) = mSettings(m, 't_horizon');
-            put log '!!! Set mSettingsEff(', m.tl:0, ', ', effLevel.tl:0, ') to ', mSettings(m, 't_horizon'):0:0 /;
+            // Cut the first level going beyond the t_horizon (if the previous levels did not extend to the t_horizon)
+            if (tmp = 0,
+                mSettingsEff(m, effLevel) = mSettings(m, 't_horizon');
+                tmp = 1;
+                put log '!!! Set mSettingsEff(', m.tl:0, ', ', effLevel.tl:0, ') to ', mSettings(m, 't_horizon'):0:0 /;
+            // Remove other levels going beyond the t_horizon
+            else
+                mSettingsEff(m, effLevel) = no;
+                put log '!!! Removed mSettingsEff(', m.tl:0, ', ', effLevel.tl:0, ')' /;
+            );
         );
     );
-    // Set last effLevel to equal to the t_horizon
-    loop(effLevel$(ord(effLevel) = continueLoop),
-        if (mSettingsEff(m, effLevel) < mSettings(m, 't_horizon'),
-            mSettingsEff(m, effLevel) = mSettings(m, 't_horizon');
-            put log '!!! Set mSettingsEff(', m.tl:0, ', ', effLevel.tl:0, ') to ', mSettings(m, 't_horizon'):0:0 /;
-        );
+    // Ensure that that the last active level extends to the end of the t_horizon
+    if ( tmp = 0,
+        mSettingsEff(m, effLevel)${ord(effLevel) = continueLoop} = mSettings(m, 't_horizon');
+        put log '!!! Set mSettingsEff(', m.tl:0, ', level', continueLoop, ') to ', mSettings(m, 't_horizon'):0:0 /;
     );
-    // Remove effLevels with same end time step
+    // Remove effLevels with same end time step (keep the last one)
     loop(effLevel$mSettingsEff(m, effLevel),
         loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel) <> ord(effLevel_)},
             if (mSettingsEff(m, effLevel_) = mSettingsEff(m, effLevel),
-                mSettingsEff(m, effLevel_) = no;
-                put log '!!! Removed mSettingsEff(', m.tl:0, ', ', effLevel_.tl:0, ')' /;
+                mSettingsEff(m, effLevel) = no;
+                put log '!!! Removed mSettingsEff(', m.tl:0, ', ', effLevel.tl:0, ')' /;
             );
+        );
+    );
+);
+
+* --- Units with online variables in the first active effLevel  ---------------
+
+loop(m,
+    continueLoop = 0;
+    loop(effLevel$mSettingsEff(m, effLevel),
+        continueLoop = continueLoop + 1;
+        if (continueLoop = 1,
+            unit_online(unit)${ sum(effSelector$effOnline(effSelector), effLevelGroupUnit(effLevel, effSelector, unit)) }
+                = yes;
+            unit_online_LP(unit)${ sum(effSelector, effLevelGroupUnit(effLevel, 'directOnLP', unit)) }
+                = yes;
+            unit_online_MIP(unit) = unit_online(unit) - unit_online_LP(unit);
         );
     );
 );

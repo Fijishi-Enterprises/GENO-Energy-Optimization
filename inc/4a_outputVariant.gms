@@ -194,6 +194,20 @@ if (mSolve('schedule'),
     r_solveStatus(tSolve,'objEst')=schedule.objEst;
     r_solveStatus(tSolve,'objVal')=schedule.objVal;
 );
+if (mSolve('invest'),
+    r_solveStatus(tSolve,'modelStat')=invest.modelStat;
+    r_solveStatus(tSolve,'solveStat')=invest.solveStat;
+    r_solveStatus(tSolve,'totalTime')=invest.etSolve;
+    r_solveStatus(tSolve,'iterations')=invest.iterUsd;
+    r_solveStatus(tSolve,'nodes')=invest.nodUsd;
+    r_solveStatus(tSolve,'numEqu')=invest.numEqu;
+    r_solveStatus(tSolve,'numDVar')=invest.numDVar;
+    r_solveStatus(tSolve,'numVar')=invest.numVar;
+    r_solveStatus(tSolve,'numNZ')=invest.numNZ;
+    r_solveStatus(tSolve,'sumInfes')=invest.sumInfes;
+    r_solveStatus(tSolve,'objEst')=invest.objEst;
+    r_solveStatus(tSolve,'objVal')=invest.objVal;
+);
 
 
 
