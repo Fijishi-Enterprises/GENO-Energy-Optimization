@@ -42,6 +42,7 @@ Model building /
 *    q_conversionSOS2InputIntermediate
 *    q_conversionSOS2Constraint
 *    q_conversionSOS2IntermediateOutput
+*    q_fuelUseLimit
 
     // Energy Transfer
     q_transfer
@@ -60,9 +61,14 @@ Model building /
     // Policy
 *    q_inertiaMin
 *    q_instantaneousShareMax
+*    q_constrainedOnlineMultiUnit
 *    q_capacityMargin
 *    q_constrainedCapMultiUnit
 *    q_emissioncap
 *    q_energyShareMax
 *    q_energyShareMin
+
+$ifthen exist 'input/building_additional_constraints.gms'
+   $$include 'input/building_additional_constraints.gms'      // Declare additional constraints from the input data
+$endif
 /;

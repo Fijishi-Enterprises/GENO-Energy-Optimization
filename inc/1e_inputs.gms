@@ -27,16 +27,21 @@ $loaddc unittype
 $loaddc unit
 $loaddc unitUnittype
 $loaddc fuel
-$loaddc unitUnit_aggregate
+$loaddc unitUnitEffLevel
 $loaddc uFuel
 $loaddc effLevelGroupUnit
 $loaddc p_gn
 $loaddc p_gnn
 $loaddc p_gnu
+$loaddc p_gnuBoundaryProperties
 $loaddc p_unit
 $loaddc ts_unit
+$loaddc restype
+$loaddc restypeDirection
+$loaddc restypeReleasedForRealization
 $loaddc p_nReserves
 $loaddc p_nuReserves
+$loaddc p_nnReserves
 $loaddc ts_reserveDemand
 $loaddc p_gnBoundaryPropertiesForStates
 $loaddc p_gnPolicy
@@ -49,7 +54,7 @@ $loaddc p_fuelEmission
 $loaddc ts_cf
 $loaddc ts_fuelPriceChange
 $loaddc ts_influx
-$loaddc ts_nodeState
+$loaddc ts_node
 $loaddc t_invest
 $loaddc group
 $loaddc uGroup
@@ -60,6 +65,10 @@ $loaddc p_groupPolicy
 $loaddc p_groupPolicy3D
 $gdxin
 
+$ifthen exist 'input/includeInputData_ext.inc'
+   $$include 'input/includeInputData_ext.inc'
+$endif
+
 $ontext
  * Load stochastic scenarios
  $batinclude 'inc/gdxload_fluctuation.inc' wind
@@ -69,13 +78,11 @@ $ontext
  $endif
  $gdxin
 $offtext
-$ifthen exist 'input/changes.inc'
-   $$include 'input/changes.inc'
-$endif
 
 $ifthen exist 'input/changes.inc'
    $$include 'input/changes.inc'
 $endif
+
 
 * =============================================================================
 * --- Initialize Unit Related Sets & Parameters Based on Input Data -----------
@@ -83,21 +90,25 @@ $endif
 
 * --- Unit Aggregation --------------------------------------------------------
 
+unitAggregator_unit(unit, unit_)$sum(effLevel, unitUnitEffLevel(unit, unit_, effLevel)) = yes;
+
 // Define unit aggregation sets
-unit_aggregate(unit)${ sum(unit_, unitUnit_aggregate(unit, unit_)) }
-    = yes; // Set of aggregate units
-unit_noAggregate(unit)${ unit(unit) - unit_aggregate(unit) - sum(unit_, unitUnit_aggregate(unit_, unit))}
+unit_aggregator(unit)${ sum(unit_, unitAggregator_unit(unit, unit_)) }
+    = yes; // Set of aggregator units
+unit_aggregated(unit)${ sum(unit_, unitAggregator_unit(unit_, unit)) }
+    = yes; // Set of aggregated units
+unit_noAggregate(unit)${ unit(unit) - unit_aggregator(unit) - unit_aggregated(unit) }
     = yes; // Set of units that are not aggregated into any aggregate, or are not aggregates themselves
 
 // Process data for unit aggregations
 // Aggregate maxGen as the sum of aggregated maxGen
-p_gnu(grid, node, unit_aggregate(unit), 'maxGen')
-    = sum(unit_${unitUnit_aggregate(unit, unit_)},
+p_gnu(grid, node, unit_aggregator(unit), 'maxGen')
+    = sum(unit_$unitAggregator_unit(unit, unit_),
         + p_gnu(grid, node, unit_, 'maxGen')
         );
 // Aggregate maxCons as the sum of aggregated maxCons
-p_gnu(grid, node, unit_aggregate(unit), 'maxCons')
-    = sum(unit_${unitUnit_aggregate(unit, unit_)},
+p_gnu(grid, node, unit_aggregator(unit), 'maxCons')
+    = sum(unit_$unitAggregator_unit(unit, unit_),
         + p_gnu(grid, node, unit_, 'maxCons')
         );
 
@@ -108,8 +119,6 @@ gnu(grid, node, unit)${ p_gnu(grid, node, unit, 'maxGen')
                         or p_gnu(grid, node, unit, 'maxCons')
                         or p_gnu(grid, node, unit, 'unitSizeGen')
                         or p_gnu(grid, node, unit, 'unitSizeCons')
-                        or p_gnu(grid, node, unit, 'maxGenCap')
-                        or p_gnu(grid, node, unit, 'maxConsCap')
                         }
     = yes;
 // Reduce the grid dimension
@@ -117,12 +126,10 @@ nu(node, unit) = sum(grid, gnu(grid, node, unit));
 
 // Separation of gnu into inputs and outputs
 gnu_output(gnu(grid, node, unit))${ p_gnu(grid, node, unit, 'maxGen')
-                                    or p_gnu(grid, node, unit, 'maxGenCap')
                                     or p_gnu(grid, node, unit, 'unitSizeGen')
                                     }
     = yes;
 gnu_input(gnu(grid, node, unit))${  p_gnu(grid, node, unit, 'maxCons')
-                                    or p_gnu(grid, node, unit, 'maxConsCap')
                                     or p_gnu(grid, node, unit, 'unitSizeCons')
                                     }
     = yes;
@@ -131,10 +138,6 @@ gnu_input(gnu(grid, node, unit))${  p_gnu(grid, node, unit, 'maxCons')
 gn2gnu(grid, node_input, grid_, node_output, unit)${    gnu_input(grid, node_input, unit)
                                                         and gnu_output(grid_, node_output, unit)
                                                         }
-    = yes;
-
-// Units with reserve provision capabilities
-nuRescapable(restypeDirection(restype, up_down), nu(node, unit))${ p_nuReserves(node, unit, restype, up_down) }
     = yes;
 
 // Units with minimum load requirements
@@ -151,7 +154,12 @@ unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
 
 // Units with special startup properties
 // All units can cold start (default start category)
-unitStarttype(unit, starttype('cold')) = yes;
+// NOTE! Juha needs to check why not all units can cold start
+unitStarttype(unit, starttype('cold'))${ p_unit(unit, 'startCostCold')
+                                         or p_unit(unit, 'startFuelConsCold')
+                                         or p_unit(unit, 'rampSpeedToMinLoad')
+                                       }
+    = yes;
 // Units with parameters regarding hot/warm starts
 unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
                                             or p_unit(unit, 'startCostHot')
@@ -203,8 +211,6 @@ p_gnu(grid, node, unit, 'unitSizeCons')${   p_gnu(grid, node, unit, 'maxCons')
     = p_gnu(grid, node, unit, 'maxCons') / p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
 p_gnu(grid, node, unit, 'unitSizeTot')
     = p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons');
-p_gnu(grid, node, unit, 'unitSizeGenNet')
-    = p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons');
 
 // Determine unit startup parameters based on data
 // Hot startup parameters
@@ -212,10 +218,10 @@ p_uNonoperational(unitStarttype(unit, 'hot'), 'min')
     = p_unit(unit, 'minShutdownHours');
 p_uNonoperational(unitStarttype(unit, 'hot'), 'max')
     = p_unit(unit, 'startWarmAfterXhours');
-p_uStartup(unitStarttype(unit, 'hot'), 'cost', 'unit')
+p_uStartup(unitStarttype(unit, 'hot'), 'cost')
     = p_unit(unit, 'startCostHot')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
-p_uStartup(unitStarttype(unit, 'hot'), 'consumption', 'unit')
+p_uStartup(unitStarttype(unit, 'hot'), 'consumption')
     = p_unit(unit, 'startFuelConsHot')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
@@ -224,27 +230,27 @@ p_uNonoperational(unitStarttype(unit, 'warm'), 'min')
     = p_unit(unit, 'startWarmAfterXhours');
 p_uNonoperational(unitStarttype(unit, 'warm'), 'max')
     = p_unit(unit, 'startColdAfterXhours');
-p_uStartup(unitStarttype(unit, 'warm'), 'cost', 'unit')
+p_uStartup(unitStarttype(unit, 'warm'), 'cost')
     = p_unit(unit, 'startCostWarm')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
-p_uStartup(unitStarttype(unit, 'warm'), 'consumption', 'unit')
+p_uStartup(unitStarttype(unit, 'warm'), 'consumption')
     = p_unit(unit, 'startFuelConsWarm')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Cold startup parameters
 p_uNonoperational(unitStarttype(unit, 'cold'), 'min')
     = p_unit(unit, 'startColdAfterXhours');
-p_uStartup(unit, 'cold', 'cost', 'unit')
+p_uStartup(unit, 'cold', 'cost')
     = p_unit(unit, 'startCostCold')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
-p_uStartup(unit, 'cold', 'consumption', 'unit')
+p_uStartup(unit, 'cold', 'consumption')
     = p_unit(unit, 'startFuelConsCold')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Determine unit emission costs
 p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_fuel, param_fuel, fuel)) }
     = p_fuelEmission(fuel, emission)
-        / 1e3 // NOTE!!! Conversion to t/MWh from t/GWh in data
+        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
         * sum(gnu_output(grid, node, unit_fuel),
             + p_gnPolicy(grid, node, 'emissionTax', emission)  // Weighted average of emission costs from different output energy types
                 * [ + p_gnu(grid, node, unit_fuel, 'maxGen')
@@ -256,6 +262,10 @@ p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_f
             + p_gnu(grid, node, unit_fuel, 'unitSizeGen')$(not p_gnu(grid, node, unit_fuel, 'maxGen'))
         ) // END sum(gnu_output)
 ;
+
+// If the start-up fuel fraction is not defined, it equals 1
+p_uFuel(uFuel(unit_fuel, 'startup', fuel), 'fixedFuelFraction')${ not p_uFuel(unit_fuel, 'startup', fuel, 'fixedFuelFraction') }
+    = 1;
 
 * =============================================================================
 * --- Generate Node Related Sets Based on Input Data --------------------------
@@ -289,6 +299,22 @@ gn2n_directional(gn2n(grid, node, node_))${ ord(node) < ord(node_) }
 gn2n_directional(gn2n(grid, node, node_))${ ord(node) > ord(node_)
                                             and not gn2n(grid, node_, node)
                                             }
+    = yes;
+
+// Set for transfer links with investment possibility
+Option clear = gn2n_directional_investLP;
+Option clear = gn2n_directional_investMIP;
+gn2n_directional_investLP(gn2n_directional(grid, node, node_))${ [p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                     or p_gnn(grid, node_, node, 'transferCapInvLimit')]
+                                                                 and [not p_gnn(grid, node, node_, 'investMIP')
+                                                                     and not p_gnn(grid, node_, node, 'investMIP')]
+                                                                 }
+    = yes;
+gn2n_directional_investMIP(gn2n_directional(grid, node, node_))${ [p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                     or p_gnn(grid, node_, node, 'transferCapInvLimit')]
+                                                                 and [p_gnn(grid, node, node_, 'investMIP')
+                                                                     or p_gnn(grid, node_, node, 'investMIP')]
+                                                                 }
     = yes;
 
 * --- Node States -------------------------------------------------------------
@@ -333,18 +359,14 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
 * --- Reserves Sets & Parameters ----------------------------------------------
 * =============================================================================
 
-// Nodes with reserve requirements
-restypeDirectionNode(restypeDirection(restype, up_down), node)${    p_nReserves(node, restype, up_down)
-                                                                    or p_nReserves(node, restype, 'use_time_series')
-                                                                    }
-    = yes;
-
+$ontext
 // Assume values for critical reserve related parameters, if not provided by input data
 // Reserve contribution "reliability" assumed to be perfect if not provided in data
 p_nuReserves(nu(node, unit), restype, 'reserveContribution')${  not p_nuReserves(node, unit, restype, 'reserveContribution')
                                                                 and sum(up_down, nuRescapable(restype, up_down, node, unit))
                                                                 }
     = 1;
+$offtext
 
 * =============================================================================
 * --- Data Integrity Checks ---------------------------------------------------
@@ -373,16 +395,20 @@ loop(gn2n(grid, node, node_),
 Option clear = tmp; // Log the unit index for finding the error easier.
 loop( unit,
     tmp = ord(unit); // Increase the unit counter
+    unit_current(unit) = Yes;
     // Check that 'op' is defined correctly
     Option clear = count; // Initialize the previous op to zero
     loop( op,
-        abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!", tmp, count;
+        if (p_unit(unit, op) + 1${not p_unit(unit, op)} < count,
+            put log '!!! Error occurred on unit ' unit_current.te(unit); // Display unit that causes error
+            put log /;
+            abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!", unit_current;
+        );
         count = p_unit(unit, op);
     );
     // Check that efficiency approximations have sufficient data
     loop( effLevelGroupUnit(effLevel, effSelector, unit),
         loop( op__${p_unit(unit, op__) = smax(op, p_unit(unit, op))}, // Loop over the 'op's to find the last defined data point.
-            // Lambda  - Has been commented out, since it is ok to improve the efficiency curve by using extra lambda points.
             //loop( lambda${sameas(lambda, effSelector)}, // Loop over the lambdas to find the 'magnitude' of the approximation
                 //display count_lambda, count_lambda2, unit.tl;
             //    if(ord(lambda) > ord(op__), put log '!!! Error occurred on unit ' unit.tl:25 ' with effLevel ' effLevel.tl:10 ' with effSelector ' lambda.tl:8); // Display unit that causes error
@@ -391,11 +417,29 @@ loop( unit,
             // DirectOn
             loop( op_${p_unit(unit, op_) = smin(op${p_unit(unit, op)}, p_unit(unit, op))}, // Loop over the 'op's to find the first nonzero 'op' data point.
                 if(effDirectOn(effSelector) AND ord(op__) = ord(op_) AND not p_unit(unit, 'section') AND not p_unit(unit, 'opFirstCross'),
-                    put log '!!! Error occurred on unit #' tmp; // Display unit that causes error, NEEDS WORK
-                    abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!";
+                    put log '!!! Error occurred on unit ' unit_current.te(unit); // Display unit that causes error
+                    abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!", unit_current;
                 );
             );
         );
     );
+    unit_current(unit) = No;
 );
 
+* Check the start-up fuel fraction related data
+loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
+    tmp = ord(unit)
+    if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')) <> 1,
+        put log '!!! Error occurred on unit #' tmp;
+        abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
+    );
+);
+
+* Check the shutdown time related data
+loop( unit,
+    if(p_unit(unit, 'minShutdownHours') > p_unit(unit, 'startWarmAfterXhours')
+        or p_unit(unit, 'startWarmAfterXhours') > p_unit(unit, 'startColdAfterXhours'),
+        put log '!!! Error occurred on unit ', unit.tl:0;
+        abort "Units should have p_unit(unit, 'minShutdownHours') <= p_unit(unit, 'startWarmAfterXhours') <= p_unit(unit, 'startColdAfterXhours')!"
+    );
+);

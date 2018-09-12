@@ -15,49 +15,131 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
+* sets
+ft
+ft_realized
+t_active
+t_current
+t_full
+t_invest
+uft
+uft_online
+uft_onlineLP
+uft_onlineMIP
+uft_onlineLP_withPrevious
+uft_onlineMIP_withPrevious
+
 * Parameters
+tSolveFirst
+tSolveLast
 p_stepLength
-p_data
-p_data2d
-ts_cf
-ts_inflow
-ts_stoContent
-ts_reserveDemand
+p_unit
+*ts_cf
+*ts_unit
+*ts_effUnit
+*ts_effGroupUnit
+p_gn
+p_gnBoundaryPropertiesForStates
+p_gnn
+p_gnu
+p_nReserves
+p_nuReserves
+p_gnPolicy
+p_groupPolicy
+p_groupPolicy3D
+p_fuelEmission
+p_uFuel
+p_unitFuelEmissionCost
+p_effUnit
+p_effGroupUnit
+p_uNonoperational
+p_uStartup
+p_u_maxOutputInLastRunUpInterval
+p_u_runUpTimeIntervals
+dt_toStartup
+p_ut_runUp
+p_u_maxOutputInFirstShutdownInterval
+p_u_shutdownTimeIntervals
+dt_toShutdown
+p_ut_shutdown
 
 * Variables
 v_obj
-v_stoCharge
 v_gen
-v_fuelUse
-v_spill
-v_stoContent
-v_online
-v_startup
+v_genRamp
 v_transfer
-v_resTransCapacity
+v_state
+v_fuelUse
+v_sos2
+v_spill
+v_online_LP
+v_online_MIP
+v_startup
+v_shutdown
+v_genRampUpDown
+v_transferRightward
+v_transferLeftward
+v_resTransferRightward
+v_resTransferLeftward
 v_reserve
+v_investTransfer_LP
+v_investTransfer_MIP
+v_invest_LP
+v_invest_MIP
 
 * equations
-q_obj
-q_balance
-q_resDemand
-q_maxDownward
-q_maxUpward
-q_storageControl
-q_storageDynamics
-q_bindStorage
-q_startup
-q_bindOnline
-q_fuelUse
-q_conversion
-q_outputRatioFixed
-q_outputRatioConstrained
-q_stoMinContent
-q_stoMaxContent
-q_maxHydropower
-q_transferLimit
+    q_obj
+    q_balance
+    q_resDemand
+
+    // Unit Operation
+    q_maxDownward
+    q_maxUpward
+    q_startshut
+    q_startuptype
+    q_onlineLimit
+    q_onlineOnStartUp
+    q_offlineAfterShutDown
+    q_onlineMinUptime
+    q_genRamp
+    q_rampUpLimit
+    q_rampDownLimit
+    q_rampUpDown
+    q_rampSlack
+    q_outputRatioFixed
+    q_outputRatioConstrained
+    q_conversionDirectInputOutput
+    q_conversionSOS2InputIntermediate
+    q_conversionSOS2Constraint
+    q_conversionSOS2IntermediateOutput
+    q_fuelUseLimit
+
+    // Energy Transfer
+    q_transfer
+    q_transferRightwardLimit
+    q_transferLeftwardLimit
+    q_resTransferLimitRightward
+    q_resTransferLimitLeftward
+
+    // State Variables
+    q_stateSlack
+    q_stateUpwardLimit
+    q_stateDownwardLimit
+    q_boundStateMaxDiff
+    q_boundCyclic
+
+    // Policy
+    q_inertiaMin
+    q_instantaneousShareMax
+    q_constrainedOnlineMultiUnit
+    q_capacityMargin
+    q_constrainedCapMultiUnit
+    q_emissioncap
+    q_energyShareMax
+    q_energyShareMin
 
 * Dummy variables
 vq_gen
 vq_resDemand
-vq_stoCharge
+vq_resMissing
+v_stateSlack

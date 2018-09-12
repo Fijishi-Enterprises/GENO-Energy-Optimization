@@ -1,7 +1,7 @@
 $title Backbone
 $ontext
 Backbone - chronological energy systems model
-Copyright (C) 2016 - 2017  VTT Technical Research Centre of Finland
+Copyright (C) 2016 - 2018  VTT Technical Research Centre of Finland
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -69,18 +69,8 @@ $onempty   // Allow empty data definitions
 * Output file streams
 files log /''/, gdx, f_info /'output\info.txt'/;
 
-options
-*    optca = 0
-*    optcr = 1e-4
-*    profile = 8
-    solvelink = %Solvelink.Loadlibrary%
-*    bratio = 0.25
-*    solveopt = merge
-*    savepoint = 1
-    threads = 1
-$ifi not '%debug%' == 'yes'
-    solprint = Silent
-;
+* Include options file to control the solver
+$if exist 'input\1_options.gms' $include 'input\1_options.gms';
 
 
 * === Definitions, sets, parameters and input data=============================
@@ -91,8 +81,18 @@ $include 'inc\1d_results.gms'       // Parameter definitions for model results
 $include 'inc\1e_inputs.gms'        // Load input data
 
 * === Variables and equations =================================================
-$include 'inc\2a_variables.gms'     // Define variables for the models
-$include 'inc\2b_equations.gms'     // Define equations for the models
+$include 'inc\2a_variables.gms'                         // Define variables for the models
+$include 'inc\2b_eqDeclarations.gms'                    // Equation declarations
+$ifthen exist 'input\2c_alternative_objective.gms'      // Objective function - either the default or an alternative from input files
+    $$include 'input\2c_alternative_objective.gms';
+$else
+    $$include 'inc\2c_objective.gms'
+$endif
+$include 'inc\2d_constraints.gms'                       // Define constraint equations for the models
+$ifthen exist 'input/2e_additional_constraints.gms'
+   $$include 'input/2e_additional_constraints.gms'      // Define additional constraints from the input data
+$endif
+
 
 * === Model definition files ==================================================
 $include 'defModels\schedule.gms'
@@ -102,21 +102,24 @@ $include 'defModels\invest.gms'
 // Load model input parameters
 $include 'input\modelsInit.gms'
 
+
 * === Simulation ==============================================================
 $include 'inc\3a_periodicInit.gms'  // Initialize modelling loop
 loop(modelSolves(mSolve, tSolve),
+    solveCount = solveCount + 1;
     $$include 'inc\3b_inputsLoop.gms'           // Read input data that is updated within the loop
     $$include 'inc\3c_periodicLoop.gms'         // Update modelling loop
     $$include 'inc\3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
     $$include 'inc\3e_solve.gms'                // Solve model(s)
-    $$include 'inc\4a_outputVariant.gms'  // Store results from the loop
-*    $$ifi.debug '%debug%' == 'yes'
-*        putclose gdx;
-*        put_utility 'gdxout' / 'output\'mSolve.tl:0, '-', tSolve.tl:0, '.gdx';
-*            execute_unload
-*            $$include defOutput\debugSymbols.inc
-*        ;
-*    $$endifi.debug
+    $$include 'inc\3f_afterSolve.gms'           // Post-processing variables after the solve
+    $$include 'inc\4a_outputVariant.gms'        // Store results from the loop
+$iftheni.debug '%debug%' == 'yes'
+        putclose gdx;
+        put_utility 'gdxout' / 'output\' mSolve.tl:0 '-' tSolve.tl:0 '.gdx';
+            execute_unload
+            $$include defOutput\debugSymbols.inc
+        ;
+$endif.debug
 );
 
 $if exist 'input\3z_modelsClose.gms' $include 'input\3z_modelsClose.gms';
@@ -128,7 +131,7 @@ $include 'inc\4b_outputInvariant.gms'
 $include 'inc\4c_outputQuickFile.gms'
 
 * Post-process results
-$if exist 'inc\4d_postProcess.gms' $include 'defOutput\4d_postProcess.gms'
+$if exist 'input\4d_postProcess.gms' $include 'input\4d_postProcess.gms'
 
 execute_unload 'output\results.gdx',
     $$include 'defOutput\resultSymbols.inc'

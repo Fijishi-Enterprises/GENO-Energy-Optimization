@@ -48,13 +48,15 @@ loop((m, feature)$active(m, feature),
 );
 put /;
 f_info.nd = 0; // Set number of decimals to zero
-put "Start time:                 ", mSettings('schedule', 't_start')/;
-put "Length of forecasts:        ", mSettings('schedule', 't_forecastLength')/;
-put "Model horizon:              ", mSettings('schedule', 't_horizon')/;
-put "Model jumps after solve:    ", mSettings('schedule', 't_jump')/;
-put "Last time period to solve:  ", mSettings('schedule', 't_end')/;
-*put "Length of each time period: ", mSettings('schedule', 'intervalLength')/;
-put "Number of samples:          ", mSettings('schedule', 'samples')/;
+loop(m,
+    put "Start time:                 ", mSettings(m, 't_start')/;
+    put "Length of forecasts:        ", mSettings(m, 't_forecastLengthUnchanging')/;
+    put "Model horizon:              ", mSettings(m, 't_horizon')/;
+    put "Model jumps after solve:    ", mSettings(m, 't_jump')/;
+    put "Last time period to solve:  ", mSettings(m, 't_end')/;
+*    put "Length of each time period: ", mSettings(m, 'stepsPerInterval')/;
+    put "Number of samples:          ", mSettings(m, 'samples')/;
+);
 
 putclose;
 * -----------------------------------------------------------------------------

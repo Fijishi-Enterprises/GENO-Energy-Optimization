@@ -27,21 +27,24 @@ Model schedule /
     // Unit Operation
     q_maxDownward
     q_maxUpward
-    q_startup
+    q_startshut
     q_startuptype
     q_onlineLimit
+    q_onlineOnStartUp
+    q_offlineAfterShutDown
     q_onlineMinUptime
-*    q_minDown
-*    q_genRamp
-*    q_genRampChange
-*    q_rampUpLimit
-*    q_rampDownLimit
+    q_genRamp
+    q_rampUpLimit
+    q_rampDownLimit
+    q_rampUpDown
+    q_rampSlack
     q_outputRatioFixed
     q_outputRatioConstrained
     q_conversionDirectInputOutput
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
+    q_fuelUseLimit
 
     // Energy Transfer
     q_transfer
@@ -60,10 +63,15 @@ Model schedule /
     // Policy
 *    q_inertiaMin
 *    q_instantaneousShareMax
+    q_constrainedOnlineMultiUnit
 *    q_capacityMargin
 *    q_constrainedCapMultiUnit
 *    q_emissioncap
 *    q_energyShareMax
 *    q_energyShareMin
+
+$ifthen exist 'input/schedule_additional_constraints.gms'
+   $$include 'input/schedule_additional_constraints.gms'      // Declare additional constraints from the input data
+$endif
 /;
 
