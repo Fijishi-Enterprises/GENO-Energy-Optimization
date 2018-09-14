@@ -157,6 +157,10 @@ r_qGen(inc_dec, gn(grid, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, '
 r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
     = vq_resDemand.l(restype, up_down, node, f, t)
 ;
+// Dummy capacity
+r_qCapacity(gn(grid, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+    = vq_capacity.l(grid, node, f, t)
+;
 
 * --- Diagnostics Results -----------------------------------------------------
 

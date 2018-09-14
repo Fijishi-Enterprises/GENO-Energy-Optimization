@@ -151,6 +151,7 @@ r_gnTotalqGen
 r_gTotalqGen
 r_qResDemand
 r_nTotalqResDemand
+r_qCapacity
 r_solveStatus
 
 // Diagnostics

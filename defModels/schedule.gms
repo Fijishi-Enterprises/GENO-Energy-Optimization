@@ -61,8 +61,8 @@ Model schedule /
     q_boundCyclic
 
     // Policy
-*    q_inertiaMin
-*    q_instantaneousShareMax
+    q_inertiaMin
+    q_instantaneousShareMax
     q_constrainedOnlineMultiUnit
 *    q_capacityMargin
 *    q_constrainedCapMultiUnit
