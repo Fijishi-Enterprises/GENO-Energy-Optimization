@@ -310,7 +310,6 @@ param_unit "Set of possible data parameters for units" /
 /
 
 param_fuel "Parameters for fuels" /
-    emissionIntensity "Intensity of emission from fuel (kg/MWh_fuel)"
     main          "Main fuel of the unit - unless input fuels defined as grids"
     startup       "Startup fuel of the unit, if exists. Can be the same as main fuel - consumption using startupFuelCons"
 /
