@@ -355,7 +355,7 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${sum(m, mSettingsEff(m, effLeve
 
 loop(m,
     loop(unit$(p_unit(unit, 'rampSpeedToMinLoad') and p_unit(unit,'op00')),
-        p_unit(unit, 'rampSpeedToMinLoad') = p_unit(unit, 'rampSpeedToMinLoad');  // Is something happening here?
+
         // Calculate time intervals needed for the run-up phase
         tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours');
         p_u_runUpTimeIntervals(unit) = tmp;
