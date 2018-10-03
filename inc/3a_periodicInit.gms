@@ -102,7 +102,9 @@ $offtext
     // Calculate the length of the time series data (based on realized forecast)
     loop(gn(grid, node),
         tmp = max(sum((mf_realization(m, f), t)${ ts_influx(grid, node, f, t) }, 1), tmp); // Find the maximum length of the given influx time series
-        tmp = max(sum((mf_realization(m, f), t)${ ts_node(grid, node, 'reference', f, t) }, 1), tmp); // Find the maximum length of the given node state time series
+        loop(param_gnBoundaryTypes,
+            tmp = max(sum((mf_realization(m, f), t)${ ts_node(grid, node, param_gnBoundaryTypes, f, t) }, 1), tmp); // Find the maximum length of the given node time series
+        ); // END loop(param_gnBoundaryTypes)
     ); // END loop(gn)
 
 ); // END loop(m)
