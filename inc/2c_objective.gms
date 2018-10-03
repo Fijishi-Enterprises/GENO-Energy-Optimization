@@ -88,7 +88,7 @@ q_obj ..
                 // Start-up costs, initial startup free as units could have been online before model started
                 + sum(uft_online(unit, f, t),
                     + sum(unitStarttype(unit, starttype),
-                        + v_startup(unit, starttype, f+df_central(f,t), t) // Cost of starting up
+                        + v_startup(unit, starttype, f, t) // Cost of starting up
                             * [ // Startup variable costs
                                 + p_uStartup(unit, starttype, 'cost')
 
