@@ -1550,8 +1550,8 @@ q_constrainedOnlineMultiUnit(group, ft(f, t))${   p_groupPolicy(group, 'constrai
     + sum(unit$uGroup(unit, group),
         + p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
             * [
-                + v_online_LP(unit, f, t)${uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, f, t)${uft_onlineMIP(unit, f, t)}
+                + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
                 ] // END * p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
         ) // END sum(unit)
 
