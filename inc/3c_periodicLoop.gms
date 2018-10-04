@@ -396,6 +396,7 @@ ft_realizedNoReset(ft_realized(f, t)) = yes;
 msft_realizedNoReset(msft(mSolve, s, ft_realized(f, t))) = yes;
 
 // Forecast index displacement between realized and forecasted intervals
+// NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined! 
 df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
 

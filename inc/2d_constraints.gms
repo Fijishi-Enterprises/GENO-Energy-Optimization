@@ -366,15 +366,15 @@ q_startshut(m, uft_online(unit, f, t)) ..
     // Units previously online
 
     // The same units
-    - v_online_LP (unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineLP_withPrevious(unit, f+df_central(f,t+dt(t)), t+dt(t))
+    - v_online_LP (unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineLP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))
                                                              and not uft_aggregator_first(unit, f, t) } // This reaches to tFirstSolve when dt = -1
-    - v_online_MIP(unit, f+df_central(f,t+dt(t)), t+dt(t))${ uft_onlineMIP_withPrevious(unit, f+df_central(f,t+dt(t)), t+dt(t))
+    - v_online_MIP(unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineMIP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))
                                                              and not uft_aggregator_first(unit, f, t) }
 
     // Aggregated units just before they are turned into aggregator units
     - sum(unit_${unitAggregator_unit(unit, unit_)},
-        + v_online_LP (unit_, f+df_central(f,t+dt(t)), t+dt(t))${uft_onlineLP_withPrevious(unit_, f+df_central(f,t+dt(t)), t+dt(t))}
-        + v_online_MIP(unit_, f+df_central(f,t+dt(t)), t+dt(t))${uft_onlineMIP_withPrevious(unit_, f+df_central(f,t+dt(t)), t+dt(t))}
+        + v_online_LP (unit_, f+df(f,t+dt(t)), t+dt(t))${uft_onlineLP_withPrevious(unit_, f+df(f,t+dt(t)), t+dt(t))}
+        + v_online_MIP(unit_, f+df(f,t+dt(t)), t+dt(t))${uft_onlineMIP_withPrevious(unit_, f+df(f,t+dt(t)), t+dt(t))}
         )${uft_aggregator_first(unit, f, t)} // END sum(unit_)
 
     =E=
@@ -383,7 +383,7 @@ q_startshut(m, uft_online(unit, f, t)) ..
 
     // Add startup of units dt_toStartup before the current t (no start-ups for aggregator units before they become active)
     + sum(unitStarttype(unit, starttype),
-        + v_startup(unit, starttype, f, t+dt_toStartup(unit, t))
+        + v_startup(unit, starttype, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t))
         )${not [unit_aggregator(unit) and ord(t) + dt_toStartup(unit, t) <= tSolveFirst + p_unit(unit, 'lastStepNotAggregated')]} // END sum(starttype)
 
     // NOTE! According to 3d_setVariableLimits,
@@ -394,7 +394,6 @@ q_startshut(m, uft_online(unit, f, t)) ..
     // Shutdown of units at time t
     - v_shutdown(unit, f, t)
 ;
-
 
 *--- Startup Type -------------------------------------------------------------
 // !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -411,11 +410,11 @@ q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t))${ unit
 
     // Subunit shutdowns within special startup timeframe
     + sum(counter${dt_starttypeUnitCounter(starttype, unit, counter)},
-        + v_shutdown(unit, f, t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))${ (t_activeNoReset(t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
-                                                                                                                                                                   and not t_active(t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
-                                                                                                                                                                   )
-                                                                                                                                                                or uft_online(unit, f, t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
-                                                                                                                                                              }
+        + v_shutdown(unit, f+df(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))${ (t_activeNoReset(t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
+                                                                                                                                                            and not t_active(t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
+                                                                                                                                                            )
+                                                                                                                                                        or uft_online(unit, f+df(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
+                                                                                                                                                        }
         ) // END sum(counter)
 
     // NOTE: for aggregator units, shutdowns for aggregated units are not considered
@@ -440,21 +439,21 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutdownHours')
 
     // Number of units unable to become online due to restrictions
     - sum(counter${dt_downtimeUnitCounter(unit, counter)},
-        + v_shutdown(unit, f, t+(dt_downtimeUnitCounter(unit, counter) + 1))${ (t_activeNoReset(t+(dt_downtimeUnitCounter(unit, counter) + 1))
-                                                                                                                                               and not t_active(t+(dt_downtimeUnitCounter(unit, counter) + 1))
-                                                                                                                                               )
-                                                                                                                                            or uft_online(unit, f, t+(dt_downtimeUnitCounter(unit, counter) + 1))
-                                                                                                                                          }
+        + v_shutdown(unit, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))${  (t_activeNoReset(t+(dt_downtimeUnitCounter(unit, counter) + 1))
+                                                                                                                                        and not t_active(t+(dt_downtimeUnitCounter(unit, counter) + 1))
+                                                                                                                                        )
+                                                                                                                                    or uft_online(unit, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
+                                                                                                                                    }
         ) // END sum(counter)
 
     // Number of units unable to become online due to restrictions (aggregated units in the past horizon or if they have an online variable)
     - sum(unit_${unitAggregator_unit(unit, unit_)},
         + sum(counter${dt_downtimeUnitCounter(unit, counter)},
-            + v_shutdown(unit_, f, t+(dt_downtimeUnitCounter(unit, counter) + 1))${ (t_activeNoReset(t+(dt_downtimeUnitCounter(unit, counter) + 1))
-                                                                                                                                                    and not t_active(t+(dt_downtimeUnitCounter(unit, counter) + 1))
-                                                                                                                                                    )
-                                                                                                                                                 or uft_online(unit_, f, t+(dt_downtimeUnitCounter(unit, counter) + 1))
-                                                                                                                                              }
+            + v_shutdown(unit_, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))${ (t_activeNoReset(t+(dt_downtimeUnitCounter(unit, counter) + 1))
+                                                                                                                                            and not t_active(t+(dt_downtimeUnitCounter(unit, counter) + 1))
+                                                                                                                                            )
+                                                                                                                                        or uft_online(unit_, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
+                                                                                                                                        }
             ) // END sum(counter)
         )${unit_aggregator(unit)} // END sum(unit_)
 
@@ -478,7 +477,7 @@ q_onlineOnStartUp(uft_online(unit, f, t))${sum(starttype, unitStarttype(unit, st
     =G=
 
     + sum(unitStarttype(unit, starttype),
-        + v_startup(unit, starttype, f, t+dt_toStartup(unit, t))  //dt_toStartup displaces the time step to the one where the unit would be started up in order to reach online at t
+        + v_startup(unit, starttype, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t))  //dt_toStartup displaces the time step to the one where the unit would be started up in order to reach online at t
       ) // END sum(starttype)
 ;
 
@@ -516,11 +515,11 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationHours'
     // Units that have minimum operation time requirements active
     + sum(counter${dt_uptimeUnitCounter(unit, counter)},
         + sum(unitStarttype(unit, starttype),
-            + v_startup(unit, starttype, f, t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))${ (t_activeNoReset(t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
-                                                                                                                                                                                                     and not t_active(t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
-                                                                                                                                                                                                     )
-                                                                                                                                                                                                  or uft_online(unit, f, t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
-                                                                                                                                                                                               }
+            + v_startup(unit, starttype, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))${    (t_activeNoReset(t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
+                                                                                                                                                                                                and not t_active(t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
+                                                                                                                                                                                                )
+                                                                                                                                                                                            or uft_online(unit, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
+                                                                                                                                                                                            }
             ) // END sum(starttype)
         ) // END sum(counter)
 
@@ -528,11 +527,11 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationHours'
     + sum(unit_${unitAggregator_unit(unit, unit_)},
         + sum(counter${dt_uptimeUnitCounter(unit, counter)},
             + sum(unitStarttype(unit, starttype),
-                + v_startup(unit, starttype, f, t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))${ (t_activeNoReset(t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
-                                                                                                                                                                                                         and not t_active(t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
-                                                                                                                                                                                                         )
-                                                                                                                                                                                                      or uft_online(unit_, f, t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
-                                                                                                                                                                                                   }
+                + v_startup(unit, starttype, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))${    (t_activeNoReset(t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
+                                                                                                                                                                                                    and not t_active(t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
+                                                                                                                                                                                                    )
+                                                                                                                                                                                                or uft_online(unit_, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
+                                                                                                                                                                                                }
                 ) // END sum(starttype)
             ) // END sum(counter)
         )${unit_aggregator(unit)} // END sum(unit_)
@@ -1424,7 +1423,7 @@ q_boundCyclic(gn_state(grid, node), ms(m, s), s_)${ ms(m, s_)
     // Initial value of the state of the node at the start of the sample
     + sum(mst_start(m, s, t),
         + sum(ft(f, t),
-            + v_state(grid, node, f, t+dt(t))
+            + v_state(grid, node, f+df(f,t+dt(t)), t+dt(t))
             ) // END sum(ft)
         ) // END sum(mst_start)
 
