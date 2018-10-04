@@ -454,13 +454,13 @@ loop(mft_start(mSolve, f, t),
 v_startup.fx(unitStarttype(unit, starttype), ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
                                                                           and sum[ft(f_,t_), uft_online(unit,f_,t_)]
                                                                           }
-    = round(r_startup(unit, starttype, f, t), 4)
+    = r_startup(unit, starttype, f, t)
 ;
 
 v_shutdown.fx(unit, ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
                                                  and sum[ft(f_,t_), uft_online(unit,f_,t_)]
                                                  }
-    = round(r_shutdown(unit, f, t), 4)
+    = r_shutdown(unit, f, t)
 ;
 
 v_online_MIP.fx(unit, ft_realizedNoReset(f, t))${   ord(t) <= tSolveFirst
