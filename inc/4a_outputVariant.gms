@@ -129,12 +129,21 @@ r_investTransfer(grid, node, node_, t_invest(t))${ p_gnn(grid, node, node_, 'tra
 * --- Feasibility results -----------------------------------------------------
 
 // Dummy generation & consumption
-r_qGen(inc_dec, gn(grid, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+r_qGen(inc_dec, gn(grid, node), ft_realized(f, t))
+    ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
+        }
     = vq_gen.l(inc_dec, grid, node, f, t)
 ;
 // Dummy reserve demand changes
-r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
+    ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
+        }
     = vq_resDemand.l(restype, up_down, node, f, t)
+;
+r_qResMissing(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
+    ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
+        }
+    = vq_resMissing.l(restype, up_down, node, f, t)
 ;
 
 * --- Diagnostics Results -----------------------------------------------------
