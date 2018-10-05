@@ -298,8 +298,8 @@ loop(f_solve(f), // Loop over the forecasts.
                 v_gen.up('elec', node, unit, f, t) - v_gen.lo('elec', node, unit, f, t) // Generator + consuming unit available unit_elec. output delta
                 ) // END min
             * [
-                + 1${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)} // reserveContribution limits the reliability of reserves locked ahead of time.
-                + p_nuReserves(node, unit, restype, 'reserveContribution')${not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+                + 1${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
                 ] // END * min
     ;
     v_reserve.up(nuRescapable(restype, 'down', node, unit), f+df_reserves(node, restype, f, t), t_active(t))
@@ -311,8 +311,8 @@ loop(f_solve(f), // Loop over the forecasts.
                 v_gen.up('elec', node, unit, f, t) - v_gen.lo('elec', node, unit, f, t) // Generator + consuming unit available unit_elec. output delta
                 ) // END min
             * [
-                + 1${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)} // reserveContribution limits the reliability of reserves locked ahead of time.
-                + p_nuReserves(node, unit, restype, 'reserveContribution')${not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+                + 1${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
                 ] // END * min
     ;
 ); // END loop(f_solve)
