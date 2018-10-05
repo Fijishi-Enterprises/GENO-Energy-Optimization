@@ -72,9 +72,9 @@ q_obj ..
 
                         // Reserve provision feasibility dummy variable penalties
                         + sum(restypeDirectionNode(restype, up_down, node),
-                            + vq_resDemand(restype, up_down, node, f, t)
+                            + vq_resDemand(restype, up_down, node, f+df_reserves(node, restype, f, t), t)${ not ft_reservesFixed(node, restype, f+df_reserves(node, restype,f, t), t) }
                                 * PENALTY_RES(restype, up_down)
-                            + vq_resMissing(restype, up_down, node, f, t)$(ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency')))
+                            + vq_resMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)${ ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t) }
                                 * PENALTY_RES_MISSING(restype, up_down)
                             ) // END sum(restypeDirectionNode)
 
@@ -121,7 +121,7 @@ q_obj ..
         + sum(mft_start(m, f, t)${  p_storageValue(grid, node, t)
                                     and active(m, 'storageValue')
                                     },
-            + v_state(grid, node, f, t)
+            + v_state(grid, node, f+df_central(f,t), t)
                 * p_storageValue(grid, node, t)
                 * sum(ms(m, s)${ p_msft_probability(m, s, f, t) },
                     + p_msft_probability(m, s, f, t)

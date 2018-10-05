@@ -174,8 +174,8 @@ v_gen.lo(gnuft(gnu_output(grid, node, unit), f, t))${   p_gnu(grid, node, unit, 
     = p_gnu(grid, node, unit, 'maxGen')
 ;
 v_gen.up(gnuft(gnu_output(grid, node, unit), f, t))${   p_gnu(grid, node, unit, 'maxGen') < 0   }
-    = 0;
-
+    = 0
+;
 // Ramping capability of units not part of investment set
 // NOTE: Apply the corresponding equations only to units with investment possibility,
 // online variable, or reserve provision
@@ -286,33 +286,65 @@ v_transferLeftward.up(gn2n_directional(grid, node, node_), ft(f, t))${  not p_gn
 
 * --- Reserve Provision Boundaries --------------------------------------------
 
-// Reserve provision limits without investments
-// Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
-v_reserve.up(nuRescapable(restype, 'up', node, unit), f_solve(f+df_nReserves(node, restype, f, t)), t_active(t))${  nuft(node, unit, f, t)
-                                                                                                                    and not (unit_investLP(unit) or unit_investMIP(unit))
-                                                                                                                    and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
-                                                                                                                    }
-    = min ( p_nuReserves(node, unit, restype, 'up') * [ p_gnu('elec', node, unit, 'maxGen') + p_gnu('elec', node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
-            v_gen.up('elec', node, unit, f, t) - v_gen.lo('elec', node, unit, f, t) // Generator + consuming unit available unit_elec. output delta
-            ) // END min
-        * [
-            + 1${mft_nReserves(node, restype, mSolve, f+df_nReserves(node, restype, f, t), t)} // reserveContribution limits the reliability of reserves locked ahead of time.
-            + p_nuReserves(node, unit, restype, 'reserveContribution')${not mft_nReserves(node, restype, mSolve, f+df_nReserves(node, restype, f, t), t)}
-            ] // END * min
-;
-v_reserve.up(nuRescapable(restype, 'down', node, unit), f_solve(f+df_nReserves(node, restype, f, t)), t_active(t))${    nuft(node, unit, f, t)
-                                                                                                                        and not (unit_investLP(unit) or unit_investMIP(unit))
-                                                                                                                        and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
-                                                                                                                        }
-    = min ( p_nuReserves(node, unit, restype, 'down') * [ p_gnu('elec', node, unit, 'maxGen') + p_gnu('elec', node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
-            v_gen.up('elec', node, unit, f, t) - v_gen.lo('elec', node, unit, f, t) // Generator + consuming unit available unit_elec. output delta
-            ) // END min
-        * [
-            + 1${mft_nReserves(node, restype, mSolve, f+df_nReserves(node, restype, f, t), t)} // reserveContribution limits the reliability of reserves locked ahead of time.
-            + p_nuReserves(node, unit, restype, 'reserveContribution')${not mft_nReserves(node, restype, mSolve, f+df_nReserves(node, restype, f, t), t)}
-            ] // END * min
+loop(f_solve(f), // Loop over the forecasts.
+    // Reserve provision limits without investments
+    // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
+    v_reserve.up(nuRescapable(restype, 'up', node, unit), f+df_reserves(node, restype, f, t), t_active(t))
+        ${  nuft(node, unit, f, t) // nuft is not displaced by df_reserves, as the unit exists on normal ft.
+            and not (unit_investLP(unit) or unit_investMIP(unit))
+            and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+            }
+        = min ( p_nuReserves(node, unit, restype, 'up') * [ p_gnu('elec', node, unit, 'maxGen') + p_gnu('elec', node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
+                v_gen.up('elec', node, unit, f, t) - v_gen.lo('elec', node, unit, f, t) // Generator + consuming unit available unit_elec. output delta
+                ) // END min
+            * [
+                + 1${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)} // reserveContribution limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveContribution')${not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+                ] // END * min
     ;
+    v_reserve.up(nuRescapable(restype, 'down', node, unit), f+df_reserves(node, restype, f, t), t_active(t))
+        ${  nuft(node, unit, f, t)
+            and not (unit_investLP(unit) or unit_investMIP(unit))
+            and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+            }
+        = min ( p_nuReserves(node, unit, restype, 'down') * [ p_gnu('elec', node, unit, 'maxGen') + p_gnu('elec', node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
+                v_gen.up('elec', node, unit, f, t) - v_gen.lo('elec', node, unit, f, t) // Generator + consuming unit available unit_elec. output delta
+                ) // END min
+            * [
+                + 1${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)} // reserveContribution limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveContribution')${not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+                ] // END * min
+    ;
+); // END loop(f_solve)
 
+// Fix non-flow unit reserves at the gate closure of reserves
+v_reserve.fx(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))
+    $ { ft_reservesFixed(node, restype, f, t)  // This set contains the combination of reserve types and time intervals that should be fixed based on previous solves
+        and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
+        }
+  = r_reserve(restype, up_down, node, unit, f, t);
+
+// Fix transfer of reserves at the gate closure of reserves
+v_resTransferRightward.fx(restypeDirectionNode(restype, up_down, node), node_, f_solve(f), t_active(t))
+    $ { sum(grid, gn2n(grid, node, node_))
+        and ft_reservesFixed(node, restype, f, t)  // This set contains the combination of reserve types and time intervals that should be fixed
+        and ft_reservesFixed(node_, restype, f, t)
+      }
+  = r_resTransferRightward(restype, up_down, node, node_, f, t);
+
+v_resTransferLeftward.fx(restypeDirectionNode(restype, up_down, node), node_, f_solve(f), t_active(t))
+    $ { sum(grid, gn2n(grid, node, node_))
+        and ft_reservesFixed(node, restype, f, t)  // This set contains the combination of reserve types and time intervals that should be fixed
+        and ft_reservesFixed(node_, restype, f, t)
+      }
+  = r_resTransferLeftward(restype, up_down, node, node_, f, t);
+
+$ontext
+// Fix slack variable for reserves that is used before the reserves need to be locked (vq_resMissing is used after this)
+vq_resDemand.fx(restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))
+    $ { ft_reservesFixed(node, restype, f, t) }  // This set contains the combination of reserve types and time intervals that should be fixed
+  = r_qResDemand(restype, up_down, node, f, t);
+$offtext
 
 // Free reserves for the realization if needed
 v_reserve.lo(nuRescapable(restype, up_down, node, unit), ft_realized(f,t))

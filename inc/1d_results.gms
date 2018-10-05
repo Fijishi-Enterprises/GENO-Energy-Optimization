@@ -172,6 +172,7 @@ Option clear = r_startup;
 Option clear = r_shutdown;
 Option clear = r_invest;
 Option clear = r_investTransfer;
+Option clear = r_qResDemand;
 
 * =============================================================================
 * --- Diagnostics Results Arrays ----------------------------------------------

@@ -98,7 +98,7 @@ Sets
     ft(f, t) "Combination of forecasts and t:s in the current solve"
     ft_realized(f, t) "Realized ft"
     ft_realizedNoReset(f, t) "Full set of realized ft, facilitates calculation of results"
-    mft_nReserves(node, restype, mType, f, t) "Combination of forecasts and t:s locked due to committing reserves ahead of time."
+    ft_reservesFixed(node, restype, f, t) "Forecast-time steps with reserves fixed due to commitments on a previous solve."
     mft(mType, f, t) "Combination of forecasts and t:s in the current model solve"
     msf(mType, s, f) "Combination of samples and forecasts in the models"
     msft(mType, s, f, t) "Combination of samples, forecasts and t:s in the current model solve"

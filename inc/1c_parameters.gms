@@ -107,7 +107,7 @@ Parameters
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
-    df_nReserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
+    df_reserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
 
     // Temporary displacement arrays
     ddt(t) "Temporary time displacement array"
