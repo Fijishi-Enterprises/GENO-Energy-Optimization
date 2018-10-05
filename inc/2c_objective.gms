@@ -22,7 +22,7 @@ $offtext
 
 q_obj ..
 
-    + v_obj * 1e6
+    + v_obj * 1e6 // Objective function valued in MEUR instead of EUR (or whatever monetary unit the data is in)
 
     =E=
 

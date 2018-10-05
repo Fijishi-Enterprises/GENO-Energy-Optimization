@@ -282,7 +282,7 @@ loop(m,
 * --- Futher Time Step Independent Results ------------------------------------
 * =============================================================================
 
-* --- Scaling Marginal Values to EUR/MWh --------------------------------------
+* --- Scaling Marginal Values to EUR/MWh from MEUR/MWh ------------------------
 
 // Energy balance
 r_balanceMarginal(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
