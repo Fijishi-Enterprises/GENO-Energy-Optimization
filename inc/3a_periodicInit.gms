@@ -467,6 +467,30 @@ loop(m,
 ); // END loop(m)
 
 * =============================================================================
+* --- Disable reserves according to model definition --------------------------
+* =============================================================================
+
+loop(m,
+    // Disable node reserve requirements
+    restypeDirectionNode(restype, up_down, node)
+        ${  not mSettingsReservesInUse(m, restype, up_down)
+            }
+        = no;
+
+    // Disable node-node reserve connections
+    restypeDirectionNodeNode(restype, up_down, node, node_)
+        ${  not mSettingsReservesInUse(m, restype, up_down)
+            }
+      = no;
+
+    // Disable reserve provision capability from units
+    nuRescapable(restype, up_down, node, unit)
+        ${  not mSettingsReservesInUse(m, restype, up_down)
+            }
+      = no;
+); // END loop(m)
+
+* =============================================================================
 * --- Various Initial Values and Calculations ---------------------------------
 * =============================================================================
 

@@ -358,15 +358,35 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
 * =============================================================================
 * --- Reserves Sets & Parameters ----------------------------------------------
 * =============================================================================
+// NOTE! Reserves can be disabled through the model settings file.
+// The sets are disabled in "3a_periodicInit.gms" accordingly.
 
-$ontext
+// Nodes with reserve requirements
+restypeDirectionNode(restypeDirection(restype, up_down), node)
+    $ { p_nReserves(node, restype, up_down)
+        or p_nReserves(node, restype, 'use_time_series')
+      }
+  = yes;
+
+// Node node connections with reserve requirements
+restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_)
+    $ { p_nnReserves(node, node_, restype, up_down)
+      }
+  = yes;
+
+// Units with reserve provision capabilities
+nuRescapable(restypeDirection(restype, up_down), nu(node, unit))
+    $ { p_nuReserves(node, unit, restype, up_down)
+      }
+  = yes;
+
 // Assume values for critical reserve related parameters, if not provided by input data
-// Reserve contribution "reliability" assumed to be perfect if not provided in data
-p_nuReserves(nu(node, unit), restype, 'reserveContribution')${  not p_nuReserves(node, unit, restype, 'reserveContribution')
-                                                                and sum(up_down, nuRescapable(restype, up_down, node, unit))
-                                                                }
+// Reserve reliability assumed to be perfect if not provided in data
+p_nuReserves(nu(node, unit), restype, 'reserveReliability')
+    ${  not p_nuReserves(node, unit, restype, 'reserveReliability')
+        and sum(up_down, nuRescapable(restype, up_down, node, unit))
+        }
     = 1;
-$offtext
 
 * =============================================================================
 * --- Data Integrity Checks ---------------------------------------------------
