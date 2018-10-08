@@ -18,12 +18,8 @@ $offtext
 * =============================================================================
 * --- Recording realized parameter values -------------------------------------
 * =============================================================================
-// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Have to go through my RealValue branch changes to the result arrays for
-// More thought-out result arrays
 
 * --- Result arrays required by model dynamics --------------------------------
-
 
 if(tSolveFirst >= mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod') - mSettings(mSolve, 't_jump') and firstResultsOutputSolve,
     firstResultsOutputSolve = 0;
@@ -146,7 +142,9 @@ r_qResMissing(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
     = vq_resMissing.l(restype, up_down, node, f, t)
 ;
 
+* =============================================================================
 * --- Diagnostics Results -----------------------------------------------------
+* =============================================================================
 
 // Capacity factors for examining forecast errors
 d_capacityFactor(flowNode(flow, node), f_solve(f), t_active(t))${ sum(flowUnit(flow, unit), nu(node, unit)) }

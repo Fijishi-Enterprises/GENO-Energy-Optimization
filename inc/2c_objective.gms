@@ -109,7 +109,8 @@ q_obj ..
 
                 // Ramping costs
                 + sum(gnuft_rampCost(grid, node, unit, slack, f, t),
-                    + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost') * v_genRampUpDown(grid, node, unit, slack, f, t)
+                    + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
+                        * v_genRampUpDown(grid, node, unit, slack, f, t)
                   ) // END sum(gnuft_rampCost)
 
                 ]  // END * p_sft_probability(s,f,t)
