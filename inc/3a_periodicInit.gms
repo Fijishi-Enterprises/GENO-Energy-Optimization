@@ -383,16 +383,11 @@ loop(m,
         // Minimum output in the last time interval of the run-up phase equals minimum load
         p_ut_runUp(unit, t)${ord(t) = 1} = p_unit(unit,'op00');
 
-        // Not all units can cold start?
-        // NOTE! Juha needs to check why not all units can cold start
-        unitStarttype(unit, 'cold') = no;
-        unitStarttype(unit, 'cold')${ p_unit(unit, 'startCostCold')
-                                         or p_unit(unit, 'startFuelConsCold')
-                                         or p_u_runUpTimeIntervals(unit) > 1
-                                         or (p_u_runUpTimeIntervals(unit) <= 1 and p_u_maxOutputInLastRunUpInterval(unit) < 1)
-                                       }
-         = yes;
-    ) // END loop(unit)
+    ); // END loop(unit)
+    unitStarttype(unit, 'cold')${ p_u_runUpTimeIntervals(unit) > 1
+                                  or (p_u_runUpTimeIntervals(unit) <= 1 and p_u_maxOutputInLastRunUpInterval(unit) < 1)
+                                }
+        = yes;
 ); // END loop(m)
 
 * --- Unit Shutdown Generation Levels -----------------------------------------

@@ -152,13 +152,23 @@ unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
 unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
     = yes;
 
+// Units with investment variables
+unit_investLP(unit)${  not p_unit(unit, 'investMIP')
+                       and p_unit(unit, 'maxUnitCount')
+                        }
+    = yes;
+unit_investMIP(unit)${  p_unit(unit, 'investMIP')
+                        and p_unit(unit, 'maxUnitCount')
+                        }
+    = yes;
+
 // Units with special startup properties
 // All units can cold start (default start category)
-// NOTE! Juha needs to check why not all units can cold start
-unitStarttype(unit, starttype('cold'))${ p_unit(unit, 'startCostCold')
-                                         or p_unit(unit, 'startFuelConsCold')
-                                         or p_unit(unit, 'rampSpeedToMinLoad')
-                                       }
+unitStarttype(unit, 'cold') = no;
+unitStarttype(unit, 'cold')${ p_unit(unit, 'startCostCold')
+                              or p_unit(unit, 'startFuelConsCold')
+                              or p_unit(unit, 'op00') > 0
+                            }
     = yes;
 // Units with parameters regarding hot/warm starts
 unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
@@ -170,15 +180,6 @@ unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
                                             }
     = yes;
 
-// Units with investment variables
-unit_investLP(unit)${  not p_unit(unit, 'investMIP')
-                       and p_unit(unit, 'maxUnitCount')
-                        }
-    = yes;
-unit_investMIP(unit)${  p_unit(unit, 'investMIP')
-                        and p_unit(unit, 'maxUnitCount')
-                        }
-    = yes;
 
 * --- Unit Related Parameters -------------------------------------------------
 

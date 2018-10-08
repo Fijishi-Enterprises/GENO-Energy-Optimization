@@ -242,20 +242,6 @@ v_shutdown.up(uft_online(unit, f, t))${  p_u_shutdownTimeIntervals(unit)
                                          }
     = 0;
 
-// Cannot start up or shut down a unit if the interval is not active in the current horizon
-// This should not be needed if t_activeNoReset is used properly
-$ontext
-v_startup.up(unitStarttype(unit, starttype), ft(f, t))${    ord(t) > tSolveFirst
-                                                            and ord(t) <= tSolveLast
-                                                            and not t_active(t)
-                                                            }
-    = 0;
-v_shutdown.up(uft(unit, f, t))${    ord(t) > tSolveFirst
-                                    and ord(t) <= tSolveLast
-                                    and not t_active(t)
-                                    }
-    = 0;
-$offtext
 
 //These might speed up, but they should be applied only to the new part of the horizon (should be explored)
 *v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;

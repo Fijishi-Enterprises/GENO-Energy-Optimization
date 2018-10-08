@@ -43,7 +43,7 @@ loop(m,
                 ];
 
     // Unit startup costs
-    r_uStartupCost(unit, ft_realizedNoReset(f,t))${ sum(starttype, unitStarttype(unit, starttype)) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
+    r_uStartupCost(unit, ft_realizedNoReset(f,t))${uft_online(unit, f, t) and sum(starttype, unitStarttype(unit, starttype)) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
         = 1e-6 // Scaling to MEUR
             * sum(unitStarttype(unit, starttype),
                 + r_startup(unit, starttype, f, t)
