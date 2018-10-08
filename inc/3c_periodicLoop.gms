@@ -53,6 +53,7 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = v_stateSlack;
     Option clear = vq_gen;
     Option clear = vq_resDemand;
+    Option clear = vq_resMissing;
 
 * --- Equations ---------------------------------------------------------------
 

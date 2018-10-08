@@ -45,28 +45,6 @@ r_online(uft_online(unit, ft_realized(f, t)))$[ord(t) > mSettings(mSolve, 't_sta
     = v_online_LP.l(unit, f, t)${ uft_onlineLP(unit, f, t)    }
         + v_online_MIP.l(unit, f, t)${  uft_onlineMIP(unit, f, t)   }
 ;
-// Reserve provisions of units
-r_reserve(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))
-    ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
-        and sum(f_, df_reserves(node, restype, f_, t))
-        }
-    = v_reserve.l(restype, up_down, node, unit, f, t)
-;
-// Reserve transfer capacity
-r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f+df_reserves(from_node, restype, f, t)), t_active(t))
-    ${  [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        and restypeDirectionNode(restype, up_down, to_node)
-        and df_reserves(to_node, restype, f, t)
-        }
-    = v_resTransferRightward.l(restype, up_down, from_node, to_node, f+df_reserves(from_node, restype, f, t), t)
-;
-r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f+df_reserves(from_node, restype, f, t)), t_active(t))
-    ${  [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        and restypeDirectionNode(restype, up_down, to_node)
-        and df_reserves(to_node, restype, f, t)
-        }
-    = v_resTransferLeftward.l(restype, up_down, from_node, to_node, f+df_reserves(from_node, restype, f, t), t)
-;
 // Unit startup and shutdown history
 r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t) and [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')] }
     = v_startup.l(unit, starttype, f, t)
@@ -74,6 +52,39 @@ r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t) and [ord(
 r_shutdown(uft_online(unit, ft_realized(f, t)))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
     = v_shutdown.l(unit, f, t)
 ;
+
+* --- Reserve results ---------------------------------------------------------
+
+// Loop over reserve horizon, as the reserve variables use a different ft-structure due to commitment
+loop((restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))
+    ${  df_reserves(node, restype, f, t)
+        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+        and ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
+        },
+
+    // Reserve provisions of units
+    r_reserve(nuRescapable(restype, up_down, node, unit), f+df_reserves(node, restype, f, t), t)
+        = v_reserve.l(restype, up_down, node, unit, f+df_reserves(node, restype, f, t), t);
+
+    // Reserve transfer capacity
+    r_resTransferRightward(restype, up_down, node, to_node, f(f+df_reserves(node, restype, f, t)), t)
+        ${  restypeDirectionNode(restype, up_down, to_node)
+            }
+        = v_resTransferRightward.l(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t);
+
+    r_resTransferLeftward(restype, up_down, node, to_node, f(f+df_reserves(node, restype, f, t)), t)
+        ${  restypeDirectionNode(restype, up_down, to_node)
+            }
+        = v_resTransferLeftward.l(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t);
+
+    // Dummy reserve demand changes
+    r_qResDemand(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
+        = vq_resDemand.l(restype, up_down, node, f+df_reserves(node, restype, f, t), t);
+
+    r_qResMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
+        = vq_resMissing.l(restype, up_down, node, f+df_reserves(node, restype, f, t), t);
+
+); // END loop(restypeDirectionNode, f_solve, t_active)
 
 * --- Interesting results -----------------------------------------------------
 
@@ -129,17 +140,6 @@ r_qGen(inc_dec, gn(grid, node), ft_realized(f, t))
     ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
         }
     = vq_gen.l(inc_dec, grid, node, f, t)
-;
-// Dummy reserve demand changes
-r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
-    ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
-        }
-    = vq_resDemand.l(restype, up_down, node, f, t)
-;
-r_qResMissing(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))
-    ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
-        }
-    = vq_resMissing.l(restype, up_down, node, f, t)
 ;
 
 * =============================================================================
