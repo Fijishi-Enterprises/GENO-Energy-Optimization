@@ -199,12 +199,12 @@ loop(m,
             ); // END sum(uFuel)
 
     // Energy generation by fuels
-    r_genUnittype(gn(grid, node), unittype, t)${  sum(f,ft_realizedNoReset(f,t))
-                                                  and sum(unit,gnu_output(grid, node, unit))
-                                                  and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
-                                                  }
+    r_genUnittype(gn(grid, node), unittype, ft_realizedNoReset(f,t))
+        ${  sum(unit,gnu_output(grid, node, unit))
+            and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
+            }
         = sum(unit${unitUnittype(unit, unittype) and gnu_output(grid, node, unit)},
-            + sum(f,r_gen(grid, node, unit, f, t))
+            + r_gen(grid, node, unit, f, t)
             ); // END sum(unit)
 
     // Total generation on each node by fuels

@@ -89,7 +89,7 @@ Parameters
     // Fuel use results
     r_fuelUse(fuel, unit, f, t) "Fuel use of units"
     r_genFuel(grid, node, fuel, f, t) "Energy generation/consumption based on fuels / flows (MW)"
-    r_genUnittype(grid, node, unittype, t) "Energy generation/consumption for each unittype (MW)"
+    r_genUnittype(grid, node, unittype, f, t) "Energy generation/consumption for each unittype (MW)"
     r_gnTotalGenFuel(grid, node, fuel) "Total energy generation in gn per fuel over the simulation (MWh)"
     r_gnTotalGenFuelShare(grid, node, fuel) "Total energy generation fuel consumption gn/g share"
     r_gTotalGenFuel(grid, fuel) "Total energy generation in g per fuel over the simulation (MWh)"
