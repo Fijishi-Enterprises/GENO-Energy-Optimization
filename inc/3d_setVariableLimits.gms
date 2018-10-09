@@ -286,7 +286,8 @@ v_transferLeftward.up(gn2n_directional(grid, node, node_), ft(f, t))${  not p_gn
 
 * --- Reserve Provision Boundaries --------------------------------------------
 
-loop((restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length') }, // Loop over the forecasts.
+// Loop over the forecasts to minimize confusion regarding the df_reserves forecast displacement
+loop((restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length') },
     // Reserve provision limits without investments
     // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
     v_reserve.up(nuRescapable(restype, 'up', node, unit), f+df_reserves(node, restype, f, t), t)
@@ -347,44 +348,26 @@ vq_resDemand.fx(restypeDirectionNode(restype, up_down, node), f_solve(f), t_acti
 $offtext
 
 // Free reserves for the realization if needed
-v_reserve.lo(nuRescapable(restype, up_down, node, unit), ft_realized(f,t))
+v_reserve.lo(nuRescapable(restypeReleasedForRealization, up_down, node, unit), ft_realized(f,t))
     $ { nuft(node, unit, f, t)
-        and restypeReleasedForRealization(restype)
       }
   = 0;
 
-v_reserve.up(nuRescapable(restype, up_down, node, unit), ft_realized(f,t))
+v_reserve.up(nuRescapable(restypeReleasedForRealization, up_down, node, unit), ft_realized(f,t))
     $ { nuft(node, unit, f, t)
-        and restypeReleasedForRealization(restype)
       }
   = inf;
 
-v_resTransferRightward.lo(restypeDirectionNode(restype, up_down, node), node_, ft_realized(f,t))
-    $ { sum(grid, gn2n(grid, node, node_))
-        and restypeDirectionNode(restype, up_down, node_)
-        and restypeReleasedForRealization(restype)
-      }
+v_resTransferRightward.lo(restypeDirectionNodeNode(restypeReleasedForRealization, up_down, node, node_), ft_realized(f,t))
   = 0;
 
-v_resTransferRightward.up(restypeDirectionNode(restype, up_down, node), node_, ft_realized(f,t))
-    $ { sum(grid, gn2n(grid, node, node_))
-        and restypeDirectionNode(restype, up_down, node_)
-        and restypeReleasedForRealization(restype)
-      }
+v_resTransferRightward.up(restypeDirectionNodeNode(restypeReleasedForRealization, up_down, node, node_), ft_realized(f,t))
   = inf;
 
-v_resTransferLeftward.lo(restypeDirectionNode(restype, up_down, node), node_, ft_realized(f,t))
-    $ { sum(grid, gn2n(grid, node, node_))
-        and restypeDirectionNode(restype, up_down, node_)
-        and restypeReleasedForRealization(restype)
-      }
+v_resTransferLeftward.lo(restypeDirectionNodeNode(restypeReleasedForRealization, up_down, node, node_), ft_realized(f,t))
   = 0;
 
-v_resTransferLeftward.up(restypeDirectionNode(restype, up_down, node), node_, ft_realized(f,t))
-    $ { sum(grid, gn2n(grid, node, node_))
-        and restypeDirectionNode(restype, up_down, node_)
-        and restypeReleasedForRealization(restype)
-      }
+v_resTransferLeftward.up(restypeDirectionNodeNode(restypeReleasedForRealization, up_down, node, node_), ft_realized(f,t))
   = inf;
 
 * --- Investment Variable Boundaries ------------------------------------------
