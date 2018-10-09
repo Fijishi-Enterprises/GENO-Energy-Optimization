@@ -361,22 +361,24 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
 // NOTE! Reserves can be disabled through the model settings file.
 // The sets are disabled in "3a_periodicInit.gms" accordingly.
 
-// Nodes with reserve requirements
-restypeDirectionNode(restypeDirection(restype, up_down), node)
-    $ { p_nReserves(node, restype, up_down)
-        or p_nReserves(node, restype, 'use_time_series')
+// Units with reserve provision capabilities
+nuRescapable(restypeDirection(restype, up_down), nu(node, unit))
+    $ { p_nuReserves(node, unit, restype, up_down)
       }
   = yes;
 
-// Node node connections with reserve requirements
+// Node-node connections with reserve transfer capabilities
 restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_)
     $ { p_nnReserves(node, node_, restype, up_down)
       }
   = yes;
 
-// Units with reserve provision capabilities
-nuRescapable(restypeDirection(restype, up_down), nu(node, unit))
-    $ { p_nuReserves(node, unit, restype, up_down)
+// Nodes with reserve requirements, units capable of providing reserves, or reserve capable connections
+restypeDirectionNode(restypeDirection(restype, up_down), node)
+    $ { p_nReserves(node, restype, up_down)
+        or p_nReserves(node, restype, 'use_time_series')
+        or sum(nu(node, unit), nuRescapable(restype, up_down, node, unit))
+        or sum(gn2n(grid, node, to_node), restypeDirectionNodeNode(restype, up_down, node, to_node))
       }
   = yes;
 
