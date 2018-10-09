@@ -78,11 +78,11 @@ loop((restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))
         = v_resTransferLeftward.l(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t);
 
     // Dummy reserve demand changes
-    r_qResDemand(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
-        = vq_resDemand.l(restype, up_down, node, f+df_reserves(node, restype, f, t), t);
+    r_qResDemand(restype, up_down, node, f, t)
+        = vq_resDemand.l(restype, up_down, node, f, t);
 
     r_qResMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
-        = vq_resMissing.l(restype, up_down, node, f+df_reserves(node, restype, f, t), t);
+        = vq_resMissing.l(restype, up_down, node, f, t);
 
 ); // END loop(restypeDirectionNode, f_solve, t_active)
 
