@@ -174,7 +174,6 @@ loop(m,
 
     r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
         = p_stepLengthNoReset(m, f, t)
-            * sum(msft(m, s, f, t), p_msft_probability(m, s, f, t))
             * [
                 + min(ts_influx(grid, node, f, t), 0) // Not necessarily a good idea, as ts_influx contains energy gains as well...
                 + sum(gnu_input(grid, node, unit),
