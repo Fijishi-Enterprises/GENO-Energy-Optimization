@@ -125,8 +125,8 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))
         ) // END sum(gn2n_directional)
 
     // Reserve demand feasibility dummy variables
-    - vq_resDemand(restype, up_down, node, f, t)${not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
-    - vq_resMissing(restype, up_down, node, f, t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+    - vq_resDemand(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
+    - vq_resMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
 ;
 
 * --- Maximum Downward Capacity -----------------------------------------------

@@ -334,35 +334,33 @@ loop((restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))${ o
             * p_nnReserves(to_node, from_node, restype, up_down);
 
     // Fix non-flow unit reserves at the gate closure of reserves
-    v_reserve.fx(nuRescapable(restype, up_down, node, unit), f, t)
+    v_reserve.fx(nuRescapable(restype, up_down, node, unit), f, t)  // This doesn't require df_reserves, as ft_reservesFixed already limits the fixed (f,t).
         $ { ft_reservesFixed(node, restype, f, t)  // This set contains the combination of reserve types and time intervals that should be fixed based on previous solves
             and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
             }
       = r_reserve(restype, up_down, node, unit, f, t);
 
     // Fix transfer of reserves at the gate closure of reserves
-    v_resTransferRightward.fx(restype, up_down, node, node_, f, t)
+    v_resTransferRightward.fx(restype, up_down, node, node_, f, t)  // This doesn't require df_reserves, as ft_reservesFixed already limits the fixed (f,t).
         $ { sum(grid, gn2n(grid, node, node_))
             and ft_reservesFixed(node, restype, f, t)  // This set contains the combination of reserve types and time intervals that should be fixed
             and ft_reservesFixed(node_, restype, f, t)
           }
       = r_resTransferRightward(restype, up_down, node, node_, f, t);
 
-    v_resTransferLeftward.fx(restype, up_down, node, node_, f, t)
+    v_resTransferLeftward.fx(restype, up_down, node, node_, f, t)   // This doesn't require df_reserves, as ft_reservesFixed already limits the fixed (f,t).
         $ { sum(grid, gn2n(grid, node, node_))
             and ft_reservesFixed(node, restype, f, t)  // This set contains the combination of reserve types and time intervals that should be fixed
             and ft_reservesFixed(node_, restype, f, t)
           }
       = r_resTransferLeftward(restype, up_down, node, node_, f, t);
 
-); // END loop(f_solve)
+    // Fix slack variable for reserves that is used before the reserves need to be locked (vq_resMissing is used after this)
+    vq_resDemand.fx(restype, up_down, node, f, t) // This doesn't require df_reserves, as ft_reservesFixed already limits the fixed (f,t).
+        $ { ft_reservesFixed(node, restype, f, t) }  // This set contains the combination of reserve types and time intervals that should be fixed
+      = r_qResDemand(restype, up_down, node, f, t);
 
-$ontext
-// Fix slack variable for reserves that is used before the reserves need to be locked (vq_resMissing is used after this)
-vq_resDemand.fx(restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))
-    $ { ft_reservesFixed(node, restype, f, t) }  // This set contains the combination of reserve types and time intervals that should be fixed
-  = r_qResDemand(restype, up_down, node, f, t);
-$offtext
+); // END loop(f_solve)
 
 // Free reserves for the realization if needed
 v_reserve.lo(nuRescapable(restypeReleasedForRealization, up_down, node, unit), ft_realized(f,t))
