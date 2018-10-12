@@ -196,7 +196,7 @@ loop(cc(counter),
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
                                                             and not mf_realization(mSolve, f_solve)
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and ord(t) < tSolveFirst + currentForecastLength
+                                                            and ord(t) <= tSolveFirst + currentForecastLength
                                                             }
                 = yes;
 
@@ -384,7 +384,8 @@ df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump'
 
 // Forecast displacement between central and forecasted intervals at the end of forecast horizon
 Option clear = df_central; // This can be reset.
-df_central(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLengthUnchanging') - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'stepLengthInHours')
+df_central(ft(f,t))${   ord(t) > tSolveFirst + mSettings(mSolve, 't_forecastLengthUnchanging') - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'stepLengthInHours')
+                        and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLengthUnchanging')
                         and not mf_realization(mSolve, f)
                         }
     = sum(mf_central(mSolve, f_), ord(f_) - ord(f));
