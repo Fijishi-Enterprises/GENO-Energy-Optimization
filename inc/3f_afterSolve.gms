@@ -16,40 +16,8 @@ along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
 * =============================================================================
-* --- Fixing some variable values after solve ---------------------------------
+* --- Optional manipulation after solve ---------------------------------------
 * =============================================================================
-    // Fix non-flow unit reserves at the gate closure of reserves
-    v_reserve.fx(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))
-        $ { mft_nReserves(node, restype, mSolve, f, t)  // This set contains the combination of reserve types and time intervals that should be fixed
-            and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
-            and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
-          }
-      = v_reserve.l(restype, up_down, node, unit, f, t);
-
-    // Fix transfer of reserves at the gate closure of reserves
-    v_resTransferRightward.fx(restypeDirectionNode(restype, up_down, node), node_, f_solve(f), t_active(t))
-        $ { sum(grid, gn2n(grid, node, node_))
-            and mft_nReserves(node, restype, mSolve, f, t)  // This set contains the combination of reserve types and time intervals that should be fixed
-            and mft_nReserves(node_, restype, mSolve, f, t)
-            and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
-          }
-      = v_resTransferRightward.l(restype, up_down, node, node_, f, t);
-
-    v_resTransferLeftward.fx(restypeDirectionNode(restype, up_down, node), node_, f_solve(f), t_active(t))
-        $ { sum(grid, gn2n(grid, node, node_))
-            and mft_nReserves(node, restype, mSolve, f, t)  // This set contains the combination of reserve types and time intervals that should be fixed
-            and mft_nReserves(node_, restype, mSolve, f, t)
-            and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
-          }
-      = v_resTransferLeftward.l(restype, up_down, node, node_, f, t);
-
-    // Fix slack variable for reserves that is used before the reserves need to be locked (vq_resMissing is used after this)
-    vq_resDemand.fx(restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))
-        $ { mft_nReserves(node, restype, mSolve, f, t)  // This set contains the combination of reserve types and time intervals that should be fixed
-            and ord(t) > mSettings(mSolve, 't_start') + p_nReserves(node, restype, 'update_frequency') // Don't lock reserves before the first update
-          }
-      = vq_resDemand.l(restype, up_down, node, f, t);
-
 
 $ontext
 // Release some fixed values

@@ -150,6 +150,7 @@ r_qGen
 r_gnTotalqGen
 r_gTotalqGen
 r_qResDemand
+r_qResMissing
 r_nTotalqResDemand
 r_qCapacity
 r_solveStatus

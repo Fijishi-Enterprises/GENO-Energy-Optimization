@@ -18,12 +18,8 @@ $offtext
 * =============================================================================
 * --- Recording realized parameter values -------------------------------------
 * =============================================================================
-// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Have to go through my RealValue branch changes to the result arrays for
-// More thought-out result arrays
 
 * --- Result arrays required by model dynamics --------------------------------
-
 
 if(tSolveFirst >= mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod') - mSettings(mSolve, 't_jump') and firstResultsOutputSolve,
     firstResultsOutputSolve = 0;
@@ -49,49 +45,6 @@ r_online(uft_online(unit, ft_realized(f, t)))$[ord(t) > mSettings(mSolve, 't_sta
     = v_online_LP.l(unit, f, t)${ uft_onlineLP(unit, f, t)    }
         + v_online_MIP.l(unit, f, t)${  uft_onlineMIP(unit, f, t)   }
 ;
-// Reserve provisions of units
-r_reserve(nuRescapable(restype, up_down, node, unit), f_solve(f), t_active(t))${   [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')] and
-                                                                                      (
-                                                                                        mft_nReserves(node, restype, mSolve, f, t) or
-                                                                                        sum(f_, df_nReserves(node, restype, f_, t)) or
-                                                                                            [       ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                                                                and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(node, restype, 'update_frequency'))
-                                                                                                and tSolveFirst <= mSettings(mSolve, 't_end') - mSettings(mSolve, 't_jump')
-                                                                                            ]
-                                                                                      )
-                                                                               }
-    = v_reserve.l(restype, up_down, node, unit, f, t)
-;
-// Reserve transfer capacity
-r_resTransferRightward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${   [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')] and
-                                                                                                                (
-                                                                                                                    restypeDirectionNode(restype, up_down, to_node)
-                                                                                                                    and [   mft_nReserves(from_node, restype, mSolve, f, t)
-                                                                                                                        or sum(f_, df_nReserves(from_node, restype, f_, t))
-                                                                                                                        or [     ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                                                                                             and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(from_node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(from_node, restype, 'update_frequency'))
-                                                                                                                             and tSolveFirst <= mSettings(mSolve, 't_end') - mSettings(mSolve, 't_jump')
-                                                                                                                           ]
-                                                                                                                        ]
-                                                                                                                )
-                                                                                                            }
-    = v_resTransferRightward.l(restype, up_down, from_node, to_node, f, t)
-;
-r_resTransferLeftward(restypeDirectionNode(restype, up_down, from_node), to_node, f_solve(f), t_active(t))${   [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')] and
-                                                                                                                (
-                                                                                                                    {    restypeDirectionNode(restype, up_down, to_node)
-                                                                                                                    and [   mft_nReserves(from_node, restype, mSolve, f, t)
-                                                                                                                        or sum(f_, df_nReserves(from_node, restype, f_, t))
-                                                                                                                        or [     ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                                                                                             and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(from_node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(from_node, restype, 'update_frequency'))
-                                                                                                                             and tSolveFirst <= mSettings(mSolve, 't_end') - mSettings(mSolve, 't_jump')
-                                                                                                                           ]
-                                                                                                                        ]
-                                                                                                                    }
-                                                                                                                )
-                                                                                                           }
-    = v_resTransferLeftward.l(restype, up_down, from_node, to_node, f, t)
-;
 // Unit startup and shutdown history
 r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t) and [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')] }
     = v_startup.l(unit, starttype, f, t)
@@ -99,6 +52,43 @@ r_startup(unit, starttype, ft_realized(f, t))${ uft_online(unit, f, t) and [ord(
 r_shutdown(uft_online(unit, ft_realized(f, t)))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
     = v_shutdown.l(unit, f, t)
 ;
+
+* --- Reserve results ---------------------------------------------------------
+
+// Loop over reserve horizon, as the reserve variables use a different ft-structure due to commitment
+loop((restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))
+    ${  df_reserves(node, restype, f, t)
+        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+        and ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
+        },
+
+    // Reserve provisions of units
+    r_reserve(nuRescapable(restype, up_down, node, unit), f+df_reserves(node, restype, f, t), t)
+        ${  not [   restypeReleasedForRealization(restype)
+                    and ft_realized(f+df_reserves(node, restype, f, t), t)
+                    ]
+            }
+        = v_reserve.l(restype, up_down, node, unit, f+df_reserves(node, restype, f, t), t);
+
+    // Reserve transfer capacity
+    r_resTransferRightward(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t)
+        ${  restypeDirectionNode(restype, up_down, to_node)
+            }
+        = v_resTransferRightward.l(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t);
+
+    r_resTransferLeftward(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t)
+        ${  restypeDirectionNode(restype, up_down, to_node)
+            }
+        = v_resTransferLeftward.l(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t);
+
+    // Dummy reserve demand changes
+    r_qResDemand(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
+        = vq_resDemand.l(restype, up_down, node, f+df_reserves(node, restype, f, t), t);
+
+    r_qResMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
+        = vq_resMissing.l(restype, up_down, node, f+df_reserves(node, restype, f, t), t);
+
+); // END loop(restypeDirectionNode, f_solve, t_active)
 
 * --- Interesting results -----------------------------------------------------
 
@@ -150,19 +140,15 @@ r_investTransfer(grid, node, node_, t_invest(t))${ p_gnn(grid, node, node_, 'tra
 * --- Feasibility results -----------------------------------------------------
 
 // Dummy generation & consumption
-r_qGen(inc_dec, gn(grid, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+r_qGen(inc_dec, gn(grid, node), ft_realized(f, t))
+    ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
+        }
     = vq_gen.l(inc_dec, grid, node, f, t)
 ;
-// Dummy reserve demand changes
-r_qResDemand(restypeDirectionNode(restype, up_down, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-    = vq_resDemand.l(restype, up_down, node, f, t)
-;
-// Dummy capacity
-r_qCapacity(gn(grid, node), ft_realized(f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-    = vq_capacity.l(grid, node, f, t)
-;
 
+* =============================================================================
 * --- Diagnostics Results -----------------------------------------------------
+* =============================================================================
 
 // Capacity factors for examining forecast errors
 d_capacityFactor(flowNode(flow, node), f_solve(f), t_active(t))${ sum(flowUnit(flow, unit), nu(node, unit)) }

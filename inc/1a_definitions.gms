@@ -255,8 +255,6 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     cV            "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
     maxRampUp     "Speed to ramp up (p.u./min)"
     maxRampDown   "Speed to ramp down (p.u./min)"
-    rampUpCost    "Wear and tear cost of ramping up (EUR/MW)"  // redundant
-    rampDownCost  "Wear and tear cost of ramping down (EUR/MW)"  // redundant
     upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment ([v_state]/MW)"
     unitSizeGen   "Output capacity of one subunit for integer investments (MW)"
     unitSizeCons  "Loading capacity of one subunit for integer investments (MW)"
@@ -325,7 +323,7 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     update_frequency "Frequency of updating reserve contributions"
     gate_closure  "Number of timesteps ahead of dispatch that reserves are fixed"
     use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
-    reserveContribution "Reliability parameter of reserve provisions"
+    reserveReliability "Reliability parameter of reserve provisions"
     emissionCap   "Emission limit (tonne)"
     instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
     energyShareMax "Maximum energy share of generation from a particular group of units"

@@ -174,7 +174,6 @@ loop(m,
 
     r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
         = p_stepLengthNoReset(m, f, t)
-            * sum(msft(m, s, f, t), p_msft_probability(m, s, f, t))
             * [
                 + min(ts_influx(grid, node, f, t), 0) // Not necessarily a good idea, as ts_influx contains energy gains as well...
                 + sum(gnu_input(grid, node, unit),
@@ -199,12 +198,12 @@ loop(m,
             ); // END sum(uFuel)
 
     // Energy generation by fuels
-    r_genUnittype(gn(grid, node), unittype, t)${  sum(f,ft_realizedNoReset(f,t))
-                                                  and sum(unit,gnu_output(grid, node, unit))
-                                                  and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
-                                                  }
+    r_genUnittype(gn(grid, node), unittype, ft_realizedNoReset(f,t))
+        ${  sum(unit,gnu_output(grid, node, unit))
+            and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
+            }
         = sum(unit${unitUnittype(unit, unittype) and gnu_output(grid, node, unit)},
-            + sum(f,r_gen(grid, node, unit, f, t))
+            + r_gen(grid, node, unit, f, t)
             ); // END sum(unit)
 
     // Total generation on each node by fuels
@@ -282,7 +281,7 @@ loop(m,
 * --- Futher Time Step Independent Results ------------------------------------
 * =============================================================================
 
-* --- Scaling Marginal Values to EUR/MWh --------------------------------------
+* --- Scaling Marginal Values to EUR/MWh from MEUR/MWh ------------------------
 
 // Energy balance
 r_balanceMarginal(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]

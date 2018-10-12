@@ -22,7 +22,7 @@ $offtext
 
 q_obj ..
 
-    + v_obj * 1e6
+    + v_obj * 1e6 // Objective function valued in MEUR instead of EUR (or whatever monetary unit the data is in)
 
     =E=
 
@@ -72,9 +72,9 @@ q_obj ..
 
                         // Reserve provision feasibility dummy variable penalties
                         + sum(restypeDirectionNode(restype, up_down, node),
-                            + vq_resDemand(restype, up_down, node, f, t)
+                            + vq_resDemand(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
                                 * PENALTY_RES(restype, up_down)
-                            + vq_resMissing(restype, up_down, node, f, t)$(ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency')))
+                            + vq_resMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)${ ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t) }
                                 * PENALTY_RES_MISSING(restype, up_down)
                             ) // END sum(restypeDirectionNode)
 
@@ -88,7 +88,7 @@ q_obj ..
                 // Start-up costs, initial startup free as units could have been online before model started
                 + sum(uft_online(unit, f, t),
                     + sum(unitStarttype(unit, starttype),
-                        + v_startup(unit, starttype, f+df_central(f,t), t) // Cost of starting up
+                        + v_startup(unit, starttype, f, t) // Cost of starting up
                             * [ // Startup variable costs
                                 + p_uStartup(unit, starttype, 'cost')
 
@@ -109,7 +109,8 @@ q_obj ..
 
                 // Ramping costs
                 + sum(gnuft_rampCost(grid, node, unit, slack, f, t),
-                    + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost') * v_genRampUpDown(grid, node, unit, slack, f, t)
+                    + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
+                        * v_genRampUpDown(grid, node, unit, slack, f, t)
                   ) // END sum(gnuft_rampCost)
 
                 ]  // END * p_sft_probability(s,f,t)
@@ -121,7 +122,7 @@ q_obj ..
         + sum(mft_start(m, f, t)${  p_storageValue(grid, node, t)
                                     and active(m, 'storageValue')
                                     },
-            + v_state(grid, node, f, t)
+            + v_state(grid, node, f+df_central(f,t), t)
                 * p_storageValue(grid, node, t)
                 * sum(ms(m, s)${ p_msft_probability(m, s, f, t) },
                     + p_msft_probability(m, s, f, t)

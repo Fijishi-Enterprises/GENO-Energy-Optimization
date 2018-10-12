@@ -42,35 +42,6 @@ if (ord(tSolve) >= tForecastNext(mSolve),
         = tForecastNext(mSolve) + mSettings(mSolve, 't_forecastJump');
 );
 
-
-// Nodes with reserve requirements
-restypeDirectionNode(restypeDirection(restype, up_down), node) = no;
-restypeDirectionNode(restypeDirection(restype, up_down), node)
-    $ { mSettingsReservesInUse(mSolve, restype, up_down)
-        and ( p_nReserves(node, restype, up_down)
-              or p_nReserves(node, restype, 'use_time_series')
-            )
-      }
-  = yes;
-
-// Node node connections with reserve requirements
-restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_) = no;
-$ontext
-restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_)
-    $ { mSettingsReservesInUse(mSolve, restype, up_down)
-        and p_nnReserves(node, node_, restype, up_down)
-      }
-  = yes;
-$offtext
-// Units with reserve provision capabilities
-nuRescapable(restypeDirection(restype, up_down), nu(node, unit)) = no;
-nuRescapable(restypeDirection(restype, up_down), nu(node, unit))
-    $ { mSettingsReservesInUse(mSolve, restype, up_down)
-        and p_nuReserves(node, unit, restype, up_down) }
-  = yes;
-
-
-
 $ontext
     // Define t_latestForecast
     Option clear = t_latestForecast;
@@ -109,7 +80,7 @@ $offtext
 
 
 * --- Improve forecasts -------------------------------------------------------
-*$ontext
+$ontext
 // !!! TEMPORARY MEASURES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 if(mSettings(mSolve, 'forecasts') > 0,
@@ -162,4 +133,4 @@ if(mSettings(mSolve, 'forecasts') > 0,
         = min(max( ts_cf(flow, node, f, t) + ts_cf(flow, node, f+ddf(f,t), t), 0),1);
 
 ); // END IF forecasts
-*$offtext
+$offtext
