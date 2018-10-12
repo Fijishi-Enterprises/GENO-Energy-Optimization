@@ -64,6 +64,10 @@ loop((restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))
 
     // Reserve provisions of units
     r_reserve(nuRescapable(restype, up_down, node, unit), f+df_reserves(node, restype, f, t), t)
+        ${  not [   restypeReleasedForRealization(restype)
+                    and ft_realized(f+df_reserves(node, restype, f, t), t)
+                    ]
+            }
         = v_reserve.l(restype, up_down, node, unit, f+df_reserves(node, restype, f, t), t);
 
     // Reserve transfer capacity
