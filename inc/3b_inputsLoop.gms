@@ -80,7 +80,7 @@ $offtext
 
 
 * --- Improve forecasts -------------------------------------------------------
-*$ontext
+$ontext
 // !!! TEMPORARY MEASURES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 if(mSettings(mSolve, 'forecasts') > 0,
@@ -133,4 +133,4 @@ if(mSettings(mSolve, 'forecasts') > 0,
         = min(max( ts_cf(flow, node, f, t) + ts_cf(flow, node, f+ddf(f,t), t), 0),1);
 
 ); // END IF forecasts
-*$offtext
+$offtext
