@@ -1329,11 +1329,11 @@ q_stateDownwardLimit(gn_state(grid, node), mft(m, f, t))${  sum(gn2gnu(grid, nod
 q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
 
     // State of the bound node
-    + v_state(grid, node, f+df_central(f,t), t)
+    + p_gn(grid, node, 'energyStoredPerUnitOfState')
+        * v_state(grid, node, f+df_central(f,t), t)
 
     // Reserve contributions affecting bound node, converted to energy
-    + p_gn(grid, node, 'energyStoredPerUnitOfState')
-        * p_stepLength(m, f, t)
+    + p_stepLength(m, f, t)
         * [
             // Downwards reserve provided by input units
             - sum(nuRescapable(restype, 'down', node_input, unit)${ sum(grid_, gn2gnu(grid_, node_input, grid, node, unit))
@@ -1362,19 +1362,20 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
             // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
             // considered in power grids that do not have state variables, these terms are not needed. Earlier commit (16.2.2017) contains a draft of those terms.
 
-            ] // END * p_gn(energyStoredPerUnitOfState)
+            ] // END * p_stepLength
 
     =L=
 
-    // State of the binding node
-    + v_state(grid, node_, f+df_central(f,t), t)
-
-    // Maximum state difference parameter
-    + p_gnn(grid, node, node_, 'boundStateMaxDiff')
+    + p_gn(grid, node_, 'energyStoredPerUnitOfState')
+        * [
+            // State of the binding node
+            + v_state(grid, node_, f+df_central(f,t), t)
+            // Maximum state difference parameter
+            + p_gnn(grid, node, node_, 'boundStateMaxDiff')
+            ] // END * energyStoredPerUnitOfState
 
     // Reserve contributions affecting bounding node, converted to energy
-    + p_gn(grid, node_, 'energyStoredPerUnitOfState')
-        * p_stepLength(m, f, t)
+    + p_stepLength(m, f, t)
         * [
             // Upwards reserve by input node
             + sum(nuRescapable(restype, 'up', node_input, unit)${   sum(grid_, gn2gnu(grid_, node_input, grid, node_, unit))
@@ -1403,7 +1404,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
             // Here we could have a term for using the energy in the node to offer reserves as well as imports and exports of reserves, but as long as reserves are only
             // considered in power grids that do not have state variables, these terms are not needed. Earlier commit (16.2.2017) contains a draft of those terms.
 
-            ] // END * p_gn(energyStoredPerUnitOfState)
+            ] // END * p_stepLength
 ;
 
 * --- Cyclic Boundary Conditions ----------------------------------------------
