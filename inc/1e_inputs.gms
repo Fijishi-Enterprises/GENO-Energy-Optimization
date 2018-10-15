@@ -333,8 +333,9 @@ gn_state(grid, node)${  gn_stateSlack(grid, node)
     = yes;
 
 // Existing grid-node pairs
-gn(grid, node)${    sum(unit, gnu(grid, node, unit)
-                    or gn_state(grid, node))
+gn(grid, node)${    sum(unit, gnu(grid, node, unit))
+                    or gn_state(grid, node)
+                    or sum((f, t), ts_influx(grid, node, f, t))
                     }
     = yes;
 
