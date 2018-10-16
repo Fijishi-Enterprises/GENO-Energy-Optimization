@@ -384,8 +384,8 @@ df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump'
 
 // Forecast displacement between central and forecasted intervals at the end of forecast horizon
 Option clear = df_central; // This can be reset.
-df_central(ft(f,t))${   ord(t) > tSolveFirst + mSettings(mSolve, 't_forecastLengthUnchanging') - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'stepLengthInHours')
-                        and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLengthUnchanging')
+df_central(ft(f,t))${   ord(t) > tSolveFirst + currentForecastLength - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'stepLengthInHours')
+                        and ord(t) <= tSolveFirst + currentForecastLength
                         and not mf_realization(mSolve, f)
                         }
     = sum(mf_central(mSolve, f_), ord(f_) - ord(f));
