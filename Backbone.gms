@@ -70,7 +70,7 @@ $onempty   // Allow empty data definitions
 files log /''/, gdx, f_info /'output\info.txt'/;
 
 * Include options file to control the solver
-$if exist 'input\1_options.gms' $include 'input\1_options.gms';
+$include 'input\1_options.gms';
 
 
 * === Definitions, sets, parameters and input data=============================
