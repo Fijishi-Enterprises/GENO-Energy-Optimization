@@ -110,9 +110,11 @@ loop(modelSolves(mSolve, tSolve),
     $$include 'inc\3b_inputsLoop.gms'           // Read input data that is updated within the loop
     $$include 'inc\3c_periodicLoop.gms'         // Update modelling loop
     $$include 'inc\3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
+$iftheni.dummy not %dummy% == 'yes'
     $$include 'inc\3e_solve.gms'                // Solve model(s)
     $$include 'inc\3f_afterSolve.gms'           // Post-processing variables after the solve
     $$include 'inc\4a_outputVariant.gms'        // Store results from the loop
+$endif.dummy
 $iftheni.debug '%debug%' == 'yes'
         putclose gdx;
         put_utility 'gdxout' / 'output\' mSolve.tl:0 '-' tSolve.tl:0 '.gdx';
@@ -127,6 +129,7 @@ $if exist 'input\3z_modelsClose.gms' $include 'input\3z_modelsClose.gms';
 * === Output ==================================================================
 $echon "'version' " > 'version'
 $call 'git describe --dirty=+ --always >> version'
+$ifi not %dummy% == 'yes' 
 $include 'inc\4b_outputInvariant.gms'
 $include 'inc\4c_outputQuickFile.gms'
 
