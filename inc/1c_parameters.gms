@@ -37,6 +37,7 @@ Scalars
     tmp_dist "Temporary parameter for calculating the distance between operating points"
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
+    tmp_offset "Offset of sample in time steps"
     f_improve / 12 /
     tRealizedLast "counter (ord) for the last realized t in the solve"
     firstResultsOutputSolve /1/;
@@ -102,11 +103,16 @@ Parameters
     dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints (in time steps)"
     dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints (in time steps)"
     dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints (in time steps)"
+    dt_sampleOffset(*, s) "Time offset to make periodic time series data to go into different samples"
 
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
     df_reserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
+
+    // Sample displacement arrays
+    ds(s, t) "Displacement needed to reach the sample of previous time step"
+    ds_state(grid, node, s, t) "Displacement needed to reach the sample of previous time step at this node"
 
     // Temporary displacement arrays
     ddt(t) "Temporary time displacement array"
@@ -133,9 +139,9 @@ Parameters
     ts_unavailability(unit, t) "Unavailability of a unit in the time step (p.u.)"
 
     // Aliases used for intervals (time step aggregation)
-    ts_influx_(grid, node, f, t)
-    ts_influx_temp(grid, node, f, t)
+    ts_influx_(grid, node, f, t, s)
     ts_cf_(flow, node, f, t)
+    ts_influx_temp(grid, node, s, f, t)
     ts_reserveDemand_(restype, up_down, node, f, t)
     ts_node_(grid, node, param_gnBoundaryTypes, f, t)
     ts_fuelPrice_(fuel, t)

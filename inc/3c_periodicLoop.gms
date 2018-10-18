@@ -140,6 +140,7 @@ Option clear = p_stepLength;
 Option clear = msft;
 Option clear = mft;
 Option clear = ft;
+Option clear = sft;
 
 // Initialize the set of active t:s and counters
 Option clear = t_active;
@@ -214,10 +215,11 @@ loop(cc(counter),
 
             // Reduce the model dimension
             ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
+            sft(s, f, t)$msft(mSolve, s, f, t) = ft(f, t);
 
             // Select time series data matching the intervals, for stepsPerInterval = 1, this is trivial.
-            ts_influx_(gn(grid, node), ft(f_solve, tt_interval(t))) = ts_influx(grid, node, f_solve, t+dt_circular(t));
             ts_cf_(flowNode(flow, node), ft(f_solve, tt_interval(t))) = ts_cf(flow, node, f_solve, t+dt_circular(t));
+            ts_influx_(gn(grid, node), ft(f_solve, tt_interval(t)), s)$sft(s, f_solve, t) = ts_influx(grid, node, f_solve, t + (dt_sampleOffset(node, s) + dt_circular(t)));
             ts_unit_(unit, param_unit, ft(f_solve, tt_interval(t)))${ p_unit(unit, 'useTimeseries') } // Only include units that have timeseries attributed to them
                 = ts_unit(unit, param_unit, f_solve, t+dt_circular(t));
             // Reserve demand relevant only up until reserve_length
@@ -264,7 +266,8 @@ loop(cc(counter),
             // Set of locked combinations of forecasts and intervals for the reserves?
 
             // Reduce the model dimension
-            ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t)
+            ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
+            sft(s, f, t)$msft(mSolve, s, f, t) = ft(f, t);
 
             // Select and average time series data matching the intervals, for stepsPerInterval > 1
             // Loop over the t:s of the interval
@@ -276,8 +279,8 @@ loop(cc(counter),
                         and ord(t_) < ord(t) + mInterval(mSolve, 'stepsPerInterval', counter)
                         }
                     = yes;
-                ts_influx_(gn(grid, node), f_solve, t)
-                    = sum(tt(t_), ts_influx(grid, node, f_solve, t_+dt_circular(t_)))
+                ts_influx_(gn(grid, node), f_solve, t, s)
+                    = sum(tt(t_), ts_influx(grid, node, f_solve, t_ + (dt_sampleOffset(node, s) + dt_circular(t_))))
                         / p_stepLength(mSolve, f_solve, t);
                 ts_cf_(flowNode(flow, node), f_solve, t)
                     = sum(tt(t_), ts_cf(flow, node, f_solve, t_+dt_circular(t_)))
@@ -351,11 +354,11 @@ if(tSolveFirst = mSettings(mSolve, 't_start'),
         tmp = 1;
         tmp_ = 1;
         loop(t_active(t),
-            if(tmp and ord(t) > msStart(mSolve, s),
+            if(tmp and ord(t) - tSolveFirst + 1 > msStart(mSolve, s),
                 mst_start(mSolve, s, t) = yes;
                 tmp = 0;
             );
-            if(tmp_ and ord(t) > msEnd(mSolve, s),
+            if(tmp_ and ord(t) - tSolveFirst + 1 > msEnd(mSolve, s),
                 mst_end(mSolve, s, t+dt(t)) = yes;
                 tmp_ = 0;
             );
@@ -414,6 +417,13 @@ ft_reservesFixed(node, restype, f_solve(f), t_active(t))
                     ]
         }
     = yes;
+Options clear = ds, clear = ds_state;
+loop(ms(mSolve, s),
+    ds(s, t) = -(ord(s) - 1)$(ord(t) = tSolveFirst + msStart(mSolve, s));
+    ds_state(gn_state(grid, node), s, t)${not sum(s_, gnss_bound(grid, node, s_, s))
+                                          and not sum(s_, gnss_bound(grid, node, s, s_))}
+        = ds(s, t);
+);
 
 * =============================================================================
 * --- Defining unit aggregations and ramps ------------------------------------
@@ -626,6 +636,3 @@ loop(unit$(p_u_shutdownTimeIntervals(unit)),
         );
     );
 );
-
-
-

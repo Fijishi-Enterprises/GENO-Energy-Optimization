@@ -22,14 +22,14 @@ $offtext
 
 * --- Energy Balance ----------------------------------------------------------
 
-q_balance(gn(grid, node), mft(m, f, t))${   not p_gn(grid, node, 'boundAll')
+q_balance(gn(grid, node), msft(m, s, f, t))${   not p_gn(grid, node, 'boundAll')
                                             } .. // Energy/power balance dynamics solved using implicit Euler discretization
 
     // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
     + p_gn(grid, node, 'energyStoredPerUnitOfState')${gn_state(grid, node)} // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
         * [
-            + v_state(grid, node, f+df_central(f,t), t)                   // The difference between current
-            - v_state(grid, node, f+df(f,t+dt(t)), t+dt(t))                     // ... and previous state of the node
+            + v_state(grid, node, s, f+df_central(f,t), t)                   // The difference between current
+            - v_state(grid, node, s+ds_state(grid,node,s,t), f+df(f,t+dt(t)), t+dt(t))       // ... and previous state of the node
             ]
 
     =E=
@@ -39,49 +39,49 @@ q_balance(gn(grid, node), mft(m, f, t))${   not p_gn(grid, node, 'boundAll')
         * (
             // Self discharge out of the model boundaries
             - p_gn(grid, node, 'selfDischargeLoss')${ gn_state(grid, node) }
-                * v_state(grid, node, f+df_central(f,t), t) // The current state of the node
+                * v_state(grid, node, s, f+df_central(f,t), t) // The current state of the node
 
             // Energy diffusion from this node to neighbouring nodes
             - sum(to_node${ gnn_state(grid, node, to_node) },
                 + p_gnn(grid, node, to_node, 'diffCoeff')
-                    * v_state(grid, node, f+df_central(f,t), t)
+                    * v_state(grid, node, s, f+df_central(f,t), t)
                 ) // END sum(to_node)
 
             // Energy diffusion from neighbouring nodes to this node
             + sum(from_node${ gnn_state(grid, from_node, node) },
                 + p_gnn(grid, from_node, node, 'diffCoeff')
-                    * v_state(grid, from_node, f+df_central(f,t), t) // Incoming diffusion based on the state of the neighbouring node
+                    * v_state(grid, from_node, s, f+df_central(f,t), t) // Incoming diffusion based on the state of the neighbouring node
                 ) // END sum(from_node)
 
             // Controlled energy transfer, applies when the current node is on the left side of the connection
             - sum(node_${ gn2n_directional(grid, node, node_) },
                 + (1 - p_gnn(grid, node, node_, 'transferLoss')) // Reduce transfer losses
-                    * v_transfer(grid, node, node_, f, t)
+                    * v_transfer(grid, node, node_, s, f, t)
                 + p_gnn(grid, node, node_, 'transferLoss') // Add transfer losses back if transfer is from this node to another node
-                    * v_transferRightward(grid, node, node_, f, t)
+                    * v_transferRightward(grid, node, node_, s, f, t)
                 ) // END sum(node_)
 
             // Controlled energy transfer, applies when the current node is on the right side of the connection
             + sum(node_${ gn2n_directional(grid, node_, node) },
-                + v_transfer(grid, node_, node, f, t)
+                + v_transfer(grid, node_, node, s, f, t)
                 - p_gnn(grid, node_, node, 'transferLoss') // Reduce transfer losses if transfer is from another node to this node
-                    * v_transferRightward(grid, node_, node, f, t)
+                    * v_transferRightward(grid, node_, node, s, f, t)
                 ) // END sum(node_)
 
             // Interactions between the node and its units
             + sum(gnuft(grid, node, unit, f, t),
-                + v_gen(grid, node, unit, f, t) // Unit energy generation and consumption
+                + v_gen(grid, node, unit, s, f, t) // Unit energy generation and consumption
                 )
 
             // Spilling energy out of the endogenous grids in the model
-            - v_spill(grid, node, f, t)${node_spill(node)}
+            - v_spill(grid, node, s, f, t)${node_spill(node)}
 
             // Power inflow and outflow timeseries to/from the node
-            + ts_influx_(grid, node, f, t)   // Incoming (positive) and outgoing (negative) absolute value time series
+            + ts_influx_(grid, node, f, t, s)   // Incoming (positive) and outgoing (negative) absolute value time series
 
             // Dummy generation variables, for feasibility purposes
-            + vq_gen('increase', grid, node, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-            - vq_gen('decrease', grid, node, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+            + vq_gen('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+            - vq_gen('decrease', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
     ) // END * p_stepLength
 ;
 
@@ -89,7 +89,7 @@ q_balance(gn(grid, node), mft(m, f, t))${   not p_gn(grid, node, 'boundAll')
 // NOTE! Currently, there are multiple identical instances of the reserve balance equation being generated for each forecast branch even when the reserves are committed and identical between the forecasts.
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
 
-q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))
+q_resDemand(restypeDirectionNode(restype, up_down, node), sft(s, f, t))
     ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
             and ft_realized(f, t)
@@ -97,17 +97,17 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))
         } ..
     // Reserve provision by capable units on this node
     + sum(nuft(node, unit, f, t)${nuRescapable(restype, up_down, node, unit)},
-        + v_reserve(restype, up_down, node, unit, f+df_reserves(node, restype, f, t), t)
+        + v_reserve(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(nuft)
 
     // Reserve provision to this node via transfer links
     + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, up_down, node_, node)},
         + (1 - p_gnn(grid, node_, node, 'transferLoss') )
-            * v_resTransferRightward(restype, up_down, node_, node, f+df_reserves(node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
+            * v_resTransferRightward(restype, up_down, node_, node, s, f+df_reserves(node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
     + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, up_down, node_, node)},
         + (1 - p_gnn(grid, node, node_, 'transferLoss') )
-            * v_resTransferLeftward(restype, up_down, node, node_, f+df_reserves(node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
+            * v_resTransferLeftward(restype, up_down, node, node_, s, f+df_reserves(node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
 
     =G=
@@ -118,26 +118,28 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))
 
     // Reserve demand increase because of units
     + sum(nuft(node, unit, f, t)${p_nuReserves(node, unit, restype, 'reserve_increase_ratio')}, // Could be better to have 'reserve_increase_ratio' separately for up and down directions
-        + sum(grid, v_gen(grid, node, unit, f, t)) // Reserve sets and variables are currently lacking the grid dimension...
+        + sum(grid, v_gen(grid, node, unit, s, f, t)) // Reserve sets and variables are currently lacking the grid dimension...
             * p_nuReserves(node, unit, restype, 'reserve_increase_ratio')
         ) // END sum(nuft)
 
     // Reserve provisions to another nodes via transfer links
     + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, up_down, node_, node)},   // If trasferring reserves to another node, increase your own reserves by same amount
-        + v_resTransferRightward(restype, up_down, node, node_, f+df_reserves(node, restype, f, t), t)
+        + v_resTransferRightward(restype, up_down, node, node_, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(gn2n_directional)
     + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, up_down, node_, node)},   // If trasferring reserves to another node, increase your own reserves by same amount
-        + v_resTransferLeftward(restype, up_down, node_, node, f+df_reserves(node, restype, f, t), t)
+        + v_resTransferLeftward(restype, up_down, node_, node, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(gn2n_directional)
 
     // Reserve demand feasibility dummy variables
-    - vq_resDemand(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
-    - vq_resMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+    - vq_resDemand(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t)
+    - vq_resMissing(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
 ;
 
 * --- Maximum Downward Capacity -----------------------------------------------
 
-q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + smax(restype, p_nReserves(node, restype, 'reserve_length')) // Unit is either providing
+q_maxDownward(m, s, gnuft(grid, node, unit, f, t))${msft(m, s, f, t)
+                                                    and {
+                                                    [   ord(t) < tSolveFirst + smax(restype, p_nReserves(node, restype, 'reserve_length')) // Unit is either providing
                                                         and sum(restype, nuRescapable(restype, 'down', node, unit)) // downward reserves
                                                         ]
                                                     // NOTE!!! Could be better to form a gnuft_reserves subset?
@@ -152,19 +154,19 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
                                                         gnu_input(grid, node, unit)
                                                         and [unit_investLP(unit) or unit_investMIP(unit)]
                                                         ]
-                                                    } ..
+                                                    }} ..
     // Energy generation/consumption
-    + v_gen(grid, node, unit, f, t)
+    + v_gen(grid, node, unit, s, f, t)
 
     // Considering output constraints (e.g. cV line)
     + sum(gngnu_constrainedOutputRatio(grid, node, grid_output, node_, unit),
         + p_gnu(grid_output, node_, unit, 'cV')
-            * v_gen(grid_output, node_, unit, f, t)
+            * v_gen(grid_output, node_, unit, s, f, t)
         ) // END sum(gngnu_constrainedOutputRatio)
 
     // Downward reserve participation
     - sum(nuRescapable(restype, 'down', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},
-        + v_reserve(restype, 'down', node, unit, f+df_reserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+        + v_reserve(restype, 'down', node, unit, s, f+df_reserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
         ) // END sum(nuRescapable)
 
     =G= // Must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
@@ -176,8 +178,8 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
             ) // END sum(effGroup)
         * [ // Online variables should only be generated for units with restrictions
-            + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f+df_central(f,t), t)} // LP online variant
-            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f+df_central(f,t), t)} // MIP online variant
+            + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f+df_central(f,t), t)} // LP online variant
+            + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f+df_central(f,t), t)} // MIP online variant
             ] // END v_online
 
     + [
@@ -186,7 +188,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
             * sum(t_active(t_)${    ord(t_) > ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
                                     and ord(t_) <= ord(t)},
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df(f,t_), t_)
+                    + v_startup(unit, starttype, s, f+df(f,t_), t_)
                         * sum(t_full(t__)${ord(t__) = p_u_runUpTimeIntervalsCeil(unit) - ord(t) - dt_next(t) + 1 + ord(t_)}, // last step in the interval
                             + p_ut_runUp(unit, t__)
 *                                * 1 // test values [0,1] to provide some flexibility
@@ -197,7 +199,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_active(t_)${ ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t)) },
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df(f,t_), t_)
+                    + v_startup(unit, starttype, s, f+df(f,t_), t_)
                         * sum(t_full(t__)${ord(t__) = 1}, p_ut_runUp(unit, t__))
                     ) // END sum(unitStarttype)
                 ) // END sum(t_)
@@ -208,7 +210,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_active(t_)${    ord(t_) >= ord(t) + dt_next(t) + dt_toShutdown(unit, t + dt_next(t))
                                     and ord(t_) < ord(t)},
-                + v_shutdown(unit, f+df(f,t_), t_)
+                + v_shutdown(unit, s, f+df(f,t_), t_)
                     * sum(t_full(t__)${ord(t__) = ord(t) - ord(t_) + 1},
                         + p_ut_shutdown(unit, t__)
                         ) // END sum(t__)
@@ -216,7 +218,7 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
         // Units that are in the first time interval of the shutdown phase are limited by the minimum load (contained in p_ut_shutdown(unit, 't00000'))
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * (
-                + v_shutdown(unit, f, t)
+                + v_shutdown(unit, s, f, t)
                     * sum(t_full(t__)${ord(t__) = 1}, p_ut_shutdown(unit, t__))
                 ) // END * p_gnu(unitSizeGen)
         ]${uft_shutdownTrajectory(unit, f, t)}
@@ -237,8 +239,8 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
             + p_gnu(grid, node, unit, 'unitSizeCons')
                 * [
                     // Capacity online
-                    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-                    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+                    + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+                    + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
                     // Investments to additional non-online capacity
                     + sum(t_invest(t_)${    ord(t_)<=ord(t)
@@ -253,7 +255,9 @@ q_maxDownward(m, gnuft(grid, node, unit, f, t))${   [   ord(t) < tSolveFirst + s
 
 * --- Maximum Upwards Capacity ------------------------------------------------
 
-q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(restype, p_nReserves(node, restype, 'reserve_length')) // Unit is either providing
+q_maxUpward(m, s, gnuft(grid, node, unit, f, t))${msft(m, s, f, t)
+                                                    and {
+                                                 [   ord(t) < tSolveFirst + smax(restype, p_nReserves(node, restype, 'reserve_length')) // Unit is either providing
                                                     and sum(restype, nuRescapable(restype, 'up', node, unit)) // upward reserves
                                                     ]
                                                 or [
@@ -267,19 +271,19 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
                                                     gnu_output(grid, node, unit) // generators with investment possibility
                                                     and (unit_investLP(unit) or unit_investMIP(unit))
                                                     ]
-                                                }..
+                                                }}..
     // Energy generation/consumption
-    + v_gen(grid, node, unit, f, t)
+    + v_gen(grid, node, unit, s, f, t)
 
     // Considering output constraints (e.g. cV line)
     + sum(gngnu_constrainedOutputRatio(grid, node, grid_output, node_, unit),
         + p_gnu(grid_output, node_, unit, 'cV')
-            * v_gen(grid_output, node_, unit, f, t)
+            * v_gen(grid_output, node_, unit, s, f, t)
         ) // END sum(gngnu_constrainedOutputRatio)
 
     // Upwards reserve participation
     + sum(nuRescapable(restype, 'up', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},
-        + v_reserve(restype, 'up', node, unit, f+df_reserves(node, restype, f, t), t)
+        + v_reserve(restype, 'up', node, unit, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(nuRescapable)
 
     =L= // must be less than available/online capacity
@@ -291,8 +295,8 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
             ) // END sum(effGroup)
         * [
-            + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
-            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
+            + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
+            + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
             ] // END * p_gnu(unitSizeCons)
 
     // Generation units
@@ -311,8 +315,8 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
             + p_gnu(grid, node, unit, 'unitSizeGen')
                 * [
                     // Capacity online
-                    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f ,t)}
-                    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+                    + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f ,t)}
+                    + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
                     // Investments to non-online capacity
                     + sum(t_invest(t_)${    ord(t_)<=ord(t)
@@ -330,7 +334,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
             * sum(t_active(t_)${    ord(t_) > ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
                                     and ord(t_) <= ord(t)},
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df(f,t_), t_)
+                    + v_startup(unit, starttype, s, f+df(f,t_), t_)
                         * sum(t_full(t__)${ord(t__) = p_u_runUpTimeIntervalsCeil(unit) - ord(t) - dt_next(t) + 1 + ord(t_)}, // last step in the interval
                             + p_ut_runUp(unit, t__)
                             ) // END sum(t__)
@@ -340,7 +344,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_active(t_)${ ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t)) },
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df(f,t_), t_)
+                    + v_startup(unit, starttype, s, f+df(f,t_), t_)
                         * p_u_maxOutputInLastRunUpInterval(unit)
                     ) // END sum(unitStarttype)
                 ) // END sum(t_)
@@ -351,7 +355,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_active(t_)${    ord(t_) >= ord(t) + dt_next(t) + dt_toShutdown(unit, t + dt_next(t))
                                     and ord(t_) < ord(t)},
-                + v_shutdown(unit, f+df(f,t_), t_)
+                + v_shutdown(unit, s, f+df(f,t_), t_)
                     * sum(t_full(t__)${ord(t__) = ord(t) - ord(t_) + 1},
                         + p_ut_shutdown(unit, t__)
                         ) // END sum(t__)
@@ -359,7 +363,7 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
         // Units that are in the first time interval of the shutdown phase are limited by p_u_maxOutputInFirstShutdownInterval
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * (
-                + v_shutdown(unit, f, t)
+                + v_shutdown(unit, s, f, t)
                     * p_u_maxOutputInFirstShutdownInterval(unit)
                 ) // END * p_gnu(unitSizeGen)
         ]${uft_shutdownTrajectory(unit, f, t)}
@@ -367,12 +371,12 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
 
 * --- Reserve Provision of Units with Investments -----------------------------
 
-q_reserveProvision(nuRescapable(restypeDirectionNode(restype, up_down, node), unit), ft(f, t))${ ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')
-                                                                                                 and nuft(node, unit, f, t)
-                                                                                                 and (unit_investLP(unit) or unit_investMIP(unit))
-                                                                                                 and not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
-                                                                                                 } ..
-    + v_reserve(restype, up_down, node, unit, f+df_reserves(node, restype, f, t), t)
+q_reserveProvision(nuRescapable(restypeDirectionNode(restype, up_down, node), unit), sft(s, f, t))${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+                                                                                                    and nuft(node, unit, f, t)
+                                                                                                    and (unit_investLP(unit) or unit_investMIP(unit))
+                                                                                                    and not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
+                                                                                                   } ..
+    + v_reserve(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t)
 
     =L=
 
@@ -402,23 +406,23 @@ q_reserveProvision(nuRescapable(restypeDirectionNode(restype, up_down, node), un
 
 * --- Unit Startup and Shutdown -----------------------------------------------
 
-q_startshut(m, uft_online(unit, f, t)) ..
+q_startshut(m, s, uft_online(unit, f, t))$msft(m, s, f, t) ..
     // Units currently online
-    + v_online_LP (unit, f+df_central(f,t), t)${uft_onlineLP (unit, f, t)}
-    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+    + v_online_LP (unit, s, f+df_central(f,t), t)${uft_onlineLP (unit, f, t)}
+    + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
     // Units previously online
 
     // The same units
-    - v_online_LP (unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineLP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))
+    - v_online_LP (unit, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))${ uft_onlineLP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))
                                                              and not uft_aggregator_first(unit, f, t) } // This reaches to tFirstSolve when dt = -1
-    - v_online_MIP(unit, f+df(f,t+dt(t)), t+dt(t))${ uft_onlineMIP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))
+    - v_online_MIP(unit, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))${ uft_onlineMIP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))
                                                              and not uft_aggregator_first(unit, f, t) }
 
     // Aggregated units just before they are turned into aggregator units
     - sum(unit_${unitAggregator_unit(unit, unit_)},
-        + v_online_LP (unit_, f+df(f,t+dt(t)), t+dt(t))${uft_onlineLP_withPrevious(unit_, f+df(f,t+dt(t)), t+dt(t))}
-        + v_online_MIP(unit_, f+df(f,t+dt(t)), t+dt(t))${uft_onlineMIP_withPrevious(unit_, f+df(f,t+dt(t)), t+dt(t))}
+        + v_online_LP (unit_, s, f+df(f,t+dt(t)), t+dt(t))${uft_onlineLP_withPrevious(unit_, f+df(f,t+dt(t)), t+dt(t))}
+        + v_online_MIP(unit_, s, f+df(f,t+dt(t)), t+dt(t))${uft_onlineMIP_withPrevious(unit_, f+df(f,t+dt(t)), t+dt(t))}
         )${uft_aggregator_first(unit, f, t)} // END sum(unit_)
 
     =E=
@@ -427,7 +431,7 @@ q_startshut(m, uft_online(unit, f, t)) ..
 
     // Add startup of units dt_toStartup before the current t (no start-ups for aggregator units before they become active)
     + sum(unitStarttype(unit, starttype),
-        + v_startup(unit, starttype, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t))
+        + v_startup(unit, starttype, s, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t))
         )${not [unit_aggregator(unit) and ord(t) + dt_toStartup(unit, t) <= tSolveFirst + p_unit(unit, 'lastStepNotAggregated')]} // END sum(starttype)
 
     // NOTE! According to 3d_setVariableLimits,
@@ -436,7 +440,7 @@ q_startshut(m, uft_online(unit, f, t)) ..
     // --> no need to add start-ups of aggregated units to aggregator units
 
     // Shutdown of units at time t
-    - v_shutdown(unit, f, t)
+    - v_shutdown(unit, s, f, t)
 ;
 
 *--- Startup Type -------------------------------------------------------------
@@ -445,16 +449,17 @@ q_startshut(m, uft_online(unit, f, t)) ..
 // shutdown allows for multiple hot/warm startups on subsequent time steps.
 // Pending changes.
 
-q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t))${ unitStarttype(unit, starttype) } ..
+q_startuptype(m, s, starttypeConstrained(starttype), uft_online(unit, f, t))
+    ${msft(m, s, f, t) and unitStarttype(unit, starttype)} ..
 
     // Startup type
-    + v_startup(unit, starttype, f, t)
+    + v_startup(unit, starttype, s, f, t)
 
     =L=
 
     // Subunit shutdowns within special startup timeframe
     + sum(unitCounter(unit, counter)${dt_starttypeUnitCounter(starttype, unit, counter)},
-        + v_shutdown(unit, f+df(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
+        + v_shutdown(unit, s, f+df(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
             ${t_active(t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))}
         ) // END sum(counter)
 
@@ -464,14 +469,15 @@ q_startuptype(m, starttypeConstrained(starttype), uft_online(unit, f, t))${ unit
 
 *--- Online Limits with Startup Type Constraints and Investments --------------
 
-q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutdownHours')
+q_onlineLimit(m, s, uft_online(unit, f, t))${msft(m, s, f, t) and {
+                                            p_unit(unit, 'minShutdownHours')
                                             or p_u_runUpTimeIntervals(unit)
                                             or unit_investLP(unit)
                                             or unit_investMIP(unit)
-                                            } ..
+                                            }} ..
     // Online variables
-    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f ,t)}
+    + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+    + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f ,t)}
 
     =L=
 
@@ -480,14 +486,14 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutdownHours')
 
     // Number of units unable to become online due to restrictions
     - sum(unitCounter(unit, counter)${dt_downtimeUnitCounter(unit, counter)},
-        + v_shutdown(unit, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
+        + v_shutdown(unit, s, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
             ${t_active(t+(dt_downtimeUnitCounter(unit, counter) + 1))}
         ) // END sum(counter)
 
     // Number of units unable to become online due to restrictions (aggregated units in the past horizon or if they have an online variable)
     - sum(unit_${unitAggregator_unit(unit, unit_)},
         + sum(unitCounter(unit, counter)${dt_downtimeUnitCounter(unit, counter)},
-            + v_shutdown(unit_, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
+            + v_shutdown(unit_, s, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
                 ${t_active(t+(dt_downtimeUnitCounter(unit, counter) + 1))}
             ) // END sum(counter)
         )${unit_aggregator(unit)} // END sum(unit_)
@@ -503,20 +509,22 @@ q_onlineLimit(m, uft_online(unit, f, t))${  p_unit(unit, 'minShutdownHours')
 *    These equations prohibit single units turning on and off at the same time step.
 *    Unfortunately there seems to be no way to prohibit this when unit count is > 1.
 *    (it shouldn't be worthwhile anyway if there is a startup cost, but it can fall within the solution gap).
-q_onlineOnStartUp(uft_online(unit, f, t))${sum(starttype, unitStarttype(unit, starttype))}..
+q_onlineOnStartUp(s, uft_online(unit, f, t))
+    ${sft(s, f, t) and sum(starttype, unitStarttype(unit, starttype))}..
 
     // Units currently online
-    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+    + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+    + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
     =G=
 
     + sum(unitStarttype(unit, starttype),
-        + v_startup(unit, starttype, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t))  //dt_toStartup displaces the time step to the one where the unit would be started up in order to reach online at t
+        + v_startup(unit, starttype, s, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t))  //dt_toStartup displaces the time step to the one where the unit would be started up in order to reach online at t
       ) // END sum(starttype)
 ;
 
-q_offlineAfterShutdown(uft_online(unit, f, t))${sum(starttype, unitStarttype(unit, starttype))}..
+q_offlineAfterShutdown(s, uft_online(unit, f, t))
+    ${sft(s, f, t) and sum(starttype, unitStarttype(unit, starttype))}..
 
     // Number of existing units
     + p_unit(unit, 'unitCount')
@@ -528,29 +536,29 @@ q_offlineAfterShutdown(uft_online(unit, f, t))${sum(starttype, unitStarttype(uni
         ) // END sum(t_invest)
 
     // Units currently online
-    - v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-    - v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+    - v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+    - v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
     =G=
 
-    + v_shutdown(unit, f, t)
+    + v_shutdown(unit, s, f, t)
 ;
 
 *--- Minimum Unit Uptime ------------------------------------------------------
 
-q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationHours')
-                                                } ..
+q_onlineMinUptime(m, s, uft_online(unit, f, t))
+    ${msft(m, s, f, t) and  p_unit(unit, 'minOperationHours')} ..
 
     // Units currently online
-    + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+    + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+    + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
     =G=
 
     // Units that have minimum operation time requirements active
     + sum(unitCounter(unit, counter)${dt_uptimeUnitCounter(unit, counter)},
         + sum(unitStarttype(unit, starttype),
-            + v_startup(unit, starttype, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
+            + v_startup(unit, starttype, s, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
                 ${t_active(t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))}
             ) // END sum(starttype)
         ) // END sum(counter)
@@ -559,7 +567,7 @@ q_onlineMinUptime(m, uft_online(unit, f, t))${  p_unit(unit, 'minOperationHours'
     + sum(unitAggregator_unit(unit, unit_),
         + sum(unitCounter(unit, counter)${dt_uptimeUnitCounter(unit, counter)},
             + sum(unitStarttype(unit, starttype),
-                + v_startup(unit, starttype, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
+                + v_startup(unit, starttype, s, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
                     ${t_active(t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))}
                 ) // END sum(starttype)
             ) // END sum(counter)
@@ -572,18 +580,18 @@ q_genRamp(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s) + 
                                                        and msft(m, s, f, t)
                                                        } ..
 
-    + v_genRamp(grid, node, unit, f, t) * p_stepLength(m, f, t)
+    + v_genRamp(grid, node, unit, s, f, t) * p_stepLength(m, f, t)
 
     =E=
 
     // Change in generation over the interval: v_gen(t) - v_gen(t-1)
-    + v_gen(grid, node, unit, f, t)
+    + v_gen(grid, node, unit, s, f, t)
 
     // Unit generation at t-1 (except aggregator units right before the aggregation threshold, see next term)
-    - v_gen(grid, node, unit, f+df(f,t+dt(t)), t+dt(t))${not uft_aggregator_first(unit, f, t)}
+    - v_gen(grid, node, unit, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))${not uft_aggregator_first(unit, f, t)}
     // Unit generation at t-1, aggregator units right before the aggregation threshold
     + sum(unit_${unitAggregator_unit(unit, unit_)},
-        - v_gen(grid, node, unit_, f+df(f,t+dt(t)), t+dt(t))
+        - v_gen(grid, node, unit_, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))
       )${uft_aggregator_first(unit, f, t)}
 ;
 
@@ -598,9 +606,9 @@ q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s
                                                                  or unit_investMIP(unit)
                                                                  ]
                                                            } ..
-    + v_genRamp(grid, node, unit, f, t)
+    + v_genRamp(grid, node, unit, s, f, t)
     + sum(nuRescapable(restype, 'up', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},
-        + v_reserve(restype, 'up', node, unit, f+df_reserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+        + v_reserve(restype, 'up', node, unit, s, f+df_reserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
         ) // END sum(nuRescapable)
         / p_stepLength(m, f, t)
 
@@ -621,8 +629,8 @@ q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s
 
     // Ramping capability of units with an online variable
     + (
-        + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-        + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+        + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+        + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
       )
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnu(grid, node, unit, 'maxRampUp')
@@ -634,7 +642,7 @@ q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s
             * sum(t_active(t_)${    ord(t_) > ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
                                     and ord(t_) <= ord(t)},
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df(f,t_), t_)
+                    + v_startup(unit, starttype, s, f+df(f,t_), t_)
                         * p_unit(unit, 'rampSpeedToMinLoad')
                         * 60   // Unit conversion from [p.u./min] to [p.u./h]
                   ) // END sum(unitStarttype)
@@ -644,7 +652,7 @@ q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s
             * sum(t_active(t_)${    ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
                                     and uft_startupTrajectory(unit, f, t)},
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df(f,t_), t_)
+                    + v_startup(unit, starttype, s, f+df(f,t_), t_)
                         * max(p_unit(unit, 'rampSpeedToMinLoad'), p_gnu(grid, node, unit, 'maxRampUp')) // could also be weighted average from 'maxRampUp' and 'rampSpeedToMinLoad'
                         * 60   // Unit conversion from [p.u./min] to [p.u./h]
                   ) // END sum(unitStarttype)
@@ -652,7 +660,7 @@ q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s
         ]${uft_startupTrajectory(unit, f, t)}
 
     // Shutdown of consumption units from full load
-    + v_shutdown(unit, f, t)${uft_online(unit, f, t) and gnu_input(grid, node, unit)}
+    + v_shutdown(unit, s, f, t)${uft_online(unit, f, t) and gnu_input(grid, node, unit)}
         * p_gnu(grid, node, unit, 'unitSizeTot')
 ;
 
@@ -667,9 +675,9 @@ q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m,
                                                                    or unit_investMIP(unit)
                                                                    ]
                                                              } ..
-    + v_genRamp(grid, node, unit, f, t)
+    + v_genRamp(grid, node, unit, s, f, t)
     - sum(nuRescapable(restype, 'down', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},
-        + v_reserve(restype, 'down', node, unit, f+df_reserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+        + v_reserve(restype, 'down', node, unit, s, f+df_reserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
         ) // END sum(nuRescapable)
         / p_stepLength(m, f, t)
 
@@ -690,15 +698,15 @@ q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m,
 
     // Ramping capability of units that are online
     - (
-        + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-        + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+        + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+        + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
       )
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnu(grid, node, unit, 'maxRampDown')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
 
     // Shutdown of generation units from full load
-    - v_shutdown(unit, f, t)${   uft_online(unit, f, t)
+    - v_shutdown(unit, s, f, t)${   uft_online(unit, f, t)
                                                  and gnu_output(grid, node, unit)
                                                  and not uft_shutdownTrajectory(unit, f, t)}
         * p_gnu(grid, node, unit, 'unitSizeTot')
@@ -708,7 +716,7 @@ q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m,
         - p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_active(t_)${    ord(t_) >= ord(t) + dt_toShutdown(unit, t)
                                     and ord(t_) < ord(t) + dt(t)},
-                + v_shutdown(unit, f+df(f,t_), t_)
+                + v_shutdown(unit, s, f+df(f,t_), t_)
                     * p_unit(unit, 'rampSpeedFromMinLoad')
                     * 60   // Unit conversion from [p.u./min] to [p.u./h]
               ) // END sum(t_)
@@ -716,7 +724,7 @@ q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m,
         // Units that are in the first time interval of the shutdown phase are limited rampSpeedFromMinLoad and maxRampDown
         - p_gnu(grid, node, unit, 'unitSizeGen')
             * (
-                + v_shutdown(unit, f+df(f,t+dt(t)), t+dt(t))
+                + v_shutdown(unit, s, f+df(f,t+dt(t)), t+dt(t))
                     * max(p_unit(unit, 'rampSpeedFromMinLoad'), p_gnu(grid, node, unit, 'maxRampDown')) // could also be weighted average from 'maxRampDown' and 'rampSpeedFromMinLoad'
                     * 60   // Unit conversion from [p.u./min] to [p.u./h]
                 ) // END * p_gnu(unitSizeGen)
@@ -724,7 +732,7 @@ q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m,
         // Units just starting the shutdown phase are limited by the maxRampDown
         - p_gnu(grid, node, unit, 'unitSizeGen')
             * (
-                + v_shutdown(unit, f, t)
+                + v_shutdown(unit, s, f, t)
                     * p_gnu(grid, node, unit, 'maxRampDown')
                     * 60   // Unit conversion from [p.u./min] to [p.u./h]
                 ) // END * p_gnu(unitSizeGen)
@@ -738,14 +746,14 @@ q_rampUpDown(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s)
                                                           and sum(slack, gnuft_rampCost(grid, node, unit, slack, f, t))
                                                           } ..
 
-    + v_genRamp(grid, node, unit, f, t)
+    + v_genRamp(grid, node, unit, s, f, t)
 
     =E=
 
     // Upward and downward ramp categories
     + sum(slack${ gnuft_rampCost(grid, node, unit, slack, f, t) },
-        + v_genRampUpDown(grid, node, unit, slack, f, t)$upwardSlack(slack)
-        - v_genRampUpDown(grid, node, unit, slack, f, t)$downwardSlack(slack)
+        + v_genRampUpDown(grid, node, unit, slack, s, f, t)$upwardSlack(slack)
+        - v_genRampUpDown(grid, node, unit, slack, s, f, t)$downwardSlack(slack)
       ) // END sum(slack)
 ;
 
@@ -755,7 +763,7 @@ q_rampSlack(m, s, gnuft_rampCost(grid, node, unit, slack, f, t))${  ord(t) > msS
                                                                     and msft(m, s, f, t)
                                                                     } ..
 
-    + v_genRampUpDown(grid, node, unit, slack, f, t)
+    + v_genRampUpDown(grid, node, unit, slack, s, f, t)
 
     =L=
 
@@ -774,8 +782,8 @@ q_rampSlack(m, s, gnuft_rampCost(grid, node, unit, slack, f, t))${  ord(t) > msS
 
     // Ramping capability of units with an online variable
     + (
-        + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-        + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+        + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+        + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
       )
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
@@ -787,7 +795,7 @@ q_rampSlack(m, s, gnuft_rampCost(grid, node, unit, slack, f, t))${  ord(t) > msS
             * sum(t_active(t_)${    ord(t_) >= ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
                                     and ord(t_) <= ord(t)},
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df(f,t_), t_)
+                    + v_startup(unit, starttype, s, f+df(f,t_), t_)
                         * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
                         * 60   // Unit conversion from [p.u./min] to [p.u./h]
                   ) // END sum(unitStarttype)
@@ -795,13 +803,13 @@ q_rampSlack(m, s, gnuft_rampCost(grid, node, unit, slack, f, t))${  ord(t) > msS
         ]${uft_startupTrajectory(unit, f, t)}
 
     // Shutdown of consumption units from full load
-    + v_shutdown(unit, f, t)${uft_online(unit, f, t) and gnu_input(grid, node, unit)}
+    + v_shutdown(unit, s, f, t)${uft_online(unit, f, t) and gnu_input(grid, node, unit)}
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
 
     // Shutdown of generation units from full load and ramping of units in the beginning of the shutdown phase
-    + v_shutdown(unit, f, t)${uft_online(unit, f, t) and gnu_output(grid, node, unit)}
+    + v_shutdown(unit, s, f, t)${uft_online(unit, f, t) and gnu_output(grid, node, unit)}
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
@@ -811,7 +819,7 @@ q_rampSlack(m, s, gnuft_rampCost(grid, node, unit, slack, f, t))${  ord(t) > msS
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_active(t_)${    ord(t_) >= ord(t) + dt_toShutdown(unit, t)
                                     and ord(t_) <= ord(t) + dt(t)},
-                + v_shutdown(unit, f+df(f,t_), t_)
+                + v_shutdown(unit, s, f+df(f,t_), t_)
                     * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
                     * 60   // Unit conversion from [p.u./min] to [p.u./h]
               ) // END sum(t_)
@@ -820,48 +828,48 @@ q_rampSlack(m, s, gnuft_rampCost(grid, node, unit, slack, f, t))${  ord(t) > msS
 
 * --- Fixed Output Ratio ------------------------------------------------------
 
-q_outputRatioFixed(gngnu_fixedOutputRatio(grid, node, grid_, node_, unit), ft(f, t))${  uft(unit, f, t)
+q_outputRatioFixed(gngnu_fixedOutputRatio(grid, node, grid_, node_, unit), sft(s, f, t))${  uft(unit, f, t)
                                                                                         } ..
 
     // Generation in grid
-    + v_gen(grid, node, unit, f, t)
+    + v_gen(grid, node, unit, s, f, t)
         / p_gnu(grid, node, unit, 'conversionFactor')
 
     =E=
 
     // Generation in grid_
-    + v_gen(grid_, node_, unit, f, t)
+    + v_gen(grid_, node_, unit, s, f, t)
         / p_gnu(grid_, node_, unit, 'conversionFactor')
 ;
 
 * --- Constrained Output Ratio ------------------------------------------------
 
-q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit), ft(f, t))${  uft(unit, f, t)
+q_outputRatioConstrained(gngnu_constrainedOutputRatio(grid, node, grid_, node_, unit), sft(s, f, t))${  uft(unit, f, t)
                                                                                                     } ..
 
     // Generation in grid
-    + v_gen(grid, node, unit, f, t)
+    + v_gen(grid, node, unit, s, f, t)
         / p_gnu(grid, node, unit, 'conversionFactor')
 
     =G=
 
     // Generation in grid_
-    + v_gen(grid_, node_, unit, f, t)
+    + v_gen(grid_, node_, unit, s, f, t)
         / p_gnu(grid_, node_, unit, 'conversionFactor')
 ;
 
 * --- Direct Input-Output Conversion ------------------------------------------
 
-q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
+q_conversionDirectInputOutput(s, suft(effDirect(effGroup), unit, f, t))$sft(s, f, t) ..
 
     // Sum over endogenous energy inputs
     - sum(gnu_input(grid, node, unit)${not p_gnu(grid, node, unit, 'doNotOutput')},
-        + v_gen(grid, node, unit, f, t)
+        + v_gen(grid, node, unit, s, f, t)
         ) // END sum(gnu_input)
 
     // Sum over fuel energy inputs
     + sum(uFuel(unit, 'main', fuel),
-        + v_fuelUse(fuel, unit, f, t)
+        + v_fuelUse(fuel, unit, s, f, t)
         ) // END sum(uFuel)
 
     // Main fuel is not used during run-up and shutdown phases
@@ -874,7 +882,7 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
                                     and ord(t_) <= ord(t)
                                     },
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df(f,t_), t_)
+                    + v_startup(unit, starttype, s, f+df(f,t_), t_)
                         * sum(t_full(t__)${ ord(t__) = p_u_runUpTimeIntervalsCeil(unit) - ord(t) - dt_next(t) + 1 + ord(t_) }, // last step in the interval
                             + p_ut_runUp(unit, t__)
                           ) // END sum(t__)
@@ -886,7 +894,7 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
           ) // END sum(gnu_output)
             * sum(t_active(t_)${ ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t)) },
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df(f,t_), t_)
+                    + v_startup(unit, starttype, s, f+df(f,t_), t_)
                         * sum(t_full(t__)${ord(t__) = 1}, p_ut_runUp(unit, t__))
                   ) // END sum(unitStarttype)
               )  // END sum(t_)
@@ -898,7 +906,7 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
             * sum(t_active(t_)${    ord(t_) >= ord(t) + dt_next(t) + dt_toShutdown(unit, t + dt_next(t))
                                     and ord(t_) < ord(t)
                                     },
-                + v_shutdown(unit, f+df(f,t_), t_)
+                + v_shutdown(unit, s, f+df(f,t_), t_)
                     * sum(t_full(t__)${ord(t__) = ord(t) - ord(t_) + 1},
                         + p_ut_shutdown(unit, t__)
                         ) // END sum(t__)
@@ -908,7 +916,7 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
             + p_gnu(grid, node, unit, 'unitSizeGen')
           ) // END sum(gnu_output)
             * (
-                + v_shutdown(unit, f, t)
+                + v_shutdown(unit, s, f, t)
                     * sum(t_full(t__)${ord(t__) = 1}, p_ut_shutdown(unit, t__))
                 ) // END * p_gnu(unitSizeGen)
         ]${uft_startupTrajectory(unit, f, t) or uft_shutdownTrajectory(unit, f, t)} // END run-up and shutdown phases
@@ -922,7 +930,7 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
 
     // Sum over energy outputs
     + sum(gnu_output(grid, node, unit),
-        + v_gen(grid, node, unit, f, t)
+        + v_gen(grid, node, unit, s, f, t)
             * [ // efficiency rate
                 + p_effUnit(effGroup, unit, effGroup, 'slope')${ not ts_effUnit(effGroup, unit, effGroup, 'slope', f, t) }
                 + ts_effUnit(effGroup, unit, effGroup, 'slope', f, t)
@@ -934,8 +942,8 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
         + p_gnu(grid, node, unit, 'unitSizeGen')
         ) // END sum(gnu_output)
         * [
-            + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-            + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+            + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+            + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
             ] // END * sum(gnu_output)
         * [
             + p_effGroupUnit(effGroup, unit, 'section')${not ts_effUnit(effGroup, unit, effDirect, 'section', f, t)}
@@ -945,16 +953,16 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
 
 * --- SOS2 Efficiency Approximation -------------------------------------------
 
-q_conversionSOS2InputIntermediate(suft(effLambda(effGroup), unit, f, t)) ..
+q_conversionSOS2InputIntermediate(s, suft(effLambda(effGroup), unit, f, t))$sft(s, f, t) ..
 
     // Sum over endogenous energy inputs
     - sum(gnu_input(grid, node, unit)${not p_gnu(grid, node, unit, 'doNotOutput')},
-        + v_gen(grid, node, unit, f, t)
+        + v_gen(grid, node, unit, s, f, t)
         ) // END sum(gnu_input)
 
     // Sum over fuel energy inputs
     + sum(uFuel(unit, 'main', fuel),
-        + v_fuelUse(fuel, unit, f, t)
+        + v_fuelUse(fuel, unit, s, f, t)
         ) // END sum(uFuel)
 
     =G=
@@ -964,7 +972,7 @@ q_conversionSOS2InputIntermediate(suft(effLambda(effGroup), unit, f, t)) ..
         * [
             // Consumption of generation
             + sum(effGroupSelectorUnit(effGroup, unit, effSelector),
-                + v_sos2(unit, f, t, effSelector)
+                + v_sos2(unit, s, f, t, effSelector)
                     * [ // Operation points convert the v_sos2 variables into share of capacity used for generation
                         + p_effUnit(effGroup, unit, effSelector, 'op')${not ts_effUnit(effGroup, unit, effSelector, 'op', f, t)}
                         + ts_effUnit(effGroup, unit, effSelector, 'op', f, t)
@@ -979,29 +987,29 @@ q_conversionSOS2InputIntermediate(suft(effLambda(effGroup), unit, f, t)) ..
 
 * --- SOS 2 Efficiency Approximation Online Variables -------------------------
 
-q_conversionSOS2Constraint(suft(effLambda(effGroup), unit, f, t)) ..
+q_conversionSOS2Constraint(s, suft(effLambda(effGroup), unit, f, t))$sft(s, f, t) ..
 
     // Total value of the v_sos2 equals the number of online units
     + sum(effGroupSelectorUnit(effGroup, unit, effSelector),
-        + v_sos2(unit, f, t, effSelector)
+        + v_sos2(unit, s, f, t, effSelector)
         ) // END sum(effSelector)
 
     =E=
 
     // Number of units online
-    + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+    + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 ;
 
 * --- SOS 2 Efficiency Approximation Output Generation ------------------------
 
-q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
+q_conversionSOS2IntermediateOutput(s, suft(effLambda(effGroup), unit, f, t))$sft(s, f, t) ..
 
     // Endogenous energy output
     + sum(gnu_output(grid, node, unit),
         + p_gnu(grid, node, unit, 'unitSizeGen')
       ) // END sum(gnu_output)
         * sum(effGroupSelectorUnit(effGroup, unit, effSelector),
-            + v_sos2(unit, f, t, effSelector)
+            + v_sos2(unit, s, f, t, effSelector)
             * [ // Operation points convert v_sos2 into share of capacity used for generation
                 + p_effUnit(effGroup, unit, effSelector, 'op')${not ts_effUnit(effGroup, unit, effSelector, 'op', f, t)}
                 + ts_effUnit(effGroup, unit, effSelector, 'op', f, t)
@@ -1017,7 +1025,7 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
                                     and ord(t_) <= ord(t)
                                     },
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df(f,t_), t_)
+                    + v_startup(unit, starttype, s, f+df(f,t_), t_)
                         * sum(t_full(t__)${ ord(t__) = p_u_runUpTimeIntervalsCeil(unit) - ord(t) - dt_next(t) + 1 + ord(t_) }, // last step in the interval
                             + p_ut_runUp(unit, t__)
                           ) // END sum(t__)
@@ -1030,7 +1038,7 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
             * sum(t_active(t_)${    ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
                                     },
                 + sum(unitStarttype(unit, starttype),
-                    + v_startup(unit, starttype, f+df(f,t_), t_)
+                    + v_startup(unit, starttype, s, f+df(f,t_), t_)
                         * sum(t_full(t__)${ord(t__) = 1}, p_ut_runUp(unit, t__))
                   ) // END sum(unitStarttype)
               )  // END sum(t_)
@@ -1044,7 +1052,7 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
             * sum(t_active(t_)${    ord(t_) >= ord(t) + dt_next(t) + dt_toShutdown(unit, t + dt_next(t))
                                     and ord(t_) < ord(t)
                                     },
-                + v_shutdown(unit, f+df(f,t_), t_)
+                + v_shutdown(unit, s, f+df(f,t_), t_)
                     * sum(t_full(t__)${ord(t__) = ord(t) - ord(t_) + 1},
                          + p_ut_shutdown(unit, t__)
                         ) // END sum(t__)
@@ -1054,7 +1062,7 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
             + p_gnu(grid, node, unit, 'unitSizeGen')
           ) // END sum(gnu_output)
             * (
-                + v_shutdown(unit, f, t)
+                + v_shutdown(unit, s, f, t)
                     * sum(t_full(t__)${ord(t__) = 1}, p_ut_shutdown(unit, t__))
                 ) // END * p_gnu(unitSizeGen)
         ]${uft_shutdownTrajectory(unit, f, t)}
@@ -1063,48 +1071,49 @@ q_conversionSOS2IntermediateOutput(suft(effLambda(effGroup), unit, f, t)) ..
 
     // Energy output into v_gen
     + sum(gnu_output(grid, node, unit),
-        + v_gen(grid, node, unit, f, t)
+        + v_gen(grid, node, unit, s, f, t)
         ) // END sum(gnu_output)
 ;
 
 * --- Fuel Use Limitation -----------------------------------------------------
 
-q_fuelUseLimit(fuel, uft(unit_fuel(unit), f, t))${   uFuel(unit, 'main', fuel)
+q_fuelUseLimit(s, fuel, uft(unit_fuel(unit), f, t))${sft(s, f, t)
+                                                     and uFuel(unit, 'main', fuel)
                                                      and p_uFuel(unit, 'main', fuel, 'maxFuelFraction')
                                                      } ..
 
     // Use of the limited fuel
-    + v_fuelUse(fuel, unit, f, t)
+    + v_fuelUse(fuel, unit, s, f, t)
 
     =L=
 
     // Sum over fuel energy inputs multiplied by the maximum fraction
     + p_uFuel(unit, 'main', fuel, 'maxFuelFraction')
         * sum(uFuel(unit, 'main', fuel_),
-            + v_fuelUse(fuel_, unit, f, t)
+            + v_fuelUse(fuel_, unit, s, f, t)
             ) // END sum(uFuel)
 ;
 
 * --- Total Transfer Limits ---------------------------------------------------
 
-q_transfer(gn2n_directional(grid, node, node_), ft(f, t)) ..
+q_transfer(gn2n_directional(grid, node, node_), sft(s, f, t)) ..
 
     // Rightward + Leftward
-    + v_transferRightward(grid, node, node_, f, t)
-    - v_transferLeftward(grid, node, node_, f, t)
+    + v_transferRightward(grid, node, node_, s, f, t)
+    - v_transferLeftward(grid, node, node_, s, f, t)
 
     =E=
 
     // = Total Transfer
-    + v_transfer(grid, node, node_, f, t)
+    + v_transfer(grid, node, node_, s, f, t)
 ;
 
 * --- Rightward Transfer Limits -----------------------------------------------
 
-q_transferRightwardLimit(gn2n_directional(grid, node, node_), ft(f, t))${   p_gnn(grid, node, node_, 'transferCapInvLimit')
+q_transferRightwardLimit(gn2n_directional(grid, node, node_), sft(s, f, t))${   p_gnn(grid, node, node_, 'transferCapInvLimit')
                                                                             } ..
     // Rightward transfer
-    + v_transferRightward(grid, node, node_, f, t)
+    + v_transferRightward(grid, node, node_, s, f, t)
 
     =L=
 
@@ -1121,11 +1130,11 @@ q_transferRightwardLimit(gn2n_directional(grid, node, node_), ft(f, t))${   p_gn
 
 * --- Leftward Transfer Limits ------------------------------------------------
 
-q_transferLeftwardLimit(gn2n_directional(grid, node, node_), ft(f, t))${    p_gnn(grid, node, node_, 'transferCapInvLimit')
+q_transferLeftwardLimit(gn2n_directional(grid, node, node_), sft(s, f, t))${    p_gnn(grid, node, node_, 'transferCapInvLimit')
                                                                             } ..
 
     // Leftward transfer
-    + v_transferLeftward(grid, node, node_, f, t)
+    + v_transferLeftward(grid, node, node_, s, f, t)
 
     =L=
 
@@ -1142,20 +1151,20 @@ q_transferLeftwardLimit(gn2n_directional(grid, node, node_), ft(f, t))${    p_gn
 
 * --- Rightward Reserve Transfer Limits ---------------------------------------
 
-q_resTransferLimitRightward(gn2n_directional(grid, node, node_), ft(f, t))${    sum(restypeDirection(restype, 'up'), restypeDirectionNodeNode(restype, 'up', node, node_))
+q_resTransferLimitRightward(gn2n_directional(grid, node, node_), sft(s, f, t))${    sum(restypeDirection(restype, 'up'), restypeDirectionNodeNode(restype, 'up', node, node_))
                                                                                 or sum(restypeDirection(restype, 'down'), restypeDirectionNodeNode(restype, 'down', node_, node))
                                                                                 or p_gnn(grid, node, node_, 'transferCapInvLimit')
                                                                                 } ..
 
     // Transfer from node
-    + v_transfer(grid, node, node_, f, t)
+    + v_transfer(grid, node, node_, s, f, t)
 
     // Reserved transfer capacities from node
     + sum(restypeDirection(restype, 'up')${restypeDirectionNodeNode(restype, 'up', node_, node)},
-        + v_resTransferRightward(restype, 'up', node, node_, f+df_reserves(node_, restype, f, t), t)
+        + v_resTransferRightward(restype, 'up', node, node_, s, f+df_reserves(node_, restype, f, t), t)
         ) // END sum(restypeDirection)
     + sum(restypeDirection(restype, 'down')${restypeDirectionNodeNode(restype, 'down', node, node_)},
-        + v_resTransferLeftward(restype, 'down', node, node_, f+df_reserves(node, restype, f, t), t)
+        + v_resTransferLeftward(restype, 'down', node, node_, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(restypeDirection)
 
     =L=
@@ -1173,20 +1182,20 @@ q_resTransferLimitRightward(gn2n_directional(grid, node, node_), ft(f, t))${    
 
 * --- Leftward Reserve Transfer Limits ----------------------------------------
 
-q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), ft(f, t))${ sum(restypeDirection(restype, 'up'), restypeDirectionNodeNode(restype, 'up', node_, node))
+q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), sft(s, f, t))${ sum(restypeDirection(restype, 'up'), restypeDirectionNodeNode(restype, 'up', node_, node))
                                                                             or sum(restypeDirection(restype, 'down'), restypeDirectionNodeNode(restype, 'down', node, node_))
                                                                             or p_gnn(grid, node, node_, 'transferCapInvLimit')
                                                                             } ..
 
     // Transfer from node
-    + v_transfer(grid, node, node_, f, t)
+    + v_transfer(grid, node, node_, s, f, t)
 
     // Reserved transfer capacities from node
     - sum(restypeDirection(restype, 'up')${restypeDirectionNodeNode(restype, 'up', node, node_)},
-        + v_resTransferLeftward(restype, 'up', node, node_, f+df_reserves(node, restype, f, t), t)
+        + v_resTransferLeftward(restype, 'up', node, node_, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(restypeDirection)
     - sum(restypeDirection(restype, 'down')${restypeDirectionNodeNode(restype, 'down', node_, node)},
-        + v_resTransferRightward(restype, 'down', node, node_, f+df_reserves(node_, restype, f, t), t)
+        + v_resTransferRightward(restype, 'down', node, node_, s, f+df_reserves(node_, restype, f, t), t)
         ) // END sum(restypeDirection)
 
   =G=
@@ -1204,14 +1213,14 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), ft(f, t))${ sum(
 
 * --- Rightward Reserve Provision Limits ----------------------------------------
 
-q_reserveProvisionRightward(restypeDirectionNodeNode(restype, up_down, node, node_), ft(f, t))${ sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit'))
-                                                                                                 and sum(grid, gn2n_directional(grid, node, node_))
-                                                                                                 and not [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
+q_reserveProvisionRightward(restypeDirectionNodeNode(restype, up_down, node, node_), sft(s, f, t))${sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit'))
+                                                                                                    and sum(grid, gn2n_directional(grid, node, node_))
+                                                                                                    and not [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
                                                                                                              or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t)
                                                                                                              ]
-                                                                                                 } ..
+                                                                                                   } ..
 
-    + v_resTransferRightward(restype, up_down, node, node_, f+df_reserves(node_, restype, f, t), t) // df_reserves based on the receiving node
+    + v_resTransferRightward(restype, up_down, node, node_, s, f+df_reserves(node_, restype, f, t), t) // df_reserves based on the receiving node
 
     =L=
 
@@ -1233,14 +1242,14 @@ q_reserveProvisionRightward(restypeDirectionNodeNode(restype, up_down, node, nod
 
 * --- Leftward Reserve Provision Limits ----------------------------------------
 
-q_reserveProvisionLeftward(restypeDirectionNodeNode(restype, up_down, node_, node), ft(f, t))${  sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit'))
+q_reserveProvisionLeftward(restypeDirectionNodeNode(restype, up_down, node_, node), sft(s, f, t))${  sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit'))
                                                                                                  and sum(grid, gn2n_directional(grid, node, node_))
                                                                                                  and not [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
                                                                                                              or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t)
                                                                                                              ]
                                                                                                  } ..
 
-    + v_resTransferLeftward(restype, up_down, node, node_, f+df_reserves(node, restype, f, t), t) // df_reserves based on the receiving node
+    + v_resTransferLeftward(restype, up_down, node, node_, s, f+df_reserves(node, restype, f, t), t) // df_reserves based on the receiving node
 
     =L=
 
@@ -1262,19 +1271,19 @@ q_reserveProvisionLeftward(restypeDirectionNodeNode(restype, up_down, node_, nod
 
 * --- State Variable Slack ----------------------------------------------------
 
-q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))${  p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
+q_stateSlack(gn_stateSlack(grid, node), slack, sft(s, f, t))${  p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
                                                             and not df_central(f, t)
                                                             } ..
 
     // Slack value
-    + v_stateSlack(grid, node, slack, f, t)
+    + v_stateSlack(grid, node, slack, s, f, t)
 
     =G=
 
     // Slack limits
     + p_slackDirection(slack)
         * [
-            + v_state(grid, node, f, t)
+            + v_state(grid, node, s, f, t)
             - p_gnBoundaryPropertiesForStates(grid, node, slack, 'constant')$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useConstant')
             - ts_node_(grid, node, slack, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries') }
             ] // END * p_slackDirection
@@ -1282,7 +1291,7 @@ q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))${  p_gnBoundaryProperti
 
 * --- Upwards Limit for State Variables ---------------------------------------
 
-q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'down', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
+q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))${    sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'down', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
                                                             or sum(gn2gnu(grid_, node_input, grid, node, unit)$(sum(restype, nuRescapable(restype, 'down', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
                                                             or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))  // or nodes that have units whose invested capacity limits their state
                                                             } ..
@@ -1304,7 +1313,7 @@ q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, nod
             ) // END sum(gnu)
 
         // Current state of the variable
-        - v_state(grid, node, f+df_central(f,t), t)
+        - v_state(grid, node, s, f+df_central(f,t), t)
         ] // END Headroom
         * [
             // Conversion to energy
@@ -1328,7 +1337,7 @@ q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, nod
             + sum(gn2gnu(grid_, node_input, grid, node, unit)${uft(unit, f, t)},
                 // Downward reserves from units that output energy to the node
                 + sum(nuRescapable(restype, 'down', node_input, unit)${ ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length') },
-                    + v_reserve(restype, 'down', node_input, unit, f+df_reserves(node_input, restype, f, t), t)
+                    + v_reserve(restype, 'down', node_input, unit, s, f+df_reserves(node_input, restype, f, t), t)
                         / sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -1340,7 +1349,7 @@ q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, nod
             + sum(gn2gnu(grid, node, grid_, node_output, unit)${uft(unit, f, t)},
                 // Downward reserves from units that use the node as energy input
                 + sum(nuRescapable(restype, 'down', node_output, unit)${ ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length') },
-                    + v_reserve(restype, 'down', node_output, unit, f+df_reserves(node_output, restype, f, t), t)
+                    + v_reserve(restype, 'down', node_output, unit, s, f+df_reserves(node_output, restype, f, t), t)
                         * sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -1356,14 +1365,14 @@ q_stateUpwardLimit(gn_state(grid, node), mft(m, f, t))${    sum(gn2gnu(grid, nod
 
 * --- Downwards Limit for State Variables -------------------------------------
 
-q_stateDownwardLimit(gn_state(grid, node), mft(m, f, t))${  sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'up', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
+q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))${  sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, nuRescapable(restype, 'up', node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
                                                             or sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, nuRescapable(restype, 'up', node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
                                                             } ..
 
     // Utilizable headroom in the state variable
     + [
         // Current state of the variable
-        + v_state(grid, node, f+df_central(f,t), t)
+        + v_state(grid, node, s, f+df_central(f,t), t)
 
         // Lower boundary of the variable
         - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')}
@@ -1391,7 +1400,7 @@ q_stateDownwardLimit(gn_state(grid, node), mft(m, f, t))${  sum(gn2gnu(grid, nod
             + sum(gn2gnu(grid_, node_input, grid, node, unit)${uft(unit, f, t)},
                 // Upward reserves from units that output energy to the node
                 + sum(nuRescapable(restype, 'up', node_input, unit)${ ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length') },
-                    + v_reserve(restype, 'up', node_input, unit, f+df_reserves(node_input, restype, f, t), t)
+                    + v_reserve(restype, 'up', node_input, unit, s, f+df_reserves(node_input, restype, f, t), t)
                         / sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -1403,7 +1412,7 @@ q_stateDownwardLimit(gn_state(grid, node), mft(m, f, t))${  sum(gn2gnu(grid, nod
             + sum(gn2gnu(grid, node, grid_, node_output, unit)${uft(unit, f, t)},
                 // Upward reserves from units that use the node as energy input
                 + sum(nuRescapable(restype, 'up', node_output, unit)${ ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length') },
-                    + v_reserve(restype, 'up', node_output, unit, f+df_reserves(node_output, restype, f, t), t)
+                    + v_reserve(restype, 'up', node_output, unit, s, f+df_reserves(node_output, restype, f, t), t)
                         * sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -1419,11 +1428,11 @@ q_stateDownwardLimit(gn_state(grid, node), mft(m, f, t))${  sum(gn2gnu(grid, nod
 
 * --- State Variable Difference -----------------------------------------------
 
-q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
+q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
 
     // State of the bound node
     + p_gn(grid, node, 'energyStoredPerUnitOfState')
-        * v_state(grid, node, f+df_central(f,t), t)
+        * v_state(grid, node, s, f+df_central(f,t), t)
 
     // Reserve contributions affecting bound node, converted to energy
     + p_stepLength(m, f, t)
@@ -1433,7 +1442,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                                                                     and uft(unit, f, t)
                                                                     and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                     },
-                + v_reserve(restype, 'down', node_input, unit, f+df_reserves(node_input, restype, f, t), t)
+                + v_reserve(restype, 'down', node_input, unit, s, f+df_reserves(node_input, restype, f, t), t)
                     / sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -1445,7 +1454,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                                                                         and uft(unit, f, t)
                                                                         and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                         },
-                + v_reserve(restype, 'down', node_output, unit, f+df_reserves(node_output, restype, f, t), t)
+                + v_reserve(restype, 'down', node_output, unit, s, f+df_reserves(node_output, restype, f, t), t)
                     / sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -1462,7 +1471,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
     + p_gn(grid, node_, 'energyStoredPerUnitOfState')
         * [
             // State of the binding node
-            + v_state(grid, node_, f+df_central(f,t), t)
+            + v_state(grid, node_, s, f+df_central(f,t), t)
             // Maximum state difference parameter
             + p_gnn(grid, node, node_, 'boundStateMaxDiff')
             ] // END * energyStoredPerUnitOfState
@@ -1475,7 +1484,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                                                                     and uft(unit, f, t)
                                                                     and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                     },
-                + v_reserve(restype, 'up', node_input, unit, f+df_reserves(node_input, restype, f, t), t)
+                + v_reserve(restype, 'up', node_input, unit, s, f+df_reserves(node_input, restype, f, t), t)
                     / sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -1487,7 +1496,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
                                                                     and uft(unit, f, t)
                                                                     and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                     },
-                + v_reserve(restype, 'up', node_output, unit, f+df_reserves(node_output, restype, f, t), t)
+                + v_reserve(restype, 'up', node_output, unit, s, f+df_reserves(node_output, restype, f, t), t)
                     / sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -1509,8 +1518,8 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)${ ms(m, s_)
 
     // Initial value of the state of the node at the start of the sample
     + sum(mst_start(m, s, t),
-        + sum(ft(f, t),
-            + v_state(grid, node, f+df(f,t+dt(t)), t+dt(t))
+        + sum(sft(s, f, t),
+            + v_state(grid, node, s, f+df(f,t+dt(t)), t+dt(t))
             ) // END sum(ft)
         ) // END sum(mst_start)
 
@@ -1518,15 +1527,15 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)${ ms(m, s_)
 
     // State of the node at the end of the sample
     + sum(mst_end(m, s_, t_),
-        + sum(ft(f_, t_),
-            + v_state(grid, node, f_, t_)
+        + sum(sft(s, f_, t_),
+            + v_state(grid, node, s, f_, t_)
             ) // END sum(ft)
         ) // END sum(mst_end)
 ;
 
 *--- Minimum Inertia ----------------------------------------------------------
 
-q_inertiaMin(group, ft(f, t))${  p_groupPolicy(group, 'kineticEnergyMin')
+q_inertiaMin(group, sft(s, f, t))${  p_groupPolicy(group, 'kineticEnergyMin')
                                  } ..
 
     // Kinectic energy in the system
@@ -1536,9 +1545,9 @@ q_inertiaMin(group, ft(f, t))${  p_groupPolicy(group, 'kineticEnergyMin')
         + p_gnu(grid, node, unit, 'inertia')
             * p_gnu(grid ,node, unit, 'unitSizeMVA')
             * [
-                + v_online_LP(unit, f+df_central(f,t), t)${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, f+df_central(f,t), t)${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
-                + v_gen(grid, node, unit, f, t)${not uft_online(unit, f, t)}
+                + v_online_LP(unit, s, f+df_central(f,t), t)${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, s, f+df_central(f,t), t)${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
+                + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
                     / p_gnu(grid, node, unit, 'unitSizeGen')
                 ] // * p_gnu
         ) // END sum(gnu_output)
@@ -1550,7 +1559,7 @@ q_inertiaMin(group, ft(f, t))${  p_groupPolicy(group, 'kineticEnergyMin')
 
 *--- Maximum Share of Instantaneous Generation --------------------------------
 
-q_instantaneousShareMax(group, ft(f, t))${  p_groupPolicy(group, 'instantaneousShareMax')
+q_instantaneousShareMax(group, sft(s, f, t))${  p_groupPolicy(group, 'instantaneousShareMax')
                                             } ..
 
     // Generation of units in the group
@@ -1558,7 +1567,7 @@ q_instantaneousShareMax(group, ft(f, t))${  p_groupPolicy(group, 'instantaneousS
                                     and p_gnu(grid, node, unit, 'unitSizeGen')
                                     and gnGroup(grid, node, group)
                                     },
-        + v_gen(grid, node, unit, f, t)
+        + v_gen(grid, node, unit, s, f, t)
         ) // END sum(gnu)
 
     // Controlled transfer to this node group
@@ -1567,14 +1576,14 @@ q_instantaneousShareMax(group, ft(f, t))${  p_groupPolicy(group, 'instantaneousS
                                                 and gnGroup(grid, node, group)
                                                 and not gnGroup(grid, node_, group)
                                                 },
-        + v_transferLeftward(grid, node, node_, f, t) * (1-p_gnn(grid, node, node_, 'transferLoss'))
+        + v_transferLeftward(grid, node, node_, s, f, t) * (1-p_gnn(grid, node, node_, 'transferLoss'))
         ) // END sum(gn2n_directional)
 
     + sum(gn2n_directional(grid, node_, node)${ gn2nGroup(grid, node_, node, group)
                                                 and gnGroup(grid, node, group)
                                                 and not gnGroup(grid, node_, group)
                                                 },
-        + v_transferRightward(grid, node_, node, f, t) * (1-p_gnn(grid, node_, node, 'transferLoss'))
+        + v_transferRightward(grid, node_, node, s, f, t) * (1-p_gnn(grid, node_, node, 'transferLoss'))
         ) // END sum(gn2n_directional)
 
     =L=
@@ -1583,27 +1592,27 @@ q_instantaneousShareMax(group, ft(f, t))${  p_groupPolicy(group, 'instantaneousS
         * [
             // External power inflow/outflow
             - sum(gnGroup(grid, node, group),
-                + ts_influx_(grid, node, f, t)
+                + ts_influx_(grid, node, f, t, s)
                 ) // END sum(gnGroup)
 
             // Consumption of units
             - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
                                                 and gnGroup(grid, node, group)
                                                 },
-                + v_gen(grid, node, unit, f, t)
+                + v_gen(grid, node, unit, s, f, t)
                 ) // END sum(gnu)
 
             // Controlled transfer from this node group
             + sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
                                                         and not gnGroup(grid, node_, group)
                                                         },
-                + v_transferRightward(grid, node, node_, f, t)
+                + v_transferRightward(grid, node, node_, s, f, t)
                 ) // END sum(gn2n_directional)
 
             + sum(gn2n_directional(grid, node_, node)${ gnGroup(grid, node, group)
                                                         and not gnGroup(grid, node_, group)
                                                         },
-                + v_transferLeftward(grid, node_, node, f, t)
+                + v_transferLeftward(grid, node_, node, s, f, t)
                 ) // END sum(gn2n_directional)
 $ontext
         // No uncontrolled (AC) transfer because this equation is typically used
@@ -1626,7 +1635,7 @@ $offtext
 
 *--- Constrained Number of Online Units ---------------------------------------
 
-q_constrainedOnlineMultiUnit(group, ft(f, t))${   p_groupPolicy(group, 'constrainedOnlineTotalMax')
+q_constrainedOnlineMultiUnit(group, sft(s, f, t))${   p_groupPolicy(group, 'constrainedOnlineTotalMax')
                                                   or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)))
                                                   } ..
 
@@ -1634,8 +1643,8 @@ q_constrainedOnlineMultiUnit(group, ft(f, t))${   p_groupPolicy(group, 'constrai
     + sum(unit$uGroup(unit, group),
         + p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
             * [
-                + v_online_LP(unit, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+                + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
                 ] // END * p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
         ) // END sum(unit)
 
@@ -1649,7 +1658,7 @@ q_constrainedOnlineMultiUnit(group, ft(f, t))${   p_groupPolicy(group, 'constrai
 // !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Niina needs to check these, currently uses maximum conversion output cap.
 
-q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin')
+q_capacityMargin(gn(grid, node), sft(s, f, t))${    p_gn(grid, node, 'capacityMargin')
                                                 } ..
 
     // Availability of units, including capacity factors
@@ -1677,40 +1686,40 @@ q_capacityMargin(gn(grid, node), ft(f, t))${    p_gn(grid, node, 'capacityMargin
 
     // Transfer to node
     + sum(gn2n_directional(grid, node_, node),
-        + v_transfer(grid, node_, node, f, t)
-        - v_transferRightward(grid, node_, node, f, t)
+        + v_transfer(grid, node_, node, s, f, t)
+        - v_transferRightward(grid, node_, node, s, f, t)
             * p_gnn(grid, node_, node, 'transferLoss')
         ) // END sum(gn2n_directional)
 
     // Transfer from node
     - sum(gn2n_directional(grid, node, node_),
-        + v_transfer(grid, node, node_, f, t)
-        + v_transferLeftward(grid, node, node_, f, t)
+        + v_transfer(grid, node, node_, s, f, t)
+        + v_transferLeftward(grid, node, node_, s, f, t)
             * p_gnn(grid, node, node_, 'transferLoss')
         ) // END sum(gn2n_directional)
 
     // Diffusion to node
     + sum(gnn_state(grid, from_node, node),
         + p_gnn(grid, from_node, node, 'diffCoeff')
-            * v_state(grid, from_node, f+df_central(f,t), t)
+            * v_state(grid, from_node, s, f+df_central(f,t), t)
         ) // END sum(gnn_state)
 
     // Diffusion from node
     - sum(gnn_state(grid, node, to_node),
         + p_gnn(grid, node, to_node, 'diffCoeff')
-            * v_state(grid, node, f+df_central(f,t), t)
+            * v_state(grid, node, s, f+df_central(f,t), t)
         ) // END sum(gnn_state)
 
     // Conversion unit inputs might require additional capacity
     + sum(gnu_input(grid, node, unit),
-        + v_gen(grid, node, unit, f, t)
+        + v_gen(grid, node, unit, s, f, t)
         ) // END sum(gnu_input)
 
     // Energy influx
-    + ts_influx_(grid, node, f, t)
+    + ts_influx_(grid, node, f, t, s)
 
     // Capacity margin feasibility dummy variables
-    + vq_capacity(grid, node, f, t)
+    + vq_capacity(grid, node, s, f, t)
 
     =G=
 
@@ -1753,7 +1762,7 @@ q_emissioncap(group, emission)${  p_groupPolicy3D(group, 'emissionCap', emission
             // Time step length dependent emissions
             + p_stepLength(m, f, t)
                 * sum((uft(unit_fuel, f, t), fuel)${uFuel(unit_fuel, 'main', fuel)},
-                    + v_fuelUse(fuel, unit_fuel, f, t)
+                    + v_fuelUse(fuel, unit_fuel, s, f, t)
                         * p_fuelEmission(fuel, emission) / 1e3
                         * sum(gnu_output(grid, node, unit_fuel)${gnGroup(grid, node, group)},
                             + p_gnu(grid, node, unit_fuel, 'unitSizeGen')
@@ -1766,7 +1775,7 @@ q_emissioncap(group, emission)${  p_groupPolicy3D(group, 'emissionCap', emission
             // Start-up emissions
             + sum(uft_online(unit_fuel, f, t),
                 + sum(unitStarttype(unit_fuel, starttype),
-                    + v_startup(unit_fuel, starttype, f, t)
+                    + v_startup(unit_fuel, starttype, s, f, t)
                         * sum(uFuel(unit_fuel, 'startup', fuel),
                             + p_uStartup(unit_fuel, starttype, 'consumption')
                                 * p_uFuel(unit_fuel, 'startup', fuel, 'fixedFuelFraction')
@@ -1803,19 +1812,19 @@ q_energyShareMax(group)${  p_groupPolicy(group, 'energyShareMax')
                                                         and p_gnu(grid, node, unit, 'unitSizeGen')
                                                         and gnGroup(grid, node, group)
                                                         },
-                    + v_gen(grid, node, unit, f, t)
+                    + v_gen(grid, node, unit, s, f, t)
                     ) // END sum(gnu)
 
                 // External power inflow/outflow and consumption of units times the maximum share
                 - p_groupPolicy(group, 'energyShareMax')
                   * [
                     - sum(gnGroup(grid, node, group),
-                        + ts_influx_(grid, node, f, t)
+                        + ts_influx_(grid, node, f, t, s)
                         ) // END sum(gnGroup)
                     - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
                                                         and gnGroup(grid, node, group)
                                                         },
-                        + v_gen(grid, node, unit, f, t)
+                        + v_gen(grid, node, unit, s, f, t)
                         ) // END sum(gnu_input)
                     ] // END * p_groupPolicy
                 ] // END * p_stepLength
@@ -1840,19 +1849,19 @@ q_energyShareMin(group)${  p_groupPolicy(group, 'energyShareMin')
                                                         and p_gnu(grid, node, unit, 'unitSizeGen')
                                                         and gnGroup(grid, node, group)
                                                         },
-                    + v_gen(grid, node, unit, f, t)
+                    + v_gen(grid, node, unit, s, f, t)
                     ) // END sum(gnu)
 
                 // External power inflow/outflow and consumption of units times the maximum share
                 - p_groupPolicy(group, 'energyShareMin')
                   * [
                     - sum(gnGroup(grid, node, group),
-                        + ts_influx_(grid, node, f, t)
+                        + ts_influx_(grid, node, f, t, s)
                         ) // END sum(gnGroup)
                     - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
                                                         and gnGroup(grid, node, group)
                                                         },
-                        + v_gen(grid, node, unit, f, t)
+                        + v_gen(grid, node, unit, s, f, t)
                         ) // END sum(gnu_input)
                     ] // END * p_groupPolicy
                 ] // END * p_stepLength
