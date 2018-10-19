@@ -56,6 +56,7 @@ $loaddc ts_fuelPriceChange
 $loaddc ts_influx
 $loaddc ts_node
 $loaddc t_invest
+$loaddc p_storageValue
 $loaddc group
 $loaddc uGroup
 $loaddc gnuGroup

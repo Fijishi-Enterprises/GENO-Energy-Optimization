@@ -148,4 +148,3 @@ Parameters
     p_stepLength(mType, f, t) "Length of an interval in hours"
     p_stepLengthNoReset(mType, f, t) "Length of an interval in hours - includes also lengths of previously realized intervals"
 ;
-Option clear = p_storageValue; // Required for whatever reason.
