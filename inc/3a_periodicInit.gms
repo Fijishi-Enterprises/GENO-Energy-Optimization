@@ -22,7 +22,6 @@ $offtext
 // Initialize various sets
 Option clear = t_full;
 Option clear = dt_noReset;
-Option clear = t_activeNoReset;
 Option clear = f_solve;
 Option clear = tmp;
 
@@ -430,6 +429,9 @@ loop(m,
 
 * --- Unit Startup and Shutdown Counters --------------------------------------
 
+// Initialize unitCounter
+Option clear = unitCounter;
+
 loop(m,
     // Loop over units with online approximations in the model
     loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit)${mSettingsEff(m, effLevel)},
@@ -441,6 +443,7 @@ loop(m,
                             and ord(counter) > p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'stepLengthInHours')
                             }
                 = yes;
+            unitCounter(unit, cc(counter)) = yes;
             dt_starttypeUnitCounter(starttype, unit, cc(counter)) = - ord(counter);
         ); // END loop(starttypeConstrained)
 
@@ -451,15 +454,27 @@ loop(m,
                                         + ceil(p_u_shutdownTimeIntervals(unit)) // NOTE! Check this
                         }
             = yes;
+        unitCounter(unit, cc(counter)) = yes;
         dt_downtimeUnitCounter(unit, cc(counter)) = - ord(counter);
 
         // Find the time step displacements needed to define the uptime requirements
         Option clear = cc;
         cc(counter)${ ord(counter) <= ceil(p_unit(unit, 'minOperationHours') / mSettings(m, 'stepLengthInHours'))}
             = yes;
+        unitCounter(unit, cc(counter)) = yes;
         dt_uptimeUnitCounter(unit, cc(counter)) = - ord(counter);
     ); // END loop(effLevelGroupUnit)
 ); // END loop(m)
+
+// Estimate the maximum amount of history required for the model
+Option clear = tmp_dt;
+loop((starttype, unitCounter(unit, counter)),
+    tmp_dt = min(   tmp_dt,
+                    dt_starttypeUnitCounter(starttype, unit, counter)
+                    + dt_downtimeUnitCounter(unit, counter)
+                    + dt_uptimeUnitCounter(unit, counter)
+                    );
+); // END loop(starttype, unitCounter)
 
 * =============================================================================
 * --- Disable reserves according to model definition --------------------------

@@ -85,8 +85,7 @@ Sets
     m(mType) "model(s) in use"
     t_full(t) "Full set of time steps in the current model"
     t_current(t) "Set of time steps within the current solve horizon"
-    t_active(t) "Set of active t:s within the current solve horizon"
-    t_activeNoReset(t) "Set of active t:s within the current solve horizon and previously realized t:s"
+    t_active(t) "Set of active t:s within the current solve horizon, including necessary history"
     t_invest(t) "Time steps when investments can be made"
     tt(t) "Temporary subset for time steps used for calculations"
     tt_interval(t) "Temporary time steps when forming the ft structure"
@@ -134,6 +133,7 @@ Sets
     effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
     mSettingsReservesInUse(mType, *, up_down) "Reserves that are used in each model type"
+    unitCounter(unit, counter) "Counter subset used for restricting excessive looping over the counter set when defining unit startup/shutdown/online time restrictions"
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
     group "A group of units, transfer links, nodes, etc."

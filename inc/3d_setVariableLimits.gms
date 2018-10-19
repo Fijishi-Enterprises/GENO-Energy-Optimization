@@ -211,7 +211,6 @@ v_online_MIP.up(uft_onlineMIP(unit, f, t))${    not unit_investMIP(unit) }
 ;
 
 // Free the upper bound of start-up and shutdown variables (if previously bounded)
-// This should not be needed if t_activeNoReset is used properly?
 v_startup.up(unitStarttype(unit, starttype), ft(f, t)) = inf;
 v_shutdown.up(uft(unit, f, t)) = inf;
 
@@ -467,26 +466,30 @@ loop(mft_start(mSolve, f, t),
 * =============================================================================
 // Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up and shutdown phases.
 
-v_startup.fx(unitStarttype(unit, starttype), ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
-                                                                          and sum[ft(f_,t_), uft_online(unit,f_,t_)]
-                                                                          }
+v_startup.fx(unitStarttype(unit, starttype), ft_realizedNoReset(f, t_active(t)))
+    ${  ord(t) <= tSolveFirst
+        and sum[ft(f_,t_), uft_online(unit,f_,t_)]
+        }
     = r_startup(unit, starttype, f, t)
 ;
 
-v_shutdown.fx(unit, ft_realizedNoReset(f, t))${  ord(t) <= tSolveFirst
-                                                 and sum[ft(f_,t_), uft_online(unit,f_,t_)]
-                                                 }
+v_shutdown.fx(unit, ft_realizedNoReset(f, t_active(t)))
+    ${  ord(t) <= tSolveFirst
+        and sum[ft(f_,t_), uft_online(unit,f_,t_)]
+        }
     = r_shutdown(unit, f, t)
 ;
 
-v_online_MIP.fx(unit, ft_realizedNoReset(f, t))${   ord(t) <= tSolveFirst
-                                                    and sum[ft(f_,t_), uft_onlineMIP(unit,f_,t_)]
-                                                    }
+v_online_MIP.fx(unit, ft_realizedNoReset(f, t_active(t)))
+    ${  ord(t) <= tSolveFirst
+        and sum[ft(f_,t_), uft_onlineMIP(unit,f_,t_)]
+        }
     = round(r_online(unit, f, t));
 
-v_online_LP.fx(unit, ft_realizedNoReset(f, t))${    ord(t) <= tSolveFirst
-                                                    and sum[ft(f_,t_), uft_onlineLP(unit,f_,t_)]
-                                                    }
+v_online_LP.fx(unit, ft_realizedNoReset(f, t_active(t)))
+    ${  ord(t) <= tSolveFirst
+        and sum[ft(f_,t_), uft_onlineLP(unit,f_,t_)]
+        }
     = r_online(unit, f, t);
 
 

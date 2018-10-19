@@ -307,28 +307,23 @@ loop(cc(counter),
 
 ); // END loop(counter)
 
-// Updating the set of active and realized t:s
-t_activeNoReset(t_current(t))${ord(t) > tSolveFirst} = no;
-t_activeNoReset(t_active(t)) = yes;
+// Include the necessary amount of historical timesteps
+t_active(t_full(t))
+    ${  ord(t) + tmp_dt <= tSolveFirst
+        }
+    = yes;
 
 // Time step displacement to reach previous time step
 option clear = tmp;
 tmp = tSolveFirst + dt_noReset(tSolve + 1) + 1${ dt_noReset(tSolve + 1) };
 option clear = dt;
+option clear = dt_next;
 dt_noReset(t_current(t))${ord(t) > tSolveFirst} = 0; // clean up old values (needed for t:s which are in the horizon but not in t_active)
 loop(t_active(t),
     dt(t) = tmp - ord(t);
+    dt_next(t+dt(t)) = -dt(t);
     dt_noReset(t) = dt(t);
     tmp = ord(t);
-); // END loop(t_active)
-
-// Time step displacement to reach next time step
-option clear = dt_next;
-loop(t_active(t),
-    dt_next(t)
-        = sum(f_solve$mf(mSolve, f_solve), p_stepLength(mSolve, f_solve, t))
-            / sum(f_solve${mf(mSolve, f_solve) and p_stepLength(mSolve, f_solve, t)}, 1)
-            / mSettings(mSolve, 'stepLengthInHours');
 ); // END loop(t_active)
 
 // Initial model ft
@@ -558,10 +553,15 @@ p_msft_probability(msft(mSolve, s, f, t))
 * --- Displacements for start-up and shutdown decisions -----------------------
 * -----------------------------------------------------------------------------
 
+// Form a temporary clone of the t_active set
+Option clear = tt;
+tt(t_active(t)) = yes;
+
 // Calculate dtt: displacement needed to reach any previous time interval
 // (needed to calculate dt_toStartup and dt_toShutdown)
 Option clear = dtt;
-dtt(t_active(t),t_activeNoReset(t_))${ ord(t_) <= ord(t) }
+dtt(t_active(t), tt(t_))
+    ${ ord(t_) <= ord(t) }
     = ord(t_) - ord(t);
 
 * --- Start-up decisions ------------------------------------------------------
@@ -572,10 +572,10 @@ Option clear = dt_toStartup;
 loop(unit$(p_u_runUpTimeIntervals(unit)),
     loop(t_active(t)${sum(f_solve(f), uft_startupTrajectory(unit, f, t))},
         tmp = 1;
-        loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time intervals after the start up
-                                    and ord(t_) <= ord(t) // time intervals before and including the current time interval
-                                    and tmp = 1
-                                    },
+        loop(tt(t_)${   ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time intervals after the start up
+                        and ord(t_) <= ord(t) // time intervals before and including the current time interval
+                        and tmp = 1
+                        },
             if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for start-up phase
                 dt_toStartup(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time interval just before the time interval found
                 tmp = 0;
@@ -597,10 +597,10 @@ Option clear = dt_toShutdown;
 loop(unit$(p_u_shutdownTimeIntervals(unit)),
     loop(t_active(t)${sum(f_solve(f), uft_shutdownTrajectory(unit, f, t))},
         tmp = 1;
-        loop(t_activeNoReset(t_)${  ord(t_) > ord(t) - p_u_shutdownTimeIntervals(unit) // time intervals after the shutdown decision
-                                    and ord(t_) <= ord(t) // time intervals before and including the current time interval
-                                    and tmp = 1
-                                    },
+        loop(tt(t_)${   ord(t_) > ord(t) - p_u_shutdownTimeIntervals(unit) // time intervals after the shutdown decision
+                        and ord(t_) <= ord(t) // time intervals before and including the current time interval
+                        and tmp = 1
+                        },
             if (-dtt(t,t_) < p_u_shutdownTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for shutdown phase
                 dt_toShutdown(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time interval just before the time interval found
                 tmp = 0;
@@ -612,4 +612,6 @@ loop(unit$(p_u_shutdownTimeIntervals(unit)),
         );
     );
 );
+
+
 
