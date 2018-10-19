@@ -460,7 +460,7 @@ loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
 );
 
 * Check the shutdown time related data
-loop( unit,
+loop( unitStarttype(unit, starttypeConstrained),
     if(p_unit(unit, 'minShutdownHours') > p_unit(unit, 'startWarmAfterXhours')
         or p_unit(unit, 'startWarmAfterXhours') > p_unit(unit, 'startColdAfterXhours'),
         put log '!!! Error occurred on unit ', unit.tl:0;
