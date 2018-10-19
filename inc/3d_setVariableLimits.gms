@@ -302,21 +302,21 @@ loop((restypeDirectionNode(restype, up_down, node), ft(f, t))${ ord(t) <= tSolve
                 ]; // END * min
 
     // Reserve transfer upper bounds based on input p_nnReserves data, if investments are disabled
-    v_resTransferRightward.up(restypeDirectionNodeNode(restype, up_down, from_node, to_node), f+df_reserves(node, restype, f, t), t)
-        ${  not sum(grid, p_gnn(grid, from_node, to_node, 'transferCapInvLimit')) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
+    v_resTransferRightward.up(restypeDirectionNodeNode(restype, up_down, node, node_), f+df_reserves(node, restype, f, t), t)
+        ${  not sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit')) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
             }
         = sum(grid, // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
-            + p_gnn(grid, from_node, to_node, 'transferCap')
+            + p_gnn(grid, node, node_, 'transferCap')
             ) // END sum(grid)
-            * p_nnReserves(from_node, to_node, restype, up_down);
+            * p_nnReserves(node, node_, restype, up_down);
 
-    v_resTransferLeftward.up(restypeDirectionNodeNode(restype, up_down, to_node, from_node), f+df_reserves(node, restype, f, t), t)
-        ${  not sum(grid, p_gnn(grid, to_node, from_node, 'transferCapInvLimit')) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
+    v_resTransferLeftward.up(restypeDirectionNodeNode(restype, up_down, node, node_), f+df_reserves(node, restype, f, t), t)
+        ${  not sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit')) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
             }
         = sum(grid, // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
-            + p_gnn(grid, to_node, from_node, 'transferCap')
+            + p_gnn(grid, node, node_, 'transferCap')
             ) // END sum(grid)
-            * p_nnReserves(to_node, from_node, restype, up_down);
+            * p_nnReserves(node, node_, restype, up_down);
 
     // Fix non-flow unit reserves at the gate closure of reserves
     v_reserve.fx(nuRescapable(restype, up_down, node, unit), f, t)  // This doesn't require df_reserves, as ft_reservesFixed already limits the fixed (f,t).
