@@ -309,7 +309,8 @@ loop(cc(counter),
 
 // Include the necessary amount of historical timesteps
 t_active(t_full(t))
-    ${  ord(t) + tmp_dt <= tSolveFirst
+    ${  ord(t) <= tSolveFirst
+        and ord(t) >= tSolveFirst + tmp_dt
         }
     = yes;
 
