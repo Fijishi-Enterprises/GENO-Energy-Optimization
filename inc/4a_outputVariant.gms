@@ -56,7 +56,7 @@ r_shutdown(uft_online(unit, ft_realized(f, t)))$[ord(t) > mSettings(mSolve, 't_s
 * --- Reserve results ---------------------------------------------------------
 
 // Loop over reserve horizon, as the reserve variables use a different ft-structure due to commitment
-loop((restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))
+loop((restypeDirectionNode(restype, up_down, node), ft(f, t))
     ${  df_reserves(node, restype, f, t)
         and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
@@ -88,7 +88,7 @@ loop((restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))
     r_qResMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
         = vq_resMissing.l(restype, up_down, node, f+df_reserves(node, restype, f, t), t);
 
-); // END loop(restypeDirectionNode, f_solve, t_active)
+); // END loop(restypeDirectionNode, ft)
 
 * --- Interesting results -----------------------------------------------------
 
