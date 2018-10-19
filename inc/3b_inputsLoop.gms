@@ -20,7 +20,7 @@ $offtext
 * =============================================================================
 
 put log 'ord tSolve: ';
-put log ord(tSolve) /;
+put log ord(tSolve):0:0 /;
 putclose log;
 
 if (ord(tSolve) >= tForecastNext(mSolve),
