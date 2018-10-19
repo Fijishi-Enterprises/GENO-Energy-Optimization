@@ -273,7 +273,7 @@ v_transferLeftward.up(gn2n_directional(grid, node, node_), ft(f, t))${  not p_gn
 * --- Reserve Provision Boundaries --------------------------------------------
 
 // Loop over the forecasts to minimize confusion regarding the df_reserves forecast displacement
-loop((restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length') },
+loop((restypeDirectionNode(restype, up_down, node), ft(f, t))${ ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length') },
     // Reserve provision limits without investments
     // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
     v_reserve.up(nuRescapable(restype, 'up', node, unit), f+df_reserves(node, restype, f, t), t)
@@ -346,7 +346,7 @@ loop((restypeDirectionNode(restype, up_down, node), f_solve(f), t_active(t))${ o
         $ { ft_reservesFixed(node, restype, f, t) }  // This set contains the combination of reserve types and time intervals that should be fixed
       = r_qResDemand(restype, up_down, node, f, t);
 
-); // END loop(f_solve)
+); // END loop(restypeDirectionNode, ft)
 
 // Free reserves for the realization if needed
 v_reserve.lo(nuRescapable(restypeReleasedForRealization, up_down, node, unit), ft_realized(f,t))
