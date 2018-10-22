@@ -468,11 +468,11 @@ loop(m,
 
 // Estimate the maximum amount of history required for the model (very rough estimate atm, just sums all possible delays together)
 Option clear = tmp_dt;
-loop((starttype, unitCounter(unit, counter)),
+loop(unit,
     tmp_dt = min(   tmp_dt, // dt operators have negative values, thus use min instead of max
-                    dt_starttypeUnitCounter(starttype, unit, counter)
-                    + dt_downtimeUnitCounter(unit, counter)
-                    + dt_uptimeUnitCounter(unit, counter)
+                    smin((starttype, unitCounter(unit, counter)), dt_starttypeUnitCounter(starttype, unit, counter))
+                    + smin(unitCounter(unit, counter), dt_downtimeUnitCounter(unit, counter))
+                    + smin(unitCounter(unit, counter), dt_uptimeUnitCounter(unit, counter))
                     - p_u_runUpTimeIntervalsCeil(unit) // NOTE! p_u_runUpTimeIntervalsCeil is positive, whereas all dt operators are negative
                     - p_u_shutdownTimeIntervalsCeil(unit) // NOTE! p_u_shutdownTimeIntervalsCeil is positive, whereas all dt operators are negative
                     );
