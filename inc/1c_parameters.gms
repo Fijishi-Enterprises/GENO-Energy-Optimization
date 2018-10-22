@@ -50,10 +50,10 @@ Parameters
     p_gnn(grid, node, node, param_gnn) "Data for interconnections between energy nodes"
     p_gnu(grid, node, unit, param_gnu) "Unit data where energy type matters"
     p_gnuBoundaryProperties(grid, node, unit, slack, param_gnuBoundaryProperties) "Properties for unit boundaries where energy type matters"
-    p_unit(unit, *) "Unit data where energy type does not matter"
+    p_unit(unit, param_unit) "Unit data where energy type does not matter"
     p_nReserves(node, restype, *) "Data defining the reserve rules in each node"
     p_nuReserves(node, unit, restype, *) "Reserve provision data for units"
-    p_nnReserves(node, node, restype, *) "Reserve provision data for node node connections"
+    p_nnReserves(node, node, restype, up_down) "Reserve provision data for node node connections"
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
     p_groupPolicy(group, param_policy) "Two-dimensional policy data for groups"
     p_groupPolicy3D(group, param_policy, *) "Three-dimensional policy data for groups"
@@ -107,7 +107,7 @@ Parameters
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
-    df_nReserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
+    df_reserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
 
     // Temporary displacement arrays
     ddt(t) "Temporary time displacement array"
@@ -148,4 +148,3 @@ Parameters
     p_stepLength(mType, f, t) "Length of an interval in hours"
     p_stepLengthNoReset(mType, f, t) "Length of an interval in hours - includes also lengths of previously realized intervals"
 ;
-Option clear = p_storageValue; // Required for whatever reason.

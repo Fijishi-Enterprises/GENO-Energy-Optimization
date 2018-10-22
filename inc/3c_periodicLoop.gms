@@ -53,6 +53,7 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = v_stateSlack;
     Option clear = vq_gen;
     Option clear = vq_resDemand;
+    Option clear = vq_resMissing;
 
 * --- Equations ---------------------------------------------------------------
 
@@ -136,7 +137,6 @@ Option clear = p_stepLength;
 Option clear = msft;
 Option clear = mft;
 Option clear = ft;
-Option clear = mft_nReserves;
 
 // Initialize the set of active t:s and counters
 Option clear = t_active;
@@ -197,21 +197,12 @@ loop(cc(counter),
             msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
                                                             and not mf_realization(mSolve, f_solve)
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and ord(t) < tSolveFirst + currentForecastLength
+                                                            and ord(t) <= tSolveFirst + currentForecastLength
                                                             }
                 = yes;
 
             // Reduce the sample dimension
             mft(mf(mSolve, f_solve), tt_interval(t)) = msft(mSolve, s, f_solve, t);
-
-            // The time periods that need to be locked when the gate closes  t_solve + gate_closure --> t_solve + gate_closure + update_frequency  (with consideration when t_jump is different than update_frequency)
-            mft_nReserves(node, restype, mf_realization(mSolve, f), tt_interval(t))
-                    $ { p_nReserves(node, restype, 'update_frequency')
-                        and p_nReserves(node, restype, 'gate_closure')
-                        and ord(t) > tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
-                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
-                      }
-                = yes;
 
             // Reduce the model dimension
             ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
@@ -261,15 +252,6 @@ loop(cc(counter),
                                                             and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
                                                             and ord(t) < tSolveFirst + currentForecastLength
                                                             }
-                = yes;
-
-            // The time periods that need to be locked when the gate closes  t_solve + gate_closure --> t_solve + gate_closure + update_frequency  (with consideration when t_jump is different than update_frequency)
-            mft_nReserves(node, restype, mf_realization(mSolve, f), tt_interval(t))
-                    $ { p_nReserves(node, restype, 'update_frequency')
-                        and p_nReserves(node, restype, 'gate_closure')
-                        and ord(t) > tSolveFirst + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
-                        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - mod(tSolveFirst - 1, p_nReserves(node, restype, 'update_frequency'))
-                      }
                 = yes;
 
             // Reduce the sample dimension
@@ -397,23 +379,37 @@ ft_realizedNoReset(ft_realized(f, t)) = yes;
 msft_realizedNoReset(msft(mSolve, s, ft_realized(f, t))) = yes;
 
 // Forecast index displacement between realized and forecasted intervals
+// NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
 df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
 
 // Forecast displacement between central and forecasted intervals at the end of forecast horizon
 Option clear = df_central; // This can be reset.
-df_central(ft(f,t))${   ord(t) = tSolveFirst + mSettings(mSolve, 't_forecastLengthUnchanging') - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'stepLengthInHours')
+df_central(ft(f,t))${   ord(t) > tSolveFirst + mSettings(mSolve, 't_forecastLengthUnchanging') - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'stepLengthInHours')
+                        and ord(t) <= tSolveFirst + mSettings(mSolve, 't_forecastLengthUnchanging')
                         and not mf_realization(mSolve, f)
                         }
     = sum(mf_central(mSolve, f_), ord(f_) - ord(f));
 
 // Forecast index displacement between realized and forecasted intervals, required for locking reserves ahead of (dispatch) time.
-Option clear = df_nReserves;
-df_nReserves(node, restype, ft(f, t))${ p_nReserves(node, restype, 'update_frequency')
-                                        and p_nReserves(node, restype, 'gate_closure')
-                                        and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') + p_nReserves(node, restype, 'gate_closure') - mod(tSolveFirst - 1 + mSettings(mSolve, 't_jump'), p_nReserves(node, restype, 'update_frequency'))
-                                        }
-    = sum(f_${ mf_realization(mSolve, f_) }, ord(f_) - ord(f));
+Option clear = df_reserves;
+df_reserves(node, restype, ft(f, t))
+    ${  p_nReserves(node, restype, 'update_frequency')
+        and p_nReserves(node, restype, 'gate_closure')
+        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - mod(tSolveFirst - 1 + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - p_nReserves(node, restype, 'update_offset'), p_nReserves(node, restype, 'update_frequency'))
+        }
+    = sum(f_${ mf_realization(mSolve, f_) }, ord(f_) - ord(f)) + Eps; // The Eps ensures that checks to see if df_reserves exists return positive even if the displacement is zero.
+
+// Set of ft-steps where the reserves are locked due to previous commitment
+Option clear = ft_reservesFixed;
+ft_reservesFixed(node, restype, f_solve(f), t_active(t))
+    ${  mf_realization(mSolve, f)
+        and not tSolveFirst = mSettings(mSolve, 't_start') // No reserves are locked on the first solve!
+        and p_nReserves(node, restype, 'update_frequency')
+        and p_nReserves(node, restype, 'gate_closure')
+        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - mod(tSolveFirst - 1 + p_nReserves(node, restype, 'gate_closure') - mSettings(mSolve, 't_jump') + p_nReserves(node, restype, 'update_frequency') - p_nReserves(node, restype, 'update_offset'), p_nReserves(node, restype, 'update_frequency')) - mSettings(mSolve, 't_jump')
+        }
+    = yes;
 
 * =============================================================================
 * --- Defining unit aggregations and ramps ------------------------------------

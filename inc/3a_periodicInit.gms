@@ -102,7 +102,9 @@ $offtext
     // Calculate the length of the time series data (based on realized forecast)
     loop(gn(grid, node),
         tmp = max(sum((mf_realization(m, f), t)${ ts_influx(grid, node, f, t) }, 1), tmp); // Find the maximum length of the given influx time series
-        tmp = max(sum((mf_realization(m, f), t)${ ts_node(grid, node, 'reference', f, t) }, 1), tmp); // Find the maximum length of the given node state time series
+        loop(param_gnBoundaryTypes,
+            tmp = max(sum((mf_realization(m, f), t)${ ts_node(grid, node, param_gnBoundaryTypes, f, t) }, 1), tmp); // Find the maximum length of the given node time series
+        ); // END loop(param_gnBoundaryTypes)
     ); // END loop(gn)
 
 ); // END loop(m)
@@ -353,7 +355,7 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${sum(m, mSettingsEff(m, effLeve
 
 loop(m,
     loop(unit$(p_unit(unit, 'rampSpeedToMinLoad') and p_unit(unit,'op00')),
-        p_unit(unit, 'rampSpeedToMinLoad') = p_unit(unit, 'rampSpeedToMinLoad');  // Is something happening here?
+
         // Calculate time intervals needed for the run-up phase
         tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours');
         p_u_runUpTimeIntervals(unit) = tmp;
@@ -457,6 +459,30 @@ loop(m,
             = yes;
         dt_uptimeUnitCounter(unit, cc(counter)) = - ord(counter);
     ); // END loop(effLevelGroupUnit)
+); // END loop(m)
+
+* =============================================================================
+* --- Disable reserves according to model definition --------------------------
+* =============================================================================
+
+loop(m,
+    // Disable node reserve requirements
+    restypeDirectionNode(restype, up_down, node)
+        ${  not mSettingsReservesInUse(m, restype, up_down)
+            }
+        = no;
+
+    // Disable node-node reserve connections
+    restypeDirectionNodeNode(restype, up_down, node, node_)
+        ${  not mSettingsReservesInUse(m, restype, up_down)
+            }
+      = no;
+
+    // Disable reserve provision capability from units
+    nuRescapable(restype, up_down, node, unit)
+        ${  not mSettingsReservesInUse(m, restype, up_down)
+            }
+      = no;
 ); // END loop(m)
 
 * =============================================================================

@@ -20,56 +20,48 @@ $offtext
 * =============================================================================
 
 put log 'ord tSolve: ';
-put log ord(tSolve) /;
+put log ord(tSolve):0:0 /;
 putclose log;
 
-loop(mTimeseries_loop_read(mSolve, timeseries)${ord(tSolve) >= tForecastNext(mSolve)},
-    put_utility 'gdxin' / 'input\' timeseries.tl:0 '\' tSolve.tl:0 '.gdx';
-    if (mTimeseries_loop_read(mSolve, 'ts_unit'), execute_load ts_unit);
-    if (mTimeseries_loop_read(mSolve, 'ts_effUnit'), execute_load ts_effUnit);
-    if (mTimeseries_loop_read(mSolve, 'ts_effGroupUnit'), execute_load ts_effGroupUnit);
-    if (mTimeseries_loop_read(mSolve, 'ts_influx'), execute_load ts_influx);
-    if (mTimeseries_loop_read(mSolve, 'ts_cf'), execute_load ts_cf);
-    if (mTimeseries_loop_read(mSolve, 'ts_reserveDemand'), execute_load ts_reserveDemand);
-    if (mTimeseries_loop_read(mSolve, 'ts_node'), execute_load ts_node);
-    if (mTimeseries_loop_read(mSolve, 'ts_fuelPriceChange'), execute_load ts_fuelPriceChange);
-    if (mTimeseries_loop_read(mSolve, 'ts_unavailability'), execute_load ts_unavailability);
-);
-
 if (ord(tSolve) >= tForecastNext(mSolve),
+    // Read data defined to be updated
+    if (mTimeseries_loop_read(mSolve, 'ts_effUnit'),
+        put_utility 'gdxin' / 'input\ts_effUnit\' tSolve.tl:0 '.gdx';
+        execute_load ts_effUnit
+        );
+    if (mTimeseries_loop_read(mSolve, 'ts_effGroupUnit'),
+        put_utility 'gdxin' / 'input\ts_effGroupUnit\' tSolve.tl:0 '.gdx';
+        execute_load ts_effGroupUnit
+        );
+    if (mTimeseries_loop_read(mSolve, 'ts_influx'),
+        put_utility 'gdxin' / 'input\ts_influx\' tSolve.tl:0 '.gdx';
+        execute_load ts_influx
+        );
+    if (mTimeseries_loop_read(mSolve, 'ts_cf'),
+        put_utility 'gdxin' / 'input\ts_cf\' tSolve.tl:0 '.gdx';
+        execute_load ts_cf
+        );
+    if (mTimeseries_loop_read(mSolve, 'ts_reserveDemand'),
+        put_utility 'gdxin' / 'input\ts_reserveDemand\' tSolve.tl:0 '.gdx';
+        execute_load ts_reserveDemand
+        );
+    if (mTimeseries_loop_read(mSolve, 'ts_node'),
+        put_utility 'gdxin' / 'input\ts_node\' tSolve.tl:0 '.gdx';
+        execute_load ts_node
+        );
+    if (mTimeseries_loop_read(mSolve, 'ts_fuelPriceChange'),
+        put_utility 'gdxin' / 'input\ts_fuelPriceChange\' tSolve.tl:0 '.gdx';
+        execute_load ts_fuelPriceChange
+        );
+    if (mTimeseries_loop_read(mSolve, 'ts_unavailability'),
+        put_utility 'gdxin' / 'input\ts_unavailability\' tSolve.tl:0 '.gdx';
+        execute_load ts_unavailability
+        );
+
     // Update the next forecast
     tForecastNext(mSolve)
         = tForecastNext(mSolve) + mSettings(mSolve, 't_forecastJump');
 );
-
-
-// Nodes with reserve requirements
-restypeDirectionNode(restypeDirection(restype, up_down), node) = no;
-restypeDirectionNode(restypeDirection(restype, up_down), node)
-    $ { mSettingsReservesInUse(mSolve, restype, up_down)
-        and ( p_nReserves(node, restype, up_down)
-              or p_nReserves(node, restype, 'use_time_series')
-            )
-      }
-  = yes;
-
-// Node node connections with reserve requirements
-restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_) = no;
-$ontext
-restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_)
-    $ { mSettingsReservesInUse(mSolve, restype, up_down)
-        and p_nnReserves(node, node_, restype, up_down)
-      }
-  = yes;
-$offtext
-// Units with reserve provision capabilities
-nuRescapable(restypeDirection(restype, up_down), nu(node, unit)) = no;
-nuRescapable(restypeDirection(restype, up_down), nu(node, unit))
-    $ { mSettingsReservesInUse(mSolve, restype, up_down)
-        and p_nuReserves(node, unit, restype, up_down) }
-  = yes;
-
-
 
 $ontext
     // Define t_latestForecast
@@ -109,7 +101,7 @@ $offtext
 
 
 * --- Improve forecasts -------------------------------------------------------
-*$ontext
+$ontext
 // !!! TEMPORARY MEASURES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 if(mSettings(mSolve, 'forecasts') > 0,
@@ -162,4 +154,4 @@ if(mSettings(mSolve, 'forecasts') > 0,
         = min(max( ts_cf(flow, node, f, t) + ts_cf(flow, node, f+ddf(f,t), t), 0),1);
 
 ); // END IF forecasts
-*$offtext
+$offtext
