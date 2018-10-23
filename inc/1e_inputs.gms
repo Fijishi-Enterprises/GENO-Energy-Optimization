@@ -405,21 +405,19 @@ loop(gn2n(grid, node, node_),
     if(p_gnn(grid, node, node_, 'transferCapBidirectional'),
         // Check for conflicting bidirectional transfer capacities.
         if(p_gnn(grid, node, node_, 'transferCapBidirectional') <> p_gnn(grid, node_, node, 'transferCapBidirectional'),
-            put log '!!! Error occurred on gn2n link #' count;
+            put log '!!! Error occurred on gn2n link ' node.tl:0 '-' node_.tl:0;
             abort "Conflicting 'transferCapBidirectional' parameters!"
         );
         // Check for conflicting one-directional and bidirectional transfer capacities.
         if(p_gnn(grid, node, node_, 'transferCapBidirectional') < p_gnn(grid, node, node_, 'transferCap') OR (p_gnn(grid, node, node_, 'transferCapBidirectional') < p_gnn(grid, node_, node, 'transferCap')),
-            put log '!!! Error occurred on gn2n link #' count;
+            put log '!!! Error occurred on gn2n link ' node.tl:0 '-' node_.tl:0;
             abort "Parameter 'transferCapBidirectional' must be greater than or equal to defined one-directional transfer capacities!"
         );
     );
 );
 
 * Check the integrity of efficiency approximation related data
-Option clear = tmp; // Log the unit index for finding the error easier.
 loop( unit,
-    tmp = ord(unit); // Increase the unit counter
     unit_current(unit) = Yes;
     // Check that 'op' is defined correctly
     Option clear = count; // Initialize the previous op to zero
@@ -453,9 +451,8 @@ loop( unit,
 
 * Check the start-up fuel fraction related data
 loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
-    tmp = ord(unit)
     if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')) <> 1,
-        put log '!!! Error occurred on unit #' tmp;
+        put log '!!! Error occurred on unit ' unit.tl:0;
         abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
     );
 );
@@ -468,3 +465,13 @@ loop( unitStarttype(unit, starttypeConstrained),
         abort "Units should have p_unit(unit, 'minShutdownHours') <= p_unit(unit, 'startWarmAfterXhours') <= p_unit(unit, 'startColdAfterXhours')!"
     );
 );
+
+* --- Check reserve structure data --------------------------------------------
+
+// Check that reserve_length is long enough for properly commitment of reserves
+loop( restypeDirectionNode(restype, up_down, node),
+    if(p_nReserves(node, restype, 'reserve_length') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
+        put log '!!! Error occurred on node ', node.tl:0;
+        abort "The 'reserve_length' parameter should be longer than 'update_frequency' + 'gate_closure' to fix the reserves properly!"
+    ); // END if
+); // END loop(restypeDirectionNode)

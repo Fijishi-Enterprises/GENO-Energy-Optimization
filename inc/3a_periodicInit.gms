@@ -18,6 +18,8 @@ $offtext
 * =============================================================================
 * --- Generate model rules from basic patterns defined in the model definition files
 * =============================================================================
+// NOTE! Correctly defining multiple models still needs to be implemented!
+// Pending changes?
 
 // Initialize various sets
 Option clear = t_full;
@@ -529,4 +531,30 @@ loop(m,
         = mSettings(m, 't_jump');
 );
 
+* =============================================================================
+* --- Model Parameter Validity Checks -----------------------------------------
+* =============================================================================
 
+* --- Reserve structure checks ------------------------------------------------
+
+loop(m,
+    loop(restypeDirectionNode(restype, up_down, node),
+        // Check that 'update_frequency' is longer than 't_jump'
+        if(p_nReserves(node, restype, 'update_frequency') < mSettings(m, 't_jump'),
+            put log '!!! Error occurred on node ' node.tl:0
+            abort "The 'update_frequency' parameter should be longer than or equal to 't_jump'!"
+        ); // END if('update_frequency' < 't_jump')
+
+        // Check that 'update_frequency' is divisible by 't_jump'
+        if(mod(p_nReserves(node, restype, 'update_frequency'), mSettings(m, 't_jump')) <> 0,
+            put log '!!! Error occurred on node ' node.tl:0
+            abort "The 'update_frequency' parameter should be divisible by 't_jump'!"
+        ); // END if(mod('update_frequency'))
+
+        // Check if the first interval is long enough for proper commitment of reserves
+        if(mInterval('schedule', 'lastStepInIntervalBlock', 'c000') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
+            put log '!!! Error occurred on node ' node.tl:0
+            abort "The first interval should be longer than 'update_frequency' + 'gate_closure' for proper commitment of reserves!"
+        ); // END if
+    ); // END loop(restypeDirectionNode)
+); // END loop(m)
