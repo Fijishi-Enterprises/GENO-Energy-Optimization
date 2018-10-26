@@ -1495,16 +1495,13 @@ q_instantaneousShareMax(group, ft(f, t))${  p_groupPolicy(group, 'instantaneousS
                 ) // END sum(gnu)
 
             // Controlled transfer from this node group
-            // Set gn2nGroup controls whether transfer is included in the equation
-            + sum(gn2n_directional(grid, node, node_)${ gn2nGroup(grid, node, node_, group)
-                                                        and gnGroup(grid, node, group)
+            + sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
                                                         and not gnGroup(grid, node_, group)
                                                         },
                 + v_transferRightward(grid, node, node_, f, t)
                 ) // END sum(gn2n_directional)
 
-            + sum(gn2n_directional(grid, node_, node)${ gn2nGroup(grid, node_, node, group)
-                                                        and gnGroup(grid, node, group)
+            + sum(gn2n_directional(grid, node_, node)${ gnGroup(grid, node, group)
                                                         and not gnGroup(grid, node_, group)
                                                         },
                 + v_transferLeftward(grid, node_, node, f, t)
