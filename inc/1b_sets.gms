@@ -113,6 +113,7 @@ Sets
     f_solve(f) "forecasts in the model to be solved next"
     t_latestForecast(t) "t for the latest forecast that is available"
     gnss_bound(grid, node, s, s) "Bound the samples so that the state at the last interval of the first sample equals the state at the first interval of the second sample"
+    s_parallel(s) "Samples which are treated as parallel"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"

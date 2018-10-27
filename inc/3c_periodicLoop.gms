@@ -369,7 +369,7 @@ if(tSolveFirst = mSettings(mSolve, 't_start'),
         );
     ); // END loop(ms)
     // Displacement from the first interval of a sample to the previous interval is always -1
-    dt(t)${sum(ms(mSolve, s), mst_start(mSolve, s, t))} = -1;
+    dt(t)${sum(ms(mSolve, s)$(not s_parallel(s)), mst_start(mSolve, s, t))} = -1;
 ); // END if(tSolveFirst)
 
 * --- Determine various other forecast-time sets required for the model -------
