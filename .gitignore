@@ -7,6 +7,7 @@
 225?/
 *.put
 *.log
+*.gchf
 
 # Backbone
 Backbone.txt
