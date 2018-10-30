@@ -88,7 +88,7 @@ Sets
     t_invest(t) "Time steps when investments can be made"
     tt(t) "Temporary subset for time steps used for calculations"
     tt_block(t) "Temporary time step subset for forming the ft structure"
-    tt_interval(t) "Temporary time step subset when forming the ft structure"
+    tt_interval(t) "Temporary time steps when forming the ft structure, current sample"
     tt_forecast(t) "Temporary subset for time steps used for forecast updating during solve loop"
     mf(mType, f) "Forecasts present in the models"
     ms(mType, s) "Samples present in the models"

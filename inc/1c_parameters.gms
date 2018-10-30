@@ -86,6 +86,7 @@ Parameters
     p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"
+    p_sProbability(s) "Probability of sample"
 ;
 
 Scalar p_sWeightSum "Sum of sample weights";
@@ -139,12 +140,23 @@ Parameters
     ts_unavailability(unit, t) "Unavailability of a unit in the time step (p.u.)"
 
     // Aliases used for intervals (time step aggregation)
+    // NOTE: Sample dimension has to be last because of the scenario reduction algorithm
     ts_influx_(grid, node, f, t, s)
     ts_cf_(flow, node, f, t)
     ts_influx_temp(grid, node, s, f, t)
     ts_reserveDemand_(restype, up_down, node, f, t)
     ts_node_(grid, node, param_gnBoundaryTypes, f, t)
     ts_fuelPrice_(fuel, t)
+
+    // Help parameters for calculating smoothening of time series
+    ts_influx_mean(grid, node, f, t) "Mean of ts_influx"
+    ts_influx_std(grid, node, f, t)  "Standard deviation of ts_influx"
+
+    p_autocorrelation(node, timeseries) "Autocorrelation of time series for the node and time series type (lag = 1 time step)"
+
+    // Bounds for scenario smoothening
+    p_tsMinValue(node, timeseries)
+    p_tsMaxValue(node, timeseries)
 ;
 
 * --- Other time dependent parameters -----------------------------------------

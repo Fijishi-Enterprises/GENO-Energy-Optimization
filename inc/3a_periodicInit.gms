@@ -53,18 +53,20 @@ $offtext
     if (not sum(s, ms(m, s)),  // unless they have been provided as input
         ms(m, s)$(ord(s) <= mSettings(m, 'samples')) = yes;
         if (mSettings(m, 'samples') = 0,     // Use all samples if mSettings/samples is 0
-            ms(m, s) = yes;
+            ms(m, s) = p_msProbability(m, s);
         );
     );
 
-    // See which samples are treated as parallel
-    loop(ms_initial(m, s), tmp = msStart(m, s));
-    loop(ms(m, s)$(not ms_initial(m, s)),
-        if(msStart(m, s) = tmp,
-            s_parallel(s) = yes;
-            s_parallel(s - 1) = yes;
+    // Calculate which samples are treated as parallel and the previous samples
+    loop(ms_initial(m, s_),
+        loop(ms(m, s)$(not sameas(s, s_)),
+            if(msStart(m, s) = msStart(m, s - 1),
+                s_parallel(s) = yes;
+                s_parallel(s - 1) = yes;
+            );
+            if(msEnd(m, s_) = msStart(m, s), ss(s, s_) = yes);
+            if(msEnd(m, s - 1) = msStart(m, s), ss(s, s - 1) = yes);
         );
-        tmp = msStart(m, s);
     );
 
 

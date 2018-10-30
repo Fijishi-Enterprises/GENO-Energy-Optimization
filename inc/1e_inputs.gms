@@ -477,3 +477,16 @@ loop( restypeDirectionNode(restype, up_down, node),
         abort "The 'reserve_length' parameter should be longer than 'update_frequency' + 'gate_closure' to fix the reserves properly!"
     ); // END if
 ); // END loop(restypeDirectionNode)
+
+
+* =============================================================================
+* --- Default values  ---------------------------------------------------------
+* =============================================================================
+
+loop((gn(grid, node), timeseries),
+    p_autocorrelation(node, timeseries) = 0;
+    p_tsMinValue(node, timeseries) = -Inf;
+    p_tsMaxValue(node, timeseries) = Inf;
+);
+
+
