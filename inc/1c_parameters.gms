@@ -23,9 +23,7 @@ Scalars
     tSolveLast "counter for the last t in the solve"
     tCounter "counter for t" /0/
     lastCounter "last member in use of the general counter"
-    ts_length "Length of time series (t)"
     continueLoop "Helper to stop the looping early"
-*    stepsPerInterval "Length of the interval to be calculated, considering end of modelling period"  // redundant
     currentForecastLength "Length of the forecast in the curren solve, minimum of unchanging and decreasing forecast lengths"
     count "General counter"
     count_lambda, count_lambda2 "Counter for lambdas"

@@ -100,25 +100,27 @@ $offtext
         );
     );
 
-    // Calculate the length of the time series data (based on realized forecast)
-    loop(gn(grid, node),
-        tmp = max(sum((mf_realization(m, f), t)${ ts_influx(grid, node, f, t) }, 1), tmp); // Find the maximum length of the given influx time series
-        loop(param_gnBoundaryTypes,
-            tmp = max(sum((mf_realization(m, f), t)${ ts_node(grid, node, param_gnBoundaryTypes, f, t) }, 1), tmp); // Find the maximum length of the given node time series
-        ); // END loop(param_gnBoundaryTypes)
-    ); // END loop(gn)
+    // Determine maximum data length, if not provided in the model definition file.
+    if(mSettings(m, 'dataLength'),
+        tmp = max(mSettings(m, 'dataLength') + 1, tmp); // 'dataLength' increased by one to account for t000000 in ord(t)
+    else
+        // Calculate the length of the time series data (based on realized forecast)
+        loop((gn(grid, node), mf_realization(m, f)),
+            tmp = max(smax(t_full(t), ord(t)${ts_influx(grid, node, f, t)}), tmp); // Find the maximum ord(t) given in influx time series
+            loop(param_gnBoundaryTypes,
+                tmp = max(smax(t_full(t), ord(t)${ts_node(grid, node, param_gnBoundaryTypes, f, t)}), tmp); // Find the maximum ord(t) given in node time series
+            ); // END loop(param_gnBoundaryTypes)
+        ); // END loop(gn,f_realization)
+    ); // END if(mSettings(dataLength))
 
 ); // END loop(m)
 
 * --- Calculate Time Series Length and Circular Time Displacement -------------
 
-// Maximum time series length based on 'tmp' calculated in the above loop.
-ts_length = tmp;
-
 // Circular displacement of time index for data loop
-dt_circular(t_full(t))${ ord(t) > ts_length }
-    = - ts_length
-        * floor(ord(t) / ts_length);
+dt_circular(t_full(t))${ ord(t) > tmp }
+    = - (tmp - 1) // (tmp - 1) used in order to not circulate initial values at t000000
+        * floor(ord(t) / (tmp));
 
 * =============================================================================
 * --- Initialize Unit Efficiency Approximations -------------------------------

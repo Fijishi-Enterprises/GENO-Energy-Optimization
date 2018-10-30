@@ -52,7 +52,8 @@ Sets
 
         // Features
         t_trajectoryHorizon, // Length of the horizon when start-up and shutdown trajectories are considered (in time steps)
-        t_initializationPeriod  // Number of time steps in the beginning of the simulation which are solved but the results of which are not stored
+        t_initializationPeriod,  // Number of time steps in the beginning of the simulation which are solved but the results of which are not stored
+        dataLength // The maximum number of time steps in any input data time series (recommended for correctly circulating data) 
         /
 
     // Solve info
