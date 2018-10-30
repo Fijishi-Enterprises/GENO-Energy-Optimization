@@ -106,12 +106,16 @@ $offtext
     else
         put log '!!! mSettings(m, dataLength) is not defined! Calculating dataLength based on ts_influx and ts_node.' /;
         // Calculate the length of the time series data (based on realized forecast)
-        loop((gn(grid, node), mf_realization(m, f)),
-            tmp = max(smax(t_full(t), ord(t)${ts_influx(grid, node, f, t)}), tmp); // Find the maximum ord(t) given in influx time series
-            loop(param_gnBoundaryTypes,
-                tmp = max(smax(t_full(t), ord(t)${ts_node(grid, node, param_gnBoundaryTypes, f, t)}), tmp); // Find the maximum ord(t) given in node time series
-            ); // END loop(param_gnBoundaryTypes)
-        ); // END loop(gn,f_realization)
+        option clear = tt; // Find the time steps with input time series data (ts_influx and ts_node)
+        loop(gn(grid, node),
+            loop(mf_realization(m, f), // Select only the realized forecast
+                tt(t_full(t))${ts_influx(grid, node, f, t)} = yes;
+                loop(param_gnBoundaryTypes,
+                    tt(t_full(t))${ts_node(grid, node, param_gnBoundaryTypes, f, t)} = yes;
+                ); // END loop(param_gnBoundaryTypes)
+            ); // END loop(mf_realization)
+        ); // END loop(gn)
+        tmp = smax(tt(t), ord(t)); // Find the maximum ord(t) defined in time series data.
     ); // END if(mSettings(dataLength))
 
 ); // END loop(m)
