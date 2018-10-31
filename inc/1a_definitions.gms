@@ -53,7 +53,7 @@ Sets
         // Features
         t_trajectoryHorizon, // Length of the horizon when start-up and shutdown trajectories are considered (in time steps)
         t_initializationPeriod,  // Number of time steps in the beginning of the simulation which are solved but the results of which are not stored
-        dataLength // The maximum number of time steps in any input data time series (recommended for correctly circulating data) 
+        dataLength // The maximum number of time steps in any input data time series (recommended for correctly circulating data)
         /
 
     // Solve info
@@ -209,8 +209,6 @@ param_gn  "Possible parameters for grid, node" /
     boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
     boundAll      "A flag to bound the state to the reference in all time steps"
     boundStartToEnd  "Force the last states to equal the first state"
-    boundCyclic   "A flag to impose cyclic bounds for the first and the last states within a sample"
-    boundCyclicBetweenSamples   "A flag to impose cyclic bounds for the last and first states between samples"
     forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."
     capacityMargin "Capacity margin used in invest mode (MW)"
 /

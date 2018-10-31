@@ -1393,20 +1393,10 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), mft(m, f, t)) ..
 
 * --- Cyclic Boundary Conditions ----------------------------------------------
 
-q_boundCyclic(gn_state(grid, node), ms(m, s), s_)${ ms(m, s_)
-                                                    and tSolveFirst = mSettings(m, 't_start')
-                                                    and [
-                                                        [   p_gn(grid, node, 'boundCyclic') // Bind variables if parameter found
-                                                            and ord(s) = ord(s_) // Select the same sample
-                                                            ]
-                                                        or
-                                                        [   p_gn(grid, node, 'boundCyclicBetweenSamples')
-                                                            and [   ord(s_) = ord(s) - 1 // Select consecutive samples
-                                                                or [ord(s_) = mSettings(m, 'samples') and ord(s) = 1]
-                                                                ] // END and
-                                                            ] // END or
-                                                        ] // END and
-                                                    }..
+q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)${ ms(m, s_)
+                                                            and ms(m, s)
+                                                            and tSolveFirst = mSettings(m, 't_start')
+                                                            }..
 
     // Initial value of the state of the node at the start of the sample
     + sum(mst_start(m, s, t),

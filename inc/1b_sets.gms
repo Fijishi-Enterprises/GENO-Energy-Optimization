@@ -111,6 +111,7 @@ Sets
     modelSolves(mType, t) "when different models are to be solved"
     f_solve(f) "forecasts in the model to be solved next"
     t_latestForecast(t) "t for the latest forecast that is available"
+    gnss_bound(grid, node, s, s) "Bound the samples so that the state at the last interval of the first sample equals the state at the first interval of the second sample"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
