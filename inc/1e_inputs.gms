@@ -165,12 +165,7 @@ unit_investMIP(unit)${  p_unit(unit, 'investMIP')
 
 // Units with special startup properties
 // All units can cold start (default start category)
-unitStarttype(unit, 'cold') = no;
-unitStarttype(unit, 'cold')${ p_unit(unit, 'startCostCold')
-                              or p_unit(unit, 'startFuelConsCold')
-                              or p_unit(unit, 'op00') > 0
-                            }
-    = yes;
+unitStarttype(unit, 'cold') = yes;
 // Units with parameters regarding hot/warm starts
 unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
                                             or p_unit(unit, 'startCostHot')

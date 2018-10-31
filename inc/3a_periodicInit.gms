@@ -394,10 +394,6 @@ loop(m,
         p_ut_runUp(unit, t)${ord(t) = 1} = p_unit(unit,'op00');
 
     ); // END loop(unit)
-    unitStarttype(unit, 'cold')${ p_u_runUpTimeIntervals(unit) > 1
-                                  or (p_u_runUpTimeIntervals(unit) <= 1 and p_u_maxOutputInLastRunUpInterval(unit) < 1)
-                                }
-        = yes;
 ); // END loop(m)
 
 * --- Unit Shutdown Generation Levels -----------------------------------------
