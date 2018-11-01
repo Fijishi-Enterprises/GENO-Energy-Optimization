@@ -167,16 +167,21 @@ loop(cc(counter),
     loop(ms(mSolve, s),
 
         // Initialize tInterval
+        Option clear = tt_block;
         Option clear = tt_interval;
+
+        // Time steps within the current block
+        tt_block(t_current(t))
+            ${  ord(t) >= tSolveFirst + tCounter
+                and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'lastStepInIntervalBlock', counter), tSolveLast)
+                and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
+                and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
+                }
+            = yes;
 
         // If stepsPerInterval equals one, simply use all the steps within the block
         if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
-            tt_interval(t_current(t))${ ord(t) >= tSolveFirst + tCounter
-                                        and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'lastStepInIntervalBlock', counter), tSolveLast)
-                                        and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                        and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
-                                        }
-                = yes; // Include all time steps within the block
+            tt_interval(tt_block(t)) = yes; // Include all time steps within the block
 
             // Calculate the interval length in hours
             p_stepLength(mf(mSolve, f_solve), tt_interval(t)) = mSettings(mSolve, 'stepLengthInHours');
@@ -223,17 +228,13 @@ loop(cc(counter),
 
         // If stepsPerInterval exceeds 1 (stepsPerInterval < 1 not defined)
         elseif mInterval(mSolve, 'stepsPerInterval', counter) > 1,
-            tt_interval(t_current(t))${ ord(t) >= tSolveFirst + tCounter
-                                        and ord(t) < min(tSolveFirst + mInterval(mSolve, 'lastStepInIntervalBlock', counter), tSolveLast)
-                                        and mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'stepsPerInterval', counter)) = 0
-                                        and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                        and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
-                                        }
+            tt_interval(tt_block(t)) // Select the active time steps within the block
+                ${mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'stepsPerInterval', counter)) = 0}
                 = yes;
 
             // Calculate the interval length in hours
             p_stepLength(mf(mSolve, f_solve), tt_interval(t)) = mInterval(mSolve, 'stepsPerInterval', counter) * mSettings(mSolve, 'stepLengthInHours');
-            p_stepLengthNoReset(mf(mSolve, f_solve), tt_interval(t)) = mInterval(mSolve, 'stepsPerInterval', counter) * mSettings(mSolve, 'stepLengthInHours');
+            p_stepLengthNoReset(mf(mSolve, f_solve), tt_interval(t)) = p_stepLength(mSolve, f_solve, t);
 
             // Determine the combinations of forecasts and intervals
             // Include the t_jump for the realization
@@ -267,9 +268,10 @@ loop(cc(counter),
             loop(ft(f_solve, tt_interval(t)),
                 // Select t:s within the interval
                 Option clear = tt;
-                tt(t_current(t_))${ ord(t_) >= ord(t)
-                                    and ord(t_) < ord(t) + mInterval(mSolve, 'stepsPerInterval', counter)
-                                    }
+                tt(tt_block(t_))
+                    ${  ord(t_) >= ord(t)
+                        and ord(t_) < ord(t) + mInterval(mSolve, 'stepsPerInterval', counter)
+                        }
                     = yes;
                 ts_influx_(gn(grid, node), f_solve, t)
                     = sum(tt(t_), ts_influx(grid, node, f_solve, t_+dt_circular(t_)))
@@ -304,7 +306,7 @@ loop(cc(counter),
     ); // END loop(ms)
 
     // Update tCounter for the next block of intervals
-    tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter) + 1;
+    tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter);
 
 ); // END loop(counter)
 
