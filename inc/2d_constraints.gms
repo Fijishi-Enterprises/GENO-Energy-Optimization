@@ -551,6 +551,11 @@ q_genRamp(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s) + 
 q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s) + 1
                                                            and msft(m, s, f, t)
                                                            and p_gnu(grid, node, unit, 'maxRampUp')
+                                                           and [ sum(restype, nuRescapable(restype, 'up', node, unit))
+                                                                 or uft_online(unit, f, t)
+                                                                 or unit_investLP(unit)
+                                                                 or unit_investMIP(unit)
+                                                                 ]
                                                            } ..
     + v_genRamp(grid, node, unit, f, t)
     + sum(nuRescapable(restype, 'up', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},
@@ -615,6 +620,11 @@ q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s
 q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s) + 1
                                                              and msft(m, s, f, t)
                                                              and p_gnu(grid, node, unit, 'maxRampDown')
+                                                             and [ sum(restype, nuRescapable(restype, 'down', node, unit))
+                                                                   or uft_online(unit, f, t)
+                                                                   or unit_investLP(unit)
+                                                                   or unit_investMIP(unit)
+                                                                   ]
                                                              } ..
     + v_genRamp(grid, node, unit, f, t)
     - sum(nuRescapable(restype, 'down', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},

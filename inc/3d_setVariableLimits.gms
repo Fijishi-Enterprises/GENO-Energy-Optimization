@@ -180,7 +180,7 @@ v_gen.up(gnuft(gnu_output(grid, node, unit), f, t))${   p_gnu(grid, node, unit, 
 // NOTE: Apply the corresponding equations only to units with investment possibility,
 // online variable, or reserve provision
 loop(ms(mSolve, s),
-    v_genRamp.up(gnuft_ramp(grid, node, unit, f, t))${ ord(t) > msStart(mSolve, s)
+    v_genRamp.up(gnuft_ramp(grid, node, unit, f, t))${ ord(t) > msStart(mSolve, s) + 1
                                                        and msft(mSolve, s, f, t)
                                                        and p_gnu(grid, node, unit, 'maxRampUp')
                                                        and not unit_investLP(unit)
@@ -189,7 +189,7 @@ loop(ms(mSolve, s),
         } = ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )
             * p_gnu(grid, node, unit, 'maxRampUp')
             * 60;  // Unit conversion from [p.u./min] to [p.u./h]
-    v_genRamp.lo(gnuft_ramp(grid, node, unit, f, t))${ ord(t) > msStart(mSolve, s)
+    v_genRamp.lo(gnuft_ramp(grid, node, unit, f, t))${ ord(t) > msStart(mSolve, s) + 1
                                                        and msft(mSolve, s, f, t)
                                                        and p_gnu(grid, node, unit, 'maxRampDown')
                                                        and not unit_investLP(unit)
