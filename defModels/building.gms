@@ -51,6 +51,8 @@ Model building /
     q_transferLeftwardLimit
 *    q_resTransferLimitRightward
 *    q_resTransferLimitLeftward
+*    q_reserveProvisionRightward
+*    q_reserveProvisionLeftward
 
     // State Variables
     q_stateSlack

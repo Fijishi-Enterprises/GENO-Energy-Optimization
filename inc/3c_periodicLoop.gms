@@ -91,6 +91,8 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = q_transferLeftwardLimit;
     Option clear = q_resTransferLimitRightward;
     Option clear = q_resTransferLimitLeftward;
+    Option clear = q_reserveProvisionRightward;
+    Option clear = q_reserveProvisionLeftward;
 
     // State Variables
     Option clear = q_stateSlack;

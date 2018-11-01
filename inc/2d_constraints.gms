@@ -1188,6 +1188,64 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), ft(f, t))${ sum(
         ) // END sum(t_invest)
 ;
 
+* --- Rightward Reserve Provision Limits ----------------------------------------
+
+q_reserveProvisionRightward(restypeDirectionNodeNode(restype, up_down, node, node_), ft(f, t))${ sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit'))
+                                                                                                 and sum(grid, gn2n_directional(grid, node, node_))
+                                                                                                 and not [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
+                                                                                                             or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t)
+                                                                                                             ]
+                                                                                                 } ..
+
+    + v_resTransferRightward(restype, up_down, node, node_, f+df_reserves(node_, restype, f, t), t) // df_reserves based on the receiving node
+
+    =L=
+
+    + p_nnReserves(node, node_, restype, up_down)
+        * [
+            + sum(grid,
+                // Existing transfer capacity
+                + p_gnn(grid, node, node_, 'transferCap')
+
+                // Investments into additional transfer capacity
+                + sum(t_invest(t_)${ord(t_)<=ord(t)},
+                    + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
+                    + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
+                        * p_gnn(grid, node, node_, 'unitSize')
+                    ) // END sum(t_invest)
+                ) // END sum(grid)
+            ]
+;
+
+* --- Leftward Reserve Provision Limits ----------------------------------------
+
+q_reserveProvisionLeftward(restypeDirectionNodeNode(restype, up_down, node_, node), ft(f, t))${  sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit'))
+                                                                                                 and sum(grid, gn2n_directional(grid, node, node_))
+                                                                                                 and not [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
+                                                                                                             or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t)
+                                                                                                             ]
+                                                                                                 } ..
+
+    + v_resTransferLeftward(restype, up_down, node, node_, f+df_reserves(node, restype, f, t), t) // df_reserves based on the receiving node
+
+    =L=
+
+    + p_nnReserves(node_, node, restype, up_down)
+        * [
+            + sum(grid,
+                // Existing transfer capacity
+                + p_gnn(grid, node_, node, 'transferCap')
+
+                // Investments into additional transfer capacity
+                + sum(t_invest(t_)${ord(t_)<=ord(t)},
+                    + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
+                    + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
+                        * p_gnn(grid, node, node_, 'unitSize')
+                    ) // END sum(t_invest)
+                ) // END sum(grid)
+            ]
+;
+
 * --- State Variable Slack ----------------------------------------------------
 
 q_stateSlack(gn_stateSlack(grid, node), slack, ft(f, t))${  p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
