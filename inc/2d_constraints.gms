@@ -359,6 +359,33 @@ q_maxUpward(m, gnuft(grid, node, unit, f, t))${ [   ord(t) < tSolveFirst + smax(
         ]${uft_shutdownTrajectory(unit, f, t)}
 ;
 
+* --- Reserve Provision of Units with Investments -----------------------------
+
+q_reserveProvision(nuRescapable(restypeDirectionNode(restype, up_down, node), unit), ft(f, t))${ ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+                                                                                                 and nuft(node, unit, f, t)
+                                                                                                 and (unit_investLP(unit) or unit_investMIP(unit))
+                                                                                                 and not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
+                                                                                                 } ..
+    + v_reserve(restype, up_down, node, unit, f+df_reserves(node, restype, f, t), t)
+
+    =L=
+
+    + p_nuReserves(node, unit, restype, up_down)
+        * [
+            + sum(grid, p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )  // Reserve sets and variables are currently lacking the grid dimension...
+            + sum(t_invest(t_)${ ord(t_)<=ord(t) },
+                + v_invest_LP(unit, t_)${unit_investLP(unit)}
+                    * sum(grid, p_gnu(grid, node, unit, 'unitSizeTot')) // Reserve sets and variables are currently lacking the grid dimension...
+                + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
+                    * sum(grid, p_gnu(grid, node, unit, 'unitSizeTot')) // Reserve sets and variables are currently lacking the grid dimension...
+                ) // END sum(t_)
+            ]
+        * [
+            + 1${ft_realized(f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+            + p_nuReserves(node, unit, restype, 'reserveReliability')${not ft_realized(f+df_reserves(node, restype, f, t), t)}
+            ] // How to consider reserveReliability in the case of investments when we typically only have "realized" time steps?
+;
+
 * --- Unit Startup and Shutdown -----------------------------------------------
 
 q_startshut(m, uft_online(unit, f, t)) ..

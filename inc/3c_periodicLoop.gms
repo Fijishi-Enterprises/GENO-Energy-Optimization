@@ -65,6 +65,7 @@ $iftheni.debug NOT '%debug%' == 'yes'
     // Unit Operation
     Option clear = q_maxDownward;
     Option clear = q_maxUpward;
+    Option clear = q_reserveProvision;
     Option clear = q_startshut;
     Option clear = q_startuptype;
     Option clear = q_onlineLimit;
@@ -406,7 +407,7 @@ ft_reservesFixed(node, restype, f_solve(f), t_active(t))
         and p_nReserves(node, restype, 'update_frequency')
         and p_nReserves(node, restype, 'gate_closure')
         and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - mod(tSolveFirst - 1 + p_nReserves(node, restype, 'gate_closure') - mSettings(mSolve, 't_jump') + p_nReserves(node, restype, 'update_frequency') - p_nReserves(node, restype, 'update_offset'), p_nReserves(node, restype, 'update_frequency')) - mSettings(mSolve, 't_jump')
-        and not [   restypeReleasedForRealization(restype) // Free desired reserves for the to-be-realized time steps 
+        and not [   restypeReleasedForRealization(restype) // Free desired reserves for the to-be-realized time steps
                     and ft_realized(f, t)
                     ]
         }
