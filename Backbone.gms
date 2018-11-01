@@ -72,6 +72,8 @@ files log /''/, gdx, f_info /'output\info.txt'/;
 * Include options file to control the solver
 $include 'input\1_options.gms';
 
+* === Libraries ===============================================================
+$libinclude scenred2
 
 * === Definitions, sets, parameters and input data=============================
 $include 'inc\1a_definitions.gms'   // Definitions for possible model settings

@@ -84,6 +84,7 @@ Parameters
 Parameters
     p_msWeight(mType, s) "Weight of sample"
     p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
+    p_msProbability_orig(mType, s) "Original probabilities of samples in model"
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"
     p_sProbability(s) "Probability of sample"

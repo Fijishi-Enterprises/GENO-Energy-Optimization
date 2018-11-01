@@ -69,6 +69,8 @@ $offtext
         );
     );
 
+    // Store original probabilities
+    p_msProbability_orig(m, s) = p_msProbability(m, s);
 
     // Select forecasts in use for the models
     if (not sum(f, mf(m, f)),  // unless they have been provided as input

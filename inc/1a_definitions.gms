@@ -54,7 +54,9 @@ Sets
         // Features
         t_trajectoryHorizon, // Length of the horizon when start-up and shutdown trajectories are considered (in time steps)
         t_initializationPeriod,  // Number of time steps in the beginning of the simulation which are solved but the results of which are not stored
-        dataLength // The maximum number of time steps in any input data time series (recommended for correctly circulating data)
+        dataLength, // The maximum number of time steps in any input data time series (recommended for correctly circulating data)
+        red_num_leaves "desired number of preserved scenarios or leaves (SCENRED)"
+        red_percentage "Desired relative distance (accuracy) of scenario reduction (SCENRED)"
         /
 
     // Solve info
@@ -143,6 +145,7 @@ Sets
         addOn            "Use StoSSch as a storage add-on to a larger model"
         extraRes         "Use extra tertiary reserves for error in elec. load during time step"
         rampSched        "Use power based scheduling"
+        scenRed          "Reduce number of long-tem scenarios using GAMS SCENRED2"
         /
 
 * --- Set to declare time series that will be read between solves ------------------------------------------------------

@@ -448,6 +448,12 @@ loop(ms(mSolve, s),
         = ds(s, t);
 );
 
+* --- Scenario reduction ------------------------------------------------------
+
+if(active(mSolve, 'scenred'),
+    $$include 'inc/scenred.gms'
+);
+
 * --- Calculate statistics of time series data --------------------------------
 
 loop(gn(grid, node)$sum(timeseries, p_autocorrelation(node, timeseries)),
