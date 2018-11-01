@@ -555,7 +555,7 @@ loop(m,
         ); // END if(mod('update_frequency'))
 
         // Check if the first interval is long enough for proper commitment of reserves
-        if(mInterval('schedule', 'lastStepInIntervalBlock', 'c000') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
+        if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
             put log '!!! Error occurred on node ' node.tl:0 /;
             abort "The first interval should be longer than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
         ); // END if
