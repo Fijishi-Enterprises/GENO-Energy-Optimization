@@ -380,6 +380,14 @@ q_reserveProvision(nuRescapable(restypeDirectionNode(restype, up_down, node), un
                     * sum(grid, p_gnu(grid, node, unit, 'unitSizeTot')) // Reserve sets and variables are currently lacking the grid dimension...
                 ) // END sum(t_)
             ]
+        * p_unit(unit, 'availability') // Taking into account availability...
+        * [
+            // ... and capacity factor for flow units
+            + sum(flowUnit(flow, unit),
+                + ts_cf_(flow, node, f, t)
+                ) // END sum(flow)
+            + 1${not unit_flow(unit)}
+            ]
         * [
             + 1${ft_realized(f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
             + p_nuReserves(node, unit, restype, 'reserveReliability')${not ft_realized(f+df_reserves(node, restype, f, t), t)}
