@@ -143,7 +143,7 @@ v_gen.up(gnu_output(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, uni
     = sum(flow${    flowUnit(flow, unit_flow)
                     and nu(node, unit_flow)
                     },
-        + ts_cf_(flow, node, f, t)
+        + ts_cf_(flow, node, f, t, s)
             * p_gnu(grid, node, unit_flow, 'maxGen')
             * p_unit(unit_flow, 'availability')
       ) // END sum(flow)
@@ -170,7 +170,7 @@ v_gen.lo(gnu_input(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, unit
     = - sum(flow${  flowUnit(flow, unit_flow)
                     and nu(node, unit_flow)
                     },
-          + ts_cf_(flow, node, f, t)
+          + ts_cf_(flow, node, f, t, s)
             * p_gnu(grid, node, unit_flow, 'maxCons')
             * p_unit(unit_flow, 'availability')
       ) // END sum(flow)

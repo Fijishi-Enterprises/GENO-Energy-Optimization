@@ -230,8 +230,8 @@ loop(cc(counter),
 
             // Select time series data matching the intervals, for stepsPerInterval = 1, this is trivial.
             loop(ft(f_solve, tt_block(t)),
-                ts_cf_(flowNode(flow, node), f_solve, t)
-                    = ts_cf(flow, node, f_solve, t+dt_circular(t));
+                ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
+                    = ts_cf(flow, node, f_solve, t + (dt_sampleOffset(node, s) + dt_circular(t)));
                 ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
                     = ts_influx(grid, node, f_solve, t + (dt_sampleOffset(node, s) + dt_circular(t)));
                 ts_unit_(unit, param_unit, f_solve, t)
@@ -305,8 +305,8 @@ loop(cc(counter),
                 ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
                     = sum(tt(t_), ts_influx(grid, node, f_solve, t_ + (dt_sampleOffset(node, s) + dt_circular(t_))))
                         / p_stepLength(mSolve, f_solve, t);
-                ts_cf_(flowNode(flow, node), f_solve, t)
-                    = sum(tt(t_), ts_cf(flow, node, f_solve, t_+dt_circular(t_)))
+                ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
+                    = sum(tt(t_), ts_cf(flow, node, f_solve, t_ + (dt_sampleOffset(node, s) + dt_circular(t_))))
                         / p_stepLength(mSolve, f_solve, t);
                 ts_unit_(unit, param_unit, f_solve, t)
                   ${ p_unit(unit, 'useTimeseries')} // Only include units with timeseries attributed to them
@@ -454,9 +454,19 @@ if(active(mSolve, 'scenred'),
     $$include 'inc/scenred.gms'
 );
 
-* --- Calculate statistics of time series data --------------------------------
+* --- Smooting of stochastic sceanrios  ---------------------------------------
+$ontext
+First calculate standard deviation for over all samples, then smoothen the scenarios
+following the methodology presented in [1, p. 443]. This avoids a discontinuity
+`jump' after the initial sample.
 
-loop(gn(grid, node)$sum(timeseries, p_autocorrelation(node, timeseries)),
+[1] A. Helseth, B. Mo, A. Lote Henden, and G. Warland, "Detailed long-term hydro-
+    thermal scheduling for expansion planning in the Nordic power system," IET Gener.
+    Transm. Distrib., vol. 12, no. 2, pp. 441 - 447, 2018.
+$offtext
+
+* Influx
+loop(gn(grid, node)$p_autocorrelation(node, 'ts_influx'),
     ts_influx_mean(grid, node, ft(f, t))$mf_central(mSolve, f)
         = sum(s_parallel(s), ts_influx_(grid, node, f, t, s)) / sum(s_parallel, 1);
 
@@ -466,7 +476,7 @@ loop(gn(grid, node)$sum(timeseries, p_autocorrelation(node, timeseries)),
                 / sum(s_parallel, 1)
           );
 
-* Correct values for smoother scenarios, following the methodology in [1, p. 443]
+    // Do smoothing
     loop(mst_end(ms_initial(mSolve, s_), t_),
         ts_influx_(grid, node, ft(f, t), s)$(ts_influx_std(grid, node, f, t_+dt_circular(t_))
                                              and sft(s, f, t)
@@ -486,11 +496,38 @@ loop(gn(grid, node)$sum(timeseries, p_autocorrelation(node, timeseries)),
     );
 );
 
-$ontext
-[1] A. Helseth, B. Mo, A. Lote Henden, and G. Warland, "Detailed long-term hydro-
-    thermal scheduling for expansion planning in the Nordic power system," IET Gener.
-    Transm. Distrib., vol. 12, no. 2, pp. 441 - 447, 2018.
-$offtext
+* CF
+loop(flowNode(flow, node)$p_autocorrelation(node, 'ts_cf'),
+    ts_cf_mean(flow, node, ft(f, t))$mf_central(mSolve, f)
+        = sum(s_parallel(s), ts_cf_(flow, node, f, t, s)) / sum(s_parallel, 1);
+
+    ts_cf_std(flow, node, ft(f, t))$mf_central(mSolve, f)
+        = sqrt(sum(s_parallel(s), sqr(ts_cf_(flow, node, f, t, s)
+                                     - ts_cf_mean(flow, node, f, t)))
+                / sum(s_parallel, 1)
+          );
+
+    // Do smoothing
+    loop(mst_end(ms_initial(mSolve, s_), t_),
+        ts_cf_(flow, node, ft(f, t), s)$(ts_cf_std(flow, node, f, t_+dt_circular(t_))
+                                         and sft(s, f, t)
+                                         and not ms_initial(mSolve, s))
+            = ts_cf_(flow, node, f, t, s)
+              + (ts_cf_(flow, node, f, t_, s_)
+                 - ts_cf_(flow, node, f, t_, s))
+                * (ts_cf_std(flow, node, f, t+dt_circular(t))
+                    / ts_cf_std(flow, node, f, t_+dt_circular(t_)))
+                * power(p_autocorrelation(node, 'ts_cf'), abs(ord(t) - ord(t_)));
+
+        // Ensure not above max or below min
+        ts_cf_(flow, node, f, t, s)$(ts_cf_(flow, node, f, t, s) < p_tsMinValue(node, 'ts_cf'))
+                = p_tsMinValue(node, 'ts_cf');
+        ts_cf_(flow, node, f, t, s)$(ts_cf_(flow, node, f, t, s) > p_tsMaxValue(node, 'ts_cf'))
+                = p_tsMaxValue(node, 'ts_cf');
+    );
+);
+
+
 
 * =============================================================================
 * --- Defining unit aggregations and ramps ------------------------------------

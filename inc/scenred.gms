@@ -6,10 +6,6 @@ if(mSettings(mSolve, 'red_num_leaves')
 p_sProbability(s)$ms(mSolve, s) = p_msProbability_orig(mSolve, s);
 
 * SCENRED2 parameters
-*ScenRedParms('num_time_steps') = 2;
-*ScenRedParms('num_leaves') = card(s) - 1;
-*ScenRedParms('num_nodes') = card(s);
-*ScenRedParms('num_random') = card(grid) * card(node) * card(f) * mSettings('schedule', 't_horizon');
 ScenRedParms('red_num_leaves') = mSettings(mSolve, 'red_num_leaves');
 ScenRedParms('red_percentage') = mSettings(mSolve, 'red_percentage');
 ScenRedParms('scen_red') = 1;  // Reduce scenarios
@@ -24,7 +20,7 @@ $endif
 * Data exchange and execute SCENRED2
 execute_unload 'output/srin.gdx', ScenRedParms,
                                   s, ss, p_sProbability,
-                                  ts_influx_;
+                                  ts_influx_, ts_cf_;
 execute 'scenred2 inc/scenred.cmd';
 execute_load 'output/srout.gdx', ScenRedReport,
                                  p_sProbability=red_prob;

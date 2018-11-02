@@ -229,7 +229,7 @@ q_maxDownward(m, s, gnuft(grid, node, unit, f, t))${msft(m, s, f, t)
         * [
             // Capacity factors for flow units
             + sum(flowUnit(flow, unit),
-                + ts_cf_(flow, node, f, t)
+                + ts_cf_(flow, node, f, t, s)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
             ] // END * p_unit(availability)
@@ -305,7 +305,7 @@ q_maxUpward(m, s, gnuft(grid, node, unit, f, t))${msft(m, s, f, t)
         * [
             // Capacity factor for flow units
             + sum(flowUnit(flow, unit),
-                + ts_cf_(flow, node, f, t)
+                + ts_cf_(flow, node, f, t, s)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
             ] // END * p_unit(availability)
@@ -394,7 +394,7 @@ q_reserveProvision(nuRescapable(restypeDirectionNode(restype, up_down, node), un
         * [
             // ... and capacity factor for flow units
             + sum(flowUnit(flow, unit),
-                + ts_cf_(flow, node, f, t)
+                + ts_cf_(flow, node, f, t, s)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
             ]
@@ -1667,7 +1667,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))${    p_gn(grid, node, 'capacityMa
             * [
                 // Capacity factors for flow units
                 + sum(flowUnit(flow, unit)${ nu(node, unit) },
-                    + ts_cf_(flow, node, f, t)
+                    + ts_cf_(flow, node, f, t, s)
                     ) // END sum(flow)
                 + 1${not unit_flow(unit)}
                 ]

@@ -143,7 +143,7 @@ Parameters
     // Aliases used for intervals (time step aggregation)
     // NOTE: Sample dimension has to be last because of the scenario reduction algorithm
     ts_influx_(grid, node, f, t, s)
-    ts_cf_(flow, node, f, t)
+    ts_cf_(flow, node, f, t, s)
     ts_influx_temp(grid, node, s, f, t)
     ts_reserveDemand_(restype, up_down, node, f, t)
     ts_node_(grid, node, param_gnBoundaryTypes, f, t)
@@ -152,6 +152,8 @@ Parameters
     // Help parameters for calculating smoothening of time series
     ts_influx_mean(grid, node, f, t) "Mean of ts_influx"
     ts_influx_std(grid, node, f, t)  "Standard deviation of ts_influx"
+    ts_cf_mean(flow, node, f, t) "Mean of ts_cf"
+    ts_cf_std(flow, node, f, t) "Standard deviation of ts_cf"
 
     p_autocorrelation(node, timeseries) "Autocorrelation of time series for the node and time series type (lag = 1 time step)"
 

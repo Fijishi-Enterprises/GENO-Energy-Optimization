@@ -158,11 +158,12 @@ r_qGen(inc_dec, gn(grid, node), f, t)
 * =============================================================================
 
 // Capacity factors for examining forecast errors
-d_capacityFactor(flowNode(flow, node), f_solve(f), t_active(t))${ sum(flowUnit(flow, unit), nu(node, unit)) }
-    = ts_cf_(flow, node, f, t)
-        + ts_cf(flow, node, f, t)${ not ts_cf_(flow, node, f, t) }
-        - 1e-3${    not ts_cf_(flow, node, f, t)
-                    and not ts_cf(flow, node, f, t)
+d_capacityFactor(flowNode(flow, node), s, f_solve(f), t_active(t))${sft(s, f, t)
+                                                                    and sum(flowUnit(flow, unit), nu(node, unit)) }
+    = ts_cf_(flow, node, f, t, s)
+        + ts_cf(flow, node, f, t + dt_sampleOffset(node, s))${ not ts_cf_(flow, node, f, t, s) }
+        - 1e-3${    not ts_cf_(flow, node, f, t, s)
+                    and not ts_cf(flow, node, f, t + dt_sampleOffset(node, s))
                     }
 ;
 // Temperature forecast for examining the error
