@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ### Added
 - New model setting `dataLength` to set the length of time series data before it is
   recycled. Warn if this is not defined and automatically calculated from data.
+- Added sample dimension to most variables and equations (excl. investments). 
+  Samples can now be used as long-term scenario alternatives (for e.g. hydro scehduling)
+- Number of parallel samples can be reduced using SCENRED2. Activate with active('scenRed')
+  and set parameters in modelsInit.
 
 ### Changed
 - Automatic calculation of parameter `dt_circular` takes into account time steps 
