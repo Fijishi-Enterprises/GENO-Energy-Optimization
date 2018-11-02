@@ -402,11 +402,13 @@ loop(gn2n(grid, node, node_),
         // Check for conflicting bidirectional transfer capacities.
         if(p_gnn(grid, node, node_, 'transferCapBidirectional') <> p_gnn(grid, node_, node, 'transferCapBidirectional'),
             put log '!!! Error occurred on gn2n link ' node.tl:0 '-' node_.tl:0 /;
+            put log '!!! Abort: Conflicting transferCapBidirectional parameters!' /;
             abort "Conflicting 'transferCapBidirectional' parameters!"
         );
         // Check for conflicting one-directional and bidirectional transfer capacities.
         if(p_gnn(grid, node, node_, 'transferCapBidirectional') < p_gnn(grid, node, node_, 'transferCap') OR (p_gnn(grid, node, node_, 'transferCapBidirectional') < p_gnn(grid, node_, node, 'transferCap')),
             put log '!!! Error occurred on gn2n link ' node.tl:0 '-' node_.tl:0 /;
+            put log '!!! Abort: Parameter transferCapBidirectional must be greater than or equal to defined one-directional transfer capacities!' /;
             abort "Parameter 'transferCapBidirectional' must be greater than or equal to defined one-directional transfer capacities!"
         );
     );
@@ -414,40 +416,35 @@ loop(gn2n(grid, node, node_),
 
 * Check the integrity of efficiency approximation related data
 loop( unit,
-    unit_current(unit) = Yes;
     // Check that 'op' is defined correctly
     Option clear = count; // Initialize the previous op to zero
     loop( op,
         if (p_unit(unit, op) + 1${not p_unit(unit, op)} < count,
-            put log '!!! Error occurred on unit ' unit_current.te(unit) /; // Display unit that causes error
-            abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!", unit_current;
+            put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+            put log '!!! Abort: param_unit op must be defined as zero or positive and increasing!' /;
+            abort "param_unit 'op's must be defined as zero or positive and increasing!";
         );
         count = p_unit(unit, op);
     );
     // Check that efficiency approximations have sufficient data
     loop( effLevelGroupUnit(effLevel, effSelector, unit),
         loop( op__${p_unit(unit, op__) = smax(op, p_unit(unit, op))}, // Loop over the 'op's to find the last defined data point.
-            //loop( lambda${sameas(lambda, effSelector)}, // Loop over the lambdas to find the 'magnitude' of the approximation
-                //display count_lambda, count_lambda2, unit.tl;
-            //    if(ord(lambda) > ord(op__), put log '!!! Error occurred on unit ' unit.tl:25 ' with effLevel ' effLevel.tl:10 ' with effSelector ' lambda.tl:8); // Display unit that causes error
-            //    abort${ord(lambda) > ord(op__)} "Order of the lambda approximation cannot exceed the number of efficiency data points!"
-            // );
-            // DirectOn
             loop( op_${p_unit(unit, op_) = smin(op${p_unit(unit, op)}, p_unit(unit, op))}, // Loop over the 'op's to find the first nonzero 'op' data point.
                 if(effDirectOn(effSelector) AND ord(op__) = ord(op_) AND not p_unit(unit, 'section') AND not p_unit(unit, 'opFirstCross'),
-                    put log '!!! Error occurred on unit ' unit_current.te(unit) /; // Display unit that causes error
-                    abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!", unit_current;
+                    put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+                    put log '!!! Abort: directOn requires two efficiency data points with nonzero op or section or opFirstCross!' /;
+                    abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!";
                 );
             );
         );
     );
-    unit_current(unit) = No;
 );
 
 * Check the start-up fuel fraction related data
 loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
     if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')) <> 1,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
+        put log '!!! Abort: The sum of fixedFuelFraction over start-up fuels needs to be one for all units using start-up fuels!' /;
         abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
     );
 );
@@ -457,6 +454,7 @@ loop( unitStarttype(unit, starttypeConstrained),
     if(p_unit(unit, 'minShutdownHours') > p_unit(unit, 'startWarmAfterXhours')
         or p_unit(unit, 'startWarmAfterXhours') > p_unit(unit, 'startColdAfterXhours'),
         put log '!!! Error occurred on unit ', unit.tl:0 /;
+        put log '!!! Abort: Units should have p_unit(unit, minShutdownHours) <= p_unit(unit, startWarmAfterXhours) <= p_unit(unit, startColdAfterXhours)!' /;
         abort "Units should have p_unit(unit, 'minShutdownHours') <= p_unit(unit, 'startWarmAfterXhours') <= p_unit(unit, 'startColdAfterXhours')!"
     );
 );
@@ -467,6 +465,7 @@ loop( unitStarttype(unit, starttypeConstrained),
 loop( restypeDirectionNode(restype, up_down, node),
     if(p_nReserves(node, restype, 'reserve_length') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
         put log '!!! Error occurred on node ', node.tl:0 /;
+        put log '!!! Abort: The reserve_length parameter should be longer than update_frequency + gate_closure to fix the reserves properly!' /;
         abort "The 'reserve_length' parameter should be longer than 'update_frequency' + 'gate_closure' to fix the reserves properly!"
     ); // END if
 ); // END loop(restypeDirectionNode)

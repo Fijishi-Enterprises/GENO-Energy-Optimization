@@ -538,26 +538,40 @@ loop(m,
 * --- Model Parameter Validity Checks -----------------------------------------
 * =============================================================================
 
+loop(m, // Not ideal, but multi-model functionality is not yet implemented
+
 * --- Reserve structure checks ------------------------------------------------
 
-loop(m,
     loop(restypeDirectionNode(restype, up_down, node),
         // Check that 'update_frequency' is longer than 't_jump'
         if(p_nReserves(node, restype, 'update_frequency') < mSettings(m, 't_jump'),
-            put log '!!! Error occurred on node ' node.tl:0 /;
+            put log '!!! Error occurred on p_nReserves ' node.tl:0 ',' restype.tl:0 /;
+            put log '!!! Abort: The update_frequency parameter should be longer than or equal to t_jump!' /;
             abort "The 'update_frequency' parameter should be longer than or equal to 't_jump'!";
         ); // END if('update_frequency' < 't_jump')
 
         // Check that 'update_frequency' is divisible by 't_jump'
         if(mod(p_nReserves(node, restype, 'update_frequency'), mSettings(m, 't_jump')) <> 0,
-            put log '!!! Error occurred on node ' node.tl:0 /;
+            put log '!!! Error occurred on p_nReserves ' node.tl:0 ',' restype.tl:0 /;
+            put log '!!! Abort: The update_frequency parameter should be divisible by t_jump!' /;
             abort "The 'update_frequency' parameter should be divisible by 't_jump'!";
         ); // END if(mod('update_frequency'))
 
         // Check if the first interval is long enough for proper commitment of reserves
         if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
-            put log '!!! Error occurred on node ' node.tl:0 /;
+            put log '!!! Error occurred on p_nReserves ' node.tl:0 ',' restype.tl:0 /;
+            put log '!!! Abort: The first interval should be longer than update_frequency + gate_closure for proper commitment of reserves!' /;
             abort "The first interval should be longer than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
         ); // END if
     ); // END loop(restypeDirectionNode)
+
+* --- Check that there aren't more effLevels defined than exist in data -------
+
+    if( smax(effLevel, ord(effLevel)${mSettingsEff(m, effLevel)}) > smax(effLevelGroupUnit(effLevel, effSelector, unit), ord(effLevel)),
+        put log '!!! Error occurred on mSettingsEff' /;
+        put log '!!! Abort: There are insufficient efficiency definitions for all the defined mSettingsEff!' /;
+        abort "There aren't enough efficiency definitions for all the defined mSettingsEff!";
+    ); // END if(smax)
+
 ); // END loop(m)
+
