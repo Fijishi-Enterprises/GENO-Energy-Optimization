@@ -393,7 +393,8 @@ p_nuReserves(nu(node, unit), restype, 'reserveReliability')
 * --- Data Integrity Checks ---------------------------------------------------
 * =============================================================================
 
-* Check the integrity of node connection related data
+* --- Check the integrity of node connection related data ---------------------
+
 Option clear = count;
 loop(gn2n(grid, node, node_),
     count = count + 1; // Count the gn2n indeces to make finding the errors easier.
@@ -414,7 +415,12 @@ loop(gn2n(grid, node, node_),
     );
 );
 
-* Check the integrity of efficiency approximation related data
+* --- Check the integrity of efficiency approximation related data ------------
+
+Option clear = tmp;
+// Find the largest effLevel used in the data
+tmp = smax(effLevelGroupUnit(effLevel, effSelector, unit), ord(effLevel));
+
 loop( unit,
     // Check that 'op' is defined correctly
     Option clear = count; // Initialize the previous op to zero
@@ -423,9 +429,9 @@ loop( unit,
             put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
             put log '!!! Abort: param_unit op must be defined as zero or positive and increasing!' /;
             abort "param_unit 'op's must be defined as zero or positive and increasing!";
-        );
+        ); // END if(p_unit)
         count = p_unit(unit, op);
-    );
+    ); // END loop(op)
     // Check that efficiency approximations have sufficient data
     loop( effLevelGroupUnit(effLevel, effSelector, unit),
         loop( op__${p_unit(unit, op__) = smax(op, p_unit(unit, op))}, // Loop over the 'op's to find the last defined data point.
@@ -434,13 +440,14 @@ loop( unit,
                     put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
                     put log '!!! Abort: directOn requires two efficiency data points with nonzero op or section or opFirstCross!' /;
                     abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!";
-                );
-            );
-        );
-    );
+                ); // END if(effDirectOn)
+            ); // END loop(op_)
+        ); // END loop(op__)
+    ); // END loop(effLevelGroupUnit)
 );
 
-* Check the start-up fuel fraction related data
+* --- Check the start-up fuel fraction related data ---------------------------
+
 loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
     if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')) <> 1,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
@@ -449,7 +456,8 @@ loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
     );
 );
 
-* Check the shutdown time related data
+* --- Check the shutdown time related data ------------------------------------
+
 loop( unitStarttype(unit, starttypeConstrained),
     if(p_unit(unit, 'minShutdownHours') > p_unit(unit, 'startWarmAfterXhours')
         or p_unit(unit, 'startWarmAfterXhours') > p_unit(unit, 'startColdAfterXhours'),

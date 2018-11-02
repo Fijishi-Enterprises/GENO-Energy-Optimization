@@ -569,8 +569,8 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
 
     if( smax(effLevel, ord(effLevel)${mSettingsEff(m, effLevel)}) > smax(effLevelGroupUnit(effLevel, effSelector, unit), ord(effLevel)),
         put log '!!! Error occurred on mSettingsEff' /;
-        put log '!!! Abort: There are insufficient efficiency definitions for all the defined mSettingsEff!' /;
-        abort "There aren't enough efficiency definitions for all the defined mSettingsEff!";
+        put log '!!! Abort: There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!' /;
+        abort "There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!";
     ); // END if(smax)
 
 ); // END loop(m)
