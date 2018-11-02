@@ -116,6 +116,12 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))
     + ts_reserveDemand_(restype, up_down, node, f, t)${p_nReserves(node, restype, 'use_time_series')}
     + p_nReserves(node, restype, up_down)${not p_nReserves(node, restype, 'use_time_series')}
 
+    // Reserve demand increase because of units
+    + sum(nuft(node, unit, f, t)${p_nuReserves(node, unit, restype, 'reserve_increase_ratio')}, // Could be better to have 'reserve_increase_ratio' separately for up and down directions
+        + sum(grid, v_gen(grid, node, unit, f, t)) // Reserve sets and variables are currently lacking the grid dimension...
+            * p_nuReserves(node, unit, restype, 'reserve_increase_ratio')
+        ) // END sum(nuft)
+
     // Reserve provisions to another nodes via transfer links
     + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, up_down, node_, node)},   // If trasferring reserves to another node, increase your own reserves by same amount
         + v_resTransferRightward(restype, up_down, node, node_, f+df_reserves(node, restype, f, t), t)

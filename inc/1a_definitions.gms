@@ -324,6 +324,7 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     gate_closure  "Number of timesteps ahead of dispatch that reserves are fixed"
     use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
     reserveReliability "Reliability parameter of reserve provisions"
+    reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
     emissionCap   "Emission limit (tonne)"
     instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
     energyShareMax "Maximum energy share of generation from a particular group of units"
