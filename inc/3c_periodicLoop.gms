@@ -309,7 +309,7 @@ loop(cc(counter),
     ); // END loop(ms)
 
     // Update tCounter for the next block of intervals
-    tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter);
+    tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter) + 1;
 
 ); // END loop(counter)
 
