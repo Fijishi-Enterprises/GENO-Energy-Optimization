@@ -111,11 +111,13 @@ r_transfer(gn2n(grid, from_node, to_node), f, t)$[ord(t) > mSettings(mSolve, 't_
 r_spill(gn(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
     = v_spill.l(grid, node, s, f, t)
 ;
+);
+
 // Total Objective function
 r_totalObj
     = r_totalObj + v_obj.l
 ;
-);
+
 // q_balance marginal values
 loop(msft(mSolve, s, ft_realized(f, t)),
     r_balanceMarginal(gn(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
