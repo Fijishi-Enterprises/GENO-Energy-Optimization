@@ -18,12 +18,12 @@ ScenRedParms('visual_red') = 1;
 $endif
 
 * Data exchange and execute SCENRED2
-execute_unload 'output/srin.gdx', ScenRedParms,
+execute_unload 'srin.gdx', ScenRedParms,
                                   s, ss, p_sProbability,
                                   ts_influx_, ts_cf_;
 execute 'scenred2 inc/scenred.cmd';
 if(errorLevel, abort "Scenario reduction (SCENRED2) failed");
-execute_load 'output/srout.gdx', ScenRedReport,
+execute_load 'srout.gdx', ScenRedReport,
                                  p_sProbability=red_prob;
 
 * Update probabilities
