@@ -122,6 +122,7 @@ $iftheni.debug '%debug%' == 'yes'
             $$include defOutput\debugSymbols.inc
         ;
 $endif.debug
+    if(execError, put log "!!! Errors encountered: " execError:0:0);
 );
 
 $if exist 'input\3z_modelsClose.gms' $include 'input\3z_modelsClose.gms';
