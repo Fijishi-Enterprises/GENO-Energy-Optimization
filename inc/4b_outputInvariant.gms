@@ -121,13 +121,19 @@ loop(m,
     // Fixed O&M costs
     r_gnuFOMCost(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
-            * (p_gnu(grid, node, unit, 'maxGen') + r_invest(unit)*p_gnu(grid, node, unit, 'unitSizeGen'))
+            * [
+                + p_gnu(grid, node, unit, 'maxGen') // Not in v_obj 
+                + p_gnu(grid, node, unit, 'maxCons') // Not in v_obj
+                + r_invest(unit)
+                    * p_gnu(grid, node, unit, 'unitSizeTot')
+                ]
             * p_gnu(grid, node, unit, 'fomCosts');
 
     // Unit investment costs
     r_gnuUnitInvestmentCost(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
-            * r_invest(unit)*p_gnu(grid, node, unit, 'unitSizeGen')
+            * r_invest(unit)
+            * p_gnu(grid, node, unit, 'unitSizeTot')
             * p_gnu(grid, node, unit, 'invCosts')
             * p_gnu(grid, node, unit, 'annuity');
 
