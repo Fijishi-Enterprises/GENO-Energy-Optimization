@@ -22,6 +22,7 @@ execute_unload 'output/srin.gdx', ScenRedParms,
                                   s, ss, p_sProbability,
                                   ts_influx_, ts_cf_;
 execute 'scenred2 inc/scenred.cmd';
+if(errorLevel, abort "Scenario reduction (SCENRED2) failed");
 execute_load 'output/srout.gdx', ScenRedReport,
                                  p_sProbability=red_prob;
 
