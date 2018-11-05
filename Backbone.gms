@@ -50,6 +50,12 @@ GAMS command line arguments
     Switch model features on/off. See file ‘inc/setting_sets.gms’ for available
     features.
 
+--input_dir=<path>
+    Directory to read input from. Defaults to './input'.
+
+--output_dir=<path>
+    Directory to write output to. Defaults to './output'.
+
 
 References
 ----------
@@ -60,6 +66,12 @@ References
 ==========================================================================
 $offtext
 
+* Default values for input and output dir
+$if not set input_dir $setglobal input_dir 'input'
+$if not set output_dir $setglobal output_dir 'output'
+
+* Make sure output dir exists
+$if not dexist %output_dir% $call 'mkdir %output_dir%'
 
 * Activate end of line comments and set comment character to '//'
 $oneolcom
@@ -67,10 +79,10 @@ $eolcom //
 $onempty   // Allow empty data definitions
 
 * Output file streams
-files log /''/, gdx, f_info /'output\info.txt'/;
+files log /''/, gdx, f_info /'%output_dir%\info.txt'/;
 
 * Include options file to control the solver
-$include 'input\1_options.gms';
+$include '%input_dir%\1_options.gms';
 
 * === Libraries ===============================================================
 $libinclude scenred2
@@ -85,14 +97,14 @@ $include 'inc\1e_inputs.gms'        // Load input data
 * === Variables and equations =================================================
 $include 'inc\2a_variables.gms'                         // Define variables for the models
 $include 'inc\2b_eqDeclarations.gms'                    // Equation declarations
-$ifthen exist 'input\2c_alternative_objective.gms'      // Objective function - either the default or an alternative from input files
-    $$include 'input\2c_alternative_objective.gms';
+$ifthen exist '%input_dir%\2c_alternative_objective.gms'      // Objective function - either the default or an alternative from input files
+    $$include '%input_dir%\2c_alternative_objective.gms';
 $else
     $$include 'inc\2c_objective.gms'
 $endif
 $include 'inc\2d_constraints.gms'                       // Define constraint equations for the models
-$ifthen exist 'input/2e_additional_constraints.gms'
-   $$include 'input/2e_additional_constraints.gms'      // Define additional constraints from the input data
+$ifthen exist '%input_dir%/2e_additional_constraints.gms'
+   $$include '%input_dir%/2e_additional_constraints.gms'      // Define additional constraints from the input data
 $endif
 
 
@@ -102,7 +114,7 @@ $include 'defModels\building.gms'
 $include 'defModels\invest.gms'
 
 // Load model input parameters
-$include 'input\modelsInit.gms'
+$include '%input_dir%\modelsInit.gms'
 
 
 * === Simulation ==============================================================
@@ -119,7 +131,7 @@ $iftheni.dummy not %dummy% == 'yes'
 $endif.dummy
 $iftheni.debug '%debug%' == 'yes'
         putclose gdx;
-        put_utility 'gdxout' / 'output\' mSolve.tl:0 '-' tSolve.tl:0 '.gdx';
+        put_utility 'gdxout' / '%output_dir%\' mSolve.tl:0 '-' tSolve.tl:0 '.gdx';
             execute_unload
             $$include defOutput\debugSymbols.inc
         ;
@@ -127,24 +139,24 @@ $endif.debug
     if(execError, put log "!!! Errors encountered: " execError:0:0);
 );
 
-$if exist 'input\3z_modelsClose.gms' $include 'input\3z_modelsClose.gms';
+$if exist '%input_dir%\3z_modelsClose.gms' $include '%input_dir%\3z_modelsClose.gms';
 
 * === Output ==================================================================
 $echon "'version' " > 'version'
 $call 'git describe --dirty=+ --always >> version'
-$ifi not %dummy% == 'yes' 
+$ifi not %dummy% == 'yes'
 $include 'inc\4b_outputInvariant.gms'
 $include 'inc\4c_outputQuickFile.gms'
 
 * Post-process results
-$if exist 'input\4d_postProcess.gms' $include 'input\4d_postProcess.gms'
+$if exist '%input_dir%\4d_postProcess.gms' $include '%input_dir%\4d_postProcess.gms'
 
-execute_unload 'output\results.gdx',
+execute_unload '%output_dir%\results.gdx',
     $$include 'defOutput\resultSymbols.inc'
 ;
 
 *$ifi '%debug%' == 'yes' execute_unload 'output\debug.gdx';
-execute_unload 'output\debug.gdx';
+execute_unload '%output_dir%\debug.gdx';
 
 if(errorcount > 0, abort errorcount);
 * === THE END =================================================================

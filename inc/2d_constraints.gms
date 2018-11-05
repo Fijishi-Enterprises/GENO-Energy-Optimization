@@ -1873,6 +1873,6 @@ q_energyShareMin(group)${  p_groupPolicy(group, 'energyShareMin')
 ;
 
 
-$ifthen exist 'input/additional_constraints.inc'
-   $$include 'input/additional_constraints.inc'
+$ifthen exist '%input_dir%/additional_constraints.inc'
+   $$include '%input_dir%/additional_constraints.inc'
 $endif

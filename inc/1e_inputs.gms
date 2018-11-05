@@ -19,7 +19,7 @@ $offtext
 * --- Load Input Data ---------------------------------------------------------
 * =============================================================================
 
-$gdxin  'input/inputData.gdx'
+$gdxin  '%input_dir%/inputData.gdx'
 $loaddc grid
 $loaddc node
 $loaddc flow
@@ -67,22 +67,12 @@ $loaddc p_groupPolicy3D
 $loaddc gnss_bound
 $gdxin
 
-$ifthen exist 'input/includeInputData_ext.inc'
-   $$include 'input/includeInputData_ext.inc'
+$ifthen exist '%input_dir%/includeInputData_ext.inc'
+   $$include '%input_dir%/includeInputData_ext.inc'
 $endif
 
-$ontext
- * Load stochastic scenarios
- $batinclude 'inc/gdxload_fluctuation.inc' wind
- $batinclude 'inc/gdxload_fluctuation.inc' solar
- $ifthen exist 'input/scenarios_hydro.gdx'
-    $$gdxin 'input/scenarios_hydro.gdx'
- $endif
- $gdxin
-$offtext
-
-$ifthen exist 'input/changes.inc'
-   $$include 'input/changes.inc'
+$ifthen exist '%input_dir%/changes.inc'
+   $$include '%input_dir%/changes.inc'
 $endif
 
 

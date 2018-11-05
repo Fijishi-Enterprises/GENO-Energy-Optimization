@@ -73,8 +73,8 @@ Model schedule /
 *    q_energyShareMax
 *    q_energyShareMin
 
-$ifthen exist 'input/schedule_additional_constraints.gms'
-   $$include 'input/schedule_additional_constraints.gms'      // Declare additional constraints from the input data
+$ifthen exist '%input_dir%/schedule_additional_constraints.gms'
+   $$include '%input_dir%/schedule_additional_constraints.gms'      // Declare additional constraints from the input data
 $endif
 /;
 

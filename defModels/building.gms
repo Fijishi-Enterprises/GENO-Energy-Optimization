@@ -71,7 +71,7 @@ Model building /
 *    q_energyShareMax
 *    q_energyShareMin
 
-$ifthen exist 'input/building_additional_constraints.gms'
-   $$include 'input/building_additional_constraints.gms'      // Declare additional constraints from the input data
+$ifthen exist '%input_dir%/building_additional_constraints.gms'
+   $$include '%input_dir%/building_additional_constraints.gms'      // Declare additional constraints from the input data
 $endif
 /;
