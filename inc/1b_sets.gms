@@ -80,7 +80,7 @@ Sets
     restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
 
 * --- Sets to define time, forecasts and samples ------------------------------
-    $$include 'input/timeAndSamples.inc'
+    $$include '%input_dir%/timeAndSamples.inc'
     m(mType) "model(s) in use"
     t_full(t) "Full set of time steps in the current model"
     t_current(t) "Set of time steps within the current solve horizon"

@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - New model setting `dataLength` to set the length of time series data before it is
   recycled. Warn if this is not defined and automatically calculated from data.
+- Command line arguments '--input_dir=<path>' and '--ouput_dir=<path' to set
+  input and output directories, respectively.
 
 ### Changed
 - Automatic calculation of parameter `dt_circular` takes into account time steps 
