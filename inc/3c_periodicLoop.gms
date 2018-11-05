@@ -450,6 +450,8 @@ loop(ms(mSolve, s),
 
 * --- Scenario reduction ------------------------------------------------------
 
+s_active(s) = ms(mSolve, s);
+
 if(active(mSolve, 'scenred'),
     $$include 'inc/scenred.gms'
 );
@@ -468,12 +470,13 @@ $offtext
 * Influx
 loop(gn(grid, node)$p_autocorrelation(node, 'ts_influx'),
     ts_influx_mean(grid, node, ft(f, t))$mf_central(mSolve, f)
-        = sum(s_parallel(s), ts_influx_(grid, node, f, t, s)) / sum(s_parallel, 1);
+        = sum(s_parallel(s_active), ts_influx_(grid, node, f, t, s_active))
+                / sum(s_parallel(s_active), 1);
 
     ts_influx_std(grid, node, ft(f, t))$mf_central(mSolve, f)
-        = sqrt(sum(s_parallel(s), sqr(ts_influx_(grid, node, f, t, s)
+        = sqrt(sum(s_parallel(s_active), sqr(ts_influx_(grid, node, f, t, s_active)
                                      - ts_influx_mean(grid, node, f, t)))
-                / sum(s_parallel, 1)
+                / sum(s_parallel(s_active), 1)
           );
 
     // Do smoothing
@@ -499,12 +502,13 @@ loop(gn(grid, node)$p_autocorrelation(node, 'ts_influx'),
 * CF
 loop(flowNode(flow, node)$p_autocorrelation(node, 'ts_cf'),
     ts_cf_mean(flow, node, ft(f, t))$mf_central(mSolve, f)
-        = sum(s_parallel(s), ts_cf_(flow, node, f, t, s)) / sum(s_parallel, 1);
+        = sum(s_parallel(s_active), ts_cf_(flow, node, f, t, s_active))
+                / sum(s_parallel(s_active), 1);
 
     ts_cf_std(flow, node, ft(f, t))$mf_central(mSolve, f)
-        = sqrt(sum(s_parallel(s), sqr(ts_cf_(flow, node, f, t, s)
+        = sqrt(sum(s_parallel(s_active), sqr(ts_cf_(flow, node, f, t, s_active)
                                      - ts_cf_mean(flow, node, f, t)))
-                / sum(s_parallel, 1)
+                / sum(s_parallel(s_active), 1)
           );
 
     // Do smoothing

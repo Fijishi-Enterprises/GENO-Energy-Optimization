@@ -114,6 +114,7 @@ Sets
     t_latestForecast(t) "t for the latest forecast that is available"
     gnss_bound(grid, node, s, s) "Bound the samples so that the state at the last interval of the first sample equals the state at the first interval of the second sample"
     s_parallel(s) "Samples which are treated as parallel"
+    s_active(s) "Samples with non-zero probability in the current model solve"
     ss(s, s) "Previous sample of sample"
     s_prev(s) "Temporary set for previous sample"
 

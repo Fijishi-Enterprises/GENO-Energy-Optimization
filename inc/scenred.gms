@@ -29,9 +29,9 @@ execute_load 'output/srout.gdx', ScenRedReport,
 p_msProbability(mSolve, s) = p_sProbability(s);
 
 * Update sets
-msft(mSolve, s, f, t)$msft(mSolve, s, f, t) = p_msProbability(mSolve, s);
-sft(s, f, t)$sft(s, f, t) = p_msProbability(mSolve, s);
-s_parallel(s)$s_parallel(s) = p_sProbability(s);
+s_active(s) = p_sProbability(s);
+msft(mSolve, s, f, t)$msft(mSolve, s, f, t) = s_active(s);
+sft(s, f, t)$sft(s, f, t) = s_active(s);
 
 else
     put log "!!! No scenario reduction setting given, skipping scenario reduction!"/;
