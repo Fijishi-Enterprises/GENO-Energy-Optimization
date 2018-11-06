@@ -1527,8 +1527,8 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)${ ms(m, s_)
 
     // State of the node at the end of the sample
     + sum(mst_end(m, s_, t_),
-        + sum(sft(s, f_, t_),
-            + v_state(grid, node, s, f_, t_)
+        + sum(sft(s_, f_, t_),
+            + v_state(grid, node, s_, f_, t_)
             ) // END sum(ft)
         ) // END sum(mst_end)
 ;
