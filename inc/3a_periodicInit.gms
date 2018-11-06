@@ -94,8 +94,9 @@ $offtext
     loop(counter${ continueLoop },
         if(not mInterval(m, 'lastStepInIntervalBlock', counter),
             continueLoop = 0;
+        elseif mod(mInterval(m, 'lastStepInIntervalBlock', counter) - mInterval(m, 'lastStepInIntervalBlock', counter-1), mInterval(m, 'stepsPerInterval', counter)),
+            abort "stepsPerInterval is not evenly divisible within the interval", m, continueLoop;
         else
-            abort$(mod(mInterval(m, 'lastStepInIntervalBlock', counter) - mInterval(m, 'lastStepInIntervalBlock', counter-1) -1${ not mInterval(m, 'lastStepInIntervalBlock', counter-1) }, mInterval(m, 'stepsPerInterval', counter))) "stepsPerInterval is not evenly divisible within the interval", m, continueLoop;
             continueLoop = continueLoop + 1;
         );
     );
