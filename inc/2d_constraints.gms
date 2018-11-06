@@ -118,7 +118,7 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))
 
     // Reserve demand increase because of units
     + sum(nuft(node, unit, f, t)${p_nuReserves(node, unit, restype, 'reserve_increase_ratio')}, // Could be better to have 'reserve_increase_ratio' separately for up and down directions
-        + sum(grid, v_gen(grid, node, unit, f, t)) // Reserve sets and variables are currently lacking the grid dimension...
+        + sum(gnu(grid, node, unit), v_gen(grid, node, unit, f, t)) // Reserve sets and variables are currently lacking the grid dimension...
             * p_nuReserves(node, unit, restype, 'reserve_increase_ratio')
         ) // END sum(nuft)
 
