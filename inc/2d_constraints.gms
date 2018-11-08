@@ -916,7 +916,7 @@ q_conversionDirectInputOutput(suft(effDirect(effGroup), unit, f, t)) ..
     * [ // Heat rate
         + p_effUnit(effGroup, unit, effGroup, 'slope')${ not ts_effUnit(effGroup, unit, effGroup, 'slope', f, t) }
         + ts_effUnit(effGroup, unit, effGroup, 'slope', f, t)
-        ] // END * v_gen
+        ] // END * run-up phase
 
     =E=
 
