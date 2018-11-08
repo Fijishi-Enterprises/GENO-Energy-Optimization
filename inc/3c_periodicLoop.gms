@@ -321,15 +321,12 @@ t_active(t_full(t))
     = yes;
 
 // Time step displacement to reach previous time step
-option clear = tmp;
-tmp = tSolveFirst + dt_noReset(tSolve + 1) + 1${ dt_noReset(tSolve + 1) };
 option clear = dt;
 option clear = dt_next;
-dt_noReset(t_current(t))${ord(t) > tSolveFirst} = 0; // clean up old values (needed for t:s which are in the horizon but not in t_active)
+tmp = max(tSolveFirst + tmp_dt, 1); // The ord(t) of the first time step in t_active, cannot decrease below 1 to avoid referencing time steps before t000000
 loop(t_active(t),
     dt(t) = tmp - ord(t);
     dt_next(t+dt(t)) = -dt(t);
-    dt_noReset(t) = dt(t);
     tmp = ord(t);
 ); // END loop(t_active)
 
@@ -591,7 +588,7 @@ loop(unit$(p_u_runUpTimeIntervals(unit)),
                         and tmp = 1
                         },
             if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for start-up phase
-                dt_toStartup(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time interval just before the time interval found
+                dt_toStartup(unit, t) = dtt(t,t_ + dt(t_)); // the displacement to the active or realized time interval just before the time interval found
                 tmp = 0;
             );
         );
@@ -616,7 +613,7 @@ loop(unit$(p_u_shutdownTimeIntervals(unit)),
                         and tmp = 1
                         },
             if (-dtt(t,t_) < p_u_shutdownTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for shutdown phase
-                dt_toShutdown(unit, t) = dtt(t,t_ + dt_noReset(t_)); // the displacement to the active or realized time interval just before the time interval found
+                dt_toShutdown(unit, t) = dtt(t,t_ + dt(t_)); // the displacement to the active or realized time interval just before the time interval found
                 tmp = 0;
             );
         );

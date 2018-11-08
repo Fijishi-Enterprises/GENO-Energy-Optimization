@@ -23,7 +23,6 @@ $offtext
 
 // Initialize various sets
 Option clear = t_full;
-Option clear = dt_noReset;
 Option clear = f_solve;
 Option clear = tmp;
 
