@@ -24,7 +24,7 @@ execute_unload 'srin.gdx', ScenRedParms,
 execute 'scenred2 inc/scenred.cmd';
 if(errorLevel, abort "Scenario reduction (SCENRED2) failed");
 execute_load 'srout.gdx', ScenRedReport,
-                                 p_sProbability=red_prob;
+                          p_sProbability=red_prob;
 
 * Update probabilities
 p_msProbability(mSolve, s) = p_sProbability(s);
