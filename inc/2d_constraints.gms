@@ -118,7 +118,7 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), sft(s, f, t))
 
     // Reserve demand increase because of units
     + sum(nuft(node, unit, f, t)${p_nuReserves(node, unit, restype, 'reserve_increase_ratio')}, // Could be better to have 'reserve_increase_ratio' separately for up and down directions
-        + sum(grid, v_gen(grid, node, unit, s, f, t)) // Reserve sets and variables are currently lacking the grid dimension...
+        + sum(gnu(grid, node, unit), v_gen(grid, node, unit, s, f, t)) // Reserve sets and variables are currently lacking the grid dimension...
             * p_nuReserves(node, unit, restype, 'reserve_increase_ratio')
         ) // END sum(nuft)
 
@@ -924,7 +924,7 @@ q_conversionDirectInputOutput(s, suft(effDirect(effGroup), unit, f, t))$sft(s, f
     * [ // Heat rate
         + p_effUnit(effGroup, unit, effGroup, 'slope')${ not ts_effUnit(effGroup, unit, effGroup, 'slope', f, t) }
         + ts_effUnit(effGroup, unit, effGroup, 'slope', f, t)
-        ] // END * v_gen
+        ] // END * run-up phase
 
     =E=
 

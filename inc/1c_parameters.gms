@@ -96,7 +96,6 @@ Scalar p_sWeightSum "Sum of sample weights";
 Parameters
     // Time displacement arrays
     dt(t) "Displacement needed to reach the previous time interval (in time steps)"
-    dt_noReset(t) "Displacement needed to reach the previous time interval (in time steps)"
     dt_circular(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
     dt_next(t) "Displacement needed to reach the next time interval (in time steps)"
     dtt(t, t) "Displacement needed to reach any previous time interval (in time steps)"

@@ -23,7 +23,6 @@ $offtext
 
 // Initialize various sets
 Option clear = t_full;
-Option clear = dt_noReset;
 Option clear = f_solve;
 Option clear = tmp;
 
@@ -80,7 +79,7 @@ $offtext
     msf(m, s_parallel(s), f) = mf_central(m, f);  // Parallel samples only have central forecast
 
     // Select the forecasts included in the modes to be solved
-    f_solve(f)${ mf(m,f) }
+    f_solve(f)${mf(m,f) and p_mfProbability(m, f)}
         = yes;
 
     // Check the modelSolves for preset patterns for model solve timings
@@ -110,8 +109,9 @@ $offtext
     loop(counter${ continueLoop },
         if(not mInterval(m, 'lastStepInIntervalBlock', counter),
             continueLoop = 0;
+        elseif mod(mInterval(m, 'lastStepInIntervalBlock', counter) - mInterval(m, 'lastStepInIntervalBlock', counter-1), mInterval(m, 'stepsPerInterval', counter)),
+            abort "stepsPerInterval is not evenly divisible within the interval", m, continueLoop;
         else
-            abort$(mod(mInterval(m, 'lastStepInIntervalBlock', counter) - mInterval(m, 'lastStepInIntervalBlock', counter-1) -1${ not mInterval(m, 'lastStepInIntervalBlock', counter-1) }, mInterval(m, 'stepsPerInterval', counter))) "stepsPerInterval is not evenly divisible within the interval", m, continueLoop;
             continueLoop = continueLoop + 1;
         );
     );
