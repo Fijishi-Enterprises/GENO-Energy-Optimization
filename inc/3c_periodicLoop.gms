@@ -478,7 +478,7 @@ following the methodology presented in [1, p. 443]. This avoids a discontinuity
 $offtext
 
 * Influx
-loop(gn(grid, node)$p_autocorrelation(node, 'ts_influx'),
+loop(gn(grid, node)$p_autocorrelation(grid, node, 'ts_influx'),
     ts_influx_mean(grid, node, ft(f, t))$mf_central(mSolve, f)
         = sum(s_parallel(s_active), ts_influx_(grid, node, f, t, s_active))
                 / sum(s_parallel(s_active), 1);
@@ -499,7 +499,7 @@ loop(gn(grid, node)$p_autocorrelation(node, 'ts_influx'),
                  - ts_influx_(grid, node, f, t_, s))
                 * (ts_influx_std(grid, node, f, t+dt_circular(t))
                     / ts_influx_std(grid, node, f, t_+dt_circular(t_)))
-                * power(p_autocorrelation(node, 'ts_influx'), abs(ord(t) - ord(t_)));
+                * power(p_autocorrelation(grid, node, 'ts_influx'), abs(ord(t) - ord(t_)));
 
         // Ensure not above max or below min
         ts_influx_(grid, node, f, t, s)$(ts_influx_(grid, node, f, t, s) < p_tsMinValue(node, 'ts_influx'))
@@ -510,7 +510,7 @@ loop(gn(grid, node)$p_autocorrelation(node, 'ts_influx'),
 );
 
 * CF
-loop(flowNode(flow, node)$p_autocorrelation(node, 'ts_cf'),
+loop(flowNode(flow, node)$p_autocorrelation(flow, node, 'ts_cf'),
     ts_cf_mean(flow, node, ft(f, t))$mf_central(mSolve, f)
         = sum(s_parallel(s_active), ts_cf_(flow, node, f, t, s_active))
                 / sum(s_parallel(s_active), 1);
@@ -531,7 +531,7 @@ loop(flowNode(flow, node)$p_autocorrelation(node, 'ts_cf'),
                  - ts_cf_(flow, node, f, t_, s))
                 * (ts_cf_std(flow, node, f, t+dt_circular(t))
                     / ts_cf_std(flow, node, f, t_+dt_circular(t_)))
-                * power(p_autocorrelation(node, 'ts_cf'), abs(ord(t) - ord(t_)));
+                * power(p_autocorrelation(flow, node, 'ts_cf'), abs(ord(t) - ord(t_)));
 
         // Ensure not above max or below min
         ts_cf_(flow, node, f, t, s)$(ts_cf_(flow, node, f, t, s) < p_tsMinValue(node, 'ts_cf'))

@@ -474,7 +474,7 @@ loop( restypeDirectionNode(restype, up_down, node),
 * =============================================================================
 
 loop((gn(grid, node), timeseries),
-    p_autocorrelation(node, timeseries) = 0;
+    p_autocorrelation(grid, node, timeseries) = 0;
     p_tsMinValue(node, timeseries) = -Inf;
     p_tsMaxValue(node, timeseries) = Inf;
 );

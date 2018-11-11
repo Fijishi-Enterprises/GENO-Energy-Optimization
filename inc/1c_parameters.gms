@@ -154,7 +154,7 @@ Parameters
     ts_cf_mean(flow, node, f, t) "Mean of ts_cf"
     ts_cf_std(flow, node, f, t) "Standard deviation of ts_cf"
 
-    p_autocorrelation(node, timeseries) "Autocorrelation of time series for the node and time series type (lag = 1 time step)"
+    p_autocorrelation(*, node, timeseries) "Autocorrelation of time series for the grid/flow, node and time series type (lag = 1 time step)"
 
     // Bounds for scenario smoothening
     p_tsMinValue(node, timeseries)
