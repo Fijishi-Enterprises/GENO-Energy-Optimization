@@ -63,7 +63,7 @@ $offtext
     msf(m, s, f)$(ms(m, s) and mf(m, f)) = yes;
 
     // Select the forecasts included in the modes to be solved
-    f_solve(f)${ mf(m,f) }
+    f_solve(f)${mf(m,f) and p_mfProbability(m, f)}
         = yes;
 
     // Check the modelSolves for preset patterns for model solve timings
