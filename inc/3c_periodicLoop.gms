@@ -133,6 +133,19 @@ $endif.debug
 // Determine the time steps of the current solve
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 used only for initial values
 
+* --- Define sample offsets for creating stochastic scenarios -----------------
+
+Option clear = dt_sampleOffset;
+
+loop(gn(grid, node)$longtermSamples(grid, node),
+    dt_sampleOffset(grid, node, s)$(ord(s) > 1)
+        = (ord(s) - 2) * mSettings(mSolve, 'sampleLength');
+);
+loop(flowNode(flow, node)$longtermSamples(flow, node),
+    dt_sampleOffset(flow, node, s)$(ord(s) > 1)
+        = (ord(s) - 2) * mSettings(mSolve, 'sampleLength');
+);
+
 * --- Build the forecast-time structure using the intervals -------------------
 
 // Initializing forecast-time structure sets
@@ -231,9 +244,9 @@ loop(cc(counter),
             // Select time series data matching the intervals, for stepsPerInterval = 1, this is trivial.
             loop(ft(f_solve, tt_block(t)),
                 ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                    = ts_cf(flow, node, f_solve, t + (dt_sampleOffset(node, s) + dt_circular(t)));
+                    = ts_cf(flow, node, f_solve, t + (dt_sampleOffset(flow, node, s) + dt_circular(t)));
                 ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                    = ts_influx(grid, node, f_solve, t + (dt_sampleOffset(node, s) + dt_circular(t)));
+                    = ts_influx(grid, node, f_solve, t + (dt_sampleOffset(grid, node, s) + dt_circular(t)));
                 ts_unit_(unit, param_unit, f_solve, t)
                   ${p_unit(unit, 'useTimeseries')} // Only include units that have timeseries attributed to them
                     = ts_unit(unit, param_unit, f_solve, t+dt_circular(t));
@@ -303,10 +316,10 @@ loop(cc(counter),
                      }
                     = yes;
                 ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                    = sum(tt(t_), ts_influx(grid, node, f_solve, t_ + (dt_sampleOffset(node, s) + dt_circular(t_))))
+                    = sum(tt(t_), ts_influx(grid, node, f_solve, t_ + (dt_sampleOffset(grid, node, s) + dt_circular(t_))))
                         / p_stepLength(mSolve, f_solve, t);
                 ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                    = sum(tt(t_), ts_cf(flow, node, f_solve, t_ + (dt_sampleOffset(node, s) + dt_circular(t_))))
+                    = sum(tt(t_), ts_cf(flow, node, f_solve, t_ + (dt_sampleOffset(flow, node, s) + dt_circular(t_))))
                         / p_stepLength(mSolve, f_solve, t);
                 ts_unit_(unit, param_unit, f_solve, t)
                   ${ p_unit(unit, 'useTimeseries')} // Only include units with timeseries attributed to them

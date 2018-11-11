@@ -105,7 +105,7 @@ Parameters
     dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints (in time steps)"
     dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints (in time steps)"
     dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints (in time steps)"
-    dt_sampleOffset(node, s) "Time offset to make periodic time series data to go into different samples"
+    dt_sampleOffset(*, node, s) "Time offset to make periodic time series data (for grid/flow, unit) to go into different samples"
 
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"

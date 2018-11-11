@@ -550,14 +550,6 @@ loop(m,
         = mSettings(m, 't_jump');
 );
 
-* --- Define sample offsets for creating stochastic scenarios -----------------
-
-loop(gn(grid, node),
-    dt_sampleOffset(node, s)$(ord(s) > 1)
-        = (ord(s) - 2) * p_gn(grid, node, 'sampleLength');
-);
-
-
 * =============================================================================
 * --- Model Parameter Validity Checks -----------------------------------------
 * =============================================================================

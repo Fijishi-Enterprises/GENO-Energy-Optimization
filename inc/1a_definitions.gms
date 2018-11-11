@@ -49,6 +49,7 @@ Sets
         t_forecastLengthDecreasesFrom, // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
         t_forecastStart, // Time step for first reading the forecasts (not necessarily t_start)
         t_forecastJump, // Number of time steps between each update of the forecasts
+        sampleLength   "Length of sample in time steps for creating stocahstic scenarios from time series data"
 
         // Features
         t_trajectoryHorizon, // Length of the horizon when start-up and shutdown trajectories are considered (in time steps)
@@ -214,7 +215,6 @@ param_gn  "Possible parameters for grid, node" /
     boundStartToEnd  "Force the last states to equal the first state"
     forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."
     capacityMargin "Capacity margin used in invest mode (MW)"
-    sampleLength   "Length of sample in time steps for creating stocahstic scenarios from time series data"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
