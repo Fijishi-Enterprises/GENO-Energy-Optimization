@@ -494,18 +494,14 @@ loop(gn(grid, node)$p_autocorrelation(grid, node, 'ts_influx'),
         ts_influx_(grid, node, ft(f, t), s)$(ts_influx_std(grid, node, f, t_+dt_circular(t_))
                                              and sft(s, f, t)
                                              and not ms_initial(mSolve, s))
-            = ts_influx_(grid, node, f, t, s)
+            = min(p_tsMaxValue(node, 'ts_influx'), max(p_tsMinValue(node, 'ts_influx'),
+              ts_influx_(grid, node, f, t, s)
               + (ts_influx_(grid, node, f, t_, s_)
                  - ts_influx_(grid, node, f, t_, s))
                 * (ts_influx_std(grid, node, f, t+dt_circular(t))
                     / ts_influx_std(grid, node, f, t_+dt_circular(t_)))
-                * power(p_autocorrelation(grid, node, 'ts_influx'), abs(ord(t) - ord(t_)));
-
-        // Ensure not above max or below min
-        ts_influx_(grid, node, f, t, s)$(ts_influx_(grid, node, f, t, s) < p_tsMinValue(node, 'ts_influx'))
-                = p_tsMinValue(node, 'ts_influx');
-        ts_influx_(grid, node, f, t, s)$(ts_influx_(grid, node, f, t, s) > p_tsMaxValue(node, 'ts_influx'))
-                = p_tsMaxValue(node, 'ts_influx');
+                * power(p_autocorrelation(grid, node, 'ts_influx'), abs(ord(t) - ord(t_)))
+              ));
     );
 );
 
@@ -526,18 +522,14 @@ loop(flowNode(flow, node)$p_autocorrelation(flow, node, 'ts_cf'),
         ts_cf_(flow, node, ft(f, t), s)$(ts_cf_std(flow, node, f, t_+dt_circular(t_))
                                          and sft(s, f, t)
                                          and not ms_initial(mSolve, s))
-            = ts_cf_(flow, node, f, t, s)
+            = min(p_tsMaxValue(node, 'ts_cf'), max(p_tsMinValue(node, 'ts_cf'),
+              ts_cf_(flow, node, f, t, s)
               + (ts_cf_(flow, node, f, t_, s_)
                  - ts_cf_(flow, node, f, t_, s))
                 * (ts_cf_std(flow, node, f, t+dt_circular(t))
                     / ts_cf_std(flow, node, f, t_+dt_circular(t_)))
-                * power(p_autocorrelation(flow, node, 'ts_cf'), abs(ord(t) - ord(t_)));
-
-        // Ensure not above max or below min
-        ts_cf_(flow, node, f, t, s)$(ts_cf_(flow, node, f, t, s) < p_tsMinValue(node, 'ts_cf'))
-                = p_tsMinValue(node, 'ts_cf');
-        ts_cf_(flow, node, f, t, s)$(ts_cf_(flow, node, f, t, s) > p_tsMaxValue(node, 'ts_cf'))
-                = p_tsMaxValue(node, 'ts_cf');
+                * power(p_autocorrelation(flow, node, 'ts_cf'), abs(ord(t) - ord(t_)))
+              ));
     );
 );
 
