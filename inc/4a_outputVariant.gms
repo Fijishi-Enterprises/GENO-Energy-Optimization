@@ -163,17 +163,19 @@ r_qGen(inc_dec, gn(grid, node), f, t)
 d_capacityFactor(flowNode(flow, node), s, f_solve(f), t_active(t))${sft(s, f, t)
                                                                     and sum(flowUnit(flow, unit), nu(node, unit)) }
     = ts_cf_(flow, node, f, t, s)
-        + ts_cf(flow, node, f, t + dt_sampleOffset(flow, node, s))${ not ts_cf_(flow, node, f, t, s) }
+        + ts_cf(flow, node, f, t + dt_sampleOffset(flow, node, 'ts_cf', s))${ not ts_cf_(flow, node, f, t, s) }
         - 1e-3${    not ts_cf_(flow, node, f, t, s)
-                    and not ts_cf(flow, node, f, t + dt_sampleOffset(flow, node, s))
+                    and not ts_cf(flow, node, f, t + dt_sampleOffset(flow, node, 'ts_cf', s))
                     }
 ;
 // Temperature forecast for examining the error
-d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, f_solve(f), t_active(t))${ p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
-    = ts_node_(grid, node, param_gnBoundaryTypes, f, t)
-        + ts_node(grid, node, param_gnBoundaryTypes, f, t)${ not ts_node_(grid, node, param_gnBoundaryTypes, f, t) }
-        - 1e-3${    not ts_node_(grid, node, param_gnBoundaryTypes, f, t)
-                    and not ts_node_(grid, node, param_gnBoundaryTypes, f, t)
+d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, s, f_solve(f), t_active(t))
+    ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+      and sft(s, f, t)}
+    = ts_node_(grid, node, param_gnBoundaryTypes, f, t, s)
+        + ts_node(grid, node, param_gnBoundaryTypes, f, t)${ not ts_node_(grid, node, param_gnBoundaryTypes, f, t, s)}
+        - 1e-3${    not ts_node_(grid, node, param_gnBoundaryTypes, f, t, s)
+                    and not ts_node_(grid, node, param_gnBoundaryTypes, f, t, s)
                     }
 ;
 

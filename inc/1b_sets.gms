@@ -117,7 +117,7 @@ Sets
     s_active(s) "Samples with non-zero probability in the current model solve"
     ss(s, s) "Previous sample of sample"
     s_prev(s) "Temporary set for previous sample"
-    longtermSamples(*, node) "Which grid/flow and node have data for long-term scenarios"
+    longtermSamples(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
