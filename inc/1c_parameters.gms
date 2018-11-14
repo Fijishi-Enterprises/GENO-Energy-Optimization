@@ -141,18 +141,18 @@ Parameters
 
     // Aliases used for intervals (time step aggregation)
     // NOTE: Sample dimension has to be last because of the scenario reduction algorithm
-    ts_influx_(grid, node, f, t, s)
-    ts_cf_(flow, node, f, t, s)
+    ts_influx_(grid, node, f, t, s) "Mean external power inflow/outflow during a time step (MWh/h)"
+    ts_cf_(flow, node, f, t, s) "Mean available capacity factor time series (p.u.)"
     ts_influx_temp(grid, node, s, f, t)
-    ts_reserveDemand_(restype, up_down, node, f, t)
-    ts_node_(grid, node, param_gnBoundaryTypes, f, t)
-    ts_fuelPrice_(fuel, t)
+    ts_reserveDemand_(restype, up_down, node, f, t) "Mean reserve demand in region in the time step (MW)"
+    ts_node_(grid, node, param_gnBoundaryTypes, f, t, s) "Mean value of ts_node"
+    ts_fuelPrice_(fuel, t) "Mean fuel price time during time step (EUR/MWh)"
 
     // Help parameters for calculating smoothening of time series
-    ts_influx_mean(grid, node, f, t) "Mean of ts_influx"
-    ts_influx_std(grid, node, f, t)  "Standard deviation of ts_influx"
-    ts_cf_mean(flow, node, f, t) "Mean of ts_cf"
-    ts_cf_std(flow, node, f, t) "Standard deviation of ts_cf"
+    ts_influx_mean(grid, node, f, t) "Mean of ts_influx over samples"
+    ts_influx_std(grid, node, f, t)  "Standard deviation of ts_influx over samples"
+    ts_cf_mean(flow, node, f, t) "Mean of ts_cf over samples (p.u.)"
+    ts_cf_std(flow, node, f, t) "Standard deviation of ts_cf over samples (p.u.)"
 
     p_autocorrelation(*, node, timeseries) "Autocorrelation of time series for the grid/flow, node and time series type (lag = 1 time step)"
 
