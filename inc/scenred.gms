@@ -34,6 +34,11 @@ s_active(s) = p_sProbability(s);
 msft(mSolve, s, f, t)$msft(mSolve, s, f, t) = s_active(s);
 sft(s, f, t)$sft(s, f, t) = s_active(s);
 
+* Clear data from removed samples
+ts_influx_(gn, ft, s)$(not s_active(s)) = 0;
+ts_cf_(flowNode, ft, s)$(not s_active(s)) = 0;
+
+
 else
     put log "!!! No scenario reduction setting given, skipping scenario reduction!"/;
 );
