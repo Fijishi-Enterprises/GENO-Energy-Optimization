@@ -500,9 +500,9 @@ loop(gn(grid, node)$p_autocorrelation(grid, node, 'ts_influx'),
 
     // Do smoothing
     loop(mst_end(ms_initial(mSolve, s_), t_),
-        ts_influx_(grid, node, f, t, s)$(ts_influx_std(grid, node, f, t_+dt_circular(t_))
-                                         and sft(s, f, t)
-                                         and not ms_initial(mSolve, s))
+        ts_influx_(grid, node, ft(f, t), s)$(ts_influx_std(grid, node, f, t_+dt_circular(t_))
+                                             and sft(s, f, t)
+                                             and not ms_initial(mSolve, s))
             = min(p_tsMaxValue(node, 'ts_influx'), max(p_tsMinValue(node, 'ts_influx'),
               ts_influx_(grid, node, f, t, s)
               + (ts_influx_(grid, node, f, t_, s_)
@@ -528,9 +528,9 @@ loop(flowNode(flow, node)$p_autocorrelation(flow, node, 'ts_cf'),
 
     // Do smoothing
     loop(mst_end(ms_initial(mSolve, s_), t_),
-        ts_cf_(flow, node, f, t, s)$(ts_cf_std(flow, node, f, t_+dt_circular(t_))
-                                     and sft(s, f, t)
-                                     and not ms_initial(mSolve, s))
+        ts_cf_(flow, node, ft(f, t), s)$(ts_cf_std(flow, node, f, t_+dt_circular(t_))
+                                         and sft(s, f, t)
+                                         and not ms_initial(mSolve, s))
             = min(p_tsMaxValue(node, 'ts_cf'), max(p_tsMinValue(node, 'ts_cf'),
               ts_cf_(flow, node, f, t, s)
               + (ts_cf_(flow, node, f, t_, s_)
