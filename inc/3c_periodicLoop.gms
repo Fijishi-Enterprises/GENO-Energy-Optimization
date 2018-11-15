@@ -421,8 +421,16 @@ Option clear = ft_realized;
 ft_realized(f_solve, t)${ mf_realization(mSolve, f_solve) and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = ft(f_solve, t);
 ft_realizedNoReset(ft_realized(f, t)) = yes;
+
+Option clear = sft_realized;
+sft_realized(s, f_solve, t)${msf(mSolve, s, f_solve)
+                             and mf_realization(mSolve, f_solve)
+                             and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
+    = sft(s, f_solve, t);
+sft_realizedNoReset(sft_realized(s, f, t)) = yes;
+
 // Set of realized intervals in the whole simulation so far, including model and sample dimensions
-msft_realizedNoReset(msft(mSolve, s, ft_realized(f, t))) = yes;
+msft_realizedNoReset(msft(mSolve, sft_realized(s, f, t))) = yes;
 
 // Forecast index displacement between realized and forecasted intervals
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!

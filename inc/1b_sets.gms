@@ -102,6 +102,8 @@ Sets
     msf(mType, s, f) "Combination of samples and forecasts in the models"
     msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
     sft(s, f, t) "Combination of samples, forecasts and t's in the current model solve"
+    sft_realized(s, f, t) "Realized sft"
+    sft_realizedNoReset(s, f, t) "Full set of realized sft, facilitates calculation of results"
     msft_realizedNoReset(mType, s, f, t) "Combination of realized samples, forecasts and t:s in the current model solve and previously realized t:s"
     mft_start(mType, f, t) "Start point of the current model solve"
     mf_realization(mType, f) "fRealization of the forecasts"

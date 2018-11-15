@@ -298,8 +298,8 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))${ ord(t) <= tS
                 v_gen.up('elec', node, unit, s, f, t) - v_gen.lo('elec', node, unit, s, f, t) // Generator + consuming unit available unit_elec. output delta
                 ) // END min
             * [
-                + 1${ft_realized(f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
-                + p_nuReserves(node, unit, restype, 'reserveReliability')${not ft_realized(f+df_reserves(node, restype, f, t), t)}
+                + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
                 ]; // END * min
 
     // Reserve transfer upper bounds based on input p_nnReserves data, if investments are disabled
@@ -454,27 +454,27 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
 * =============================================================================
 // Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up and shutdown phases.
 
-v_startup.fx(unitStarttype(unit, starttype), sft(s, ft_realizedNoReset(f, t_active(t))))
+v_startup.fx(unitStarttype(unit, starttype), sft_realizedNoReset(s, f, t_active(t)))
     ${  ord(t) <= tSolveFirst
         and sum[ft(f_,t_), uft_online(unit,f_,t_)]
         }
     = r_startup(unit, starttype, f, t)
 ;
 
-v_shutdown.fx(unit, sft(s, ft_realizedNoReset(f, t_active(t))))
+v_shutdown.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
     ${  ord(t) <= tSolveFirst
         and sum[ft(f_,t_), uft_online(unit,f_,t_)]
         }
     = r_shutdown(unit, f, t)
 ;
 
-v_online_MIP.fx(unit, sft(s, ft_realizedNoReset(f, t_active(t))))
+v_online_MIP.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
     ${  ord(t) <= tSolveFirst
         and sum[ft(f_,t_), uft_onlineMIP(unit,f_,t_)]
         }
     = round(r_online(unit, f, t));
 
-v_online_LP.fx(unit, sft(s, ft_realizedNoReset(f, t_active(t))))
+v_online_LP.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
     ${  ord(t) <= tSolveFirst
         and sum[ft(f_,t_), uft_onlineLP(unit,f_,t_)]
         }

@@ -31,28 +31,28 @@ loop(msft(mSolve, s, f_solve, t),
 );
 );
 // Realized state history
-loop(msft(mSolve, s, ft_realized(f, t)),
-r_state(gn_state(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-    = v_state.l(grid, node, s, f, t);
+loop(sft_realized(s, f, t),
+    r_state(gn_state(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_state.l(grid, node, s, f, t);
 
-// Realized state history - initial state values in samples
-r_state(gn_state(grid, node), f_solve(f), t+dt(t))${   ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
-                                                       and sum(ms(mSolve, s), mst_start(mSolve, s, t))
-                                                   }
-    = v_state.l(grid, node, s, f, t+dt(t))
-;
-// Realized unit online history
-r_online(uft_online(unit, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-    = v_online_LP.l(unit, s, f, t)${ uft_onlineLP(unit, f, t)    }
-        + v_online_MIP.l(unit, s, f, t)${  uft_onlineMIP(unit, f, t)   }
-;
-// Unit startup and shutdown history
-r_startup(unit, starttype, f, t)${ uft_online(unit, f, t) and [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')] }
-    = v_startup.l(unit, starttype, s, f, t)
-;
-r_shutdown(uft_online(unit, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-    = v_shutdown.l(unit, s, f, t)
-;
+    // Realized state history - initial state values in samples
+    r_state(gn_state(grid, node), f_solve(f), t+dt(t))${   ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
+                                                           and sum(ms(mSolve, s), mst_start(mSolve, s, t))
+                                                       }
+        = v_state.l(grid, node, s, f, t+dt(t))
+    ;
+    // Realized unit online history
+    r_online(uft_online(unit, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_online_LP.l(unit, s, f, t)${ uft_onlineLP(unit, f, t)    }
+            + v_online_MIP.l(unit, s, f, t)${  uft_onlineMIP(unit, f, t)   }
+    ;
+    // Unit startup and shutdown history
+    r_startup(unit, starttype, f, t)${ uft_online(unit, f, t) and [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')] }
+        = v_startup.l(unit, starttype, s, f, t)
+    ;
+    r_shutdown(uft_online(unit, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_shutdown.l(unit, s, f, t)
+    ;
 );
 
 * --- Reserve results ---------------------------------------------------------
@@ -67,7 +67,7 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))
     // Reserve provisions of units
     r_reserve(nuRescapable(restype, up_down, node, unit), f+df_reserves(node, restype, f, t), t)
         ${  not [   restypeReleasedForRealization(restype)
-                    and ft_realized(f+df_reserves(node, restype, f, t), t)
+                    and sft_realized(s, f+df_reserves(node, restype, f, t), t)
                     ]
             }
         = v_reserve.l(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t);
@@ -94,23 +94,23 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))
 
 * --- Interesting results -----------------------------------------------------
 
-loop(msft(mSolve, s, ft_realized(f, t)),
-// Unit generation and consumption
-r_gen(gnuft(grid, node, unit, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-    = v_gen.l(grid, node, unit, s, f, t)
-;
-// Fuel use of units
-r_fuelUse(fuel, uft(unit_fuel, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-    = v_fuelUse.l(fuel, unit_fuel, s, f, t)
-;
-// Transfer of energy between nodes
-r_transfer(gn2n(grid, from_node, to_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-    = v_transfer.l(grid, from_node, to_node, s, f, t)
-;
-// Energy spilled from nodes
-r_spill(gn(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-    = v_spill.l(grid, node, s, f, t)
-;
+loop(sft_realized(s, f, t),
+    // Unit generation and consumption
+    r_gen(gnuft(grid, node, unit, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_gen.l(grid, node, unit, s, f, t)
+    ;
+    // Fuel use of units
+    r_fuelUse(fuel, uft(unit_fuel, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_fuelUse.l(fuel, unit_fuel, s, f, t)
+    ;
+    // Transfer of energy between nodes
+    r_transfer(gn2n(grid, from_node, to_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_transfer.l(grid, from_node, to_node, s, f, t)
+    ;
+    // Energy spilled from nodes
+    r_spill(gn(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_spill.l(grid, node, s, f, t)
+    ;
 );
 
 // Total Objective function
@@ -119,18 +119,18 @@ r_totalObj
 ;
 
 // q_balance marginal values
-loop(msft(mSolve, s, ft_realized(f, t)),
+loop(sft_realized(s, f, t),
     r_balanceMarginal(gn(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
         = q_balance.m(grid, node, mSolve, s, f, t)
-;
-// q_resDemand marginal values
-r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-    = q_resDemand.m(restype, up_down, node, s, f, t)
-;
-// v_stateSlack values for calculation of realized costs later on
-r_stateSlack(gn_stateSlack(grid, node), slack, f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-    = v_stateSlack.l(grid, node, slack, s, f, t)
-;
+    ;
+    // q_resDemand marginal values
+    r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = q_resDemand.m(restype, up_down, node, s, f, t)
+    ;
+    // v_stateSlack values for calculation of realized costs later on
+    r_stateSlack(gn_stateSlack(grid, node), slack, f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_stateSlack.l(grid, node, slack, s, f, t)
+    ;
 );
 // Unit investments
 r_invest(unit)${unit_investLP(unit) or unit_investMIP(unit)}
@@ -146,7 +146,7 @@ r_investTransfer(grid, node, node_, t_invest(t))${ p_gnn(grid, node, node_, 'tra
 ;
 
 * --- Feasibility results -----------------------------------------------------
-loop(msft(mSolve, s, ft_realized(f, t)),
+loop(sft_realized(s, f, t),
 // Dummy generation & consumption
 r_qGen(inc_dec, gn(grid, node), f, t)
     ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')

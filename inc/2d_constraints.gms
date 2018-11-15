@@ -92,8 +92,7 @@ q_balance(gn(grid, node), msft(m, s, f, t))${   not p_gn(grid, node, 'boundAll')
 q_resDemand(restypeDirectionNode(restype, up_down, node), sft(s, f, t))
     ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
-            and ft_realized(f, t)
-            ]
+                  and sft_realized(s, f, t)]
         } ..
     // Reserve provision by capable units on this node
     + sum(nuft(node, unit, f, t)${nuRescapable(restype, up_down, node, unit)},
@@ -399,8 +398,8 @@ q_reserveProvision(nuRescapable(restypeDirectionNode(restype, up_down, node), un
             + 1${not unit_flow(unit)}
             ]
         * [
-            + 1${ft_realized(f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
-            + p_nuReserves(node, unit, restype, 'reserveReliability')${not ft_realized(f+df_reserves(node, restype, f, t), t)}
+            + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+            + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
             ] // How to consider reserveReliability in the case of investments when we typically only have "realized" time steps?
 ;
 
