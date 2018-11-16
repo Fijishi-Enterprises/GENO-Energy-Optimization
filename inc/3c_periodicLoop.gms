@@ -203,15 +203,15 @@ loop(cc(counter),
          }
         = yes;
 
+    // If stepsPerInterval equals one, simply use all the steps within the block
+    if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
 
-    // Loop over defined samples
-    loop(ms(mSolve, s),
+        // Loop over defined samples
+        loop(ms(mSolve, s),
 
-        // Initialize tInterval
-        Option clear = tt_interval;
+            // Initialize tInterval
+            Option clear = tt_interval;
 
-        // If stepsPerInterval equals one, simply use all the steps within the block
-        if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
             tt_interval(tt_block(t))${ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
                                       and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
                                      }
@@ -241,37 +241,49 @@ loop(cc(counter),
                                                             }
                 = yes;
 
-            // Reduce the sample dimension
-            mft(mf(mSolve, f_solve), tt_interval(t)) = msft(mSolve, s, f_solve, t);
-
             // Reduce the model dimension
+            mft(mf(mSolve, f_solve), tt_interval(t)) = msft(mSolve, s, f_solve, t);
             ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
-            sft(s, f, t)$msft(mSolve, s, f, t) = ft(f, t);
 
-            // Select time series data matching the intervals, for stepsPerInterval = 1, this is trivial.
-            loop(ft(f_solve, tt_block(t)),
-                ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                    = ts_cf(flow, node, f_solve, t + (dt_sampleOffset(flow, node, 'ts_cf', s) + dt_circular(t)));
-                ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                    = ts_influx(grid, node, f_solve, t + (dt_sampleOffset(grid, node, 'ts_influx', s) + dt_circular(t)));
-                ts_unit_(unit, param_unit, f_solve, t)
-                  ${p_unit(unit, 'useTimeseries')} // Only include units that have timeseries attributed to them
-                    = ts_unit(unit, param_unit, f_solve, t+dt_circular(t));
-                // Reserve demand relevant only up until reserve_length
-                ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)
-                  ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')}
-                    = ts_reserveDemand(restype, up_down, node, f_solve, t+dt_circular(t));
-                ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t, s)
-                  ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
-                    and msf(mSolve, s, f_solve)}
-                    = ts_node(grid, node, param_gnBoundaryTypes, f_solve, t + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t)));
-                // Fuel price time series
-                ts_fuelPrice_(fuel, t)
-                    = ts_fuelPrice(fuel, t+dt_circular(t));
-            );
+            // Update tActive
+            t_active(tt_interval) = yes;
 
-        // If stepsPerInterval exceeds 1 (stepsPerInterval < 1 not defined)
-        elseif mInterval(mSolve, 'stepsPerInterval', counter) > 1,
+        );  // END loop(ms)
+
+        // Reduce the sample dimension
+        sft(s, f_solve, t)$msft(mSolve, s, f_solve, t) = ft(f_solve, t);
+
+        // Select time series data matching the intervals, for stepsPerInterval = 1, this is trivial.
+        loop(ft(f_solve, tt_block(t)),
+            ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
+                = ts_cf(flow, node, f_solve, t + (dt_sampleOffset(flow, node, 'ts_cf', s) + dt_circular(t)));
+            ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
+                = ts_influx(grid, node, f_solve, t + (dt_sampleOffset(grid, node, 'ts_influx', s) + dt_circular(t)));
+            ts_unit_(unit, param_unit, f_solve, t)
+              ${p_unit(unit, 'useTimeseries')} // Only include units that have timeseries attributed to them
+                = ts_unit(unit, param_unit, f_solve, t+dt_circular(t));
+            // Reserve demand relevant only up until reserve_length
+            ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)
+              ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')}
+                = ts_reserveDemand(restype, up_down, node, f_solve, t+dt_circular(t));
+            ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t, s)
+              ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+                and msf(mSolve, s, f_solve)}
+                = ts_node(grid, node, param_gnBoundaryTypes, f_solve, t + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t)));
+            // Fuel price time series
+            ts_fuelPrice_(fuel, t)
+                = ts_fuelPrice(fuel, t+dt_circular(t));
+        );
+
+    // If stepsPerInterval exceeds 1 (stepsPerInterval < 1 not defined)
+    elseif mInterval(mSolve, 'stepsPerInterval', counter) > 1,
+
+        // Loop over defined samples
+        loop(ms(mSolve, s),
+
+            // Initialize tInterval
+            Option clear = tt_interval;
+
             tt_interval(tt_block(t)) // Select the active time steps within the block
                  ${mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'stepsPerInterval', counter)) = 0
                    and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
@@ -303,58 +315,58 @@ loop(cc(counter),
                                                             }
                 = yes;
 
-            // Reduce the sample dimension
-            mft(mf(mSolve, f_solve), tt_interval(t)) = msft(mSolve, s, f_solve, t);
-
             // Set of locked combinations of forecasts and intervals for the reserves?
 
             // Reduce the model dimension
+            mft(mf(mSolve, f_solve), tt_interval(t)) = msft(mSolve, s, f_solve, t);
             ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
-            sft(s, f, t)$msft(mSolve, s, f, t) = ft(f, t);
 
-            // Select and average time series data matching the intervals, for stepsPerInterval > 1
-            // Loop over the t:s of the interval
-            loop(ft(f_solve, tt_block(t)),
-                // Select t:s within the interval
-                Option clear = tt;
-                tt(t_)
-                    ${tt_block(t_)
-                      and ord(t_) >= ord(t)
-                      and ord(t_) < ord(t) + mInterval(mSolve, 'stepsPerInterval', counter)
-                     }
-                    = yes;
-                ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                    = sum(tt(t_), ts_influx(grid, node, f_solve, t_ + (dt_sampleOffset(grid, node, 'ts_influx', s) + dt_circular(t_))))
-                        / p_stepLength(mSolve, f_solve, t);
-                ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                    = sum(tt(t_), ts_cf(flow, node, f_solve, t_ + (dt_sampleOffset(flow, node, 'ts_cf', s) + dt_circular(t_))))
-                        / p_stepLength(mSolve, f_solve, t);
-                ts_unit_(unit, param_unit, f_solve, t)
-                  ${ p_unit(unit, 'useTimeseries')} // Only include units with timeseries attributed to them
-                    = sum(tt(t_), ts_unit(unit, param_unit, f_solve, t_+dt_circular(t_)))
-                        / p_stepLength(mSolve, f_solve, t);
-                // Reserves relevant only until reserve_length
-                ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)
-                  ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
-                    = sum(tt(t_), ts_reserveDemand(restype, up_down, node, f_solve, t_+dt_circular(t_)))
-                        / p_stepLength(mSolve, f_solve, t);
-                ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t, s)
-                  ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
-                    and msf(mSolve, s, f_solve)}
-                    = sum(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
-                        / p_stepLength(mSolve, f_solve, t);
-                // Fuel price time series
-                ts_fuelPrice_(fuel, t)
-                    = sum(tt(t_), ts_fuelPrice(fuel, t_+dt_circular(t_)))
-                        / p_stepLength(mSolve, f_solve, t);
-                ); // END loop(ft)
+            // Update tActive
+            t_active(tt_interval) = yes;
+
+        ); // END loop(ms)
+
+        // Reduce the sample dimension
+        sft(s, f, t)$msft(mSolve, s, f, t) = ft(f, t);
+
+        // Select and average time series data matching the intervals, for stepsPerInterval > 1
+        // Loop over the t:s of the interval
+        loop(ft(f_solve, tt_block(t)),
+            // Select t:s within the interval
+            Option clear = tt;
+            tt(t_)
+                ${tt_block(t_)
+                  and ord(t_) >= ord(t)
+                  and ord(t_) < ord(t) + mInterval(mSolve, 'stepsPerInterval', counter)
+                 }
+                = yes;
+            ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
+                = sum(tt(t_), ts_influx(grid, node, f_solve, t_ + (dt_sampleOffset(grid, node, 'ts_influx', s) + dt_circular(t_))))
+                    / p_stepLength(mSolve, f_solve, t);
+            ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
+                = sum(tt(t_), ts_cf(flow, node, f_solve, t_ + (dt_sampleOffset(flow, node, 'ts_cf', s) + dt_circular(t_))))
+                    / p_stepLength(mSolve, f_solve, t);
+            ts_unit_(unit, param_unit, f_solve, t)
+              ${ p_unit(unit, 'useTimeseries')} // Only include units with timeseries attributed to them
+                = sum(tt(t_), ts_unit(unit, param_unit, f_solve, t_+dt_circular(t_)))
+                    / p_stepLength(mSolve, f_solve, t);
+            // Reserves relevant only until reserve_length
+            ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)
+              ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
+                = sum(tt(t_), ts_reserveDemand(restype, up_down, node, f_solve, t_+dt_circular(t_)))
+                    / p_stepLength(mSolve, f_solve, t);
+            ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t, s)
+              ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+                and msf(mSolve, s, f_solve)}
+                = sum(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
+                    / p_stepLength(mSolve, f_solve, t);
+            // Fuel price time series
+            ts_fuelPrice_(fuel, t)
+                = sum(tt(t_), ts_fuelPrice(fuel, t_+dt_circular(t_)))
+                    / p_stepLength(mSolve, f_solve, t);
+            ); // END loop(ft)
 
         ); // END IF intervalLenght
-
-        // Update tActive
-        t_active(tt_interval) = yes;
-
-    ); // END loop(ms)
 
     // Update tCounter for the next block of intervals
     tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter) + 1;
