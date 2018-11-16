@@ -507,19 +507,6 @@ uft_onlineLP(uft(unit, f, t))${ suft('directOnLP', unit, f, t) }
     = yes;
 uft_onlineMIP(uft_online(unit, f, t)) = uft_online(unit, f, t) - uft_onlineLP(unit, f, t);
 
-uft_onlineLP_withPrevious(uft_onlineLP(unit, f, t)) = yes;
-uft_onlineMIP_withPrevious(uft_onlineMIP(unit, f, t)) = yes;
-
-// Units with online variables on each ft starting at t0, depending on setting for effSelector on level1
-loop(mft_start(mSolve, f, t),
-    uft_onlineLP_withPrevious(unit, f, t)
-        ${uft_onlineLP(unit, f, t+dt_next(t))}
-         = yes;
-    uft_onlineMIP_withPrevious(unit, f, t)
-        ${uft_onlineMIP(unit, f, t+dt_next(t))}
-        = yes;
-) // END loop(mft_start)
-
 // Calculate time series form parameters for units using direct input output conversion without online variable
 // Always constant 'lb', 'rb', and 'section', so need only to define 'slope'.
 loop(effGroupSelectorUnit(effDirectOff, unit, effDirectOff_)${ p_unit(unit, 'useTimeseries') },
@@ -629,6 +616,25 @@ loop(unit$(p_u_shutdownTimeIntervals(unit)),
         );
     );
 );
+
+* --- Historical Unit LP and MIP information ----------------------------------
+
+uft_onlineLP_withPrevious(uft_onlineLP(unit, f, t)) = yes;
+uft_onlineMIP_withPrevious(uft_onlineMIP(unit, f, t)) = yes;
+
+// Units with online variables on each active ft starting at t0
+loop(mft_start(mSolve, f, t_), // Check the uft_online used on the first time step of the current solve
+    uft_onlineLP_withPrevious(unit, f, t_active(t)) // Include all historical t_active
+        ${  uft_onlineLP(unit, f, t_+1) // Displace by one to reach the first current time step
+            and ord(t) <= tSolveFirst // Include all historical t_active
+            }
+         = yes;
+    uft_onlineMIP_withPrevious(unit, f, t_active(t)) // Include all historical t_active
+        ${  uft_onlineMIP(unit, f, t_+1) // Displace by one to reach the first current time step
+            and ord(t) <= tSolveFirst // Include all historical t_active
+            }
+        = yes;
+); // END loop(mft_start)
 
 
 
