@@ -471,8 +471,11 @@ loop(m,
     ); // END loop(effLevelGroupUnit)
 ); // END loop(m)
 
+// Initialize tmp_dt based on the first model interval
+loop(m,
+    tmp_dt = -mInterval(m, 'stepsPerInterval', 'c000');
+); // END loop(m)
 // Estimate the maximum amount of history required for the model (very rough estimate atm, just sums all possible delays together)
-Option clear = tmp_dt;
 loop(unit,
     tmp_dt = min(   tmp_dt, // dt operators have negative values, thus use min instead of max
                     smin((starttype, unitCounter(unit, counter)), dt_starttypeUnitCounter(starttype, unit, counter))
@@ -533,6 +536,16 @@ loop(m,
     p_nReserves(node, restype, 'update_frequency')${  not p_nReserves(node, restype, 'update_frequency')  }
         = mSettings(m, 't_jump');
 );
+
+* --- Include 't_start' as a realized time step -------------------------------
+
+loop(msf(m, s, f)${ mf_realization(m, f) },
+    // Initial values included into previously realized time steps
+    ft_realizedNoReset(f, t_full(t))${ ord(t) = mSettings(m, 't_start') }
+        = yes;
+    msft_realizedNoReset(m, s, f, t_full(t))${ ord(t) = mSettings(m, 't_start') }
+        = yes;
+); // END loop(m, s, f)
 
 * =============================================================================
 * --- Model Parameter Validity Checks -----------------------------------------
