@@ -20,15 +20,16 @@ $offtext
 * =============================================================================
 
 * --- Result arrays required by model dynamics --------------------------------
-if(tSolveFirst >= mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod') - mSettings(mSolve, 't_jump') and firstResultsOutputSolve,
-loop(msft(mSolve, s, f_solve, t),
-    firstResultsOutputSolve = 0;
-    r_state(gn_state(grid, node), f_solve, t) $[ord(t) = mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-      = v_state.l(grid, node, s, f_solve, t);
-    r_online(unit, f_solve, t)$[unit_online(unit) and ord(t) = mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-      = v_online_LP.l(unit, s, f_solve, t)$unit_online_LP(unit)
-          + v_online_MIP.l(unit, s, f_solve, t)$unit_online_MIP(unit);
-);
+if(tSolveFirst >= mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod') - mSettings(mSolve, 't_jump')
+   and firstResultsOutputSolve,
+    loop(msf(mSolve, s, f_solve),
+        firstResultsOutputSolve = 0;
+        r_state(gn_state(grid, node), f_solve, t) $[ord(t) = mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+          = v_state.l(grid, node, s, f_solve, t);
+        r_online(unit, f_solve, t)$[unit_online(unit) and ord(t) = mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+          = v_online_LP.l(unit, s, f_solve, t)$unit_online_LP(unit)
+              + v_online_MIP.l(unit, s, f_solve, t)$unit_online_MIP(unit);
+    );
 );
 // Realized state history
 loop(sft_realized(s, f, t),
