@@ -373,22 +373,7 @@ loop(cc(counter),
 
 ); // END loop(counter)
 
-// Include the necessary amount of historical timesteps
-t_active(t_full(t))
-    ${  ord(t) <= tSolveFirst
-        and ord(t) >= tSolveFirst + tmp_dt
-        }
-    = yes;
-
-// Time step displacement to reach previous time step
-option clear = dt;
-option clear = dt_next;
-tmp = max(tSolveFirst + tmp_dt, 1); // The ord(t) of the first time step in t_active, cannot decrease below 1 to avoid referencing time steps before t000000
-loop(t_active(t),
-    dt(t) = tmp - ord(t);
-    dt_next(t+dt(t)) = -dt(t);
-    tmp = ord(t);
-); // END loop(t_active)
+* --- Determine various other forecast-time sets required for the model -------
 
 // Initial model ft
 Option clear = mft_start;
@@ -400,6 +385,42 @@ Option clear = mft_lastSteps;
 mft_lastSteps(mSolve, ft(f,t))${ ord(t) + p_stepLength(mSolve, f, t) / mSettings(mSolve, 'stepLengthInHours') >= tSolveLast }
     = yes
 ;
+
+// Set of realized intervals in the current solve
+Option clear = ft_realized;
+ft_realized(ft(f_solve, t))
+    ${  mf_realization(mSolve, f_solve)
+        and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
+        }
+    = yes;
+
+Option clear = sft_realized;
+sft_realized(sft(s, ft_realized(f_solve, t))) = yes;
+
+// Update the set of realized intervals in the whole simulation so far
+ft_realizedNoReset(ft_realized(f, t)) = yes;
+sft_realizedNoReset(sft_realized(s, f, t)) = yes;
+// Update the set of realized intervals in the whole simulation so far, including model and sample dimensions
+msft_realizedNoReset(msft(mSolve, s, ft_realized(f, t))) = yes;
+
+// Include the necessary amount of historical timesteps to the active time step set of the current solve
+loop(ft_realizedNoReset(f, t),
+    t_active(t)
+        ${  ord(t) <= tSolveFirst
+            and ord(t) > tSolveFirst + tmp_dt // Strict inequality accounts for tSolvefirst being one step before the first ft step.
+            }
+        = yes;
+); // END loop(ft_realizedNoReset
+
+// Time step displacement to reach previous time step
+option clear = dt;
+option clear = dt_next;
+tmp = max(tSolveFirst + tmp_dt, 1); // The ord(t) of the first time step in t_active, cannot decrease below 1 to avoid referencing time steps before t000000
+loop(t_active(t),
+    dt(t) = tmp - ord(t);
+    dt_next(t+dt(t)) = -dt(t);
+    tmp = ord(t);
+); // END loop(t_active)
 
 // If this is the very first solve
 if(tSolveFirst = mSettings(mSolve, 't_start'),
@@ -425,24 +446,6 @@ if(tSolveFirst = mSettings(mSolve, 't_start'),
     // Displacement from the first interval of a sample to the previous interval is always -1
     dt(t)${sum(ms(mSolve, s)$(not s_parallel(s)), mst_start(mSolve, s, t))} = -1;
 ); // END if(tSolveFirst)
-
-* --- Determine various other forecast-time sets required for the model -------
-
-// Set of realized intervals in the solve
-Option clear = ft_realized;
-ft_realized(f_solve, t)${ mf_realization(mSolve, f_solve) and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
-    = ft(f_solve, t);
-ft_realizedNoReset(ft_realized(f, t)) = yes;
-
-Option clear = sft_realized;
-sft_realized(s, f_solve, t)${msf(mSolve, s, f_solve)
-                             and mf_realization(mSolve, f_solve)
-                             and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
-    = sft(s, f_solve, t);
-sft_realizedNoReset(sft_realized(s, f, t)) = yes;
-
-// Set of realized intervals in the whole simulation so far, including model and sample dimensions
-msft_realizedNoReset(msft(mSolve, sft_realized(s, f, t))) = yes;
 
 // Forecast index displacement between realized and forecasted intervals
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
@@ -653,19 +656,6 @@ uft_onlineLP(uft(unit, f, t))${ suft('directOnLP', unit, f, t) }
     = yes;
 uft_onlineMIP(uft_online(unit, f, t)) = uft_online(unit, f, t) - uft_onlineLP(unit, f, t);
 
-uft_onlineLP_withPrevious(uft_onlineLP(unit, f, t)) = yes;
-uft_onlineMIP_withPrevious(uft_onlineMIP(unit, f, t)) = yes;
-
-// Units with online variables on each ft starting at t0, depending on setting for effSelector on level1
-loop(mft_start(mSolve, f, t),
-    uft_onlineLP_withPrevious(unit, f, t)
-        ${uft_onlineLP(unit, f, t+dt_next(t))}
-         = yes;
-    uft_onlineMIP_withPrevious(unit, f, t)
-        ${uft_onlineMIP(unit, f, t+dt_next(t))}
-        = yes;
-) // END loop(mft_start)
-
 // Calculate time series form parameters for units using direct input output conversion without online variable
 // Always constant 'lb', 'rb', and 'section', so need only to define 'slope'.
 loop(effGroupSelectorUnit(effDirectOff, unit, effDirectOff_)${ p_unit(unit, 'useTimeseries') },
@@ -775,3 +765,22 @@ loop(unit$(p_u_shutdownTimeIntervals(unit)),
         );
     );
 );
+
+* --- Historical Unit LP and MIP information ----------------------------------
+
+uft_onlineLP_withPrevious(uft_onlineLP(unit, f, t)) = yes;
+uft_onlineMIP_withPrevious(uft_onlineMIP(unit, f, t)) = yes;
+
+// Units with online variables on each active ft starting at t0
+loop(mft_start(mSolve, f, t_), // Check the uft_online used on the first time step of the current solve
+    uft_onlineLP_withPrevious(unit, f, t_active(t)) // Include all historical t_active
+        ${  uft_onlineLP(unit, f, t_+1) // Displace by one to reach the first current time step
+            and ord(t) <= tSolveFirst // Include all historical t_active
+            }
+         = yes;
+    uft_onlineMIP_withPrevious(unit, f, t_active(t)) // Include all historical t_active
+        ${  uft_onlineMIP(unit, f, t_+1) // Displace by one to reach the first current time step
+            and ord(t) <= tSolveFirst // Include all historical t_active
+            }
+        = yes;
+); // END loop(mft_start)

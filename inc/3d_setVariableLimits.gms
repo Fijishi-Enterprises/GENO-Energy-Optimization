@@ -452,32 +452,30 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
 * =============================================================================
 * --- Fix previously realized start-ups, shutdowns, and online states ---------
 * =============================================================================
+
 // Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up and shutdown phases.
+if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on the first solve handled above
+    v_startup.fx(unitStarttype(unit, starttype), sft_realizedNoReset(s, f, t_active(t)))
+        ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
+            and unit_online(unit) // Check if the unit has an online variable on the first effLevel
+            }
+        = r_startup(unit, starttype, f, t);
 
-v_startup.fx(unitStarttype(unit, starttype), sft_realizedNoReset(s, f, t_active(t)))
-    ${  ord(t) <= tSolveFirst
-        and sum[ft(f_,t_), uft_online(unit,f_,t_)]
-        }
-    = r_startup(unit, starttype, f, t)
-;
+    v_shutdown.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
+        ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
+            and unit_online(unit) // Check if the unit has an online variable on the first effLevel
+            }
+        = r_shutdown(unit, f, t);
 
-v_shutdown.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
-    ${  ord(t) <= tSolveFirst
-        and sum[ft(f_,t_), uft_online(unit,f_,t_)]
-        }
-    = r_shutdown(unit, f, t)
-;
+    v_online_MIP.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
+        ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
+            and unit_online_MIP(unit) // Check if the unit has a MIP online variable on the first effLevel
+            }
+        = round(r_online(unit, f, t));
 
-v_online_MIP.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
-    ${  ord(t) <= tSolveFirst
-        and sum[ft(f_,t_), uft_onlineMIP(unit,f_,t_)]
-        }
-    = round(r_online(unit, f, t));
-
-v_online_LP.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
-    ${  ord(t) <= tSolveFirst
-        and sum[ft(f_,t_), uft_onlineLP(unit,f_,t_)]
-        }
-    = r_online(unit, f, t);
-
-
+    v_online_LP.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
+        ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
+            and unit_online_LP(unit) // Check if the unit has a LP online variable on the first effLevel
+            }
+        = r_online(unit, f, t);
+); // END if
