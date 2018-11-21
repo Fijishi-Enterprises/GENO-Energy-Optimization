@@ -358,8 +358,15 @@ loop(cc(counter),
             ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t, s)
               ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
                 and msf(mSolve, s, f_solve)}
-                = sum(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
-                    / p_stepLength(mSolve, f_solve, t);
+                   // Take average if not a limit type
+                = (sum(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
+                    / p_stepLength(mSolve, f_solve, t))$(not sameas(param_gnBoundaryTypes, 'upwardLimit') or sameas(param_gnBoundaryTypes, 'downwardLimit'))
+                  // Maximum lower limit
+                  + smax(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
+                      $sameas(param_gnBoundaryTypes, 'downwardLimit')
+                  // Minimum upper limit
+                  + smin(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
+                       $sameas(param_gnBoundaryTypes, 'upwardLimit');
             // Fuel price time series
             ts_fuelPrice_(fuel, t)
                 = sum(tt(t_), ts_fuelPrice(fuel, t_+dt_circular(t_)))
