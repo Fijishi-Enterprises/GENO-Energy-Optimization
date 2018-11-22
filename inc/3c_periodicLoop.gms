@@ -342,25 +342,25 @@ loop(cc(counter),
                 = yes;
             ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
                 = sum(tt(t_), ts_influx(grid, node, f_solve, t_ + (dt_sampleOffset(grid, node, 'ts_influx', s) + dt_circular(t_))))
-                    / p_stepLength(mSolve, f_solve, t);
+                    / mInterval(mSolve, 'stepsPerInterval', counter);
             ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
                 = sum(tt(t_), ts_cf(flow, node, f_solve, t_ + (dt_sampleOffset(flow, node, 'ts_cf', s) + dt_circular(t_))))
-                    / p_stepLength(mSolve, f_solve, t);
+                    / mInterval(mSolve, 'stepsPerInterval', counter);
             ts_unit_(unit, param_unit, f_solve, t)
               ${ p_unit(unit, 'useTimeseries')} // Only include units with timeseries attributed to them
                 = sum(tt(t_), ts_unit(unit, param_unit, f_solve, t_+dt_circular(t_)))
-                    / p_stepLength(mSolve, f_solve, t);
+                    / mInterval(mSolve, 'stepsPerInterval', counter);
             // Reserves relevant only until reserve_length
             ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)
               ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
                 = sum(tt(t_), ts_reserveDemand(restype, up_down, node, f_solve, t_+dt_circular(t_)))
-                    / p_stepLength(mSolve, f_solve, t);
+                    / mInterval(mSolve, 'stepsPerInterval', counter);
             ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t, s)
               ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
                 and msf(mSolve, s, f_solve)}
                    // Take average if not a limit type
                 = (sum(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
-                    / p_stepLength(mSolve, f_solve, t))$(not sameas(param_gnBoundaryTypes, 'upwardLimit') or sameas(param_gnBoundaryTypes, 'downwardLimit'))
+                    / mInterval(mSolve, 'stepsPerInterval', counter))$(not sameas(param_gnBoundaryTypes, 'upwardLimit') or sameas(param_gnBoundaryTypes, 'downwardLimit'))
                   // Maximum lower limit
                   + smax(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
                       $sameas(param_gnBoundaryTypes, 'downwardLimit')
@@ -370,7 +370,7 @@ loop(cc(counter),
             // Fuel price time series
             ts_fuelPrice_(fuel, t)
                 = sum(tt(t_), ts_fuelPrice(fuel, t_+dt_circular(t_)))
-                    / p_stepLength(mSolve, f_solve, t);
+                    / mInterval(mSolve, 'stepsPerInterval', counter);
             ); // END loop(ft)
 
         ); // END IF intervalLenght
