@@ -170,6 +170,7 @@ alias(op, op_, op__);
 alias(eff, eff_, eff__);
 alias(fuel, fuel_);
 alias(effLevel, effLevel_);
+alias(restype, restype_);
 
 
 *if(active('rampSched'),

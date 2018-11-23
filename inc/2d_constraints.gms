@@ -100,6 +100,12 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))
         + v_reserve(restype, up_down, node, unit, f+df_reserves(node, restype, f, t), t)
         ) // END sum(nuft)
 
+    // Reserve provision from other reserve categories when they can be shared
+    + sum((nuft(node, unit, f, t), restype_)${p_nuRes2Res(node, unit, restype, up_down, restype_)},
+        + v_reserve(restype_, up_down, node, unit, f+df_reserves(node, restype_, f, t), t)
+            * p_nuRes2Res(node, unit, restype, up_down, restype_)
+        ) // END sum(nuft)
+
     // Reserve provision to this node via transfer links
     + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, up_down, node_, node)},
         + (1 - p_gnn(grid, node_, node, 'transferLoss') )

@@ -42,6 +42,7 @@ $loaddc restypeReleasedForRealization
 $loaddc p_nReserves
 $loaddc p_nuReserves
 $loaddc p_nnReserves
+$loaddc p_nuRes2Res
 $loaddc ts_reserveDemand
 $loaddc p_gnBoundaryPropertiesForStates
 $loaddc p_gnPolicy
