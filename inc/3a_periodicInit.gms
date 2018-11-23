@@ -26,6 +26,11 @@ Option clear = t_full;
 Option clear = f_solve;
 Option clear = tmp;
 
+// Abort model run if more than one model type is defined - unsupported at the moment
+if(sum(m$mType(m), 1) > 1,
+    abort "Backbone does not currently support more than one model type - you have defined more than one m";
+);
+
 // Loop over m
 loop(m,
 
