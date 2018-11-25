@@ -50,7 +50,7 @@ equations
     q_obj "Objective function"
     q_balance(grid, node, mType, f, t) "Energy demand must be satisfied at each node"
     q_resDemand(restype, up_down, node, f, t) "Procurement for each reserve type is greater than demand"
-
+    q_resDemand_Infeed(grid, restype, up_down,node, f, t ,unit) "N-1 Reserve"
     // Unit Operation
     q_maxDownward(mType, grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(mType, grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
