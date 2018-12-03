@@ -132,6 +132,7 @@ Parameters
     r_reserve(restype, up_down, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
     r_resTransferRightward(restype, up_down, node, node, f, t) "Electricity transmission capacity from the first node to the second node reserved for providing reserves (MW)"
     r_resTransferLeftward(restype, up_down, node, node, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
+    r_reserve2Reserve(restype, up_down, node, unit, restype, f, t) "Reserve provided for another reserve category (MW) (also included in r_reserve - this is just for debugging)"
 
     // Interesting reserve results
     r_resDemandMarginal(restype, up_down, node, f, t) "Marginal values of the q_resDemand equation"
