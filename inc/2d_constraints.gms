@@ -101,9 +101,9 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))
         ) // END sum(nuft)
 
     // Reserve provision from other reserve categories when they can be shared
-    + sum((nuft(node, unit, f, t), restype_)${p_nuRes2Res(node, unit, restype, up_down, restype_)},
+    + sum((nuft(node, unit, f, t), restype_)${p_nuRes2Res(node, unit, restype_, up_down, restype)},
         + v_reserve(restype_, up_down, node, unit, f+df_reserves(node, restype_, f, t), t)
-            * p_nuRes2Res(node, unit, restype, up_down, restype_)
+            * p_nuRes2Res(node, unit, restype_, up_down, restype)
         ) // END sum(nuft)
 
     // Reserve provision to this node via transfer links
@@ -158,9 +158,9 @@ q_resDemand_Infeed(grid, restypeDirectionNode(restype, 'up', node), ft(f, t), un
         ) // END sum(nuft)
 
     // Reserve provision from other reserve categories when they can be shared
-    + sum((nuft(node, unit, f, t), restype_)${p_nuRes2Res(node, unit, restype, 'up', restype_)},
+    + sum((nuft(node, unit, f, t), restype_)${p_nuRes2Res(node, unit, restype_, 'up', restype)},
         + v_reserve(restype_, 'up', node, unit, f+df_reserves(node, restype_, f, t), t)
-            * p_nuRes2Res(node, unit, restype, 'up', restype_)
+            * p_nuRes2Res(node, unit, restype_, 'up', restype)
         ) // END sum(nuft)
 
     // Reserve provision to this node via transfer links
