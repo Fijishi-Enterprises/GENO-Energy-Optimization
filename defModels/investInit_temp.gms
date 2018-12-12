@@ -48,11 +48,11 @@ if (mType('invest'),
     ms_central('invest', 's000') = yes;
 
     // Define time span of samples
-    msStart('invest', 's000') = mSettings('invest', 't_start');
+    msStart('invest', 's000') = 1;
     msEnd('invest', 's000') = msStart('invest', 's000') + 168;
-    msStart('invest', 's001') = mSettings('invest', 't_start') + 18*168;
+    msStart('invest', 's001') = 1 + 18*168;
     msEnd('invest', 's001') = msStart('invest', 's001') + 168;
-    msStart('invest', 's002') = mSettings('invest', 't_start') + 35*168;
+    msStart('invest', 's002') = 1 + 35*168;
     msEnd('invest', 's002') = msStart('invest', 's002') + 168;
 
     // Define the probability (weight) of samples

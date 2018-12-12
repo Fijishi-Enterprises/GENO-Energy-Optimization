@@ -29,6 +29,8 @@ Sets
     unit "Set of generators, storages and loads"
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
     unit_fuel(unit) "Units using a commercial fuel"
+    unit_fail(unit) "Units that might fail"
+    unitFail(unit)  "Units that might fail" 
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
     unit_online(unit) "Units that have an online variable in the first active effLevel"
     unit_online_LP(unit) "Units that have an LP online variable in the first active effLevel"
@@ -178,6 +180,7 @@ alias(op, op_, op__);
 alias(eff, eff_, eff__);
 alias(fuel, fuel_);
 alias(effLevel, effLevel_);
+alias(restype, restype_);
 
 
 *if(active('rampSched'),

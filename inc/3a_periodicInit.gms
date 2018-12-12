@@ -26,6 +26,11 @@ Option clear = t_full;
 Option clear = f_solve;
 Option clear = tmp;
 
+// Abort model run if more than one model type is defined - unsupported at the moment
+if(sum(m$mType(m), 1) > 1,
+    abort "Backbone does not currently support more than one model type - you have defined more than one m";
+);
+
 // Loop over m
 loop(m,
 
@@ -147,9 +152,34 @@ dt_circular(t_full(t))${ ord(t) > tmp }
 * --- Initialize Unit Efficiency Approximations -------------------------------
 * =============================================================================
 
-* --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units
 
 loop(m,
+
+* --- Unit Aggregation --------------------------------------------------------
+    unitAggregator_unit(unit, unit_)$sum(effLevel$(mSettingsEff(m, effLevel)), unitUnitEffLevel(unit, unit_, effLevel)) = yes;
+
+// Define unit aggregation sets
+    unit_aggregator(unit)${ sum(unit_, unitAggregator_unit(unit, unit_)) }
+        = yes; // Set of aggregator units
+    unit_aggregated(unit)${ sum(unit_, unitAggregator_unit(unit_, unit)) }
+        = yes; // Set of aggregated units
+    unit_noAggregate(unit) = yes; // Set of units that are not aggregated into any aggregate, or are not aggregates themselves
+    unit_noAggregate(unit)$unit_aggregated(unit) = no;
+    unit_noAggregate(unit)${ sum((unit_, effLevel), unitUnitEffLevel(unit, unit_, effLevel)) } = no;
+
+// Process data for unit aggregations
+// Aggregate maxGen as the sum of aggregated maxGen
+    p_gnu(grid, node, unit_aggregator(unit), 'maxGen')
+        = sum(unit_$unitAggregator_unit(unit, unit_),
+            + p_gnu(grid, node, unit_, 'maxGen')
+            );
+// Aggregate maxCons as the sum of aggregated maxCons
+    p_gnu(grid, node, unit_aggregator(unit), 'maxCons')
+        = sum(unit_$unitAggregator_unit(unit, unit_),
+            + p_gnu(grid, node, unit_, 'maxCons')
+            );
+
+* --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units
     loop(effLevel$mSettingsEff(m, effLevel),
         loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) < ord(effLevel)},
             p_unit(unit_aggregated(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit_, unit, effLevel)) }

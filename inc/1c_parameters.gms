@@ -54,6 +54,7 @@ Parameters
     p_nReserves(node, restype, *) "Data defining the reserve rules in each node"
     p_nuReserves(node, unit, restype, *) "Reserve provision data for units"
     p_nnReserves(node, node, restype, up_down) "Reserve provision data for node node connections"
+    p_nuRes2Res(node, unit, restype, up_down, restype) "The first type of reserve can be used also in the second reserve category (with a possible multiplier)"
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
     p_groupPolicy(group, param_policy) "Two-dimensional policy data for groups"
     p_groupPolicy3D(group, param_policy, *) "Three-dimensional policy data for groups"

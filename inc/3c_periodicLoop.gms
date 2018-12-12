@@ -178,7 +178,7 @@ currentForecastLength = min(  mSettings(mSolve, 't_forecastLengthUnchanging'),  
 // Is there any case where t_forecastLength should be larger than t_horizon? Could happen if one doesn't want to join forecasts at the end of the solve horizon.
 // If not, add a check for currentForecastLength <= mSettings(mSolve, 't_horizon')
 // and change the line below to 'tSolveLast = ord(tSolve) + mSettings(mSolve, 't_horizon');'
-tSolveLast = ord(tSolve) + max(currentForecastLength, mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
+tSolveLast = ord(tSolve) + max(currentForecastLength, min(mSettings(mSolve, 't_horizon'), smax(s, msEnd(mSolve, s))));  // tSolveLast: the end of the current solve
 Option clear = t_current;
 t_current(t_full(t))${  ord(t) >= tSolveFirst
                         and ord (t) <= tSolveLast

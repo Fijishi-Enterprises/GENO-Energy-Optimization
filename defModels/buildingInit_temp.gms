@@ -48,7 +48,7 @@ if (mType('building'),
     ms_central('building', 's000') = yes;
 
     // Define time span of samples
-    msStart('building', 's000') = mSettings('building', 't_start');
+    msStart('building', 's000') = 1;
     msEnd('building', 's000') = msStart('building', 's000') + mSettings('building', 't_horizon');
 
     // Define the probability (weight) of samples

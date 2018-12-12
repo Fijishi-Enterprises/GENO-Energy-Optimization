@@ -128,6 +128,7 @@ r_uTotalShutdown
 
 // Reserve provision results required for model structure !!!!!!!!!!!!!!!!!!!!!
 r_reserve
+r_reserve2Reserve
 r_resTransferRightward
 r_resTransferLeftward
 

@@ -71,7 +71,11 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))
                     and sft_realized(s, f+df_reserves(node, restype, f, t), t)
                     ]
             }
-        = v_reserve.l(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t);
+        = + v_reserve.l(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t)
+          + sum(restype_$p_nuRes2Res(node, unit, restype_, up_down, restype),
+              + v_reserve.l(restype_, up_down, node, unit, s, f+df_reserves(node, restype_, f, t), t)
+                  * p_nuRes2Res(node, unit, restype_, up_down, restype)
+            );
 
     // Reserve transfer capacity
     r_resTransferRightward(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t)

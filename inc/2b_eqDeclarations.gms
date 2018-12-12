@@ -21,24 +21,26 @@ $offtext
 * --- Penalty Definitions -----------------------------------------------------
 * =============================================================================
 
-$setlocal def_penalty 1e4
 Scalars
-    PENALTY "Default equation violation penalty" / %def_penalty% /
+    PENALTY "Default equation violation penalty"
 ;
+
+$If set penalty PENALTY=%penalty%;
+$If not set penalty PENALTY=1e9;
+
 Parameters
     PENALTY_BALANCE(grid, node) "Penalty on violating energy balance eq. (EUR/MWh)"
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
     PENALTY_RES_MISSING(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
     PENALTY_CAPACITY(grid, node) "Penalty on violating capacity margin eq. (EUR/MW/h)"
 ;
-*PENALTY_BALANCE(grid)= %def_penalty%;
 
 PENALTY_BALANCE(grid, node) = p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'constant')
-                              + %def_penalty%${not p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useConstant')};
+                              + PENALTY${not p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useConstant')};
 
-PENALTY_RES(restype, up_down) = 0.9*%def_penalty%;
-PENALTY_RES_MISSING(restype, up_down) = 0.1*%def_penalty%;
-PENALTY_CAPACITY(grid, node) = 0.5*%def_penalty%;
+PENALTY_RES(restype, up_down) = 0.9*PENALTY;
+PENALTY_RES_MISSING(restype, up_down) = 0.1*PENALTY;
+PENALTY_CAPACITY(grid, node) = 0.5*PENALTY;
 
 
 * =============================================================================
@@ -50,7 +52,7 @@ equations
     q_obj "Objective function"
     q_balance(grid, node, mType, s, f, t) "Energy demand must be satisfied at each node"
     q_resDemand(restype, up_down, node, s, f, t) "Procurement for each reserve type is greater than demand"
-
+    q_resDemand_Infeed(grid, restype, up_down,node, s, f, t ,unit) "N-1 Reserve"
     // Unit Operation
     q_maxDownward(mType, s, grid, node, unit, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(mType, s, grid, node, unit, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"

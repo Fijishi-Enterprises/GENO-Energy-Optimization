@@ -323,13 +323,6 @@ param_unitFuel "Parameters for fuel limits in units" /
 
 param_policy "Set of possible data parameters for grid, node, regulation" /
     emissionTax   "Emission tax (EUR/tonne)"
-    update_frequency "Frequency of updating reserve contributions"
-    update_offset "Optional offset for delaying the reserve update frequency"
-    gate_closure  "Number of timesteps ahead of dispatch that reserves are fixed"
-    use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
-    reserve_length "Length of reserve horizon"
-    reserveReliability "Reliability parameter of reserve provisions"
-    reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
     emissionCap   "Emission limit (tonne)"
     instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
     energyShareMax "Maximum energy share of generation from a particular group of units"
@@ -339,6 +332,15 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedOnlineMultiplier "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
     constrainedOnlineTotalMax "Total maximum b for online units in equation Sum(i, a(i)*v_online(i)) <= b"
+    // Reserve related parameters, currently without a proper parameter set
+    update_frequency "Frequency of updating reserve contributions"
+    update_offset "Optional offset for delaying the reserve update frequency"
+    gate_closure  "Number of timesteps ahead of dispatch that reserves are fixed"
+    use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
+    reserve_length "Length of reserve horizon"
+    reserveReliability "Reliability parameter of reserve provisions"
+    reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
+    N-1 "N-1 reserve requirement? (PENDING PROPER DESCRIPTION!)"
 /
 
 * --- Efficiency Approximation Related Sets -----------------------------------

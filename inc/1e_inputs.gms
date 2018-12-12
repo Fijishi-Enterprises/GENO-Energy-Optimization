@@ -26,6 +26,7 @@ $loaddc flow
 $loaddc unittype
 $loaddc unit
 $loaddc unitUnittype
+$loaddc unitFail
 $loaddc fuel
 $loaddc unitUnitEffLevel
 $loaddc uFuel
@@ -42,6 +43,7 @@ $loaddc restypeReleasedForRealization
 $loaddc p_nReserves
 $loaddc p_nuReserves
 $loaddc p_nnReserves
+$loaddc p_nuRes2Res
 $loaddc ts_reserveDemand
 $loaddc p_gnBoundaryPropertiesForStates
 $loaddc p_gnPolicy
@@ -80,29 +82,6 @@ $endif
 * --- Initialize Unit Related Sets & Parameters Based on Input Data -----------
 * =============================================================================
 
-* --- Unit Aggregation --------------------------------------------------------
-
-unitAggregator_unit(unit, unit_)$sum(effLevel, unitUnitEffLevel(unit, unit_, effLevel)) = yes;
-
-// Define unit aggregation sets
-unit_aggregator(unit)${ sum(unit_, unitAggregator_unit(unit, unit_)) }
-    = yes; // Set of aggregator units
-unit_aggregated(unit)${ sum(unit_, unitAggregator_unit(unit_, unit)) }
-    = yes; // Set of aggregated units
-unit_noAggregate(unit)${ unit(unit) - unit_aggregator(unit) - unit_aggregated(unit) }
-    = yes; // Set of units that are not aggregated into any aggregate, or are not aggregates themselves
-
-// Process data for unit aggregations
-// Aggregate maxGen as the sum of aggregated maxGen
-p_gnu(grid, node, unit_aggregator(unit), 'maxGen')
-    = sum(unit_$unitAggregator_unit(unit, unit_),
-        + p_gnu(grid, node, unit_, 'maxGen')
-        );
-// Aggregate maxCons as the sum of aggregated maxCons
-p_gnu(grid, node, unit_aggregator(unit), 'maxCons')
-    = sum(unit_$unitAggregator_unit(unit, unit_),
-        + p_gnu(grid, node, unit_, 'maxCons')
-        );
 
 * --- Generate Unit Related Sets ----------------------------------------------
 
@@ -143,6 +122,8 @@ unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
 unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
     = yes;
+// Unit trips
+unit_fail(unit)$(unitFail(unit))=yes;
 
 // Units with investment variables
 unit_investLP(unit)${  not p_unit(unit, 'investMIP')
@@ -366,6 +347,7 @@ restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_)
 restypeDirectionNode(restypeDirection(restype, up_down), node)
     $ { p_nReserves(node, restype, up_down)
         or p_nReserves(node, restype, 'use_time_series')
+*        or p_nReserves(node, restype, 'N-1')
         or sum(nu(node, unit), nuRescapable(restype, up_down, node, unit))
         or sum(gn2n(grid, node, to_node), restypeDirectionNodeNode(restype, up_down, node, to_node))
       }
