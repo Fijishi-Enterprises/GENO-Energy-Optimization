@@ -26,7 +26,7 @@ $loaddc flow
 $loaddc unittype
 $loaddc unit
 $loaddc unitUnittype
-$loaddc unitFail
+$loaddc unit_fail
 $loaddc fuel
 $loaddc unitUnitEffLevel
 $loaddc uFuel
@@ -122,8 +122,6 @@ unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
 unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
     = yes;
-// Unit trips
-unit_fail(unit)$(unitFail(unit))=yes;
 
 // Units with investment variables
 unit_investLP(unit)${  not p_unit(unit, 'investMIP')
@@ -347,7 +345,7 @@ restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_)
 restypeDirectionNode(restypeDirection(restype, up_down), node)
     $ { p_nReserves(node, restype, up_down)
         or p_nReserves(node, restype, 'use_time_series')
-*        or p_nReserves(node, restype, 'N-1')
+        or p_nReserves(node, restype, 'Infeed2Cover')
         or sum(nu(node, unit), nuRescapable(restype, up_down, node, unit))
         or sum(gn2n(grid, node, to_node), restypeDirectionNodeNode(restype, up_down, node, to_node))
       }

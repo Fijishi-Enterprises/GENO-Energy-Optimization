@@ -145,12 +145,12 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))
 // NOTE! Currently, there are multiple identical instances of the reserve balance equation being generated for each forecast branch even when the reserves are committed and identical between the forecasts.
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
 
-q_resDemand_Infeed(grid, restypeDirectionNode(restype, 'up', node), ft(f, t), unit_)
+q_resDemand_Infeed(grid, restypeDirectionNode(restype, 'up', node), ft(f, t), unit_fail(unit_))
     ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
             and ft_realized(f, t)
             ]
-            and unit_fail(unit_)
+        and p_nReserves(node, restype, 'Infeed2Cover')
         } ..
     // Reserve provision by capable units on this node excluding the failing one
     + sum(nuft(node, unit, f, t)${nuRescapable(restype, 'up', node, unit) and (ord(unit_) ne ord(unit))},
