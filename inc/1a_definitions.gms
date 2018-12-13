@@ -340,7 +340,7 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     reserve_length "Length of reserve horizon"
     reserveReliability "Reliability parameter of reserve provisions"
     reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
-    N-1 "N-1 reserve requirement? (PENDING PROPER DESCRIPTION!)"
+    Infeed2Cover "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
 /
 
 * --- Efficiency Approximation Related Sets -----------------------------------

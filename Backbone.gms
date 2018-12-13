@@ -79,84 +79,84 @@ $eolcom //
 $onempty   // Allow empty data definitions
 
 * Output file streams
-files log /''/, gdx, f_info /'%output_dir%\info.txt'/;
+files log /''/, gdx, f_info /'%output_dir%/info.txt'/;
 
 * Include options file to control the solver
-$include '%input_dir%\1_options.gms';
+$include '%input_dir%/1_options.gms';
 
 * === Libraries ===============================================================
 $libinclude scenred2
 
 * === Definitions, sets, parameters and input data=============================
-$include 'inc\1a_definitions.gms'   // Definitions for possible model settings
-$include 'inc\1b_sets.gms'          // Set definitions used by the models
-$include 'inc\1c_parameters.gms'    // Parameter definitions used by the models
-$include 'inc\1d_results.gms'       // Parameter definitions for model results
-$include 'inc\1e_inputs.gms'        // Load input data
+$include 'inc/1a_definitions.gms'   // Definitions for possible model settings
+$include 'inc/1b_sets.gms'          // Set definitions used by the models
+$include 'inc/1c_parameters.gms'    // Parameter definitions used by the models
+$include 'inc/1d_results.gms'       // Parameter definitions for model results
+$include 'inc/1e_inputs.gms'        // Load input data
 
 * === Variables and equations =================================================
-$include 'inc\2a_variables.gms'                         // Define variables for the models
-$include 'inc\2b_eqDeclarations.gms'                    // Equation declarations
-$ifthen exist '%input_dir%\2c_alternative_objective.gms'      // Objective function - either the default or an alternative from input files
-    $$include '%input_dir%\2c_alternative_objective.gms';
+$include 'inc/2a_variables.gms'                         // Define variables for the models
+$include 'inc/2b_eqDeclarations.gms'                    // Equation declarations
+$ifthen exist '%input_dir%/2c_alternative_objective.gms'      // Objective function - either the default or an alternative from input files
+    $$include '%input_dir%/2c_alternative_objective.gms';
 $else
-    $$include 'inc\2c_objective.gms'
+    $$include 'inc/2c_objective.gms'
 $endif
-$include 'inc\2d_constraints.gms'                       // Define constraint equations for the models
+$include 'inc/2d_constraints.gms'                       // Define constraint equations for the models
 $ifthen exist '%input_dir%/2e_additional_constraints.gms'
    $$include '%input_dir%/2e_additional_constraints.gms'      // Define additional constraints from the input data
 $endif
 
 
 * === Model definition files ==================================================
-$include 'defModels\schedule.gms'
-$include 'defModels\building.gms'
-$include 'defModels\invest.gms'
+$include 'defModels/schedule.gms'
+$include 'defModels/building.gms'
+$include 'defModels/invest.gms'
 
 // Load model input parameters
-$include '%input_dir%\modelsInit.gms'
+$include '%input_dir%/modelsInit.gms'
 
 
 * === Simulation ==============================================================
-$include 'inc\3a_periodicInit.gms'  // Initialize modelling loop
+$include 'inc/3a_periodicInit.gms'  // Initialize modelling loop
 loop(modelSolves(mSolve, tSolve),
     solveCount = solveCount + 1;
-    $$include 'inc\3b_inputsLoop.gms'           // Read input data that is updated within the loop
-    $$include 'inc\3c_periodicLoop.gms'         // Update modelling loop
-    $$include 'inc\3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
+    $$include 'inc/3b_inputsLoop.gms'           // Read input data that is updated within the loop
+    $$include 'inc/3c_periodicLoop.gms'         // Update modelling loop
+    $$include 'inc/3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
 $iftheni.dummy not %dummy% == 'yes'
-    $$include 'inc\3e_solve.gms'                // Solve model(s)
-    $$include 'inc\3f_afterSolve.gms'           // Post-processing variables after the solve
-    $$include 'inc\4a_outputVariant.gms'        // Store results from the loop
+    $$include 'inc/3e_solve.gms'                // Solve model(s)
+    $$include 'inc/3f_afterSolve.gms'           // Post-processing variables after the solve
+    $$include 'inc/4a_outputVariant.gms'        // Store results from the loop
 $endif.dummy
 $iftheni.debug '%debug%' == 'yes'
         putclose gdx;
-        put_utility 'gdxout' / '%output_dir%\' mSolve.tl:0 '-' tSolve.tl:0 '.gdx';
+        put_utility 'gdxout' / '%output_dir%/' mSolve.tl:0 '-' tSolve.tl:0 '.gdx';
             execute_unload
-            $$include defOutput\debugSymbols.inc
+            $$include defOutput/debugSymbols.inc
         ;
 $endif.debug
     if(execError, put log "!!! Errors encountered: " execError:0:0);
 );
 
-$if exist '%input_dir%\3z_modelsClose.gms' $include '%input_dir%\3z_modelsClose.gms';
+$if exist '%input_dir%/3z_modelsClose.gms' $include '%input_dir%/3z_modelsClose.gms';
 
 * === Output ==================================================================
 $echon "'version' " > 'version'
 $call 'git describe --dirty=+ --always >> version'
 $ifi not %dummy% == 'yes'
-$include 'inc\4b_outputInvariant.gms'
-$include 'inc\4c_outputQuickFile.gms'
+$include 'inc/4b_outputInvariant.gms'
+$include 'inc/4c_outputQuickFile.gms'
 
 * Post-process results
-$if exist '%input_dir%\4d_postProcess.gms' $include '%input_dir%\4d_postProcess.gms'
+$if exist '%input_dir%/4d_postProcess.gms' $include '%input_dir%/4d_postProcess.gms'
 
-execute_unload '%output_dir%\results.gdx',
-    $$include 'defOutput\resultSymbols.inc'
+execute_unload '%output_dir%/results.gdx',
+    $$include 'defOutput/resultSymbols.inc'
 ;
 
-*$ifi '%debug%' == 'yes' execute_unload 'output\debug.gdx';
-execute_unload '%output_dir%\debug.gdx';
+*$ifi '%debug%' == 'yes' execute_unload 'output/debug.gdx';
+execute_unload '%output_dir%/debug.gdx';
 
 if(errorcount > 0, abort errorcount);
 * === THE END =================================================================

@@ -144,12 +144,12 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), sft(s, f, t))
 // NOTE! Currently, there are multiple identical instances of the reserve balance equation being generated for each forecast branch even when the reserves are committed and identical between the forecasts.
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
 
-q_resDemand_Infeed(grid, restypeDirectionNode(restype, 'up', node), sft(s, f, t), unit_)
+q_resDemand_Infeed(grid, restypeDirectionNode(restype, 'up', node), sft(s, f, t), unit_fail(unit_))
     ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
             and ft_realized(f, t)
             ]
-            and unit_fail(unit_)
+        and p_nReserves(node, restype, 'Infeed2Cover')
         } ..
     // Reserve provision by capable units on this node excluding the failing one
     + sum(nuft(node, unit, f, t)${nuRescapable(restype, 'up', node, unit) and (ord(unit_) ne ord(unit))},
@@ -1491,14 +1491,14 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))${  sum(gn2gnu(grid,
 q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
 
     // State of the bound node
-    + p_gn(grid, node, 'energyStoredPerUnitOfState')
-        * v_state(grid, node, s, f+df_central(f,t), t)
+   + v_state(grid, node, s, f+df_central(f,t), t)
 
     // Reserve contributions affecting bound node, converted to energy
     + p_stepLength(m, f, t)
         * [
             // Downwards reserve provided by input units
-            - sum(nuRescapable(restype, 'down', node_input, unit)${ sum(grid_, gn2gnu(grid_, node_input, grid, node, unit))
+            - sum(nuRescapable(restype, 'down', node_input, unit)${ p_gn(grid, node, 'energyStoredPerUnitOfState') // Reserve provisions not applicable if no state energy content
+                                                                    and sum(grid_, gn2gnu(grid_, node_input, grid, node, unit))
                                                                     and uft(unit, f, t)
                                                                     and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                     },
@@ -1509,8 +1509,9 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
                         ) // END sum(effGroup)
                 ) // END sum(nuRescapable)
 
-            // Downwards reserve providewd by output units
-            - sum(nuRescapable(restype, 'down', node_output, unit)${    sum(grid_, gn2gnu(grid, node, grid_, node_output, unit))
+            // Downwards reserve provided by output units
+            - sum(nuRescapable(restype, 'down', node_output, unit)${    p_gn(grid, node, 'energyStoredPerUnitOfState') // Reserve provisions not applicable if no state energy content
+                                                                        and sum(grid_, gn2gnu(grid, node, grid_, node_output, unit))
                                                                         and uft(unit, f, t)
                                                                         and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                         },
@@ -1526,21 +1527,23 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
 
             ] // END * p_stepLength
 
+            // Convert the reserve provisions into state variable values
+            / ( p_gn(grid, node, 'energyStoredPerUnitOfState') + 1${not p_gn(grid, node, 'energyStoredPerUnitOfState')} )
+
     =L=
 
-    + p_gn(grid, node_, 'energyStoredPerUnitOfState')
-        * [
-            // State of the binding node
-            + v_state(grid, node_, s, f+df_central(f,t), t)
-            // Maximum state difference parameter
-            + p_gnn(grid, node, node_, 'boundStateMaxDiff')
-            ] // END * energyStoredPerUnitOfState
+    // State of the binding node
+    + v_state(grid, node_, s, f+df_central(f,t), t)
+
+   // Maximum state difference parameter
+    + p_gnn(grid, node, node_, 'boundStateMaxDiff')
 
     // Reserve contributions affecting bounding node, converted to energy
     + p_stepLength(m, f, t)
         * [
             // Upwards reserve by input node
-            + sum(nuRescapable(restype, 'up', node_input, unit)${   sum(grid_, gn2gnu(grid_, node_input, grid, node_, unit))
+            + sum(nuRescapable(restype, 'up', node_input, unit)${   p_gn(grid, node_, 'energyStoredPerUnitOfState')
+                                                                    and sum(grid_, gn2gnu(grid_, node_input, grid, node_, unit))
                                                                     and uft(unit, f, t)
                                                                     and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                     },
@@ -1552,7 +1555,8 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
                 ) // END sum(nuRescapable)
 
             // Upwards reserve by output node
-            + sum(nuRescapable(restype, 'up', node_output, unit)${  sum(grid_, gn2gnu(grid, node_, grid_, node_output, unit))
+            + sum(nuRescapable(restype, 'up', node_output, unit)${  p_gn(grid, node_, 'energyStoredPerUnitOfState')
+                                                                    and sum(grid_, gn2gnu(grid, node_, grid_, node_output, unit))
                                                                     and uft(unit, f, t)
                                                                     and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                     },
@@ -1567,6 +1571,9 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
             // considered in power grids that do not have state variables, these terms are not needed. Earlier commit (16.2.2017) contains a draft of those terms.
 
             ] // END * p_stepLength
+
+            // Convert the reserve provisions into state variable values
+            / ( p_gn(grid, node_, 'energyStoredPerUnitOfState') + 1${not p_gn(grid, node_, 'energyStoredPerUnitOfState')} )
 ;
 
 * --- Cyclic Boundary Conditions ----------------------------------------------
