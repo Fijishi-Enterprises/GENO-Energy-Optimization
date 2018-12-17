@@ -791,3 +791,19 @@ loop(mft_start(mSolve, f, t_), // Check the uft_online used on the first time st
             }
         = yes;
 ); // END loop(mft_start)
+
+// Historical Unit LP and MIP information for models with multiple samples
+// If this is the very first solve
+if(tSolveFirst = mSettings(mSolve, 't_start'),
+    // Sample start intervals
+    loop(mst_start(mSolve, s, t),
+        uft_onlineLP_withPrevious(unit, f, t+dt(t)) // Displace by one to reach the time step just before the sample
+            ${  uft_onlineLP(unit, f, t)
+                }
+             = yes;
+        uft_onlineMIP_withPrevious(unit, f, t+dt(t)) // Displace by one to reach the time step just before the sample
+            ${  uft_onlineMIP(unit, f, t)
+                }
+            = yes;
+    ); // END loop(mst_start)
+); // END if(tSolveFirst)
