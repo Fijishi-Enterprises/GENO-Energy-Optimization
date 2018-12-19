@@ -48,7 +48,7 @@ if (mType('schedule'),
     ms_central('schedule', 's000') = yes;
 
     // Define time span of samples
-    msStart('schedule', 's000') = mSettings('schedule', 't_start');
+    msStart('schedule', 's000') = 1;
     msEnd('schedule', 's000') = msStart('schedule', 's000') + mSettings('schedule', 't_horizon');
 
     // Define the probability (weight) of samples

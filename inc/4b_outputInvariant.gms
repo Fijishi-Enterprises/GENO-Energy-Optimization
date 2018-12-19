@@ -442,6 +442,14 @@ r_totalRealizedCost
 r_totalRealizedNetCost
     = sum(gn(grid, node), r_gnTotalRealizedNetCost(grid, node));
 
+* --- Reserve Provision Overlap Results ---------------------------------------
+
+// Calculate the overlapping reserve provisions
+r_reserve2Reserve(nuRescapable(restype, up_down, node, unit), restype_, ft_realizedNoReset(f, t))
+    ${ p_nuRes2Res(node, unit, restype, up_down, restype_) }
+    = r_reserve(restype, up_down, node, unit, f, t)
+        * p_nuRes2Res(node, unit, restype, up_down, restype_);
+
 * --- Total Reserve Provision Results -----------------------------------------
 
 // Total reserve provision in nodes over the simulation

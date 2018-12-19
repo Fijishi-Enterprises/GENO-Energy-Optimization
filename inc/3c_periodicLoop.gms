@@ -157,7 +157,7 @@ currentForecastLength = min(  mSettings(mSolve, 't_forecastLengthUnchanging'),  
 // Is there any case where t_forecastLength should be larger than t_horizon? Could happen if one doesn't want to join forecasts at the end of the solve horizon.
 // If not, add a check for currentForecastLength <= mSettings(mSolve, 't_horizon')
 // and change the line below to 'tSolveLast = ord(tSolve) + mSettings(mSolve, 't_horizon');'
-tSolveLast = ord(tSolve) + max(currentForecastLength, mSettings(mSolve, 't_horizon'));  // tSolveLast: the end of the current solve
+tSolveLast = ord(tSolve) + max(currentForecastLength, min(mSettings(mSolve, 't_horizon'), smax(s, msEnd(mSolve, s))));  // tSolveLast: the end of the current solve
 Option clear = t_current;
 t_current(t_full(t))${  ord(t) >= tSolveFirst
                         and ord (t) <= tSolveLast
@@ -636,5 +636,19 @@ loop(mft_start(mSolve, f, t_), // Check the uft_online used on the first time st
         = yes;
 ); // END loop(mft_start)
 
-
+// Historical Unit LP and MIP information for models with multiple samples
+// If this is the very first solve
+if(tSolveFirst = mSettings(mSolve, 't_start'),
+    // Sample start intervals
+    loop(mst_start(mSolve, s, t),
+        uft_onlineLP_withPrevious(unit, f, t+dt(t)) // Displace by one to reach the time step just before the sample
+            ${  uft_onlineLP(unit, f, t)
+                }
+             = yes;
+        uft_onlineMIP_withPrevious(unit, f, t+dt(t)) // Displace by one to reach the time step just before the sample
+            ${  uft_onlineMIP(unit, f, t)
+                }
+            = yes;
+    ); // END loop(mst_start)
+); // END if(tSolveFirst)
 
