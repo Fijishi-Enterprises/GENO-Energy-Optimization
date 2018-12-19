@@ -66,6 +66,7 @@ Parameters
     p_uNonoperational(unit, starttype, min_max) "Non-operational time after being shut down before start up"
     p_uStartup(unit, starttype, cost_consumption) "Startup cost and fuel consumption"
     p_u_maxOutputInLastRunUpInterval(unit) "Maximum output in the last interval for the run-up to min. load (p.u.)"
+    p_u_maxRampSpeedInLastRunUpInterval(unit) "Maximum ramp speed in the last interval for the run-up to min. load (p.u.)"
     p_u_runUpTimeIntervals(unit) "Time steps required for the run-up phase"
     p_u_runUpTimeIntervalsCeil(unit) "Ceiling of time steps required for the run-up phase"
     p_ut_runUp(unit, t) "Output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"

@@ -707,13 +707,13 @@ q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s
                         * 60   // Unit conversion from [p.u./min] to [p.u./h]
                   ) // END sum(unitStarttype)
               ) // END sum(t_)
-        // Units that are in the last time interval of the run-up phase are limited by rampSpeedToMinLoad and maxRampUp
+        // Units that are in the last time interval of the run-up phase are limited by p_u_maxRampSpeedInLastRunUpInterval(unit)
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_active(t_)${    ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
                                     and uft_startupTrajectory(unit, f, t)},
                 + sum(unitStarttype(unit, starttype),
                     + v_startup(unit, starttype, s, f+df(f,t_), t_)
-                        * max(p_unit(unit, 'rampSpeedToMinLoad'), p_gnu(grid, node, unit, 'maxRampUp')) // could also be weighted average from 'maxRampUp' and 'rampSpeedToMinLoad'
+                        * p_u_maxRampSpeedInLastRunUpInterval(unit) // could also be weighted average from 'maxRampUp' and 'rampSpeedToMinLoad'
                         * 60   // Unit conversion from [p.u./min] to [p.u./h]
                   ) // END sum(unitStarttype)
               ) // END sum(t_)
