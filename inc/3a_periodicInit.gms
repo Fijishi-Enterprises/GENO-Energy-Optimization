@@ -420,6 +420,9 @@ loop(m,
         // Maximum output in the last time interval of the run-up phase can't exceed the maximum capacity
         p_u_maxOutputInLastRunUpInterval(unit) = min(p_u_maxOutputInLastRunUpInterval(unit), 1);
 
+        // Maximum ramp speed in the last time interval of the run-phasae is equal to maximum output after the time period minus the output on the previous time period in the run-up phase
+        p_u_maxRampSpeedInLastRunUpInterval(unit) = p_u_maxOutputInLastRunUpInterval(unit) - sum(t$[ord(t) = 2], p_ut_runUp(unit, t));
+
         // Minimum output in the last time interval of the run-up phase equals minimum load
         p_ut_runUp(unit, t)${ord(t) = 1} = p_unit(unit,'op00');
 
