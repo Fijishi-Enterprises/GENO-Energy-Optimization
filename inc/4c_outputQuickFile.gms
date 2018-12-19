@@ -15,9 +15,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
+* Get current username
+$ifthen %system.filesys% == 'MSNT'
+$set username %sysenv.USERNAME%
+$else
+$set username %sysenv.USER%
+$endif
+
 * Create metadata
 set metadata(*) /
-   'User' '%sysenv.username%'
+   'User' '%username%'
    'Date' '%system.date%'
    'Time' '%system.time%'
    'GAMS version' '%system.gamsrelease%'
@@ -35,7 +42,7 @@ loop(metadata,
 );
 put /;
 put "time (s)":> 21 /;
-put "¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨"/;
+put "¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨"/;
 put "Compilation", system.tcomp:> 10 /;
 put "Execution  ", system.texec:> 10 /;
 put "Total      ", system.elapsed:> 10 /;
@@ -43,19 +50,24 @@ put /;
 put "¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤"/;
 put "¤ MODEL FEATURES                                                      ¤"/;
 put "¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤"/;
-loop((m, feature)$active(m, feature),
+loop(m,
+put "Model: ", m.tl:0/;
+put "-----------------------------------------------------------------------"/;
+*put "Threads: ", m.threads:0:0 /;
+put "Active features:"/;
+loop(active(m, feature),
     put feature.tl:20, feature.te(feature):0 /;
 );
 put /;
 f_info.nd = 0; // Set number of decimals to zero
-loop(m,
-    put "Start time:                 ", mSettings(m, 't_start')/;
-    put "Length of forecasts:        ", mSettings(m, 't_forecastLengthUnchanging')/;
-    put "Model horizon:              ", mSettings(m, 't_horizon')/;
-    put "Model jumps after solve:    ", mSettings(m, 't_jump')/;
-    put "Last time period to solve:  ", mSettings(m, 't_end')/;
-*    put "Length of each time period: ", mSettings(m, 'stepsPerInterval')/;
-    put "Number of samples:          ", mSettings(m, 'samples')/;
+put "Start time:                 ", mSettings(m, 't_start')/;
+put "Length of forecasts:        ", mSettings(m, 't_forecastLengthUnchanging')/;
+put "Model horizon:              ", mSettings(m, 't_horizon')/;
+put "Model jumps after solve:    ", mSettings(m, 't_jump')/;
+put "Last time period to solve:  ", mSettings(m, 't_end')/;
+*put "Length of each time period: ", mSettings(m, 'stepsPerInterval')/;
+put "Number of samples:          ", mSettings(m, 'samples')/;
+put /;
 );
 
 putclose;
