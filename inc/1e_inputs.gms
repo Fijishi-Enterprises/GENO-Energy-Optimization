@@ -78,6 +78,30 @@ $ifthen exist '%input_dir%/changes.inc'
 $endif
 
 
+
+$ontext
+* --- sets with 'empty' to enable GDX imports in Sceleton Titan - currently removed when forming gnu (below) and uft (periodicLoop.gms) sets
+* This list can be removed once this has been tested.
+node
+unit
+gngnu_constrainedOutputRatio
+restype
+restypeReleasedForRealization
+p_gnn
+p_nnReserves
+p_gnuBoundaryProperties
+ts_node
+ts_reserveDemand
+ts_unit
+p_storageValue
+group
+gnuGroup
+gnGroup
+gn2nGroup
+gnss_bound
+$offtext
+
+
 * =============================================================================
 * --- Initialize Unit Related Sets & Parameters Based on Input Data -----------
 * =============================================================================
@@ -90,7 +114,8 @@ gnu(grid, node, unit)${ p_gnu(grid, node, unit, 'maxGen')
                         or p_gnu(grid, node, unit, 'maxCons')
                         or p_gnu(grid, node, unit, 'unitSizeGen')
                         or p_gnu(grid, node, unit, 'unitSizeCons')
-                        }
+                        and not grid('empty')
+                      }
     = yes;
 // Reduce the grid dimension
 nu(node, unit) = sum(grid, gnu(grid, node, unit));
@@ -168,15 +193,15 @@ p_unit(unit, 'unitOutputCapacityTotal')
     = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Assume unit sizes based on given maximum capacity parameters and unit counts if able
-p_gnu(grid, node, unit, 'unitSizeGen')${    p_gnu(grid, node, unit, 'maxGen')
+p_gnu(gnu(grid, node, unit), 'unitSizeGen')${    p_gnu(grid, node, unit, 'maxGen')
                                             and p_unit(unit, 'unitCount')
                                             }
     = p_gnu(grid, node, unit, 'maxGen') / p_unit(unit, 'unitCount');  // If maxGen and unitCount are given, calculate unitSizeGen based on them.
-p_gnu(grid, node, unit, 'unitSizeCons')${   p_gnu(grid, node, unit, 'maxCons')
+p_gnu(gnu(grid, node, unit), 'unitSizeCons')${   p_gnu(grid, node, unit, 'maxCons')
                                             and p_unit(unit, 'unitCount')
                                             }
     = p_gnu(grid, node, unit, 'maxCons') / p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
-p_gnu(grid, node, unit, 'unitSizeTot')
+p_gnu(gnu(grid, node, unit), 'unitSizeTot')
     = p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons');
 
 // Determine unit startup parameters based on data
