@@ -25,6 +25,7 @@ $offtext
 Option clear = t_full;
 Option clear = f_solve;
 Option clear = tmp;
+Option clear = longtermSamples;
 
 // Abort model run if more than one model type is defined - unsupported at the moment
 if(sum(m$mType(m), 1) > 1,
