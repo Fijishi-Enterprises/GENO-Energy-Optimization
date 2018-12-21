@@ -593,6 +593,8 @@ loop(msf(m, s, f)${ mf_realization(m, f) },
     // Initial values included into previously realized time steps
     ft_realizedNoReset(f, t_full(t))${ ord(t) = mSettings(m, 't_start') }
         = yes;
+    sft_realizedNoReset(s, f, t_full(t))${ ord(t) = mSettings(m, 't_start') }
+        = yes;
     msft_realizedNoReset(m, s, f, t_full(t))${ ord(t) = mSettings(m, 't_start') }
         = yes;
 ); // END loop(m, s, f)
