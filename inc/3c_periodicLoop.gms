@@ -580,15 +580,18 @@ loop(flowNode(flow, node)$p_autocorrelation(flow, node, 'ts_cf'),
 
 // Units active on each ft
 Option clear = uft;
-uft(unit, ft(f, t))${   [
-                            ord(t) <= tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
-                            and (unit_aggregated(unit) or unit_noAggregate(unit)) // Aggregated and non-aggregate units
+uft(unit, ft(f, t))${   (   [
+                                ord(t) <= tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
+                                and (unit_aggregated(unit) or unit_noAggregate(unit)) // Aggregated and non-aggregate units
                             ]
-                        or [
-                            ord(t) > tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
-                            and (unit_aggregator(unit) or unit_noAggregate(unit)) // Aggregator and non-aggregate units
+                            or
+                            [
+                                ord(t) > tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
+                                and (unit_aggregator(unit) or unit_noAggregate(unit)) // Aggregator and non-aggregate units
                             ]
-                        }
+                        )
+                        and not sameas(unit, 'empty')
+                     }
 // only units with capacities or investment option
     = yes;
 
