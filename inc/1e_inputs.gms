@@ -20,7 +20,7 @@ $offtext
 * =============================================================================
 
 $gdxin  '%input_dir%/inputData.gdx'
-$loaddc grid
+$loaddcm grid
 $loaddc node
 $loaddc flow
 $loaddc unittype
