@@ -17,7 +17,7 @@ $offtext
 
 Sets
 * --- Geography ---------------------------------------------------------------
-    grid "Forms of energy endogenously presented in the model"
+    grid "Forms of energy endogenously presented in the model" / empty /
     node "Nodes where different types of energy are converted"
 
 * --- Fuels & resources -------------------------------------------------------
