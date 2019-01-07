@@ -26,35 +26,35 @@ putclose log;
 if (ord(tSolve) >= tForecastNext(mSolve),
     // Read data defined to be updated
     if (mTimeseries_loop_read(mSolve, 'ts_effUnit'),
-        put_utility 'gdxin' / 'input/ts_effUnit/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_effUnit/' tSolve.tl:0 '.gdx';
         execute_load ts_effUnit
         );
     if (mTimeseries_loop_read(mSolve, 'ts_effGroupUnit'),
-        put_utility 'gdxin' / 'input/ts_effGroupUnit/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_effGroupUnit/' tSolve.tl:0 '.gdx';
         execute_load ts_effGroupUnit
         );
     if (mTimeseries_loop_read(mSolve, 'ts_influx'),
-        put_utility 'gdxin' / 'input/ts_influx/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_influx/' tSolve.tl:0 '.gdx';
         execute_load ts_influx
         );
     if (mTimeseries_loop_read(mSolve, 'ts_cf'),
-        put_utility 'gdxin' / 'input/ts_cf/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_cf/' tSolve.tl:0 '.gdx';
         execute_load ts_cf
         );
     if (mTimeseries_loop_read(mSolve, 'ts_reserveDemand'),
-        put_utility 'gdxin' / 'input/ts_reserveDemand/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_reserveDemand/' tSolve.tl:0 '.gdx';
         execute_load ts_reserveDemand
         );
     if (mTimeseries_loop_read(mSolve, 'ts_node'),
-        put_utility 'gdxin' / 'input/ts_node/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_node/' tSolve.tl:0 '.gdx';
         execute_load ts_node
         );
     if (mTimeseries_loop_read(mSolve, 'ts_fuelPriceChange'),
-        put_utility 'gdxin' / 'input/ts_fuelPriceChange/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_fuelPriceChange/' tSolve.tl:0 '.gdx';
         execute_load ts_fuelPriceChange
         );
     if (mTimeseries_loop_read(mSolve, 'ts_unavailability'),
-        put_utility 'gdxin' / 'input/ts_unavailability/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_unavailability/' tSolve.tl:0 '.gdx';
         execute_load ts_unavailability
         );
 
@@ -88,7 +88,7 @@ $ontext
 
 * --- Read the Tertiary Reserve Requirements ----------------------------------
 
-    put_utility 'gdxin' / 'input/tertiary/' tSolve.tl:0 '.gdx';
+    put_utility 'gdxin' / '%input_dir%/tertiary/' tSolve.tl:0 '.gdx';
     execute_load ts_tertiary;
     ts_reserveDemand(restypeDirectionNode('tertiary', up_down, node), f_solve(f), tt_forecast(t))${ mf(mSolve, f)
                                                                                                     and not mf_realization(mSolve, f)
