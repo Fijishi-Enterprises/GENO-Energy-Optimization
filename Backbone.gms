@@ -121,8 +121,8 @@ $include '%input_dir%/modelsInit.gms'
 $include 'inc/3a_periodicInit.gms'  // Initialize modelling loop
 loop(modelSolves(mSolve, tSolve),
     solveCount = solveCount + 1;
-    $$include 'inc/3b_inputsLoop.gms'           // Read input data that is updated within the loop
     $$include 'inc/3c_periodicLoop.gms'         // Update modelling loop
+    $$include 'inc/3b_inputsLoop.gms'           // Read input data that is updated within the loop
     $$include 'inc/3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
 $iftheni.dummy not %dummy% == 'yes'
     $$include 'inc/3e_solve.gms'                // Solve model(s)
