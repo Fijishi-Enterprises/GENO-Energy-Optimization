@@ -376,13 +376,23 @@ restypeDirectionNode(restypeDirection(restype, up_down), node)
       }
   = yes;
 
-// Assume values for critical reserve related parameters, if not provided by input data
+* --- Correct values for critical reserve related parameters ------------------
+
 // Reserve reliability assumed to be perfect if not provided in data
 p_nuReserves(nu(node, unit), restype, 'reserveReliability')
     ${  not p_nuReserves(node, unit, restype, 'reserveReliability')
         and sum(up_down, nuRescapable(restype, up_down, node, unit))
         }
     = 1;
+
+// Reserve provision overlap decreases the capacity of the overlapping category
+p_nuReserves(nu(node, unit), restype, up_down)
+    ${ nuRescapable(restype, up_down, node, unit) }
+    = p_nuReserves(node, unit, restype, up_down)
+        - sum(restype_${ p_nuRes2Res(node, unit, restype_, up_down, restype) },
+            + p_nuReserves(node, unit, restype_, up_down)
+                * p_nuRes2Res(node, unit, restype_, up_down, restype)
+        ); // END sum(restype_)
 
 * =============================================================================
 * --- Data Integrity Checks ---------------------------------------------------
@@ -462,7 +472,7 @@ loop( unitStarttype(unit, starttypeConstrained),
     );
 );
 
-* --- Check reserve structure data --------------------------------------------
+* --- Check reserve related data ----------------------------------------------
 
 // Check that reserve_length is long enough for properly commitment of reserves
 loop( restypeDirectionNode(restype, up_down, node),
@@ -472,3 +482,12 @@ loop( restypeDirectionNode(restype, up_down, node),
         abort "The 'reserve_length' parameter should be longer than 'update_frequency' + 'gate_closure' to fix the reserves properly!"
     ); // END if
 ); // END loop(restypeDirectionNode)
+
+// Check that reserve overlaps are possible
+loop( (nu(node, unit), restypeDirection(restype, up_down)),
+    if( p_nuReserves(node, unit, restype, up_down) < 0,
+        put log '!!! Error occurred on unit ', unit.tl:0 /;
+        put log '!!! Abort: Overlapping reserve capacities in p_nuRes2Res can result in excess reserve production!' /;
+        abort "Overlapping reserve capacities in p_nuRes2Res can result in excess reserve production!"
+    ); // END if(p_nuReserves)
+); // END loop((nu,restypeDirection))
