@@ -150,7 +150,7 @@ Parameters
     ts_node_(grid, node, param_gnBoundaryTypes, f, t, s) "Mean value of ts_node"
     ts_fuelPrice_(fuel, t) "Mean fuel price time during time step (EUR/MWh)"
 
-    // Aliases used for updating data in 3b_inputsLoop.gms
+    // Aliases used for updating data in inputsLoop.gms
     ts_unit_update(unit, *, f, t)
     ts_effUnit_update(effSelector, unit, effSelector, *, f, t)
     ts_effGroupUnit_update(effSelector, unit, *, f, t)
