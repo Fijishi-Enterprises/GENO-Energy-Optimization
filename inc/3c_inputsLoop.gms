@@ -25,64 +25,105 @@ putclose log;
 
 if (ord(tSolve) >= tForecastNext(mSolve),
 
+    // Find time steps until the forecast horizon
+    option clear = tt;
+    tt_forecast(t_current(t))
+        ${ ord(t) <= tSolveFirst + currentForecastLength }
+        = yes;
+$ontext
     // Update ts_unit
     if (mTimeseries_loop_read(mSolve, 'ts_unit'),
         put_utility 'gdxin' / '%input_dir%/ts_unit/' tSolve.tl:0 '.gdx';
-        execute_load ts_unit_update=ts_unit
-        );
+        execute_load ts_unit_update=ts_unit;
+        ts_unit(unit, *, f_solve(f), tt_forecast(t))
+            ${ not mf_realization(mSolve, f) } // Realization not updated
+            = ts_unit_update(unit, *, f, t);
+    ); // END if('ts_unit')
 
-    // Update _ts_effUnit
+    // Update ts_effUnit
     if (mTimeseries_loop_read(mSolve, 'ts_effUnit'),
         put_utility 'gdxin' / '%input_dir%/ts_effUnit/' tSolve.tl:0 '.gdx';
-        execute_load ts_effUnit_update=ts_effUnit
-        );
+        execute_load ts_effUnit_update=ts_effUnit;
+        ts_effUnit(effGroupSelectorUnit(effSelector, unit, effSelector), *, f_solve(f), tt_forecast(t)))
+            ${ not mf_realization(mSolve, f) } // Realization not updated
+            = ts_effUnit_update(effSelector, unit, effSelector, *, ft(f, t));
+    ); // END if('ts_effUnit')
 
     // Update ts_effGroupUnit
     if (mTimeseries_loop_read(mSolve, 'ts_effGroupUnit'),
         put_utility 'gdxin' / '%input_dir%/ts_effGroupUnit/' tSolve.tl:0 '.gdx';
-        execute_load ts_effGroupUnit_update=ts_effGroupUnit
-        );
+        execute_load ts_effGroupUnit_update=ts_effGroupUnit;
+        ts_effGroupUnit(effSelector, unit, *, f_solve(f), tt_forecast(t))
+            ${ not mf_realization(mSolve, f) } // Realization not updated
+            = ts_effGroupUnit_update(effSelector, unit, *, f, t);
+    ); // END if('ts_effGroupUnit')
+$offtext
 
     // Update ts_influx
     if (mTimeseries_loop_read(mSolve, 'ts_influx'),
         put_utility 'gdxin' / '%input_dir%/ts_influx/' tSolve.tl:0 '.gdx';
-        execute_load ts_influx_update=ts_influx
-        );
+        execute_load ts_influx_update=ts_influx;
+        ts_influx(gn(grid, node), f_solve(f), tt_forecast(t))
+            ${ not mf_realization(mSolve, f) } // Realization not updated
+            = ts_influx_update(grid, node, f, t);
+    ); // END if('ts_influx')
 
     // Update ts_cf
     if (mTimeseries_loop_read(mSolve, 'ts_cf'),
         put_utility 'gdxin' / '%input_dir%/ts_cf/' tSolve.tl:0 '.gdx';
-        execute_load ts_cf_update=ts_cf
-        );
+        execute_load ts_cf_update=ts_cf;
+        ts_cf(flowNode(flow, node), f_solve(f), tt_forecast(t))
+            ${ not mf_realization(mSolve, f) } // Realization not updated
+            = ts_cf_update(flow, node, f, t);
+    ); // END if('ts_cf')
 
     // Update ts_reserveDemand
     if (mTimeseries_loop_read(mSolve, 'ts_reserveDemand'),
         put_utility 'gdxin' / '%input_dir%/ts_reserveDemand/' tSolve.tl:0 '.gdx';
-        execute_load ts_reserveDemand_update=ts_reserveDemand
-        );
+        execute_load ts_reserveDemand_update=ts_reserveDemand;
+        ts_reserveDemand(restypeDirectionNode(restype, up_down, node), f_solve(f), tt_forecast(t))
+            ${ not mf_realization(mSolve, f) } // Realization not updated
+            = ts_reserveDemand_update(restype, up_down, node, f, t);
+    ); // END if('ts_reserveDemand')
 
     // Update ts_node
     if (mTimeseries_loop_read(mSolve, 'ts_node'),
         put_utility 'gdxin' / '%input_dir%/ts_node/' tSolve.tl:0 '.gdx';
-        execute_load ts_node_update=ts_node
-        );
+        execute_load ts_node_update=ts_node;
+        ts_node(gn(grid, node), param_gnBoundaryTypes, f_solve(f), tt_forecast(t))
+            ${ not mf_realization(mSolve, f) } // Realization not updated
+            = ts_node_update(grid, node, param_gnBoundaryTypes, f, t);
+    ); // END if('ts_node')
+
+* --- NO FORECAST DIMENSION, SHOULD THESE BE HANDLED SEPARATELY? --------------
+// Currently, only updated until the forecast horizon, but is this correct?
 
     // Update ts_fuelPriceChange
     if (mTimeseries_loop_read(mSolve, 'ts_fuelPriceChange'),
         put_utility 'gdxin' / '%input_dir%/ts_fuelPriceChange/' tSolve.tl:0 '.gdx';
-        execute_load ts_fuelPriceChange_update=ts_fuelPriceChange
-        );
+        execute_load ts_fuelPriceChange_update=ts_fuelPriceChange;
+        ts_fuelPriceChange(fuel, tt_forecast(t))
+            = ts_fuelPriceChange_update(fuel, t);
+    ); // END if('ts_fuelPriceChange')
 
     // Update ts_unavailability
     if (mTimeseries_loop_read(mSolve, 'ts_unavailability'),
         put_utility 'gdxin' / '%input_dir%/ts_unavailability/' tSolve.tl:0 '.gdx';
-        execute_load ts_unavailability_update=ts_unavailability
-        );
+        execute_load ts_unavailability_update=ts_unavailability;
+        ts_unavailability(unit, tt_forecast(t))
+            = ts_unavailability_update(unit, t);
+    ); // END if('ts_unavailability')
 
     // Update the next forecast
     tForecastNext(mSolve)
         = tForecastNext(mSolve) + mSettings(mSolve, 't_forecastJump');
 );
+
+* =============================================================================
+* --- Optional forecast improvement code here ---------------------------------
+* =============================================================================
+
+// Forecasts not improved
 
 * =============================================================================
 * --- Aggregate time series data for the time intervals -----------------------
