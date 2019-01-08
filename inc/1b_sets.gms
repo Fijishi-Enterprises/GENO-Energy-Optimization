@@ -160,6 +160,7 @@ Option clear = modelSolves;
 Option clear = ms;
 Option clear = mf;
 mf_realization(mType, 'f00') = yes;
+Option clear = longtermSamples;
 
 alias(m, mSolve);
 alias(t, t_, t__, tSolve, tFuel);
