@@ -133,6 +133,7 @@ Parameters
 
 * --- Stochastic data parameters ----------------------------------------------
 Parameters
+    // Used mostly for raw data storage
     ts_influx(grid, node, f, t) "External power inflow/outflow during a time step (MWh/h)"
     ts_cf(flow, node, f, t) "Available capacity factor time series (p.u.)"
     ts_reserveDemand(restype, up_down, node, f, t) "Reserve demand in region in the time step (MW)"
@@ -141,14 +142,24 @@ Parameters
     ts_fuelPrice(fuel, t) "Fuel price time series (EUR/MWh)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time step (p.u.)"
 
-    // Aliases used for intervals (time step aggregation)
+    // Aliases used in the equations after interval aggregation
     // NOTE: Sample dimension has to be last because of the scenario reduction algorithm
     ts_influx_(grid, node, f, t, s) "Mean external power inflow/outflow during a time step (MWh/h)"
     ts_cf_(flow, node, f, t, s) "Mean available capacity factor time series (p.u.)"
-    ts_influx_temp(grid, node, s, f, t)
     ts_reserveDemand_(restype, up_down, node, f, t) "Mean reserve demand in region in the time step (MW)"
     ts_node_(grid, node, param_gnBoundaryTypes, f, t, s) "Mean value of ts_node"
     ts_fuelPrice_(fuel, t) "Mean fuel price time during time step (EUR/MWh)"
+
+    // Aliases used for updating data in 3b_inputsLoop.gms
+    ts_unit_update(unit, *, f, t)
+    ts_effUnit_update(effSelector, unit, effSelector, *, f, t)
+    ts_effGroupUnit_update(effSelector, unit, *, f, t)
+    ts_influx_update(grid, node, f, t)
+    ts_cf_update(flow, node, f, t)
+    ts_reserveDemand_update(restype, up_down, node, f, t)
+    ts_node_update(grid, node, param_gnBoundaryTypes, f, t)
+    ts_fuelPriceChange_update(fuel, t)
+    ts_unavailability_update(unit, t)
 
     // Help parameters for calculating smoothening of time series
     ts_influx_mean(grid, node, f, t) "Mean of ts_influx over samples"
