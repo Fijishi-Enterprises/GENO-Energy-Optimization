@@ -25,10 +25,16 @@ putclose log;
 
 if (ord(tSolve) >= tForecastNext(mSolve),
 
+    // Determine the necessary horizon for updating data
+    option clear = tmp;
+    tmp = max(  mSettings(mSolve, 't_forecastLengthUnchanging') + mSettings(mSolve, 't_forecastJump'),
+                mSettings('schedule', 't_forecastLengthDecreasesFrom')
+                );
+
     // Find time steps until the forecast horizon
     option clear = tt;
     tt_forecast(t_current(t))
-        ${ ord(t) <= tSolveFirst + currentForecastLength }
+        ${ ord(t) <= tSolveFirst + tmp }
         = yes;
 $ontext
     // Update ts_unit
