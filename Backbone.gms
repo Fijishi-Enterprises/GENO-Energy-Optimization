@@ -38,6 +38,10 @@ GAMS command line arguments
     with all symbols as well as a gdx file for each solution containing
     model parameters, variables and equations.
 
+--diag=[yes|no]
+    Switch on/off diagnostics. Writes some additional diagnostic results in
+    'results.gdx' about data updates and efficiency approximations.
+
 --dummy=[yes|no]
     Do not solve the model, just do preliminary calculations.
     For testing purposes.

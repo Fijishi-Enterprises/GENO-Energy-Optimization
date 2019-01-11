@@ -164,25 +164,38 @@ r_qGen(inc_dec, gn(grid, node), f, t)
 * --- Diagnostics Results -----------------------------------------------------
 * =============================================================================
 
+// Only include these if '--diag=yes' given as a command line argument
+$iftheni.diag '%diag%' == yes
 // Capacity factors for examining forecast errors
-d_capacityFactor(flowNode(flow, node), s, f_solve(f), t_active(t))${sft(s, f, t)
-                                                                    and sum(flowUnit(flow, unit), nu(node, unit)) }
+d_capacityFactor(flowNode(flow, node), s, f_solve(f), t_current(t))
+    ${  msf(mSolve, s, f)
+        and t_active(t)
+        and sum(flowUnit(flow, unit), nu(node, unit))
+        }
     = ts_cf_(flow, node, f, t, s)
         + ts_cf(flow, node, f, t + dt_sampleOffset(flow, node, 'ts_cf', s))${ not ts_cf_(flow, node, f, t, s) }
-        - 1e-3${    not ts_cf_(flow, node, f, t, s)
-                    and not ts_cf(flow, node, f, t + dt_sampleOffset(flow, node, 'ts_cf', s))
-                    }
+        + Eps
 ;
 // Temperature forecast for examining the error
-d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, s, f_solve(f), t_active(t))
-    ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
-      and sft(s, f, t)}
+d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, s, f_solve(f), t_current(t))
+    ${  p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+        and t_active(t)
+        and msf(mSolve, s, f)
+        }
     = ts_node_(grid, node, param_gnBoundaryTypes, f, t, s)
         + ts_node(grid, node, param_gnBoundaryTypes, f, t)${ not ts_node_(grid, node, param_gnBoundaryTypes, f, t, s)}
-        - 1e-3${    not ts_node_(grid, node, param_gnBoundaryTypes, f, t, s)
-                    and not ts_node_(grid, node, param_gnBoundaryTypes, f, t, s)
-                    }
+        + Eps
 ;
+// Influx forecast for examining the errors
+d_influx(gn(grid, node), s, f_solve(f), t_current(t))
+    ${  msf(mSolve, s, f)
+        and t_active(t)
+        }
+    = ts_influx_(grid, node, f, t, s)
+        + ts_influx(grid, node, f, t)${ not ts_influx_(grid, node, f, t, s)}
+        + Eps
+;
+$endif.diag
 
 * --- Model Solve & Status ----------------------------------------------------
 

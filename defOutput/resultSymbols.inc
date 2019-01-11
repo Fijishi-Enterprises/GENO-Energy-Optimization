@@ -157,10 +157,13 @@ r_qCapacity
 r_solveStatus
 
 // Diagnostics
+$iftheni.diag '%diag%' == 'yes'
 d_cop
 d_eff
 d_capacityFactor
 d_nodeState
+d_influx
+$endif.diag
 
 // Metadata and settings
 metadata
