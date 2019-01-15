@@ -32,7 +32,7 @@ if (ord(tSolve) >= tForecastNext(mSolve),
                 );
 
     // Find time steps until the forecast horizon
-    option clear = tt;
+    option clear = tt_forecast;
     tt_forecast(t_current(t))
         ${ ord(t) <= tSolveFirst + tmp }
         = yes;
