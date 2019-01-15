@@ -297,10 +297,7 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))${ ord(t) <= tS
         = min ( p_nuReserves(node, unit, restype, up_down) * [ p_gnu('elec', node, unit, 'maxGen') + p_gnu('elec', node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
                 v_gen.up('elec', node, unit, s, f, t) - v_gen.lo('elec', node, unit, s, f, t) // Generator + consuming unit available unit_elec. output delta
                 ) // END min
-            * [
-                + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
-                + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
-                ]; // END * min
+;
 
     // Reserve transfer upper bounds based on input p_nnReserves data, if investments are disabled
     v_resTransferRightward.up(restypeDirectionNodeNode(restype, up_down, node, node_), s, f+df_reserves(node, restype, f, t), t)

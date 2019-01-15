@@ -97,12 +97,21 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), sft(s, f, t))
     // Reserve provision by capable units on this node
     + sum(nuft(node, unit, f, t)${nuRescapable(restype, up_down, node, unit)},
         + v_reserve(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t)
+            * [ // Account for reliability of reserves
+                + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
+                ] // END * v_reserve
         ) // END sum(nuft)
 
     // Reserve provision from other reserve categories when they can be shared
     + sum((nuft(node, unit, f, t), restype_)${p_nuRes2Res(node, unit, restype_, up_down, restype)},
         + v_reserve(restype_, up_down, node, unit, s, f+df_reserves(node, restype_, f, t), t)
             * p_nuRes2Res(node, unit, restype_, up_down, restype)
+            * [ // Account for reliability of reserves
+                + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
+                    * p_nuReserves(node, unit, restype_, 'reserveReliability')
+                ] // END * v_reserve
         ) // END sum(nuft)
 
     // Reserve provision to this node via transfer links
@@ -154,12 +163,21 @@ q_resDemand_Infeed(grid, restypeDirectionNode(restype, 'up', node), sft(s, f, t)
     // Reserve provision by capable units on this node excluding the failing one
     + sum(nuft(node, unit, f, t)${nuRescapable(restype, 'up', node, unit) and (ord(unit_) ne ord(unit))},
         + v_reserve(restype, 'up', node, unit, s, f+df_reserves(node, restype, f, t), t)
+            * [ // Account for reliability of reserves
+                + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
+                ] // END * v_reserve
         ) // END sum(nuft)
 
     // Reserve provision from other reserve categories when they can be shared
     + sum((nuft(node, unit, f, t), restype_)${p_nuRes2Res(node, unit, restype_, 'up', restype)},
         + v_reserve(restype_, 'up', node, unit, s, f+df_reserves(node, restype_, f, t), t)
             * p_nuRes2Res(node, unit, restype_, 'up', restype)
+            * [ // Account for reliability of reserves
+                + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
+                    * p_nuReserves(node, unit, restype_, 'reserveReliability')
+                ] // END * v_reserve
         ) // END sum(nuft)
 
     // Reserve provision to this node via transfer links
@@ -457,10 +475,6 @@ q_reserveProvision(nuRescapable(restypeDirectionNode(restype, up_down, node), un
                 + ts_cf_(flow, node, f, t, s)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
-            ]
-        * [
-            + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
-            + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
             ] // How to consider reserveReliability in the case of investments when we typically only have "realized" time steps?
 ;
 
