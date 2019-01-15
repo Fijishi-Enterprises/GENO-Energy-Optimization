@@ -22,6 +22,7 @@ Backbone has been designed with a modular structure, making it easier to change 
 * 1c_parameters.gms	- Contains the parameter definitions used by the models.
 * 1d_results.gms - Contains definitions for the model results.
 * 1e_inputs.gms - Contains instructions on how to load input data, as well as forms a lot of helpful sets based on said data, for example in order to facilitate writing the constraints.
+* 1e_scenChanges.gms - Inside input.gms - reads additional changes for scenarios (Sceleton Titan can use these)
 * 2a_variables.gms - Contains variable definitions used by the models.
 * 2b_eqDeclarations.gms - Contains equation declarations for the models.
 * 2c_objective.gms - Contains the objective function definition.
