@@ -145,12 +145,12 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))
 // NOTE! Currently, there are multiple identical instances of the reserve balance equation being generated for each forecast branch even when the reserves are committed and identical between the forecasts.
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
 
-q_resDemand_Infeed(grid, restypeDirectionNode(restype, 'up', node), ft(f, t), unit_fail(unit_))
+q_resDemandLargestInfeedUnit(grid, restypeDirectionNode(restype, 'up', node), unit_fail(unit_), ft(f, t))
     ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
             and ft_realized(f, t)
             ]
-        and p_nReserves(node, restype, 'Infeed2Cover')
+        and p_nuReserves(node, unit_, restype, 'portion_of_infeed_to_reserve')
         } ..
     // Reserve provision by capable units on this node excluding the failing one
     + sum(nuft(node, unit, f, t)${nuRescapable(restype, 'up', node, unit) and (ord(unit_) ne ord(unit))},
@@ -176,7 +176,7 @@ q_resDemand_Infeed(grid, restypeDirectionNode(restype, 'up', node), ft(f, t), un
     =G=
 
     // Demand for reserves of the failing one
-    v_gen(grid,node,unit_,f,t)*p_nReserves(node, restype, 'Infeed2Cover')
+    v_gen(grid,node,unit_,f,t) * p_nuReserves(node, unit_, restype, 'portion_of_infeed_to_reserve')
 
     // Reserve provisions to another nodes via transfer links
     + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'up', node_, node)},   // If trasferring reserves to another node, increase your own reserves by same amount
