@@ -113,10 +113,6 @@ $iftheni.debug NOT '%debug%' == 'yes'
 
 * --- Temporary Time Series ---------------------------------------------------
 
-    // Forecast Related Time Series
-*    Option clear = ts_forecast; // NOTE! Forecast Related Time Series have changed, Juha needs to check these
-*    Option clear = ts_tertiary; // NOTE! Forecast Related Time Series have changed, Juha needs to check these
-
     // Initialize temporary time series
     Option clear = ts_influx_;
     Option clear = ts_cf_;

@@ -38,7 +38,6 @@ Scalars
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
     tmp_offset "Offset of sample in time steps"
-    f_improve / 12 /
     tRealizedLast "counter (ord) for the last realized t in the solve"
     firstResultsOutputSolve /1/;
 ;
@@ -119,8 +118,8 @@ Parameters
 
     // Temporary displacement arrays
     ddt(t) "Temporary time displacement array"
-    ddf(f, t) "Temporary forecast displacement array"
-    ddf_(f, t) "Temporary forecast displacement array"
+    ddf(f) "Temporary forecast displacement array"
+    ddf_(f) "Temporary forecast displacement array"
 
     // Other
     p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"

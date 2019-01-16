@@ -23,26 +23,29 @@ put log 'ord tSolve: ';
 put log ord(tSolve):0:0 /;
 putclose log;
 
+// Determine the necessary horizon for updating data
+option clear = tmp;
+tmp = max(  mSettings(mSolve, 't_forecastLengthUnchanging') + mSettings(mSolve, 't_forecastJump'),
+            mSettings('schedule', 't_forecastLengthDecreasesFrom')
+            );
+
+// Find time steps until the forecast horizon
+option clear = tt_forecast;
+tt_forecast(t_current(t))
+    ${ ord(t) <= tSolveFirst + tmp }
+    = yes;
+
 if (ord(tSolve) >= tForecastNext(mSolve),
-
-    // Determine the necessary horizon for updating data
-    option clear = tmp;
-    tmp = max(  mSettings(mSolve, 't_forecastLengthUnchanging') + mSettings(mSolve, 't_forecastJump'),
-                mSettings('schedule', 't_forecastLengthDecreasesFrom')
-                );
-
-    // Find time steps until the forecast horizon
-    option clear = tt_forecast;
-    tt_forecast(t_current(t))
-        ${ ord(t) <= tSolveFirst + tmp }
-        = yes;
 $ontext
+* These don't work due to the wild cards in the parameter definitions!
     // Update ts_unit
     if (mTimeseries_loop_read(mSolve, 'ts_unit'),
         put_utility 'gdxin' / '%input_dir%/ts_unit/' tSolve.tl:0 '.gdx';
         execute_load ts_unit_update=ts_unit;
         ts_unit(unit, *, f_solve(f), tt_forecast(t))
-            ${ not mf_realization(mSolve, f) } // Realization not updated
+            ${  not mf_realization(mSolve, f) // Realization not updated
+*                ts_unit_update(unit, *, f, t) // Update only existing values (zeroes need to be EPS)
+                }
             = ts_unit_update(unit, *, f, t);
     ); // END if('ts_unit')
 
@@ -50,9 +53,11 @@ $ontext
     if (mTimeseries_loop_read(mSolve, 'ts_effUnit'),
         put_utility 'gdxin' / '%input_dir%/ts_effUnit/' tSolve.tl:0 '.gdx';
         execute_load ts_effUnit_update=ts_effUnit;
-        ts_effUnit(effGroupSelectorUnit(effSelector, unit, effSelector), *, f_solve(f), tt_forecast(t)))
-            ${ not mf_realization(mSolve, f) } // Realization not updated
-            = ts_effUnit_update(effSelector, unit, effSelector, *, ft(f, t));
+        ts_effUnit(effGroupSelectorUnit(effSelector, unit, effSelector), *, f_solve(f), tt_forecast(t))
+            ${  not mf_realization(mSolve, f) // Realization not updated
+*                ts_effUnit_update(effSelector, unit, effSelector, *, f, t) // Update only existing values (zeroes need to be EPS)
+                }
+            = ts_effUnit_update(effSelector, unit, effSelector, *, f, t);
     ); // END if('ts_effUnit')
 
     // Update ts_effGroupUnit
@@ -60,7 +65,9 @@ $ontext
         put_utility 'gdxin' / '%input_dir%/ts_effGroupUnit/' tSolve.tl:0 '.gdx';
         execute_load ts_effGroupUnit_update=ts_effGroupUnit;
         ts_effGroupUnit(effSelector, unit, *, f_solve(f), tt_forecast(t))
-            ${ not mf_realization(mSolve, f) } // Realization not updated
+            ${  not mf_realization(mSolve, f) // Realization not updated
+*                ts_effGroupUnit_update(effSelector, unit, *, f, t) // Update only existing values (zeroes need to be EPS)
+                }
             = ts_effGroupUnit_update(effSelector, unit, *, f, t);
     ); // END if('ts_effGroupUnit')
 $offtext
@@ -70,7 +77,9 @@ $offtext
         put_utility 'gdxin' / '%input_dir%/ts_influx/' tSolve.tl:0 '.gdx';
         execute_load ts_influx_update=ts_influx;
         ts_influx(gn(grid, node), f_solve(f), tt_forecast(t))
-            ${ not mf_realization(mSolve, f) } // Realization not updated
+            ${  not mf_realization(mSolve, f) // Realization not updated
+*                and ts_influx_update(grid, node, f, t) // Update only existing values (zeroes need to be EPS)
+                }
             = ts_influx_update(grid, node, f, t);
     ); // END if('ts_influx')
 
@@ -79,7 +88,9 @@ $offtext
         put_utility 'gdxin' / '%input_dir%/ts_cf/' tSolve.tl:0 '.gdx';
         execute_load ts_cf_update=ts_cf;
         ts_cf(flowNode(flow, node), f_solve(f), tt_forecast(t))
-            ${ not mf_realization(mSolve, f) } // Realization not updated
+            ${  not mf_realization(mSolve, f) // Realization not updated
+*                and ts_cf_update(flow, node, f, t) // Update only existing values (zeroes need to be EPS)
+                }
             = ts_cf_update(flow, node, f, t);
     ); // END if('ts_cf')
 
@@ -88,7 +99,9 @@ $offtext
         put_utility 'gdxin' / '%input_dir%/ts_reserveDemand/' tSolve.tl:0 '.gdx';
         execute_load ts_reserveDemand_update=ts_reserveDemand;
         ts_reserveDemand(restypeDirectionNode(restype, up_down, node), f_solve(f), tt_forecast(t))
-            ${ not mf_realization(mSolve, f) } // Realization not updated
+            ${  not mf_realization(mSolve, f) // Realization not updated
+*                and ts_reserveDemand_update(restype, up_down, node, f, t) // Update only existing values (zeroes need to be EPS)
+                }
             = ts_reserveDemand_update(restype, up_down, node, f, t);
     ); // END if('ts_reserveDemand')
 
@@ -97,7 +110,9 @@ $offtext
         put_utility 'gdxin' / '%input_dir%/ts_node/' tSolve.tl:0 '.gdx';
         execute_load ts_node_update=ts_node;
         ts_node(gn(grid, node), param_gnBoundaryTypes, f_solve(f), tt_forecast(t))
-            ${ not mf_realization(mSolve, f) } // Realization not updated
+            ${  not mf_realization(mSolve, f) // Realization not updated
+*                and ts_node_update(grid, node, param_gnBoundaryTypes, f ,t) // Update only existing values (zeroes need to be EPS)
+                }
             = ts_node_update(grid, node, param_gnBoundaryTypes, f, t);
     ); // END if('ts_node')
 
@@ -109,6 +124,7 @@ $offtext
         put_utility 'gdxin' / '%input_dir%/ts_fuelPriceChange/' tSolve.tl:0 '.gdx';
         execute_load ts_fuelPriceChange_update=ts_fuelPriceChange;
         ts_fuelPriceChange(fuel, tt_forecast(t))
+*            ${ ts_fuelPriceChange_update(fuel, t) } // Update only existing values (zeroes need to be EPS)
             = ts_fuelPriceChange_update(fuel, t);
     ); // END if('ts_fuelPriceChange')
 
@@ -117,19 +133,158 @@ $offtext
         put_utility 'gdxin' / '%input_dir%/ts_unavailability/' tSolve.tl:0 '.gdx';
         execute_load ts_unavailability_update=ts_unavailability;
         ts_unavailability(unit, tt_forecast(t))
+*            ${ ts_unavailability_update(unit, t) } // Update only existing values (zeroes need to be EPS)
             = ts_unavailability_update(unit, t);
     ); // END if('ts_unavailability')
 
     // Update the next forecast
     tForecastNext(mSolve)
         = tForecastNext(mSolve) + mSettings(mSolve, 't_forecastJump');
-);
+); // END if(tForecastNext)
 
 * =============================================================================
-* --- Optional forecast improvement code here ---------------------------------
+* --- Optional forecast improvement -------------------------------------------
 * =============================================================================
 
-// Forecasts not improved
+if(mSettings(mSolve, 't_improveForecast'),
+* Linear improvement of the central forecast towards the realized forecast,
+* while preserving the difference between the central forecast and the
+* remaining forecasts
+
+    // Determine the set of improved time steps
+    option clear = tt;
+    tt(tt_forecast(t))
+        ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_improveForecast') }
+        = yes;
+
+    // Temporary forecast displacement to reach the central forecast
+    option clear = ddf;
+    ddf(f_solve(f))
+        ${ not mf_central(mSolve, f) }
+        = sum(mf_central(mSolve, f_), ord(f_) - ord(f));
+
+    // Temporary forecast displacement to reach the realized forecast
+    option clear = ddf_;
+    ddf_(f_solve(f))
+        ${ not mf_realization(mSolve, f) }
+        = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
+
+* --- Calculate the other forecasts relative to the central one ---------------
+
+    loop(f_solve(f)${ not mf_realization(mSolve, f) and not mf_central(mSolve, f) },
+$ontext
+* These don't work due to the wild cards in the parameter definitions!
+        // ts_unit
+        ts_unit(unit, *, f, tt(t))
+            = ts_unit(unit, *, f, t) - ts_unit(unit, *, f+ddf(f), t);
+        // ts_effUnit
+        ts_effUnit(effGroupSelectorUnit(effSelector, unit, effSelector), *, f, tt(t))
+            = ts_effUnit(effSelector, unit, effSelector, *, f, t) - ts_effUnit(effSelector, unit, effSelector, *, f+ddf(f), t);
+        // ts_effGroupUnit
+        ts_effGroupUnit(effSelector, unit, *, f, tt(t))
+            = ts_effGroupUnit(effSelector, unit, *, f, t) - ts_effGroupUnit(effSelector, unit, *, f+ddf(f), t);
+$offtext
+        // ts_influx
+        ts_influx(gn(grid, node), f, tt(t))
+            = ts_influx(grid, node, f, t) - ts_influx(grid, node, f+ddf(f), t);
+        // ts_cf
+        ts_cf(flowNode(flow, node), f, tt(t))
+            = ts_cf(flow, node, f, t) - ts_cf(flow, node, f+ddf(f), t);
+        // ts_reserveDemand
+        ts_reserveDemand(restypeDirectionNode(restype, up_down, node), f, tt(t))
+            = ts_reserveDemand(restype, up_down, node, f, t) - ts_reserveDemand(restype, up_down, node, f+ddf(f), t);
+        // ts_node
+        ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
+            = ts_node(grid, node, param_gnBoundaryTypes, f, t) - ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
+    ); // END loop(f_solve)
+
+* --- Linear improvement of the central forecast ------------------------------
+
+    loop(mf_central(mSolve, f),
+$ontext
+* These don't work due to the wild cards in the parameter definitions!
+        // ts_unit
+        ts_unit(unit, *, f, tt(t))
+            = [ + (ord(t) - tSolveFirst)
+                    * ts_unit(unit, *, f, t)
+                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                    * ts_unit(unit, *, f+ddf_(f), t)
+                ] / mSettings(mSolve, 't_improveForecast');
+        // ts_effUnit
+        ts_effUnit(effGroupSelectorUnit(effSelector, unit, effSelector), *, f, tt(t))
+            = [ + (ord(t) - tSolveFirst)
+                    * ts_effUnit(effSelector, unit, effSelector, *, f, t)
+                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                    * ts_effUnit(effSelector, unit, effSelector, *, f+ddf_(f), t)
+                ] / mSettings(mSolve, 't_improveForecast');
+        // ts_effGroupUnit
+        ts_effGroupUnit(effSelector, unit, *, f, tt(t))
+            = [ + (ord(t) - tSolveFirst)
+                    * ts_effGroupUnit(effSelector, unit, *, f, t)
+                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                    * ts_effGroupUnit(effSelector, unit, *, f+ddf_(f), t)
+                ] / mSettings(mSolve, 't_improveForecast');
+$offtext
+        // ts_influx
+        ts_influx(gn(grid, node), f, tt(t))
+            = [ + (ord(t) - tSolveFirst)
+                    * ts_influx(grid, node, f, t)
+                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                    * ts_influx(grid, node, f+ddf_(f), t)
+                ] / mSettings(mSolve, 't_improveForecast');
+        // ts_cf
+        ts_cf(flowNode(flow, node), f, tt(t))
+            = [ + (ord(t) - tSolveFirst)
+                    * ts_cf(flow, node, f, t)
+                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                    * ts_cf(flow, node, f+ddf_(f), t)
+                ] / mSettings(mSolve, 't_improveForecast');
+        // ts_reserveDemand
+        ts_reserveDemand(restypeDirectionNode(restype, up_down, node), f, tt(t))
+            = [ + (ord(t) - tSolveFirst)
+                    * ts_reserveDemand(restype, up_down, node, f, t)
+                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                    * ts_reserveDemand(restype, up_down, node, f+ddf_(f), t)
+                ] / mSettings(mSolve, 't_improveForecast');
+        // ts_node
+        ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
+            = [ + (ord(t) - tSolveFirst)
+                    * ts_node(grid, node, param_gnBoundaryTypes, f, t)
+                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                    * ts_node(grid, node, param_gnBoundaryTypes, f+ddf_(f), t)
+                ] / mSettings(mSolve, 't_improveForecast');
+    ); // END loop(mf_central)
+
+* --- Recalculate the other forecasts based on the improved central forecast --
+
+    loop(f_solve(f)${ not mf_realization(mSolve, f) and not mf_central(mSolve, f) },
+$ontext
+* These don't work due to the wild cards in the parameter definitions!
+        // ts_unit
+        ts_unit(unit, *, f, tt(t))
+            = ts_unit(unit, *, f, t) + ts_unit(unit, *, f+ddf(f), t);
+        // ts_effUnit
+        ts_effUnit(effGroupSelectorUnit(effSelector, unit, effSelector), *, f, tt(t))
+            = ts_effUnit(effSelector, unit, effSelector, *, f, t) + ts_effUnit(effSelector, unit, effSelector, *, f+ddf(f), t);
+        // ts_effGroupUnit
+        ts_effGroupUnit(effSelector, unit, *, f, tt(t))
+            = ts_effGroupUnit(effSelector, unit, *, f, t) + ts_effGroupUnit(effSelector, unit, *, f+ddf(f), t);
+$offtext
+        // ts_influx
+        ts_influx(gn(grid, node), f, tt(t))
+            = ts_influx(grid, node, f, t) + ts_influx(grid, node, f+ddf(f), t);
+        // ts_cf
+        ts_cf(flowNode(flow, node), f, tt(t))
+            = max(min(ts_cf(flow, node, f, t) + ts_cf(flow, node, f+ddf(f), t), 1), 0); // Ensure that capacity factor forecasts remain between 0-1
+        // ts_reserveDemand
+        ts_reserveDemand(restypeDirectionNode(restype, up_down, node), f, tt(t))
+            = max(ts_reserveDemand(restype, up_down, node, f, t) + ts_reserveDemand(restype, up_down, node, f+ddf(f), t), 0); // Ensure that reserve demand forecasts remains positive
+        // ts_node
+        ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
+            = ts_node(grid, node, param_gnBoundaryTypes, f, t) + ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
+    ); // END loop(f_solve)
+
+); // END if(t_improveForecast)
 
 * =============================================================================
 * --- Aggregate time series data for the time intervals -----------------------
@@ -145,7 +300,8 @@ loop(cc(counter),
     // If stepsPerInterval equals one, simply use all the steps within the block
     if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
 
-        // Select time series data matching the intervals, for stepsPerInterval = 1, this is trivial.
+* --- Select time series data matching the intervals, for stepsPerInterval = 1, this is trivial.
+
         loop(ft(f_solve, tt_interval(t)),
             ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
                 = ts_cf(flow, node, f_solve, t + (dt_sampleOffset(flow, node, 'ts_cf', s) + dt_circular(t)));
@@ -167,7 +323,8 @@ loop(cc(counter),
                 = ts_fuelPrice(fuel, t+dt_circular(t));
         ); // END loop(ft)
 
-    // If stepsPerInterval exceeds 1 (stepsPerInterval < 1 not defined)
+* --- If stepsPerInterval exceeds 1 (stepsPerInterval < 1 not defined) --------
+
     elseif mInterval(mSolve, 'stepsPerInterval', counter) > 1,
 
         // Select and average time series data matching the intervals, for stepsPerInterval > 1
@@ -294,100 +451,3 @@ loop(flowNode(flow, node)$p_autocorrelation(flow, node, 'ts_cf'),
               ));
     );
 );
-
-* =============================================================================
-* --- Old code, potentially still helpful? ------------------------------------
-* =============================================================================
-
-$ontext
-    // Define t_latestForecast
-    Option clear = t_latestForecast;
-    t_latestForecast(tSolve) = yes;
-
-    // Define updated time window
-    Option clear = tt_forecast;
-    tt_forecast(t_full(t))${    ord(t) >= ord(tSolve)
-                                and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_forecastLengthUnchanging') + mSettings(mSolve, 't_forecastJump')
-                                }
-        = yes;
-
-    // Define temporary time displacement to reach t_latestForecast
-    Option clear = ddt;
-    ddt(tt_forecast(t)) = ord(tSolve) - ord(t);
-
-* --- Update Forecast Data ----------------------------------------------------
-
-    ts_cf(flowNode(flow, node), f_solve(f), tt_forecast(t))${   ts_forecast(flow, node, t+ddt(t), f, t) // Only update data for capacity factors with forecast. NOTE! This results in problems if the forecast has values of zero!
-                                                                and mf(mSolve, f)
-                                                                }
-        = ts_forecast(flow, node, t+ddt(t), f, t);
-
-* --- Read the Tertiary Reserve Requirements ----------------------------------
-
-    put_utility 'gdxin' / '%input_dir%/tertiary/' tSolve.tl:0 '.gdx';
-    execute_load ts_tertiary;
-    ts_reserveDemand(restypeDirectionNode('tertiary', up_down, node), f_solve(f), tt_forecast(t))${ mf(mSolve, f)
-                                                                                                    and not mf_realization(mSolve, f)
-                                                                                                    and flowNode('wind', node)
-                                                                                                    }
-        = ts_tertiary('wind', node, t+ddt(t), up_down, t)
-            * sum(flowUnit('wind', unit), p_gnu('elec', node, unit, 'maxGen'));
-
-$offtext
-
-
-* --- Improve forecasts -------------------------------------------------------
-$ontext
-// !!! TEMPORARY MEASURES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-if(mSettings(mSolve, 'forecasts') > 0,
-
-    // Define updated time window
-    Option clear = tt_forecast;
-    tt_forecast(t_full(t))${    ord(t) >= ord(tSolve)
-                                and ord(t) <= ord(tSolve) + mSettings(mSolve, 't_forecastLengthUnchanging') + mSettings(mSolve, 't_forecastJump')
-                                }
-        = yes;
-
-    // Define updated time window
-    Option clear = tt;
-    tt(tt_forecast(t))${    ord(t) > ord(tSolve)
-                            and ord(t) <= ord(tSolve) + f_improve
-                            }
-        = yes;
-
-    // Temporary forecast displacement to reach the central forecast
-    Option clear = ddf;
-    ddf(f_solve(f), tt(t))${ not mf_central(mSolve, f) }
-        = sum(mf_central(mSolve, f_), ord(f_) - ord(f));
-
-    // Temporary forecast displacement to reach the realized forecast
-    Option clear = ddf_;
-    ddf_(f_solve(f), tt(t))${ not mf_realization(mSolve, f) }
-        = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
-
-    // Calculate the upper and lower forecasts based on the original central forecast
-    ts_cf(flowNode(flow, node), f_solve(f), tt(t))${    not mf_realization(mSolve, f)
-                                                        and not mf_central(mSolve, f)
-                                                        }
-                = ts_cf(flow, node, f, t) - ts_cf(flow, node, f+ddf(f,t), t);
-
-    // Improve forecasts during the dispatch
-    // Improve central capacity factors, linear improvement towards fRealization
-    ts_cf(flowNode(flow, node), f_solve(f), tt(t))${    not mf_realization(mSolve, f)
-                                                        and mf_central(mSolve, f)
-                                                        }
-        = (
-            (ord(t) - ord(tSolve)) * ts_cf(flow, node, f, t)
-            + (f_improve + ord(tSolve) - ord(t)) * ts_cf(flow, node, f+ddf_(f,t), t)
-            )
-                / f_improve;
-
-    // Update the upper and lower forecasts based on the improved central forecast
-    ts_cf(flowNode(flow, node), f_solve(f), tt(t))${    not mf_realization(mSolve, f)
-                                                        and not mf_central(mSolve, f)
-                                                        }
-        = min(max( ts_cf(flow, node, f, t) + ts_cf(flow, node, f+ddf(f,t), t), 0),1);
-
-); // END IF forecasts
-$offtext

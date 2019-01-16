@@ -84,6 +84,7 @@ if (mType('schedule'),
     mSettings('schedule', 't_forecastLengthUnchanging') = 36;      // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
     mSettings('schedule', 't_forecastLengthDecreasesFrom') = 168;  // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
     mSettings('schedule', 't_forecastJump') = 24;                  // How many time steps before new forecast is available
+    mSettings('schedule', 't_improveForecast') = 0;                // Number of time steps ahead of time that the forecast is improved on each solve.
 
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
     mTimeseries_loop_read('schedule', 'ts_unit') = no;
