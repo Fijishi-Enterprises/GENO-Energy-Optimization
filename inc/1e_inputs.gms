@@ -77,6 +77,11 @@ $ifthen exist '%input_dir%/changes.inc'
    $$include '%input_dir%/changes.inc'
 $endif
 
+$ifthen exist '%input_dir%/unit3.gdx'
+    $$gdxin  '%input_dir%/unit3.gdx'
+    $$loaddcm unit
+    $$gdxin
+$endif
 
 
 $ontext
