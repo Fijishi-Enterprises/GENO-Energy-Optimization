@@ -23,7 +23,7 @@ Model building /
     q_obj
     q_balance
 *    q_resDemand
-*    q_resDemand_Infeed
+*    q_resDemandLargestInfeedUnit
 
     // Unit Operation
     q_maxDownward
