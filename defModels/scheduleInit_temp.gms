@@ -32,6 +32,9 @@ if (mType('schedule'),
     mSettings('schedule', 't_horizon') = 8760;    // How many active time steps the solve contains (aggregation of time steps does not impact this, unless the aggregation does not match)
     mSettings('schedule', 't_jump') = 3;          // How many time steps the model rolls forward between each solve
 
+    // Define length of data for proper circulation
+    mSettings('schedule', 'dataLength') = 8760;
+
 * =============================================================================
 * --- Model Time Structure ----------------------------------------------------
 * =============================================================================
@@ -40,6 +43,9 @@ if (mType('schedule'),
 
     // Number of samples used by the model
     mSettings('schedule', 'samples') = 1;
+
+    // Sample length of stocahstic data
+    mSettings('schedule', 'sampleLength') = mSettings('schedule', 'dataLength');
 
     // Define Initial and Central samples
     ms_initial('schedule', s) = no;
@@ -51,9 +57,29 @@ if (mType('schedule'),
     msStart('schedule', 's000') = 1;
     msEnd('schedule', 's000') = msStart('schedule', 's000') + mSettings('schedule', 't_horizon');
 
+    // If using long-term samples, uncomment
+    //msEnd('schedule', 's000') = msStart('schedule', 's000')
+    //                            + mSettings('schedule', 't_forecastLengthUnchanging');
+
+    //loop(s $(ord(s) > 1),
+    //    msStart('schedule', s) = msStart('schedule', 's000')
+    //                             + mSettings('schedule', 't_forecastLengthUnchanging');
+    //    msEnd('schedule', s) = msStart('schedule', 's000')
+    //                           + mSettings('schedule', 't_horizon');
+    //);
+
     // Define the probability (weight) of samples
     p_msProbability('schedule', s) = 0;
     p_msProbability('schedule', 's000') = 1;
+
+    // Define which nodes use long-term samples
+    loop(gn(grid, node)$sameas(grid, 'hydro'),
+        //longtermSamples('hydro', node, 'ts_influx') = yes;
+        //longtermSamples('hydro', node, 'minSpill') = yes;
+    );
+    loop(flowNode(flow, node)$sameas(flow, 'wind'),
+        //longtermSamples('wind', node, 'ts_cf') = yes;
+    );
 
 * --- Define Time Step Intervals ----------------------------------------------
 
@@ -110,12 +136,17 @@ if (mType('schedule'),
     p_mfProbability('schedule', 'f02') = 0.6;
     p_mfProbability('schedule', 'f03') = 0.2;
 
-    // Define active model features
-    active('schedule', 'storageValue') = yes;
 
 * =============================================================================
 * --- Model Features ----------------------------------------------------------
 * =============================================================================
+
+    // Define active model features
+    active('schedule', 'storageValue') = yes;
+    active('schedule', 'scenRed') = no;
+
+    mSettings('schedule', 'red_num_leaves') = 10;  // Desired number of long-term scenarios
+    mSettings('schedule', 'red_percentage') = 0;   // Scenario reduction percentage
 
 * --- Define Reserve Properties -----------------------------------------------
 
