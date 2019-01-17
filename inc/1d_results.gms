@@ -181,9 +181,13 @@ Option clear = r_qResDemand;
 * --- Diagnostics Results Arrays ----------------------------------------------
 * =============================================================================
 
+// Only include these if '--diag=yes' given as a command line argument
+$iftheni.diag '%diag%' == yes
 Parameters
     d_cop(unit, f, t) "Coefficients of performance of conversion units"
     d_eff(unit, f, t) "Efficiency of generation units using fuel"
-    d_capacityFactor(flow, node, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
-    d_nodeState(grid, node, param_gnBoundaryTypes, f, t) "Diagnostic temperature forecasts (accounting for GAMS plotting error)"
+    d_capacityFactor(flow, node, s, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
+    d_nodeState(grid, node, param_gnBoundaryTypes, s, f, t) "Diagnostic temperature forecasts (accounting for GAMS plotting error)"
+    d_influx(grid, node, s, f, t) "Diagnostic influx forecasts (accounting for GAMS plotting error)"
 ;
+$endif.diag

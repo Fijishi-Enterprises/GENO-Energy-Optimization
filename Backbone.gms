@@ -38,6 +38,10 @@ GAMS command line arguments
     with all symbols as well as a gdx file for each solution containing
     model parameters, variables and equations.
 
+--diag=[yes|no]
+    Switch on/off diagnostics. Writes some additional diagnostic results in
+    'results.gdx' about data updates and efficiency approximations.
+
 --dummy=[yes|no]
     Do not solve the model, just do preliminary calculations.
     For testing purposes.
@@ -84,6 +88,8 @@ files log /''/, gdx, f_info /'%output_dir%/info.txt'/;
 * Include options file to control the solver
 $include '%input_dir%/1_options.gms';
 
+* === Libraries ===============================================================
+$libinclude scenred2
 
 * === Definitions, sets, parameters and input data=============================
 $include 'inc/1a_definitions.gms'   // Definitions for possible model settings
@@ -119,8 +125,8 @@ $include '%input_dir%/modelsInit.gms'
 $include 'inc/3a_periodicInit.gms'  // Initialize modelling loop
 loop(modelSolves(mSolve, tSolve),
     solveCount = solveCount + 1;
-    $$include 'inc/3b_inputsLoop.gms'           // Read input data that is updated within the loop
-    $$include 'inc/3c_periodicLoop.gms'         // Update modelling loop
+    $$include 'inc/3b_periodicLoop.gms'         // Update modelling loop
+    $$include 'inc/3c_inputsLoop.gms'           // Read input data that is updated within the loop
     $$include 'inc/3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
 $iftheni.dummy not %dummy% == 'yes'
     $$include 'inc/3e_solve.gms'                // Solve model(s)

@@ -36,13 +36,13 @@ q_obj ..
                     * [
                         // Variable O&M costs
                         + sum(gnuft(gnu_output(grid, node, unit), f, t),  // Calculated only for output energy
-                            + v_gen(grid, node, unit, f, t)
+                            + v_gen(grid, node, unit, s, f, t)
                                 * p_unit(unit, 'omCosts')
                             ) // END sum(gnu_output)
 
                         // Fuel and emission costs
                         + sum(uFuel(unit, 'main', fuel)${uft(unit, f, t)},
-                            + v_fuelUse(fuel, unit, f, t)
+                            + v_fuelUse(fuel, unit, s, f, t)
                                 * [
                                     + ts_fuelPrice_(fuel ,t)
                                     + sum(emission, // Emission taxes
@@ -54,7 +54,7 @@ q_obj ..
                         // Node state slack variable costs
                         + sum(gn_stateSlack(grid, node),
                             + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
-                                + v_stateSlack(grid, node, slack, f, t)
+                                + v_stateSlack(grid, node, slack, s, f, t)
                                     * p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
                                 ) // END sum(slack)
                             ) // END sum(gn_stateSlack)
@@ -63,7 +63,7 @@ q_obj ..
                         // Energy balance feasibility dummy varible penalties
                         + sum(inc_dec,
                             + sum(gn(grid, node),
-                                + vq_gen(inc_dec, grid, node, f, t)
+                                + vq_gen(inc_dec, grid, node, s, f, t)
                                     *( PENALTY_BALANCE(grid, node)${not p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
                                     + ts_node(grid, node, 'balancePenalty', f, t)${p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
                                       )
@@ -72,15 +72,15 @@ q_obj ..
 
                         // Reserve provision feasibility dummy variable penalties
                         + sum(restypeDirectionNode(restype, up_down, node),
-                            + vq_resDemand(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
+                            + vq_resDemand(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t)
                                 * PENALTY_RES(restype, up_down)
-                            + vq_resMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)${ ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t) }
+                            + vq_resMissing(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t)${ ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t) }
                                 * PENALTY_RES_MISSING(restype, up_down)
                             ) // END sum(restypeDirectionNode)
 
                         // Capacity margin feasibility dummy variable penalties
                         + sum(gn(grid, node),
-                            + vq_capacity(grid, node, f, t)
+                            + vq_capacity(grid, node, s, f, t)
                                 * PENALTY_CAPACITY(grid, node)
                             ) // END sum(gn)
                         ] // END * p_stepLength
@@ -88,7 +88,7 @@ q_obj ..
                 // Start-up costs, initial startup free as units could have been online before model started
                 + sum(uft_online(unit, f, t),
                     + sum(unitStarttype(unit, starttype),
-                        + v_startup(unit, starttype, f, t) // Cost of starting up
+                        + v_startup(unit, starttype, s, f, t) // Cost of starting up
                             * [ // Startup variable costs
                                 + p_uStartup(unit, starttype, 'cost')
 
@@ -110,7 +110,7 @@ q_obj ..
                 // Ramping costs
                 + sum(gnuft_rampCost(grid, node, unit, slack, f, t),
                     + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
-                        * v_genRampUpDown(grid, node, unit, slack, f, t)
+                        * v_genRampUpDown(grid, node, unit, slack, s, f, t)
                   ) // END sum(gnuft_rampCost)
 
                 ]  // END * p_sft_probability(s,f,t)
@@ -122,19 +122,19 @@ q_obj ..
         + sum(mft_start(m, f, t)${  p_storageValue(grid, node, t)
                                     and active(m, 'storageValue')
                                     },
-            + v_state(grid, node, f+df_central(f,t), t)
-                * p_storageValue(grid, node, t)
+            + p_storageValue(grid, node, t)
                 * sum(ms(m, s)${ p_msft_probability(m, s, f, t) },
                     + p_msft_probability(m, s, f, t)
+                      * v_state(grid, node, s, f+df_central(f,t), t)
                     ) // END sum(s)
             ) // END sum(mftStart)
         - sum(mft_lastSteps(m, f, t)${  p_storageValue(grid, node, t)
                                         and active(m, 'storageValue')
                                         },
-            + v_state(grid, node, f+df_central(f,t), t)
-                * p_storageValue(grid, node, t)
+            + p_storageValue(grid, node, t)
                 * sum(ms(m, s)${p_msft_probability(m, s, f, t)},
                     + p_msft_probability(m, s, f, t)
+                      * v_state(grid, node, s, f+df_central(f,t), t)
                     ) // END sum(s)
             ) // END sum(mftLastSteps)
         ) // END sum(gn_state)

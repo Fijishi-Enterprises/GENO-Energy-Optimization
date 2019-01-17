@@ -49,11 +49,15 @@ Sets
         t_forecastLengthDecreasesFrom, // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
         t_forecastStart, // Time step for first reading the forecasts (not necessarily t_start)
         t_forecastJump, // Number of time steps between each update of the forecasts
+        t_improveForecast "Number of time steps ahead of time on which the forecast is improved on each solve"
+        sampleLength   "Length of sample in time steps for creating stocahstic scenarios from time series data"
 
         // Features
         t_trajectoryHorizon, // Length of the horizon when start-up and shutdown trajectories are considered (in time steps)
         t_initializationPeriod,  // Number of time steps in the beginning of the simulation which are solved but the results of which are not stored
-        dataLength // The maximum number of time steps in any input data time series (recommended for correctly circulating data)
+        dataLength, // The maximum number of time steps in any input data time series (recommended for correctly circulating data)
+        red_num_leaves "Desired number of preserved scenarios or leaves (SCENRED)"
+        red_percentage "Desired relative distance (accuracy) of scenario reduction (SCENRED)"
         /
 
     // Solve info
@@ -142,6 +146,7 @@ Sets
         addOn            "Use StoSSch as a storage add-on to a larger model"
         extraRes         "Use extra tertiary reserves for error in elec. load during time step"
         rampSched        "Use power based scheduling"
+        scenRed          "Reduce number of long-tem scenarios using GAMS SCENRED2"
         /
 
 * --- Set to declare time series that will be read between solves ------------------------------------------------------
@@ -305,7 +310,7 @@ param_unit "Set of possible data parameters for units" /
     investMIP     "A flag to make integer investment instead of continous investment"
     maxUnitCount  "Maximum number of units when making integer investments"
     minUnitCount  "Minimum number of units when making integer investments"
-    lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in 3b_inputsLoop.gms for units that have aggregation"
+    lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
 /
 
 param_fuel "Parameters for fuels" /
