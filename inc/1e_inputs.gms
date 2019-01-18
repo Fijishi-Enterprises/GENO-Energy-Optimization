@@ -375,7 +375,7 @@ restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_)
 restypeDirectionNode(restypeDirection(restype, up_down), node)
     $ { p_nReserves(node, restype, up_down)
         or p_nReserves(node, restype, 'use_time_series')
-        or p_nReserves(node, restype, 'Infeed2Cover')
+        or sum(nu(node, unit), p_nuReserves(node, unit, restype, 'portion_of_infeed_to_reserve'))
         or sum(nu(node, unit), nuRescapable(restype, up_down, node, unit))
         or sum(gn2n(grid, node, to_node), restypeDirectionNodeNode(restype, up_down, node, to_node))
       }
