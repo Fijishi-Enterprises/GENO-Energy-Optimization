@@ -496,3 +496,14 @@ loop( (nu(node, unit), restypeDirection(restype, up_down)),
         abort "Overlapping reserve capacities in p_nuRes2Res can result in excess reserve production!"
     ); // END if(p_nuReserves)
 ); // END loop((nu,restypeDirection))
+
+
+* =============================================================================
+* --- Default values  ---------------------------------------------------------
+* =============================================================================
+
+loop((gn(grid, node), timeseries),
+    p_autocorrelation(grid, node, timeseries) = 0;
+    p_tsMinValue(node, timeseries) = -Inf;
+    p_tsMaxValue(node, timeseries) = Inf;
+);

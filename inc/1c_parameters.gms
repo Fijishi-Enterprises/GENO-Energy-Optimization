@@ -37,7 +37,7 @@ Scalars
     tmp_dist "Temporary parameter for calculating the distance between operating points"
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
-    f_improve / 12 /
+    tmp_offset "Offset of sample in time steps"
     tRealizedLast "counter (ord) for the last realized t in the solve"
     firstResultsOutputSolve /1/;
 ;
@@ -85,8 +85,10 @@ Parameters
 Parameters
     p_msWeight(mType, s) "Weight of sample"
     p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
+    p_msProbability_orig(mType, s) "Original probabilities of samples in model"
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"
+    p_sProbability(s) "Probability of sample"
 ;
 
 Scalar p_sWeightSum "Sum of sample weights";
@@ -103,16 +105,21 @@ Parameters
     dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints (in time steps)"
     dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints (in time steps)"
     dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints (in time steps)"
+    dt_sampleOffset(*, node, *, s) "Time offset to make periodic time series data (for grid/flow, unit, label) to go into different samples"
 
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
     df_reserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
 
+    // Sample displacement arrays
+    ds(s, t) "Displacement needed to reach the sample of previous time step"
+    ds_state(grid, node, s, t) "Displacement needed to reach the sample of previous time step at this node"
+
     // Temporary displacement arrays
     ddt(t) "Temporary time displacement array"
-    ddf(f, t) "Temporary forecast displacement array"
-    ddf_(f, t) "Temporary forecast displacement array"
+    ddf(f) "Temporary forecast displacement array"
+    ddf_(f) "Temporary forecast displacement array"
 
     // Other
     p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
@@ -135,13 +142,14 @@ Parameters
     ts_unavailability(unit, t) "Unavailability of a unit in the time step (p.u.)"
 
     // Aliases used in the equations after interval aggregation
-    ts_influx_(grid, node, f, t)
-    ts_cf_(flow, node, f, t)
-    ts_reserveDemand_(restype, up_down, node, f, t)
-    ts_node_(grid, node, param_gnBoundaryTypes, f, t)
-    ts_fuelPrice_(fuel, t)
+    // NOTE: Sample dimension has to be last because of the scenario reduction algorithm
+    ts_influx_(grid, node, f, t, s) "Mean external power inflow/outflow during a time step (MWh/h)"
+    ts_cf_(flow, node, f, t, s) "Mean available capacity factor time series (p.u.)"
+    ts_reserveDemand_(restype, up_down, node, f, t) "Mean reserve demand in region in the time step (MW)"
+    ts_node_(grid, node, param_gnBoundaryTypes, f, t, s) "Mean value of ts_node"
+    ts_fuelPrice_(fuel, t) "Mean fuel price time during time step (EUR/MWh)"
 
-    // Aliases used for updating data in 3b_inputsLoop.gms
+    // Aliases used for updating data in inputsLoop.gms
     ts_unit_update(unit, *, f, t)
     ts_effUnit_update(effSelector, unit, effSelector, *, f, t)
     ts_effGroupUnit_update(effSelector, unit, *, f, t)
@@ -151,6 +159,18 @@ Parameters
     ts_node_update(grid, node, param_gnBoundaryTypes, f, t)
     ts_fuelPriceChange_update(fuel, t)
     ts_unavailability_update(unit, t)
+
+    // Help parameters for calculating smoothening of time series
+    ts_influx_mean(grid, node, f, t) "Mean of ts_influx over samples"
+    ts_influx_std(grid, node, f, t)  "Standard deviation of ts_influx over samples"
+    ts_cf_mean(flow, node, f, t) "Mean of ts_cf over samples (p.u.)"
+    ts_cf_std(flow, node, f, t) "Standard deviation of ts_cf over samples (p.u.)"
+
+    p_autocorrelation(*, node, timeseries) "Autocorrelation of time series for the grid/flow, node and time series type (lag = 1 time step)"
+
+    // Bounds for scenario smoothening
+    p_tsMinValue(node, timeseries)
+    p_tsMaxValue(node, timeseries)
 ;
 
 * --- Other time dependent parameters -----------------------------------------

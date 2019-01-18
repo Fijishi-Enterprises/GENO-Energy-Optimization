@@ -88,8 +88,8 @@ Sets
     t_active(t) "Set of active t:s within the current solve horizon, including necessary history"
     t_invest(t) "Time steps when investments can be made"
     tt(t) "Temporary subset for time steps used for calculations"
-    tt_block(t) "Temporary time step subset for forming the ft structure"
-    tt_interval(t) "Temporary time step subset when forming the ft structure"
+    tt_block(counter, t) "Temporary time step subset for storing the time interval blocks"
+    tt_interval(t) "Temporary time steps when forming the ft structure, current sample"
     tt_forecast(t) "Temporary subset for time steps used for forecast updating during solve loop"
     mf(mType, f) "Forecasts present in the models"
     ms(mType, s) "Samples present in the models"
@@ -101,7 +101,10 @@ Sets
     ft_reservesFixed(node, restype, f, t) "Forecast-time steps with reserves fixed due to commitments on a previous solve."
     mft(mType, f, t) "Combination of forecasts and t:s in the current model solve"
     msf(mType, s, f) "Combination of samples and forecasts in the models"
-    msft(mType, s, f, t) "Combination of samples, forecasts and t:s in the current model solve"
+    msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
+    sft(s, f, t) "Combination of samples, forecasts and t's in the current model solve"
+    sft_realized(s, f, t) "Realized sft"
+    sft_realizedNoReset(s, f, t) "Full set of realized sft, facilitates calculation of results"
     msft_realizedNoReset(mType, s, f, t) "Combination of realized samples, forecasts and t:s in the current model solve and previously realized t:s"
     mft_start(mType, f, t) "Start point of the current model solve"
     mf_realization(mType, f) "fRealization of the forecasts"
@@ -113,6 +116,11 @@ Sets
     f_solve(f) "forecasts in the model to be solved next"
     t_latestForecast(t) "t for the latest forecast that is available"
     gnss_bound(grid, node, s, s) "Bound the samples so that the state at the last interval of the first sample equals the state at the first interval of the second sample"
+    s_parallel(s) "Samples which are treated as parallel"
+    s_active(s) "Samples with non-zero probability in the current model solve"
+    ss(s, s) "Previous sample of sample"
+    s_prev(s) "Temporary set for previous sample"
+    longtermSamples(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
@@ -152,6 +160,7 @@ Option clear = modelSolves;
 Option clear = ms;
 Option clear = mf;
 mf_realization(mType, 'f00') = yes;
+Option clear = longtermSamples;
 
 alias(m, mSolve);
 alias(t, t_, t__, tSolve, tFuel);
