@@ -130,9 +130,9 @@ $offtext
         option clear = tt; // Find the time steps with input time series data (ts_influx and ts_node)
         loop(gn(grid, node),
             loop(mf_realization(m, f), // Select only the realized forecast
-                tt(t_full(t))${ts_influx(grid, node, f, t)} = yes;
+                tt(t)${ts_influx(grid, node, f, t)} = yes;
                 loop(param_gnBoundaryTypes,
-                    tt(t_full(t))${ts_node(grid, node, param_gnBoundaryTypes, f, t)} = yes;
+                    tt(t)${ts_node(grid, node, param_gnBoundaryTypes, f, t)} = yes;
                 ); // END loop(param_gnBoundaryTypes)
             ); // END loop(mf_realization)
         ); // END loop(gn)
