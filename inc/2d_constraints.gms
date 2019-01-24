@@ -740,6 +740,7 @@ q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m,
             + v_shutdown(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
                 * p_unit(unit, 'rampSpeedFromMinload') * 60 // Unit conversion from [p.u./min] to [p.u./h]
                     * ( 1 - p_u_shutdownTimeIntervalsCeil(unit) + p_u_shutdownTimeIntervals(unit) ) // Adjusted to prevent other sub-units from ramping excessively
+                    / p_stepLength(m, f, t)
             ) // END sum(shutdownCounter)
 ;
 
