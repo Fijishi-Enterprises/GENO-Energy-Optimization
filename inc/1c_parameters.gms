@@ -68,11 +68,11 @@ Parameters
     p_u_maxRampSpeedInLastRunUpInterval(unit) "Maximum ramp speed in the last interval for the run-up to min. load (p.u.)"
     p_u_runUpTimeIntervals(unit) "Time steps required for the run-up phase"
     p_u_runUpTimeIntervalsCeil(unit) "Ceiling of time steps required for the run-up phase"
-    p_ut_runUp(unit, t) "Output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
+    p_uCounter_runUp(unit, counter) "Output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
     p_u_maxOutputInFirstShutdownInterval(unit) "Maximum output in the first interval for the shutdown from min. load (p.u.)"
     p_u_shutdownTimeIntervals(unit) "Time steps required for the shutdown phase"
-    p_u_shutdownTimeIntervalsCeil(unit) "Ceiling of time steps required for the shutdown phase"
-    p_ut_shutdown(unit, t) "Output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
+    p_u_shutdownTimeIntervalsCeil(unit) "Floor of time steps required for the shutdown phase"
+    p_uCounter_shutdown(unit, counter) "Output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
 // Time dependent unit & fuel parameters
     ts_unit(unit, *, f, t) "Time dependent unit data, where energy type doesn't matter"
     ts_effUnit(effSelector, unit, effSelector, *, f, t) "Time dependent data for piece-wise linear efficiency blocks"
@@ -105,6 +105,7 @@ Parameters
     dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints (in time steps)"
     dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints (in time steps)"
     dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints (in time steps)"
+    dt_trajectory(counter) "Run-up/shutdown trajectory time index displacement"
     dt_sampleOffset(*, node, *, s) "Time offset to make periodic time series data (for grid/flow, unit, label) to go into different samples"
 
     // Forecast displacement arrays

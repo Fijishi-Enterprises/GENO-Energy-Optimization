@@ -589,24 +589,15 @@ dtt(t_active(t), tt(t_))
 // Calculate dt_toStartup: in case the unit becomes online in the current time interval,
 // displacement needed to reach the time interval where the unit was started up
 Option clear = dt_toStartup;
-loop(unit$(p_u_runUpTimeIntervals(unit)),
-    loop(t_active(t)${sum(f_solve(f), uft_startupTrajectory(unit, f, t))},
-        tmp = 1;
-        loop(tt(t_)${   ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time intervals after the start up
-                        and ord(t_) <= ord(t) // time intervals before and including the current time interval
-                        and tmp = 1
-                        },
-            if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for start-up phase
-                dt_toStartup(unit, t) = dtt(t,t_ + dt(t_)); // the displacement to the active or realized time interval just before the time interval found
-                tmp = 0;
-            );
-        );
-        if (tmp = 1,
-            dt_toStartup(unit, t) = dt(t);
-            tmp=0;
-        );
-    );
-);
+loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
+    loop(t_active(t),
+        dt_toStartup(unit, tt(t_)) // tt still used as a clone of t_active (see above)
+            ${  dtt(t_, t) > - p_u_runUpTimeIntervalsCeil(unit)
+                and dtt(t_, t+dt(t)) <= - p_u_runUpTimeIntervalsCeil(unit)
+                }
+            = dtt(t_, t+dt(t));
+    ); // END loop(t_active)
+); // END loop(runUpCounter)
 
 * --- Shutdown decisions ------------------------------------------------------
 
@@ -614,24 +605,16 @@ loop(unit$(p_u_runUpTimeIntervals(unit)),
 // the current time interval, displacement needed to reach the time interval where
 // the shutdown decisions was made
 Option clear = dt_toShutdown;
-loop(unit$(p_u_shutdownTimeIntervals(unit)),
-    loop(t_active(t)${sum(f_solve(f), uft_shutdownTrajectory(unit, f, t))},
-        tmp = 1;
-        loop(tt(t_)${   ord(t_) > ord(t) - p_u_shutdownTimeIntervals(unit) // time intervals after the shutdown decision
-                        and ord(t_) <= ord(t) // time intervals before and including the current time interval
-                        and tmp = 1
-                        },
-            if (-dtt(t,t_) < p_u_shutdownTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for shutdown phase
-                dt_toShutdown(unit, t) = dtt(t,t_ + dt(t_)); // the displacement to the active or realized time interval just before the time interval found
-                tmp = 0;
-            );
-        );
-        if (tmp = 1,
-            dt_toShutdown(unit, t) = dt(t);
-            tmp=0;
-        );
-    );
-);
+loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
+    loop(t_active(t)${sum(f_solve, uft_shutdownTrajectory(unit, f_solve, t))},
+        dt_toShutdown(unit, tt(t_)) // tt still used as a clone of t_active (see above)
+            ${  sum(f_solve, uft_startupTrajectory(unit, f_solve, t_))
+                and dtt(t_, t) > - p_u_shutdownTimeIntervalsCeil(unit)
+                and dtt(t_, t+dt(t)) <= -p_u_shutdownTimeIntervalsCeil(unit)
+                }
+            = dtt(t_, t+dt(t));
+    ); // END loop(t_active)
+); // END loop(runUpCounter)
 
 * --- Historical Unit LP and MIP information ----------------------------------
 
