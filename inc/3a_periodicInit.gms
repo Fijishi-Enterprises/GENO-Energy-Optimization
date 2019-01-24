@@ -445,14 +445,14 @@ loop(m,
         p_u_shutdownTimeIntervals(unit) = tmp;
         p_u_shutdownTimeIntervalsCeil(unit) = ceil(p_u_shutdownTimeIntervals(unit));
         shutdownCounter(unit, counter) // Store the required number of shutdown intervals for each unit
-            ${ ord(counter) <= p_u_shutDownTimeIntervalsCeil(unit) + 1} // Shutdown phase requires one zero generation interval at it's end due to ramp constraints
+            ${ ord(counter) <= p_u_shutDownTimeIntervalsCeil(unit)}
             = yes;
         dt_trajectory(counter)
             ${ shutdownCounter(unit, counter) }
             = - ord(counter) + 1; // Shutdown starts immediately at v_shutdown
 
         // Calculate output during the shutdown phase; partial intervals calculated using weighted average with zero load
-        p_uCounter_shutdown(shutdownCounter(unit, counter))${ shutdownCounter(unit, counter+1)} // Value is zero at the last shutdown counter
+        p_uCounter_shutdown(shutdownCounter(unit, counter))
             = p_unit(unit, 'op00') // Minimum load load
                 - p_unit(unit, 'rampSpeedFromMinLoad')
                     * ( + min(ord(counter), p_u_shutdownTimeIntervals(unit)) // Location on ramp

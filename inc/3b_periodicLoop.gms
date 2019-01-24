@@ -606,10 +606,9 @@ loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
 // the shutdown decisions was made
 Option clear = dt_toShutdown;
 loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
-    loop(t_active(t)${sum(f_solve, uft_shutdownTrajectory(unit, f_solve, t))},
+    loop(t_active(t),
         dt_toShutdown(unit, tt(t_)) // tt still used as a clone of t_active (see above)
-            ${  sum(f_solve, uft_startupTrajectory(unit, f_solve, t_))
-                and dtt(t_, t) > - p_u_shutdownTimeIntervalsCeil(unit)
+            ${  dtt(t_, t) > - p_u_shutdownTimeIntervalsCeil(unit)
                 and dtt(t_, t+dt(t)) <= -p_u_shutdownTimeIntervalsCeil(unit)
                 }
             = dtt(t_, t+dt(t));

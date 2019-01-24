@@ -733,9 +733,13 @@ q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m,
                 * [
                     + p_unit(unit, 'rampSpeedFromMinLoad')
                     + ( p_gnu(grid, node, unit, 'maxRampDown') - p_unit(unit, 'rampSpeedFromMinLoad') )${ not shutdownCounter(unit, counter-1) } // Ramp speed adjusted for the first shutdown interval
-                        * ( p_u_shutdownTimeIntervalsCeil(Unit) - p_u_shutdownTimeIntervals(unit) )
+                        * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) )
                     ]
                 * 60 // Unit conversion from [p.u./min] to [p.u./h]
+            // Units need to be able to shut down after shut down trajectory
+            + v_shutdown(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
+                * p_unit(unit, 'rampSpeedFromMinload') * 60 // Unit conversion from [p.u./min] to [p.u./h]
+                    * ( 1 - p_u_shutdownTimeIntervalsCeil(unit) + p_u_shutdownTimeIntervals(unit) ) // Adjusted to prevent other sub-units from ramping excessively
             ) // END sum(shutdownCounter)
 ;
 
