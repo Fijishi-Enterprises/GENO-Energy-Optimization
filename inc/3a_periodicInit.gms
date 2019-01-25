@@ -421,8 +421,8 @@ loop(m,
             ${ runUpCounter(unit, counter) }
             = - ord(counter) + 1; // Runup starts immediately at v_startup
 
-        // Calculate output during the run-up phase; partial intervals calculated using weighted averaging with min load
-        p_uCounter_runUp(runUpCounter(unit, counter))
+        // Calculate minimum output during the run-up phase; partial intervals calculated using weighted averaging with min load
+        p_uCounter_runUpMin(runUpCounter(unit, counter))
             = + p_unit(unit, 'rampSpeedToMinLoad')
                 * ( + min(ord(counter), p_u_runUpTimeIntervals(unit)) // Location on ramp
                     - 0.5 * min(p_u_runUpTimeIntervals(unit) - ord(counter) + 1, 1) // Average ramp section
@@ -430,8 +430,16 @@ loop(m,
                 * min(p_u_runUpTimeIntervals(unit) - ord(counter) + 1, 1) // Portion of time interval spent ramping
                 * mSettings(m, 'stepLengthInHours') // Ramp length in hours
                 * 60 // unit conversion from [p.u./min] to [p.u./h]
-              + max(ord(counter) - p_u_runUpTimeIntervals(unit), 0) // Portion of time interval spent at min load
-                * p_unit(unit, 'op00');
+              + p_unit(unit, 'op00')${ not runUpCounter(unit, counter+1) } // Time potentially spent at min load during the last run-up interval
+                * ( p_u_runUpTimeIntervalsCeil(unit) - p_u_runUpTimeIntervals(unit) );
+
+        // Maximum output on the last run-up interval can be higher, otherwise the same as minimum.
+        p_uCounter_runUpMax(runUpCounter(unit, counter))
+            = p_uCounter_runUpMin(unit, counter);
+        p_uCounter_runUpMax(runUpCounter(unit, counter))${ not runUpCounter(unit, counter+1) }
+            = p_uCounter_runUpMax(unit, counter)
+                + ( 1 - p_uCounter_runUpMax(unit, counter) )
+                    * ( p_u_runUpTimeIntervalsCeil(unit) - p_u_runUpTimeIntervals(unit) );
 
     ); // END loop(unit)
 ); // END loop(m)
@@ -451,17 +459,25 @@ loop(m,
             ${ shutdownCounter(unit, counter) }
             = - ord(counter) + 1; // Shutdown starts immediately at v_shutdown
 
-        // Calculate output during the shutdown phase; partial intervals calculated using weighted average with zero load
-        p_uCounter_shutdown(shutdownCounter(unit, counter))
-            = p_unit(unit, 'op00') // Minimum load load
-                - p_unit(unit, 'rampSpeedFromMinLoad')
-                    * ( + min(ord(counter), p_u_shutdownTimeIntervals(unit)) // Location on ramp
-                        - 0.5 * min(p_u_shutdownTimeIntervals(unit) - ord(counter) + 1, 1) // Average ramp section
-                        )
-                    * min(p_u_shutdownTimeIntervals(unit) - ord(counter) + 1, 1) // Portion of time interval spent ramping
-                    * mSettings(m, 'stepLengthInHours') // Ramp length in hours
-                    * 60 // unit conversion from [p.u./min] to [p.u./h]
-                - p_unit(unit, 'op00') * max(ord(counter) - p_u_runUpTimeIntervals(unit), 0); // Portion of time interval spent without generation
+        // Calculate minimum output during the shutdown phase; partial intervals calculated using weighted average with zero load
+        p_uCounter_shutdownMin(shutdownCounter(unit, counter))
+            = + p_unit(unit, 'rampSpeedFromMinLoad')
+                * ( min(p_u_shutdownTimeIntervalsCeil(unit) - ord(counter) + 1, p_u_shutdownTimeIntervals(unit)) // Location on ramp
+                    - 0.5 * min(p_u_shutdownTimeIntervals(unit) - p_u_shutdownTimeIntervalsCeil(unit) + ord(counter), 1) // Average ramp section
+                    )
+                * min(p_u_shutdownTimeIntervals(unit) - p_u_shutdownTimeIntervalsCeil(unit) + ord(counter), 1) // Portion of time interval spent ramping
+                * mSettings(m, 'stepLengthInHours') // Ramp length in hours
+                * 60 // unit conversion from [p.u./min] to [p.u./h]
+              + p_unit(unit, 'op00')${ not shutdownCounter(unit, counter-1) } // Time potentially spent at min load on the first shutdown interval
+                * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) );
+
+        // Maximum output on the first shutdown interval can be higher, otherwise the same as minimum.
+        p_uCounter_shutdownMax(shutdownCounter(unit, counter))
+            = p_uCounter_shutdownMin(unit, counter);
+        p_uCounter_shutdownMax(shutdownCounter(unit, counter))${ not shutdownCounter(unit, counter-1) }
+            = p_uCounter_shutdownMax(unit, counter)
+                + ( 1 - p_uCounter_shutdownMax(unit, counter) )
+                    * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) );
 
     ); // END loop(unit)
 ); // END loop(m)
