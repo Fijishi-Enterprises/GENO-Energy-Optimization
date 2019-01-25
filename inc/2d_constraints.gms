@@ -599,7 +599,8 @@ q_genRamp(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s) + 
                                                        and msft(m, s, f, t)
                                                        } ..
 
-    + v_genRamp(grid, node, unit, s, f, t) * p_stepLength(m, f, t)
+    + v_genRamp(grid, node, unit, s, f, t)
+        * p_stepLength(m, f, t)
 
     =E=
 

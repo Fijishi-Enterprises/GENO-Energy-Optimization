@@ -115,6 +115,8 @@ $offtext
         if(not mInterval(m, 'lastStepInIntervalBlock', counter),
             continueLoop = 0;
         elseif mod(mInterval(m, 'lastStepInIntervalBlock', counter) - mInterval(m, 'lastStepInIntervalBlock', counter-1), mInterval(m, 'stepsPerInterval', counter)),
+            put log "!!! Error occurred on interval block ", counter.tl:0 /;
+            put log "!!! Abort: stepsPerInterval is not evenly divisible within the interval"
             abort "stepsPerInterval is not evenly divisible within the interval", m, continueLoop;
         else
             continueLoop = continueLoop + 1;
