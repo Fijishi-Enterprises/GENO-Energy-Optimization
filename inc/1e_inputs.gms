@@ -176,6 +176,9 @@ unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
                                             }
     = yes;
 
+// Units with time series data enabled
+unit_timeseries(unit)${ p_unit(unit, 'useTimeseries') }
+    = yes;
 
 * --- Unit Related Parameters -------------------------------------------------
 

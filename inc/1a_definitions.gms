@@ -313,6 +313,13 @@ param_unit "Set of possible data parameters for units" /
     lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
 /
 
+param_eff "Parameters used for unit efficiency approximations" /
+    lb      "Minimum load of the unit"
+    op      "Maximum load of the unit, or the operating point of the SOS2 variable in the piecewise linear heat rate approximation (lambda)"
+    section "Operational heat rate of the unit, or the SOS2 variable in the piecewise linear heat rate approximation (lambda)"
+    slope   "Heat rate parameter representing no-load fuel consumption"
+/
+
 param_fuel "Parameters for fuels" /
     main          "Main fuel of the unit - unless input fuels defined as grids"
     startup       "Startup fuel of the unit, if exists. Can be the same as main fuel - consumption using startupFuelCons"

@@ -284,7 +284,7 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
     // Parameters for direct conversion units without online variables
     if(effDirectOff(effSelector),
         p_effUnit(effSelector, unit, effSelector, 'lb') = 0; // No min load for the DirectOff approximation
-        p_effUnit(effSelector, unit, effSelector, 'op') = smax(op, p_unit(unit, op));
+        p_effUnit(effSelector, unit, effSelector, 'op') = smax(op, p_unit(unit, op)); // Maximum operating point
         p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
         p_effUnit(effSelector, unit, effSelector, 'section') = 0; // No section for the DirectOff approximation
     ); // END if(effDirectOff)

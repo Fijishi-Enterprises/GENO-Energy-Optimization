@@ -114,6 +114,9 @@ $iftheni.debug NOT '%debug%' == 'yes'
 * --- Temporary Time Series ---------------------------------------------------
 
     // Initialize temporary time series
+    Option clear = ts_unit_;
+*    Option clear = ts_effUnit_;
+*    Option clear = ts_effGroupUnit_;
     Option clear = ts_influx_;
     Option clear = ts_cf_;
     Option clear = ts_unit_;
@@ -522,29 +525,6 @@ loop(effOnline(effSelector),
 uft_onlineLP(uft(unit, f, t))${ suft('directOnLP', unit, f, t) }
     = yes;
 uft_onlineMIP(uft_online(unit, f, t)) = uft_online(unit, f, t) - uft_onlineLP(unit, f, t);
-
-// Calculate time series form parameters for units using direct input output conversion without online variable
-// Always constant 'lb', 'rb', and 'section', so need only to define 'slope'.
-loop(effGroupSelectorUnit(effDirectOff, unit, effDirectOff_)${ p_unit(unit, 'useTimeseries') },
-    ts_effUnit(effDirectOff, unit, effDirectOff_, 'slope', ft(f, t))${  sum(eff, ts_unit(unit, eff, f, t))  } // NOTE!!! Averages the slope over all available data.
-        = sum(eff${ts_unit(unit, eff, f, t)}, 1 / ts_unit(unit, eff, f, t))
-            / sum(eff${ts_unit(unit, eff, f, t)}, 1);
-); // END loop(effGroupSelectorUnit)
-
-// NOTE! Using the same methodology for the directOn and lambda approximations in time series form might require looping over ft(f,t) to find the min and max 'eff' and 'rb'
-// Alternatively, one might require that the 'rb' is defined in a similar structure, so that the max 'rb' is located in the same index for all ft(f,t)
-
-// Calculate unit wide parameters for each efficiency group
-loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLevel)
-                                                    and p_unit(unit, 'useTimeseries')
-                                                    },
-    ts_effGroupUnit(effGroup, unit, 'rb', ft(f, t))${   sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'rb', f, t))}
-        = smax(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'rb', f, t));
-    ts_effGroupUnit(effGroup, unit, 'lb', ft(f, t))${   sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'lb', f, t))}
-        = smin(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, ts_effUnit(effGroup, unit, effSelector, 'lb', f, t));
-    ts_effGroupUnit(effGroup, unit, 'slope', ft(f, t))${sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'slope', f, t))}
-        = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
-); // END loop(effLevelGroupUnit)
 
 // Units with start-up and shutdown trajectories
 Option clear = uft_startupTrajectory;

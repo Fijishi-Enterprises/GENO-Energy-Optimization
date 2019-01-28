@@ -36,42 +36,43 @@ tt_forecast(t_current(t))
     = yes;
 
 if (ord(tSolve) >= tForecastNext(mSolve),
-$ontext
-* These don't work due to the wild cards in the parameter definitions!
+
     // Update ts_unit
     if (mTimeseries_loop_read(mSolve, 'ts_unit'),
         put_utility 'gdxin' / '%input_dir%/ts_unit/' tSolve.tl:0 '.gdx';
         execute_load ts_unit_update=ts_unit;
-        ts_unit(unit, *, f_solve(f), tt_forecast(t))
+        ts_unit(unit_timeseries(unit), param_unit, f_solve(f), tt_forecast(t)) // Only update if time series enabled for the unit
             ${  not mf_realization(mSolve, f) // Realization not updated
-*                ts_unit_update(unit, *, f, t) // Update only existing values (zeroes need to be EPS)
+*               and ts_unit_update(unit, param_unit, f, t) // Update only existing values (zeroes need to be EPS)
                 }
-            = ts_unit_update(unit, *, f, t);
+            = ts_unit_update(unit, param_unit, f, t);
     ); // END if('ts_unit')
-
+$ontext
+* !!! NOTE !!!
+* These probably shouldn't be read at all, as p_effUnit and p_effGroupUnit are
+* not input data, but calculated based on p_unit
     // Update ts_effUnit
     if (mTimeseries_loop_read(mSolve, 'ts_effUnit'),
         put_utility 'gdxin' / '%input_dir%/ts_effUnit/' tSolve.tl:0 '.gdx';
         execute_load ts_effUnit_update=ts_effUnit;
-        ts_effUnit(effGroupSelectorUnit(effSelector, unit, effSelector), *, f_solve(f), tt_forecast(t))
+        ts_effUnit(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f_solve(f), tt_forecast(t)) // Only update if time series enabled for the unit
             ${  not mf_realization(mSolve, f) // Realization not updated
-*                ts_effUnit_update(effSelector, unit, effSelector, *, f, t) // Update only existing values (zeroes need to be EPS)
+*               and ts_effUnit_update(effSelector, unit, effSelector, param_eff, f, t) // Update only existing values (zeroes need to be EPS)
                 }
-            = ts_effUnit_update(effSelector, unit, effSelector, *, f, t);
+            = ts_effUnit_update(effSelector, unit, effSelector, param_eff, f, t);
     ); // END if('ts_effUnit')
 
     // Update ts_effGroupUnit
     if (mTimeseries_loop_read(mSolve, 'ts_effGroupUnit'),
         put_utility 'gdxin' / '%input_dir%/ts_effGroupUnit/' tSolve.tl:0 '.gdx';
         execute_load ts_effGroupUnit_update=ts_effGroupUnit;
-        ts_effGroupUnit(effSelector, unit, *, f_solve(f), tt_forecast(t))
+        ts_effGroupUnit(effSelector, unit_timeseries(unit), param_eff, f_solve(f), tt_forecast(t)) // Only update if time series enabled for the unit
             ${  not mf_realization(mSolve, f) // Realization not updated
-*                ts_effGroupUnit_update(effSelector, unit, *, f, t) // Update only existing values (zeroes need to be EPS)
+*               and ts_effGroupUnit_update(effSelector, unit, param_eff, f, t) // Update only existing values (zeroes need to be EPS)
                 }
-            = ts_effGroupUnit_update(effSelector, unit, *, f, t);
+            = ts_effGroupUnit_update(effSelector, unit, param_eff, f, t);
     ); // END if('ts_effGroupUnit')
 $offtext
-
     // Update ts_influx
     if (mTimeseries_loop_read(mSolve, 'ts_influx'),
         put_utility 'gdxin' / '%input_dir%/ts_influx/' tSolve.tl:0 '.gdx';
@@ -172,17 +173,17 @@ if(mSettings(mSolve, 't_improveForecast'),
 * --- Calculate the other forecasts relative to the central one ---------------
 
     loop(f_solve(f)${ not mf_realization(mSolve, f) and not mf_central(mSolve, f) },
-$ontext
-* These don't work due to the wild cards in the parameter definitions!
         // ts_unit
-        ts_unit(unit, *, f, tt(t))
-            = ts_unit(unit, *, f, t) - ts_unit(unit, *, f+ddf(f), t);
+        ts_unit(unit_timeseries(unit), param_unit, f, tt(t))// Only update for units with time series enabled
+            = ts_unit(unit, param_unit, f, t) - ts_unit(unit, param_unit, f+ddf(f), t);
+$ontext
+* Should these be handled here at all? See above note
         // ts_effUnit
-        ts_effUnit(effGroupSelectorUnit(effSelector, unit, effSelector), *, f, tt(t))
-            = ts_effUnit(effSelector, unit, effSelector, *, f, t) - ts_effUnit(effSelector, unit, effSelector, *, f+ddf(f), t);
+        ts_effUnit(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f, tt(t)) // Only update for units with time series enabled
+            = ts_effUnit(effSelector, unit, effSelector, param_eff, f, t) - ts_effUnit(effSelector, unit, effSelector, param_eff, f+ddf(f), t);
         // ts_effGroupUnit
-        ts_effGroupUnit(effSelector, unit, *, f, tt(t))
-            = ts_effGroupUnit(effSelector, unit, *, f, t) - ts_effGroupUnit(effSelector, unit, *, f+ddf(f), t);
+        ts_effGroupUnit(effSelector, unit_timeseries(unit), param_eff, f, tt(t)) // Only update for units with time series enabled
+            = ts_effGroupUnit(effSelector, unit, param_eff, f, t) - ts_effGroupUnit(effSelector, unit, param_eff, f+ddf(f), t);
 $offtext
         // ts_influx
         ts_influx(gn(grid, node), f, tt(t))
@@ -201,28 +202,28 @@ $offtext
 * --- Linear improvement of the central forecast ------------------------------
 
     loop(mf_central(mSolve, f),
-$ontext
-* These don't work due to the wild cards in the parameter definitions!
         // ts_unit
-        ts_unit(unit, *, f, tt(t))
+        ts_unit(unit_timeseries(unit), param_unit, f, tt(t)) // Only update for units with time series enabled
             = [ + (ord(t) - tSolveFirst)
-                    * ts_unit(unit, *, f, t)
+                    * ts_unit(unit, param_unit, f, t)
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
-                    * ts_unit(unit, *, f+ddf_(f), t)
+                    * ts_unit(unit, param_unit, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
+$ontext
+* Should these be handled here at all? See above note
         // ts_effUnit
-        ts_effUnit(effGroupSelectorUnit(effSelector, unit, effSelector), *, f, tt(t))
+        ts_effUnit(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f, tt(t)) // Only update for units with time series enabled
             = [ + (ord(t) - tSolveFirst)
-                    * ts_effUnit(effSelector, unit, effSelector, *, f, t)
+                    * ts_effUnit(effSelector, unit, effSelector, param_eff, f, t)
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
-                    * ts_effUnit(effSelector, unit, effSelector, *, f+ddf_(f), t)
+                    * ts_effUnit(effSelector, unit, effSelector, param_eff, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
         // ts_effGroupUnit
-        ts_effGroupUnit(effSelector, unit, *, f, tt(t))
+        ts_effGroupUnit(effSelector, unit_timeseries(unit), param_eff, f, tt(t)) // Only update for units with time series enabled
             = [ + (ord(t) - tSolveFirst)
-                    * ts_effGroupUnit(effSelector, unit, *, f, t)
+                    * ts_effGroupUnit(effSelector, unit, param_eff, f, t)
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
-                    * ts_effGroupUnit(effSelector, unit, *, f+ddf_(f), t)
+                    * ts_effGroupUnit(effSelector, unit, param_eff, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
 $offtext
         // ts_influx
@@ -258,17 +259,17 @@ $offtext
 * --- Recalculate the other forecasts based on the improved central forecast --
 
     loop(f_solve(f)${ not mf_realization(mSolve, f) and not mf_central(mSolve, f) },
-$ontext
-* These don't work due to the wild cards in the parameter definitions!
         // ts_unit
-        ts_unit(unit, *, f, tt(t))
-            = ts_unit(unit, *, f, t) + ts_unit(unit, *, f+ddf(f), t);
+        ts_unit(unit_timeseries(unit), param_unit, f, tt(t)) // Only update for units with time series enabled
+            = ts_unit(unit, param_unit, f, t) + ts_unit(unit, param_unit, f+ddf(f), t);
+$ontext
+* Should these be handled here at all? See above note
         // ts_effUnit
-        ts_effUnit(effGroupSelectorUnit(effSelector, unit, effSelector), *, f, tt(t))
-            = ts_effUnit(effSelector, unit, effSelector, *, f, t) + ts_effUnit(effSelector, unit, effSelector, *, f+ddf(f), t);
+        ts_effUnit(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f, tt(t)) // Only update for units with time series enabled
+            = ts_effUnit(effSelector, unit, effSelector, param_eff, f, t) + ts_effUnit(effSelector, unit, effSelector, param_eff, f+ddf(f), t);
         // ts_effGroupUnit
-        ts_effGroupUnit(effSelector, unit, *, f, tt(t))
-            = ts_effGroupUnit(effSelector, unit, *, f, t) + ts_effGroupUnit(effSelector, unit, *, f+ddf(f), t);
+        ts_effGroupUnit(effSelector, unit_timeseries(unit), param_eff, f, tt(t)) // Only update for units with time series enabled
+            = ts_effGroupUnit(effSelector, unit, param_eff, f, t) + ts_effGroupUnit(effSelector, unit, param_eff, f+ddf(f), t);
 $offtext
         // ts_influx
         ts_influx(gn(grid, node), f, tt(t))
@@ -303,13 +304,19 @@ loop(cc(counter),
 * --- Select time series data matching the intervals, for stepsPerInterval = 1, this is trivial.
 
         loop(ft(f_solve, tt_interval(t)),
+            ts_unit_(unit_timeseries(unit), param_unit, f_solve, t) // Only if time series enabled for the unit
+                = ts_unit(unit, param_unit, f_solve, t+dt_circular(t));
+$ontext
+* Should these be handled here at all? See above comment
+            ts_effUnit_(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f_solve, t)
+                = ts_effUnit(effSelector, unit, effSelector, param_eff, f_solve, t+dt_circular(t));
+            ts_effGroupUnit_(effSelector, unit_timeseries(unit), param_eff, f_solve, t)
+                = ts_effGroupUnit(effSelector, unit, param_eff, f_solve, t+dt_circular(t));
+$offtext
             ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
                 = ts_cf(flow, node, f_solve, t + (dt_sampleOffset(flow, node, 'ts_cf', s) + dt_circular(t)));
             ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
                 = ts_influx(grid, node, f_solve, t + (dt_sampleOffset(grid, node, 'ts_influx', s) + dt_circular(t)));
-            ts_unit_(unit, param_unit, f_solve, t)
-              ${p_unit(unit, 'useTimeseries')} // Only include units that have timeseries attributed to them
-                = ts_unit(unit, param_unit, f_solve, t+dt_circular(t));
             // Reserve demand relevant only up until reserve_length
             ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)
               ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')}
@@ -338,15 +345,23 @@ loop(cc(counter),
                   and ord(t_) < ord(t) + mInterval(mSolve, 'stepsPerInterval', counter)
                  }
                 = yes;
+            ts_unit_(unit_timeseries(unit), param_unit, f_solve, t)
+                = sum(tt(t_), ts_unit(unit, param_unit, f_solve, t_+dt_circular(t_)))
+                    / mInterval(mSolve, 'stepsPerInterval', counter);
+$ontext
+* Should these be handled here at all? See above comment
+            ts_effUnit_(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f_solve, t)
+                = sum(tt(t_), ts_effUnit(effSelector, unit, effSelector, param_eff, f_solve, t_+dt_circular(t_))))
+                    / mInterval(mSolve, 'stepsPerInterval', counter);
+            ts_effGroupUnit_(effSelector, unit_timeseries(unit), param_eff, f_solve, t)
+                = sum(tt(t_), ts_effGroupUnit(effSelector, unit, param_eff, f_solve, t_+dt_circular(t_))))
+                    / mInterval(mSolve, 'stepsPerInterval', counter);
+$offtext
             ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
                 = sum(tt(t_), ts_influx(grid, node, f_solve, t_ + (dt_sampleOffset(grid, node, 'ts_influx', s) + dt_circular(t_))))
                     / mInterval(mSolve, 'stepsPerInterval', counter);
             ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
                 = sum(tt(t_), ts_cf(flow, node, f_solve, t_ + (dt_sampleOffset(flow, node, 'ts_cf', s) + dt_circular(t_))))
-                    / mInterval(mSolve, 'stepsPerInterval', counter);
-            ts_unit_(unit, param_unit, f_solve, t)
-              ${ p_unit(unit, 'useTimeseries')} // Only include units with timeseries attributed to them
-                = sum(tt(t_), ts_unit(unit, param_unit, f_solve, t_+dt_circular(t_)))
                     / mInterval(mSolve, 'stepsPerInterval', counter);
             // Reserves relevant only until reserve_length
             ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)
@@ -373,6 +388,30 @@ loop(cc(counter),
 
     ); // END if(stepsPerInterval)
 ); // END loop(counter)
+
+* --- Process unit time series data -------------------------------------------
+
+// Calculate time series form parameters for units using direct input output conversion without online variable
+// Always constant 'lb', 'rb', and 'section', so need only to define 'slope'.
+loop(effGroupSelectorUnit(effDirectOff, unit_timeseries(unit), effDirectOff_),
+    ts_effUnit(effDirectOff, unit, effDirectOff_, 'slope', ft(f, t))
+        ${ sum(eff, ts_unit(unit, eff, f, t)) } // NOTE!!! Averages the slope over all available data.
+        = sum(eff${ts_unit(unit, eff, f, t)}, 1 / ts_unit(unit, eff, f, t))
+            / sum(eff${ts_unit(unit, eff, f, t)}, 1);
+); // END loop(effGroupSelectorUnit)
+
+// NOTE! Using the same methodology for the directOn and lambda approximations in time series form might require looping over ft(f,t) to find the min and max 'eff' and 'rb'
+// Alternatively, one might require that the 'rb' is defined in a similar structure, so that the max 'rb' is located in the same index for all ft(f,t)
+
+// Calculate unit wide parameters for each efficiency group
+loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLevel)
+                                                    and p_unit(unit, 'useTimeseries')
+                                                    },
+    ts_effGroupUnit(effGroup, unit, 'lb', ft(f, t))${   sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'lb', f, t))}
+        = smin(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, ts_effUnit(effGroup, unit, effSelector, 'lb', f, t));
+    ts_effGroupUnit(effGroup, unit, 'slope', ft(f, t))${sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'slope', f, t))}
+        = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
+); // END loop(effLevelGroupUnit)
 
 * =============================================================================
 * --- Input data processing ---------------------------------------------------
