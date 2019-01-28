@@ -67,6 +67,7 @@ $loaddc gnGroup
 $loaddc p_groupPolicy
 $loaddc p_groupPolicy3D
 $loaddc gnss_bound
+$loaddc uss_bound  
 $gdxin
 
 $ifthen exist '%input_dir%/includeInputData_ext.inc'

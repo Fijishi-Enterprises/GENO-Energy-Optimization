@@ -103,6 +103,7 @@ v_invest_MIP
     q_onlineOnStartUp
     q_offlineAfterShutDown
     q_onlineMinUptime
+    q_onlineCyclic
     q_genRamp
     q_rampUpLimit
     q_rampDownLimit

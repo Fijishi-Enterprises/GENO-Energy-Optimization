@@ -593,6 +593,32 @@ q_onlineMinUptime(m, s, uft_online(unit, f, t))
         )${unit_aggregator(unit)} // END sum(unit_)
 ;
 
+* --- Cyclic Boundary Conditions for Online State -----------------------------
+
+q_onlineCyclic(uss_bound(unit, s_, s), m)${ ms(m, s_)
+                                            and ms(m, s)
+                                            and tSolveFirst = mSettings(m, 't_start')
+                                            }..
+
+    // Initial value of the state of the unit at the start of the sample
+    + sum(mst_start(m, s, t),
+        + sum(sft(s, f, t),
+            + v_online_LP(unit, s, f+df(f,t+dt(t)), t+dt(t))${uft_onlineLP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))}
+            + v_online_MIP(unit, s, f+df(f,t+dt(t)), t+dt(t))${uft_onlineMIP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))}
+            ) // END sum(ft)
+        ) // END sum(mst_start)
+
+    =E=
+
+    // State of the unit at the end of the sample
+    + sum(mst_end(m, s_, t_),
+        + sum(sft(s_, f_, t_),
+            + v_online_LP(unit, s_, f_, t_)${uft_onlineLP(unit, f_, t_)}
+            + v_online_MIP(unit, s_, f_, t_)${uft_onlineMIP(unit, f_, t_)}
+            ) // END sum(ft)
+        ) // END sum(mst_end)
+;
+
 * --- Ramp Constraints --------------------------------------------------------
 
 q_genRamp(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s) + 1

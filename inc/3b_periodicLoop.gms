@@ -70,6 +70,7 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = q_startuptype;
     Option clear = q_onlineLimit;
     Option clear = q_onlineMinUptime;
+    Option clear = q_onlineCyclic;
     Option clear = q_onlineOnStartUp;
     Option clear = q_offlineAfterShutdown;
     Option clear = q_genRamp;
