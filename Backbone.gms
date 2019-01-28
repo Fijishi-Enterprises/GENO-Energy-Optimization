@@ -25,10 +25,10 @@ Created by:
 
 - Based on Stochastic Model Predictive Control method [1].
 - Enables multiple different models (m) to be implemented by changing
-  the temporal structure of the model.
+  the temporal structure of the model. (MULTI-MODEL RUNS TO BE IMPLEMENTED)
 - Time steps (t) can vary in length.
 - Short term forecast stochasticity (f) and longer term statistical uncertainty (s).
-- Can handle ramp based dispatch in addition to energy blocks.
+- Can handle ramp based dispatch in addition to energy blocks. (TO BE IMPLEMENTED)
 
 
 GAMS command line arguments
@@ -46,13 +46,9 @@ GAMS command line arguments
     Do not solve the model, just do preliminary calculations.
     For testing purposes.
 
---<name of model parameter>=<value>
-    Set model parameter value. See file ‘inc/setting_sets.gms’ for available
-    parameters.
-
---<name of model feature>=[yes|no]
-    Switch model features on/off. See file ‘inc/setting_sets.gms’ for available
-    features.
+--penalty=<value>
+    Changes the value of the penalty cost. Default penalty value is 1e9
+    if not provided.
 
 --input_dir=<path>
     Directory to read input from. Defaults to './input'.
