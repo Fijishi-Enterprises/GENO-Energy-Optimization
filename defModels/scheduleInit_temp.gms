@@ -114,8 +114,8 @@ if (mType('schedule'),
 
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
     mTimeseries_loop_read('schedule', 'ts_unit') = no;
-    mTimeseries_loop_read('schedule', 'ts_effUnit') = no;
-    mTimeseries_loop_read('schedule', 'ts_effGroupUnit') = no;
+*    mTimeseries_loop_read('schedule', 'ts_effUnit') = no; // THESE ARE CURRENTLY DISABLED, ENABLE AT OWN RISK
+*    mTimeseries_loop_read('schedule', 'ts_effGroupUnit') = no; // THESE ARE CURRENTLY DISABLED, ENABLE AT OWN RISK
     mTimeseries_loop_read('schedule', 'ts_influx') = no;
     mTimeseries_loop_read('schedule', 'ts_cf') = no;
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
