@@ -639,7 +639,8 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
 
 * --- Check if time intervals are aggregated before 't_trajectoryHorizon' -----
 
-    if (mInterval(m, 'lastStepInIntervalBlock', 'c000') < mSettings(m, 't_trajectoryHorizon') OR mInterval(m, 'stepsPerInterval', 'c000') > 1,
+    if (mInterval(m, 'lastStepInIntervalBlock', 'c000') < mSettings(m, 't_trajectoryHorizon')
+       OR (mInterval(m, 'stepsPerInterval', 'c000') > 1 and mSettings(m, 't_trajectoryHorizon') > 0),
         put log '!!! Warning: Trajectories used on aggregated time steps! This could result in significant distortion of the trajectories.';
     ); // END if()
 
