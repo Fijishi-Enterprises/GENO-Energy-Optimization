@@ -127,7 +127,7 @@ $offtext
     if(mSettings(m, 'dataLength'),
         tmp = max(mSettings(m, 'dataLength') + 1, tmp); // 'dataLength' increased by one to account for t000000 in ord(t)
     else
-        put log '!!! mSettings(m, dataLength) is not defined! Calculating dataLength based on ts_influx and ts_node.' /;
+        put log '!!! Warning: mSettings(m, dataLength) is not defined! Calculating dataLength based on ts_influx and ts_node.' /;
         // Calculate the length of the time series data (based on realized forecast)
         option clear = tt; // Find the time steps with input time series data (ts_influx and ts_node)
         loop(gn(grid, node),
@@ -636,6 +636,12 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         put log '!!! Abort: There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!' /;
         abort "There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!";
     ); // END if(smax)
+
+* --- Check if time intervals are aggregated before 't_trajectoryHorizon' -----
+
+    if (mInterval(m, 'lastStepInIntervalBlock', 'c000') < mSettings(m, 't_trajectoryHorizon') OR mInterval(m, 'stepsPerInterval', 'c000') > 1,
+        put log '!!! Warning: Trajectories used on aggregated time steps! This could result in significant distortion of the trajectories.';
+    ); // END if()
 
 ); // END loop(m)
 
