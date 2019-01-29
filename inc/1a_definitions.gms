@@ -185,6 +185,9 @@ Parameter params(*) /
 $if exist 'params.inc' $include 'params.inc'
 /;
 
+// Features
+Set active(mType, feature) "Set membership tells active modl features";
+
 * =============================================================================
 * --- Parameter Set Definitions -----------------------------------------------
 * =============================================================================
