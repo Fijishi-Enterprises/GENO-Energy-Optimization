@@ -568,7 +568,7 @@ loop(m,
 loop(fuel,
     // Determine the time steps where the prices change
     Option clear = tt;
-    tt(t_full(t))${ ts_fuelPriceChange(fuel ,t) }
+    tt(t)${ ts_fuelPriceChange(fuel ,t) }
         = yes;
     ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
 ); // END loop(fuel)
