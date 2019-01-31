@@ -435,6 +435,9 @@ following the methodology presented in [1, p. 443]. This avoids a discontinuity
     Transm. Distrib., vol. 12, no. 2, pp. 441 - 447, 2018.
 $offtext
 
+* Only do smoothing if there are parallel samples
+if(card(s_parallel),
+
 * Influx
 loop(gn(grid, node)$p_autocorrelation(grid, node, 'ts_influx'),
     ts_influx_mean(grid, node, ft(f, t))$mf_central(mSolve, f)
@@ -490,3 +493,5 @@ loop(flowNode(flow, node)$p_autocorrelation(flow, node, 'ts_cf'),
               ));
     );
 );
+
+); // end if(card(s_parallel),
