@@ -25,9 +25,9 @@ putclose log;
 
 // Determine the necessary horizon for updating data
 option clear = tmp;
-tmp = max(  mSettings(mSolve, 't_forecastLengthUnchanging') + mSettings(mSolve, 't_forecastJump'),
-            mSettings('schedule', 't_forecastLengthDecreasesFrom')
-            );
+tmp = max(mSettings(mSolve, 't_forecastLengthUnchanging') + mSettings(mSolve, 't_forecastJump'),
+          mSettings(mSolve, 't_forecastLengthDecreasesFrom')
+      );
 
 // Find time steps until the forecast horizon
 option clear = tt_forecast;
