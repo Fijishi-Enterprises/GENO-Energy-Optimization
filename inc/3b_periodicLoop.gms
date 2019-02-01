@@ -427,9 +427,13 @@ ft_reservesFixed(node, restype, f_solve(f), t_active(t))
                     ]
         }
     = yes;
+
+// Calculate sample displacements
 Options clear = ds, clear = ds_state;
-loop(ms(mSolve, s),
-    ds(s, t) = -(ord(s) - 1)$(ord(t) = tSolveFirst + msStart(mSolve, s));
+loop(ms(mSolve, s)$msStart(msolve, s),  // Get all samples with defined start
+    loop(s_$(msEnd(mSolve, s_) = msStart(mSolve, s)),  // Get the previous sample
+        ds(s, t)$(ord(t) = tSolveFirst + msStart(mSolve, s)) = -(ord(s) - ord(s_));
+    );
     ds_state(gn_state(grid, node), s, t)${not sum(s_, gnss_bound(grid, node, s_, s))
                                           and not sum(s_, gnss_bound(grid, node, s, s_))}
         = ds(s, t);
