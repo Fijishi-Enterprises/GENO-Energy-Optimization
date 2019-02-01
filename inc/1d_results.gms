@@ -139,7 +139,8 @@ Parameters
     r_nuTotalReserve(restype, up_down, node, unit) "Total nu reserve provision over the simulation (MW*h)"
     r_nuTotalReserveShare(restype, up_down, node, unit) "Total nu/n reserve provision share over the simulation"
     r_nTotalReserve(restype, up_down, node) "Total reserve provisions in nodes over the simulation (MW*h)"
-    r_resDemandLargestInfeed(grid, f, t, restype, up_down, node) "Reserve Demand from the loss of largest infeed unit"
+    r_resDemandLargestInfeedUnit(grid, f, t, restype, up_down, node) "Reserve Demand from the loss of largest infeed unit"
+
 * --- Investment Results ------------------------------------------------------
 
     // Interesting investment results
@@ -176,7 +177,7 @@ Option clear = r_shutdown;
 Option clear = r_invest;
 Option clear = r_investTransfer;
 Option clear = r_qResDemand;
-Option clear = r_resDemandLargestInfeed;
+Option clear = r_resDemandLargestInfeedUnit;
 * =============================================================================
 * --- Diagnostics Results Arrays ----------------------------------------------
 * =============================================================================

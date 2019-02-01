@@ -77,6 +77,10 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))
                   * p_nuRes2Res(node, unit, restype_, up_down, restype)
             );
 
+    // Reserve requirement due to N-1 Reserve constraint
+    r_resDemandLargestInfeedUnit(grid, f+df_reserves(node, restype, f, t), t, restype, up_down, node)
+        = smax(unit_fail(unit_), v_gen.l(grid, node, unit_, s, f, t) * p_nuReserves(node, unit_, restype, 'portion_of_infeed_to_reserve'));
+
     // Reserve transfer capacity
     r_resTransferRightward(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t)
         ${  restypeDirectionNode(restype, up_down, to_node)
@@ -94,10 +98,6 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))
 
     r_qResMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
         = vq_resMissing.l(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t);
-
-    // Reserve requirement due to N-1 Reserve constraint
-    r_resDemandLargestInfeed(grid, f+df_reserves(node, restype, f, t), t, restype, up_down, node)
-        = smax(unit_fail(unit_), v_gen.l(grid, node, unit_, s, f, t) * p_nuReserves(node, unit_, restype, 'portion_of_infeed_to_reserve'));
 
 ); // END loop(restypeDirectionNode, sft)
 

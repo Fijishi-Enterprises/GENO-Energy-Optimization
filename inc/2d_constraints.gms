@@ -155,6 +155,7 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), sft(s, f, t))
 
 q_resDemandLargestInfeedUnit(grid, restypeDirectionNode(restype, 'up', node), unit_fail(unit_), sft(s, f, t))
     ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+        and gn(grid, node)
         and not [ restypeReleasedForRealization(restype)
             and ft_realized(f, t)
             ]

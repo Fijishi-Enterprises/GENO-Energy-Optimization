@@ -137,7 +137,7 @@ r_resDemandMarginal
 r_nuTotalReserve
 r_nuTotalReserveShare
 r_nTotalReserve
-r_resDemandLargestInfeed
+r_resDemandLargestInfeedUnit
 * --- Investment Result Symbols -----------------------------------------------
 
 // Interesting investment results
