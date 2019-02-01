@@ -128,6 +128,7 @@ r_uTotalShutdown
 
 // Reserve provision results required for model structure !!!!!!!!!!!!!!!!!!!!!
 r_reserve
+r_reserve2Reserve
 r_resTransferRightward
 r_resTransferLeftward
 
@@ -150,14 +151,19 @@ r_qGen
 r_gnTotalqGen
 r_gTotalqGen
 r_qResDemand
+r_qResMissing
 r_nTotalqResDemand
+r_qCapacity
 r_solveStatus
 
 // Diagnostics
+$iftheni.diag '%diag%' == yes
 d_cop
 d_eff
 d_capacityFactor
 d_nodeState
+d_influx
+$endif.diag
 
 // Metadata and settings
 metadata

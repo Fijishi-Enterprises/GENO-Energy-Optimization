@@ -23,16 +23,19 @@ Model schedule /
     q_obj
     q_balance
     q_resDemand
+    q_resDemandLargestInfeedUnit
 
     // Unit Operation
     q_maxDownward
     q_maxUpward
+*    q_reserveProvision
     q_startshut
     q_startuptype
     q_onlineLimit
     q_onlineOnStartUp
     q_offlineAfterShutDown
     q_onlineMinUptime
+*   q_onlineCyclic
     q_genRamp
     q_rampUpLimit
     q_rampDownLimit
@@ -52,6 +55,8 @@ Model schedule /
     q_transferLeftwardLimit
     q_resTransferLimitRightward
     q_resTransferLimitLeftward
+*    q_reserveProvisionRightward
+*    q_reserveProvisionLeftward
 
     // State Variables
     q_stateSlack
@@ -61,8 +66,8 @@ Model schedule /
     q_boundCyclic
 
     // Policy
-*    q_inertiaMin
-*    q_instantaneousShareMax
+    q_inertiaMin
+    q_instantaneousShareMax
     q_constrainedOnlineMultiUnit
 *    q_capacityMargin
 *    q_constrainedCapMultiUnit
@@ -70,8 +75,8 @@ Model schedule /
 *    q_energyShareMax
 *    q_energyShareMin
 
-$ifthen exist 'input/schedule_additional_constraints.gms'
-   $$include 'input/schedule_additional_constraints.gms'      // Declare additional constraints from the input data
+$ifthen exist '%input_dir%/schedule_additional_constraints.gms'
+   $$include '%input_dir%/schedule_additional_constraints.gms'      // Declare additional constraints from the input data
 $endif
 /;
 

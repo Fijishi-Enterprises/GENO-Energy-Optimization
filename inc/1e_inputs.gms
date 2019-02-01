@@ -19,13 +19,14 @@ $offtext
 * --- Load Input Data ---------------------------------------------------------
 * =============================================================================
 
-$gdxin  'input/inputData.gdx'
-$loaddc grid
+$gdxin  '%input_dir%/inputData.gdx'
+$loaddcm grid
 $loaddc node
 $loaddc flow
 $loaddc unittype
 $loaddc unit
 $loaddc unitUnittype
+$loaddc unit_fail
 $loaddc fuel
 $loaddc unitUnitEffLevel
 $loaddc uFuel
@@ -42,6 +43,7 @@ $loaddc restypeReleasedForRealization
 $loaddc p_nReserves
 $loaddc p_nuReserves
 $loaddc p_nnReserves
+$loaddc p_nuRes2Res
 $loaddc ts_reserveDemand
 $loaddc p_gnBoundaryPropertiesForStates
 $loaddc p_gnPolicy
@@ -56,6 +58,7 @@ $loaddc ts_fuelPriceChange
 $loaddc ts_influx
 $loaddc ts_node
 $loaddc t_invest
+$loaddc p_storageValue
 $loaddc group
 $loaddc uGroup
 $loaddc gnuGroup
@@ -63,54 +66,52 @@ $loaddc gn2nGroup
 $loaddc gnGroup
 $loaddc p_groupPolicy
 $loaddc p_groupPolicy3D
+$loaddc gnss_bound
+$loaddc uss_bound  
 $gdxin
 
-$ifthen exist 'input/includeInputData_ext.inc'
-   $$include 'input/includeInputData_ext.inc'
+$ifthen exist '%input_dir%/includeInputData_ext.inc'
+   $$include '%input_dir%/includeInputData_ext.inc'
 $endif
+
+$ifthen exist '%input_dir%/changes.inc'
+   $$include '%input_dir%/changes.inc'
+$endif
+
+$ifthen exist '%input_dir%/unit3.gdx'
+    $$gdxin  '%input_dir%/unit3.gdx'
+    $$loaddcm unit
+    $$gdxin
+$endif
+
 
 $ontext
- * Load stochastic scenarios
- $batinclude 'inc/gdxload_fluctuation.inc' wind
- $batinclude 'inc/gdxload_fluctuation.inc' solar
- $ifthen exist 'input/scenarios_hydro.gdx'
-    $$gdxin 'input/scenarios_hydro.gdx'
- $endif
- $gdxin
+* --- sets with 'empty' to enable GDX imports in Sceleton Titan - currently removed when forming gnu (below) and uft (periodicLoop.gms) sets
+* This list can be removed once this has been tested.
+node
+unit
+gngnu_constrainedOutputRatio
+restype
+restypeReleasedForRealization
+p_gnn
+p_nnReserves
+p_gnuBoundaryProperties
+ts_node
+ts_reserveDemand
+ts_unit
+p_storageValue
+group
+gnuGroup
+gnGroup
+gn2nGroup
+gnss_bound
 $offtext
-
-$ifthen exist 'input/changes.inc'
-   $$include 'input/changes.inc'
-$endif
 
 
 * =============================================================================
 * --- Initialize Unit Related Sets & Parameters Based on Input Data -----------
 * =============================================================================
 
-* --- Unit Aggregation --------------------------------------------------------
-
-unitAggregator_unit(unit, unit_)$sum(effLevel, unitUnitEffLevel(unit, unit_, effLevel)) = yes;
-
-// Define unit aggregation sets
-unit_aggregator(unit)${ sum(unit_, unitAggregator_unit(unit, unit_)) }
-    = yes; // Set of aggregator units
-unit_aggregated(unit)${ sum(unit_, unitAggregator_unit(unit_, unit)) }
-    = yes; // Set of aggregated units
-unit_noAggregate(unit)${ unit(unit) - unit_aggregator(unit) - unit_aggregated(unit) }
-    = yes; // Set of units that are not aggregated into any aggregate, or are not aggregates themselves
-
-// Process data for unit aggregations
-// Aggregate maxGen as the sum of aggregated maxGen
-p_gnu(grid, node, unit_aggregator(unit), 'maxGen')
-    = sum(unit_$unitAggregator_unit(unit, unit_),
-        + p_gnu(grid, node, unit_, 'maxGen')
-        );
-// Aggregate maxCons as the sum of aggregated maxCons
-p_gnu(grid, node, unit_aggregator(unit), 'maxCons')
-    = sum(unit_$unitAggregator_unit(unit, unit_),
-        + p_gnu(grid, node, unit_, 'maxCons')
-        );
 
 * --- Generate Unit Related Sets ----------------------------------------------
 
@@ -119,7 +120,8 @@ gnu(grid, node, unit)${ p_gnu(grid, node, unit, 'maxGen')
                         or p_gnu(grid, node, unit, 'maxCons')
                         or p_gnu(grid, node, unit, 'unitSizeGen')
                         or p_gnu(grid, node, unit, 'unitSizeCons')
-                        }
+                        and not grid('empty')
+                      }
     = yes;
 // Reduce the grid dimension
 nu(node, unit) = sum(grid, gnu(grid, node, unit));
@@ -152,14 +154,19 @@ unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
 unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
     = yes;
 
+// Units with investment variables
+unit_investLP(unit)${  not p_unit(unit, 'investMIP')
+                       and p_unit(unit, 'maxUnitCount')
+                        }
+    = yes;
+unit_investMIP(unit)${  p_unit(unit, 'investMIP')
+                        and p_unit(unit, 'maxUnitCount')
+                        }
+    = yes;
+
 // Units with special startup properties
 // All units can cold start (default start category)
-// NOTE! Juha needs to check why not all units can cold start
-unitStarttype(unit, starttype('cold'))${ p_unit(unit, 'startCostCold')
-                                         or p_unit(unit, 'startFuelConsCold')
-                                         or p_unit(unit, 'rampSpeedToMinLoad')
-                                       }
-    = yes;
+unitStarttype(unit, 'cold') = yes;
 // Units with parameters regarding hot/warm starts
 unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
                                             or p_unit(unit, 'startCostHot')
@@ -170,14 +177,8 @@ unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
                                             }
     = yes;
 
-// Units with investment variables
-unit_investLP(unit)${  not p_unit(unit, 'investMIP')
-                       and p_unit(unit, 'maxUnitCount')
-                        }
-    = yes;
-unit_investMIP(unit)${  p_unit(unit, 'investMIP')
-                        and p_unit(unit, 'maxUnitCount')
-                        }
+// Units with time series data enabled
+unit_timeseries(unit)${ p_unit(unit, 'useTimeseries') }
     = yes;
 
 * --- Unit Related Parameters -------------------------------------------------
@@ -201,15 +202,15 @@ p_unit(unit, 'unitOutputCapacityTotal')
     = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Assume unit sizes based on given maximum capacity parameters and unit counts if able
-p_gnu(grid, node, unit, 'unitSizeGen')${    p_gnu(grid, node, unit, 'maxGen')
+p_gnu(gnu(grid, node, unit), 'unitSizeGen')${    p_gnu(grid, node, unit, 'maxGen')
                                             and p_unit(unit, 'unitCount')
                                             }
     = p_gnu(grid, node, unit, 'maxGen') / p_unit(unit, 'unitCount');  // If maxGen and unitCount are given, calculate unitSizeGen based on them.
-p_gnu(grid, node, unit, 'unitSizeCons')${   p_gnu(grid, node, unit, 'maxCons')
+p_gnu(gnu(grid, node, unit), 'unitSizeCons')${   p_gnu(grid, node, unit, 'maxCons')
                                             and p_unit(unit, 'unitCount')
                                             }
     = p_gnu(grid, node, unit, 'maxCons') / p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
-p_gnu(grid, node, unit, 'unitSizeTot')
+p_gnu(gnu(grid, node, unit), 'unitSizeTot')
     = p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons');
 
 // Determine unit startup parameters based on data
@@ -332,8 +333,9 @@ gn_state(grid, node)${  gn_stateSlack(grid, node)
     = yes;
 
 // Existing grid-node pairs
-gn(grid, node)${    sum(unit, gnu(grid, node, unit)
-                    or gn_state(grid, node))
+gn(grid, node)${    sum(unit, gnu(grid, node, unit))
+                    or gn_state(grid, node)
+                    or sum((f, t), ts_influx(grid, node, f, t))
                     }
     = yes;
 
@@ -358,21 +360,55 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
 * =============================================================================
 * --- Reserves Sets & Parameters ----------------------------------------------
 * =============================================================================
+// NOTE! Reserves can be disabled through the model settings file.
+// The sets are disabled in "3a_periodicInit.gms" accordingly.
 
-$ontext
-// Assume values for critical reserve related parameters, if not provided by input data
-// Reserve contribution "reliability" assumed to be perfect if not provided in data
-p_nuReserves(nu(node, unit), restype, 'reserveContribution')${  not p_nuReserves(node, unit, restype, 'reserveContribution')
-                                                                and sum(up_down, nuRescapable(restype, up_down, node, unit))
-                                                                }
+// Units with reserve provision capabilities
+nuRescapable(restypeDirection(restype, up_down), nu(node, unit))
+    $ { p_nuReserves(node, unit, restype, up_down)
+      }
+  = yes;
+
+// Node-node connections with reserve transfer capabilities
+restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_)
+    $ { p_nnReserves(node, node_, restype, up_down)
+      }
+  = yes;
+
+// Nodes with reserve requirements, units capable of providing reserves, or reserve capable connections
+restypeDirectionNode(restypeDirection(restype, up_down), node)
+    $ { p_nReserves(node, restype, up_down)
+        or p_nReserves(node, restype, 'use_time_series')
+        or sum(nu(node, unit), p_nuReserves(node, unit, restype, 'portion_of_infeed_to_reserve'))
+        or sum(nu(node, unit), nuRescapable(restype, up_down, node, unit))
+        or sum(gn2n(grid, node, to_node), restypeDirectionNodeNode(restype, up_down, node, to_node))
+      }
+  = yes;
+
+* --- Correct values for critical reserve related parameters ------------------
+
+// Reserve reliability assumed to be perfect if not provided in data
+p_nuReserves(nu(node, unit), restype, 'reserveReliability')
+    ${  not p_nuReserves(node, unit, restype, 'reserveReliability')
+        and sum(up_down, nuRescapable(restype, up_down, node, unit))
+        }
     = 1;
-$offtext
+
+// Reserve provision overlap decreases the capacity of the overlapping category
+p_nuReserves(nu(node, unit), restype, up_down)
+    ${ nuRescapable(restype, up_down, node, unit) }
+    = p_nuReserves(node, unit, restype, up_down)
+        - sum(restype_${ p_nuRes2Res(node, unit, restype_, up_down, restype) },
+            + p_nuReserves(node, unit, restype_, up_down)
+                * p_nuRes2Res(node, unit, restype_, up_down, restype)
+        ); // END sum(restype_)
 
 * =============================================================================
 * --- Data Integrity Checks ---------------------------------------------------
 * =============================================================================
 
-* Check the integrity of node connection related data
+* --- Check the integrity of node connection related data ---------------------
+
 Option clear = count;
 loop(gn2n(grid, node, node_),
     count = count + 1; // Count the gn2n indeces to make finding the errors easier.
@@ -380,66 +416,98 @@ loop(gn2n(grid, node, node_),
     if(p_gnn(grid, node, node_, 'transferCapBidirectional'),
         // Check for conflicting bidirectional transfer capacities.
         if(p_gnn(grid, node, node_, 'transferCapBidirectional') <> p_gnn(grid, node_, node, 'transferCapBidirectional'),
-            put log '!!! Error occurred on gn2n link #' count;
+            put log '!!! Error occurred on gn2n link ' node.tl:0 '-' node_.tl:0 /;
+            put log '!!! Abort: Conflicting transferCapBidirectional parameters!' /;
             abort "Conflicting 'transferCapBidirectional' parameters!"
         );
         // Check for conflicting one-directional and bidirectional transfer capacities.
         if(p_gnn(grid, node, node_, 'transferCapBidirectional') < p_gnn(grid, node, node_, 'transferCap') OR (p_gnn(grid, node, node_, 'transferCapBidirectional') < p_gnn(grid, node_, node, 'transferCap')),
-            put log '!!! Error occurred on gn2n link #' count;
+            put log '!!! Error occurred on gn2n link ' node.tl:0 '-' node_.tl:0 /;
+            put log '!!! Abort: Parameter transferCapBidirectional must be greater than or equal to defined one-directional transfer capacities!' /;
             abort "Parameter 'transferCapBidirectional' must be greater than or equal to defined one-directional transfer capacities!"
         );
     );
 );
 
-* Check the integrity of efficiency approximation related data
-Option clear = tmp; // Log the unit index for finding the error easier.
+* --- Check the integrity of efficiency approximation related data ------------
+
+Option clear = tmp;
+// Find the largest effLevel used in the data
+tmp = smax(effLevelGroupUnit(effLevel, effSelector, unit), ord(effLevel));
+
 loop( unit,
-    tmp = ord(unit); // Increase the unit counter
-    unit_current(unit) = Yes;
     // Check that 'op' is defined correctly
     Option clear = count; // Initialize the previous op to zero
     loop( op,
         if (p_unit(unit, op) + 1${not p_unit(unit, op)} < count,
-            put log '!!! Error occurred on unit ' unit_current.te(unit); // Display unit that causes error
-            put log /;
-            abort${p_unit(unit, op) + 1${not p_unit(unit, op)} < count} "param_unit 'op's must be defined as zero or positive and increasing!", unit_current;
-        );
+            put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+            put log '!!! Abort: param_unit op must be defined as zero or positive and increasing!' /;
+            abort "param_unit 'op's must be defined as zero or positive and increasing!";
+        ); // END if(p_unit)
         count = p_unit(unit, op);
-    );
+    ); // END loop(op)
     // Check that efficiency approximations have sufficient data
     loop( effLevelGroupUnit(effLevel, effSelector, unit),
         loop( op__${p_unit(unit, op__) = smax(op, p_unit(unit, op))}, // Loop over the 'op's to find the last defined data point.
-            //loop( lambda${sameas(lambda, effSelector)}, // Loop over the lambdas to find the 'magnitude' of the approximation
-                //display count_lambda, count_lambda2, unit.tl;
-            //    if(ord(lambda) > ord(op__), put log '!!! Error occurred on unit ' unit.tl:25 ' with effLevel ' effLevel.tl:10 ' with effSelector ' lambda.tl:8); // Display unit that causes error
-            //    abort${ord(lambda) > ord(op__)} "Order of the lambda approximation cannot exceed the number of efficiency data points!"
-            // );
-            // DirectOn
             loop( op_${p_unit(unit, op_) = smin(op${p_unit(unit, op)}, p_unit(unit, op))}, // Loop over the 'op's to find the first nonzero 'op' data point.
                 if(effDirectOn(effSelector) AND ord(op__) = ord(op_) AND not p_unit(unit, 'section') AND not p_unit(unit, 'opFirstCross'),
-                    put log '!!! Error occurred on unit ' unit_current.te(unit); // Display unit that causes error
-                    abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!", unit_current;
-                );
-            );
-        );
-    );
-    unit_current(unit) = No;
+                    put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+                    put log '!!! Abort: directOn requires two efficiency data points with nonzero op or section or opFirstCross!' /;
+                    abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!";
+                ); // END if(effDirectOn)
+            ); // END loop(op_)
+        ); // END loop(op__)
+    ); // END loop(effLevelGroupUnit)
 );
 
-* Check the start-up fuel fraction related data
+* --- Check the start-up fuel fraction related data ---------------------------
+
 loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
-    tmp = ord(unit)
     if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')) <> 1,
-        put log '!!! Error occurred on unit #' tmp;
+        put log '!!! Error occurred on unit ' unit.tl:0 /;
+        put log '!!! Abort: The sum of fixedFuelFraction over start-up fuels needs to be one for all units using start-up fuels!' /;
         abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
     );
 );
 
-* Check the shutdown time related data
-loop( unit,
+* --- Check the shutdown time related data ------------------------------------
+
+loop( unitStarttype(unit, starttypeConstrained),
     if(p_unit(unit, 'minShutdownHours') > p_unit(unit, 'startWarmAfterXhours')
         or p_unit(unit, 'startWarmAfterXhours') > p_unit(unit, 'startColdAfterXhours'),
-        put log '!!! Error occurred on unit ', unit.tl:0;
+        put log '!!! Error occurred on unit ', unit.tl:0 /;
+        put log '!!! Abort: Units should have p_unit(unit, minShutdownHours) <= p_unit(unit, startWarmAfterXhours) <= p_unit(unit, startColdAfterXhours)!' /;
         abort "Units should have p_unit(unit, 'minShutdownHours') <= p_unit(unit, 'startWarmAfterXhours') <= p_unit(unit, 'startColdAfterXhours')!"
     );
+);
+
+* --- Check reserve related data ----------------------------------------------
+
+// Check that reserve_length is long enough for properly commitment of reserves
+loop( restypeDirectionNode(restype, up_down, node),
+    if(p_nReserves(node, restype, 'reserve_length') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
+        put log '!!! Error occurred on node ', node.tl:0 /;
+        put log '!!! Abort: The reserve_length parameter should be longer than update_frequency + gate_closure to fix the reserves properly!' /;
+        abort "The 'reserve_length' parameter should be longer than 'update_frequency' + 'gate_closure' to fix the reserves properly!"
+    ); // END if
+); // END loop(restypeDirectionNode)
+
+// Check that reserve overlaps are possible
+loop( (nu(node, unit), restypeDirection(restype, up_down)),
+    if( p_nuReserves(node, unit, restype, up_down) < 0,
+        put log '!!! Error occurred on unit ', unit.tl:0 /;
+        put log '!!! Abort: Overlapping reserve capacities in p_nuRes2Res can result in excess reserve production!' /;
+        abort "Overlapping reserve capacities in p_nuRes2Res can result in excess reserve production!"
+    ); // END if(p_nuReserves)
+); // END loop((nu,restypeDirection))
+
+
+* =============================================================================
+* --- Default values  ---------------------------------------------------------
+* =============================================================================
+
+loop((gn(grid, node), timeseries),
+    p_autocorrelation(grid, node, timeseries) = 0;
+    p_tsMinValue(node, timeseries) = -Inf;
+    p_tsMaxValue(node, timeseries) = Inf;
 );

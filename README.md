@@ -22,6 +22,7 @@ Backbone has been designed with a modular structure, making it easier to change 
 * 1c_parameters.gms	- Contains the parameter definitions used by the models.
 * 1d_results.gms - Contains definitions for the model results.
 * 1e_inputs.gms - Contains instructions on how to load input data, as well as forms a lot of helpful sets based on said data, for example in order to facilitate writing the constraints.
+* 1e_scenChanges.gms - Inside input.gms - reads additional changes for scenarios (Sceleton Titan can use these)
 * 2a_variables.gms - Contains variable definitions used by the models.
 * 2b_eqDeclarations.gms - Contains equation declarations for the models.
 * 2c_objective.gms - Contains the objective function definition.
@@ -40,7 +41,7 @@ Backbone has been designed with a modular structure, making it easier to change 
 Most of these files are under *\inc* in the Backbone folder, except for the model definition files being housed under *\defModels*. Other than the abovementioned files, a few key input files are required for Backbone to work. These are assumed to be found under *\input* and are briefly described below.
 
 * inputData.gdx	- Contains most of the input data about the system to be modelled.
-* 1_options.gms - Contains options to control the solver. Not required but included if exists.
+* 1_options.gms - Contains options to control the solver.
 * timeAndSamples.inc - Contains definitions for the time, forecast and sample index ranges.
 * modelsInit.gms - Contains model parameters for the solve (or a link to a template under *\defModels* to be used). Useful for any additional GAMS scripting.
 

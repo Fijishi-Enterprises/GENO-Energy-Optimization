@@ -7,11 +7,10 @@
 225?/
 *.put
 *.log
+*.gchf
 
 # Backbone
 Backbone.txt
-input/
-output/
 EnsemblesAndYears.xlsx
 Backbone.dat
 diffile.gdx

@@ -49,10 +49,15 @@ Sets
         t_forecastLengthDecreasesFrom, // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
         t_forecastStart, // Time step for first reading the forecasts (not necessarily t_start)
         t_forecastJump, // Number of time steps between each update of the forecasts
+        t_improveForecast "Number of time steps ahead of time on which the forecast is improved on each solve"
+        sampleLength   "Length of sample in time steps for creating stocahstic scenarios from time series data"
 
         // Features
         t_trajectoryHorizon, // Length of the horizon when start-up and shutdown trajectories are considered (in time steps)
-        t_initializationPeriod  // Number of time steps in the beginning of the simulation which are solved but the results of which are not stored
+        t_initializationPeriod,  // Number of time steps in the beginning of the simulation which are solved but the results of which are not stored
+        dataLength, // The maximum number of time steps in any input data time series (recommended for correctly circulating data)
+        red_num_leaves "Desired number of preserved scenarios or leaves (SCENRED)"
+        red_percentage "Desired relative distance (accuracy) of scenario reduction (SCENRED)"
         /
 
     // Solve info
@@ -135,12 +140,13 @@ Sets
 
     // Other Features
     feature "Set of optional model features" /
-        findStorageStart "Solve for optimal storage start levels"
+*        findStorageStart "Solve for optimal storage start levels" // NOT IMPLEMENTED
         storageValue     "Use storage value instead of fixed control"
-        storageEnd       "Expected storage end levels greater than starting levels"
-        addOn            "Use StoSSch as a storage add-on to a larger model"
-        extraRes         "Use extra tertiary reserves for error in elec. load during time step"
-        rampSched        "Use power based scheduling"
+*        storageEnd       "Expected storage end levels greater than starting levels" // NOT IMPLEMENTED
+*        addOn            "Use StoSSch as a storage add-on to a larger model" // NOT IMPLEMENTED
+*        extraRes         "Use extra tertiary reserves for error in elec. load during time step" // NOT IMPLEMENTED
+*        rampSched        "Use power based scheduling" // PARTIALLY IMPLEMENTED
+        scenRed          "Reduce number of long-tem scenarios using GAMS SCENRED2"
         /
 
 * --- Set to declare time series that will be read between solves ------------------------------------------------------
@@ -179,18 +185,8 @@ Parameter params(*) /
 $if exist 'params.inc' $include 'params.inc'
 /;
 
-// Activate model features if found
-Set active(mType, feature) "Set membership tells active model features" /
-$if exist 'features.inc' $include 'features.inc'
-/;
-
-// Parse command line options and store values for features
-$if set findStorageStart active('findStorageStart') = %findStorageStart%;
-$if set storageValue active('storageValue') = %storageValue%;
-$if set storageEnd active('storageEnd') = %storageEnd%;
-$if set addOn active('addOn') = %addOn%;
-$if set extraRes active('extraRes') = %extraRes%;
-$if set rampSched active('rampSched') = %rampSched%;
+// Features
+Set active(mType, feature) "Set membership tells active model features";
 
 * =============================================================================
 * --- Parameter Set Definitions -----------------------------------------------
@@ -208,8 +204,6 @@ param_gn  "Possible parameters for grid, node" /
     boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
     boundAll      "A flag to bound the state to the reference in all time steps"
     boundStartToEnd  "Force the last states to equal the first state"
-    boundCyclic   "A flag to impose cyclic bounds for the first and the last states within a sample"
-    boundCyclicBetweenSamples   "A flag to impose cyclic bounds for the last and first states between samples"
     forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."
     capacityMargin "Capacity margin used in invest mode (MW)"
 /
@@ -250,13 +244,13 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
 param_gnu "Set of possible data parameters for grid, node, unit" /
     maxGen        "Maximum output capacity (MW)"
     maxCons       "Maximum loading capacity (MW)"
+    useInitialGeneration     "A flag to indicate whether to fix generation for the first time step (binary)"
+    initialGeneration        "Initial generation/consumption of the unit in the first time step (MW)"
     conversionFactor "Conversion factor for inputs or outputs (for changing the unit of measurement)"
     doNotOutput   "Flag for inputs that are not included in the output commodities"
     cV            "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
     maxRampUp     "Speed to ramp up (p.u./min)"
     maxRampDown   "Speed to ramp down (p.u./min)"
-    rampUpCost    "Wear and tear cost of ramping up (EUR/MW)"  // redundant
-    rampDownCost  "Wear and tear cost of ramping down (EUR/MW)"  // redundant
     upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment ([v_state]/MW)"
     unitSizeGen   "Output capacity of one subunit for integer investments (MW)"
     unitSizeCons  "Loading capacity of one subunit for integer investments (MW)"
@@ -278,8 +272,8 @@ param_unit "Set of possible data parameters for units" /
     outputCapacityTotal "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"
     unitOutputCapacityTotal "Output capacity of the unit, calculated by summing all the subunit output sizes together by default"
     availability  "Availability of given energy conversion technology (p.u.)"
-    useInitialOnlineStatus   "A flag to fix the online status of a unit for the first time step"
-    initialOnlineStatus      "Initial online status of the unit in the first time step (binary)"
+    useInitialOnlineStatus   "A flag to fix the online status of a unit for the first time step (binary)"
+    initialOnlineStatus      "Initial online status of the unit in the first time step (0-1)"
     omCosts       "Variable operation and maintenance costs (EUR/MWh)"
     startCostCold "Variable start-up costs for cold starts excluding fuel costs (EUR/MW)"
     startCostWarm "Variable start-up costs for warm starts excluding fuel costs (EUR/MW)"
@@ -306,11 +300,17 @@ param_unit "Set of possible data parameters for units" /
     investMIP     "A flag to make integer investment instead of continous investment"
     maxUnitCount  "Maximum number of units when making integer investments"
     minUnitCount  "Minimum number of units when making integer investments"
-    lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in 3b_inputsLoop.gms for units that have aggregation"
+    lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
+/
+
+param_eff "Parameters used for unit efficiency approximations" /
+    lb      "Minimum load of the unit"
+    op      "Maximum load of the unit, or the operating point of the SOS2 variable in the piecewise linear heat rate approximation (lambda)"
+    section "Operational heat rate of the unit, or the SOS2 variable in the piecewise linear heat rate approximation (lambda)"
+    slope   "Heat rate parameter representing no-load fuel consumption"
 /
 
 param_fuel "Parameters for fuels" /
-    emissionIntensity "Intensity of emission from fuel (kg/MWh_fuel)"
     main          "Main fuel of the unit - unless input fuels defined as grids"
     startup       "Startup fuel of the unit, if exists. Can be the same as main fuel - consumption using startupFuelCons"
 /
@@ -323,10 +323,6 @@ param_unitFuel "Parameters for fuel limits in units" /
 
 param_policy "Set of possible data parameters for grid, node, regulation" /
     emissionTax   "Emission tax (EUR/tonne)"
-    update_frequency "Frequency of updating reserve contributions"
-    gate_closure  "Number of timesteps ahead of dispatch that reserves are fixed"
-    use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
-    reserveContribution "Reliability parameter of reserve provisions"
     emissionCap   "Emission limit (tonne)"
     instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
     energyShareMax "Maximum energy share of generation from a particular group of units"
@@ -336,6 +332,15 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedOnlineMultiplier "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
     constrainedOnlineTotalMax "Total maximum b for online units in equation Sum(i, a(i)*v_online(i)) <= b"
+    // Reserve related parameters, currently without a proper parameter set
+    update_frequency "Frequency of updating reserve contributions"
+    update_offset "Optional offset for delaying the reserve update frequency"
+    gate_closure  "Number of timesteps ahead of dispatch that reserves are fixed"
+    use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
+    reserve_length "Length of reserve horizon"
+    reserveReliability "Reliability parameter of reserve provisions"
+    reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
+    portion_of_infeed_to_reserve "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
 /
 
 * --- Efficiency Approximation Related Sets -----------------------------------

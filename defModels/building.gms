@@ -23,14 +23,17 @@ Model building /
     q_obj
     q_balance
 *    q_resDemand
+*    q_resDemandLargestInfeedUnit
 
     // Unit Operation
     q_maxDownward
     q_maxUpward
+*    q_reserveProvision
 *    q_startup
 *    q_startuptype
 *    q_onlineLimit
 *    q_onlineMinUptime
+*    q_onlineCyclic
 *    q_minDown
 *    q_genRamp
 *    q_genRampChange
@@ -50,6 +53,8 @@ Model building /
     q_transferLeftwardLimit
 *    q_resTransferLimitRightward
 *    q_resTransferLimitLeftward
+*    q_reserveProvisionRightward
+*    q_reserveProvisionLeftward
 
     // State Variables
     q_stateSlack
@@ -68,7 +73,7 @@ Model building /
 *    q_energyShareMax
 *    q_energyShareMin
 
-$ifthen exist 'input/building_additional_constraints.gms'
-   $$include 'input/building_additional_constraints.gms'      // Declare additional constraints from the input data
+$ifthen exist '%input_dir%/building_additional_constraints.gms'
+   $$include '%input_dir%/building_additional_constraints.gms'      // Declare additional constraints from the input data
 $endif
 /;

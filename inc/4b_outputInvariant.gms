@@ -43,7 +43,7 @@ loop(m,
                 ];
 
     // Unit startup costs
-    r_uStartupCost(unit, ft_realizedNoReset(f,t))${ sum(starttype, unitStarttype(unit, starttype)) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
+    r_uStartupCost(unit, ft_realizedNoReset(f,t))${sum(starttype, unitStarttype(unit, starttype)) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
         = 1e-6 // Scaling to MEUR
             * sum(unitStarttype(unit, starttype),
                 + r_startup(unit, starttype, f, t)
@@ -121,13 +121,19 @@ loop(m,
     // Fixed O&M costs
     r_gnuFOMCost(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
-            * (p_gnu(grid, node, unit, 'maxGen') + r_invest(unit)*p_gnu(grid, node, unit, 'unitSizeGen'))
+            * [
+                + p_gnu(grid, node, unit, 'maxGen') // Not in v_obj 
+                + p_gnu(grid, node, unit, 'maxCons') // Not in v_obj
+                + r_invest(unit)
+                    * p_gnu(grid, node, unit, 'unitSizeTot')
+                ]
             * p_gnu(grid, node, unit, 'fomCosts');
 
     // Unit investment costs
     r_gnuUnitInvestmentCost(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
-            * r_invest(unit)*p_gnu(grid, node, unit, 'unitSizeGen')
+            * r_invest(unit)
+            * p_gnu(grid, node, unit, 'unitSizeTot')
             * p_gnu(grid, node, unit, 'invCosts')
             * p_gnu(grid, node, unit, 'annuity');
 
@@ -174,7 +180,6 @@ loop(m,
 
     r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
         = p_stepLengthNoReset(m, f, t)
-            * sum(msft(m, s, f, t), p_msft_probability(m, s, f, t))
             * [
                 + min(ts_influx(grid, node, f, t), 0) // Not necessarily a good idea, as ts_influx contains energy gains as well...
                 + sum(gnu_input(grid, node, unit),
@@ -199,12 +204,12 @@ loop(m,
             ); // END sum(uFuel)
 
     // Energy generation by fuels
-    r_genUnittype(gn(grid, node), unittype, t)${  sum(f,ft_realizedNoReset(f,t))
-                                                  and sum(unit,gnu_output(grid, node, unit))
-                                                  and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
-                                                  }
+    r_genUnittype(gn(grid, node), unittype, ft_realizedNoReset(f,t))
+        ${  sum(unit,gnu_output(grid, node, unit))
+            and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
+            }
         = sum(unit${unitUnittype(unit, unittype) and gnu_output(grid, node, unit)},
-            + sum(f,r_gen(grid, node, unit, f, t))
+            + r_gen(grid, node, unit, f, t)
             ); // END sum(unit)
 
     // Total generation on each node by fuels
@@ -282,7 +287,7 @@ loop(m,
 * --- Futher Time Step Independent Results ------------------------------------
 * =============================================================================
 
-* --- Scaling Marginal Values to EUR/MWh --------------------------------------
+* --- Scaling Marginal Values to EUR/MWh from MEUR/MWh ------------------------
 
 // Energy balance
 r_balanceMarginal(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
@@ -437,6 +442,14 @@ r_totalRealizedCost
 r_totalRealizedNetCost
     = sum(gn(grid, node), r_gnTotalRealizedNetCost(grid, node));
 
+* --- Reserve Provision Overlap Results ---------------------------------------
+
+// Calculate the overlapping reserve provisions
+r_reserve2Reserve(nuRescapable(restype, up_down, node, unit), restype_, ft_realizedNoReset(f, t))
+    ${ p_nuRes2Res(node, unit, restype, up_down, restype_) }
+    = r_reserve(restype, up_down, node, unit, f, t)
+        * p_nuRes2Res(node, unit, restype, up_down, restype_);
+
 * --- Total Reserve Provision Results -----------------------------------------
 
 // Total reserve provision in nodes over the simulation
@@ -470,6 +483,8 @@ r_uTotalShutdown(unit)
 
 * --- Diagnostic Results ------------------------------------------------------
 
+// Only include these if '--diag=yes' given as a command line argument
+$iftheni.diag '%diag%' == yes
 // Estimated coefficients of performance
 d_cop(unit, ft_realizedNoReset(f, t))${  [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
                                          and sum(gnu_input(grid, node, unit), 1)
@@ -481,7 +496,8 @@ d_cop(unit, ft_realizedNoReset(f, t))${  [ord(t) > mSettings(m, 't_start') + mSe
                 -r_gen(grid_, node_, unit, f, t)
                 ) // END sum(gnu_input)
             + 1${not sum(gnu_input(grid_, node_, unit), -r_gen(grid_, node_, unit, f, t))}
-            ];
+            ]
+        + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 
 // Estimated efficiency
 d_eff(unit_fuel(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
@@ -492,8 +508,9 @@ d_eff(unit_fuel(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start
                 + r_fuelUse(fuel, unit, f, t)
                 ) // END sum(uFuel)
             + 1${not sum(uFuel(unit, 'main', fuel), r_fuelUse(fuel, unit, f, t))}
-            ];
-
+            ]
+        + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
+$endif.diag
 
 ); // END loop(m)
 

@@ -17,7 +17,7 @@ $offtext
 
 Sets
 * --- Geography ---------------------------------------------------------------
-    grid "Forms of energy endogenously presented in the model"
+    grid "Forms of energy endogenously presented in the model" / empty /
     node "Nodes where different types of energy are converted"
 
 * --- Fuels & resources -------------------------------------------------------
@@ -29,6 +29,7 @@ Sets
     unit "Set of generators, storages and loads"
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
     unit_fuel(unit) "Units using a commercial fuel"
+    unit_fail(unit) "Units that might fail"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
     unit_online(unit) "Units that have an online variable in the first active effLevel"
     unit_online_LP(unit) "Units that have an LP online variable in the first active effLevel"
@@ -47,7 +48,7 @@ Sets
     unittype "Unit technology types"
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
-    unit_current(unit) "Current unit"
+    unit_timeseries(unit) "Units with time series enabled"
 
 * --- Nodes -------------------------------------------------------------------
     node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
@@ -81,15 +82,15 @@ Sets
     restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
 
 * --- Sets to define time, forecasts and samples ------------------------------
-    $$include 'input/timeAndSamples.inc'
+    $$include '%input_dir%/timeAndSamples.inc'
     m(mType) "model(s) in use"
     t_full(t) "Full set of time steps in the current model"
     t_current(t) "Set of time steps within the current solve horizon"
-    t_active(t) "Set of active t:s within the current solve horizon"
-    t_activeNoReset(t) "Set of active t:s within the current solve horizon and previously realized t:s"
+    t_active(t) "Set of active t:s within the current solve horizon, including necessary history"
     t_invest(t) "Time steps when investments can be made"
     tt(t) "Temporary subset for time steps used for calculations"
-    tt_interval(t) "Temporary time steps when forming the ft structure"
+    tt_block(counter, t) "Temporary time step subset for storing the time interval blocks"
+    tt_interval(t) "Temporary time steps when forming the ft structure, current sample"
     tt_forecast(t) "Temporary subset for time steps used for forecast updating during solve loop"
     mf(mType, f) "Forecasts present in the models"
     ms(mType, s) "Samples present in the models"
@@ -98,10 +99,13 @@ Sets
     ft(f, t) "Combination of forecasts and t:s in the current solve"
     ft_realized(f, t) "Realized ft"
     ft_realizedNoReset(f, t) "Full set of realized ft, facilitates calculation of results"
-    mft_nReserves(node, restype, mType, f, t) "Combination of forecasts and t:s locked due to committing reserves ahead of time."
+    ft_reservesFixed(node, restype, f, t) "Forecast-time steps with reserves fixed due to commitments on a previous solve."
     mft(mType, f, t) "Combination of forecasts and t:s in the current model solve"
     msf(mType, s, f) "Combination of samples and forecasts in the models"
-    msft(mType, s, f, t) "Combination of samples, forecasts and t:s in the current model solve"
+    msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
+    sft(s, f, t) "Combination of samples, forecasts and t's in the current model solve"
+    sft_realized(s, f, t) "Realized sft"
+    sft_realizedNoReset(s, f, t) "Full set of realized sft, facilitates calculation of results"
     msft_realizedNoReset(mType, s, f, t) "Combination of realized samples, forecasts and t:s in the current model solve and previously realized t:s"
     mft_start(mType, f, t) "Start point of the current model solve"
     mf_realization(mType, f) "fRealization of the forecasts"
@@ -112,6 +116,13 @@ Sets
     modelSolves(mType, t) "when different models are to be solved"
     f_solve(f) "forecasts in the model to be solved next"
     t_latestForecast(t) "t for the latest forecast that is available"
+    gnss_bound(grid, node, s, s) "Bound the samples so that the node state at the last interval of the first sample equals the state at the first interval of the second sample"
+    uss_bound(unit, s, s) "Bound the samples so that the unit online state at the last interval of the first sample equals the state at the first interval of the second sample"
+    s_parallel(s) "Samples which are treated as parallel"
+    s_active(s) "Samples with non-zero probability in the current model solve"
+    ss(s, s) "Previous sample of sample"
+    s_prev(s) "Temporary set for previous sample"
+    longtermSamples(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
@@ -134,6 +145,9 @@ Sets
     effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
     mSettingsReservesInUse(mType, *, up_down) "Reserves that are used in each model type"
+    unitCounter(unit, counter) "Counter used for restricting excessive looping over the counter set when defining unit startup/shutdown/online time restrictions"
+    runUpCounter(unit, counter) "Counter used for unit run-up intervals"
+    shutdownCounter(unit, counter) "Counter used for unit shutdown intervals"
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
     group "A group of units, transfer links, nodes, etc."
@@ -150,6 +164,7 @@ Option clear = modelSolves;
 Option clear = ms;
 Option clear = mf;
 mf_realization(mType, 'f00') = yes;
+Option clear = longtermSamples;
 
 alias(m, mSolve);
 alias(t, t_, t__, tSolve, tFuel);
@@ -169,6 +184,7 @@ alias(op, op_, op__);
 alias(eff, eff_, eff__);
 alias(fuel, fuel_);
 alias(effLevel, effLevel_);
+alias(restype, restype_);
 
 
 *if(active('rampSched'),

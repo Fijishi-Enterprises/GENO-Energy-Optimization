@@ -89,7 +89,7 @@ Parameters
     // Fuel use results
     r_fuelUse(fuel, unit, f, t) "Fuel use of units"
     r_genFuel(grid, node, fuel, f, t) "Energy generation/consumption based on fuels / flows (MW)"
-    r_genUnittype(grid, node, unittype, t) "Energy generation/consumption for each unittype (MW)"
+    r_genUnittype(grid, node, unittype, f, t) "Energy generation/consumption for each unittype (MW)"
     r_gnTotalGenFuel(grid, node, fuel) "Total energy generation in gn per fuel over the simulation (MWh)"
     r_gnTotalGenFuelShare(grid, node, fuel) "Total energy generation fuel consumption gn/g share"
     r_gTotalGenFuel(grid, fuel) "Total energy generation in g per fuel over the simulation (MWh)"
@@ -132,6 +132,7 @@ Parameters
     r_reserve(restype, up_down, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
     r_resTransferRightward(restype, up_down, node, node, f, t) "Electricity transmission capacity from the first node to the second node reserved for providing reserves (MW)"
     r_resTransferLeftward(restype, up_down, node, node, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
+    r_reserve2Reserve(restype, up_down, node, unit, restype, f, t) "Reserve provided for another reserve category (MW) (also included in r_reserve - this is just for debugging)"
 
     // Interesting reserve results
     r_resDemandMarginal(restype, up_down, node, f, t) "Marginal values of the q_resDemand equation"
@@ -151,8 +152,10 @@ Parameters
     r_qGen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
     r_gnTotalqGen(inc_dec, grid, node) "Total dummy energy generation/consumption in gn over the simulation (MWh)."
     r_gTotalqGen(inc_dec, grid) "Total dummy energy generation/consumption in g over the simulation (MWh)."
-    r_qResDemand(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW)"
+    r_qResDemand(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW) before reserve commitment"
+    r_qResMissing(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW) after reserve commitment"
     r_nTotalqResDemand(restype, up_down, node) "Total dummy reserve provisions in n over the simulation"
+    r_qCapacity(grid, node, f, t) "Dummy capacity to ensure capacity margin equation feasibility (MW)"
     r_solveStatus(t, solve_info) "Information about the solve"
 
 ; // END PARAMETER DECLARATION
@@ -172,14 +175,19 @@ Option clear = r_startup;
 Option clear = r_shutdown;
 Option clear = r_invest;
 Option clear = r_investTransfer;
+Option clear = r_qResDemand;
 
 * =============================================================================
 * --- Diagnostics Results Arrays ----------------------------------------------
 * =============================================================================
 
+// Only include these if '--diag=yes' given as a command line argument
+$iftheni.diag '%diag%' == yes
 Parameters
     d_cop(unit, f, t) "Coefficients of performance of conversion units"
     d_eff(unit, f, t) "Efficiency of generation units using fuel"
-    d_capacityFactor(flow, node, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
-    d_nodeState(grid, node, param_gnBoundaryTypes, f, t) "Diagnostic temperature forecasts (accounting for GAMS plotting error)"
+    d_capacityFactor(flow, node, s, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
+    d_nodeState(grid, node, param_gnBoundaryTypes, s, f, t) "Diagnostic temperature forecasts (accounting for GAMS plotting error)"
+    d_influx(grid, node, s, f, t) "Diagnostic influx forecasts (accounting for GAMS plotting error)"
 ;
+$endif.diag
