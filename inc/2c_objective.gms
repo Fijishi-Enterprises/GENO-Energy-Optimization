@@ -179,7 +179,7 @@ q_obj ..
             ) // END sum(gn2n_directional)
         ) // END sum(t_invest)
 
-$ifthen exist '%input_dir%/2c_additional_objective_terms.gms'
+$ifthen.addterms exist '%input_dir%/2c_additional_objective_terms.gms'
     $$include '%input_dir%/2c_additional_objective_terms.gms';
-$endif
+$endif.addterms
 ;
