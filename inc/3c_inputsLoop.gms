@@ -25,9 +25,9 @@ putclose log;
 
 // Determine the necessary horizon for updating data
 option clear = tmp;
-tmp = max(mSettings(mSolve, 't_forecastLengthUnchanging') + mSettings(mSolve, 't_forecastJump'),
-          mSettings(mSolve, 't_forecastLengthDecreasesFrom')
-      );
+tmp = max(  mSettings(mSolve, 't_forecastLengthUnchanging'),
+            mSettings(mSolve, 't_forecastLengthDecreasesFrom')
+            );
 
 // Find time steps until the forecast horizon
 option clear = tt_forecast;
@@ -35,7 +35,7 @@ tt_forecast(t_current(t))
     ${ ord(t) <= tSolveFirst + tmp }
     = yes;
 
-if (ord(tSolve) >= tForecastNext(mSolve),
+if (ord(tSolve) = tForecastNext(mSolve) - mSettings(mSolve, 't_forecastJump'), // tForecastNext updated already in periodicLoop!
 
     // Update ts_unit
     if (mTimeseries_loop_read(mSolve, 'ts_unit'),
@@ -138,9 +138,6 @@ $offtext
             = ts_unavailability_update(unit, t);
     ); // END if('ts_unavailability')
 
-    // Update the next forecast
-    tForecastNext(mSolve)
-        = tForecastNext(mSolve) + mSettings(mSolve, 't_forecastJump');
 ); // END if(tForecastNext)
 
 * =============================================================================

@@ -172,10 +172,16 @@ tCounter = 1;
 cc(counter)${ mInterval(mSolve, 'stepsPerInterval', counter) }
     = yes;
 
+// Update tForecastNext
+tForecastNext(mSolve)
+    ${ tSolveFirst >= tForecastNext(mSolve) }
+    = tForecastNext(mSolve) + mSettings(mSolve, 't_forecastJump');
+
+// Calculate forecast length
 currentForecastLength
-    = min(  mSettings(mSolve, 't_forecastLengthUnchanging'),  // Unchanging forecast length would remain the same
+    = max(  mSettings(mSolve, 't_forecastLengthUnchanging'),  // Unchanging forecast length would remain the same
             mSettings(mSolve, 't_forecastLengthDecreasesFrom') - [mSettings(mSolve, 't_forecastJump') - {tForecastNext(mSolve) - tSolveFirst}] // While decreasing forecast length has a fixed horizon point and thus gets shorter
-            );   // Smallest forecast horizon is selected
+            );   // Larger forecast horizon is selected
 
 // Is there any case where t_forecastLength should be larger than t_horizon? Could happen if one doesn't want to join forecasts at the end of the solve horizon.
 // If not, add a check for currentForecastLength <= mSettings(mSolve, 't_horizon')
