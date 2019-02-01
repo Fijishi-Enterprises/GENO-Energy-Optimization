@@ -155,7 +155,7 @@ execute_unload '%output_dir%/results.gdx',
     $$include 'defOutput/resultSymbols.inc'
 ;
 
-*$ifi '%debug%' == 'yes' execute_unload 'output/debug.gdx';
+$ifi '%debug%' == 'yes'
 execute_unload '%output_dir%/debug.gdx';
 
 if(errorcount > 0, abort errorcount);
