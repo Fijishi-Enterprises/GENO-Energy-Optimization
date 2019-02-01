@@ -154,13 +154,13 @@ dt_circular(t_full(t))${ ord(t) > tmp }
 * --- Initialize Unit Efficiency Approximations -------------------------------
 * =============================================================================
 
-
 loop(m,
 
 * --- Unit Aggregation --------------------------------------------------------
+
     unitAggregator_unit(unit, unit_)$sum(effLevel$(mSettingsEff(m, effLevel)), unitUnitEffLevel(unit, unit_, effLevel)) = yes;
 
-// Define unit aggregation sets
+    // Define unit aggregation sets
     unit_aggregator(unit)${ sum(unit_, unitAggregator_unit(unit, unit_)) }
         = yes; // Set of aggregator units
     unit_aggregated(unit)${ sum(unit_, unitAggregator_unit(unit_, unit)) }
@@ -169,19 +169,20 @@ loop(m,
     unit_noAggregate(unit)$unit_aggregated(unit) = no;
     unit_noAggregate(unit)${ sum((unit_, effLevel), unitUnitEffLevel(unit, unit_, effLevel)) } = no;
 
-// Process data for unit aggregations
-// Aggregate maxGen as the sum of aggregated maxGen
+    // Process data for unit aggregations
+    // Aggregate maxGen as the sum of aggregated maxGen
     p_gnu(grid, node, unit_aggregator(unit), 'maxGen')
         = sum(unit_$unitAggregator_unit(unit, unit_),
             + p_gnu(grid, node, unit_, 'maxGen')
             );
-// Aggregate maxCons as the sum of aggregated maxCons
+    // Aggregate maxCons as the sum of aggregated maxCons
     p_gnu(grid, node, unit_aggregator(unit), 'maxCons')
         = sum(unit_$unitAggregator_unit(unit, unit_),
             + p_gnu(grid, node, unit_, 'maxCons')
             );
 
-* --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units
+* --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units ---
+
     loop(effLevel$mSettingsEff(m, effLevel),
         loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) < ord(effLevel)},
             p_unit(unit_aggregated(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit_, unit, effLevel)) }
@@ -192,7 +193,7 @@ loop(m,
     );
 );
 
-* --- Ensure that efficiency levels extend to the end of the model horizon and do not go beyond ----
+* --- Ensure that efficiency levels extend to the end of the model horizon and do not go beyond ---
 
 loop(m,
     // First check how many efficiency levels there are and cut levels going beyond the t_horizon
