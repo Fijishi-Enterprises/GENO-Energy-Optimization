@@ -15,6 +15,9 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Automatic calculation of parameter `dt_circular` takes into account time steps 
   only from `t000001` onwards.
+- Debug mode yes/no changed to debug levels 0, 1 or 2. With higher level produces
+  more information. Default is 0, when no extra files are written (not even *debug.gdx*).
+  Set debug level with command line parameter `--debug=LEVEL`.
 
 ### Fixed
 - Calculation of parameter `df_central`
