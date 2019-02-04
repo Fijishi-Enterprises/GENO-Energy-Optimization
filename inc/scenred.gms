@@ -12,7 +12,7 @@ ScenRedParms('scen_red') = 1;  // Reduce scenarios
 ScenRedParms('tree_con') = 0;  // No tree construction
 *ScenRedParms('report_level') = 2;
 ScenRedParms('run_time_limit') = 30;
-$ifthen %debug% == 'yes'
+$ifthene %debug%>1
 ScenRedParms('visual_init') = 1;
 ScenRedParms('visual_red') = 1;
 $endif

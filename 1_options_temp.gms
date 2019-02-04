@@ -14,7 +14,7 @@ solvelink = %Solvelink.Loadlibrary%  // Solvelink controls how the problem is pa
 
 threads = -1          // How many cores the solver can use: 0 = all cores; negative values = all cores - n
 
-$ifi not '%debug%' == 'yes'
+$ife not %debug%>1
     solprint = Silent  // Controls solution file outputs - debug mode will be more verbose
 ;
 

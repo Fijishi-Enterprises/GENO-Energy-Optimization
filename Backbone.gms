@@ -33,10 +33,11 @@ Created by:
 
 GAMS command line arguments
 иииииииииииииииииииииииииии
---debug=[yes|no]
-    Switch on/off debugging mode. In debug mode, writes Сdebug.gdxТ
-    with all symbols as well as a gdx file for each solution containing
-    model parameters, variables and equations.
+--debug=[0|1|2]
+    Set level of debugging information. Default is 0 when no extra information is
+    saved or displayded. At level 1, file 'debug.gdx' containing all GAMS symbols
+    is written at the end of execution. At level 2, debug information is written
+    for each solve separately.
 
 --diag=[yes|no]
     Switch on/off diagnostics. Writes some additional diagnostic results in
@@ -65,6 +66,9 @@ References
 
 ==========================================================================
 $offtext
+
+* Set default debugging level
+$if not set debug $setglobal debug 0
 
 * Default values for input and output dir
 $if not set input_dir $setglobal input_dir 'input'
@@ -129,7 +133,7 @@ $iftheni.dummy not %dummy% == 'yes'
     $$include 'inc/3f_afterSolve.gms'           // Post-processing variables after the solve
     $$include 'inc/4a_outputVariant.gms'        // Store results from the loop
 $endif.dummy
-$iftheni.debug '%debug%' == 'yes'
+$ifthene.debug %debug%>1
         putclose gdx;
         put_utility 'gdxout' / '%output_dir%/' mSolve.tl:0 '-' tSolve.tl:0 '.gdx';
             execute_unload
@@ -155,7 +159,7 @@ execute_unload '%output_dir%/results.gdx',
     $$include 'defOutput/resultSymbols.inc'
 ;
 
-$ifi '%debug%' == 'yes'
+$ife %debug%>0
 execute_unload '%output_dir%/debug.gdx';
 
 if(errorcount > 0, abort errorcount);
