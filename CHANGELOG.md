@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+
+## [1.0.2] - 2019-02-04
 ### Added
 - New model setting `dataLength` to set the length of time series data before it is
   recycled. Warn if this is not defined and automatically calculated from data.
@@ -28,4 +31,5 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Major updates to data structures etc.
 
-[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0...dev
+[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.2...dev
+[1.0.2]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0...v1.0.2

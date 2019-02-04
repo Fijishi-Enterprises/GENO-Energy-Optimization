@@ -1,7 +1,7 @@
 $title Backbone
 $ontext
 Backbone - chronological energy systems model
-Copyright (C) 2016 - 2018  VTT Technical Research Centre of Finland
+Copyright (C) 2016 - 2019  VTT Technical Research Centre of Finland
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@ Created by:
     Juha Kiviluoma
     Erkka Rinne
     Topi Rasku
-    Niina Helisto
+    Niina Helistö
 
 - Based on Stochastic Model Predictive Control method [1].
 - Enables multiple different models (m) to be implemented by changing
