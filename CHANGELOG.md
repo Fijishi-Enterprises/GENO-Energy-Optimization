@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+
+## [1.0.2] - 2019-02-04
 ### Added
 - New model setting `dataLength` to set the length of time series data before it is
   recycled. Warn if this is not defined and automatically calculated from data.
@@ -15,6 +18,9 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Automatic calculation of parameter `dt_circular` takes into account time steps 
   only from `t000001` onwards.
+- Debug mode yes/no changed to debug levels 0, 1 or 2. With higher level produces
+  more information. Default is 0, when no extra files are written (not even *debug.gdx*).
+  Set debug level with command line parameter `--debug=LEVEL`.
 
 ### Fixed
 - Calculation of parameter `df_central`
@@ -25,4 +31,5 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Major updates to data structures etc.
 
-[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0...dev
+[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.2...dev
+[1.0.2]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0...v1.0.2
