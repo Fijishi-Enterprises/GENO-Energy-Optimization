@@ -62,12 +62,14 @@ $offtext
     );
 
     // Calculate which samples are treated as parallel and the previous samples
-    loop(ms_initial(m, s_),
-        loop(ms(m, s)$(not sameas(s, s_)),
+    loop(ms_initial(m, s_),  // Select the root sample
+        loop(ms(m, s)$(not sameas(s, s_)),  // Select other samples than root
+            // If two samples share same starting time, treat them as parallel
             if(msStart(m, s) = msStart(m, s - 1),
                 s_parallel(s) = yes;
                 s_parallel(s - 1) = yes;
             );
+            // Set previous samples for samples
             if(msEnd(m, s_) = msStart(m, s), ss(s, s_) = yes);
             if(msEnd(m, s - 1) = msStart(m, s), ss(s, s - 1) = yes);
         );
@@ -80,12 +82,15 @@ $offtext
     if (not sum(f, mf(m, f)),  // unless they have been provided as input
         mf(m, f)$(ord(f) <= 1 + mSettings(m, 'forecasts')) = yes;  // realization needs one f, therefore 1 + number of forecasts
     );
-    msf(m, s, f)$(ms(m, s) and mf(m, f)) = yes;
-    msf(m, s_parallel(s), f) = mf_central(m, f);  // Parallel samples only have central forecast
 
     // Select the forecasts included in the modes to be solved
     f_solve(f)${mf(m,f) and p_mfProbability(m, f)}
         = yes;
+
+    // Select combinations of models, samples and forecasts to be solved
+    msf(m, s, f_solve(f))$(ms(m, s) and mf(m, f)) = yes;
+    msf(m, s_parallel(s), f_solve(f)) = mf_central(m, f);  // Parallel samples only have central forecast
+
 
     // Check the modelSolves for preset patterns for model solve timings
     // If not found, then use mSettings to set the model solve timings
