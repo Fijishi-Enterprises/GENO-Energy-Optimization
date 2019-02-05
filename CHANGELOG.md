@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Changed
+- Suppress ouput from SCENRED2
 
 ## [1.0.3] - 2019-02-05
 ### Fixed
