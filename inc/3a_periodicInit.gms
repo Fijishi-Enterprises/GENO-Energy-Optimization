@@ -62,12 +62,14 @@ $offtext
     );
 
     // Calculate which samples are treated as parallel and the previous samples
-    loop(ms_initial(m, s_),
-        loop(ms(m, s)$(not sameas(s, s_)),
+    loop(ms_initial(m, s_),  // Select the root sample
+        loop(ms(m, s)$(not sameas(s, s_)),  // Select other samples than root
+            // If two samples share same starting time, treat them as parallel
             if(msStart(m, s) = msStart(m, s - 1),
                 s_parallel(s) = yes;
                 s_parallel(s - 1) = yes;
             );
+            // Set previous samples for samples
             if(msEnd(m, s_) = msStart(m, s), ss(s, s_) = yes);
             if(msEnd(m, s - 1) = msStart(m, s), ss(s, s - 1) = yes);
         );
