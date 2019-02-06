@@ -43,7 +43,7 @@ loop(m,
                 ];
 
     // Unit startup costs
-    r_uStartupCost(unit, ft_realizedNoReset(f,t))${uft_online(unit, f, t) and sum(starttype, unitStarttype(unit, starttype)) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
+    r_uStartupCost(unit, ft_realizedNoReset(f,t))${sum(starttype, unitStarttype(unit, starttype)) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
         = 1e-6 // Scaling to MEUR
             * sum(unitStarttype(unit, starttype),
                 + r_startup(unit, starttype, f, t)
@@ -496,7 +496,8 @@ d_cop(unit, ft_realizedNoReset(f, t))${  [ord(t) > mSettings(m, 't_start') + mSe
                 -r_gen(grid_, node_, unit, f, t)
                 ) // END sum(gnu_input)
             + 1${not sum(gnu_input(grid_, node_, unit), -r_gen(grid_, node_, unit, f, t))}
-            ];
+            ]
+        + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 
 // Estimated efficiency
 d_eff(unit_fuel(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
@@ -507,7 +508,8 @@ d_eff(unit_fuel(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start
                 + r_fuelUse(fuel, unit, f, t)
                 ) // END sum(uFuel)
             + 1${not sum(uFuel(unit, 'main', fuel), r_fuelUse(fuel, unit, f, t))}
-            ];
+            ]
+        + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 $endif.diag
 
 ); // END loop(m)

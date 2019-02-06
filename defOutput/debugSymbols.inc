@@ -57,11 +57,13 @@ p_uStartup
 p_u_maxOutputInLastRunUpInterval
 p_u_runUpTimeIntervals
 dt_toStartup
-p_ut_runUp
+p_uCounter_runUpMin
+p_uCounter_runUpMax
 p_u_maxOutputInFirstShutdownInterval
 p_u_shutdownTimeIntervals
 dt_toShutdown
-p_ut_shutdown
+p_uCounter_shutdownMin
+p_uCounter_shutdownMax
 
 * Variables
 v_obj
@@ -101,6 +103,7 @@ v_invest_MIP
     q_onlineOnStartUp
     q_offlineAfterShutDown
     q_onlineMinUptime
+    q_onlineCyclic
     q_genRamp
     q_rampUpLimit
     q_rampDownLimit

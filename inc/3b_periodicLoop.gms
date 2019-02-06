@@ -20,7 +20,7 @@ $offtext
 * =============================================================================
 
 // This is only done if debug mode is not specifically enabled
-$iftheni.debug NOT '%debug%' == 'yes'
+$ifthene.debug not %debug%>0
 
 * --- Variables ---------------------------------------------------------------
 
@@ -70,6 +70,7 @@ $iftheni.debug NOT '%debug%' == 'yes'
     Option clear = q_startuptype;
     Option clear = q_onlineLimit;
     Option clear = q_onlineMinUptime;
+    Option clear = q_onlineCyclic;
     Option clear = q_onlineOnStartUp;
     Option clear = q_offlineAfterShutdown;
     Option clear = q_genRamp;
@@ -114,6 +115,9 @@ $iftheni.debug NOT '%debug%' == 'yes'
 * --- Temporary Time Series ---------------------------------------------------
 
     // Initialize temporary time series
+    Option clear = ts_unit_;
+*    Option clear = ts_effUnit_;
+*    Option clear = ts_effGroupUnit_;
     Option clear = ts_influx_;
     Option clear = ts_cf_;
     Option clear = ts_unit_;
@@ -168,18 +172,26 @@ tCounter = 1;
 cc(counter)${ mInterval(mSolve, 'stepsPerInterval', counter) }
     = yes;
 
-currentForecastLength = min(  mSettings(mSolve, 't_forecastLengthUnchanging'),  // Unchanging forecast length would remain the same
-                              mSettings(mSolve, 't_forecastLengthDecreasesFrom') - [mSettings(mSolve, 't_forecastJump') - {tForecastNext(mSolve) - tSolveFirst}] // While decreasing forecast length has a fixed horizon point and thus gets shorter
-                           );   // Smallest forecast horizon is selected
+// Update tForecastNext
+tForecastNext(mSolve)
+    ${ tSolveFirst >= tForecastNext(mSolve) }
+    = tForecastNext(mSolve) + mSettings(mSolve, 't_forecastJump');
+
+// Calculate forecast length
+currentForecastLength
+    = max(  mSettings(mSolve, 't_forecastLengthUnchanging'),  // Unchanging forecast length would remain the same
+            mSettings(mSolve, 't_forecastLengthDecreasesFrom') - [mSettings(mSolve, 't_forecastJump') - {tForecastNext(mSolve) - tSolveFirst}] // While decreasing forecast length has a fixed horizon point and thus gets shorter
+            );   // Larger forecast horizon is selected
 
 // Is there any case where t_forecastLength should be larger than t_horizon? Could happen if one doesn't want to join forecasts at the end of the solve horizon.
 // If not, add a check for currentForecastLength <= mSettings(mSolve, 't_horizon')
 // and change the line below to 'tSolveLast = ord(tSolve) + mSettings(mSolve, 't_horizon');'
 tSolveLast = ord(tSolve) + max(currentForecastLength, min(mSettings(mSolve, 't_horizon'), smax(s, msEnd(mSolve, s))));  // tSolveLast: the end of the current solve
 Option clear = t_current;
-t_current(t_full(t))${  ord(t) >= tSolveFirst
-                        and ord (t) <= tSolveLast
-                        }
+t_current(t_full(t))
+    ${  ord(t) >= tSolveFirst
+        and ord (t) <= tSolveLast
+        }
     = yes;
 
 // Loop over the defined blocks of intervals
@@ -421,9 +433,13 @@ ft_reservesFixed(node, restype, f_solve(f), t_active(t))
                     ]
         }
     = yes;
+
+// Calculate sample displacements
 Options clear = ds, clear = ds_state;
-loop(ms(mSolve, s),
-    ds(s, t) = -(ord(s) - 1)$(ord(t) = tSolveFirst + msStart(mSolve, s));
+loop(ms(mSolve, s)$msStart(msolve, s),  // Get all samples with defined start
+    loop(s_$(msEnd(mSolve, s_) = msStart(mSolve, s)),  // Get the previous sample
+        ds(s, t)$(ord(t) = tSolveFirst + msStart(mSolve, s)) = -(ord(s) - ord(s_));
+    );
     ds_state(gn_state(grid, node), s, t)${not sum(s_, gnss_bound(grid, node, s_, s))
                                           and not sum(s_, gnss_bound(grid, node, s, s_))}
         = ds(s, t);
@@ -521,29 +537,6 @@ uft_onlineLP(uft(unit, f, t))${ suft('directOnLP', unit, f, t) }
     = yes;
 uft_onlineMIP(uft_online(unit, f, t)) = uft_online(unit, f, t) - uft_onlineLP(unit, f, t);
 
-// Calculate time series form parameters for units using direct input output conversion without online variable
-// Always constant 'lb', 'rb', and 'section', so need only to define 'slope'.
-loop(effGroupSelectorUnit(effDirectOff, unit, effDirectOff_)${ p_unit(unit, 'useTimeseries') },
-    ts_effUnit(effDirectOff, unit, effDirectOff_, 'slope', ft(f, t))${  sum(eff, ts_unit(unit, eff, f, t))  } // NOTE!!! Averages the slope over all available data.
-        = sum(eff${ts_unit(unit, eff, f, t)}, 1 / ts_unit(unit, eff, f, t))
-            / sum(eff${ts_unit(unit, eff, f, t)}, 1);
-); // END loop(effGroupSelectorUnit)
-
-// NOTE! Using the same methodology for the directOn and lambda approximations in time series form might require looping over ft(f,t) to find the min and max 'eff' and 'rb'
-// Alternatively, one might require that the 'rb' is defined in a similar structure, so that the max 'rb' is located in the same index for all ft(f,t)
-
-// Calculate unit wide parameters for each efficiency group
-loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLevel)
-                                                    and p_unit(unit, 'useTimeseries')
-                                                    },
-    ts_effGroupUnit(effGroup, unit, 'rb', ft(f, t))${   sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'rb', f, t))}
-        = smax(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'rb', f, t));
-    ts_effGroupUnit(effGroup, unit, 'lb', ft(f, t))${   sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'lb', f, t))}
-        = smin(effSelector${effGroupSelectorUnit(effGroup, unit, effSelector)}, ts_effUnit(effGroup, unit, effSelector, 'lb', f, t));
-    ts_effGroupUnit(effGroup, unit, 'slope', ft(f, t))${sum(effSelector, ts_effUnit(effGroup, unit, effSelector, 'slope', f, t))}
-        = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
-); // END loop(effLevelGroupUnit)
-
 // Units with start-up and shutdown trajectories
 Option clear = uft_startupTrajectory;
 Option clear = uft_shutdownTrajectory;
@@ -587,24 +580,15 @@ dtt(t_active(t), tt(t_))
 // Calculate dt_toStartup: in case the unit becomes online in the current time interval,
 // displacement needed to reach the time interval where the unit was started up
 Option clear = dt_toStartup;
-loop(unit$(p_u_runUpTimeIntervals(unit)),
-    loop(t_active(t)${sum(f_solve(f), uft_startupTrajectory(unit, f, t))},
-        tmp = 1;
-        loop(tt(t_)${   ord(t_) > ord(t) - p_u_runUpTimeIntervals(unit) // time intervals after the start up
-                        and ord(t_) <= ord(t) // time intervals before and including the current time interval
-                        and tmp = 1
-                        },
-            if (-dtt(t,t_) < p_u_runUpTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for start-up phase
-                dt_toStartup(unit, t) = dtt(t,t_ + dt(t_)); // the displacement to the active or realized time interval just before the time interval found
-                tmp = 0;
-            );
-        );
-        if (tmp = 1,
-            dt_toStartup(unit, t) = dt(t);
-            tmp=0;
-        );
-    );
-);
+loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
+    loop(t_active(t),
+        dt_toStartup(unit, tt(t_)) // tt still used as a clone of t_active (see above)
+            ${  dtt(t_, t) > - p_u_runUpTimeIntervalsCeil(unit)
+                and dtt(t_, t+dt(t)) <= - p_u_runUpTimeIntervalsCeil(unit)
+                }
+            = dtt(t_, t+dt(t));
+    ); // END loop(t_active)
+); // END loop(runUpCounter)
 
 * --- Shutdown decisions ------------------------------------------------------
 
@@ -612,24 +596,15 @@ loop(unit$(p_u_runUpTimeIntervals(unit)),
 // the current time interval, displacement needed to reach the time interval where
 // the shutdown decisions was made
 Option clear = dt_toShutdown;
-loop(unit$(p_u_shutdownTimeIntervals(unit)),
-    loop(t_active(t)${sum(f_solve(f), uft_shutdownTrajectory(unit, f, t))},
-        tmp = 1;
-        loop(tt(t_)${   ord(t_) > ord(t) - p_u_shutdownTimeIntervals(unit) // time intervals after the shutdown decision
-                        and ord(t_) <= ord(t) // time intervals before and including the current time interval
-                        and tmp = 1
-                        },
-            if (-dtt(t,t_) < p_u_shutdownTimeIntervals(unit), // if the displacement between the two time intervals is smaller than the number of time steps required for shutdown phase
-                dt_toShutdown(unit, t) = dtt(t,t_ + dt(t_)); // the displacement to the active or realized time interval just before the time interval found
-                tmp = 0;
-            );
-        );
-        if (tmp = 1,
-            dt_toShutdown(unit, t) = dt(t);
-            tmp=0;
-        );
-    );
-);
+loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
+    loop(t_active(t),
+        dt_toShutdown(unit, tt(t_)) // tt still used as a clone of t_active (see above)
+            ${  dtt(t_, t) > - p_u_shutdownTimeIntervalsCeil(unit)
+                and dtt(t_, t+dt(t)) <= -p_u_shutdownTimeIntervalsCeil(unit)
+                }
+            = dtt(t_, t+dt(t));
+    ); // END loop(t_active)
+); // END loop(runUpCounter)
 
 * --- Historical Unit LP and MIP information ----------------------------------
 

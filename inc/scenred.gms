@@ -12,16 +12,22 @@ ScenRedParms('scen_red') = 1;  // Reduce scenarios
 ScenRedParms('tree_con') = 0;  // No tree construction
 *ScenRedParms('report_level') = 2;
 ScenRedParms('run_time_limit') = 30;
-$ifthen %debug% == 'yes'
+$ifthene %debug%>1
 ScenRedParms('visual_init') = 1;
 ScenRedParms('visual_red') = 1;
 $endif
 
-* Data exchange and execute SCENRED2
+* Export data
 execute_unload 'srin.gdx', ScenRedParms,
                                   s, ss, p_sProbability,
                                   ts_influx_, ts_cf_;
-execute 'scenred2 inc/scenred.cmd';
+* Choose right null device
+$ifthen %system.filesys% == 'MSNT' $set nuldev NUL
+$else $set nuldev /dev/null
+$endif
+* Execute SCENRED2 and load data
+$log Executing SCENRED2
+execute 'scenred2 inc/scenred.cmd > %nuldev%';
 if(errorLevel, abort "Scenario reduction (SCENRED2) failed");
 execute_load 'srout.gdx', ScenRedReport,
                           p_sProbability=red_prob;

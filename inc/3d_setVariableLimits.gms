@@ -194,6 +194,7 @@ loop(ms(mSolve, s),
                                                   and p_gnu(grid, node, unit, 'maxRampUp')
                                                   and not unit_investLP(unit)
                                                   and not unit_investMIP(unit)
+                                                  and not uft_startupTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedToMinLoad'
                                                  }
      = ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )
             * p_gnu(grid, node, unit, 'maxRampUp')
@@ -204,6 +205,7 @@ loop(ms(mSolve, s),
                                                   and p_gnu(grid, node, unit, 'maxRampDown')
                                                   and not unit_investLP(unit)
                                                   and not unit_investMIP(unit)
+                                                  and not uft_startupTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedFromMinLoad'
                                                  }
      = -( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons'))
             * p_gnu(grid, node, unit, 'maxRampDown')
@@ -432,6 +434,9 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
         v_gen.fx(grid, node, unit, s, f, t)${p_gnu(grid, node, unit, 'useInitialGeneration')}
             = p_gnu(grid, node, unit, 'initialGeneration');
 
+        // Startup and shutdown variables are not applicable at the first time step
+        v_startup.fx(unitStarttype(unit, starttype), s, f, t) = 0;
+        v_shutdown.fx(unit, s, f, t) = 0;
 
     else // For all other solves, fix the initial state values based on previous results.
 

@@ -140,12 +140,12 @@ Sets
 
     // Other Features
     feature "Set of optional model features" /
-        findStorageStart "Solve for optimal storage start levels"
+*        findStorageStart "Solve for optimal storage start levels" // NOT IMPLEMENTED
         storageValue     "Use storage value instead of fixed control"
-        storageEnd       "Expected storage end levels greater than starting levels"
-        addOn            "Use StoSSch as a storage add-on to a larger model"
-        extraRes         "Use extra tertiary reserves for error in elec. load during time step"
-        rampSched        "Use power based scheduling"
+*        storageEnd       "Expected storage end levels greater than starting levels" // NOT IMPLEMENTED
+*        addOn            "Use StoSSch as a storage add-on to a larger model" // NOT IMPLEMENTED
+*        extraRes         "Use extra tertiary reserves for error in elec. load during time step" // NOT IMPLEMENTED
+*        rampSched        "Use power based scheduling" // PARTIALLY IMPLEMENTED
         scenRed          "Reduce number of long-tem scenarios using GAMS SCENRED2"
         /
 
@@ -185,18 +185,8 @@ Parameter params(*) /
 $if exist 'params.inc' $include 'params.inc'
 /;
 
-// Activate model features if found
-Set active(mType, feature) "Set membership tells active model features" /
-$if exist 'features.inc' $include 'features.inc'
-/;
-
-// Parse command line options and store values for features
-$if set findStorageStart active('findStorageStart') = %findStorageStart%;
-$if set storageValue active('storageValue') = %storageValue%;
-$if set storageEnd active('storageEnd') = %storageEnd%;
-$if set addOn active('addOn') = %addOn%;
-$if set extraRes active('extraRes') = %extraRes%;
-$if set rampSched active('rampSched') = %rampSched%;
+// Features
+Set active(mType, feature) "Set membership tells active model features";
 
 * =============================================================================
 * --- Parameter Set Definitions -----------------------------------------------
@@ -311,6 +301,13 @@ param_unit "Set of possible data parameters for units" /
     maxUnitCount  "Maximum number of units when making integer investments"
     minUnitCount  "Minimum number of units when making integer investments"
     lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
+/
+
+param_eff "Parameters used for unit efficiency approximations" /
+    lb      "Minimum load of the unit"
+    op      "Maximum load of the unit, or the operating point of the SOS2 variable in the piecewise linear heat rate approximation (lambda)"
+    section "Operational heat rate of the unit, or the SOS2 variable in the piecewise linear heat rate approximation (lambda)"
+    slope   "Heat rate parameter representing no-load fuel consumption"
 /
 
 param_fuel "Parameters for fuels" /

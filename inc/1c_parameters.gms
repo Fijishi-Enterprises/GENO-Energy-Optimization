@@ -60,25 +60,29 @@ Parameters
     p_fuelEmission(fuel, emission) "Fuel emission content"
     p_uFuel(unit, param_fuel, fuel, param_unitFuel) "Parameters interacting between units and fuels"
     p_unitFuelEmissionCost(unit, fuel, emission) "Emission costs for each unit, calculated from input data"
-    p_effUnit(effSelector, unit, effSelector, *)  "Data for piece-wise linear efficiency blocks"
-    p_effGroupUnit(effSelector, unit, *) "Unit data specific to a efficiency group (e.g. left border of the unit)"
+    p_effUnit(effSelector, unit, effSelector, param_eff)  "Data for piece-wise linear efficiency blocks"
+    p_effGroupUnit(effSelector, unit, param_eff) "Unit data specific to a efficiency group (e.g. left border of the unit)"
     p_uNonoperational(unit, starttype, min_max) "Non-operational time after being shut down before start up"
     p_uStartup(unit, starttype, cost_consumption) "Startup cost and fuel consumption"
     p_u_maxOutputInLastRunUpInterval(unit) "Maximum output in the last interval for the run-up to min. load (p.u.)"
     p_u_maxRampSpeedInLastRunUpInterval(unit) "Maximum ramp speed in the last interval for the run-up to min. load (p.u.)"
     p_u_runUpTimeIntervals(unit) "Time steps required for the run-up phase"
     p_u_runUpTimeIntervalsCeil(unit) "Ceiling of time steps required for the run-up phase"
-    p_ut_runUp(unit, t) "Output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
+    p_uCounter_runUpMin(unit, counter) "Minimum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
+    p_uCounter_runUpMax(unit, counter) "Maximum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
     p_u_maxOutputInFirstShutdownInterval(unit) "Maximum output in the first interval for the shutdown from min. load (p.u.)"
     p_u_shutdownTimeIntervals(unit) "Time steps required for the shutdown phase"
-    p_u_shutdownTimeIntervalsCeil(unit) "Ceiling of time steps required for the shutdown phase"
-    p_ut_shutdown(unit, t) "Output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
+    p_u_shutdownTimeIntervalsCeil(unit) "Floor of time steps required for the shutdown phase"
+    p_uCounter_shutdownMin(unit, counter) "Minimum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
+    p_uCounter_shutdownMax(unit, counter) "Maximum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
 // Time dependent unit & fuel parameters
-    ts_unit(unit, *, f, t) "Time dependent unit data, where energy type doesn't matter"
-    ts_effUnit(effSelector, unit, effSelector, *, f, t) "Time dependent data for piece-wise linear efficiency blocks"
-    ts_effGroupUnit(effSelector, unit, *, f, t) "Time dependent efficiency group unit data"
+    ts_unit(unit, param_unit, f, t) "Time dependent unit data, where energy type doesn't matter"
+    ts_effUnit(effSelector, unit, effSelector, param_eff, f, t) "Time dependent data for piece-wise linear efficiency blocks"
+    ts_effGroupUnit(effSelector, unit, param_eff, f, t) "Time dependent efficiency group unit data"
 // Alias used for interval aggregation
-    ts_unit_(unit, *, f, t)
+    ts_unit_(unit, param_unit, f, t)
+*    ts_effUnit_(effSelector, unit, effSelector, param_eff, f, t)
+*    ts_effGroupUnit_(effSelector, unit, param_eff, f, t)
 ;
 
 * --- Probability -------------------------------------------------------------
@@ -105,6 +109,7 @@ Parameters
     dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints (in time steps)"
     dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints (in time steps)"
     dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints (in time steps)"
+    dt_trajectory(counter) "Run-up/shutdown trajectory time index displacement"
     dt_sampleOffset(*, node, *, s) "Time offset to make periodic time series data (for grid/flow, unit, label) to go into different samples"
 
     // Forecast displacement arrays
@@ -150,9 +155,9 @@ Parameters
     ts_fuelPrice_(fuel, t) "Mean fuel price time during time step (EUR/MWh)"
 
     // Aliases used for updating data in inputsLoop.gms
-    ts_unit_update(unit, *, f, t)
-    ts_effUnit_update(effSelector, unit, effSelector, *, f, t)
-    ts_effGroupUnit_update(effSelector, unit, *, f, t)
+    ts_unit_update(unit, param_unit, f, t)
+    ts_effUnit_update(effSelector, unit, effSelector, param_eff, f, t)
+    ts_effGroupUnit_update(effSelector, unit, param_eff, f, t)
     ts_influx_update(grid, node, f, t)
     ts_cf_update(flow, node, f, t)
     ts_reserveDemand_update(restype, up_down, node, f, t)

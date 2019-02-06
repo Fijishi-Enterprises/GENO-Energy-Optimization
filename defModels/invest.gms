@@ -35,6 +35,7 @@ Model invest /
     q_offlineAfterShutDown
     q_onlineLimit
     q_onlineMinUptime
+    q_onlineCyclic
     q_genRamp
     q_rampUpLimit
     q_rampDownLimit

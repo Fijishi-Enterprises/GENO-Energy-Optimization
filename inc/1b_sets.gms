@@ -48,6 +48,7 @@ Sets
     unittype "Unit technology types"
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
+    unit_timeseries(unit) "Units with time series enabled"
 
 * --- Nodes -------------------------------------------------------------------
     node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
@@ -115,7 +116,8 @@ Sets
     modelSolves(mType, t) "when different models are to be solved"
     f_solve(f) "forecasts in the model to be solved next"
     t_latestForecast(t) "t for the latest forecast that is available"
-    gnss_bound(grid, node, s, s) "Bound the samples so that the state at the last interval of the first sample equals the state at the first interval of the second sample"
+    gnss_bound(grid, node, s, s) "Bound the samples so that the node state at the last interval of the first sample equals the state at the first interval of the second sample"
+    uss_bound(unit, s, s) "Bound the samples so that the unit online state at the last interval of the first sample equals the state at the first interval of the second sample"
     s_parallel(s) "Samples which are treated as parallel"
     s_active(s) "Samples with non-zero probability in the current model solve"
     ss(s, s) "Previous sample of sample"
@@ -143,7 +145,9 @@ Sets
     effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
     mSettingsReservesInUse(mType, *, up_down) "Reserves that are used in each model type"
-    unitCounter(unit, counter) "Counter subset used for restricting excessive looping over the counter set when defining unit startup/shutdown/online time restrictions"
+    unitCounter(unit, counter) "Counter used for restricting excessive looping over the counter set when defining unit startup/shutdown/online time restrictions"
+    runUpCounter(unit, counter) "Counter used for unit run-up intervals"
+    shutdownCounter(unit, counter) "Counter used for unit shutdown intervals"
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
     group "A group of units, transfer links, nodes, etc."

@@ -33,6 +33,7 @@ Model building /
 *    q_startuptype
 *    q_onlineLimit
 *    q_onlineMinUptime
+*    q_onlineCyclic
 *    q_minDown
 *    q_genRamp
 *    q_genRampChange

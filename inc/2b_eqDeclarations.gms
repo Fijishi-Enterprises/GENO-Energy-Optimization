@@ -63,6 +63,7 @@ equations
     q_offlineAfterShutdown(s, unit, f, t) "Unit must be offline after shutting down"
     q_onlineLimit(mType, s, unit, f, t) "Number of online units limited for units with startup constraints, minimum down time, or investment possibility"
     q_onlineMinUptime(mType, s, unit, f, t) "Number of online units constrained for units with minimum up time"
+    q_onlineCyclic(unit, s, s, mType) "Cyclic online state bound for the first and the last states of samples"
     q_genRamp(mType, s, grid, node, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
     q_rampUpLimit(mType, s, grid, node, unit, f, t) "Up ramping limited for units"
     q_rampDownLimit(mType, s, grid, node, unit, f, t) "Down ramping limited for units"
@@ -90,7 +91,7 @@ equations
     q_stateUpwardLimit(grid, node, mType, s, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_stateDownwardLimit(grid, node, mType, s, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_boundStateMaxDiff(grid, node, node, mType, s, f, t) "Node state variables bounded by other nodes (maximum state difference)"
-    q_boundCyclic(grid, node, s, s, mType) "Cyclic bound for the first and the last states of samples"
+    q_boundCyclic(grid, node, s, s, mType) "Cyclic node state bound for the first and the last states of samples"
 
     // Policy
     q_inertiaMin(group, s, f, t) "Minimum inertia in a group of nodes"

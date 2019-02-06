@@ -1,7 +1,7 @@
 $title Backbone
 $ontext
 Backbone - chronological energy systems model
-Copyright (C) 2016 - 2018  VTT Technical Research Centre of Finland
+Copyright (C) 2016 - 2019  VTT Technical Research Centre of Finland
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -21,22 +21,23 @@ Created by:
     Juha Kiviluoma
     Erkka Rinne
     Topi Rasku
-    Niina Helisto
+    Niina Helistö
 
 - Based on Stochastic Model Predictive Control method [1].
 - Enables multiple different models (m) to be implemented by changing
-  the temporal structure of the model.
+  the temporal structure of the model. (MULTI-MODEL RUNS TO BE IMPLEMENTED)
 - Time steps (t) can vary in length.
 - Short term forecast stochasticity (f) and longer term statistical uncertainty (s).
-- Can handle ramp based dispatch in addition to energy blocks.
+- Can handle ramp based dispatch in addition to energy blocks. (TO BE IMPLEMENTED)
 
 
 GAMS command line arguments
 ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
---debug=[yes|no]
-    Switch on/off debugging mode. In debug mode, writes ‘debug.gdx’
-    with all symbols as well as a gdx file for each solution containing
-    model parameters, variables and equations.
+--debug=[0|1|2]
+    Set level of debugging information. Default is 0 when no extra information is
+    saved or displayded. At level 1, file 'debug.gdx' containing all GAMS symbols
+    is written at the end of execution. At level 2, debug information is written
+    for each solve separately.
 
 --diag=[yes|no]
     Switch on/off diagnostics. Writes some additional diagnostic results in
@@ -46,13 +47,9 @@ GAMS command line arguments
     Do not solve the model, just do preliminary calculations.
     For testing purposes.
 
---<name of model parameter>=<value>
-    Set model parameter value. See file ‘inc/setting_sets.gms’ for available
-    parameters.
-
---<name of model feature>=[yes|no]
-    Switch model features on/off. See file ‘inc/setting_sets.gms’ for available
-    features.
+--penalty=<value>
+    Changes the value of the penalty cost. Default penalty value is 1e9
+    if not provided.
 
 --input_dir=<path>
     Directory to read input from. Defaults to './input'.
@@ -69,6 +66,9 @@ References
 
 ==========================================================================
 $offtext
+
+* Set default debugging level
+$if not set debug $setglobal debug 0
 
 * Default values for input and output dir
 $if not set input_dir $setglobal input_dir 'input'
@@ -133,7 +133,7 @@ $iftheni.dummy not %dummy% == 'yes'
     $$include 'inc/3f_afterSolve.gms'           // Post-processing variables after the solve
     $$include 'inc/4a_outputVariant.gms'        // Store results from the loop
 $endif.dummy
-$iftheni.debug '%debug%' == 'yes'
+$ifthene.debug %debug%>1
         putclose gdx;
         put_utility 'gdxout' / '%output_dir%/' mSolve.tl:0 '-' tSolve.tl:0 '.gdx';
             execute_unload
@@ -159,7 +159,7 @@ execute_unload '%output_dir%/results.gdx',
     $$include 'defOutput/resultSymbols.inc'
 ;
 
-*$ifi '%debug%' == 'yes' execute_unload 'output/debug.gdx';
+$ife %debug%>0
 execute_unload '%output_dir%/debug.gdx';
 
 if(errorcount > 0, abort errorcount);

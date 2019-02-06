@@ -62,12 +62,14 @@ $offtext
     );
 
     // Calculate which samples are treated as parallel and the previous samples
-    loop(ms_initial(m, s_),
-        loop(ms(m, s)$(not sameas(s, s_)),
+    loop(ms_initial(m, s_),  // Select the root sample
+        loop(ms(m, s)$(not sameas(s, s_)),  // Select other samples than root
+            // If two samples share same starting time, treat them as parallel
             if(msStart(m, s) = msStart(m, s - 1),
                 s_parallel(s) = yes;
                 s_parallel(s - 1) = yes;
             );
+            // Set previous samples for samples
             if(msEnd(m, s_) = msStart(m, s), ss(s, s_) = yes);
             if(msEnd(m, s - 1) = msStart(m, s), ss(s, s - 1) = yes);
         );
@@ -80,12 +82,15 @@ $offtext
     if (not sum(f, mf(m, f)),  // unless they have been provided as input
         mf(m, f)$(ord(f) <= 1 + mSettings(m, 'forecasts')) = yes;  // realization needs one f, therefore 1 + number of forecasts
     );
-    msf(m, s, f)$(ms(m, s) and mf(m, f)) = yes;
-    msf(m, s_parallel(s), f) = mf_central(m, f);  // Parallel samples only have central forecast
 
     // Select the forecasts included in the modes to be solved
     f_solve(f)${mf(m,f) and p_mfProbability(m, f)}
         = yes;
+
+    // Select combinations of models, samples and forecasts to be solved
+    msf(m, s, f_solve(f))$(ms(m, s) and mf(m, f)) = yes;
+    msf(m, s_parallel(s), f_solve(f)) = mf_central(m, f);  // Parallel samples only have central forecast
+
 
     // Check the modelSolves for preset patterns for model solve timings
     // If not found, then use mSettings to set the model solve timings
@@ -115,6 +120,8 @@ $offtext
         if(not mInterval(m, 'lastStepInIntervalBlock', counter),
             continueLoop = 0;
         elseif mod(mInterval(m, 'lastStepInIntervalBlock', counter) - mInterval(m, 'lastStepInIntervalBlock', counter-1), mInterval(m, 'stepsPerInterval', counter)),
+            put log "!!! Error occurred on interval block ", counter.tl:0 /;
+            put log "!!! Abort: stepsPerInterval is not evenly divisible within the interval"
             abort "stepsPerInterval is not evenly divisible within the interval", m, continueLoop;
         else
             continueLoop = continueLoop + 1;
@@ -125,7 +132,7 @@ $offtext
     if(mSettings(m, 'dataLength'),
         tmp = max(mSettings(m, 'dataLength') + 1, tmp); // 'dataLength' increased by one to account for t000000 in ord(t)
     else
-        put log '!!! mSettings(m, dataLength) is not defined! Calculating dataLength based on ts_influx and ts_node.' /;
+        put log '!!! Warning: mSettings(m, dataLength) is not defined! Calculating dataLength based on ts_influx and ts_node.' /;
         // Calculate the length of the time series data (based on realized forecast)
         option clear = tt; // Find the time steps with input time series data (ts_influx and ts_node)
         loop(gn(grid, node),
@@ -152,13 +159,13 @@ dt_circular(t_full(t))${ ord(t) > tmp }
 * --- Initialize Unit Efficiency Approximations -------------------------------
 * =============================================================================
 
-
 loop(m,
 
 * --- Unit Aggregation --------------------------------------------------------
+
     unitAggregator_unit(unit, unit_)$sum(effLevel$(mSettingsEff(m, effLevel)), unitUnitEffLevel(unit, unit_, effLevel)) = yes;
 
-// Define unit aggregation sets
+    // Define unit aggregation sets
     unit_aggregator(unit)${ sum(unit_, unitAggregator_unit(unit, unit_)) }
         = yes; // Set of aggregator units
     unit_aggregated(unit)${ sum(unit_, unitAggregator_unit(unit_, unit)) }
@@ -167,19 +174,20 @@ loop(m,
     unit_noAggregate(unit)$unit_aggregated(unit) = no;
     unit_noAggregate(unit)${ sum((unit_, effLevel), unitUnitEffLevel(unit, unit_, effLevel)) } = no;
 
-// Process data for unit aggregations
-// Aggregate maxGen as the sum of aggregated maxGen
+    // Process data for unit aggregations
+    // Aggregate maxGen as the sum of aggregated maxGen
     p_gnu(grid, node, unit_aggregator(unit), 'maxGen')
         = sum(unit_$unitAggregator_unit(unit, unit_),
             + p_gnu(grid, node, unit_, 'maxGen')
             );
-// Aggregate maxCons as the sum of aggregated maxCons
+    // Aggregate maxCons as the sum of aggregated maxCons
     p_gnu(grid, node, unit_aggregator(unit), 'maxCons')
         = sum(unit_$unitAggregator_unit(unit, unit_),
             + p_gnu(grid, node, unit_, 'maxCons')
             );
 
-* --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units
+* --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units ---
+
     loop(effLevel$mSettingsEff(m, effLevel),
         loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) < ord(effLevel)},
             p_unit(unit_aggregated(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit_, unit, effLevel)) }
@@ -190,7 +198,7 @@ loop(m,
     );
 );
 
-* --- Ensure that efficiency levels extend to the end of the model horizon and do not go beyond ----
+* --- Ensure that efficiency levels extend to the end of the model horizon and do not go beyond ---
 
 loop(m,
     // First check how many efficiency levels there are and cut levels going beyond the t_horizon
@@ -282,7 +290,7 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
     // Parameters for direct conversion units without online variables
     if(effDirectOff(effSelector),
         p_effUnit(effSelector, unit, effSelector, 'lb') = 0; // No min load for the DirectOff approximation
-        p_effUnit(effSelector, unit, effSelector, 'op') = smax(op, p_unit(unit, op));
+        p_effUnit(effSelector, unit, effSelector, 'op') = smax(op, p_unit(unit, op)); // Maximum operating point
         p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
         p_effUnit(effSelector, unit, effSelector, 'section') = 0; // No section for the DirectOff approximation
     ); // END if(effDirectOff)
@@ -413,34 +421,33 @@ loop(m,
         // Calculate time intervals needed for the run-up phase
         tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours');
         p_u_runUpTimeIntervals(unit) = tmp;
-        p_u_runUpTimeIntervalsCeil(unit) = ceil(p_u_runUpTimeIntervals(unit))
+        p_u_runUpTimeIntervalsCeil(unit) = ceil(p_u_runUpTimeIntervals(unit));
+        runUpCounter(unit, counter) // Store the required number of run-up intervals for each unit
+            ${ ord(counter) <= p_u_runUpTimeIntervalsCeil(unit) }
+            = yes;
+        dt_trajectory(counter)
+            ${ runUpCounter(unit, counter) }
+            = - ord(counter) + 1; // Runup starts immediately at v_startup
 
-        // Calculate output during the run-up phase
-        loop(t${ord(t)<=p_u_runUpTimeIntervalsCeil(unit)},
-            p_ut_runUp(unit, t) =
-              + p_unit(unit, 'rampSpeedToMinLoad') * (ceil(p_u_runUpTimeIntervals(unit) - ord(t)) + 0.5)
-              * 60 // Unit conversion from [p.u./min] to [p.u./h]
-              * mSettings(m, 'stepLengthInHours')
-        );
+        // Calculate minimum output during the run-up phase; partial intervals calculated using weighted averaging with min load
+        p_uCounter_runUpMin(runUpCounter(unit, counter))
+            = + p_unit(unit, 'rampSpeedToMinLoad')
+                * ( + min(ord(counter), p_u_runUpTimeIntervals(unit)) // Location on ramp
+                    - 0.5 * min(p_u_runUpTimeIntervals(unit) - ord(counter) + 1, 1) // Average ramp section
+                    )
+                * min(p_u_runUpTimeIntervals(unit) - ord(counter) + 1, 1) // Portion of time interval spent ramping
+                * mSettings(m, 'stepLengthInHours') // Ramp length in hours
+                * 60 // unit conversion from [p.u./min] to [p.u./h]
+              + p_unit(unit, 'op00')${ not runUpCounter(unit, counter+1) } // Time potentially spent at min load during the last run-up interval
+                * ( p_u_runUpTimeIntervalsCeil(unit) - p_u_runUpTimeIntervals(unit) );
 
-        // Combine output in the second last interval and the weighted average of rampSpeedToMinLoad and the smallest non-zero maxRampUp
-        p_u_maxOutputInLastRunUpInterval(unit) =
-            (
-              + p_unit(unit, 'rampSpeedToMinLoad') * (tmp-floor(tmp)) * mSettings(m, 'stepLengthInHours')
-              + smin(gnu(grid, node, unit)${p_gnu(grid, node, unit, 'maxRampUp')}, p_gnu(grid, node, unit, 'maxRampUp')) * (ceil(tmp)-tmp) * mSettings(m, 'stepLengthInHours')
-              + p_unit(unit, 'rampSpeedToMinLoad')${not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampUp'))} * (ceil(tmp)-tmp) * mSettings(m, 'stepLengthInHours')
-            )
-              * 60 // Unit conversion from [p.u./min] to [p.u./h]
-              + sum(t${ord(t) = 2}, p_ut_runUp(unit, t));
-
-        // Maximum output in the last time interval of the run-up phase can't exceed the maximum capacity
-        p_u_maxOutputInLastRunUpInterval(unit) = min(p_u_maxOutputInLastRunUpInterval(unit), 1);
-
-        // Maximum ramp speed in the last time interval of the run-phasae is equal to maximum output after the time period minus the output on the previous time period in the run-up phase
-        p_u_maxRampSpeedInLastRunUpInterval(unit) = p_u_maxOutputInLastRunUpInterval(unit) - sum(t$[ord(t) = 2], p_ut_runUp(unit, t));
-
-        // Minimum output in the last time interval of the run-up phase equals minimum load
-        p_ut_runUp(unit, t)${ord(t) = 1} = p_unit(unit,'op00');
+        // Maximum output on the last run-up interval can be higher, otherwise the same as minimum.
+        p_uCounter_runUpMax(runUpCounter(unit, counter))
+            = p_uCounter_runUpMin(unit, counter);
+        p_uCounter_runUpMax(runUpCounter(unit, counter))${ not runUpCounter(unit, counter+1) }
+            = p_uCounter_runUpMax(unit, counter)
+                + ( 1 - p_uCounter_runUpMax(unit, counter) )
+                    * ( p_u_runUpTimeIntervalsCeil(unit) - p_u_runUpTimeIntervals(unit) );
 
     ); // END loop(unit)
 ); // END loop(m)
@@ -452,39 +459,38 @@ loop(m,
         // Calculate time intervals needed for the shutdown phase
         tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedFromMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours');
         p_u_shutdownTimeIntervals(unit) = tmp;
-        p_u_shutdownTimeIntervalsCeil(unit) = ceil(p_u_shutdownTimeIntervals(unit))
+        p_u_shutdownTimeIntervalsCeil(unit) = ceil(p_u_shutdownTimeIntervals(unit));
+        shutdownCounter(unit, counter) // Store the required number of shutdown intervals for each unit
+            ${ ord(counter) <= p_u_shutDownTimeIntervalsCeil(unit)}
+            = yes;
+        dt_trajectory(counter)
+            ${ shutdownCounter(unit, counter) }
+            = - ord(counter) + 1; // Shutdown starts immediately at v_shutdown
 
-        // Calculate output during the shutdown phase
-        loop(t${ord(t)<=p_u_shutdownTimeIntervalsCeil(unit)},
-            p_ut_shutdown(unit, t) =
-              + p_unit(unit, 'rampSpeedFromMinLoad') * (ceil(p_u_shutdownTimeIntervals(unit) - ord(t) + 1))
-              * 60 // Unit conversion from [p.u./min] to [p.u./h]
-              * mSettings(m, 'stepLengthInHours')
-        );
+        // Calculate minimum output during the shutdown phase; partial intervals calculated using weighted average with zero load
+        p_uCounter_shutdownMin(shutdownCounter(unit, counter))
+            = + p_unit(unit, 'rampSpeedFromMinLoad')
+                * ( min(p_u_shutdownTimeIntervalsCeil(unit) - ord(counter) + 1, p_u_shutdownTimeIntervals(unit)) // Location on ramp
+                    - 0.5 * min(p_u_shutdownTimeIntervals(unit) - p_u_shutdownTimeIntervalsCeil(unit) + ord(counter), 1) // Average ramp section
+                    )
+                * min(p_u_shutdownTimeIntervals(unit) - p_u_shutdownTimeIntervalsCeil(unit) + ord(counter), 1) // Portion of time interval spent ramping
+                * mSettings(m, 'stepLengthInHours') // Ramp length in hours
+                * 60 // unit conversion from [p.u./min] to [p.u./h]
+              + p_unit(unit, 'op00')${ not shutdownCounter(unit, counter-1) } // Time potentially spent at min load on the first shutdown interval
+                * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) );
 
-        // Combine output in the second interval and the weighted average of rampSpeedFromMinLoad and the smallest non-zero maxRampDown
-        p_u_maxOutputInFirstShutdownInterval(unit) =
-            (
-              + p_unit(unit, 'rampSpeedFromMinLoad') * (tmp-floor(tmp)) * mSettings(m, 'stepLengthInHours')
-              + smin(gnu(grid, node, unit)${p_gnu(grid, node, unit, 'maxRampDown')}, p_gnu(grid, node, unit, 'maxRampDown')) * (ceil(tmp)-tmp) * mSettings(m, 'stepLengthInHours')
-              + p_unit(unit, 'rampSpeedFromMinLoad')${not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'maxRampDown'))} * (ceil(tmp)-tmp) * mSettings(m, 'stepLengthInHours')
-            )
-              * 60 // Unit conversion from [p.u./min] to [p.u./h]
-              + sum(t${ord(t) = 2}, p_ut_shutdown(unit, t));
+        // Maximum output on the first shutdown interval can be higher, otherwise the same as minimum.
+        p_uCounter_shutdownMax(shutdownCounter(unit, counter))
+            = p_uCounter_shutdownMin(unit, counter);
+        p_uCounter_shutdownMax(shutdownCounter(unit, counter))${ not shutdownCounter(unit, counter-1) }
+            = p_uCounter_shutdownMax(unit, counter)
+                + ( 1 - p_uCounter_shutdownMax(unit, counter) )
+                    * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) );
 
-        // Maximum output in the first time interval of the shutdown phase can't exceed the maximum capacity
-        p_u_maxOutputInFirstShutdownInterval(unit) = min(p_u_maxOutputInFirstShutdownInterval(unit), 1);
-
-        // Minimum output in the first time interval of the shutdown phase equals minimum load
-        p_ut_shutdown(unit, t)${ord(t) = 1} = p_unit(unit,'op00');
-
-    ) // END loop(unit)
+    ); // END loop(unit)
 ); // END loop(m)
 
-* --- Unit Startup and Shutdown Counters --------------------------------------
-
-// Initialize unitCounter
-Option clear = unitCounter;
+* --- Unit Starttype, Uptime and Downtime Counters ----------------------------
 
 loop(m,
     // Loop over units with online approximations in the model
@@ -568,7 +574,7 @@ loop(m,
 loop(fuel,
     // Determine the time steps where the prices change
     Option clear = tt;
-    tt(t_full(t))${ ts_fuelPriceChange(fuel ,t) }
+    tt(t)${ ts_fuelPriceChange(fuel ,t) }
         = yes;
     ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
 ); // END loop(fuel)
@@ -636,6 +642,13 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         put log '!!! Abort: There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!' /;
         abort "There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!";
     ); // END if(smax)
+
+* --- Check if time intervals are aggregated before 't_trajectoryHorizon' -----
+
+    if (mInterval(m, 'lastStepInIntervalBlock', 'c000') < mSettings(m, 't_trajectoryHorizon')
+       OR (mInterval(m, 'stepsPerInterval', 'c000') > 1 and mSettings(m, 't_trajectoryHorizon') > 0),
+        put log '!!! Warning: Trajectories used on aggregated time steps! This could result in significant distortion of the trajectories.';
+    ); // END if()
 
 ); // END loop(m)
 
