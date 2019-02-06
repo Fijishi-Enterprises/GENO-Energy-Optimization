@@ -441,12 +441,12 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
     else // For all other solves, fix the initial state values based on previous results.
 
         // State and online variable initial values for the subsequent solves
-        v_state.fx(gn_state(grid, node), s, f, t)
-            = r_state(grid, node, f, t);
+        v_state.fx(gn_state(grid, node), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
+            = r_state(grid, node, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
 
         // Generation initial value (needed at least for ramp constraints)
-        v_gen.fx(gnu(grid, node, unit), s, f, t)
-            = r_gen(grid, node, unit, f, t);
+        v_gen.fx(gnu(grid, node, unit), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
+            = r_gen(grid, node, unit, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
 
     ); // END if(tSolveFirst)
 ) // END loop(mft_start)
