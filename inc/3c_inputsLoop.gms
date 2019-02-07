@@ -294,6 +294,9 @@ loop(cc(counter),
     // Retrieve interval block time steps
     option clear = tt_interval;
     tt_interval(t) = tt_block(counter, t);
+    // Make a temporary clone of tt_interval(t)
+    option clear = tt_;
+    tt_(tt_interval) = yes;
 
     // If stepsPerInterval equals one, simply use all the steps within the block
     if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
@@ -336,10 +339,9 @@ $offtext
         loop(ft(f_solve, tt_interval(t)),
             // Select t:s within the interval
             Option clear = tt;
-            tt(t_)
-                ${tt_interval(t_)
-                  and ord(t_) >= ord(t)
-                  and ord(t_) < ord(t) + mInterval(mSolve, 'stepsPerInterval', counter)
+            tt(tt_(t_))
+                ${  ord(t_) >= ord(t)
+                    and ord(t_) < ord(t) + mInterval(mSolve, 'stepsPerInterval', counter)
                  }
                 = yes;
             ts_unit_(unit_timeseries(unit), param_unit, f_solve, t)
