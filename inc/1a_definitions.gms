@@ -187,6 +187,7 @@ $if exist 'params.inc' $include 'params.inc'
 
 // Features
 Set active(mType, feature) "Set membership tells active model features";
+option clear = active;
 
 * =============================================================================
 * --- Parameter Set Definitions -----------------------------------------------
