@@ -17,7 +17,9 @@ $offtext
 
 * sets
 ft
+sft
 ft_realized
+sft_realized
 t_active
 t_current
 t_full
