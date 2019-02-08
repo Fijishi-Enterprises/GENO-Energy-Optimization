@@ -26,7 +26,7 @@ $ifthen %system.filesys% == 'MSNT' $set nuldev NUL
 $else $set nuldev /dev/null
 $endif
 * Execute SCENRED2 and load data
-$log Executing SCENRED2
+put log "Executing SCENRED2"/; putclose log;
 execute 'scenred2 inc/scenred.cmd > %nuldev%';
 if(errorLevel, abort "Scenario reduction (SCENRED2) failed");
 execute_load 'srout.gdx', ScenRedReport,
