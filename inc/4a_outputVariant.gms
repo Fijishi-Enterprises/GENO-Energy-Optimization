@@ -162,6 +162,12 @@ r_qGen(inc_dec, gn(grid, node), f, t)
         }
     = vq_gen.l(inc_dec, grid, node, s, f, t)
 ;
+// Dummy capacity
+r_qCapacity(gn(grid, node), f, t)
+    ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
+        }
+    = vq_capacity.l(grid, node, s, f, t)
+;
 );
 
 * =============================================================================
