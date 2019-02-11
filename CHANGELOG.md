@@ -3,9 +3,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+
+## [1.0.4] - 2019-02-11
+### Fixed
+- Severe bug in setting node state level limits
+
+### Changed
+- Suppress ouput from SCENRED2
+
+
 ## [1.0.3] - 2019-02-05
 ### Fixed
 - Only selects forecasts with positive probability for the solve
+
 
 ## [1.0.2] - 2019-02-04
 ### Added
@@ -34,6 +44,9 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Major updates to data structures etc.
 
-[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.3...dev
+
+
+[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.4...dev
+[1.0.4]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.3...v1.0.4
 [1.0.3]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.2...v1.0.3
 [1.0.2]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0...v1.0.2
