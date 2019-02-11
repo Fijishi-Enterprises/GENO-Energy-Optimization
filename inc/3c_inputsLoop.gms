@@ -372,7 +372,7 @@ $offtext
                 and msf(mSolve, s, f_solve)}
                    // Take average if not a limit type
                 = (sum(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
-                    / mInterval(mSolve, 'stepsPerInterval', counter))$(not sameas(param_gnBoundaryTypes, 'upwardLimit') or sameas(param_gnBoundaryTypes, 'downwardLimit'))
+                    / mInterval(mSolve, 'stepsPerInterval', counter))$(not (sameas(param_gnBoundaryTypes, 'upwardLimit') or sameas(param_gnBoundaryTypes, 'downwardLimit')))
                   // Maximum lower limit
                   + smax(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
                       $sameas(param_gnBoundaryTypes, 'downwardLimit')
