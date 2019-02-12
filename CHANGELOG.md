@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Added
+- Enable long-term samples that extend several years by using planning horizon 
+  which is longer than one scenario (e.g. 3 years). Note: Cannot use all data for 
+  samples as last years need to be reserved for the planning horizon.
 
 
 ## [1.0.4] - 2019-02-11

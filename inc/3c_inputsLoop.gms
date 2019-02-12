@@ -314,9 +314,11 @@ $ontext
                 = ts_effGroupUnit(effSelector, unit, param_eff, f_solve, t+dt_circular(t));
 $offtext
             ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                = ts_cf(flow, node, f_solve, t + (dt_sampleOffset(flow, node, 'ts_cf', s) + dt_circular(t)));
+                = ts_cf(flow, node, f_solve, t + (dt_sampleOffset(flow, node, 'ts_cf', s)
+                                                  + dt_circular(t)$(not longtermSamples(flow, node, 'ts_cf'))));
             ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                = ts_influx(grid, node, f_solve, t + (dt_sampleOffset(grid, node, 'ts_influx', s) + dt_circular(t)));
+                = ts_influx(grid, node, f_solve, t + (dt_sampleOffset(grid, node, 'ts_influx', s)
+                                                      + dt_circular(t)$(not longtermSamples(grid, node, 'ts_influx'))));
             // Reserve demand relevant only up until reserve_length
             ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)
               ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')}
@@ -324,7 +326,8 @@ $offtext
             ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f_solve, t, s)
               ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
                 and msf(mSolve, s, f_solve)}
-                = ts_node(grid, node, param_gnBoundaryTypes, f_solve, t + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t)));
+                = ts_node(grid, node, param_gnBoundaryTypes, f_solve, t + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s)
+                                                                           + dt_circular(t)$(not longtermSamples(grid, node, 'ts_node'))));
             // Fuel price time series
             ts_fuelPrice_(fuel, t)
                 = ts_fuelPrice(fuel, t+dt_circular(t));
@@ -357,10 +360,12 @@ $ontext
                     / mInterval(mSolve, 'stepsPerInterval', counter);
 $offtext
             ts_influx_(gn(grid, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                = sum(tt(t_), ts_influx(grid, node, f_solve, t_ + (dt_sampleOffset(grid, node, 'ts_influx', s) + dt_circular(t_))))
+                = sum(tt(t_), ts_influx(grid, node, f_solve, t_ + (dt_sampleOffset(grid, node, 'ts_influx', s)
+                                                                   + dt_circular(t_)$(not longtermSamples(grid, node, 'ts_influx')))))
                     / mInterval(mSolve, 'stepsPerInterval', counter);
             ts_cf_(flowNode(flow, node), f_solve, t, s)$msf(mSolve, s, f_solve)
-                = sum(tt(t_), ts_cf(flow, node, f_solve, t_ + (dt_sampleOffset(flow, node, 'ts_cf', s) + dt_circular(t_))))
+                = sum(tt(t_), ts_cf(flow, node, f_solve, t_ + (dt_sampleOffset(flow, node, 'ts_cf', s)
+                                                               + dt_circular(t_)$(not longtermSamples(flow, node, 'ts_cf')))))
                     / mInterval(mSolve, 'stepsPerInterval', counter);
             // Reserves relevant only until reserve_length
             ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f_solve, t)
@@ -371,13 +376,16 @@ $offtext
               ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
                 and msf(mSolve, s, f_solve)}
                    // Take average if not a limit type
-                = (sum(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
+                = (sum(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s)
+                                                                                         + dt_circular(t_)$(not longtermSamples(grid, node, 'ts_node')))))
                     / mInterval(mSolve, 'stepsPerInterval', counter))$(not (sameas(param_gnBoundaryTypes, 'upwardLimit') or sameas(param_gnBoundaryTypes, 'downwardLimit')))
                   // Maximum lower limit
-                  + smax(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
+                  + smax(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s)
+                                                                                           + dt_circular(t_)$(not longtermSamples(grid, node, 'ts_node')))))
                       $sameas(param_gnBoundaryTypes, 'downwardLimit')
                   // Minimum upper limit
-                  + smin(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s) + dt_circular(t_))))
+                  + smin(tt(t_), ts_node(grid, node, param_gnBoundaryTypes, f_solve, t_ + (dt_sampleOffset(grid, node, param_gnBoundaryTypes, s)
+                                                                                           + dt_circular(t_)$(not longtermSamples(grid, node, 'ts_node')))))
                        $sameas(param_gnBoundaryTypes, 'upwardLimit');
             // Fuel price time series
             ts_fuelPrice_(fuel, t)
