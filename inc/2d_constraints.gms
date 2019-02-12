@@ -197,10 +197,10 @@ q_resDemandLargestInfeedUnit(grid, restypeDirectionNode(restype, 'up', node), un
     v_gen(grid,node,unit_,s,f,t) * p_nuReserves(node, unit_, restype, 'portion_of_infeed_to_reserve')
 
     // Reserve provisions to another nodes via transfer links
-    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'up', node_, node)},   // If trasferring reserves to another node, increase your own reserves by same amount
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'up', node, node_)},   // If trasferring reserves to another node, increase your own reserves by same amount
         + v_resTransferRightward(restype, 'up', node, node_, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(gn2n_directional)
-    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'up', node_, node)},   // If trasferring reserves to another node, increase your own reserves by same amount
+    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'up', node, node_)},   // If trasferring reserves to another node, increase your own reserves by same amount
         + v_resTransferLeftward(restype, 'up', node_, node, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(gn2n_directional)
 
