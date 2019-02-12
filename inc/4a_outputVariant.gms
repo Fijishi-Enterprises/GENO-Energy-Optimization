@@ -60,8 +60,7 @@ loop(sft_realized(s, f, t),
 
 // Loop over reserve horizon, as the reserve variables use a different ft-structure due to commitment
 loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))
-    ${  df_reserves(node, restype, f, t)
-        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+    ${  ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
         },
 
@@ -77,20 +76,22 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))
                   * p_nuRes2Res(node, unit, restype_, up_down, restype)
             );
 
-    // Reserve requirement due to N-1 Reserve constraint
+    // Reserve requirement due to N-1 reserve constraint
     r_resDemandLargestInfeedUnit(grid, f+df_reserves(node, restype, f, t), t, restype, up_down, node)
         = smax(unit_fail(unit_), v_gen.l(grid, node, unit_, s, f, t) * p_nuReserves(node, unit_, restype, 'portion_of_infeed_to_reserve'));
 
-    // Reserve transfer capacity
+    // Reserve transfer capacity for links defined out from this node
     r_resTransferRightward(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t)
-        ${  restypeDirectionNode(restype, up_down, to_node)
+        ${  sum(grid, gn2n_directional(grid, node, to_node))
+            and restypeDirectionNodeNode(restype, up_down, node, to_node)
             }
         = v_resTransferRightward.l(restype, up_down, node, to_node, s, f+df_reserves(node, restype, f, t), t);
 
-    r_resTransferLeftward(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t)
-        ${  restypeDirectionNode(restype, up_down, to_node)
+    r_resTransferLeftward(restype, up_down, node, to_node, f+df_reserves(to_node, restype, f, t), t)
+        ${  sum(grid, gn2n_directional(grid, node, to_node))
+            and restypeDirectionNodeNode(restype, up_down, to_node, node)
             }
-        = v_resTransferLeftward.l(restype, up_down, node, to_node, s, f+df_reserves(node, restype, f, t), t);
+        = v_resTransferLeftward.l(restype, up_down, node, to_node, s, f+df_reserves(to_node, restype, f, t), t);
 
     // Dummy reserve demand changes
     r_qResDemand(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
