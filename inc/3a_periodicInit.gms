@@ -630,8 +630,8 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         // Check if the first interval is long enough for proper commitment of reserves
         if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
             put log '!!! Error occurred on p_nReserves ' node.tl:0 ',' restype.tl:0 /;
-            put log '!!! Abort: The first interval should be longer than update_frequency + gate_closure for proper commitment of reserves!' /;
-            abort "The first interval should be longer than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
+            put log '!!! Abort: The first interval block should not be shorter than update_frequency + gate_closure for proper commitment of reserves!' /;
+            abort "The first interval block should not be shorter than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
         ); // END if
     ); // END loop(restypeDirectionNode)
 
