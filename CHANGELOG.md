@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Fixed
+- Probabilities were not updated after using scenario reduction
+
 ### Added
 - Enable long-term samples that extend several years by using planning horizon 
   which is longer than one scenario (e.g. 3 years). Note: Cannot use all data for 

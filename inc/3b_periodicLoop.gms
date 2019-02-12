@@ -552,15 +552,6 @@ loop(uft_online(unit, f, t)${ p_u_shutdownTimeIntervals(unit) },
 ); // END loop(uf_online)
 
 * -----------------------------------------------------------------------------
-* --- Probabilities -----------------------------------------------------------
-* -----------------------------------------------------------------------------
-
-// Update probabilities
-Option clear = p_msft_probability;
-p_msft_probability(msft(mSolve, s, f, t))
-    = p_mfProbability(mSolve, f) / sum(f_${ft(f_, t)}, p_mfProbability(mSolve, f_)) * p_msProbability(mSolve, s);
-
-* -----------------------------------------------------------------------------
 * --- Displacements for start-up and shutdown decisions -----------------------
 * -----------------------------------------------------------------------------
 

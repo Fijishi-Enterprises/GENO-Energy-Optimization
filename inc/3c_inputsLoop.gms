@@ -431,6 +431,14 @@ if(active(mSolve, 'scenred'),
     $$include 'inc/scenred.gms'
 );
 
+* --- Update probabilities ----------------------------------------------------
+Option clear = p_msft_probability;
+p_msft_probability(msft(mSolve, s, f, t))
+    = p_mfProbability(mSolve, f)
+        / sum(f_${ft(f_, t)},
+              p_mfProbability(mSolve, f_)) * p_msProbability(mSolve, s);
+
+
 * --- Smooting of stochastic scenarios ----------------------------------------
 $ontext
 First calculate standard deviation for over all samples, then smoothen the scenarios
