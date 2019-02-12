@@ -98,7 +98,7 @@ Sets
     effLevel "Pre-defined levels for efficiency representation that can start from t_solve + x"
         / level1*level9 /
     effSelector "Select equations and lambdas/slope for efficiency calculations"
-        / lambda01*lambda12, directOff, directOnLP, directOnMIP / // NOTE! Lambdas required first!
+        / lambda01*lambda12, directOff, directOnLP, directOnMIP , incHR/ // NOTE! Lambdas required first!
     effDirect(effSelector) "Using direct input to output equation"
         / directOff, directOnLP, directOnMIP /
     effDirectOff(effSelector) "Using direct input to output equation without online variable, i.e. constant efficiency"
@@ -107,8 +107,10 @@ Sets
         / directOnLP, directOnMIP /
     effLambda(effSelector) "Lambdas in use for part-load efficiency representation"
         / lambda01*lambda12 /
+    effIncHR(effSelector) "Using incremental heat rate equation"
+        / incHR /
     effOnline(effSelector) "Efficiency selectors that use online variables"
-        / directOnLP, directOnMIP, lambda01*lambda12 / // IMPORTANT! Online variables are generated based on this, so keep it up to date!
+        / directOnLP, directOnMIP, lambda01*lambda12 ,incHR / // IMPORTANT! Online variables are generated based on this, so keep it up to date!
 
 * --- General and Directional Sets --------------------------------------------
 
@@ -295,6 +297,8 @@ param_unit "Set of possible data parameters for units" /
     eff00 * eff12 "Efficiency of the unit to convert input to output/intermediate product"
     opFirstCross  "The operating point where the real efficiency curve and approximated efficiency curve cross"
     op00 * op12   "Right border of the efficiency point"
+    hr00 * hr12   "incremental heat rates"
+    hrop00 * hrop12   "Right border of the incremental heat rates"
     section       "Possibility to define a no load fuel use for units with zero minimum output"
     level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "A flag to use time series form input for unit parameters whenever possible"
@@ -353,7 +357,10 @@ eff(param_unit) "Effiency for the corresponding operating point ('op') in the ef
         /eff00*eff12/ // IMPORTANT! Has to equal the same param_unit!
 lambda "Lambda approximation indeces"
         /lambda01*lambda12/ // IMPORTANT! Has to equal effLambda!
-
+hrop(param_unit) "Operating points in the incremental heat rate curves, also functions as index for data points"
+        /hrop00*hrop12/ // IMPORTANT! Has to equal the same param_unit!
+hr(param_unit) "Heat rate for the corresponding operating point ('hrop') in the heat rate curves, also used for data indexing"
+        /hr00*hr12/ // IMPORTANT! Has to equal the same param_unit!
 * --- Counters and Directional Sets -------------------------------------------
 
 // Slack categories

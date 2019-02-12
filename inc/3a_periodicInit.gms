@@ -269,6 +269,11 @@ loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effL
     effGroupSelector(effDirectOn(effSelector), effSelector) = yes;
     effGroupSelectorUnit(effDirectOn(effSelector), unit, effSelector) = yes;
 
+    // effSelector using IncHR
+    effGroup(effIncHR(effSelector)) = yes;
+    effGroupSelector(effIncHR(effSelector), effSelector) = yes;
+    effGroupSelectorUnit(effIncHR(effSelector), unit, effSelector) = yes;
+
     // effSelector using Lambda
     effGroup(effLambda(effSelector)) = yes;
     loop(effLambda_${ord(effLambda_) <= ord(effSelector)},
@@ -399,6 +404,14 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
             ); // END loop(eff_,eff__)
         ); // END loop(op_,op__)
     ); // END if(effLambda)
+
+// Parameters for incremental heat rates
+    if(effIncHR(effSelector),
+        p_effUnit(effSelector, unit, effSelector, 'lb') = p_unit(unit, 'hrop00'); // hrop00 contains the minimum load of the unit
+        p_effUnit(effSelector, unit, effSelector, 'op') = smax(hrop, p_unit(unit, hrop)); // Maximum operating point
+        p_effUnit(effSelector, unit, effSelector, 'slope') = 1; // Uses maximum found (nonzero) efficiency. No load heat rate not considered. Approximation
+        p_effUnit(effSelector, unit, effSelector, 'section') = p_unit(unit, 'section'); // pre-defined
+    ); // END if(effIncHR)
 ); // END loop(effGroupSelectorUnit)
 
 // Calculate unit wide parameters for each efficiency group

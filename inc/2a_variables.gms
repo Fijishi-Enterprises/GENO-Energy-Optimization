@@ -44,6 +44,7 @@ Positive variables
     v_investTransfer_LP(grid, node, node, t) "Invested transfer capacity (MW)"
     v_online_LP(unit, s, f, t) "Number of sub-units online for 'units' with unit commitment restrictions (LP variant)"
     v_invest_LP(unit, t) "Number of invested 'sub-units' (LP variant)"
+    v_gen_inc(grid, node, unit, hr, s, f, t) "Energy generation in hr block in an interval (MW)"
 ;
 
 * --- Feasibility control -----------------------------------------------------

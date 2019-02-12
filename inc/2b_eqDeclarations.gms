@@ -75,6 +75,11 @@ equations
     q_conversionSOS2InputIntermediate(s, effSelector, unit, f, t)   "Intermediate output when using SOS2 variable based part-load piece-wise linearization"
     q_conversionSOS2Constraint(s, effSelector, unit, f, t)          "Sum of v_sos2 has to equal v_online"
     q_conversionSOS2IntermediateOutput(s, effSelector, unit, f, t)  "Output is forced equal with v_sos2 output"
+    q_conversionIncHR(s, effSelector, unit, f, t)  "Conversion of inputs to outputs for incremental heat rates"
+    q_conversionIncHRMaxGen(grid, node,s, effSelector, unit, f, t)  "Max Generating level"
+    q_conversionIncHRBounds1(grid, node,s, effSelector, unit, f, t) "Heat rate bounds for hr=1"
+    q_conversionIncHRBounds2(grid, node, s, effSelector, unit, f, t) "Heat rate bounds for hr=2"
+    q_conversionIncHRBounds3(grid, node, s, effSelector, unit, f, t) "Heat rate bounds for hr=3"
     q_fuelUseLimit(s, fuel, unit, f, t) "Fuel use cannot exceed limits"
 
     // Energy Transfer

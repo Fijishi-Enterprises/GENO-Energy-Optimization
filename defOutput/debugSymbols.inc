@@ -70,6 +70,7 @@ p_uCounter_shutdownMax
 * Variables
 v_obj
 v_gen
+v_gen_inc
 v_genRamp
 v_transfer
 v_state
