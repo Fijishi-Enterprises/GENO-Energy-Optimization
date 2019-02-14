@@ -990,14 +990,14 @@ q_conversionIncHR(s, suft(effIncHR(effGroup), unit, f, t))$sft(s, f, t) ..
                 + sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
                     + v_startup(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
                         * p_uCounter_runUpMin(unit, counter)
-                        / p_unit(unit, 'op00') // Scaling the p_uCounter_runUp using minload
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_runUp using minload
                     ) // END sum(runUpCounter)
                 ) // END sum(unitStarttype)
             // Shutdown 'online state'
             + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
                 + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
                     * p_uCounter_shutdownMin(unit, counter)
-                        / p_unit(unit, 'op00') // Scaling the p_uCounter_shutdown using minload
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_shutdown using minload
                 ) // END sum(shutdownCounter)
             ] // END * sum(gnu_output)
         * [
