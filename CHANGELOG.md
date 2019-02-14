@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [1.0.5] - 2019-02-14
 ### Fixed
 - Probabilities were not updated after using scenario reduction
 
@@ -53,7 +55,8 @@ All notable changes to this project will be documented in this file.
 
 
 
-[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.4...dev
+[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.5...dev
+[1.0.5]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.4...v1.0.5
 [1.0.4]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.3...v1.0.4
 [1.0.3]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.2...v1.0.3
 [1.0.2]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0...v1.0.2
