@@ -650,5 +650,17 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         put log '!!! Warning: Trajectories used on aggregated time steps! This could result in significant distortion of the trajectories.';
     ); // END if()
 
+* --- Check that the first interval block is compatible with t_jump' ----------
+
+    if (mod(mSettings(m, 't_jump'), mInterval(m, 'stepsPerInterval', 'c000')) <> 0,
+        put log '!!! Abort: t_jump should be divisible by the first interval!' /;
+        abort "'t_jump' should be divisible by the first interval!";
+    ); // END if()
+
+    if (mInterval(m, 'lastStepInIntervalBlock', 'c000') < mSettings(m, 't_jump'),
+        put log '!!! Abort: The first interval block should not be shorter than t_jump!' /;
+        abort "The first interval block should not be shorter than 't_jump'!";
+    ); // END if()
+
 ); // END loop(m)
 

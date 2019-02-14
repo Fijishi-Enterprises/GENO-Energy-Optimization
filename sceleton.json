@@ -9,7 +9,7 @@
               "defModels/*.gms", 
               "defOutput/*.inc"],
     "cmdline_args": "",
-    "datafiles": ["input/InputData.gdx"],
+    "datafiles": ["input/inputData.gdx"],
     "datafiles_opt": ["input/*.gms",
 					  "input/*.gdx",
                       "input/*.inc",
