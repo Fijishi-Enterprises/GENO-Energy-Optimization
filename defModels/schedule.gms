@@ -49,6 +49,7 @@ Model schedule /
     q_conversionSOS2IntermediateOutput
     q_conversionIncHR
     q_conversionIncHRMaxGen
+    q_conversionIncHRBounds
     q_conversionIncHRBounds1
     q_conversionIncHRBounds2
     q_conversionIncHRBounds3

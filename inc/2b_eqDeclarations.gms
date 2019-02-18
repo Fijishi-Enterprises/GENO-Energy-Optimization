@@ -77,6 +77,7 @@ equations
     q_conversionSOS2IntermediateOutput(s, effSelector, unit, f, t)  "Output is forced equal with v_sos2 output"
     q_conversionIncHR(s, effSelector, unit, f, t)  "Conversion of inputs to outputs for incremental heat rates"
     q_conversionIncHRMaxGen(grid, node,s, effSelector, unit, f, t)  "Max Generating level"
+    q_conversionIncHRBounds(grid, node, s, hr, effSelector, unit, f, t) "Heat rate bounds"
     q_conversionIncHRBounds1(grid, node,s, effSelector, unit, f, t) "Heat rate bounds for hr=1"
     q_conversionIncHRBounds2(grid, node, s, effSelector, unit, f, t) "Heat rate bounds for hr=2"
     q_conversionIncHRBounds3(grid, node, s, effSelector, unit, f, t) "Heat rate bounds for hr=3"

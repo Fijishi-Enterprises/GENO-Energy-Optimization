@@ -1020,6 +1020,20 @@ q_conversionIncHRMaxGen(grid, node, s, suft(effIncHR(effGroup), unit, f, t))$sft
 ;
 
 * --- Incremental Heat Rate Conversion ------------------------------------------
+q_conversionIncHRBounds(grid, node, s, hr, suft(effIncHR(effGroup), unit, f, t))$(sft(s, f, t)) ..
+
+    + v_gen_inc(grid, node, unit, hr, s, f, t)
+
+    =L=
+
+    + (
+        + sum(hrop${ord(hrop) = ord(hr)}, p_unit(unit, hrop))
+        - sum(hrop${ord(hrop) = ord(hr) - 1}, p_unit(unit, hrop))
+        )
+        *  p_gnu(grid, node, unit, 'unitSizeGen')*v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+;
+
+* --- Incremental Heat Rate Conversion ------------------------------------------
 q_conversionIncHRBounds1(grid, node,s,  suft(effIncHR(effGroup), unit, f, t))$(sft(s, f, t)) ..
 
     v_gen_inc(grid, node, unit, 'hr00', s, f, t)
