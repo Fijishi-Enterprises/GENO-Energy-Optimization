@@ -34,7 +34,6 @@ Scalars
     tmp_ "General temporary parameter"
     tmp__ "General temporary parameter"
     tmp_dt "Temporary parameter for evaluating the necessary amount of historical timesteps"
-    tmp_dt2 "Temporary parameter for evaluating the necessary amount of historical timesteps"
     tmp_dist "Temporary parameter for calculating the distance between operating points"
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
@@ -71,7 +70,6 @@ Parameters
     p_u_runUpTimeIntervalsCeil(unit) "Ceiling of time steps required for the run-up phase"
     p_ut_runUp(unit, t) "Output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
     p_u_maxOutputInFirstShutdownInterval(unit) "Maximum output in the first interval for the shutdown from min. load (p.u.)"
-    p_uShutdown(unit, cost_consumption) "Shutdown cost and fuel consumption"
     p_u_shutdownTimeIntervals(unit) "Time steps required for the shutdown phase"
     p_u_shutdownTimeIntervalsCeil(unit) "Ceiling of time steps required for the shutdown phase"
     p_ut_shutdown(unit, t) "Output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
@@ -134,7 +132,6 @@ Parameters
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (EUR/MWh)"
     ts_fuelPrice(fuel, t) "Fuel price time series (EUR/MWh)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time step (p.u.)"
-    ts_vgen_fixed(grid, node, unit, f, t) "Fixed generation constraint"
 
     // Aliases used for intervals (time step aggregation)
     ts_influx_(grid, node, f, t)
@@ -143,8 +140,6 @@ Parameters
     ts_reserveDemand_(restype, up_down, node, f, t)
     ts_node_(grid, node, param_gnBoundaryTypes, f, t)
     ts_fuelPrice_(fuel, t)
-    ts_vgen_fixed_(grid, node, unit, f, t)
-
 ;
 
 * --- Other time dependent parameters -----------------------------------------

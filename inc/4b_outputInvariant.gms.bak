@@ -43,7 +43,7 @@ loop(m,
                 ];
 
     // Unit startup costs
-    r_uStartupCost(unit, ft_realizedNoReset(f,t))${sum(starttype, unitStarttype(unit, starttype)) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
+    r_uStartupCost(unit, ft_realizedNoReset(f,t))${uft_online(unit, f, t) and sum(starttype, unitStarttype(unit, starttype)) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
         = 1e-6 // Scaling to MEUR
             * sum(unitStarttype(unit, starttype),
                 + r_startup(unit, starttype, f, t)
@@ -122,7 +122,7 @@ loop(m,
     r_gnuFOMCost(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
             * [
-                + p_gnu(grid, node, unit, 'maxGen') // Not in v_obj
+                + p_gnu(grid, node, unit, 'maxGen') // Not in v_obj 
                 + p_gnu(grid, node, unit, 'maxCons') // Not in v_obj
                 + r_invest(unit)
                     * p_gnu(grid, node, unit, 'unitSizeTot')
@@ -219,11 +219,6 @@ loop(m,
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
-
-
-    r_guGen(grid, unit, f, t)$(sum(node, gnu_output(grid, node, unit)) + sum(node, gnu_input(grid, node, unit)) )
-        = sum(node, r_gen(grid, node, unit, f, t)
-            ); // END sum node
 
     // Total dummy generation/consumption
     r_gnTotalqGen(inc_dec, gn(grid, node))

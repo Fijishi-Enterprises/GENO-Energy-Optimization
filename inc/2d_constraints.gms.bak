@@ -129,7 +129,7 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), ft(f, t))
         ) // END sum(nuft)
 
     // Reserve provisions to another nodes via transfer links
-    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, up_down, node, node_)},   // If trasferring reserves to another node, increase your own reserves by same amount
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, up_down, node_, node)},   // If trasferring reserves to another node, increase your own reserves by same amount
         + v_resTransferRightward(restype, up_down, node, node_, f+df_reserves(node, restype, f, t), t)
         ) // END sum(gn2n_directional)
     + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, up_down, node_, node)},   // If trasferring reserves to another node, increase your own reserves by same amount
@@ -150,7 +150,7 @@ q_resDemand_Infeed(grid, restypeDirectionNode(restype, 'up', node), ft(f, t), un
         and not [ restypeReleasedForRealization(restype)
             and ft_realized(f, t)
             ]
-            and unit_fail(unit_)
+        and p_nReserves(node, restype, 'Infeed2Cover')
         } ..
     // Reserve provision by capable units on this node excluding the failing one
     + sum(nuft(node, unit, f, t)${nuRescapable(restype, 'up', node, unit) and (ord(unit_) ne ord(unit))},
@@ -700,7 +700,7 @@ q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s
                         * 60   // Unit conversion from [p.u./min] to [p.u./h]
                   ) // END sum(unitStarttype)
               ) // END sum(t_)
-        // Units that are in the last time interval of the run-up phase are limited by rampSpeedToMinLoad and maxRampUp
+        // Units that are in the last time interval of the run-up phase are limited by p_u_maxRampSpeedInLastRunUpInterval(unit)
         + p_gnu(grid, node, unit, 'unitSizeGen')
             * sum(t_active(t_)${    ord(t_) = ord(t) + dt_next(t) + dt_toStartup(unit, t + dt_next(t))
                                     and uft_startupTrajectory(unit, f, t)},

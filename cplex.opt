@@ -1,1 +1,2 @@
-relaxfixedinfeas = 1
+relaxfixedinfeas  1
+eprhs  1e-3
