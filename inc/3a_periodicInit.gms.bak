@@ -245,6 +245,11 @@ loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effL
     effGroupSelector(effDirectOn(effSelector), effSelector) = yes;
     effGroupSelectorUnit(effDirectOn(effSelector), unit, effSelector) = yes;
 
+    // effSelector using IncHR
+    effGroup(effIncHR(effSelector)) = yes;
+    effGroupSelector(effIncHR(effSelector), effSelector) = yes;
+    effGroupSelectorUnit(effIncHR(effSelector), unit, effSelector) = yes;
+
     // effSelector using Lambda
     effGroup(effLambda(effSelector)) = yes;
     loop(effLambda_${ord(effLambda_) <= ord(effSelector)},
@@ -375,6 +380,14 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
             ); // END loop(eff_,eff__)
         ); // END loop(op_,op__)
     ); // END if(effLambda)
+
+// Parameters for incremental heat rates
+    if(effIncHR(effSelector),
+        p_effUnit(effSelector, unit, effSelector, 'lb') = p_unit(unit, 'hrop00'); // hrop00 contains the minimum load of the unit
+        p_effUnit(effSelector, unit, effSelector, 'op') = smax(hrop, p_unit(unit, hrop)); // Maximum operating point
+        p_effUnit(effSelector, unit, effSelector, 'slope') = 1; // Uses maximum found (nonzero) efficiency. No load heat rate not considered. Approximation
+        p_effUnit(effSelector, unit, effSelector, 'section') = p_unit(unit, 'section'); // pre-defined
+    ); // END if(effIncHR)
 ); // END loop(effGroupSelectorUnit)
 
 // Calculate unit wide parameters for each efficiency group
@@ -552,7 +565,7 @@ loop(m,
 loop(fuel,
     // Determine the time steps where the prices change
     Option clear = tt;
-    tt(t_full(t))${ ts_fuelPriceChange(fuel ,t) }
+    tt(t)${ ts_fuelPriceChange(fuel ,t) }
         = yes;
     ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
 ); // END loop(fuel)
@@ -604,11 +617,11 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         ); // END if(mod('update_frequency'))
 
         // Check if the first interval is long enough for proper commitment of reserves
-        if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
-            put log '!!! Error occurred on p_nReserves ' node.tl:0 ',' restype.tl:0 /;
-            put log '!!! Abort: The first interval should be longer than update_frequency + gate_closure for proper commitment of reserves!' /;
-            abort "The first interval should be longer than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
-        ); // END if
+*        if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
+*            put log '!!! Error occurred on p_nReserves ' node.tl:0 ',' restype.tl:0 /;
+*            put log '!!! Abort: The first interval should be longer than update_frequency + gate_closure for proper commitment of reserves!' /;
+*            abort "The first interval should be longer than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
+*        ); // END if
     ); // END loop(restypeDirectionNode)
 
 * --- Check that there aren't more effLevels defined than exist in data -------

@@ -94,7 +94,7 @@ Sets
     effLevel "Pre-defined levels for efficiency representation that can start from t_solve + x"
         / level1*level9 /
     effSelector "Select equations and lambdas/slope for efficiency calculations"
-        / lambda01*lambda12, directOff, directOnLP, directOnMIP / // NOTE! Lambdas required first!
+        / lambda01*lambda12, directOff, directOnLP, directOnMIP , incHR/ // NOTE! Lambdas required first!
     effDirect(effSelector) "Using direct input to output equation"
         / directOff, directOnLP, directOnMIP /
     effDirectOff(effSelector) "Using direct input to output equation without online variable, i.e. constant efficiency"
@@ -103,8 +103,10 @@ Sets
         / directOnLP, directOnMIP /
     effLambda(effSelector) "Lambdas in use for part-load efficiency representation"
         / lambda01*lambda12 /
+    effIncHR(effSelector) "Using incremental heat rate equation"
+        / incHR /
     effOnline(effSelector) "Efficiency selectors that use online variables"
-        / directOnLP, directOnMIP, lambda01*lambda12 / // IMPORTANT! Online variables are generated based on this, so keep it up to date!
+        / directOnLP, directOnMIP, lambda01*lambda12 ,incHR / // IMPORTANT! Online variables are generated based on this, so keep it up to date!
 
 * --- General and Directional Sets --------------------------------------------
 
@@ -275,6 +277,7 @@ param_unit "Set of possible data parameters for units" /
     outputCapacityTotal "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"
     unitOutputCapacityTotal "Output capacity of the unit, calculated by summing all the subunit output sizes together by default"
     availability  "Availability of given energy conversion technology (p.u.)"
+    unavailability  "Unavailability of given energy conversion technology (p.u.)"
     useInitialOnlineStatus   "A flag to fix the online status of a unit for the first time step"
     initialOnlineStatus      "Initial online status of the unit in the first time step (binary)"
     omCosts       "Variable operation and maintenance costs (EUR/MWh)"
@@ -286,6 +289,7 @@ param_unit "Set of possible data parameters for units" /
     startFuelConsHot "Consumption of start-up fuel per hot subunit started up (MWh_fuel/MW)"
     startColdAfterXhours "Offline hours after which the start-up will be a cold start (h)"
     startWarmAfterXhours "Offline hours after which the start-up will be a warm start (h)"
+    shutCost             "Variable shutdown costs (EUR/MW)"
     rampSpeedToMinLoad "Ramping speed from start-up to minimum load (p.u./min)"
     rampSpeedFromMinLoad "Ramping speed from shutdown decision to zero load (p.u./min)"
     minOperationHours "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
@@ -297,13 +301,22 @@ param_unit "Set of possible data parameters for units" /
     eff00 * eff12 "Efficiency of the unit to convert input to output/intermediate product"
     opFirstCross  "The operating point where the real efficiency curve and approximated efficiency curve cross"
     op00 * op12   "Right border of the efficiency point"
+    hr00 * hr12   "incremental heat rates"
+    hrop00 * hrop12   "Right border of the incremental heat rates"
     section       "Possibility to define a no load fuel use for units with zero minimum output"
     level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "A flag to use time series form input for unit parameters whenever possible"
     investMIP     "A flag to make integer investment instead of continous investment"
     maxUnitCount  "Maximum number of units when making integer investments"
     minUnitCount  "Minimum number of units when making integer investments"
-    lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in 3b_inputsLoop.gms for units that have aggregation"
+    lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
+/
+
+param_eff "Parameters used for unit efficiency approximations" /
+    lb      "Minimum load of the unit"
+    op      "Maximum load of the unit, or the operating point of the SOS2 variable in the piecewise linear heat rate approximation (lambda)"
+    section "Operational heat rate of the unit, or the SOS2 variable in the piecewise linear heat rate approximation (lambda)"
+    slope   "Heat rate parameter representing no-load fuel consumption"
 /
 
 param_fuel "Parameters for fuels" /
@@ -336,7 +349,7 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     reserve_length "Length of reserve horizon"
     reserveReliability "Reliability parameter of reserve provisions"
     reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
-    Infeed2Cover "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
+    N-1 "N-1 reserve requirement? (PENDING PROPER DESCRIPTION!)"
 /
 
 * --- Efficiency Approximation Related Sets -----------------------------------
@@ -348,7 +361,10 @@ eff(param_unit) "Effiency for the corresponding operating point ('op') in the ef
         /eff00*eff12/ // IMPORTANT! Has to equal the same param_unit!
 lambda "Lambda approximation indeces"
         /lambda01*lambda12/ // IMPORTANT! Has to equal effLambda!
-
+hrop(param_unit) "Operating points in the incremental heat rate curves, also functions as index for data points"
+        /hrop00*hrop12/ // IMPORTANT! Has to equal the same param_unit!
+hr(param_unit) "Heat rate for the corresponding operating point ('hrop') in the heat rate curves, also used for data indexing"
+        /hr00*hr12/ // IMPORTANT! Has to equal the same param_unit!
 * --- Counters and Directional Sets -------------------------------------------
 
 // Slack categories

@@ -75,6 +75,11 @@ equations
     q_conversionSOS2Constraint(effSelector, unit, f, t)          "Sum of v_sos2 has to equal v_online"
     q_conversionSOS2IntermediateOutput(effSelector, unit, f, t)  "Output is forced equal with v_sos2 output"
     q_fuelUseLimit(fuel, unit, f, t) "Fuel use cannot exceed limits"
+    q_conversionIncHR(effSelector, unit, f, t)  "Conversion of inputs to outputs for incremental heat rates"
+    q_conversionIncHRMaxGen(grid, node, effSelector, unit, f, t)  "Max Generating level"
+    q_conversionIncHRBounds1(grid, node, effSelector, unit, f, t) "Heat rate bounds for hr=1"
+    q_conversionIncHRBounds2(grid, node,  effSelector, unit, f, t, hr) "Heat rate bounds for hr=2"
+    q_conversionIncHRBounds3(grid, node,  effSelector, unit, f, t) "Heat rate bounds for hr=3"
 
     // Energy Transfer
     q_transfer(grid, node, node, f, t) "Rightward and leftward transfer must match the total transfer"
