@@ -81,6 +81,8 @@ equations
     q_conversionIncHRBounds1(grid, node,s, effSelector, unit, f, t) "Heat rate bounds for hr=1"
     q_conversionIncHRBounds2(grid, node, s, effSelector, unit, f, t) "Heat rate bounds for hr=2"
     q_conversionIncHRBounds3(grid, node, s, effSelector, unit, f, t) "Heat rate bounds for hr=3"
+    q_conversionIncHR_help1(grid, node, s, hr, effSelector, unit, f, t) "Helper equation 1 to ensure that the first heat rate segments are used first"
+    q_conversionIncHR_help2(grid, node, s, hr, effSelector, unit, f, t) "Helper equation 2 to ensure that the first heat rate segments are used first"
     q_fuelUseLimit(s, fuel, unit, f, t) "Fuel use cannot exceed limits"
 
     // Energy Transfer

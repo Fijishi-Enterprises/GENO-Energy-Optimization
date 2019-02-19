@@ -1007,20 +1007,25 @@ q_conversionIncHR(s, suft(effIncHR(effGroup), unit, f, t))$sft(s, f, t) ..
 ;
 
 * --- Incremental Heat Rate Conversion ------------------------------------------
-q_conversionIncHRMaxGen(grid, node, s, suft(effIncHR(effGroup), unit, f, t))$sft(s, f, t)..
+q_conversionIncHRMaxGen(gn(grid, node), s, suft(effIncHR(effGroup), unit, f, t))${  sft(s, f, t)
+                                                                                    and gnu_output(grid, node, unit)
+                                                                                    } ..
 
     v_gen(grid, node, unit, s, f, t)
 
     =E=
 
     // Sum over heat rate segments
-    sum(hr$(ord (hr) le 3),
+    sum(hr$(p_unit(unit, hr)),
       v_gen_inc(grid, node, unit, hr, s, f, t)
       )// END sum (hr)
 ;
 
 * --- Incremental Heat Rate Conversion ------------------------------------------
-q_conversionIncHRBounds(grid, node, s, hr, suft(effIncHR(effGroup), unit, f, t))$(sft(s, f, t)) ..
+q_conversionIncHRBounds(gn(grid, node), s, hr, suft(effIncHR(effGroup), unit, f, t))${  sft(s, f, t)
+                                                                                        and gnu_output(grid, node, unit)
+                                                                                        and p_unit(unit, hr)
+                                                                                        } ..
 
     + v_gen_inc(grid, node, unit, hr, s, f, t)
 
@@ -1030,7 +1035,8 @@ q_conversionIncHRBounds(grid, node, s, hr, suft(effIncHR(effGroup), unit, f, t))
         + sum(hrop${ord(hrop) = ord(hr)}, p_unit(unit, hrop))
         - sum(hrop${ord(hrop) = ord(hr) - 1}, p_unit(unit, hrop))
         )
-        *  p_gnu(grid, node, unit, 'unitSizeGen')*v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+        *  p_gnu(grid, node, unit, 'unitSizeGen')
+        *  v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 ;
 
 * --- Incremental Heat Rate Conversion ------------------------------------------
@@ -1071,6 +1077,43 @@ q_conversionIncHRBounds3(grid, node, s, suft(effIncHR(effGroup), unit, f, t)) $(
       )
       * p_gnu(grid, node, unit, 'maxGen')*v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 ;
+
+* --- Incremental Heat Rate Conversion (First Segments First) -----------------
+
+q_conversionIncHR_help1(gn(grid, node), s, hr, suft(effIncHR(effGroup), unit, f, t))${  sft(s, f, t)
+                                                                                        and gnu_output(grid, node, unit)
+                                                                                        and p_unit(unit, hr)
+                                                                                        and p_unit(unit, hr+1)
+                                                                                        } ..
+
+    + v_gen_inc(grid, node, unit, hr, s, f, t)
+    - (
+        + sum(hrop${ord(hrop) = ord(hr)}, p_unit(unit, hrop))
+        - sum(hrop${ord(hrop) = ord(hr) - 1}, p_unit(unit, hrop))
+        )
+        *  p_gnu(grid, node, unit, 'unitSizeGen')
+        *  v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+
+    =G=
+
+    - 100000  // a very large number, add to scalars in 2b_eqDeclarations.gms?
+        * (1 - v_help_inc(grid, node, unit, hr, s, f, t))
+;
+
+q_conversionIncHR_help2(gn(grid, node), s, hr, suft(effIncHR(effGroup), unit, f, t))${  sft(s, f, t)
+                                                                                        and gnu_output(grid, node, unit)
+                                                                                        and p_unit(unit, hr)
+                                                                                        and p_unit(unit, hr-1)
+                                                                                        } ..
+
+    + v_gen_inc(grid, node, unit, hr, s, f, t)
+
+    =L=
+
+    + 100000  // a very large number, add to scalars in 2b_eqDeclarations.gms?
+        * v_help_inc(grid, node, unit, hr-1, s, f, t)
+;
+
 * --- SOS2 Efficiency Approximation -------------------------------------------
 
 q_conversionSOS2InputIntermediate(s, suft(effLambda(effGroup), unit, f, t))$sft(s, f, t) ..

@@ -27,6 +27,9 @@ Integer variables
     v_invest_MIP(unit, t) "Number of invested sub-units"
     v_investTransfer_MIP(grid, node, node, t) "Number of invested transfer links"
 ;
+Binary variables
+    v_help_inc(grid, node, unit, hr, s, f, t) "Helper variable to ensure that the first heat rate segments are used first"
+;
 SOS2 variables
     v_sos2(unit, s, f, t, effSelector) "Intermediate lambda variable for SOS2 based piece-wise linear efficiency curve"
 ;

@@ -53,6 +53,8 @@ Model schedule /
     q_conversionIncHRBounds1
     q_conversionIncHRBounds2
     q_conversionIncHRBounds3
+    q_conversionIncHR_help1
+    q_conversionIncHR_help2
     q_fuelUseLimit
 
     // Energy Transfer
