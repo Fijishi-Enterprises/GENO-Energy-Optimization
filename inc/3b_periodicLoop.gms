@@ -201,9 +201,9 @@ loop(cc(counter),
     option clear = tt;
     tt(t_current(t))
         ${ord(t) >= tSolveFirst + tCounter
-          and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'lastStepInIntervalBlock', counter), tSolveLast)
-         }
-        = yes;
+          and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'lastStepInIntervalBlock', counter),
+                            tSolveLast)
+         } = yes;
 
     // Store the interval time steps for each interval block (counter)
     tt_block(counter, tt) = yes;
@@ -211,108 +211,67 @@ loop(cc(counter),
     // If stepsPerInterval equals one, simply use all the steps within the block
     if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
 
-        // Loop over defined samples
-        loop(ms(mSolve, s),
+        // Initialize tInterval
+        Option clear = tt_interval;
 
-            // Initialize tInterval
-            Option clear = tt_interval;
-
-            tt_interval(tt(t))${    ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                                    and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
-                                    }
-                 = yes; // Include all time steps within the block
-
-
-            // Calculate the interval length in hours
-            p_stepLength(mf(mSolve, f_solve), tt_interval(t)) = mSettings(mSolve, 'stepLengthInHours');
-            p_stepLengthNoReset(mf(mSolve, f_solve), tt_interval(t)) = mSettings(mSolve, 'stepLengthInHours');
-
-            // Determine the combinations of forecasts and intervals
-            // Include the t_jump for the realization
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and mf_realization(mSolve, f_solve)
-                                                            }
-                = yes;
-            // Include the full horizon for the central forecast and for a deterministic model
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and (mf_central(mSolve, f_solve) or mSettings('schedule', 'forecasts') = 0)
-                                                            }
-                = yes;
-            // Include up to forecastLength for remaining forecasts
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
-                                                            and not mf_realization(mSolve, f_solve)
-                                                            and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and ord(t) <= tSolveFirst + currentForecastLength
-                                                            }
-                = yes;
-
-            // Reduce the model dimension
-            mft(mf(mSolve, f_solve), tt_interval(t)) = msft(mSolve, s, f_solve, t);
-            ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
-
-            // Update tActive
-            t_active(tt_interval) = yes;
-
-        );  // END loop(ms)
-
-        // Reduce the sample dimension
-        sft(s, f_solve, t)$msft(mSolve, s, f_solve, t) = ft(f_solve, t);
+        tt_interval(tt(t)) = yes; // Include all time steps within the block
 
     // If stepsPerInterval exceeds 1 (stepsPerInterval < 1 not defined)
     elseif mInterval(mSolve, 'stepsPerInterval', counter) > 1,
 
-        // Loop over defined samples
-        loop(ms(mSolve, s),
+        // Initialize tInterval
+        Option clear = tt_interval;
 
-            // Initialize tInterval
-            Option clear = tt_interval;
-
-            tt_interval(tt(t)) // Select the active time steps within the block
-                 ${mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'stepsPerInterval', counter)) = 0
-                   and ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-                   and ord(t) < msEnd(mSolve, s) + tSolveFirst // Move the samples along with the dispatch
-                  }
-                = yes;
-
-
-            // Calculate the interval length in hours
-            p_stepLength(mf(mSolve, f_solve), tt_interval(t)) = mInterval(mSolve, 'stepsPerInterval', counter) * mSettings(mSolve, 'stepLengthInHours');
-            p_stepLengthNoReset(mf(mSolve, f_solve), tt_interval(t)) = p_stepLength(mSolve, f_solve, t);
-
-            // Determine the combinations of forecasts and intervals
-            // Include the t_jump for the realization
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and mf_realization(mSolve, f_solve)
-                                                            }
-                = yes;
-            // Include the full horizon for the central forecast
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${ ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and (mf_central(mSolve, f_solve) or mSettings('schedule', 'forecasts') = 0)
-                                                            }
-                = yes;
-            // Include up to forecastLength for remaining forecasts
-            msft(msf(mSolve, s, f_solve), tt_interval(t))${ not mf_central(mSolve, f_solve)
-                                                            and not mf_realization(mSolve, f_solve)
-                                                            and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
-                                                            and ord(t) <= tSolveFirst + currentForecastLength
-                                                            }
-                = yes;
-
-            // Set of locked combinations of forecasts and intervals for the reserves?
-
-            // Reduce the model dimension
-            mft(mf(mSolve, f_solve), tt_interval(t)) = msft(mSolve, s, f_solve, t);
-            ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
-
-            // Update tActive
-            t_active(tt_interval) = yes;
-
-        ); // END loop(ms)
-
-        // Reduce the sample dimension
-        sft(s, f, t)$msft(mSolve, s, f, t) = ft(f, t);
+        tt_interval(tt(t)) // Select the active time steps within the block
+             ${mod(ord(t) - tSolveFirst - tCounter,
+                   mInterval(mSolve, 'stepsPerInterval', counter)) = 0
+              } = yes;
 
     ); // END ELSEIF intervalLenght
+
+    // Calculate the interval length in hours
+    p_stepLength(mf(mSolve, f_solve), tt_interval(t))
+      = mInterval(mSolve, 'stepsPerInterval', counter) * mSettings(mSolve, 'stepLengthInHours');
+    p_stepLengthNoReset(mf(mSolve, f_solve), tt_interval(t)) = p_stepLength(mSolve, f_solve, t);
+
+    // Determine the combinations of forecasts and intervals
+    // Include the t_jump for the realization
+    mft(mf(mSolve, f_solve), tt_interval(t))
+       ${ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
+         and mf_realization(mSolve, f_solve)
+        } = yes;
+
+    // Include the full horizon for the central forecast
+    mft(mf(mSolve, f_solve), tt_interval(t))
+      ${ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+        and (mf_central(mSolve, f_solve)
+             or mSettings('schedule', 'forecasts') = 0)
+       } = yes;
+
+    // Include up to forecastLength for remaining forecasts
+    mft(mf(mSolve, f_solve), tt_interval(t))
+      ${not mf_central(mSolve, f_solve)
+        and not mf_realization(mSolve, f_solve)
+        and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+        and ord(t) <= tSolveFirst + currentForecastLength
+       } = yes;
+
+    // Set of locked combinations of forecasts and intervals for the reserves?
+
+    // Reduce the model dimension
+    ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
+
+    // Update tActive
+    t_active(tt_interval) = yes;
+
+    // Loop over defined samples
+    msft(msf(mSolve, s, f_solve), tt_interval(t))
+        ${ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
+          and ord(t) < msEnd(mSolve, s) + tSolveFirst   // Move the samples along with the dispatch
+         } = mft(mSolve, f_solve, t);
+
+    // Reduce the sample dimension
+    sft(s, f, t)$msft(mSolve, s, f, t) = ft(f, t);
 
     // Update tCounter for the next block of intervals
     tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter) + 1;
