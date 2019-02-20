@@ -1001,7 +1001,7 @@ q_conversionIncHR(s, suft(effIncHR(effGroup), unit, f, t))$sft(s, f, t) ..
                 ) // END sum(shutdownCounter)
             ] // END * sum(gnu_output)
         * [
-            + p_effGroupUnit(effGroup, unit, 'section')${not ts_effUnit(effGroup, unit, effIncHR, 'section', f, t)}
+            + p_effUnit(effGroup, unit, effGroup, 'section')${not ts_effUnit(effGroup, unit, effIncHR, 'section', f, t)}
             + ts_effUnit(effGroup, unit, effGroup, 'section', f, t)
             ] // END * sum(gnu_output)
 ;
