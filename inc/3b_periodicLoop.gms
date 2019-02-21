@@ -21,105 +21,107 @@ $offtext
 
 * --- Variables ---------------------------------------------------------------
 
-    // Free Variables
-    Option clear = v_gen;
-    Option clear = v_state;
-    Option clear = v_genRamp;
-    Option clear = v_transfer;
-    // Integer Variables
-    Option clear = v_online_MIP;
-    Option clear = v_invest_MIP;
-    Option clear = v_investTransfer_MIP;
-    // SOS2 Variables
-    Option clear = v_sos2;
-    // Positive Variables
-    Option clear = v_fuelUse;
-    Option clear = v_startup;
-    Option clear = v_shutdown;
-    Option clear = v_genRampUpDown;
-    Option clear = v_spill;
-    Option clear = v_transferRightward;
-    Option clear = v_transferLeftward;
-    Option clear = v_resTransferRightward;
-    Option clear = v_resTransferLeftward;
-    Option clear = v_reserve;
-    Option clear = v_investTransfer_LP;
-    Option clear = v_online_LP;
-    Option clear = v_invest_LP;
-    // Feasibility control
-    Option clear = v_stateSlack;
-    Option clear = vq_gen;
-    Option clear = vq_resDemand;
-    Option clear = vq_resMissing;
+// Free Variables
+Option clear = v_gen;
+Option clear = v_state;
+Option clear = v_genRamp;
+Option clear = v_transfer;
+// Integer Variables
+Option clear = v_online_MIP;
+Option clear = v_invest_MIP;
+Option clear = v_investTransfer_MIP;
+// SOS2 Variables
+Option clear = v_sos2;
+// Positive Variables
+Option clear = v_fuelUse;
+Option clear = v_startup;
+Option clear = v_shutdown;
+Option clear = v_genRampUpDown;
+Option clear = v_spill;
+Option clear = v_transferRightward;
+Option clear = v_transferLeftward;
+Option clear = v_resTransferRightward;
+Option clear = v_resTransferLeftward;
+Option clear = v_reserve;
+Option clear = v_investTransfer_LP;
+Option clear = v_online_LP;
+Option clear = v_invest_LP;
+// Feasibility control
+Option clear = v_stateSlack;
+Option clear = vq_gen;
+Option clear = vq_resDemand;
+Option clear = vq_resMissing;
 
 * --- Equations ---------------------------------------------------------------
 
-    // Objective Function, Energy Balance, and Reserve demand
-    Option clear = q_obj;
-    Option clear = q_balance;
-    Option clear = q_resDemand;
+// Objective Function, Energy Balance, and Reserve demand
+Option clear = q_obj;
+Option clear = q_balance;
+Option clear = q_resDemand;
 
-    // Unit Operation
-    Option clear = q_maxDownward;
-    Option clear = q_maxUpward;
-    Option clear = q_reserveProvision;
-    Option clear = q_startshut;
-    Option clear = q_startuptype;
-    Option clear = q_onlineLimit;
-    Option clear = q_onlineMinUptime;
-    Option clear = q_onlineCyclic;
-    Option clear = q_onlineOnStartUp;
-    Option clear = q_offlineAfterShutdown;
-    Option clear = q_genRamp;
-    Option clear = q_rampUpLimit;
-    Option clear = q_rampDownLimit;
-    Option clear = q_rampUpDown;
-    Option clear = q_rampSlack;
-    Option clear = q_outputRatioFixed;
-    Option clear = q_outputRatioConstrained;
-    Option clear = q_conversionDirectInputOutput;
-    Option clear = q_conversionSOS2InputIntermediate;
-    Option clear = q_conversionSOS2Constraint;
-    Option clear = q_conversionSOS2IntermediateOutput;
-    Option clear = q_fuelUseLimit;
+// Unit Operation
+Option clear = q_maxDownward;
+Option clear = q_maxUpward;
+Option clear = q_reserveProvision;
+Option clear = q_startshut;
+Option clear = q_startuptype;
+Option clear = q_onlineLimit;
+Option clear = q_onlineMinUptime;
+Option clear = q_onlineCyclic;
+Option clear = q_onlineOnStartUp;
+Option clear = q_offlineAfterShutdown;
+Option clear = q_genRamp;
+Option clear = q_rampUpLimit;
+Option clear = q_rampDownLimit;
+Option clear = q_rampUpDown;
+Option clear = q_rampSlack;
+Option clear = q_outputRatioFixed;
+Option clear = q_outputRatioConstrained;
+Option clear = q_conversionDirectInputOutput;
+Option clear = q_conversionSOS2InputIntermediate;
+Option clear = q_conversionSOS2Constraint;
+Option clear = q_conversionSOS2IntermediateOutput;
+Option clear = q_fuelUseLimit;
 
-    // Energy Transfer
-    Option clear = q_transfer;
-    Option clear = q_transferRightwardLimit;
-    Option clear = q_transferLeftwardLimit;
-    Option clear = q_resTransferLimitRightward;
-    Option clear = q_resTransferLimitLeftward;
-    Option clear = q_reserveProvisionRightward;
-    Option clear = q_reserveProvisionLeftward;
+// Energy Transfer
+Option clear = q_transfer;
+Option clear = q_transferRightwardLimit;
+Option clear = q_transferLeftwardLimit;
+Option clear = q_resTransferLimitRightward;
+Option clear = q_resTransferLimitLeftward;
+Option clear = q_reserveProvisionRightward;
+Option clear = q_reserveProvisionLeftward;
 
-    // State Variables
-    Option clear = q_stateSlack;
-    Option clear = q_stateUpwardLimit;
-    Option clear = q_stateDownwardLimit;
-    Option clear = q_boundStateMaxDiff;
-    Option clear = q_boundCyclic;
+// State Variables
+Option clear = q_stateSlack;
+Option clear = q_stateUpwardLimit;
+Option clear = q_stateDownwardLimit;
+Option clear = q_boundStateMaxDiff;
+Option clear = q_boundCyclic;
 
-    // Policy
-    Option clear = q_inertiaMin;
-    Option clear = q_instantaneousShareMax;
-    Option clear = q_constrainedOnlineMultiUnit;
-    Option clear = q_capacityMargin;
-    Option clear = q_constrainedCapMultiUnit;
-    Option clear = q_emissioncap;
-    Option clear = q_energyShareMax;
-    Option clear = q_energyShareMin;
+// Policy
+Option clear = q_inertiaMin;
+Option clear = q_instantaneousShareMax;
+Option clear = q_constrainedOnlineMultiUnit;
+Option clear = q_capacityMargin;
+Option clear = q_constrainedCapMultiUnit;
+Option clear = q_emissioncap;
+Option clear = q_energyShareMax;
+Option clear = q_energyShareMin;
+
 
 * --- Temporary Time Series ---------------------------------------------------
 
-    // Initialize temporary time series
-    Option clear = ts_unit_;
-*    Option clear = ts_effUnit_;
-*    Option clear = ts_effGroupUnit_;
-    Option clear = ts_influx_;
-    Option clear = ts_cf_;
-    Option clear = ts_unit_;
-    Option clear = ts_reserveDemand_;
-    Option clear = ts_node_;
+// Initialize temporary time series
+Option clear = ts_unit_;
+*Option clear = ts_effUnit_;
+*Option clear = ts_effGroupUnit_;
+Option clear = ts_influx_;
+Option clear = ts_cf_;
+Option clear = ts_unit_;
+Option clear = ts_reserveDemand_;
+Option clear = ts_node_;
+
 
 * =============================================================================
 * --- Determine the forecast-intervals included in the current solve ----------
@@ -127,26 +129,6 @@ $offtext
 
 // Determine the time steps of the current solve
 tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 used only for initial values
-
-* --- Define sample offsets for creating stochastic scenarios -----------------
-
-Option clear = dt_sampleOffset;
-
-loop(gn(grid, node),
-    loop(longtermSamples(grid, node, timeseries),
-         dt_sampleOffset(grid, node, timeseries, s)$(ord(s) > 1)
-             = (ord(s) - 2) * mSettings(mSolve, 'sampleLength');
-    );
-
-    loop(longtermSamples(grid, node, param_gnBoundaryTypes),
-      dt_sampleOffset(grid, node, param_gnBoundaryTypes, s)$(ord(s) > 1)
-          = (ord(s) - 2) * mSettings(mSolve, 'sampleLength');
-    );
-);
-loop((flowNode(flow, node), longtermSamples(flow, node, timeseries)),
-    dt_sampleOffset(flow, node, timeseries, s)$(ord(s) > 1)
-        = (ord(s) - 2) * mSettings(mSolve, 'sampleLength');
-);
 
 * --- Build the forecast-time structure using the intervals -------------------
 
@@ -156,12 +138,15 @@ Option clear = msft;
 Option clear = mft;
 Option clear = ft;
 Option clear = sft;
+Option clear = s_active, clear = s_stochastic, clear = s_scenario, clear = ss;
+Option clear = mst_start, clear = mst_end;
 
 // Initialize the set of active t:s, counters and interval time steps
 Option clear = t_active;
 Option clear = tt_block;
 Option clear = cc;
 tCounter = 1;
+count_sample = 1;
 
 // Determine the set of active interval counters (or blocks of intervals)
 cc(counter)${ mInterval(mSolve, 'stepsPerInterval', counter) }
@@ -181,7 +166,7 @@ currentForecastLength
 // Is there any case where t_forecastLength should be larger than t_horizon? Could happen if one doesn't want to join forecasts at the end of the solve horizon.
 // If not, add a check for currentForecastLength <= mSettings(mSolve, 't_horizon')
 // and change the line below to 'tSolveLast = ord(tSolve) + mSettings(mSolve, 't_horizon');'
-tSolveLast = ord(tSolve) + max(currentForecastLength, min(mSettings(mSolve, 't_horizon'), smax(s, msEnd(mSolve, s))));  // tSolveLast: the end of the current solve
+tSolveLast = ord(tSolve) + mSettings(mSolve, 't_horizon');  // tSolveLast: the end of the current solve
 Option clear = t_current;
 t_current(t_full(t))
     ${  ord(t) >= tSolveFirst
@@ -201,7 +186,8 @@ loop(cc(counter),
     option clear = tt;
     tt(t_current(t))
         ${ord(t) >= tSolveFirst + tCounter
-          and ord(t) <= min(tSolveFirst + mInterval(mSolve, 'lastStepInIntervalBlock', counter),
+          and ord(t) <= min(tSolveFirst
+                            + mInterval(mSolve, 'lastStepInIntervalBlock', counter),
                             tSolveLast)
          } = yes;
 
@@ -258,9 +244,6 @@ loop(cc(counter),
 
     // Set of locked combinations of forecasts and intervals for the reserves?
 
-    // Reduce the model dimension
-    ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
-
     // Update tActive
     t_active(tt_interval) = yes;
 
@@ -270,6 +253,36 @@ loop(cc(counter),
           and ord(t) < msEnd(mSolve, s) + tSolveFirst   // Move the samples along with the dispatch
          } = mft(mSolve, f_solve, t);
 
+    // Create stochastic programming scenarios
+    if(mSettings(mSolve, 'scenarios'),
+        // Select root sample and central forecast
+        loop((ms_initial(mSolve, s_), mf_central(mSolve, f_)),
+            s_active(s_) = yes;
+            loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
+                s_scenario(s_, scenario) = yes;
+                loop(tt_interval(t)$(ord(t) >= msEnd(mSolve, s_) + tSolveFirst),
+                    mft(mSolve, f_, t) = yes;
+                    loop(s$(ord(s) = mSettings(mSolve, 'samples') + count_sample),
+                        s_active(s) = yes;
+                        s_stochastic(s) = yes;
+                        msft(mSolve, s, f_, t) = yes;
+                        s_scenario(s, scenario) = yes;
+                        p_msProbability(mSolve, s) = p_scenProbability(scenario);
+                        msStart(mSolve, s) = ord(t) - tSolveFirst;
+                        msEnd(mSolve, s)
+                          = ord(t) - tSolveFirst
+                            + mInterval(mSolve, 'stepsPerInterval', counter);
+                    );
+                    count_sample = count_sample + 1;
+                );
+            );
+            msf(mSolve, s, f_) = s_active(s);
+        );
+        ms(mSolve, s) = s_active(s);
+    );
+    // Reduce the model dimension
+    ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
+
     // Reduce the sample dimension
     sft(s, f, t)$msft(mSolve, s, f, t) = ft(f, t);
 
@@ -277,6 +290,37 @@ loop(cc(counter),
     tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter) + 1;
 
 ); // END loop(counter)
+
+* Build stochastic tree by definfing previous samples
+Option clear = s_prev;
+loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
+    loop(s_scenario(s, scenario),
+        if(not ms_initial(mSolve, s), ss(s, s_prev) = yes);
+        Option clear = s_prev; s_prev(s) = yes;
+    );
+);
+
+* --- Define sample offsets for creating stochastic scenarios -----------------
+
+Option clear = dt_scenarioOffset;
+
+loop(s_scenario(s, scenario)$(ord(s) > 1 and ord(scenario) > 1),
+    loop(gn_scenarios(grid, node, timeseries),
+         dt_scenarioOffset(grid, node, timeseries, s)
+             = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
+    );
+
+    loop(gn_scenarios(grid, node, param_gnBoundaryTypes),
+      dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
+          = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
+    );
+
+    loop(gn_scenarios(flow, node, timeseries),
+        dt_scenarioOffset(flow, node, timeseries, s)
+            = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
+    );
+);
+
 
 * --- Determine various other forecast-time sets required for the model -------
 
@@ -328,30 +372,28 @@ mft_lastSteps(mSolve, ft(f,t))
     = yes
 ;
 
-// If this is the very first solve
-if(tSolveFirst = mSettings(mSolve, 't_start'),
-    // Sample start and end intervals
-    loop(ms(mSolve, s),
-        tmp = 1;
-        tmp_ = 1;
-        loop(t_active(t),
-            if(tmp and ord(t) - tSolveFirst + 1 > msStart(mSolve, s),
-                mst_start(mSolve, s, t) = yes;
-                tmp = 0;
-            );
-            if(tmp_ and ord(t) - tSolveFirst + 1 > msEnd(mSolve, s),
-                mst_end(mSolve, s, t+dt(t)) = yes;
-                tmp_ = 0;
-            );
-        ); // END loop(t_active)
-        // If the last interval of a sample is in mft_lastSteps, the method above does not work
-        if(tmp_,
-            mst_end(mSolve, s, t)${sum(f_solve, mft_lastSteps(mSolve, f_solve, t))} = yes;
+// Sample start and end intervals
+loop(ms(mSolve, s),
+    tmp = 1;
+    tmp_ = 1;
+    loop(t_active(t),
+        if(tmp and ord(t) - tSolveFirst + 1 > msStart(mSolve, s),
+            mst_start(mSolve, s, t) = yes;
+            tmp = 0;
         );
-    ); // END loop(ms)
-    // Displacement from the first interval of a sample to the previous interval is always -1
-    dt(t)${sum(ms(mSolve, s)$(not s_parallel(s)), mst_start(mSolve, s, t))} = -1;
-); // END if(tSolveFirst)
+        if(tmp_ and ord(t) - tSolveFirst + 1 > msEnd(mSolve, s),
+            mst_end(mSolve, s, t+dt(t)) = yes;
+            tmp_ = 0;
+        );
+    ); // END loop(t_active)
+    // If the last interval of a sample is in mft_lastSteps, the method above does not work
+    if(tmp_,
+        mst_end(mSolve, s, t)${sum(f_solve, mft_lastSteps(mSolve, f_solve, t))} = yes;
+    );
+); // END loop(ms)
+// Displacement from the first interval of a sample to the previous interval is always -1,
+// except for stochastic samples
+dt(t)${sum(ms(mSolve, s)$(not s_stochastic(s)), mst_start(mSolve, s, t))} = -1;
 
 // Forecast index displacement between realized and forecasted intervals
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
@@ -388,17 +430,6 @@ ft_reservesFixed(node, restype, f_solve(f), t_active(t))
                     ]
         }
     = yes;
-
-// Calculate sample displacements
-Options clear = ds, clear = ds_state;
-loop(ms(mSolve, s)$msStart(msolve, s),  // Get all samples with defined start
-    loop(s_$(msEnd(mSolve, s_) = msStart(mSolve, s)),  // Get the previous sample
-        ds(s, t)$(ord(t) = tSolveFirst + msStart(mSolve, s)) = -(ord(s) - ord(s_));
-    );
-    ds_state(gn_state(grid, node), s, t)${not sum(s_, gnss_bound(grid, node, s_, s))
-                                          and not sum(s_, gnss_bound(grid, node, s, s_))}
-        = ds(s, t);
-);
 
 * =============================================================================
 * --- Defining unit aggregations and ramps ------------------------------------
