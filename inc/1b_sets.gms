@@ -166,6 +166,7 @@ Option clear = ms;
 Option clear = mf;
 mf_realization(mType, 'f00') = yes;
 Option clear = longtermSamples;
+Option clear = mTimeseries_loop_read;
 
 alias(m, mSolve);
 alias(t, t_, t__, tSolve, tFuel);
