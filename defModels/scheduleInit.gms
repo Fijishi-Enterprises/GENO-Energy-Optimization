@@ -25,9 +25,9 @@ if (mType('schedule'),
 * --- Define Key Execution Parameters in Time Indeces -------------------------
 
     // Define simulation start and end time indeces
-    mSettings('schedule', 't_start') = 1;  // First time step to be solved, 1 corresponds to t000001 (t000000 will then be used for initial status of dynamic variables)
+    mSettings('schedule', 't_start') = 53568;  // First time step to be solved, 1 corresponds to t000001 (t000000 will then be used for initial status of dynamic variables)
 *26064
-    mSettings('schedule', 't_end') = 300; // Last time step to be included in the solve (may solve and output more time steps in case t_jump does not match)
+    mSettings('schedule', 't_end') = 57588; // Last time step to be included in the solve (may solve and output more time steps in case t_jump does not match)
 *105000
     // Define simulation horizon and moving horizon optimization "speed"
     mSettings('schedule', 't_horizon') = 576;    // How many active time steps the solve contains (aggregation of time steps does not impact this, unless the aggregation does not match)
@@ -117,7 +117,7 @@ if (mType('schedule'),
 
     // Define active model features
     active('schedule', 'storageValue') = yes;
-
+    active('schedule', 'checkUnavailability') = no;
 * =============================================================================
 * --- Model Features ----------------------------------------------------------
 * =============================================================================
@@ -125,17 +125,16 @@ if (mType('schedule'),
 * --- Define Reserve Properties -----------------------------------------------
 
     // Define whether reserves are used in the model
-     mSettingsReservesInUse('schedule', 'Reg_Up', 'up') = yes;
-     mSettingsReservesInUse('schedule', 'Flex_Up', 'up') = yes;
-     mSettingsReservesInUse('schedule', 'Spin_Up_R1', 'up') = yes;
-     mSettingsReservesInUse('schedule', 'Spin_Up_R2', 'up') = yes;
-     mSettingsReservesInUse('schedule', 'Spin_Up_R3', 'up') = yes;
-*    mSettingsReservesInUse('schedule', 'resSpinning', 'up') = no;
-*    mSettingsReservesInUse('schedule', 'resSpinning', 'down') = no;
-*    mSettingsReservesInUse('schedule', 'resFlexibility', 'up') = no;
-*    mSettingsReservesInUse('schedule', 'resFlexibility', 'down') = no;
-*    mSettingsReservesInUse('schedule', 'resRegulation', 'up') = no;
-*    mSettingsReservesInUse('schedule', 'resRegulation', 'down') = no;
+*     mSettingsReservesInUse('schedule', 'Reg_Up', 'up') = yes;
+*     mSettingsReservesInUse('schedule', 'Flex_Up', 'up') = yes;
+*     mSettingsReservesInUse('schedule', 'Spin_Up_R1', 'up') = yes;
+*     mSettingsReservesInUse('schedule', 'Spin_Up_R2', 'up') = yes;
+*     mSettingsReservesInUse('schedule', 'Spin_Up_R3', 'up') = yes;
+     mSettingsReservesInUse('schedule', 'Reg_Up', 'up') = no;
+     mSettingsReservesInUse('schedule', 'Flex_Up', 'up') = no;
+     mSettingsReservesInUse('schedule', 'Spin_Up_R1', 'up') = no;
+     mSettingsReservesInUse('schedule', 'Spin_Up_R2', 'up') = no;
+     mSettingsReservesInUse('schedule', 'Spin_Up_R3', 'up') = no;
 
 * --- Define Unit Approximations ----------------------------------------------
 

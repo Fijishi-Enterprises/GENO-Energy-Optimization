@@ -146,7 +146,8 @@ Sets
         addOn            "Use StoSSch as a storage add-on to a larger model"
         extraRes         "Use extra tertiary reserves for error in elec. load during time step"
         rampSched        "Use power based scheduling"
-        /
+        checkUnavailability "Take into account ts_unit unavailability data"
+         /
 
 * --- Set to declare time series that will be read between solves ------------------------------------------------------
     timeseries "Names of time series that could be loop read from files between solves" /

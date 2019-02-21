@@ -134,9 +134,16 @@ v_gen.up(gnuft(gnu_output(grid, node, unit), f, t))${   not unit_flow(unit)
                                                         and not (unit_investLP(unit) or unit_investMIP(unit))
                                                         }
     = p_gnu(grid, node, unit, 'maxGen')
-        * [( p_unit(unit, 'availability'))${ts_unit(unit, 'unavailability', f, t) = 0}
-           + (1 - ts_unit(unit, 'unavailability', f, t))${ts_unit(unit, 'unavailability', f, t) > 0}
-          ]
+*        * [( p_unit(unit, 'availability'))${ts_unit(unit, 'unavailability', f, t) = 0}
+*           + (1 - ts_unit(unit, 'unavailability', f, t))${ts_unit(unit, 'unavailability', f, t) > 0
+*                                                          }
+*          ]
+      * [( p_unit(unit, 'availability'))${not active('schedule', 'checkUnavailability')
+                                             or ts_unit(unit, 'unavailability', f, t) = 0}
+           + (1 - ts_unit(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')
+                                                           and ts_unit(unit, 'unavailability', f, t) > 0
+                                                          }
+        ]
 ;
 
 

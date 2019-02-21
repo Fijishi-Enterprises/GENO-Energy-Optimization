@@ -2,7 +2,7 @@ options
 
 // Solution gap: the first one reached will end iteration
 optca = 0       // Absolute gap between the found solution and the best possible solution
-optcr = 0.0004  // Relative gap between the found solution and the best possible solution
+optcr = 0.001  // Relative gap between the found solution and the best possible solution
 
 solvelink = %Solvelink.Loadlibrary%  // Solvelink controls how the problem is passed from GAMS to the solver. Loadlibrary constant means that the model is passed in core without the use of temporary files.
 
