@@ -194,20 +194,15 @@ loop(cc(counter),
     // Store the interval time steps for each interval block (counter)
     tt_block(counter, tt) = yes;
 
+    // Initialize tInterval
+    Option clear = tt_interval;
+
     // If stepsPerInterval equals one, simply use all the steps within the block
     if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
-
-        // Initialize tInterval
-        Option clear = tt_interval;
-
         tt_interval(tt(t)) = yes; // Include all time steps within the block
 
     // If stepsPerInterval exceeds 1 (stepsPerInterval < 1 not defined)
     elseif mInterval(mSolve, 'stepsPerInterval', counter) > 1,
-
-        // Initialize tInterval
-        Option clear = tt_interval;
-
         tt_interval(tt(t)) // Select the active time steps within the block
              ${mod(ord(t) - tSolveFirst - tCounter,
                    mInterval(mSolve, 'stepsPerInterval', counter)) = 0

@@ -440,8 +440,8 @@ p_msft_probability(msft(mSolve, s, f, t))
 
 * --- Calculate sample displacements ------------------------------------------
 Options clear = ds, clear = ds_state;
-loop(ss(s, s_),
-    ds(s, t)$(ord(t) = tSolveFirst + msStart(mSolve, s)) = -(ord(s) - ord(s_));
+loop((mst_start(mSolve, s, t), ss(s, s_)),
+    ds(s, t) = -(ord(s) - ord(s_));
     ds_state(gn_state(grid, node), s, t)
       ${not sum(s__, gnss_bound(grid, node, s__, s))
         and not sum(s__, gnss_bound(grid, node, s, s__))} = ds(s, t);
