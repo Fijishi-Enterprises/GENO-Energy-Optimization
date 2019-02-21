@@ -326,17 +326,6 @@ loop(cc(counter),
 
 * --- Determine various other forecast-time sets required for the model -------
 
-// Initial model ft
-Option clear = mft_start;
-mft_start(mf_realization(mSolve, f), tSolve)
-    = yes
-;
-// Last steps of model fts
-Option clear = mft_lastSteps;
-mft_lastSteps(mSolve, ft(f,t))${ ord(t) + p_stepLength(mSolve, f, t) / mSettings(mSolve, 'stepLengthInHours') >= tSolveLast }
-    = yes
-;
-
 // Set of realized intervals in the current solve
 Option clear = ft_realized;
 ft_realized(ft(f_solve, t))
@@ -372,6 +361,18 @@ loop(t_active(t),
     dt_next(t+dt(t)) = -dt(t);
     tmp = ord(t);
 ); // END loop(t_active)
+
+// First model ft
+Option clear = mft_start;
+mft_start(mf_realization(mSolve, f), tSolve)
+    = yes
+;
+// Last model fts
+Option clear = mft_lastSteps;
+mft_lastSteps(mSolve, ft(f,t))
+    ${ not dt_next(t) }
+    = yes
+;
 
 // If this is the very first solve
 if(tSolveFirst = mSettings(mSolve, 't_start'),
