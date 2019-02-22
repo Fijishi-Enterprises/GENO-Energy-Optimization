@@ -216,19 +216,15 @@ loop(ms(mSolve, s),
 // LP variant
 v_online_LP.up(unit, sft(s, f, t))${uft_onlineLP(unit, f, t) and not unit_investLP(unit)}
     = p_unit(unit, 'unitCount')
-     * [1${not active('schedule', 'checkUnavailability')}
-       + (1 - ts_unit(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')
-                                                           and ts_unit(unit, 'unavailability', f, t) > 0
-                                                          }
+     * [1${not active(mSolve, 'checkUnavailability')}
+       + (1 - ts_unit(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
       ]
 ;
 // MIP variant
 v_online_MIP.up(unit, sft(s, f, t))${uft_onlineMIP(unit, f, t) and not unit_investMIP(unit)}
     = p_unit(unit, 'unitCount')
-     * [1${not active('schedule', 'checkUnavailability')}
-       + (1 - ts_unit(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')
-                                                           and ts_unit(unit, 'unavailability', f, t) > 0
-                                                          }
+     * [1${not active(mSolve, 'checkUnavailability')}
+       + (1 - ts_unit(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}                                                          
       ]
 ;
 
