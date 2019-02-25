@@ -71,6 +71,7 @@ Parameters
     p_uCounter_runUpMin(unit, counter) "Minimum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
     p_uCounter_runUpMax(unit, counter) "Maximum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
     p_u_maxOutputInFirstShutdownInterval(unit) "Maximum output in the first interval for the shutdown from min. load (p.u.)"
+    p_uShutdown(unit, cost_consumption) "Shutdown cost per unit"
     p_u_shutdownTimeIntervals(unit) "Time steps required for the shutdown phase"
     p_u_shutdownTimeIntervalsCeil(unit) "Floor of time steps required for the shutdown phase"
     p_uCounter_shutdownMin(unit, counter) "Minimum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"

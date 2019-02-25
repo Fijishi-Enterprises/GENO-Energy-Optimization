@@ -248,6 +248,12 @@ p_uStartup(unit, 'cold', 'consumption')
     = p_unit(unit, 'startFuelConsCold')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
+
+//shutdown cost parameters
+p_uShutdown(unit, 'cost')
+    = p_unit(unit, 'shutCost')
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+
 // Determine unit emission costs
 p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_fuel, param_fuel, fuel)) }
     = p_fuelEmission(fuel, emission)

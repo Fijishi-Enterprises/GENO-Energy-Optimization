@@ -107,6 +107,11 @@ q_obj ..
                       ) // END sum(starttype)
                   ) // END sum(uft_online)
 
+                // Shut-down costs, initial shutdown free?
+                + sum(uft_online(unit, f, t),
+                      + v_shutdown(unit, s, f, t) * p_uShutdown(unit, 'cost')
+                  ) // END sum(uft_online)
+
                 // Ramping costs
                 + sum(gnuft_rampCost(grid, node, unit, slack, f, t),
                     + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
