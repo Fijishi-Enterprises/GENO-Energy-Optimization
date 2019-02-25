@@ -118,7 +118,8 @@ v_spill.lo(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(
     = ts_node_(grid, node_spill, 'minSpill', f, t)
         * p_gnBoundaryPropertiesForStates(grid, node_spill, 'minSpill', 'multiplier')
 ;
-v_spill.up(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node_spill, 'maxSpill', 'constant') }
+*v_spill.up(gn(grid, node_spill), ft(f, t))${    p_gnBoundaryPropertiesForStates(grid, node_spill, 'maxSpill', 'constant') }
+v_spill.up(gn(grid, node_spill), ft(f, t))
     = p_gnBoundaryPropertiesForStates(grid, node_spill, 'maxSpill', 'constant')
         * p_gnBoundaryPropertiesForStates(grid, node_spill, 'maxSpill', 'multiplier')
 ;
@@ -224,10 +225,16 @@ loop(ms(mSolve, s),
 // LP variant
 v_online_LP.up(uft_onlineLP(unit, f, t))${  not unit_investLP(unit) }
     = p_unit(unit, 'unitCount')
+     * [1${not active(mSolve, 'checkUnavailability')}
+       + (1 - ts_unit_(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
+      ]
 ;
 // MIP variant
 v_online_MIP.up(uft_onlineMIP(unit, f, t))${    not unit_investMIP(unit) }
     = p_unit(unit, 'unitCount')
+     * [1${not active(mSolve, 'checkUnavailability')}
+       + (1 - ts_unit_(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
+      ]
 ;
 
 // Free the upper bound of start-up and shutdown variables (if previously bounded)

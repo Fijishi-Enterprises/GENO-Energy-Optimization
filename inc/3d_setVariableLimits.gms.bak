@@ -134,8 +134,20 @@ v_gen.up(gnuft(gnu_output(grid, node, unit), f, t))${   not unit_flow(unit)
                                                         and not (unit_investLP(unit) or unit_investMIP(unit))
                                                         }
     = p_gnu(grid, node, unit, 'maxGen')
-        * p_unit(unit, 'availability')
+*        * [( p_unit(unit, 'availability'))${ts_unit(unit, 'unavailability', f, t) = 0}
+*           + (1 - ts_unit(unit, 'unavailability', f, t))${ts_unit(unit, 'unavailability', f, t) > 0
+*                                                          }
+*          ]
+      * [( p_unit(unit, 'availability'))${not active('schedule', 'checkUnavailability')
+                                             or ts_unit(unit, 'unavailability', f, t) = 0}
+           + (1 - ts_unit(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')
+                                                           and ts_unit(unit, 'unavailability', f, t) > 0
+                                                          }
+        ]
 ;
+
+
+
 // Time series capacity factor based max. energy generation if investments disabled
 v_gen.up(gnuft(gnu_output(grid, node, unit_flow), f, t))${  not (unit_investLP(unit_flow) or unit_investMIP(unit_flow)) }
     = sum(flow${    flowUnit(flow, unit_flow)
@@ -176,6 +188,14 @@ v_gen.lo(gnuft(gnu_output(grid, node, unit), f, t))${   p_gnu(grid, node, unit, 
 v_gen.up(gnuft(gnu_output(grid, node, unit), f, t))${   p_gnu(grid, node, unit, 'maxGen') < 0   }
     = 0
 ;
+
+//v_gen forced to external input value
+v_gen.fx(gnuft(gnu_output(grid, node, unit), f, t))${   not (unit_investLP(unit) or unit_investMIP(unit))
+                                                        and ts_vgen_fixed_(grid, node, unit, f, t) > 0}
+   = ts_vgen_fixed_(grid, node, unit, f, t)
+      * ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )
+;
+
 // Ramping capability of units not part of investment set
 // NOTE: Apply the corresponding equations only to units with investment possibility,
 // online variable, or reserve provision
@@ -204,10 +224,16 @@ loop(ms(mSolve, s),
 // LP variant
 v_online_LP.up(uft_onlineLP(unit, f, t))${  not unit_investLP(unit) }
     = p_unit(unit, 'unitCount')
+     * [1${not active(mSolve, 'checkUnavailability')}
+       + (1 - ts_unit(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
+      ]
 ;
 // MIP variant
 v_online_MIP.up(uft_onlineMIP(unit, f, t))${    not unit_investMIP(unit) }
     = p_unit(unit, 'unitCount')
+     * [1${not active(mSolve, 'checkUnavailability')}
+       + (1 - ts_unit(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}                                                          
+      ]
 ;
 
 // Free the upper bound of start-up and shutdown variables (if previously bounded)
@@ -379,6 +405,8 @@ v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ 
 * =============================================================================
 
 // Loop over the start intervals
+tmp_dt2 = 1 - mInterval('schedule', 'stepsPerInterval', 'c000');
+
 loop(mft_start(mSolve, f, t),
 
     // If this is the very first solve, set boundStart
@@ -423,12 +451,12 @@ loop(mft_start(mSolve, f, t),
     else // For all other solves, fix the initial state values based on previous results.
 
         // State and online variable initial values for the subsequent solves
-        v_state.fx(gn_state(grid, node), f, t)
-            = r_state(grid, node, f, t);
+        v_state.fx(gn_state(grid, node), f, t + tmp_dt2)
+            = r_state(grid, node, f, t + tmp_dt2);
 
         // Generation initial value (needed at least for ramp constraints)
-        v_gen.fx(gnu(grid, node, unit), f, t)
-            = r_gen(grid, node, unit, f, t);
+        v_gen.fx(gnu(grid, node, unit), f, t + tmp_dt2)
+            = r_gen(grid, node, unit, f, t + tmp_dt2);
 
     ); // END if(tSolveFirst)
 ) // END loop(mft_start)

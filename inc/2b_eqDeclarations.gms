@@ -26,7 +26,7 @@ Scalars
 ;
 
 $If set penalty PENALTY=%penalty%;
-$If not set penalty PENALTY=1e4;
+$If not set penalty PENALTY=1e5;
 
 Parameters
     PENALTY_BALANCE(grid, node) "Penalty on violating energy balance eq. (EUR/MWh)"

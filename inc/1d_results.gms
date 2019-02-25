@@ -32,8 +32,9 @@ Parameters
     r_uFuelEmissionCost(fuel, unit, f, t) "Unit fuel & emission costs for normal operation (MEUR)"
     r_uTotalFuelEmissionCost(fuel, unit) "Total unit fuel & emission costs over the simulation for normal operation (MEUR)"
     r_uStartupCost(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
+    r_uShutdownCost(unit, f, t) "Unit shutdown VOM (MEUR)"
     r_uTotalStartupCost(unit) "Total unit startup costs over the simulation (MEUR)"
-
+    r_uTotalShutdownCost(unit) "Total unit shutdown costs over the simulation (MEUR)"
     // Nodal Cost Components
     r_gnStateSlackCost(grid, node, f, t) "Costs for states requiring slack (MEUR)"
     r_gnTotalStateSlackCost(grid, node) "Total costs for state slacks over the simulation (MEUR)"

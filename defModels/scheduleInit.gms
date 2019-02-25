@@ -157,4 +157,11 @@ if (mType('schedule'),
     mSettings('schedule', 'loadPoint') = 0;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
     mSettings('schedule', 'savePoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
 
+* --- changes to input data ------------------------------------------------------
+
+    //remove CSP and storage for summer weeks comparison
+    p_unit('212_CSP_1','availability') = 0;
+    p_unit('313_STORAGE_1','availability') = 0;
+
+    //remove
 ); // END if(mType)

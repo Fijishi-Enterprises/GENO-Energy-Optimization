@@ -65,6 +65,12 @@ loop(m,
                         ] // END * r_startup
                 ); // END sum(unitStarttype)
 
+    // Unit shutdown costs (just copy of above)
+    r_uShutdownCost(unit, ft_realizedNoReset(f,t))
+        = 1e-6 // Scaling to MEUR
+            *  r_shutdown(unit, f, t) * p_uShutdown(unit, 'cost')
+     ; 
+
     // Node state slack costs
     r_gnStateSlackCost(gn_stateSlack(grid, node), ft_realizedNoReset(f,t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
         = 1e-6 // Scaling to MEUR
@@ -108,6 +114,12 @@ loop(m,
     r_uTotalStartupCost(unit)${ sum(starttype, unitStarttype(unit, starttype)) }
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_uStartupCost(unit, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+            );
+    // Total unit shutdown costs
+    r_uTotalShutdownCost(unit)
+        = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
+            + r_uShutdownCost(unit, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             );
 

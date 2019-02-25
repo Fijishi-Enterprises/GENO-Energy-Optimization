@@ -1087,7 +1087,7 @@ q_conversionIncHRBounds2(grid, node,  suft(effIncHR(effGroup), unit, f, t), hr) 
             p_unit(unit, hrop) - p_unit(unit, hrop - 1)
         )
     * p_effUnit(effGroup, unit, effGroup, 'slope')
-    * p_gnu(grid, node, unit, 'maxGen') * v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+    * p_gnu(grid, node, unit, 'unitSizeGen') * v_online_MIP(unit, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 ;
 
 
