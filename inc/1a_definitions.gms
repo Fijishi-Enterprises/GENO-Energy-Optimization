@@ -50,7 +50,8 @@ Sets
         t_forecastStart, // Time step for first reading the forecasts (not necessarily t_start)
         t_forecastJump, // Number of time steps between each update of the forecasts
         t_improveForecast "Number of time steps ahead of time on which the forecast is improved on each solve"
-        sampleLength   "Length of sample in time steps for creating stocahstic scenarios from time series data"
+        scenarios        "Number of long-term scenarios used"
+        scenarioLength   "Length of scenario in time steps for creating stocahstic scenarios from time series data"
 
         // Features
         t_trajectoryHorizon, // Length of the horizon when start-up and shutdown trajectories are considered (in time steps)

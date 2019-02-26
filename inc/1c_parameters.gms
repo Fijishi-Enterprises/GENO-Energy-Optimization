@@ -27,6 +27,7 @@ Scalars
     currentForecastLength "Length of the forecast in the curren solve, minimum of unchanging and decreasing forecast lengths"
     count "General counter"
     count_lambda, count_lambda2 "Counter for lambdas"
+    count_sample "Counter for samples"
     cum_slope "Cumulative for slope"
     cum_lambda "Cumulative for lambda"
     heat_rate "Heat rate temporary parameter"
@@ -91,10 +92,10 @@ Parameters
 Parameters
     p_msWeight(mType, s) "Weight of sample"
     p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
-    p_msProbability_orig(mType, s) "Original probabilities of samples in model"
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"
     p_sProbability(s) "Probability of sample"
+    p_scenProbability(scenario) "Probability of scenarios"
 ;
 
 Scalar p_sWeightSum "Sum of sample weights";
@@ -112,7 +113,7 @@ Parameters
     dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints (in time steps)"
     dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints (in time steps)"
     dt_trajectory(counter) "Run-up/shutdown trajectory time index displacement"
-    dt_sampleOffset(*, node, *, s) "Time offset to make periodic time series data (for grid/flow, unit, label) to go into different samples"
+    dt_scenarioOffset(*, node, *, s) "Time offset to make periodic time series data (for grid/flow, unit, label) to go into different scenarios"
 
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"

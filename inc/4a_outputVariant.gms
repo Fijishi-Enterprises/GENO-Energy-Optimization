@@ -178,17 +178,17 @@ r_qCapacity(gn(grid, node), f, t)
 // Only include these if '--diag=yes' given as a command line argument
 $iftheni.diag '%diag%' == yes
 // Capacity factors for examining forecast errors
-d_capacityFactor(flowNode(flow, node), s, f_solve(f), t_current(t))
+d_capacityFactor(flowNode(flow, node), sft(s, f_solve(f), t_current(t)))
     ${  msf(mSolve, s, f)
         and t_active(t)
         and sum(flowUnit(flow, unit), nu(node, unit))
         }
     = ts_cf_(flow, node, f, t, s)
-        + ts_cf(flow, node, f, t + dt_sampleOffset(flow, node, 'ts_cf', s))${ not ts_cf_(flow, node, f, t, s) }
+        + ts_cf(flow, node, f, t + dt_scenarioOffset(flow, node, 'ts_cf', s))${ not ts_cf_(flow, node, f, t, s) }
         + Eps
 ;
 // Temperature forecast for examining the error
-d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, s, f_solve(f), t_current(t))
+d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f_solve(f), t_current(t)))
     ${  p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
         and t_active(t)
         and msf(mSolve, s, f)
@@ -198,7 +198,7 @@ d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, s, f_solve(f), t_curren
         + Eps
 ;
 // Influx forecast for examining the errors
-d_influx(gn(grid, node), s, f_solve(f), t_current(t))
+d_influx(gn(grid, node), sft(s, f_solve(f), t_current(t)))
     ${  msf(mSolve, s, f)
         and t_active(t)
         }
@@ -206,6 +206,15 @@ d_influx(gn(grid, node), s, f_solve(f), t_current(t))
         + ts_influx(grid, node, f, t)${ not ts_influx_(grid, node, f, t, s)}
         + Eps
 ;
+Option clear = d_state;  // Only keep latest results
+loop(s_scenario(s, scenario),
+    loop(mft_start(mSolve, f, t)$ms_initial(mSolve, s),
+        d_state(gn_state(grid, node), scenario, f, t) = v_state.l(grid, node, s, f, t);
+    );
+    loop(sft(s, f, t),
+        d_state(gn_state(grid, node), scenario, f, t) = v_state.l(grid, node, s, f, t);
+    );
+);
 $endif.diag
 
 * --- Model Solve & Status ----------------------------------------------------
