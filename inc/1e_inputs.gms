@@ -295,7 +295,7 @@ loop(fuel,
     // If multiple values found, use time series
     else
         p_fuelPrice(fuel, 'useTimeSeries') = 1;
-        ); // END if(sum(1))
+        ); // END if(sum(tt))
 ); // END loop(fuel)
 
 * =============================================================================
