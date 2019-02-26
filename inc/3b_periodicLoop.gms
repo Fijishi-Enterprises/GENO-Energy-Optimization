@@ -19,9 +19,6 @@ $offtext
 * --- Initialize unnecessary parameters and variables in order to save memory -
 * =============================================================================
 
-// This is only done if debug mode is not specifically enabled
-$ifthene.debug not %debug%>0
-
 * --- Variables ---------------------------------------------------------------
 
     // Free Variables
@@ -123,8 +120,6 @@ $ifthene.debug not %debug%>0
     Option clear = ts_unit_;
     Option clear = ts_reserveDemand_;
     Option clear = ts_node_;
-
-$endif.debug
 
 * =============================================================================
 * --- Determine the forecast-intervals included in the current solve ----------
