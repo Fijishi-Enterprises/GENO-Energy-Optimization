@@ -318,6 +318,12 @@ param_fuel "Parameters for fuels" /
     startup       "Startup fuel of the unit, if exists. Can be the same as main fuel - consumption using startupFuelCons"
 /
 
+param_fuelPrice "Paramters for fuel prices" /
+    fuelPrice     "Fuel price (EUR/MWh)"
+    useConstant   "Flag to use constant data for fuels"
+    useTimeSeries "Flag to use time series form data for fuels"
+/
+
 param_unitFuel "Parameters for fuel limits in units" /
     maxFuelCons   "Maximum absolute fuel consumption in a unit - not used for start-up fuels"
     maxFuelFraction "Maximum share of a fuel in the consumption mix"   //only for main fuels

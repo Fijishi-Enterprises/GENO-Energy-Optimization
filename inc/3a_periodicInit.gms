@@ -571,7 +571,7 @@ loop(m,
 
 * --- Calculating fuel price time series --------------------------------------
 
-loop(fuel,
+loop(fuel${ p_fuelPrice(fuel, 'useTimeSeries') },
     // Determine the time steps where the prices change
     Option clear = tt;
     tt(t)${ ts_fuelPriceChange(fuel ,t) }

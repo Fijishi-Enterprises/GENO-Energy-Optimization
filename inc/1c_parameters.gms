@@ -57,6 +57,7 @@ Parameters
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
     p_groupPolicy(group, param_policy) "Two-dimensional policy data for groups"
     p_groupPolicy3D(group, param_policy, *) "Three-dimensional policy data for groups"
+    p_fuelPrice(fuel, param_fuelPrice) "Fuel price parameters"
     p_fuelEmission(fuel, emission) "Fuel emission content"
     p_uFuel(unit, param_fuel, fuel, param_unitFuel) "Parameters interacting between units and fuels"
     p_unitFuelEmissionCost(unit, fuel, emission) "Emission costs for each unit, calculated from input data"
