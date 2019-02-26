@@ -251,7 +251,7 @@ p_uStartup(unit, 'cold', 'consumption')
 
 //shutdown cost parameters
 p_uShutdown(unit, 'cost')
-    = p_unit(unit, 'shutCost')
+    = p_unit(unit, 'shutdownCost')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Determine unit emission costs
