@@ -300,6 +300,7 @@ param_unit "Set of possible data parameters for units" /
     hr00 * hr12   "incremental heat rates"
     hrop00 * hrop12   "Right border of the incremental heat rates"
     section       "Possibility to define a no load fuel use for units with zero minimum output"
+    hrsection     "no load fuel use to be defined when using incremental heat rates"
     level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "A flag to use time series form input for unit parameters whenever possible"
     investMIP     "A flag to make integer investment instead of continous investment"

@@ -409,8 +409,8 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
     if(effIncHR(effSelector),
         p_effUnit(effSelector, unit, effSelector, 'lb') = p_unit(unit, 'hrop00'); // hrop00 contains the minimum load of the unit
         p_effUnit(effSelector, unit, effSelector, 'op') = smax(hrop, p_unit(unit, hrop)); // Maximum operating point
-        p_effUnit(effSelector, unit, effSelector, 'slope') = 1; // Uses maximum found (nonzero) efficiency. No load heat rate not considered. Approximation
-        p_effUnit(effSelector, unit, effSelector, 'section') = p_unit(unit, 'section'); // pre-defined
+        p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
+        p_effUnit(effSelector, unit, effSelector, 'section') = p_unit(unit, 'hrsection'); // pre-defined
     ); // END if(effIncHR)
 ); // END loop(effGroupSelectorUnit)
 

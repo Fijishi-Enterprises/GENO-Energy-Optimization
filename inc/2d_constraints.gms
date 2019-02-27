@@ -1051,32 +1051,6 @@ q_conversionIncHRBounds1(grid, node,s,  suft(effIncHR(effGroup), unit, f, t))$(s
        *  p_gnu(grid, node, unit, 'maxGen')*v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 ;
 
-* --- Incremental Heat Rate Conversion ------------------------------------------
-q_conversionIncHRBounds2(grid, node, s, suft(effIncHR(effGroup), unit, f, t)) $(sft(s, f, t))  ..
-
-    v_gen_inc(grid, node, unit, 'hr01', s, f, t)
-
-    =L=
-
-    (
-      p_effUnit(effGroup, unit, effGroup, 'slope')*p_unit(unit, 'hrop01')
-      -  p_effUnit(effGroup, unit, effGroup, 'slope')*p_unit(unit, 'hrop00')
-      )
-      * p_gnu(grid, node, unit, 'maxGen')*v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
-;
-
-q_conversionIncHRBounds3(grid, node, s, suft(effIncHR(effGroup), unit, f, t)) $(sft(s, f, t))  ..
-
-    v_gen_inc(grid, node, unit, 'hr02', s, f, t)
-
-    =L=
-
-    (
-      p_effUnit(effGroup, unit, effGroup, 'slope')*p_unit(unit, 'hrop02')
-      -  p_effUnit(effGroup, unit, effGroup, 'slope')*p_unit(unit, 'hrop01')
-      )
-      * p_gnu(grid, node, unit, 'maxGen')*v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
-;
 
 * --- Incremental Heat Rate Conversion (First Segments First) -----------------
 
