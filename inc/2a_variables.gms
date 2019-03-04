@@ -27,6 +27,9 @@ Integer variables
     v_invest_MIP(unit, t) "Number of invested sub-units"
     v_investTransfer_MIP(grid, node, node, t) "Number of invested transfer links"
 ;
+Binary variables
+    v_help_inc(grid, node, unit, hr, s, f, t) "Helper variable to ensure that the first heat rate segments are used first"
+;
 SOS2 variables
     v_sos2(unit, s, f, t, effSelector) "Intermediate lambda variable for SOS2 based piece-wise linear efficiency curve"
 ;
@@ -44,6 +47,7 @@ Positive variables
     v_investTransfer_LP(grid, node, node, t) "Invested transfer capacity (MW)"
     v_online_LP(unit, s, f, t) "Number of sub-units online for 'units' with unit commitment restrictions (LP variant)"
     v_invest_LP(unit, t) "Number of invested 'sub-units' (LP variant)"
+    v_gen_inc(grid, node, unit, hr, s, f, t) "Energy generation in hr block in an interval (MW)"
 ;
 
 * --- Feasibility control -----------------------------------------------------

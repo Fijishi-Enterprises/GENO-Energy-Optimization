@@ -269,6 +269,11 @@ loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effL
     effGroupSelector(effDirectOn(effSelector), effSelector) = yes;
     effGroupSelectorUnit(effDirectOn(effSelector), unit, effSelector) = yes;
 
+    // effSelector using IncHR
+    effGroup(effIncHR(effSelector)) = yes;
+    effGroupSelector(effIncHR(effSelector), effSelector) = yes;
+    effGroupSelectorUnit(effIncHR(effSelector), unit, effSelector) = yes;
+
     // effSelector using Lambda
     effGroup(effLambda(effSelector)) = yes;
     loop(effLambda_${ord(effLambda_) <= ord(effSelector)},
@@ -399,13 +404,34 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
             ); // END loop(eff_,eff__)
         ); // END loop(op_,op__)
     ); // END if(effLambda)
+
+// Parameters for incremental heat rates
+    if(effIncHR(effSelector),
+        p_effUnit(effSelector, unit, effSelector, 'lb') = p_unit(unit, 'hrop00'); // hrop00 contains the minimum load of the unit
+        p_effUnit(effSelector, unit, effSelector, 'op') = smax(hrop, p_unit(unit, hrop)); // Maximum operating point
+        p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
+        p_effUnit(effSelector, unit, effSelector, 'section') = p_unit(unit, 'hrsection'); // pre-defined
+
+        // Whether to use q_conversionIncHR_help1 and q_conversionIncHR_help2 or not
+        loop(m,
+            loop(hr${p_unit(unit, hr)},
+                if (mSettings(m, 'incHRAdditionalConstraints') = 0,
+                    if (p_unit(unit, hr) < p_unit(unit, hr-1),
+                        unit_incHRAdditionalConstraints(unit) = yes;
+                    ); // END if(hr)
+                else
+                    unit_incHRAdditionalConstraints(unit) = yes;
+                ); // END if(incHRAdditionalConstraints)
+            ); // END loop(hr)
+        ); // END loop(m)
+    ); // END if(effIncHR)
 ); // END loop(effGroupSelectorUnit)
 
 // Calculate unit wide parameters for each efficiency group
 loop(effLevelGroupUnit(effLevel, effGroup, unit)${sum(m, mSettingsEff(m, effLevel))},
     p_effGroupUnit(effGroup, unit, 'op') = smax(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'op'));
     p_effGroupUnit(effGroup, unit, 'lb') = smin(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'lb'));
-    p_effGroupUnit(effGroup, unit, 'slope') = smin(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'slope')); // NOTE! Uses maximum efficiency for the group.
+    p_effGroupUnit(effGroup, unit, 'slope') = smin(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'slope'));
 ); // END loop(effLevelGroupUnit)
 
 

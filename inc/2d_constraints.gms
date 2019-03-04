@@ -948,6 +948,134 @@ q_conversionDirectInputOutput(s, suft(effDirect(effGroup), unit, f, t))$sft(s, f
             + ts_effUnit(effGroup, unit, effGroup, 'section', f, t)
             ] // END * sum(gnu_output)
 ;
+* --- Incremental Heat Rate Conversion ------------------------------------------
+
+q_conversionIncHR(s, suft(effIncHR(effGroup), unit, f, t))$sft(s, f, t) ..
+
+    // Sum over endogenous energy inputs
+    - sum(gnu_input(grid, node, unit)${not p_gnu(grid, node, unit, 'doNotOutput')},
+        + v_gen(grid, node, unit, s, f, t)
+        ) // END sum(gnu_input)
+
+    // Sum over fuel energy inputs
+    + sum(uFuel(unit, 'main', fuel),
+        + v_fuelUse(fuel, unit, s, f, t)
+        ) // END sum(uFuel)
+
+    =E=
+
+    // Sum over energy outputs
+    + sum(gnu_output(grid, node, unit),
+        + sum(hr,
+            + v_gen_inc(grid, node, unit, hr, s, f, t) // output of each heat rate segment
+            * [
+                + p_unit(unit, hr) // heat rate
+                / 3.6 // unit conversion from [GJ/MWh] into [MWh/MWh]
+                ] // END * v_gen_inc
+            ) // END sum(hr)
+        ) // END sum(gnu_output)
+
+    // Consumption of keeping units online (no-load fuel use)
+    + sum(gnu_output(grid, node, unit),
+        + p_gnu(grid, node, unit, 'unitSizeGen')
+        ) // END sum(gnu_output)
+        * [ // Unit online state
+            + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+
+            // Run-up and shutdown phase efficiency correction
+            // Run-up 'online state'
+            + sum(unitStarttype(unit, starttype)${uft_startupTrajectory(unit, f, t)},
+                + sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
+                    + v_startup(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        * p_uCounter_runUpMin(unit, counter)
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_runUp using minload
+                    ) // END sum(runUpCounter)
+                ) // END sum(unitStarttype)
+            // Shutdown 'online state'
+            + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
+                + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                    * p_uCounter_shutdownMin(unit, counter)
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_shutdown using minload
+                ) // END sum(shutdownCounter)
+            ] // END * sum(gnu_output)
+        * [
+            + p_effUnit(effGroup, unit, effGroup, 'section')${not ts_effUnit(effGroup, unit, effIncHR, 'section', f, t)}
+            + ts_effUnit(effGroup, unit, effGroup, 'section', f, t)
+            ] // END * sum(gnu_output)
+;
+
+* --- Incremental Heat Rate Conversion ------------------------------------------
+
+q_conversionIncHRMaxGen(gn(grid, node), s, suft(effIncHR(effGroup), unit, f, t))${  sft(s, f, t)
+                                                                                    and gnu_output(grid, node, unit)
+                                                                                    } ..
+
+    + v_gen(grid, node, unit, s, f, t)
+
+    =E=
+
+    // Sum over heat rate segments
+    + sum(hr$(p_unit(unit, hr)),
+        + v_gen_inc(grid, node, unit, hr, s, f, t)
+        )// END sum (hr)
+;
+
+* --- Incremental Heat Rate Conversion ------------------------------------------
+
+q_conversionIncHRBounds(gn(grid, node), s, hr, suft(effIncHR(effGroup), unit, f, t))${  sft(s, f, t)
+                                                                                        and gnu_output(grid, node, unit)
+                                                                                        and p_unit(unit, hr)
+                                                                                        } ..
+
+    + v_gen_inc(grid, node, unit, hr, s, f, t)
+
+    =L=
+
+    + (
+        + sum(hrop${ord(hrop) = ord(hr)}, p_unit(unit, hrop))
+        - sum(hrop${ord(hrop) = ord(hr) - 1}, p_unit(unit, hrop))
+        )
+        *  p_gnu(grid, node, unit, 'unitSizeGen')
+        *  v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+;
+
+* --- Incremental Heat Rate Conversion (First Segments First) -----------------
+
+q_conversionIncHR_help1(gn(grid, node), s, hr, suft(effIncHR(effGroup), unit_incHRAdditionalConstraints(unit), f, t))
+    ${  sft(s, f, t)
+        and gnu_output(grid, node, unit)
+        and p_unit(unit, hr)
+        and p_unit(unit, hr+1)
+        } ..
+
+    + v_gen_inc(grid, node, unit, hr, s, f, t)
+    - (
+        + sum(hrop${ord(hrop) = ord(hr)}, p_unit(unit, hrop))
+        - sum(hrop${ord(hrop) = ord(hr) - 1}, p_unit(unit, hrop))
+        )
+        *  p_gnu(grid, node, unit, 'unitSizeGen')
+        *  v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+
+    =G=
+
+    - BIG_M
+        * (1 - v_help_inc(grid, node, unit, hr, s, f, t))
+;
+
+q_conversionIncHR_help2(gn(grid, node), s, hr, suft(effIncHR(effGroup), unit_incHRAdditionalConstraints(unit), f, t))
+    ${  sft(s, f, t)
+        and gnu_output(grid, node, unit)
+        and p_unit(unit, hr)
+        and p_unit(unit, hr-1)
+        } ..
+
+    + v_gen_inc(grid, node, unit, hr, s, f, t)
+
+    =L=
+
+    + BIG_M
+        * v_help_inc(grid, node, unit, hr-1, s, f, t)
+;
 
 * --- SOS2 Efficiency Approximation -------------------------------------------
 

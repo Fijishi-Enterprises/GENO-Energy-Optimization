@@ -23,10 +23,12 @@ $offtext
 
 Scalars
     PENALTY "Default equation violation penalty"
+    BIG_M "A large number used together with with binary variables in some equations"
 ;
 
 $If set penalty PENALTY=%penalty%;
 $If not set penalty PENALTY=1e9;
+BIG_M = 1e5;
 
 Parameters
     PENALTY_BALANCE(grid, node) "Penalty on violating energy balance eq. (EUR/MWh)"
@@ -75,6 +77,11 @@ equations
     q_conversionSOS2InputIntermediate(s, effSelector, unit, f, t)   "Intermediate output when using SOS2 variable based part-load piece-wise linearization"
     q_conversionSOS2Constraint(s, effSelector, unit, f, t)          "Sum of v_sos2 has to equal v_online"
     q_conversionSOS2IntermediateOutput(s, effSelector, unit, f, t)  "Output is forced equal with v_sos2 output"
+    q_conversionIncHR(s, effSelector, unit, f, t)  "Conversion of inputs to outputs for incremental heat rates"
+    q_conversionIncHRMaxGen(grid, node,s, effSelector, unit, f, t)  "Max Generating level"
+    q_conversionIncHRBounds(grid, node, s, hr, effSelector, unit, f, t) "Heat rate bounds"
+    q_conversionIncHR_help1(grid, node, s, hr, effSelector, unit, f, t) "Helper equation 1 to ensure that the first heat rate segments are used first"
+    q_conversionIncHR_help2(grid, node, s, hr, effSelector, unit, f, t) "Helper equation 2 to ensure that the first heat rate segments are used first"
     q_fuelUseLimit(s, fuel, unit, f, t) "Fuel use cannot exceed limits"
 
     // Energy Transfer

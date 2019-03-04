@@ -49,6 +49,7 @@ Sets
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
     unit_timeseries(unit) "Units with time series enabled"
+    unit_incHRAdditionalConstraints(unit) "Units that use the two additional incremental heat rate constraints" 
 
 * --- Nodes -------------------------------------------------------------------
     node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
@@ -183,7 +184,9 @@ alias(effDirectOn, effDirectOn_);
 alias(effLambda, effLambda_);
 alias(lambda, lambda_, lambda__);
 alias(op, op_, op__);
+alias(hrop, hrop_, hrop__);
 alias(eff, eff_, eff__);
+alias(hr, hr_, hr__);
 alias(fuel, fuel_);
 alias(effLevel, effLevel_);
 alias(restype, restype_);
