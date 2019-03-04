@@ -337,7 +337,7 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))${gnuft(grid, node, unit, f,
     =L= // must be less than available/online capacity
 
     // Consuming units
-    + p_gnu(grid, node, unit, 'unitSizeCons')
+    - p_gnu(grid, node, unit, 'unitSizeCons')
         * sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
             + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
