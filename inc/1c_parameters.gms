@@ -168,10 +168,10 @@ Parameters
     ts_unavailability_update(unit, t)
 
     // Help parameters for calculating smoothening of time series
-    ts_influx_mean(grid, node, f, t) "Mean of ts_influx over samples"
-    ts_influx_std(grid, node, f, t)  "Standard deviation of ts_influx over samples"
-    ts_cf_mean(flow, node, f, t) "Mean of ts_cf over samples (p.u.)"
-    ts_cf_std(flow, node, f, t) "Standard deviation of ts_cf over samples (p.u.)"
+    ts_influx_mean(grid, node, t) "Mean of ts_influx over samples"
+    ts_influx_std(grid, node, t)  "Standard deviation of ts_influx over samples"
+    ts_cf_mean(flow, node, t) "Mean of ts_cf over samples (p.u.)"
+    ts_cf_std(flow, node, t) "Standard deviation of ts_cf over samples (p.u.)"
 
     p_autocorrelation(*, node, timeseries) "Autocorrelation of time series for the grid/flow, node and time series type (lag = 1 time step)"
 

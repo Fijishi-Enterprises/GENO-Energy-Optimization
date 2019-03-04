@@ -460,31 +460,32 @@ following the methodology presented in [1, p. 443]. This avoids a discontinuity
 $offtext
 
 * Only do smoothing if scenarios are used
+* TODO: Also enable when long-term forecast is used
 if(mSettings(msolve, 'scenarios'),
 
 * Influx
 loop(gn(grid, node)$p_autocorrelation(grid, node, 'ts_influx'),
-    ts_influx_mean(grid, node, ft(f, t))$(mf_central(mSolve, f) and sum(sft(s, f, t), 1))
+    ts_influx_mean(grid, node, t_active(t))$(sum(sft(s, f, t), 1))
         = sum(sft(s, f, t), ts_influx_(grid, node, f, t, s))
                 / sum(sft(s, f, t), 1);
 
-    ts_influx_std(grid, node, ft(f, t))$(mf_central(mSolve, f) and sum(sft(s, f, t), 1))
+    ts_influx_std(grid, node, t_active(t))$(sum(sft(s, f, t), 1))
         = sqrt(sum(sft(s, f, t), sqr(ts_influx_(grid, node, f, t, s)
-                                         - ts_influx_mean(grid, node, f, t)))
+                                     - ts_influx_mean(grid, node, t)))
                 / sum(sft(s, f, t), 1)
           );
 
     // Do smoothing
     loop(mst_end(ms_initial(mSolve, s_), t_),
-        ts_influx_(grid, node, ft(f, t), s)$(ts_influx_std(grid, node, f, t_+dt_circular(t_))
+        ts_influx_(grid, node, ft(f, t), s)$(ts_influx_std(grid, node, t_+dt_circular(t_))
                                              and sft(s, f, t)
                                              and not ms_initial(mSolve, s))
             = min(p_tsMaxValue(node, 'ts_influx'), max(p_tsMinValue(node, 'ts_influx'),
               ts_influx_(grid, node, f, t, s)
               + (ts_influx_(grid, node, f, t_, s_)
                  - ts_influx_(grid, node, f, t_, s))
-                * (ts_influx_std(grid, node, f, t+dt_circular(t))
-                    / ts_influx_std(grid, node, f, t_+dt_circular(t_)))
+                * (ts_influx_std(grid, node, t+dt_circular(t))
+                    / ts_influx_std(grid, node, t_+dt_circular(t_)))
                 * power(p_autocorrelation(grid, node, 'ts_influx'), abs(ord(t) - ord(t_)))
               ));
     );
@@ -492,27 +493,27 @@ loop(gn(grid, node)$p_autocorrelation(grid, node, 'ts_influx'),
 
 * CF
 loop(flowNode(flow, node)$p_autocorrelation(flow, node, 'ts_cf'),
-    ts_cf_mean(flow, node, ft(f, t))$(mf_central(mSolve, f) and sum(sft(s, f, t), 1))
+    ts_cf_mean(flow, node, t_active(t))$(sum(sft(s, f, t), 1))
         = sum(sft(s, f, t), ts_cf_(flow, node, f, t, s))
                 / sum(sft(s, f, t), 1);
 
-    ts_cf_std(flow, node, ft(f, t))$(mf_central(mSolve, f) and sum(sft(s, f, t), 1))
+    ts_cf_std(flow, node, t_active(t))$(sum(sft(s, f, t), 1))
         = sqrt(sum(sft(s, f, t), sqr(ts_cf_(flow, node, f, t, s)
-                                         - ts_cf_mean(flow, node, f, t)))
+                                     - ts_cf_mean(flow, node, t)))
                 / sum(sft(s, f, t), 1)
           );
 
     // Do smoothing
-    loop(mst_end(ms_initial(mSolve, s_), t_),
-        ts_cf_(flow, node, ft(f, t), s)$(ts_cf_std(flow, node, f, t_+dt_circular(t_))
+    loop((mst_end(ms_initial(mSolve, s_), t_), f_)$ft(f_, t_),
+        ts_cf_(flow, node, ft(f, t), s)$(ts_cf_std(flow, node, t_+dt_circular(t_))
                                          and sft(s, f, t)
                                          and not ms_initial(mSolve, s))
             = min(p_tsMaxValue(node, 'ts_cf'), max(p_tsMinValue(node, 'ts_cf'),
               ts_cf_(flow, node, f, t, s)
-              + (ts_cf_(flow, node, f, t_, s_)
+              + (ts_cf_(flow, node, f_, t_, s_)
                  - ts_cf_(flow, node, f, t_, s))
-                * (ts_cf_std(flow, node, f, t+dt_circular(t))
-                    / ts_cf_std(flow, node, f, t_+dt_circular(t_)))
+                * (ts_cf_std(flow, node, t+dt_circular(t))
+                    / ts_cf_std(flow, node, t_+dt_circular(t_)))
                 * power(p_autocorrelation(flow, node, 'ts_cf'), abs(ord(t) - ord(t_)))
               ));
     );
