@@ -394,6 +394,13 @@ dt(t)${sum(ms(mSolve, s)$(not s_stochastic(s)), mst_start(mSolve, s, t))} = -1;
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
 df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
+// If using scenarios, central forecast will be using realized data
+if(mSettings('schedule', 'scenarios'),
+    loop(ms_initial(mSolve, s),
+        df_scenario(f_solve(f), t_active(t))${ord(t) > msEnd(mSolve, s)}
+          = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
+    );
+);
 
 // Forecast displacement between central and forecasted intervals at the end of forecast horizon
 Option clear = df_central; // This can be reset.
