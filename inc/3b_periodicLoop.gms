@@ -33,6 +33,8 @@ $ifthene.debug not %debug%>0
     Option clear = v_online_MIP;
     Option clear = v_invest_MIP;
     Option clear = v_investTransfer_MIP;
+    // Binary Variables
+    Option clear = v_help_inc;
     // SOS2 Variables
     Option clear = v_sos2;
     // Positive Variables
@@ -49,6 +51,7 @@ $ifthene.debug not %debug%>0
     Option clear = v_investTransfer_LP;
     Option clear = v_online_LP;
     Option clear = v_invest_LP;
+    Option clear = v_gen_inc;
     // Feasibility control
     Option clear = v_stateSlack;
     Option clear = vq_gen;
@@ -84,6 +87,11 @@ $ifthene.debug not %debug%>0
     Option clear = q_conversionSOS2InputIntermediate;
     Option clear = q_conversionSOS2Constraint;
     Option clear = q_conversionSOS2IntermediateOutput;
+    Option clear = q_conversionIncHR;
+    Option clear = q_conversionIncHRMaxGen;
+    Option clear = q_conversionIncHRBounds;
+    Option clear = q_conversionIncHR_help1;
+    Option clear = q_conversionIncHR_help2;
     Option clear = q_fuelUseLimit;
 
     // Energy Transfer

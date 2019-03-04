@@ -58,6 +58,8 @@ Sets
         dataLength, // The maximum number of time steps in any input data time series (recommended for correctly circulating data)
         red_num_leaves "Desired number of preserved scenarios or leaves (SCENRED)"
         red_percentage "Desired relative distance (accuracy) of scenario reduction (SCENRED)"
+        incHRAdditionalConstraints // Method to include the two additional constraints for incremental heat rates;
+                                   // 0 = include for units with non-convex fuel use, 1 = include for all units
         /
 
     // Solve info
@@ -297,7 +299,7 @@ param_unit "Set of possible data parameters for units" /
     eff00 * eff12 "Efficiency of the unit to convert input to output/intermediate product"
     opFirstCross  "The operating point where the real efficiency curve and approximated efficiency curve cross"
     op00 * op12   "Right border of the efficiency point"
-    hr00 * hr12   "incremental heat rates"
+    hr00 * hr12   "Incremental heat rates (GJ/MWh)"
     hrop00 * hrop12   "Right border of the incremental heat rates"
     section       "Possibility to define a no load fuel use for units with zero minimum output"
     hrsection     "no load fuel use to be defined when using incremental heat rates"

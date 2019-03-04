@@ -50,8 +50,8 @@ Model schedule /
     q_conversionIncHR
     q_conversionIncHRMaxGen
     q_conversionIncHRBounds
-*    q_conversionIncHR_help1
-*    q_conversionIncHR_help2
+    q_conversionIncHR_help1
+    q_conversionIncHR_help2
     q_fuelUseLimit
 
     // Energy Transfer

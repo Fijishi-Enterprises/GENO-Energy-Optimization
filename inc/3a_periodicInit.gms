@@ -411,6 +411,19 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
         p_effUnit(effSelector, unit, effSelector, 'op') = smax(hrop, p_unit(unit, hrop)); // Maximum operating point
         p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
         p_effUnit(effSelector, unit, effSelector, 'section') = p_unit(unit, 'hrsection'); // pre-defined
+
+        // Whether to use q_conversionIncHR_help1 and q_conversionIncHR_help2 or not
+        loop(m,
+            loop(hr${p_unit(unit, hr)},
+                if (mSettings(m, 'incHRAdditionalConstraints') = 0,
+                    if (p_unit(unit, hr) < p_unit(unit, hr-1),
+                        unit_incHRAdditionalConstraints(unit) = yes;
+                    ); // END if(hr)
+                else
+                    unit_incHRAdditionalConstraints(unit) = yes;
+                ); // END if(incHRAdditionalConstraints)
+            ); // END loop(hr)
+        ); // END loop(m)
     ); // END if(effIncHR)
 ); // END loop(effGroupSelectorUnit)
 

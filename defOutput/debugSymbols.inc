@@ -91,6 +91,7 @@ v_investTransfer_LP
 v_investTransfer_MIP
 v_invest_LP
 v_invest_MIP
+v_help_inc
 
 * equations
     q_obj
@@ -118,6 +119,11 @@ v_invest_MIP
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
+    q_conversionIncHR
+    q_conversionIncHRMaxGen
+    q_conversionIncHRBounds
+    q_conversionIncHR_help1
+    q_conversionIncHR_help2
     q_fuelUseLimit
 
     // Energy Transfer

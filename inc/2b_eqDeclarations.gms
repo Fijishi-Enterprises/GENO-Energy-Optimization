@@ -23,10 +23,12 @@ $offtext
 
 Scalars
     PENALTY "Default equation violation penalty"
+    BIG_M "A large number used together with with binary variables in some equations"
 ;
 
 $If set penalty PENALTY=%penalty%;
 $If not set penalty PENALTY=1e9;
+BIG_M = 1e5;
 
 Parameters
     PENALTY_BALANCE(grid, node) "Penalty on violating energy balance eq. (EUR/MWh)"
@@ -78,9 +80,6 @@ equations
     q_conversionIncHR(s, effSelector, unit, f, t)  "Conversion of inputs to outputs for incremental heat rates"
     q_conversionIncHRMaxGen(grid, node,s, effSelector, unit, f, t)  "Max Generating level"
     q_conversionIncHRBounds(grid, node, s, hr, effSelector, unit, f, t) "Heat rate bounds"
-    q_conversionIncHRBounds1(grid, node,s, effSelector, unit, f, t) "Heat rate bounds for hr=1"
-    q_conversionIncHRBounds2(grid, node, s, effSelector, unit, f, t) "Heat rate bounds for hr=2"
-    q_conversionIncHRBounds3(grid, node, s, effSelector, unit, f, t) "Heat rate bounds for hr=3"
     q_conversionIncHR_help1(grid, node, s, hr, effSelector, unit, f, t) "Helper equation 1 to ensure that the first heat rate segments are used first"
     q_conversionIncHR_help2(grid, node, s, hr, effSelector, unit, f, t) "Helper equation 2 to ensure that the first heat rate segments are used first"
     q_fuelUseLimit(s, fuel, unit, f, t) "Fuel use cannot exceed limits"
