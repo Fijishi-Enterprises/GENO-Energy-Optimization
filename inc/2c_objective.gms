@@ -60,6 +60,11 @@ q_obj ..
                                 ) // END sum(slack)
                             ) // END sum(gn_stateSlack)
 
+                        // Dummy spill cost
+                        + sum(gn(grid, node_spill(node)),
+                            + v_spill(grid, node, s, f, t)
+                            ) // END sum(gn)
+
                         // Dummy variable penalties
                         // Energy balance feasibility dummy varible penalties
                         + sum(inc_dec,
