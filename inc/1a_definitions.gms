@@ -49,6 +49,7 @@ Sets
         t_forecastLengthDecreasesFrom, // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
         t_forecastStart, // Time step for first reading the forecasts (not necessarily t_start)
         t_forecastJump, // Number of time steps between each update of the forecasts
+        t_forecastUpdateHorizon "Number of time steps ahead that the forecast data is updated (independent of forecast dimension length)"
         t_improveForecast "Number of time steps ahead of time on which the forecast is improved on each solve"
         scenarios        "Number of long-term scenarios used"
         scenarioLength   "Length of scenario in time steps for creating stocahstic scenarios from time series data"

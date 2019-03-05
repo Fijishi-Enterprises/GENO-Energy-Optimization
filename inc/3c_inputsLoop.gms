@@ -28,6 +28,11 @@ option clear = tmp;
 tmp = max(  mSettings(mSolve, 't_forecastLengthUnchanging'),
             mSettings(mSolve, 't_forecastLengthDecreasesFrom')
             );
+// Limit the updated horizon further if so defined
+if( mSettings(mSolve, 't_forecastUpdateHorizon')
+    and mSettings(mSolve, 't_forecastUpdateHorizon') < tmp,
+        tmp = mSettings(mSolve, 't_forecastUpdateHorizon');
+);
 
 // Find time steps until the forecast horizon
 option clear = tt_forecast;
