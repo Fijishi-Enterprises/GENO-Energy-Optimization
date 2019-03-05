@@ -109,7 +109,6 @@ Option clear = q_emissioncap;
 Option clear = q_energyShareMax;
 Option clear = q_energyShareMin;
 
-
 * --- Temporary Time Series ---------------------------------------------------
 
 // Initialize temporary time series

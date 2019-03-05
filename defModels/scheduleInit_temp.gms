@@ -172,6 +172,13 @@ if (mType('schedule'),
     // Define the length of the initialization period. Results outputting starts after the period. Uses ord(t) > t_start + t_initializationPeriod in the code.
     mSettings('schedule', 't_initializationPeriod') = 0;  // r_state and r_online are stored also for the last step in the initialization period, i.e. ord(t) = t_start + t_initializationPeriod
 
+* --- Define the use of additional constraints for units with incremental heat rates
+
+    // How to use q_conversionIncHR_help1 and q_conversionIncHR_help2
+    mSettings('schedule', 'incHRAdditionalConstraints') = 0;
+    // 0 = use the constraints but only for units with non-convex fuel use
+    // 1 = use the constraints for all units represented using incremental heat rates
+
 * --- Control the solver ------------------------------------------------------
 
     // Control the use of advanced basis
