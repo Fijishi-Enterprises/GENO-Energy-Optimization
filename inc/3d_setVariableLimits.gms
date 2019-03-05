@@ -329,14 +329,14 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))${ ord(t) <= tS
             * p_nnReserves(node, node_, restype, up_down);
 
     // Fix non-flow unit reserves at the gate closure of reserves
-    v_reserve.fx(nuRescapable(restype, up_down, node, unit), s, f+df_reserves(node, restype, f, t), t)
+    v_reserve.lo(nuRescapable(restype, up_down, node, unit), s, f+df_reserves(node, restype, f, t), t)
         $ { ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)  // This set contains the combination of reserve types and time intervals that should be fixed based on previous solves
             and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
             }
       = r_reserve(restype, up_down, node, unit, f+df_reserves(node, restype, f, t), t);
 
     // Fix transfer of reserves at the gate closure of reserves
-    v_resTransferRightward.fx(restype, up_down, node, node_, s, f+df_reserves(node, restype, f, t), t)
+    v_resTransferRightward.lo(restype, up_down, node, node_, s, f+df_reserves(node, restype, f, t), t)
         $ { sum(grid, gn2n_directional(grid, node, node_)) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
             and [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)  // This set contains the combination of reserve types and time intervals that should be fixed
                     or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t) // Commit reserve transfer as long as either end commits.
@@ -344,7 +344,7 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))${ ord(t) <= tS
           }
       = r_resTransferRightward(restype, up_down, node, node_, f+df_reserves(node, restype, f, t), t);
 
-    v_resTransferLeftward.fx(restype, up_down, node, node_, s, f+df_reserves(node, restype, f, t), t)
+    v_resTransferLeftward.lo(restype, up_down, node, node_, s, f+df_reserves(node, restype, f, t), t)
         $ { sum(grid, gn2n_directional(grid, node, node_)) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
             and [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)  // This set contains the combination of reserve types and time intervals that should be fixed
                     or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t) // Commit reserve transfer as long as either end commits.
