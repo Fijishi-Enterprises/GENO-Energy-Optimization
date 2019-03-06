@@ -124,8 +124,8 @@ loop(sft_realized(s, f, t),
 );
 
 // Total Objective function
-r_totalObj
-    = r_totalObj + v_obj.l
+r_totalObj(tSolve)
+    = r_totalObj(tSolve - mSettings(mSolve, 't_jump')) + v_obj.l
 ;
 
 // q_balance marginal values
