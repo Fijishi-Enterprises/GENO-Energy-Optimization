@@ -24,7 +24,7 @@ Parameters
 * --- Cost Results ------------------------------------------------------------
 
     // Total Objective Function
-    r_totalObj "Total cost over the simulation (EUR)" / 0 /
+    r_totalObj(t) "Total accumulated value of the objective function over all solves"
 
     // Unit Operational Cost Components
     r_gnuVOMCost(grid, node, unit, f, t) "Variable O&M costs for energy outputs (MEUR)"
@@ -166,6 +166,7 @@ Scalar r_realizedLast "Order of last realised time step";
 
 * --- Initialize a few of the results arrays, required by model structure -----
 
+Option clear = r_totalObj;
 Option clear = r_state;
 Option clear = r_online;
 Option clear = r_reserve;
@@ -179,6 +180,7 @@ Option clear = r_invest;
 Option clear = r_investTransfer;
 Option clear = r_qResDemand;
 Option clear = r_resDemandLargestInfeedUnit;
+
 * =============================================================================
 * --- Diagnostics Results Arrays ----------------------------------------------
 * =============================================================================
