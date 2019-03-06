@@ -333,7 +333,8 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))${ ord(t) <= tS
         $ { ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)  // This set contains the combination of reserve types and time intervals that should be fixed based on previous solves
             and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
             }
-      = r_reserve(restype, up_down, node, unit, f+df_reserves(node, restype, f, t), t);
+      = r_reserve(restype, up_down, node, unit, f+df_reserves(node, restype, f, t), t)
+        * p_nuReserves(node, unit, restype, 'reserveReliability'); // Reserve reliability impacts the fixed amount of reserves. 
 
     // Fix transfer of reserves at the gate closure of reserves
     v_resTransferRightward.lo(restype, up_down, node, node_, s, f+df_reserves(node, restype, f, t), t)
