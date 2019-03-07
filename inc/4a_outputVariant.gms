@@ -78,6 +78,7 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))
 
     // Reserve requirement due to N-1 reserve constraint
     r_resDemandLargestInfeedUnit(grid, f+df_reserves(node, restype, f, t), t, restype, up_down, node)
+        ${ sum(unit_fail, nuRescapable(restype, up_down, node, unit_fail)) } // Calculate only for nodes with units that can fail.
         = smax(unit_fail(unit_), v_gen.l(grid, node, unit_, s, f, t) * p_nuReserves(node, unit_, restype, 'portion_of_infeed_to_reserve'));
 
     // Reserve transfer capacity for links defined out from this node
