@@ -120,11 +120,12 @@ Sets
     t_latestForecast(t) "t for the latest forecast that is available"
     gnss_bound(grid, node, s, s) "Bound the samples so that the node state at the last interval of the first sample equals the state at the first interval of the second sample"
     uss_bound(unit, s, s) "Bound the samples so that the unit online state at the last interval of the first sample equals the state at the first interval of the second sample"
-    s_parallel(s) "Samples which are treated as parallel"
     s_active(s) "Samples with non-zero probability in the current model solve"
+    s_stochastic(s) "Samples used for stochastic programming"
     ss(s, s) "Previous sample of sample"
     s_prev(s) "Temporary set for previous sample"
-    longtermSamples(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"
+    s_scenario(s, scenario) "Which samples belong to which scenarios"
+    gn_scenarios(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
@@ -166,7 +167,7 @@ Option clear = modelSolves;
 Option clear = ms;
 Option clear = mf;
 mf_realization(mType, 'f00') = yes;
-Option clear = longtermSamples;
+Option clear = gn_scenarios;
 Option clear = mTimeseries_loop_read;
 
 alias(m, mSolve);

@@ -27,6 +27,7 @@ Scalars
     currentForecastLength "Length of the forecast in the curren solve, minimum of unchanging and decreasing forecast lengths"
     count "General counter"
     count_lambda, count_lambda2 "Counter for lambdas"
+    count_sample "Counter for samples"
     cum_slope "Cumulative for slope"
     cum_lambda "Cumulative for lambda"
     heat_rate "Heat rate temporary parameter"
@@ -90,10 +91,10 @@ Parameters
 Parameters
     p_msWeight(mType, s) "Weight of sample"
     p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
-    p_msProbability_orig(mType, s) "Original probabilities of samples in model"
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"
     p_sProbability(s) "Probability of sample"
+    p_scenProbability(scenario) "Probability of scenarios"
 ;
 
 Scalar p_sWeightSum "Sum of sample weights";
@@ -111,12 +112,13 @@ Parameters
     dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints (in time steps)"
     dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints (in time steps)"
     dt_trajectory(counter) "Run-up/shutdown trajectory time index displacement"
-    dt_sampleOffset(*, node, *, s) "Time offset to make periodic time series data (for grid/flow, unit, label) to go into different samples"
+    dt_scenarioOffset(*, node, *, s) "Time offset to make periodic time series data (for grid/flow, unit, label) to go into different scenarios"
 
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
     df_reserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
+    df_scenario(f, t) "Forecast index displacement needed to get realized scenario data for long-term scenarios"
 
     // Sample displacement arrays
     ds(s, t) "Displacement needed to reach the sample of previous time step"
@@ -167,10 +169,10 @@ Parameters
     ts_unavailability_update(unit, t)
 
     // Help parameters for calculating smoothening of time series
-    ts_influx_mean(grid, node, f, t) "Mean of ts_influx over samples"
-    ts_influx_std(grid, node, f, t)  "Standard deviation of ts_influx over samples"
-    ts_cf_mean(flow, node, f, t) "Mean of ts_cf over samples (p.u.)"
-    ts_cf_std(flow, node, f, t) "Standard deviation of ts_cf over samples (p.u.)"
+    ts_influx_mean(grid, node, t) "Mean of ts_influx over samples"
+    ts_influx_std(grid, node, t)  "Standard deviation of ts_influx over samples"
+    ts_cf_mean(flow, node, t) "Mean of ts_cf over samples (p.u.)"
+    ts_cf_std(flow, node, t) "Standard deviation of ts_cf over samples (p.u.)"
 
     p_autocorrelation(*, node, timeseries) "Autocorrelation of time series for the grid/flow, node and time series type (lag = 1 time step)"
 

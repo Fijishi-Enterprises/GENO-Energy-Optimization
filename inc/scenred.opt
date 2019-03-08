@@ -3,6 +3,9 @@
 * 1 - Forward, 2 - Backward, 0 - Default
 reduction_method 0
 
+* 1 - Forward, 2 - Backward, 0 - Default
+construction_method 0
+
 * 1 - Transport (default), 2 - Fortet-Mourier, 3 - Wasserstein
 metric_type 1
 

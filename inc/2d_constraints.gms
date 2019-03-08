@@ -210,7 +210,7 @@ q_resDemandLargestInfeedUnit(grid, restypeDirectionNode(restype, 'up', node), un
 ;
 * --- Maximum Downward Capacity -----------------------------------------------
 
-q_maxDownward(m, s, gnuft(grid, node, unit, f, t))${msft(m, s, f, t)
+q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))${gnuft(grid, node, unit, f, t)
                                                     and {
                                                     [   ord(t) < tSolveFirst + smax(restype, p_nReserves(node, restype, 'reserve_length')) // Unit is either providing
                                                         and sum(restype, nuRescapable(restype, 'down', node, unit)) // downward reserves
@@ -303,7 +303,7 @@ q_maxDownward(m, s, gnuft(grid, node, unit, f, t))${msft(m, s, f, t)
 
 * --- Maximum Upwards Capacity ------------------------------------------------
 
-q_maxUpward(m, s, gnuft(grid, node, unit, f, t))${msft(m, s, f, t)
+q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))${gnuft(grid, node, unit, f, t)
                                                     and {
                                                  [   ord(t) < tSolveFirst + smax(restype, p_nReserves(node, restype, 'reserve_length')) // Unit is either providing
                                                     and sum(restype, nuRescapable(restype, 'up', node, unit)) // upward reserves
