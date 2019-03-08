@@ -331,6 +331,7 @@ $offtext
                                + dt_circular(t)$(not gn_scenarios(grid, node, 'ts_node'))));
             // Fuel price time series
             ts_fuelPrice_(fuel, t)
+              ${ p_fuelPrice(fuel, 'useTimeSeries') }
                 = ts_fuelPrice(fuel, t+dt_circular(t));
         ); // END loop(ft)
 
@@ -398,6 +399,7 @@ $offtext
                        $sameas(param_gnBoundaryTypes, 'upwardLimit');
             // Fuel price time series
             ts_fuelPrice_(fuel, t)
+                ${ p_fuelPrice(fuel, 'useTimeSeries') }
                 = sum(tt(t_), ts_fuelPrice(fuel, t_+dt_circular(t_)))
                     / mInterval(mSolve, 'stepsPerInterval', counter);
             ); // END loop(ft)

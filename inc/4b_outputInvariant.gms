@@ -37,7 +37,8 @@ loop(m,
             * p_stepLengthNoReset(m, f, t)
             * r_fuelUse(fuel, unit, f, t)
             * [ // Fuel price
-                + ts_fuelPrice(fuel, t)
+                + p_fuelPrice(fuel, 'fuelPrice')${ p_fuelPrice(fuel, 'useConstant') }
+                + ts_fuelPrice(fuel, t)${ p_fuelPrice(fuel, 'useTimeSeries') }
                 // Emission costs
                 + sum(emission, p_unitFuelEmissionCost(unit, fuel, emission))
                 ];
@@ -55,7 +56,8 @@ loop(m,
                             + p_uStartup(unit, starttype, 'consumption')
                                 * p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')
                                 * [ // Fuel price
-                                    + ts_fuelPrice(fuel, t)
+                                    + p_fuelPrice(fuel, 'fuelPrice')${ p_fuelPrice(fuel, 'useConstant') }
+                                    + ts_fuelPrice(fuel, t)${ p_fuelPrice(fuel, 'useTimeSeries') }
                                     // Emission costs
                                     + sum(emission, // Emission taxes
                                         + p_unitFuelEmissionCost(unit, fuel, emission)

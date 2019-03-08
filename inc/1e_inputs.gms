@@ -54,6 +54,7 @@ $loaddc gngnu_constrainedOutputRatio
 $loaddc emission
 $loaddc p_fuelEmission
 $loaddc ts_cf
+*$loaddc p_fuelPrice // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
 $loaddc ts_fuelPriceChange
 $loaddc ts_influx
 $loaddc ts_node
@@ -273,6 +274,29 @@ p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_f
 // If the start-up fuel fraction is not defined, it equals 1
 p_uFuel(uFuel(unit_fuel, 'startup', fuel), 'fixedFuelFraction')${ not p_uFuel(unit_fuel, 'startup', fuel, 'fixedFuelFraction') }
     = 1;
+
+* =============================================================================
+* --- Determine Fuel Price Representation -------------------------------------
+* =============================================================================
+// Use either constant or time series for fuel prices depending on 'ts_fuelPriceChange'
+// Should be handled separately by 'p_fuelPrice' also being included in the input data,
+// but this is more convenient for now as no changes to inputs are required
+
+// Determine if fuel prices require a time series representation or not
+loop(fuel,
+    // Find the steps with changing fuel prices
+    option clear = tt;
+    tt(t)${ ts_fuelPriceChange(fuel, t) } = yes;
+
+    // If only up to a single value
+    if(sum(tt, 1) <= 1,
+        p_fuelPrice(fuel, 'useConstant') = 1; // Use a constant for fuel prices
+        p_fuelPrice(fuel, 'fuelPrice') = sum(tt, ts_fuelpriceChange(fuel, tt)) // Determine the price as the only value in the time series
+    // If multiple values found, use time series
+    else
+        p_fuelPrice(fuel, 'useTimeSeries') = 1;
+        ); // END if(sum(tt))
+); // END loop(fuel)
 
 * =============================================================================
 * --- Generate Node Related Sets Based on Input Data --------------------------
