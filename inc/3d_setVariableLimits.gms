@@ -190,6 +190,7 @@ v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f,
 loop(sft(s, f, t)$(ord(t) > msStart(mSolve, s) + 1),
     v_genRamp.up(grid, node, unit, s, f, t)${gnuft_ramp(grid, node, unit, f, t)
                                                   and p_gnu(grid, node, unit, 'maxRampUp')
+                                                  and not uft_online(unit, f, t)
                                                   and not unit_investLP(unit)
                                                   and not unit_investMIP(unit)
                                                   and not uft_startupTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedToMinLoad'
@@ -199,9 +200,10 @@ loop(sft(s, f, t)$(ord(t) > msStart(mSolve, s) + 1),
             * 60;  // Unit conversion from [p.u./min] to [p.u./h]
     v_genRamp.lo(grid, node, unit, s, f, t)${gnuft_ramp(grid, node, unit, f, t)
                                                   and p_gnu(grid, node, unit, 'maxRampDown')
+                                                  and not uft_online(unit, f, t)
                                                   and not unit_investLP(unit)
                                                   and not unit_investMIP(unit)
-                                                  and not uft_startupTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedFromMinLoad'
+                                                  and not uft_shutdownTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedFromMinLoad'
                                                  }
      = -( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons'))
             * p_gnu(grid, node, unit, 'maxRampDown')
