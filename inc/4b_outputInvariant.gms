@@ -69,7 +69,7 @@ loop(m,
     r_uShutdownCost(unit, ft_realizedNoReset(f,t))
         = 1e-6 // Scaling to MEUR
             *  r_shutdown(unit, f, t) * p_uShutdown(unit, 'cost')
-     ; 
+     ;
 
     // Node state slack costs
     r_gnStateSlackCost(gn_stateSlack(grid, node), ft_realizedNoReset(f,t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]

@@ -99,6 +99,7 @@ r_gnuTotalGenShare
 r_gnTotalGen
 r_gnTotalGenShare
 r_gTotalGen
+r_guGen
 
 // Approximate utilization rates
 r_gnuUtilizationRate

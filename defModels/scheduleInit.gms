@@ -162,6 +162,7 @@ if (mType('schedule'),
     //remove CSP and storage for summer weeks comparison
     p_unit('212_CSP_1','availability') = 0;
     p_unit('313_STORAGE_1','availability') = 0;
+    p_unit('313_STORAGE_1_CHG','availability') = 0;
 
     //remove
 ); // END if(mType)
