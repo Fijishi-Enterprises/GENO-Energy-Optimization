@@ -146,8 +146,11 @@ Option clear = msft;
 Option clear = mft;
 Option clear = ft;
 Option clear = sft;
-Option clear = s_active, clear = s_stochastic, clear = s_scenario, clear = ss;
 Option clear = mst_start, clear = mst_end;
+if(mSettings(mSolve, 'scenarios'),  // Only clear these if using long-term scenarios
+    Options clear = s_active, clear = s_scenario, clear = ss;
+);
+
 
 // Initialize the set of active t:s, counters and interval time steps
 Option clear = t_active;
@@ -267,7 +270,7 @@ loop(cc(counter),
                     mft(mSolve, f_, t) = yes;
                     loop(s$(ord(s) = mSettings(mSolve, 'samples') + count_sample),
                         s_active(s) = yes;
-                        s_stochastic(s) = yes;
+                        ms_central(mSolve, s) = yes;
                         msft(mSolve, s, f_, t) = yes;
                         s_scenario(s, scenario) = yes;
                         p_msProbability(mSolve, s) = p_scenProbability(scenario);
@@ -396,7 +399,7 @@ loop(ms(mSolve, s),
 ); // END loop(ms)
 // Displacement from the first interval of a sample to the previous interval is always -1,
 // except for stochastic samples
-dt(t)${sum(ms(mSolve, s)$(not s_stochastic(s)), mst_start(mSolve, s, t))} = -1;
+dt(t)${sum(ms(mSolve, s)$(not ms_central(mSolve, s)), mst_start(mSolve, s, t))} = -1;
 
 // Forecast index displacement between realized and forecasted intervals
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
