@@ -405,11 +405,20 @@ df_central(ft(f,t))${   ord(t) > tSolveFirst + currentForecastLength - p_stepLen
 
 // Forecast index displacement between realized and forecasted intervals, required for locking reserves ahead of (dispatch) time.
 Option clear = df_reserves;
+*df_reserves(node, restype, ft(f, t))
+*    ${  p_nReserves(node, restype, 'update_frequency')
+*        and p_nReserves(node, restype, 'gate_closure')
+*        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency')
+*                      - mod(tSolveFirst - 1 + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency')
+*                            - p_nReserves(node, restype, 'update_offset'), p_nReserves(node, restype, 'update_frequency'))
+*        }
+*    = sum(f_${ mf_realization(mSolve, f_) }, ord(f_) - ord(f)) + Eps; // The Eps ensures that checks to see if df_reserves exists return positive even if the displacement is zero.
+
 df_reserves(node, restype, ft(f, t))
     ${  p_nReserves(node, restype, 'update_frequency')
         and p_nReserves(node, restype, 'gate_closure')
         and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency')
-                      - mod(tSolveFirst - 1 + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency')
+                      - mod(tSolveFirst + p_nReserves(node, restype, 'update_frequency')
                             - p_nReserves(node, restype, 'update_offset'), p_nReserves(node, restype, 'update_frequency'))
         }
     = sum(f_${ mf_realization(mSolve, f_) }, ord(f_) - ord(f)) + Eps; // The Eps ensures that checks to see if df_reserves exists return positive even if the displacement is zero.
@@ -421,8 +430,13 @@ ft_reservesFixed(node, restype, f_solve(f), t_active(t))
         and not tSolveFirst = mSettings(mSolve, 't_start') // No reserves are locked on the first solve!
         and p_nReserves(node, restype, 'update_frequency')
         and p_nReserves(node, restype, 'gate_closure')
+*        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency')
+*                      - mod(tSolveFirst - 1 + p_nReserves(node, restype, 'gate_closure') - mSettings(mSolve, 't_jump')
+*                            + p_nReserves(node, restype, 'update_frequency') - p_nReserves(node, restype, 'update_offset'),
+*                            p_nReserves(node, restype, 'update_frequency'))
+*                       - mSettings(mSolve, 't_jump')
         and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency')
-                      - mod(tSolveFirst - 1 + p_nReserves(node, restype, 'gate_closure') - mSettings(mSolve, 't_jump')
+                      - mod(tSolveFirst - mSettings(mSolve, 't_jump')
                             + p_nReserves(node, restype, 'update_frequency') - p_nReserves(node, restype, 'update_offset'),
                             p_nReserves(node, restype, 'update_frequency'))
                        - mSettings(mSolve, 't_jump')

@@ -103,6 +103,7 @@ Parameters
     r_gnTotalGenShare(grid, node) "Total energy generation gn/g share"
     r_gTotalGen(grid) "Total energy generation in g over the simulation (MWh)"
     r_guGen(grid, unit, f, t) "Energy generation for a unit summed over nodes (MW)"
+    r_TotalCurtailmentFuel(flow, t) "Total curtailment per flow type (MW)"
 
     // Approximate utilization rates
     r_gnuUtilizationRate(grid, node, unit) "Approximate utilization rates of gnus over the simulation"

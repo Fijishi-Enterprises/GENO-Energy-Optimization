@@ -245,6 +245,21 @@ loop(m,
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
 
+
+    r_TotalCurtailmentFuel(flow, t)
+       = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
+            sum((grid, node, unit_flow)${    flowUnit(flow, unit_flow)
+                                             and nu(node, unit_flow) },
+                   ts_cf_(flow, node, f, t)
+                    * p_gnu(grid, node, unit_flow, 'maxGen')
+                    * p_unit(unit_flow, 'availability')
+                   -  r_gen(grid, node, unit_flow, f, t)
+
+            )
+      ); // END sum(ft_realized)
+
+
+
 * --- Total Unit Online Results -----------------------------------------------
 
     // Total sub-unit-hours for units over the simulation
