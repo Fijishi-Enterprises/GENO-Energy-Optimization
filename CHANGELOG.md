@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Added 
+- New model setting `mSettings(mType, 'onlyExistingForecasts') = 0|1` to control 
+  the reading of forecasts. Set to 1 to only read forecast data that exists in 
+  the file. Note that zeros need to be saved as Eps when using this.
 
 ## [1.0.5] - 2019-02-14
 ### Fixed

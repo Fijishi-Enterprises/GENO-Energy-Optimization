@@ -42,8 +42,9 @@ if (ord(tSolve) = tForecastNext(mSolve) - mSettings(mSolve, 't_forecastJump'), /
         put_utility 'gdxin' / '%input_dir%/ts_unit/' tSolve.tl:0 '.gdx';
         execute_load ts_unit_update=ts_unit;
         ts_unit(unit_timeseries(unit), param_unit, f_solve(f), tt_forecast(t)) // Only update if time series enabled for the unit
-            ${  not mf_realization(mSolve, f) // Realization not updated
-*               and ts_unit_update(unit, param_unit, f, t) // Update only existing values (zeroes need to be EPS)
+            ${not mf_realization(mSolve, f) // Realization not updated
+              and (mSettings('schedule', 'onlyExistingForecasts')
+                   -> ts_unit_update(unit, param_unit, f, t)) // Update only existing values (zeroes need to be EPS)
                 }
             = ts_unit_update(unit, param_unit, f, t);
     ); // END if('ts_unit')
@@ -79,7 +80,8 @@ $offtext
         execute_load ts_influx_update=ts_influx;
         ts_influx(gn(grid, node), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
-*                and ts_influx_update(grid, node, f, t) // Update only existing values (zeroes need to be EPS)
+                and (mSettings('schedule', 'onlyExistingForecasts')
+                     -> ts_influx_update(grid, node, f, t)) // Update only existing values (zeroes need to be EPS)
                 }
             = ts_influx_update(grid, node, f, t);
     ); // END if('ts_influx')
@@ -90,7 +92,8 @@ $offtext
         execute_load ts_cf_update=ts_cf;
         ts_cf(flowNode(flow, node), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
-*                and ts_cf_update(flow, node, f, t) // Update only existing values (zeroes need to be EPS)
+                and (mSettings('schedule', 'onlyExistingForecasts')
+                     -> ts_cf_update(flow, node, f, t)) // Update only existing values (zeroes need to be EPS)
                 }
             = ts_cf_update(flow, node, f, t);
     ); // END if('ts_cf')
@@ -101,7 +104,8 @@ $offtext
         execute_load ts_reserveDemand_update=ts_reserveDemand;
         ts_reserveDemand(restypeDirectionNode(restype, up_down, node), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
-*                and ts_reserveDemand_update(restype, up_down, node, f, t) // Update only existing values (zeroes need to be EPS)
+                and (mSettings('schedule', 'onlyExistingForecasts')
+                     -> ts_reserveDemand_update(restype, up_down, node, f, t)) // Update only existing values (zeroes need to be EPS)
                 }
             = ts_reserveDemand_update(restype, up_down, node, f, t);
     ); // END if('ts_reserveDemand')
@@ -112,7 +116,8 @@ $offtext
         execute_load ts_node_update=ts_node;
         ts_node(gn(grid, node), param_gnBoundaryTypes, f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
-*                and ts_node_update(grid, node, param_gnBoundaryTypes, f ,t) // Update only existing values (zeroes need to be EPS)
+                and (mSettings('schedule', 'onlyExistingForecasts')
+                     -> ts_node_update(grid, node, param_gnBoundaryTypes, f ,t)) // Update only existing values (zeroes need to be EPS)
                 }
             = ts_node_update(grid, node, param_gnBoundaryTypes, f, t);
     ); // END if('ts_node')
