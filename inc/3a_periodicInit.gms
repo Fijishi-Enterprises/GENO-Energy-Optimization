@@ -453,6 +453,13 @@ loop(m,
                 + ( 1 - p_uCounter_runUpMax(unit, counter) )
                     * ( p_u_runUpTimeIntervalsCeil(unit) - p_u_runUpTimeIntervals(unit) );
 
+        // Minimum ramp speed in the last interval for the run-up to min. load (p.u./min)
+        p_u_minRampSpeedInLastRunUpInterval(unit)
+            = p_unit(unit, 'rampSpeedToMinLoad')
+                * ( p_u_runUpTimeIntervals(unit) * (p_u_runUpTimeIntervalsCeil(unit) - 0.5 * p_u_runUpTimeIntervals(unit))
+                    - 0.5 * p_u_runUpTimeIntervalsCeil(unit) * p_u_runUpTimeIntervalsCeil(unit) + 1
+                    );
+
     ); // END loop(unit)
 ); // END loop(m)
 
@@ -490,6 +497,13 @@ loop(m,
             = p_uCounter_shutdownMax(unit, counter)
                 + ( 1 - p_uCounter_shutdownMax(unit, counter) )
                     * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) );
+
+        // Minimum ramp speed in the first interval for the shutdown from min. load (p.u./min)
+        p_u_minRampSpeedInFirstShutdownInterval(unit)
+            = p_unit(unit, 'rampSpeedFromMinLoad')
+                * ( p_u_shutdownTimeIntervals(unit) * (p_u_shutdownTimeIntervalsCeil(unit) - 0.5 * p_u_shutdownTimeIntervals(unit))
+                    - 0.5 * p_u_shutdownTimeIntervalsCeil(unit) * p_u_shutdownTimeIntervalsCeil(unit) + 1
+                    );
 
     ); // END loop(unit)
 ); // END loop(m)

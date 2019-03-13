@@ -831,14 +831,19 @@ q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m,
             + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
                 + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
                     * [
-                        + p_unit(unit, 'rampSpeedFromMinLoad')
-                        + ( p_gnu(grid, node, unit, 'maxRampDown') - p_unit(unit, 'rampSpeedFromMinLoad') )${ not shutdownCounter(unit, counter-1) } // Ramp speed adjusted for the first shutdown interval
+                        + p_gnu(grid, node, unit, 'maxRampDown')${ not shutdownCounter(unit, counter-1) } // Normal maxRampDown limit applies to the time interval when v_shutdown happens, i.e. over the change from online to offline (symmetrical to v_startup)
+                        + p_unit(unit, 'rampSpeedFromMinLoad')${ shutdownCounter(unit, counter-1) } // Normal trajectory ramping
+                        + ( p_gnu(grid, node, unit, 'maxRampDown') - p_unit(unit, 'rampSpeedFromMinLoad') )${ shutdownCounter(unit, counter-1) and not shutdownCounter(unit, counter-2) } // Ramp speed adjusted for the first shutdown interval
                             * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) )
                         ]
                 ) // END sum(shutdownCounter)
             // Units need to be able to shut down after shut down trajectory
             + v_shutdown(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))${uft_shutdownTrajectory(unit, f, t)}
-                * p_unit(unit, 'rampSpeedFromMinload')
+                * [
+                    + p_unit(unit, 'rampSpeedFromMinload')
+                    + ( p_gnu(grid, node, unit, 'maxRampDown') - p_unit(unit, 'rampSpeedFromMinLoad') )${ sum(shutdownCounter(unit, counter), 1) = 1 } // Ramp speed adjusted if the unit has only one shutdown interval
+                        * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) )
+                    ]
             ]
         * 60 // Unit conversion from [p.u./min] to [p.u./h]
 
@@ -907,13 +912,13 @@ q_rampUpDown(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s)
             sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
                 + v_startup(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
                     * [
-                        + p_unit(unit, 'rampSpeedToMinLoad')
-                        - p_unit(unit, 'rampSpeedToMinLoad')${ not runUpCounter(unit, counter+1) } // Ramp speed adjusted for the last run-up interval
-                            * ( p_u_runUpTimeIntervalsCeil(unit) - p_u_runUpTimeIntervals(unit) )
-                        - p_unit(unit, 'rampSpeedToMinLoad')${ not runUpCounter(unit, counter-1) }
-                            / 2 // Average generation on the first step of the trajectory is only half of the ramping speed
+                        + p_uCounter_runUpMin(unit, counter)${ not runUpCounter(unit, counter-1) } // Ramp speed adjusted for the first run-up interval
+                            / p_stepLength(m, f, t) // Ramp is the change of v_gen divided by interval length
+                        + p_unit(unit, 'rampSpeedToMinLoad')${ runUpCounter(unit, counter-1) and runUpCounter(unit, counter+1) } // Normal trajectory ramping in the middle of the trajectory
+                            * 60 // Unit conversion from [p.u./min] into [p.u./h]
+                        + p_u_minRampSpeedInLastRunUpInterval(unit)${ runUpCounter(unit, counter-1) and not runUpCounter(unit, counter+1) } // Ramp speed adjusted for the last run-up interval
+                            * 60 // Unit conversion from [p.u./min] into [p.u./h]
                         ]
-                    * 60 // Unit conversion from [p.u./min] into [p.u./h]
                 ) // END sum(runUpCounter)
             ) // END sum(unitStarttype)
 
@@ -950,17 +955,18 @@ q_rampUpDown(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s)
             + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
                 + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
                     * [
-                        + p_unit(unit, 'rampSpeedFromMinLoad')${ shutdownCounter(unit, counter-1) } // Ramp is calculated normally over the time interval when v_shutdown happens
-                        - p_unit(unit, 'rampSpeedFromMinLoad')${ not shutdownCounter(unit, counter-2) } // Ramp speed adjusted for the first shutdown interval
-                            * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) )
+                        // Note that ramping happening during shutdown trajectory when ord(counter) = 1 is considered 'normal ramping' and causes ramping costs
+                        + p_u_minRampSpeedInFirstShutdownInterval(unit)${ not shutdownCounter(unit, counter-2) and shutdownCounter(unit, counter-1) } // Ramp speed adjusted for the first shutdown interval
+                            * 60 // Unit conversion from [p.u./min] into [p.u./h]
+                        + p_unit(unit, 'rampSpeedFromMinLoad')${ shutdownCounter(unit, counter-2) } // Normal trajectory ramping in the middle of the trajectory
+                            * 60 // Unit conversion from [p.u./min] into [p.u./h]
                         ]
                 ) // END sum(shutdownCounter)
             // Units need to be able to shut down after shut down trajectory
             + v_shutdown(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
-                * p_unit(unit, 'rampSpeedFromMinload')
-                / 2 // Average generation on the last step of the trajectory is only half of the ramping speed
+                * sum(shutdownCounter(unit, counter)${not shutdownCounter(unit, counter+1)}, p_uCounter_shutdownMin(unit, counter)) // Minimum generation level at the last shutdown interval
+                / p_stepLength(m, f, t) // Ramp is the change of v_gen divided by interval length
             ]
-        * 60 // Unit conversion from [p.u./min] to [p.u./h]
 
     // Start-up of consumption units to min. load (not counted in the ramping costs)
     - sum(unitStarttype(unit, starttype)${   uft_online(unit, f, t)
@@ -1029,16 +1035,21 @@ q_rampSlack(m, s, gnuft_rampCost(grid, node, unit, slack, f, t))${  ord(t) > msS
                 ) // END sum(runUpCounter)
             ) // END sum(unitStarttype)
 
-    // Generation units in the first step of their shutdown phase
+    // Generation units in the first step of their shutdown phase and ramping from online to offline state
     + p_gnu(grid, node, unit, 'unitSizeGen')
         * [
             + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
                 + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
                     * [
-                        p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ not shutdownCounter(unit, counter-2) } // Ramp speed adjusted for the first shutdown interval
+                        + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ not shutdownCounter(unit, counter-1) } // Note that ramping happening during shutdown trajectory when ord(counter) = 1 is considered 'normal ramping' and causes ramping costs
+                        + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ shutdownCounter(unit, counter-1) and not shutdownCounter(unit, counter-2) } // Ramp speed adjusted for the first shutdown interval
                             * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) )
                         ]
                 ) // END sum(shutdownCounter)
+            // First step can also be the last step
+            + v_shutdown(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
+                + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ sum(shutdownCounter(unit, counter), 1) = 1 } // Ramp speed adjusted if the unit has only one shutdown interval
+                    * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) )
             ]
         * 60 // Unit conversion from [p.u./min] to [p.u./h]
 ;
