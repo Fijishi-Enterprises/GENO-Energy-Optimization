@@ -39,6 +39,14 @@ if (mType('schedule'),
 * --- Model Time Structure ----------------------------------------------------
 * =============================================================================
 
+* --- Long-term scenarios -----------------------------------------------------
+
+    // Number of long-term scenarios to use (zero if none)
+    mSettings('schedule', 'scenarios') = 0
+
+    // Length of single scenario (in time steps)
+    mSettings('schedule', 'scenarioLength') = 8760;
+
 * --- Define Samples ----------------------------------------------------------
 
     // Number of samples used by the model
@@ -72,13 +80,7 @@ if (mType('schedule'),
     //);
 
     // Define which nodes use long-term samples
-    loop(gn(grid, node)$sameas(grid, 'hydro'),
-        //longtermSamples('hydro', node, 'ts_influx') = yes;
-        //longtermSamples('hydro', node, 'minSpill') = yes;
-    );
-    loop(flowNode(flow, node)$sameas(flow, 'wind'),
-        //longtermSamples('wind', node, 'ts_cf') = yes;
-    );
+    //gn_scenarios('hydro', 'XXX', 'ts_influx') = yes;
 
 * --- Define Time Step Intervals ----------------------------------------------
 

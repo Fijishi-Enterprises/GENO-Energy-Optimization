@@ -98,6 +98,8 @@ Parameters
     p_scenProbability(scenario) "Probability of scenarios"
 ;
 
+Option clear = p_scenProbability;  // Initialize with empty data
+
 Scalar p_sWeightSum "Sum of sample weights";
 
 * --- Model structure ---------------------------------------------------------
