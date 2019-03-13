@@ -62,8 +62,22 @@ q_obj ..
 
                         // Dummy spill cost
                         + sum(gn(grid, node_spill(node)),
-                            + v_spill(grid, node, s, f, t)
+                            + 1e-3 * v_spill(grid, node, s, f, t) // Discourage excess spilling
                             ) // END sum(gn)
+
+                        // Dummy reserve provision cost
+                        + sum(nuRescapable(restype, up_down, node, unit),
+                            + 1e-3 * v_reserve(restype, up_down, node, unit, s, f, t) // Discourage excess reserve provision
+                            ) // END sum(nuRescapable)
+
+                        // Dummy reserve transfer cost
+                        + sum(resTypeDirectionNodeNode(restype, up_down, node, node_),
+                            + 1e-3
+                                * [
+                                    + v_resTransferRightward(restype, up_down, node, node_, s, f, t)
+                                    + v_resTransferLeftward(restype, up_down, node, node_, s, f, t)
+                                    ]
+                            ) // END sum(restypeDirectionNodeNode)
 
                         // Dummy variable penalties
                         // Energy balance feasibility dummy varible penalties
