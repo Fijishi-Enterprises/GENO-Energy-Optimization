@@ -52,9 +52,6 @@ if (mType('schedule'),
     // Number of samples used by the model
     mSettings('schedule', 'samples') = 1;
 
-    // Sample length of stocahstic data
-    mSettings('schedule', 'sampleLength') = mSettings('schedule', 'dataLength');
-
     // Define Initial and Central samples
     ms_initial('schedule', s) = no;
     ms_initial('schedule', 's000') = yes;
