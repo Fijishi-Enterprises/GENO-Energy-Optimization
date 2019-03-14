@@ -165,8 +165,8 @@ loop(m,
                 + p_gnu(grid, node, unit, 'unitSizeGen')${not p_unit(unit, 'outputCapacityTotal')}
                 ]
                     / [
-                        + p_unit(unit, 'outputCapacityTotal')${p_unit(unit, 'outputCapacityTotal')}
-                        + p_unit(unit, 'unitOutputCapacityTotal')${not p_unit(unit, 'outputCapacityTotal')}
+                        + p_unit(unit, 'outputCapacityTotal')${p_unit(unit, 'outputCapacityTotal') > 0}
+                        + p_unit(unit, 'unitOutputCapacityTotal')${not p_unit(unit, 'outputCapacityTotal') > 0}
                         ] // END /
                     * [
                         + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
@@ -310,12 +310,12 @@ r_gTotalGen(grid)
     = sum(gn(grid, node), r_gnTotalGen(grid, node));
 
 // Total generation gnu/gn shares
-r_gnuTotalGenShare(gnu_output(grid, node, unit))${ r_gnTotalGen(grid, node) }
+r_gnuTotalGenShare(gnu_output(grid, node, unit))${ r_gnTotalGen(grid, node) > 0 }
     = r_gnuTotalGen(grid, node, unit)
         / r_gnTotalGen(grid, node);
 
 // Total generation gn/g shares
-r_gnTotalGenShare(gn(grid, node))${ r_gTotalGen(grid) }
+r_gnTotalGenShare(gn(grid, node))${ r_gTotalGen(grid) > 0 }
     = r_gnTotalGen(grid, node)
         / r_gTotalGen(grid);
 
@@ -339,7 +339,7 @@ r_gTotalConsumption(grid)
     = sum(gn(grid, node), r_gnTotalConsumption(grid, node));
 
 // Total consumption gn/g share
-r_gnTotalConsumptionShare(gn(grid, node))${ r_gTotalConsumption(grid) }
+r_gnTotalConsumptionShare(gn(grid, node))${ r_gTotalConsumption(grid) > 0 }
     = r_gnTotalConsumption(grid, node)
         / r_gTotalConsumption(grid);
 
@@ -354,7 +354,7 @@ r_totalGenFuel(fuel)
     = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, fuel));
 
 // Total fuel consumption gn/g shares
-r_gnTotalGenFuelShare(gn(grid, node), fuel)${ r_gnTotalGen(grid, node) }
+r_gnTotalGenFuelShare(gn(grid, node), fuel)${ r_gnTotalGen(grid, node) > 0 }
     = r_gnTotalGenFuel(grid, node, fuel)
         / r_gnTotalGen(grid, node);
 
@@ -365,7 +365,7 @@ r_gTotalSpill(grid)
     = sum(gn(grid, node_spill(node)), r_gnTotalSpill(grid, node));
 
 // Total spilled energy gn/g share
-r_gnTotalSpillShare(gn(grid, node_spill))${ r_gTotalSpill(grid) }
+r_gnTotalSpillShare(gn(grid, node_spill))${ r_gTotalSpill(grid) > 0 }
     = r_gnTotalSpill(grid, node_spill)
         / r_gTotalSpill(grid);
 
@@ -391,7 +391,7 @@ r_gTotalRealizedNetOperatingCost(grid)
     = sum(gn(grid, node), r_gnTotalRealizedNetOperatingCost(grid, node));
 
 // Total realized operating costs gn/g share
-r_gnTotalRealizedOperatingCostShare(gn(grid, node))${ r_gTotalRealizedOperatingCost(grid) }
+r_gnTotalRealizedOperatingCostShare(gn(grid, node))${ r_gTotalRealizedOperatingCost(grid) > 0 }
     = r_gnTotalRealizedOperatingCost(grid, node)
         / r_gTotalRealizedOperatingCost(grid);
 
@@ -432,7 +432,7 @@ r_gTotalRealizedNetCost(grid)
     = sum(gn(grid, node), r_gnTotalRealizedNetCost(grid, node));
 
 // Total realized costs gn/g share
-r_gnTotalRealizedCostShare(gn(grid, node))${ r_gTotalRealizedCost(grid) }
+r_gnTotalRealizedCostShare(gn(grid, node))${ r_gTotalRealizedCost(grid) > 0 }
     = r_gnTotalRealizedCost(grid, node)
         / r_gTotalRealizedCost(grid);
 
@@ -458,14 +458,14 @@ r_reserve2Reserve(nuRescapable(restype, up_down, node, unit), restype_, ft_reali
 r_nTotalReserve(restypeDirectionNode(restype, up_down, node))
     = sum(nuRescapable(restype, up_down, node, unit), r_nuTotalReserve(restype, up_down, node, unit));
 
-r_nuTotalReserveShare(nuRescapable(restype, up_down, node, unit))${ r_nTotalReserve(restype, up_down, node) }
+r_nuTotalReserveShare(nuRescapable(restype, up_down, node, unit))${ r_nTotalReserve(restype, up_down, node) > 0 }
     = r_nuTotalReserve(restype, up_down, node, unit)
         / r_nTotalReserve(restype, up_down, node);
 
 * --- Total Unit Online State Results -----------------------------------------
 
 // Total unit online hours per sub-unit over the simulation
-r_uTotalOnlinePerUnit(unit)${ p_unit(unit, 'unitCount') }
+r_uTotalOnlinePerUnit(unit)${ p_unit(unit, 'unitCount') > 0 }
     = r_uTotalOnline(unit)
         / p_unit(unit, 'unitCount');
 
