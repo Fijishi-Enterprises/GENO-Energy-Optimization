@@ -112,6 +112,7 @@ Sets
     mft_start(mType, f, t) "Start point of the current model solve"
     mf_realization(mType, f) "fRealization of the forecasts"
     mf_central(mType, f) "Forecast that continues as sample(s) after the forecast horizon ends"
+    mf_scenario(mType, f) "Forecast label that is used for long-term scenario data"
     ms_initial(mType, s) "Sample that presents the realized/forecasted period"
     ms_central(mType, s) "Sample that continues the central forecast after the forecast horizon ends"
     mft_lastSteps(mType, f, t) "Last interval of the current model solve"
@@ -166,6 +167,7 @@ Option clear = modelSolves;
 Option clear = ms;
 Option clear = mf;
 mf_realization(mType, 'f00') = yes;
+Option clear = mf_scenario;
 Option clear = gn_scenarios;
 Option clear = mTimeseries_loop_read;
 
