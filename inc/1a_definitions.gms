@@ -379,9 +379,9 @@ hr(param_unit) "Heat rate for the corresponding operating point ('hrop') in the 
 // Slack categories
 slack(param_gnBoundaryTypes) "Categories for slack variables"
        / upwardSlack01*upwardSlack20, downwardSlack01*downwardSlack20 /
-upwardSlack(slack) "Set of upward slacks"
+upwardSlack(param_gnBoundaryTypes) "Set of upward slacks"
        / upwardSlack01*upwardSlack20 /
-downwardSlack(slack) "Set of downward slacks"
+downwardSlack(param_gnBoundaryTypes) "Set of downward slacks"
        / downwardSlack01*downwardSlack20 /
 
 // Flags for boundaries

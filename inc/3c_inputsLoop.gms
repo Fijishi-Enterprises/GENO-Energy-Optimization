@@ -319,19 +319,24 @@ $ontext
                 = ts_effGroupUnit(effSelector, unit, param_eff, f_solve, t+dt_circular(t));
 $offtext
             ts_cf_(flowNode(flow, node), f, t, s)$sft(s, f, t)
-                = ts_cf(flow, node, f + df_scenario(f, t), t + (dt_scenarioOffset(flow, node, 'ts_cf', s)
-                                            + dt_circular(t)$(not gn_scenarios(flow, node, 'ts_cf'))));
+                = ts_cf(flow, node, f + (df_scenario(f, t)$gn_scenarios(flow, node, 'ts_cf')),
+                        t + (dt_scenarioOffset(flow, node, 'ts_cf', s)
+                             + dt_circular(t)$(not gn_scenarios(flow, node, 'ts_cf'))));
             ts_influx_(gn(grid, node), f, t, s)$sft(s, f, t)
-                = ts_influx(grid, node, f + df_scenario(f, t), t + (dt_scenarioOffset(grid, node, 'ts_influx', s)
-                                                + dt_circular(t)$(not gn_scenarios(grid, node, 'ts_influx'))));
+                = ts_influx(grid, node, f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
+                            t + (dt_scenarioOffset(grid, node, 'ts_influx', s)
+                                 + dt_circular(t)$(not gn_scenarios(grid, node, 'ts_influx'))));
             // Reserve demand relevant only up until reserve_length
             ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f, t)
               ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')}
-                = ts_reserveDemand(restype, up_down, node, f + df_scenario(f,t),
+                = ts_reserveDemand(restype, up_down, node,
+                                   f + (df_scenario(f,t)$gn_scenarios(restype, node, 'ts_reserveDemand')),
                                    t+dt_circular(t));
             ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f, t, s)
-              $p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
-                = ts_node(grid, node, param_gnBoundaryTypes, f + df_scenario(f, t),
+              $(p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+                and sft(s, f, t))
+                = ts_node(grid, node, param_gnBoundaryTypes,
+                          f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
                           t + (dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
                                + dt_circular(t)$(not gn_scenarios(grid, node, 'ts_node'))));
             // Fuel price time series
@@ -368,12 +373,14 @@ $ontext
                     / mInterval(mSolve, 'stepsPerInterval', counter);
 $offtext
             ts_influx_(gn(grid, node), f, t, s)$sft(s, f, t)
-                = sum(tt(t_), ts_influx(grid, node, f + df_scenario(f, t),
+                = sum(tt(t_), ts_influx(grid, node,
+                                        f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_influx')),
                                         t_ + (dt_scenarioOffset(grid, node, 'ts_influx', s)
                                               + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_influx')))))
                     / mInterval(mSolve, 'stepsPerInterval', counter);
             ts_cf_(flowNode(flow, node), f, t, s)$sft(s, f, t)
-                = sum(tt(t_), ts_cf(flow, node, f + df_scenario(f, t),
+                = sum(tt(t_), ts_cf(flow, node,
+                                    f + (df_scenario(f, t)$gn_scenarios(flow, node, 'ts_cf')),
                                     t_ + (dt_scenarioOffset(flow, node, 'ts_cf', s)
                                           + dt_circular(t_)$(not gn_scenarios(flow, node, 'ts_cf')))))
                     / mInterval(mSolve, 'stepsPerInterval', counter);
@@ -381,27 +388,32 @@ $offtext
             ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f, t)
               ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
                 = sum(tt(t_), ts_reserveDemand(restype, up_down, node,
-                                               f + df_scenario(f, t), t_+dt_circular(t_)))
+                                               f + (df_scenario(f, t)$gn_scenarios(restype, node, 'ts_reserveDemand')),
+                                               t_+ dt_circular(t_)))
                     / mInterval(mSolve, 'stepsPerInterval', counter);
             ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f, t, s)
               ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
                 and sft(s, f, t)}
                    // Take average if not a limit type
                 = (sum(tt(t_), ts_node(grid, node, param_gnBoundaryTypes,
-                                       f + df_scenario(f, t), t_ + (dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                                                                    + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node')))))
-                    / mInterval(mSolve, 'stepsPerInterval', counter))$(not (sameas(param_gnBoundaryTypes, 'upwardLimit') or sameas(param_gnBoundaryTypes, 'downwardLimit')))
+                                       f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
+                                       t_ + (dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
+                                             + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node')))))
+                    / mInterval(mSolve, 'stepsPerInterval', counter))$(not (sameas(param_gnBoundaryTypes, 'upwardLimit')
+                                                                            or sameas(param_gnBoundaryTypes, 'downwardLimit')
+                                                                            or slack(param_gnBoundaryTypes)))
                   // Maximum lower limit
                   + smax(tt(t_), ts_node(grid, node, param_gnBoundaryTypes,
-                                         f + df_scenario(f, t), t_ + (dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                                                                      + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node')))))
-                      $sameas(param_gnBoundaryTypes, 'downwardLimit')
-                  // Minimum upper limit
-                  + smin(tt(t_), ts_node(grid, node, param_gnBoundaryTypes,
-                                         f + df_scenario(f, t),
+                                         f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
                                          t_ + (dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
                                                + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node')))))
-                       $sameas(param_gnBoundaryTypes, 'upwardLimit');
+                      $(sameas(param_gnBoundaryTypes, 'downwardLimit') or downwardSlack(param_gnBoundaryTypes))
+                  // Minimum upper limit
+                  + smin(tt(t_), ts_node(grid, node, param_gnBoundaryTypes,
+                                         f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
+                                         t_ + (dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
+                                               + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node')))))
+                       $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
             // Fuel price time series
             ts_fuelPrice_(fuel, t)
                 ${ p_fuelPrice(fuel, 'useTimeSeries') }

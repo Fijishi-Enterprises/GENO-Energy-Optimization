@@ -119,7 +119,7 @@ Parameters
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
     df_reserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
-    df_scenario(f, t) "Forecast index displacement needed to get realized scenario data for long-term scenarios"
+    df_scenario(f, t) "Forecast index displacement needed to get central forecast data for long-term scenarios"
 
     // Sample displacement arrays
     ds(s, t) "Displacement needed to reach the sample of previous time step"
@@ -131,7 +131,7 @@ Parameters
     ddf_(f) "Temporary forecast displacement array"
 
     // Other
-    p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
+    p_slackDirection(param_gnBoundaryTypes) "+1 for upward slacks and -1 for downward slacks"
     tForecastNext(mType) "When the next forecast will be available (ord time)"
     aaSolveInfo(mType, t, solveInfoAttributes) "Stores information about the solve status"
     msStart(mType, s) "Start point of samples: first time step in the sample"
