@@ -75,15 +75,10 @@ $ifthen exist '%input_dir%/includeInputData_ext.inc'
    $$include '%input_dir%/includeInputData_ext.inc'
 $endif
 
-$ifthen exist '%input_dir%/changes.inc'
-   $$include '%input_dir%/changes.inc'
-$endif
 
-$ifthen exist '%input_dir%/unit3.gdx'
-    $$gdxin  '%input_dir%/unit3.gdx'
-    $$loaddcm unit
-    $$gdxin
-$endif
+* Read changes to inputdata through change.inc and gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx) - allows scenarios through Sceleton Titan Excel files.
+$include 'inc/1e_scenChanges.gms'
+
 
 
 $ontext
