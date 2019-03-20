@@ -42,7 +42,7 @@ if (mType('schedule'),
 * --- Long-term scenarios -----------------------------------------------------
 
     // Number of long-term scenarios to use (zero if none)
-    mSettings('schedule', 'scenarios') = 0
+    mSettings('schedule', 'scenarios') = 0;
 
     // Length of single scenario (in time steps)
     mSettings('schedule', 'scenarioLength') = 8760;
