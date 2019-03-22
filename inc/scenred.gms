@@ -7,7 +7,7 @@ p_sProbability(s_active(s)) = p_msProbability(mSolve, s);
 
 * SCENRED2 parameters
 ScenRedParms('red_num_leaves') = min(mSettings(mSolve, 'red_num_leaves'),
-                                     mSettings('schedule', 'scenarios'));
+                                     mSettings(mSolve, 'scenarios'));
 ScenRedParms('red_percentage') = mSettings(mSolve, 'red_percentage');
 ScenRedParms('scen_red') = 1$mSettings(mSolve, 'red_num_leaves'); // Reduce scenarios
 ScenRedParms('tree_con') = 1$mSettings(mSolve, 'red_percentage');  // Tree construction
