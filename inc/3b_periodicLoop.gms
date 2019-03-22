@@ -236,7 +236,7 @@ loop(cc(counter),
     mft(mf(mSolve, f_solve), tt_interval(t))
       ${ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
         and (mf_central(mSolve, f_solve)
-             or mSettings('schedule', 'forecasts') = 0)
+             or mSettings(mSolve, 'forecasts') = 0)
        } = yes;
 
     // Include up to forecastLength for remaining forecasts
@@ -405,7 +405,7 @@ dt(t)${sum(ms(mSolve, s)$(not ms_central(mSolve, s)), mst_start(mSolve, s, t))} 
 df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
 // If using scenarios, central forecast will be using realized data
-if(mSettings('schedule', 'scenarios'),
+if(mSettings(mSolve, 'scenarios'),
     loop(ms_initial(mSolve, s),
         df_scenario(f_solve(f), t_active(t))${ord(t) > msEnd(mSolve, s)}
           = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
