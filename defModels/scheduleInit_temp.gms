@@ -39,47 +39,45 @@ if (mType('schedule'),
 * --- Model Time Structure ----------------------------------------------------
 * =============================================================================
 
+* --- Long-term scenarios -----------------------------------------------------
+
+    // Number of long-term scenarios to use (zero if none)
+    mSettings('schedule', 'scenarios') = 0;
+
+    // Length of single scenario (in time steps)
+    mSettings('schedule', 'scenarioLength') = 8760;
+
 * --- Define Samples ----------------------------------------------------------
 
     // Number of samples used by the model
     mSettings('schedule', 'samples') = 1;
 
-    // Sample length of stocahstic data
-    mSettings('schedule', 'sampleLength') = mSettings('schedule', 'dataLength');
-
     // Define Initial and Central samples
     ms_initial('schedule', s) = no;
     ms_initial('schedule', 's000') = yes;
-    ms_central('schedule', s) = no;
-    ms_central('schedule', 's000') = yes;
 
     // Define time span of samples
     msStart('schedule', 's000') = 1;
     msEnd('schedule', 's000') = msStart('schedule', 's000') + mSettings('schedule', 't_horizon');
 
-    // If using long-term samples, uncomment
-    //msEnd('schedule', 's000') = msStart('schedule', 's000')
-    //                            + mSettings('schedule', 't_forecastLengthUnchanging');
-
-    //loop(s $(ord(s) > 1),
-    //    msStart('schedule', s) = msStart('schedule', 's000')
-    //                             + mSettings('schedule', 't_forecastLengthUnchanging');
-    //    msEnd('schedule', s) = msStart('schedule', 's000')
-    //                           + mSettings('schedule', 't_horizon');
-    //);
-
     // Define the probability (weight) of samples
     p_msProbability('schedule', s) = 0;
     p_msProbability('schedule', 's000') = 1;
 
+    // If using long-term samples, uncomment
+    //ms_central('schedule', 's001') = yes;
+    //
+    //msEnd('schedule', 's000') = msStart('schedule', 's000') + 168;
+
+    //msStart('schedule', 's001') = msEnd('schedule', 's000');
+    //msEnd('schedule', 's001') = msStart('schedule', 's000')
+    //                       + mSettings('schedule', 't_horizon');
+    //
+    //p_msProbability('schedule', 's001') = 1;
+    //);
+
     // Define which nodes use long-term samples
-    loop(gn(grid, node)$sameas(grid, 'hydro'),
-        //longtermSamples('hydro', node, 'ts_influx') = yes;
-        //longtermSamples('hydro', node, 'minSpill') = yes;
-    );
-    loop(flowNode(flow, node)$sameas(flow, 'wind'),
-        //longtermSamples('wind', node, 'ts_cf') = yes;
-    );
+    //gn_scenarios('hydro', 'XXX', 'ts_influx') = yes;
 
 * --- Define Time Step Intervals ----------------------------------------------
 

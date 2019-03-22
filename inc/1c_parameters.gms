@@ -98,6 +98,8 @@ Parameters
     p_scenProbability(scenario) "Probability of scenarios"
 ;
 
+Option clear = p_scenProbability;  // Initialize with empty data
+
 Scalar p_sWeightSum "Sum of sample weights";
 
 * --- Model structure ---------------------------------------------------------
@@ -119,6 +121,7 @@ Parameters
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
     df_reserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
+    df_scenario(f, t) "Forecast index displacement needed to get realized scenario data for long-term scenarios"
 
     // Sample displacement arrays
     ds(s, t) "Displacement needed to reach the sample of previous time step"
@@ -169,10 +172,10 @@ Parameters
     ts_unavailability_update(unit, t)
 
     // Help parameters for calculating smoothening of time series
-    ts_influx_mean(grid, node, f, t) "Mean of ts_influx over samples"
-    ts_influx_std(grid, node, f, t)  "Standard deviation of ts_influx over samples"
-    ts_cf_mean(flow, node, f, t) "Mean of ts_cf over samples (p.u.)"
-    ts_cf_std(flow, node, f, t) "Standard deviation of ts_cf over samples (p.u.)"
+    ts_influx_mean(grid, node, t) "Mean of ts_influx over samples"
+    ts_influx_std(grid, node, t)  "Standard deviation of ts_influx over samples"
+    ts_cf_mean(flow, node, t) "Mean of ts_cf over samples (p.u.)"
+    ts_cf_std(flow, node, t) "Standard deviation of ts_cf over samples (p.u.)"
 
     p_autocorrelation(*, node, timeseries) "Autocorrelation of time series for the grid/flow, node and time series type (lag = 1 time step)"
 

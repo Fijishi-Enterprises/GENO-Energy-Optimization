@@ -58,6 +58,15 @@ $offtext
         ms(m, s)$(ord(s) <= mSettings(m, 'samples')) = yes;
     );
 
+    // Set active and previous samples
+    loop(ms(m, s),
+        s_active(s) = yes;
+        loop(s_ $ms(m, s_),
+            // Set previous samples for samples
+            ss(s, s_)$(msStart(m, s) = msEnd(m, s_)) = yes;
+        );
+    );
+
     // Select forecasts in use for the models
     if (not sum(f, mf(m, f)),  // unless they have been provided as input
         mf(m, f)$(ord(f) <= 1 + mSettings(m, 'forecasts')) = yes;  // realization needs one f, therefore 1 + number of forecasts

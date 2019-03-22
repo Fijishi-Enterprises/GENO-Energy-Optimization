@@ -683,6 +683,32 @@ q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s
         * p_gnu(grid, node, unit, 'maxRampUp')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
 
+    // Generation units not be able to ramp from zero to min. load within one time interval according to their maxRampUp
+    + sum(unitStarttype(unit, starttype)${   uft_online(unit, f, t)
+                                             and gnu_output(grid, node, unit)
+                                             and not uft_startupTrajectory(unit, f, t)
+                                             and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                                                       + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
+                                                       + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
+                                                     ) // END sum(effGroup)
+                                                       / p_stepLength(m, f, t)
+                                                   - p_gnu(grid, node, unit, 'maxRampUp')
+                                                       * 60 > 0
+                                                   )
+                                             },
+        + v_startup(unit, starttype, s, f, t)
+      ) // END sum(starttype)
+        * p_gnu(grid, node, unit, 'unitSizeTot')
+        * (
+            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
+                + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
+              ) // END sum(effGroup)
+                / p_stepLength(m, f, t)
+            - p_gnu(grid, node, unit, 'maxRampUp')
+                * 60   // Unit conversion from [p.u./min] to [p.u./h]
+          ) // END * v_startup
+
     // Units in the run-up phase need to keep up with the run-up rate
     + p_gnu(grid, node, unit, 'unitSizeTot')
         * sum(unitStarttype(unit, starttype)${uft_startupTrajectory(unit, f, t)},
@@ -697,9 +723,33 @@ q_rampUpLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m, s
                 ) // END sum(runUpCounter)
             ) // END sum(unitStarttype)
 
-    // Shutdown of consumption units from full load
+    // Shutdown of consumption units according to maxRampUp
     + v_shutdown(unit, s, f, t)${uft_online(unit, f, t) and gnu_input(grid, node, unit)}
         * p_gnu(grid, node, unit, 'unitSizeTot')
+        * p_gnu(grid, node, unit, 'maxRampUp')
+        * 60   // Unit conversion from [p.u./min] to [p.u./h]
+    // Consumption units not be able to ramp from min. load to zero within one time interval according to their maxRampUp
+    + v_shutdown(unit, s, f, t)${   uft_online(unit, f, t)
+                                    and gnu_input(grid, node, unit)
+                                    and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                                              + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
+                                              + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
+                                              ) // END sum(effGroup)
+                                              / p_stepLength(m, f, t)
+                                          - p_gnu(grid, node, unit, 'maxRampUp')
+                                              * 60 > 0
+                                          )
+                                    }
+        * p_gnu(grid, node, unit, 'unitSizeTot')
+        * (
+            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
+                + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
+                ) // END sum(effGroup)
+                / p_stepLength(m, f, t)
+            - p_gnu(grid, node, unit, 'maxRampUp')
+                * 60   // Unit conversion from [p.u./min] to [p.u./h]
+          ) // END * v_startup
 ;
 
 * --- Ramp Down Limits --------------------------------------------------------
@@ -743,12 +793,37 @@ q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m,
         * p_gnu(grid, node, unit, 'maxRampDown')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
 
-    // Shutdown of generation units from full load
+    // Shutdown of generation units according to maxRampDown
     - v_shutdown(unit, s, f, t)${   uft_online(unit, f, t)
                                     and gnu_output(grid, node, unit)
                                     and not uft_shutdownTrajectory(unit, f, t)
                                     }
         * p_gnu(grid, node, unit, 'unitSizeTot')
+        * p_gnu(grid, node, unit, 'maxRampDown')
+        * 60   // Unit conversion from [p.u./min] to [p.u./h]
+    // Generation units not be able to ramp from min. load to zero within one time interval according to their maxRampDown
+    - v_shutdown(unit, s, f, t)${   uft_online(unit, f, t)
+                                    and gnu_output(grid, node, unit)
+                                    and not uft_shutdownTrajectory(unit, f, t)
+                                    and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                                              + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
+                                              + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
+                                            ) // END sum(effGroup)
+                                            / p_stepLength(m, f, t)
+                                          - p_gnu(grid, node, unit, 'maxRampDown')
+                                              * 60 > 0
+                                        )
+                                }
+        * p_gnu(grid, node, unit, 'unitSizeTot')
+        * (
+            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
+                + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
+                ) // END sum(effGroup)
+                / p_stepLength(m, f, t)
+            - p_gnu(grid, node, unit, 'maxRampDown')
+                * 60   // Unit conversion from [p.u./min] to [p.u./h]
+          ) // END * v_shutdown
 
     // Units in shutdown phase need to keep up with the shutdown ramp rate
     - p_gnu(grid, node, unit, 'unitSizeGen')
@@ -762,10 +837,35 @@ q_rampDownLimit(m, s, gnuft_ramp(grid, node, unit, f, t))${  ord(t) > msStart(m,
                         ]
                 ) // END sum(shutdownCounter)
             // Units need to be able to shut down after shut down trajectory
-            + v_shutdown(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
+            + v_shutdown(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))${uft_shutdownTrajectory(unit, f, t)}
                 * p_unit(unit, 'rampSpeedFromMinload')
             ]
         * 60 // Unit conversion from [p.u./min] to [p.u./h]
+
+    // Consumption units not be able to ramp from zero to min. load within one time interval according to their maxRampDown
+    - sum(unitStarttype(unit, starttype)${   uft_online(unit, f, t)
+                                             and gnu_input(grid, node, unit)
+                                             and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                                                       + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
+                                                       + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
+                                                     ) // END sum(effGroup)
+                                                       / p_stepLength(m, f, t)
+                                                   - p_gnu(grid, node, unit, 'maxRampDown')
+                                                       * 60 > 0
+                                                   )
+                                             },
+        + v_startup(unit, starttype, s, f, t)
+      ) // END sum(starttype)
+        * p_gnu(grid, node, unit, 'unitSizeTot')
+        * (
+            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
+                + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
+              ) // END sum(effGroup)
+                / p_stepLength(m, f, t)
+            - p_gnu(grid, node, unit, 'maxRampDown')
+                * 60   // Unit conversion from [p.u./min] to [p.u./h]
+          ) // END * v_startup
 ;
 
 * --- Ramps separated into upward and downward ramps --------------------------

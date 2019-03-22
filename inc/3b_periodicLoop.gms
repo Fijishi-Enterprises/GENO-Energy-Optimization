@@ -30,6 +30,8 @@ Option clear = v_transfer;
 Option clear = v_online_MIP;
 Option clear = v_invest_MIP;
 Option clear = v_investTransfer_MIP;
+// Binary Variables
+Option clear = v_help_inc;
 // SOS2 Variables
 Option clear = v_sos2;
 // Positive Variables
@@ -46,6 +48,7 @@ Option clear = v_reserve;
 Option clear = v_investTransfer_LP;
 Option clear = v_online_LP;
 Option clear = v_invest_LP;
+Option clear = v_gen_inc;
 // Feasibility control
 Option clear = v_stateSlack;
 Option clear = vq_gen;
@@ -81,6 +84,11 @@ Option clear = q_conversionDirectInputOutput;
 Option clear = q_conversionSOS2InputIntermediate;
 Option clear = q_conversionSOS2Constraint;
 Option clear = q_conversionSOS2IntermediateOutput;
+Option clear = q_conversionIncHR;
+Option clear = q_conversionIncHRMaxGen;
+Option clear = q_conversionIncHRBounds;
+Option clear = q_conversionIncHR_help1;
+Option clear = q_conversionIncHR_help2;
 Option clear = q_fuelUseLimit;
 
 // Energy Transfer
@@ -137,8 +145,11 @@ Option clear = msft;
 Option clear = mft;
 Option clear = ft;
 Option clear = sft;
-Option clear = s_active, clear = s_stochastic, clear = s_scenario, clear = ss;
 Option clear = mst_start, clear = mst_end;
+if(mSettings(mSolve, 'scenarios'),  // Only clear these if using long-term scenarios
+    Options clear = s_active, clear = s_scenario, clear = ss;
+);
+
 
 // Initialize the set of active t:s, counters and interval time steps
 Option clear = t_active;
@@ -258,7 +269,7 @@ loop(cc(counter),
                     mft(mSolve, f_, t) = yes;
                     loop(s$(ord(s) = mSettings(mSolve, 'samples') + count_sample),
                         s_active(s) = yes;
-                        s_stochastic(s) = yes;
+                        ms_central(mSolve, s) = yes;
                         msft(mSolve, s, f_, t) = yes;
                         s_scenario(s, scenario) = yes;
                         p_msProbability(mSolve, s) = p_scenProbability(scenario);
@@ -387,12 +398,19 @@ loop(ms(mSolve, s),
 ); // END loop(ms)
 // Displacement from the first interval of a sample to the previous interval is always -1,
 // except for stochastic samples
-dt(t)${sum(ms(mSolve, s)$(not s_stochastic(s)), mst_start(mSolve, s, t))} = -1;
+dt(t)${sum(ms(mSolve, s)$(not ms_central(mSolve, s)), mst_start(mSolve, s, t))} = -1;
 
 // Forecast index displacement between realized and forecasted intervals
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
 df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
+// If using scenarios, central forecast will be using realized data
+if(mSettings('schedule', 'scenarios'),
+    loop(ms_initial(mSolve, s),
+        df_scenario(f_solve(f), t_active(t))${ord(t) > msEnd(mSolve, s)}
+          = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
+    );
+);
 
 // Forecast displacement between central and forecasted intervals at the end of forecast horizon
 Option clear = df_central; // This can be reset.

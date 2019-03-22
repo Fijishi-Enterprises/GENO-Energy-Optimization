@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Fixed
+- Major bug in state variable reserve equations
+
+### Added 
+- New model setting `mSettings(mType, 'onlyExistingForecasts') = 0|1` to control 
+  the reading of forecasts. Set to 1 to only read forecast data that exists in 
+  the file. Note that zeros need to be saved as Eps when using this.
+- Proper stochastic programming for the long-term scenarios period. Possible also
+  to create a stochastic tree from the original data.
+
 
 ## [1.0.5] - 2019-02-14
 ### Fixed
