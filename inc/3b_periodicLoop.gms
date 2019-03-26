@@ -291,6 +291,7 @@ loop(cc(counter),
 
     // Reduce the sample dimension
     sft(s, f, t)$msft(mSolve, s, f, t) = ft(f, t);
+    fts(f, t, s)$sft(s, f, t) = ft(f, t);
 
     // Update tCounter for the next block of intervals
     tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter) + 1;

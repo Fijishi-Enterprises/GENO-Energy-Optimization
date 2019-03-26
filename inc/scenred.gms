@@ -48,6 +48,7 @@ else
     msf(mSolve, s, f)$msf(mSolve, s, f) = ms(mSolve, s);
     msft(mSolve, s, f, t)$msft(mSolve, s, f, t) = msf(mSolve, s, f);
     sft(s, f, t)$sft(s, f, t) = yes$p_msProbability(mSolve, s);
+    fts(f, t, s)$fts(f, t, s) = sft(s, f, t);
 
     // Update scenarios
     Option clear = s_scenario;
