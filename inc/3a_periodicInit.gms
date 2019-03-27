@@ -623,6 +623,15 @@ loop(msf(m, s, f)${ mf_realization(m, f) },
 
 loop(m, // Not ideal, but multi-model functionality is not yet implemented
 
+* --- Prefect foresight not longer than forecast length
+    if(mSettings(m, 't_jump') + mSettings(m, 't_perfectForesight')
+       > max(mSettings(m, 't_forecastLengthUnchanging'),
+             mSettings(m, 't_forecastLengthDecreasesFrom')),
+        put log "!!! Error in model ", m.tl:0 /;
+        put log "!!! Error: t_jump + t_perfectForesight > max(t_forecastLengthUnchanging, t_forecastLengthDecreasesFrom)"/;
+        abort "Period of perfect foresight cannot be longer than forecast horizon";
+    );
+
 * --- Reserve structure checks ------------------------------------------------
 
     loop(restypeDirectionNode(restype, up_down, node),
