@@ -22,3 +22,4 @@ $offtext
     s "Samples from historical periods" / s000 * s999 /
     f "Forecasts for the short term" / f00 * f99 /
     t "Model time steps" / t000000 * t017568 /
+    scenario "Long-term scenarios" / scen00 /

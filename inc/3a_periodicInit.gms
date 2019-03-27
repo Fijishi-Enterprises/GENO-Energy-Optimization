@@ -56,27 +56,16 @@ $offtext
     // Select samples for the model
     if (not sum(s, ms(m, s)),  // unless they have been provided as input
         ms(m, s)$(ord(s) <= mSettings(m, 'samples')) = yes;
-        if (mSettings(m, 'samples') = 0,     // Use all samples if mSettings/samples is 0
-            ms(m, s) = p_msProbability(m, s);
-        );
     );
 
-    // Calculate which samples are treated as parallel and the previous samples
-    loop(ms_initial(m, s_),  // Select the root sample
-        loop(ms(m, s)$(not sameas(s, s_)),  // Select other samples than root
-            // If two samples share same starting time, treat them as parallel
-            if(msStart(m, s) = msStart(m, s - 1),
-                s_parallel(s) = yes;
-                s_parallel(s - 1) = yes;
-            );
+    // Set active and previous samples
+    loop(ms(m, s),
+        s_active(s) = yes;
+        loop(s_ $ms(m, s_),
             // Set previous samples for samples
-            if(msEnd(m, s_) = msStart(m, s), ss(s, s_) = yes);
-            if(msEnd(m, s - 1) = msStart(m, s), ss(s, s - 1) = yes);
+            ss(s, s_)$(msStart(m, s) = msEnd(m, s_)) = yes;
         );
     );
-
-    // Store original probabilities
-    p_msProbability_orig(m, s) = p_msProbability(m, s);
 
     // Select forecasts in use for the models
     if (not sum(f, mf(m, f)),  // unless they have been provided as input
@@ -89,8 +78,6 @@ $offtext
 
     // Select combinations of models, samples and forecasts to be solved
     msf(m, s, f_solve(f))$(ms(m, s) and mf(m, f)) = yes;
-    msf(m, s_parallel(s), f_solve(f)) = mf_central(m, f);  // Parallel samples only have central forecast
-
 
     // Check the modelSolves for preset patterns for model solve timings
     // If not found, then use mSettings to set the model solve timings
@@ -269,6 +256,11 @@ loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effL
     effGroupSelector(effDirectOn(effSelector), effSelector) = yes;
     effGroupSelectorUnit(effDirectOn(effSelector), unit, effSelector) = yes;
 
+    // effSelector using IncHR
+    effGroup(effIncHR(effSelector)) = yes;
+    effGroupSelector(effIncHR(effSelector), effSelector) = yes;
+    effGroupSelectorUnit(effIncHR(effSelector), unit, effSelector) = yes;
+
     // effSelector using Lambda
     effGroup(effLambda(effSelector)) = yes;
     loop(effLambda_${ord(effLambda_) <= ord(effSelector)},
@@ -399,13 +391,34 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
             ); // END loop(eff_,eff__)
         ); // END loop(op_,op__)
     ); // END if(effLambda)
+
+// Parameters for incremental heat rates
+    if(effIncHR(effSelector),
+        p_effUnit(effSelector, unit, effSelector, 'lb') = p_unit(unit, 'hrop00'); // hrop00 contains the minimum load of the unit
+        p_effUnit(effSelector, unit, effSelector, 'op') = smax(hrop, p_unit(unit, hrop)); // Maximum operating point
+        p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
+        p_effUnit(effSelector, unit, effSelector, 'section') = p_unit(unit, 'hrsection'); // pre-defined
+
+        // Whether to use q_conversionIncHR_help1 and q_conversionIncHR_help2 or not
+        loop(m,
+            loop(hr${p_unit(unit, hr)},
+                if (mSettings(m, 'incHRAdditionalConstraints') = 0,
+                    if (p_unit(unit, hr) < p_unit(unit, hr-1),
+                        unit_incHRAdditionalConstraints(unit) = yes;
+                    ); // END if(hr)
+                else
+                    unit_incHRAdditionalConstraints(unit) = yes;
+                ); // END if(incHRAdditionalConstraints)
+            ); // END loop(hr)
+        ); // END loop(m)
+    ); // END if(effIncHR)
 ); // END loop(effGroupSelectorUnit)
 
 // Calculate unit wide parameters for each efficiency group
 loop(effLevelGroupUnit(effLevel, effGroup, unit)${sum(m, mSettingsEff(m, effLevel))},
     p_effGroupUnit(effGroup, unit, 'op') = smax(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'op'));
     p_effGroupUnit(effGroup, unit, 'lb') = smin(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'lb'));
-    p_effGroupUnit(effGroup, unit, 'slope') = smin(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'slope')); // NOTE! Uses maximum efficiency for the group.
+    p_effGroupUnit(effGroup, unit, 'slope') = smin(effGroupSelectorUnit(effGroup, unit, effSelector), p_effUnit(effGroup, unit, effSelector, 'slope'));
 ); // END loop(effLevelGroupUnit)
 
 
@@ -571,7 +584,7 @@ loop(m,
 
 * --- Calculating fuel price time series --------------------------------------
 
-loop(fuel,
+loop(fuel${ p_fuelPrice(fuel, 'useTimeSeries') },
     // Determine the time steps where the prices change
     Option clear = tt;
     tt(t)${ ts_fuelPriceChange(fuel ,t) }
@@ -630,8 +643,8 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         // Check if the first interval is long enough for proper commitment of reserves
         if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
             put log '!!! Error occurred on p_nReserves ' node.tl:0 ',' restype.tl:0 /;
-            put log '!!! Abort: The first interval should be longer than update_frequency + gate_closure for proper commitment of reserves!' /;
-            abort "The first interval should be longer than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
+            put log '!!! Abort: The first interval block should not be shorter than update_frequency + gate_closure for proper commitment of reserves!' /;
+            abort "The first interval block should not be shorter than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
         ); // END if
     ); // END loop(restypeDirectionNode)
 

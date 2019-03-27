@@ -91,7 +91,7 @@ v_state.fx(gn_state(grid, node), sft(s, f, t))${   mft_lastSteps(mSolve, f, t)
         + r_state(grid, node, f_, tSolve)
       ); // END sum(mf_realization)
 
-loop(mst_start(mSolve, s, t),
+loop(mst_start(mSolve, s, t)$(tSolveFirst = mSettings(mSolve, 't_start')),
     // Bound also the intervals just before the start of each sample - currently just 'upwardLimit'&'useConstant' and 'downwardLimit'&'useConstant'
     // Upper bound
     v_state.up(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
@@ -187,11 +187,10 @@ v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f,
 // Ramping capability of units not part of investment set
 // NOTE: Apply the corresponding equations only to units with investment possibility,
 // online variable, or reserve provision
-loop(ms(mSolve, s),
-    v_genRamp.up(grid, node, unit, sft(s, f, t))${gnuft_ramp(grid, node, unit, f, t)
-                                                  and ord(t) > msStart(mSolve, s) + 1
-                                                  and msft(mSolve, s, f, t)
+loop(sft(s, f, t)$(ord(t) > msStart(mSolve, s) + 1),
+    v_genRamp.up(grid, node, unit, s, f, t)${gnuft_ramp(grid, node, unit, f, t)
                                                   and p_gnu(grid, node, unit, 'maxRampUp')
+                                                  and not uft_online(unit, f, t)
                                                   and not unit_investLP(unit)
                                                   and not unit_investMIP(unit)
                                                   and not uft_startupTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedToMinLoad'
@@ -199,13 +198,12 @@ loop(ms(mSolve, s),
      = ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )
             * p_gnu(grid, node, unit, 'maxRampUp')
             * 60;  // Unit conversion from [p.u./min] to [p.u./h]
-    v_genRamp.lo(grid, node, unit, sft(s, f, t))${gnuft_ramp(grid, node, unit, f, t)
-                                                  and ord(t) > msStart(mSolve, s) + 1
-                                                  and msft(mSolve, s, f, t)
+    v_genRamp.lo(grid, node, unit, s, f, t)${gnuft_ramp(grid, node, unit, f, t)
                                                   and p_gnu(grid, node, unit, 'maxRampDown')
+                                                  and not uft_online(unit, f, t)
                                                   and not unit_investLP(unit)
                                                   and not unit_investMIP(unit)
-                                                  and not uft_startupTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedFromMinLoad'
+                                                  and not uft_shutdownTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedFromMinLoad'
                                                  }
      = -( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons'))
             * p_gnu(grid, node, unit, 'maxRampDown')
@@ -216,10 +214,16 @@ loop(ms(mSolve, s),
 // LP variant
 v_online_LP.up(unit, sft(s, f, t))${uft_onlineLP(unit, f, t) and not unit_investLP(unit)}
     = p_unit(unit, 'unitCount')
+     * [1${not active(mSolve, 'checkUnavailability')}
+       + (1 - ts_unit_(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
+      ]
 ;
 // MIP variant
 v_online_MIP.up(unit, sft(s, f, t))${uft_onlineMIP(unit, f, t) and not unit_investMIP(unit)}
     = p_unit(unit, 'unitCount')
+     * [1${not active(mSolve, 'checkUnavailability')}
+       + (1 - ts_unit_(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
+      ]
 ;
 
 // Free the upper bound of start-up and shutdown variables (if previously bounded)

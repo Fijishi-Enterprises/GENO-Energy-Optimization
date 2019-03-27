@@ -163,6 +163,7 @@ d_eff
 d_capacityFactor
 d_nodeState
 d_influx
+d_state
 $endif.diag
 
 // Metadata and settings

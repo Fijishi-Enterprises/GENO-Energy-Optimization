@@ -27,6 +27,7 @@ Scalars
     currentForecastLength "Length of the forecast in the curren solve, minimum of unchanging and decreasing forecast lengths"
     count "General counter"
     count_lambda, count_lambda2 "Counter for lambdas"
+    count_sample "Counter for samples"
     cum_slope "Cumulative for slope"
     cum_lambda "Cumulative for lambda"
     heat_rate "Heat rate temporary parameter"
@@ -57,6 +58,7 @@ Parameters
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
     p_groupPolicy(group, param_policy) "Two-dimensional policy data for groups"
     p_groupPolicy3D(group, param_policy, *) "Three-dimensional policy data for groups"
+    p_fuelPrice(fuel, param_fuelPrice) "Fuel price parameters"
     p_fuelEmission(fuel, emission) "Fuel emission content"
     p_uFuel(unit, param_fuel, fuel, param_unitFuel) "Parameters interacting between units and fuels"
     p_unitFuelEmissionCost(unit, fuel, emission) "Emission costs for each unit, calculated from input data"
@@ -71,6 +73,7 @@ Parameters
     p_uCounter_runUpMin(unit, counter) "Minimum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
     p_uCounter_runUpMax(unit, counter) "Maximum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
     p_u_maxOutputInFirstShutdownInterval(unit) "Maximum output in the first interval for the shutdown from min. load (p.u.)"
+    p_uShutdown(unit, cost_consumption) "Shutdown cost per unit"
     p_u_shutdownTimeIntervals(unit) "Time steps required for the shutdown phase"
     p_u_shutdownTimeIntervalsCeil(unit) "Floor of time steps required for the shutdown phase"
     p_uCounter_shutdownMin(unit, counter) "Minimum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
@@ -89,10 +92,10 @@ Parameters
 Parameters
     p_msWeight(mType, s) "Weight of sample"
     p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
-    p_msProbability_orig(mType, s) "Original probabilities of samples in model"
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"
     p_sProbability(s) "Probability of sample"
+    p_scenProbability(scenario) "Probability of scenarios"
 ;
 
 Scalar p_sWeightSum "Sum of sample weights";
@@ -110,12 +113,13 @@ Parameters
     dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints (in time steps)"
     dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints (in time steps)"
     dt_trajectory(counter) "Run-up/shutdown trajectory time index displacement"
-    dt_sampleOffset(*, node, *, s) "Time offset to make periodic time series data (for grid/flow, unit, label) to go into different samples"
+    dt_scenarioOffset(*, node, *, s) "Time offset to make periodic time series data (for grid/flow, unit, label) to go into different scenarios"
 
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
     df_reserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
+    df_scenario(f, t) "Forecast index displacement needed to get central forecast data for long-term scenarios"
 
     // Sample displacement arrays
     ds(s, t) "Displacement needed to reach the sample of previous time step"
@@ -127,7 +131,7 @@ Parameters
     ddf_(f) "Temporary forecast displacement array"
 
     // Other
-    p_slackDirection(slack) "+1 for upward slacks and -1 for downward slacks"
+    p_slackDirection(param_gnBoundaryTypes) "+1 for upward slacks and -1 for downward slacks"
     tForecastNext(mType) "When the next forecast will be available (ord time)"
     aaSolveInfo(mType, t, solveInfoAttributes) "Stores information about the solve status"
     msStart(mType, s) "Start point of samples: first time step in the sample"
@@ -166,17 +170,18 @@ Parameters
     ts_unavailability_update(unit, t)
 
     // Help parameters for calculating smoothening of time series
-    ts_influx_mean(grid, node, f, t) "Mean of ts_influx over samples"
-    ts_influx_std(grid, node, f, t)  "Standard deviation of ts_influx over samples"
-    ts_cf_mean(flow, node, f, t) "Mean of ts_cf over samples (p.u.)"
-    ts_cf_std(flow, node, f, t) "Standard deviation of ts_cf over samples (p.u.)"
+    ts_influx_std(grid, node, t)  "Standard deviation of ts_influx over samples"
+    ts_cf_std(flow, node, t) "Standard deviation of ts_cf over samples (p.u.)"
 
     p_autocorrelation(*, node, timeseries) "Autocorrelation of time series for the grid/flow, node and time series type (lag = 1 time step)"
 
     // Bounds for scenario smoothening
-    p_tsMinValue(node, timeseries)
-    p_tsMaxValue(node, timeseries)
+    p_tsMinValue(*, node, timeseries) "Minimum allowed value of timeseries for grid/flow and node"
+    p_tsMaxValue(*, node, timeseries) "Maximum allowed value of timeseries in grid/flow and node"
 ;
+
+* Reset values for some parameters
+Options clear = ts_influx_std, clear = ts_cf_std;
 
 * --- Other time dependent parameters -----------------------------------------
 Parameters

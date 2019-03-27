@@ -41,11 +41,9 @@ if (mType('invest'),
     // Number of samples used by the model
     mSettings('invest', 'samples') = 3;
 
-    // Define Initial and Central samples
+    // Clear Initial and Central samples
     ms_initial('invest', s) = no;
-    ms_initial('invest', 's000') = yes;
     ms_central('invest', s) = no;
-    ms_central('invest', 's000') = yes;
 
     // Define time span of samples
     msStart('invest', 's000') = 1;
@@ -122,6 +120,13 @@ if (mType('invest'),
 
     // Define the length of the initialization period. Results outputting starts after the period. Uses ord(t) > t_start + t_initializationPeriod in the code.
     mSettings('invest', 't_initializationPeriod') = 0;  // r_state and r_online are stored also for the last step in the initialization period, i.e. ord(t) = t_start + t_initializationPeriod
+
+* --- Define the use of additional constraints for units with incremental heat rates
+
+    // How to use q_conversionIncHR_help1 and q_conversionIncHR_help2
+    mSettings('invest', 'incHRAdditionalConstraints') = 0;
+    // 0 = use the constraints but only for units with non-convex fuel use
+    // 1 = use the constraints for all units represented using incremental heat rates
 
 * --- Control the solver ------------------------------------------------------
 

@@ -50,7 +50,9 @@ Sets
         t_forecastStart, // Time step for first reading the forecasts (not necessarily t_start)
         t_forecastJump, // Number of time steps between each update of the forecasts
         t_improveForecast "Number of time steps ahead of time on which the forecast is improved on each solve"
-        sampleLength   "Length of sample in time steps for creating stocahstic scenarios from time series data"
+        onlyExistingForecasts "Use only existing forecast values when reading updated forecasts. Note: zero values need to be saved as Eps in the gdx file."
+        scenarios        "Number of long-term scenarios used"
+        scenarioLength   "Length of scenario in time steps for creating stocahstic scenarios from time series data"
 
         // Features
         t_trajectoryHorizon, // Length of the horizon when start-up and shutdown trajectories are considered (in time steps)
@@ -58,6 +60,8 @@ Sets
         dataLength, // The maximum number of time steps in any input data time series (recommended for correctly circulating data)
         red_num_leaves "Desired number of preserved scenarios or leaves (SCENRED)"
         red_percentage "Desired relative distance (accuracy) of scenario reduction (SCENRED)"
+        incHRAdditionalConstraints // Method to include the two additional constraints for incremental heat rates;
+                                   // 0 = include for units with non-convex fuel use, 1 = include for all units
         /
 
     // Solve info
@@ -98,7 +102,7 @@ Sets
     effLevel "Pre-defined levels for efficiency representation that can start from t_solve + x"
         / level1*level9 /
     effSelector "Select equations and lambdas/slope for efficiency calculations"
-        / lambda01*lambda12, directOff, directOnLP, directOnMIP / // NOTE! Lambdas required first!
+        / lambda01*lambda12, directOff, directOnLP, directOnMIP , incHR/ // NOTE! Lambdas required first!
     effDirect(effSelector) "Using direct input to output equation"
         / directOff, directOnLP, directOnMIP /
     effDirectOff(effSelector) "Using direct input to output equation without online variable, i.e. constant efficiency"
@@ -107,8 +111,10 @@ Sets
         / directOnLP, directOnMIP /
     effLambda(effSelector) "Lambdas in use for part-load efficiency representation"
         / lambda01*lambda12 /
+    effIncHR(effSelector) "Using incremental heat rate equation"
+        / incHR /
     effOnline(effSelector) "Efficiency selectors that use online variables"
-        / directOnLP, directOnMIP, lambda01*lambda12 / // IMPORTANT! Online variables are generated based on this, so keep it up to date!
+        / directOnLP, directOnMIP, lambda01*lambda12 ,incHR / // IMPORTANT! Online variables are generated based on this, so keep it up to date!
 
 * --- General and Directional Sets --------------------------------------------
 
@@ -147,8 +153,8 @@ Sets
 *        extraRes         "Use extra tertiary reserves for error in elec. load during time step" // NOT IMPLEMENTED
 *        rampSched        "Use power based scheduling" // PARTIALLY IMPLEMENTED
         scenRed          "Reduce number of long-tem scenarios using GAMS SCENRED2"
-        /
-
+        checkUnavailability "Take into account ts_unit unavailability data"
+         /
 * --- Set to declare time series that will be read between solves ------------------------------------------------------
     timeseries "Names of time series that could be loop read from files between solves" /
         ts_unit
@@ -275,6 +281,7 @@ param_unit "Set of possible data parameters for units" /
     availability  "Availability of given energy conversion technology (p.u.)"
     useInitialOnlineStatus   "A flag to fix the online status of a unit for the first time step (binary)"
     initialOnlineStatus      "Initial online status of the unit in the first time step (0-1)"
+    unavailability  "Unavailability of given energy conversion technology (p.u.)"
     omCosts       "Variable operation and maintenance costs (EUR/MWh)"
     startCostCold "Variable start-up costs for cold starts excluding fuel costs (EUR/MW)"
     startCostWarm "Variable start-up costs for warm starts excluding fuel costs (EUR/MW)"
@@ -284,6 +291,7 @@ param_unit "Set of possible data parameters for units" /
     startFuelConsHot "Consumption of start-up fuel per hot subunit started up (MWh_fuel/MW)"
     startColdAfterXhours "Offline hours after which the start-up will be a cold start (h)"
     startWarmAfterXhours "Offline hours after which the start-up will be a warm start (h)"
+    shutdownCost  "Cost of shutting down the unit"
     rampSpeedToMinLoad "Ramping speed from start-up to minimum load (p.u./min)"
     rampSpeedFromMinLoad "Ramping speed from shutdown decision to zero load (p.u./min)"
     minOperationHours "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
@@ -295,7 +303,10 @@ param_unit "Set of possible data parameters for units" /
     eff00 * eff12 "Efficiency of the unit to convert input to output/intermediate product"
     opFirstCross  "The operating point where the real efficiency curve and approximated efficiency curve cross"
     op00 * op12   "Right border of the efficiency point"
+    hr00 * hr12   "Incremental heat rates (GJ/MWh)"
+    hrop00 * hrop12   "Right border of the incremental heat rates"
     section       "Possibility to define a no load fuel use for units with zero minimum output"
+    hrsection     "no load fuel use to be defined when using incremental heat rates"
     level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "A flag to use time series form input for unit parameters whenever possible"
     investMIP     "A flag to make integer investment instead of continous investment"
@@ -314,6 +325,12 @@ param_eff "Parameters used for unit efficiency approximations" /
 param_fuel "Parameters for fuels" /
     main          "Main fuel of the unit - unless input fuels defined as grids"
     startup       "Startup fuel of the unit, if exists. Can be the same as main fuel - consumption using startupFuelCons"
+/
+
+param_fuelPrice "Paramters for fuel prices" /
+    fuelPrice     "Fuel price (EUR/MWh)"
+    useConstant   "Flag to use constant data for fuels"
+    useTimeSeries "Flag to use time series form data for fuels"
 /
 
 param_unitFuel "Parameters for fuel limits in units" /
@@ -353,15 +370,18 @@ eff(param_unit) "Effiency for the corresponding operating point ('op') in the ef
         /eff00*eff12/ // IMPORTANT! Has to equal the same param_unit!
 lambda "Lambda approximation indeces"
         /lambda01*lambda12/ // IMPORTANT! Has to equal effLambda!
-
+hrop(param_unit) "Operating points in the incremental heat rate curves, also functions as index for data points"
+        /hrop00*hrop12/ // IMPORTANT! Has to equal the same param_unit!
+hr(param_unit) "Heat rate for the corresponding operating point ('hrop') in the heat rate curves, also used for data indexing"
+        /hr00*hr12/ // IMPORTANT! Has to equal the same param_unit!
 * --- Counters and Directional Sets -------------------------------------------
 
 // Slack categories
 slack(param_gnBoundaryTypes) "Categories for slack variables"
        / upwardSlack01*upwardSlack20, downwardSlack01*downwardSlack20 /
-upwardSlack(slack) "Set of upward slacks"
+upwardSlack(param_gnBoundaryTypes) "Set of upward slacks"
        / upwardSlack01*upwardSlack20 /
-downwardSlack(slack) "Set of downward slacks"
+downwardSlack(param_gnBoundaryTypes) "Set of downward slacks"
        / downwardSlack01*downwardSlack20 /
 
 // Flags for boundaries

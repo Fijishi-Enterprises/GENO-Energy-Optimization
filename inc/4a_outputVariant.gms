@@ -78,6 +78,7 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))
 
     // Reserve requirement due to N-1 reserve constraint
     r_resDemandLargestInfeedUnit(grid, f+df_reserves(node, restype, f, t), t, restype, up_down, node)
+        ${ sum(unit_fail, nuRescapable(restype, up_down, node, unit_fail)) } // Calculate only for nodes with units that can fail.
         = smax(unit_fail(unit_), v_gen.l(grid, node, unit_, s, f, t) * p_nuReserves(node, unit_, restype, 'portion_of_infeed_to_reserve'));
 
     // Reserve transfer capacity for links defined out from this node
@@ -124,8 +125,8 @@ loop(sft_realized(s, f, t),
 );
 
 // Total Objective function
-r_totalObj
-    = r_totalObj + v_obj.l
+r_totalObj(tSolve)
+    = r_totalObj(tSolve - mSettings(mSolve, 't_jump')) + v_obj.l
 ;
 
 // q_balance marginal values
@@ -176,19 +177,19 @@ r_qCapacity(gn(grid, node), f, t)
 * =============================================================================
 
 // Only include these if '--diag=yes' given as a command line argument
-$iftheni.diag '%diag%' == yes
+$iftheni.diag %diag% == 'yes'
 // Capacity factors for examining forecast errors
-d_capacityFactor(flowNode(flow, node), s, f_solve(f), t_current(t))
+d_capacityFactor(flowNode(flow, node), sft(s, f_solve(f), t_current(t)))
     ${  msf(mSolve, s, f)
         and t_active(t)
         and sum(flowUnit(flow, unit), nu(node, unit))
         }
     = ts_cf_(flow, node, f, t, s)
-        + ts_cf(flow, node, f, t + dt_sampleOffset(flow, node, 'ts_cf', s))${ not ts_cf_(flow, node, f, t, s) }
+        + ts_cf(flow, node, f, t + dt_scenarioOffset(flow, node, 'ts_cf', s))${ not ts_cf_(flow, node, f, t, s) }
         + Eps
 ;
 // Temperature forecast for examining the error
-d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, s, f_solve(f), t_current(t))
+d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f_solve(f), t_current(t)))
     ${  p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
         and t_active(t)
         and msf(mSolve, s, f)
@@ -198,7 +199,7 @@ d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, s, f_solve(f), t_curren
         + Eps
 ;
 // Influx forecast for examining the errors
-d_influx(gn(grid, node), s, f_solve(f), t_current(t))
+d_influx(gn(grid, node), sft(s, f_solve(f), t_current(t)))
     ${  msf(mSolve, s, f)
         and t_active(t)
         }
@@ -206,6 +207,16 @@ d_influx(gn(grid, node), s, f_solve(f), t_current(t))
         + ts_influx(grid, node, f, t)${ not ts_influx_(grid, node, f, t, s)}
         + Eps
 ;
+// Scenario values for time series
+Options clear = d_state, clear = d_ts_scenarios; // Only keep latest results
+loop(s_scenario(s, scenario),
+    loop(mft_start(mSolve, f, t)$ms_initial(mSolve, s),
+        d_state(gn_state(grid, node), scenario, f, t) = v_state.l(grid, node, s, f, t);
+    );
+    d_state(gn_state, scenario, ft)$sft(s, ft) = v_state.l(gn_state, s, ft) + eps;
+    d_ts_scenarios('ts_influx', gn, scenario, ft)$sft(s, ft) = ts_influx_(gn, ft, s) + eps;
+    d_ts_scenarios('ts_cf', flowNode, scenario, ft)$sft(s, ft) = ts_cf_(flowNode, ft, s) + eps;
+);
 $endif.diag
 
 * --- Model Solve & Status ----------------------------------------------------

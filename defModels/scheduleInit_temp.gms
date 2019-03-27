@@ -50,27 +50,26 @@ if (mType('schedule'),
     // Define Initial and Central samples
     ms_initial('schedule', s) = no;
     ms_initial('schedule', 's000') = yes;
-    ms_central('schedule', s) = no;
-    ms_central('schedule', 's000') = yes;
 
     // Define time span of samples
     msStart('schedule', 's000') = 1;
     msEnd('schedule', 's000') = msStart('schedule', 's000') + mSettings('schedule', 't_horizon');
 
-    // If using long-term samples, uncomment
-    //msEnd('schedule', 's000') = msStart('schedule', 's000')
-    //                            + mSettings('schedule', 't_forecastLengthUnchanging');
-
-    //loop(s $(ord(s) > 1),
-    //    msStart('schedule', s) = msStart('schedule', 's000')
-    //                             + mSettings('schedule', 't_forecastLengthUnchanging');
-    //    msEnd('schedule', s) = msStart('schedule', 's000')
-    //                           + mSettings('schedule', 't_horizon');
-    //);
-
     // Define the probability (weight) of samples
     p_msProbability('schedule', s) = 0;
     p_msProbability('schedule', 's000') = 1;
+
+    // If using long-term samples, uncomment
+    //ms_central('schedule', 's001') = yes;
+    //
+    //msEnd('schedule', 's000') = msStart('schedule', 's000') + 168;
+
+    //msStart('schedule', 's001') = msEnd('schedule', 's000');
+    //msEnd('schedule', 's001') = msStart('schedule', 's000')
+    //                       + mSettings('schedule', 't_horizon');
+    //
+    //p_msProbability('schedule', 's001') = 1;
+    //);
 
     // Define which nodes use long-term samples
     loop(gn(grid, node)$sameas(grid, 'hydro'),
@@ -171,6 +170,13 @@ if (mType('schedule'),
 
     // Define the length of the initialization period. Results outputting starts after the period. Uses ord(t) > t_start + t_initializationPeriod in the code.
     mSettings('schedule', 't_initializationPeriod') = 0;  // r_state and r_online are stored also for the last step in the initialization period, i.e. ord(t) = t_start + t_initializationPeriod
+
+* --- Define the use of additional constraints for units with incremental heat rates
+
+    // How to use q_conversionIncHR_help1 and q_conversionIncHR_help2
+    mSettings('schedule', 'incHRAdditionalConstraints') = 0;
+    // 0 = use the constraints but only for units with non-convex fuel use
+    // 1 = use the constraints for all units represented using incremental heat rates
 
 * --- Control the solver ------------------------------------------------------
 

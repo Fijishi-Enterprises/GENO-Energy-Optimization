@@ -3,6 +3,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.6] - 2019-03-27
+### Fixed
+- Major bug in state variable reserve equations
+- Scenario smoothing alogirithm
+
+### Changed
+- Speedup for timeseries calculations
+
+### Added 
+- New model setting `mSettings(mType, 'onlyExistingForecasts') = 0|1` to control 
+  the reading of forecasts. Set to 1 to only read forecast data that exists in 
+  the file. Note that zeros need to be saved as Eps when using this.
+- Proper stochastic programming for the long-term scenarios period. Possible also
+  to create a stochastic tree from the original data.
+- Clickable link to *sr.log* in the process window in case of SCENRED2 error
+- New diagnostic parameter for timeseries scenarios `d_ts_scenarios`
+
+
 ## [1.0.5] - 2019-02-14
 ### Fixed
 - Probabilities were not updated after using scenario reduction
@@ -55,7 +73,8 @@ All notable changes to this project will be documented in this file.
 
 
 
-[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.5...dev
+[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.6...dev
+[1.0.6]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.5...v1.0.6
 [1.0.5]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.4...v1.0.5
 [1.0.4]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.3...v1.0.4
 [1.0.3]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.2...v1.0.3
