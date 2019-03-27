@@ -535,9 +535,11 @@ loop( (nu(node, unit), restypeDirection(restype, up_down)),
 * =============================================================================
 * --- Default values  ---------------------------------------------------------
 * =============================================================================
-
-loop((gn(grid, node), timeseries),
-    p_autocorrelation(grid, node, timeseries) = 0;
-    p_tsMinValue(node, timeseries) = -Inf;
-    p_tsMaxValue(node, timeseries) = Inf;
+loop(timeseries$(not sameas(timeseries, 'ts_cf')),
+    p_autocorrelation(gn, timeseries) = 0;
+    p_tsMinValue(gn, timeseries) = -Inf;
+    p_tsMaxValue(gn, timeseries) = Inf;
 );
+p_autocorrelation(flowNode, 'ts_cf') = 0;
+p_tsMinValue(flowNode, 'ts_cf') = 0;
+p_tsMaxValue(flowNode, 'ts_cf') = 1;
