@@ -125,6 +125,7 @@ Sets
     s_active(s) "Samples with non-zero probability in the current model solve"
     ss(s, s) "Previous sample of sample"
     s_prev(s) "Temporary set for previous sample"
+$if defined scenario
     s_scenario(s, scenario) "Which samples belong to which scenarios"
     gn_scenarios(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"
 

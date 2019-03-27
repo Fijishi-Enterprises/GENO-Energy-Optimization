@@ -147,9 +147,11 @@ Option clear = mft;
 Option clear = ft;
 Option clear = sft;
 Option clear = mst_start, clear = mst_end;
+$ifthen declared scenario
 if(mSettings(mSolve, 'scenarios'),  // Only clear these if using long-term scenarios
     Options clear = s_active, clear = s_scenario, clear = ss;
 );
+$endif
 
 
 // Initialize the set of active t:s, counters and interval time steps
@@ -259,6 +261,7 @@ loop(cc(counter),
           and ord(t) < msEnd(mSolve, s) + tSolveFirst   // Move the samples along with the dispatch
          } = mft(mSolve, f_solve, t);
 
+$ifthen defined scenario
     // Create stochastic programming scenarios
     if(mSettings(mSolve, 'scenarios'),
         // Select root sample and central forecast
@@ -286,6 +289,8 @@ loop(cc(counter),
         );
         ms(mSolve, s) = s_active(s);
     );
+$endif
+
     // Reduce the model dimension
     ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
 
@@ -299,6 +304,7 @@ loop(cc(counter),
 ); // END loop(counter)
 
 * Build stochastic tree by definfing previous samples
+$ifthen defined scenario
 Option clear = s_prev;
 loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
     loop(s_scenario(s, scenario),
@@ -306,11 +312,14 @@ loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
         Option clear = s_prev; s_prev(s) = yes;
     );
 );
+$endif
+
 
 * --- Define sample offsets for creating stochastic scenarios -----------------
 
 Option clear = dt_scenarioOffset;
 
+$ifthen defined scenario
 loop(s_scenario(s, scenario)$(ord(s) > 1 and ord(scenario) > 1),
     loop(gn_scenarios(grid, node, timeseries),
          dt_scenarioOffset(grid, node, timeseries, s)
@@ -327,6 +336,7 @@ loop(s_scenario(s, scenario)$(ord(s) > 1 and ord(scenario) > 1),
             = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
     );
 );
+$endif
 
 
 * --- Determine various other forecast-time sets required for the model -------

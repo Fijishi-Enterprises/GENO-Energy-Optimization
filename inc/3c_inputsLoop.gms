@@ -450,10 +450,12 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
 * --- Input data processing ---------------------------------------------------
 * =============================================================================
 
+$ifthen defined scenario
 * --- Scenario reduction ------------------------------------------------------
 if(active(mSolve, 'scenred'),
     $$include 'inc/scenred.gms'
 );
+$endif
 
 * --- Update probabilities ----------------------------------------------------
 Option clear = p_msft_probability;

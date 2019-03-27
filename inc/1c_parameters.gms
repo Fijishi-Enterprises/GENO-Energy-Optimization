@@ -95,9 +95,11 @@ Parameters
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"
     p_sProbability(s) "Probability of sample"
+$if defined scenario
     p_scenProbability(scenario) "Probability of scenarios"
 ;
 
+$if declared p_scenProbability
 Option clear = p_scenProbability;  // Initialize with empty data
 
 Scalar p_sWeightSum "Sum of sample weights";
