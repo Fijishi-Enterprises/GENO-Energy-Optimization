@@ -33,6 +33,7 @@ execute 'scenred2 inc/scenred.cmd > %nuldev%';
 if(errorLevel,
     put log "!!! Scenario reduction (SCENRED2) failed. ";
     put log "See file 'sr.log' for details."/;
+    put_utility log, 'Click' / 'sr.log'; 
     putclose;
     execError = execError + 1;
 else
@@ -48,6 +49,7 @@ else
     msf(mSolve, s, f)$msf(mSolve, s, f) = ms(mSolve, s);
     msft(mSolve, s, f, t)$msft(mSolve, s, f, t) = msf(mSolve, s, f);
     sft(s, f, t)$sft(s, f, t) = yes$p_msProbability(mSolve, s);
+    fts(f, t, s)$fts(f, t, s) = sft(s, f, t);
 
     // Update scenarios
     Option clear = s_scenario;

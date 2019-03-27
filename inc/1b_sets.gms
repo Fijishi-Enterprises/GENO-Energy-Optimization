@@ -106,12 +106,14 @@ Sets
     msf(mType, s, f) "Combination of samples and forecasts in the models"
     msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
     sft(s, f, t) "Combination of samples, forecasts and t's in the current model solve"
+    fts(f, t, s) "Like `sft` but different order"
     sft_realized(s, f, t) "Realized sft"
     sft_realizedNoReset(s, f, t) "Full set of realized sft, facilitates calculation of results"
     msft_realizedNoReset(mType, s, f, t) "Combination of realized samples, forecasts and t:s in the current model solve and previously realized t:s"
     mft_start(mType, f, t) "Start point of the current model solve"
     mf_realization(mType, f) "fRealization of the forecasts"
     mf_central(mType, f) "Forecast that continues as sample(s) after the forecast horizon ends"
+    mf_scenario(mType, f) "Forecast label that is used for long-term scenario data"
     ms_initial(mType, s) "Sample that presents the realized/forecasted period"
     ms_central(mType, s) "Sample that continues the central forecast after the forecast horizon ends"
     mft_lastSteps(mType, f, t) "Last interval of the current model solve"
@@ -166,6 +168,7 @@ Option clear = modelSolves;
 Option clear = ms;
 Option clear = mf;
 mf_realization(mType, 'f00') = yes;
+Option clear = mf_scenario;
 Option clear = gn_scenarios;
 Option clear = mTimeseries_loop_read;
 

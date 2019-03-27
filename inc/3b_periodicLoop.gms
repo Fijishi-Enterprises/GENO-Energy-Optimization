@@ -291,6 +291,7 @@ loop(cc(counter),
 
     // Reduce the sample dimension
     sft(s, f, t)$msft(mSolve, s, f, t) = ft(f, t);
+    fts(f, t, s)$sft(s, f, t) = ft(f, t);
 
     // Update tCounter for the next block of intervals
     tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter) + 1;
@@ -405,11 +406,11 @@ dt(t)${sum(ms(mSolve, s)$(not ms_central(mSolve, s)), mst_start(mSolve, s, t))} 
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
 df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
-// If using scenarios, central forecast will be using realized data
+// Central forecast for the long-term scenarios comes from a special forecast label
 if(mSettings(mSolve, 'scenarios'),
-    loop(ms_initial(mSolve, s),
+    loop((ms_initial(mSolve, s), mf_central(mSolve, f)),
         df_scenario(f_solve(f), t_active(t))${ord(t) > msEnd(mSolve, s)}
-          = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
+          = sum(mf_scenario(mSolve, f_), ord(f_) - ord(f));
     );
 );
 

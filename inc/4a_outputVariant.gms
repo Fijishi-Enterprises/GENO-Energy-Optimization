@@ -177,7 +177,7 @@ r_qCapacity(gn(grid, node), f, t)
 * =============================================================================
 
 // Only include these if '--diag=yes' given as a command line argument
-$iftheni.diag '%diag%' == yes
+$iftheni.diag %diag% == 'yes'
 // Capacity factors for examining forecast errors
 d_capacityFactor(flowNode(flow, node), sft(s, f_solve(f), t_current(t)))
     ${  msf(mSolve, s, f)
@@ -207,14 +207,15 @@ d_influx(gn(grid, node), sft(s, f_solve(f), t_current(t)))
         + ts_influx(grid, node, f, t)${ not ts_influx_(grid, node, f, t, s)}
         + Eps
 ;
-Option clear = d_state;  // Only keep latest results
+// Scenario values for time series
+Options clear = d_state, clear = d_ts_scenarios; // Only keep latest results
 loop(s_scenario(s, scenario),
     loop(mft_start(mSolve, f, t)$ms_initial(mSolve, s),
         d_state(gn_state(grid, node), scenario, f, t) = v_state.l(grid, node, s, f, t);
     );
-    loop(sft(s, f, t),
-        d_state(gn_state(grid, node), scenario, f, t) = v_state.l(grid, node, s, f, t);
-    );
+    d_state(gn_state, scenario, ft)$sft(s, ft) = v_state.l(gn_state, s, ft) + eps;
+    d_ts_scenarios('ts_influx', gn, scenario, ft)$sft(s, ft) = ts_influx_(gn, ft, s) + eps;
+    d_ts_scenarios('ts_cf', flowNode, scenario, ft)$sft(s, ft) = ts_cf_(flowNode, ft, s) + eps;
 );
 $endif.diag
 
