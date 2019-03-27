@@ -111,7 +111,7 @@ Sets
     sft_realizedNoReset(s, f, t) "Full set of realized sft, facilitates calculation of results"
     msft_realizedNoReset(mType, s, f, t) "Combination of realized samples, forecasts and t:s in the current model solve and previously realized t:s"
     mft_start(mType, f, t) "Start point of the current model solve"
-    mf_realization(mType, f) "fRealization of the forecasts"
+    mf_realization(mType, f) "Realization of the forecasts"
     mf_central(mType, f) "Forecast that continues as sample(s) after the forecast horizon ends"
     mf_scenario(mType, f) "Forecast label that is used for long-term scenario data"
     ms_initial(mType, s) "Sample that presents the realized/forecasted period"
