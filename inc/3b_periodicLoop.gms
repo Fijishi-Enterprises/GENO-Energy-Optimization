@@ -232,12 +232,14 @@ loop(cc(counter),
     // Include the t_jump for the realization
     mft(mf(mSolve, f_solve), tt_interval(t))
        ${ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
+                               + mSettings(mSolve, 't_perfectForesight')
          and mf_realization(mSolve, f_solve)
         } = yes;
 
     // Include the full horizon for the central forecast
     mft(mf(mSolve, f_solve), tt_interval(t))
       ${ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+                             + mSettings(mSolve, 't_perfectForesight')
         and (mf_central(mSolve, f_solve)
              or mSettings(mSolve, 'forecasts') = 0)
        } = yes;
@@ -247,6 +249,7 @@ loop(cc(counter),
       ${not mf_central(mSolve, f_solve)
         and not mf_realization(mSolve, f_solve)
         and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+                                 + mSettings(mSolve, 't_perfectForesight')
         and ord(t) <= tSolveFirst + currentForecastLength
        } = yes;
 
@@ -414,7 +417,8 @@ dt(t)${sum(ms(mSolve, s)$(not ms_central(mSolve, s)), mst_start(mSolve, s, t))} 
 
 // Forecast index displacement between realized and forecasted intervals
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
-df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
+df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
+                                                    + mSettings(mSolve, 't_perfectForesight')}
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
 // Central forecast for the long-term scenarios comes from a special forecast label
 if(mSettings(mSolve, 'scenarios'),
