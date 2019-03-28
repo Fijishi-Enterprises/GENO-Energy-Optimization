@@ -50,7 +50,7 @@ Sets
         t_forecastStart, // Time step for first reading the forecasts (not necessarily t_start)
         t_forecastJump, // Number of time steps between each update of the forecasts
         t_improveForecast "Number of time steps ahead of time on which the forecast is improved on each solve"
-        t_perfectForesight "Number of time steps *after* t_jump for which realized data is used instead of forecasts"
+        t_perfectForesight "Number of time steps for which realized data is used instead of forecasts"
         onlyExistingForecasts "Use only existing forecast values when reading updated forecasts. Note: zero values need to be saved as Eps in the gdx file."
         scenarios        "Number of long-term scenarios used"
         scenarioLength   "Length of scenario in time steps for creating stocahstic scenarios from time series data"

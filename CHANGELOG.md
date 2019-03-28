@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## Added
+- New model setting 't_perfectForesight' tells the number of time steps (from 
+  the beginning of current solve) for which realized data is used instead of 
+  forecasts. This value cannot exceed current forecast length, however. Setting 
+  the value lower than 't_jump' has no effect.
 
 ## [1.0.6] - 2019-03-27
 ### Fixed
