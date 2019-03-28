@@ -452,7 +452,7 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
 
 $ifthen defined scenario
 * --- Scenario reduction ------------------------------------------------------
-if(active(mSolve, 'scenred'),
+if(active(mSolve, 'scenred') and mSettings('schedule', 'scenarios') > 1,
     $$include 'inc/scenred.gms'
 );
 $endif
