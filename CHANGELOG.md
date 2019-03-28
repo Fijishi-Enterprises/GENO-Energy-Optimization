@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file.
   the beginning of current solve) for which realized data is used instead of 
   forecasts. This value cannot exceed current forecast length, however. Setting 
   the value lower than 't_jump' has no effect.
+- Automated the calculation of sample start and end times if using long-term 
+  scenarios. Also setting number of scenarios to one, instructs the model to use
+  central forecast for the long-term.
 
 ## [1.0.6] - 2019-03-27
 ### Fixed

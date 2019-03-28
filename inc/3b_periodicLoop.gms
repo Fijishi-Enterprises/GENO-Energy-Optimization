@@ -261,6 +261,12 @@ loop(cc(counter),
     // Update tActive
     t_active(tt_interval) = yes;
 
+    // Reset initial sample start and end times if using scenarios
+    if(mSettings(mSolve, 'scenarios'),
+        msStart(ms_initial) = 1;
+        msEnd(ms_initial) = currentForecastLength + 1;
+    );
+
     // Loop over defined samples
     msft(msf(mSolve, s, f_solve), tt_interval(t))
         ${ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
@@ -269,17 +275,19 @@ loop(cc(counter),
 
 $ifthen defined scenario
     // Create stochastic programming scenarios
-    if(mSettings(mSolve, 'scenarios'),
-        // Select root sample and central forecast
-        loop((ms_initial(mSolve, s_), mf_central(mSolve, f_)),
-            s_active(s_) = yes;
-            loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
-                s_scenario(s_, scenario) = yes;
-                loop(tt_interval(t)$(ord(t) >= msEnd(mSolve, s_) + tSolveFirst),
-                    mft(mSolve, f_, t) = yes;
+    // Select root sample and central forecast
+    loop((ms_initial(mSolve, s_), mf_central(mSolve, f_)),
+        s_active(s_) = yes;
+        loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
+            s_scenario(s_, scenario) = yes;
+            loop(tt_interval(t)$(ord(t) >= msEnd(mSolve, s_) + tSolveFirst),
+                mft(mSolve, f_, t) = yes;
+                if(mSettings(mSolve, 'scenarios') > 1,
                     loop(s$(ord(s) = mSettings(mSolve, 'samples') + count_sample),
                         s_active(s) = yes;
+                        ms(mSolve, s) = yes;
                         ms_central(mSolve, s) = yes;
+                        msf(mSolve, s, f_) = yes;
                         msft(mSolve, s, f_, t) = yes;
                         s_scenario(s, scenario) = yes;
                         p_msProbability(mSolve, s) = p_scenProbability(scenario);
@@ -289,11 +297,17 @@ $ifthen defined scenario
                             + mInterval(mSolve, 'stepsPerInterval', counter);
                     );
                     count_sample = count_sample + 1;
+                elseif mSettings(mSolve, 'scenarios') = 1,
+                    loop(ms_central(mSolve, s),
+                        s_scenario(s, scenario) = yes;
+                        msStart(mSolve, s) = msEnd(mSolve, s_);
+                        msEnd(mSolve, s) = msStart(mSolve, s_)
+                                           + mSettings(mSolve, 't_horizon');
+                        msft(mSolve, s, f_, t) = yes;
+                    );
                 );
             );
-            msf(mSolve, s, f_) = s_active(s);
         );
-        ms(mSolve, s) = s_active(s);
     );
 $endif
 
@@ -425,7 +439,7 @@ df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + max(mSettings(mSolve, 't_j
                                                               currentForecastLength))}
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
 // Central forecast for the long-term scenarios comes from a special forecast label
-if(mSettings(mSolve, 'scenarios'),
+if(mSettings(mSolve, 'scenarios') > 1,
     loop((ms_initial(mSolve, s), mf_central(mSolve, f)),
         df_scenario(f_solve(f), t_active(t))${ord(t) > msEnd(mSolve, s)}
           = sum(mf_scenario(mSolve, f_), ord(f_) - ord(f));
