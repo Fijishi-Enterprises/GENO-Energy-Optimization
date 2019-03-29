@@ -68,10 +68,6 @@ $offtext
             // Set previous samples for samples
             ss(s, s_)$(msStart(m, s) = msEnd(m, s_)) = yes;
         );
-        if(mSettings(m, 'scenarios') and not ms_initial(m, s),
-            ms_central(mSolve, s) = yes;
-            p_msProbability(m, s) = 1;
-        );
     );
 
     // Select forecasts in use for the models

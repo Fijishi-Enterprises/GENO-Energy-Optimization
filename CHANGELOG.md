@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Automated the calculation of sample start and end times if using long-term 
   scenarios. Also setting number of scenarios to one, instructs the model to use
   central forecast for the long-term.
+- Speedup for model dimension calculation (set `msft` etc.)
 
 ## [1.0.6] - 2019-03-27
 ### Fixed

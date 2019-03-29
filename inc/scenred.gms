@@ -3,6 +3,7 @@ if(mSettings(mSolve, 'red_num_leaves')
    or mSettings(mSolve, 'red_percentage'),
 
 * Get probabilitiesfor samples
+Option clear = p_sProbability;
 p_sProbability(s_active(s)) = p_msProbability(mSolve, s);
 
 * SCENRED2 parameters
