@@ -167,6 +167,11 @@ count_sample = 1;
 cc(counter)${ mInterval(mSolve, 'stepsPerInterval', counter) }
     = yes;
 
+// Determine the interval step counters for each interval
+intervalStepCounter(cc(counter), counter_)
+    ${ ord(counter_) <= mInterval(mSolve, 'stepsPerInterval', counter) }
+    = yes;
+
 // Update tForecastNext
 tForecastNext(mSolve)
     ${ tSolveFirst >= tForecastNext(mSolve) }
