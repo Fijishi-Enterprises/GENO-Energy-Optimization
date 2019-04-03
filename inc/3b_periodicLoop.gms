@@ -157,6 +157,7 @@ $endif
 
 // Initialize the set of active t:s, counters and interval time steps
 Option clear = t_active;
+Option clear = dt_active;
 Option clear = tt_block;
 Option clear = cc;
 tCounter = 1;
@@ -187,9 +188,6 @@ t_current(t_full(t))
         and ord (t) <= tSolveLast
         }
     = yes;
-
-// Initialize dt_active
-Option clear = dt_active;
 
 // Loop over the defined blocks of intervals
 loop(cc(counter),
