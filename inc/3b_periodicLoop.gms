@@ -168,8 +168,8 @@ cc(counter)${ mInterval(mSolve, 'stepsPerInterval', counter) }
     = yes;
 
 // Determine the interval step counters for each interval
-intervalStepCounter(cc(counter), counter_)
-    ${ ord(counter_) <= mInterval(mSolve, 'stepsPerInterval', counter) }
+intervalStepCounter(cc(counter), t)
+    ${ ord(t) <= mInterval(mSolve, 'stepsPerInterval', counter) }
     = yes;
 
 // Update tForecastNext

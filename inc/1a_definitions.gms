@@ -117,15 +117,12 @@ Sets
     effOnline(effSelector) "Efficiency selectors that use online variables"
         / directOnLP, directOnMIP, lambda01*lambda12 ,incHR / // IMPORTANT! Online variables are generated based on this, so keep it up to date!
 
-* --- General, Interval and Directional Sets ----------------------------------
+* --- General and Directional Sets --------------------------------------------
 
     // General Counter
     counter "General counter set"
         /c000*c999/
     cc(counter) "Temporary subset of counter used for calculations"
-
-    // Interval Step Counter
-    intervalStepCounter(counter, counter) "Interval step counter for time series averaging"
 
     // Directional Sets
     up_down "Direction set used by some variables, e.g. reserve provisions and generation ramps"
@@ -174,9 +171,6 @@ Sets
         /
 
 ; // END Sets
-
-// Alias the counter set
-alias(counter, counter_);
 
 * =============================================================================
 * --- Model Parameter Definitions ---------------------------------------------

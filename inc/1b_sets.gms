@@ -125,6 +125,7 @@ Sets
     s_active(s) "Samples with non-zero probability in the current model solve"
     ss(s, s) "Previous sample of sample"
     s_prev(s) "Temporary set for previous sample"
+    intervalStepCounter(counter, t) "Interval step counter for time series averaging NOTE! t is used here as a general counter, not a time step! (counter set too limited in size)"
 $if defined scenario
     s_scenario(s, scenario) "Which samples belong to which scenarios"
     gn_scenarios(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"

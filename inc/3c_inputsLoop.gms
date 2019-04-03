@@ -305,86 +305,86 @@ loop(cc(counter),
 
     // Select and average time series data matching the intervals
     ts_unit_(unit_timeseries(unit), param_unit, ft(f, tt_interval(t)))
-        = sum(intervalStepCounter(counter, counter_),
-            ts_unit(unit, param_unit, f, t+(ord(counter_) - 1 + dt_circular(t + (ord(counter_) - 1))))
+        = sum(intervalStepCounter(counter, t_),
+            ts_unit(unit, param_unit, f, t+(ord(t_) - 1 + dt_circular(t + (ord(t_) - 1))))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 $ontext
 * Should these be handled here at all? See above comment
     ts_effUnit_(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, ft(f, tt_interval(t)))
-        = sum(intervalStepCounter(counter, counter_),
-            ts_effUnit(effSelector, unit, effSelector, param_eff, f_solve, t+(ord(counter_) - 1 + dt_circular(t + ord(counter_) - 1)))
+        = sum(intervalStepCounter(counter, t_),
+            ts_effUnit(effSelector, unit, effSelector, param_eff, f_solve, t+(ord(t_) - 1 + dt_circular(t + ord(t_) - 1)))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
     ts_effGroupUnit_(effSelector, unit_timeseries(unit), param_eff, ft(f, tt_interval(t)))
-        = sum(intervalStepCounter(counter, counter_),
-            ts_effGroupUnit(effSelector, unit, param_eff, f_solve, t+(ord(counter_) - 1 + dt_circular(t + ord(counter_) - 1)))
+        = sum(intervalStepCounter(counter, t_),
+            ts_effGroupUnit(effSelector, unit, param_eff, f_solve, t+(ord(t_) - 1 + dt_circular(t + ord(t_) - 1)))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 $offtext
     ts_influx_(gn(grid, node), fts(f, tt_interval(t), s))
-        = sum(intervalStepCounter(counter, counter_),
+        = sum(intervalStepCounter(counter, t_),
             ts_influx(grid, node,
                 f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_influx')),
-                t + ( ord(counter_) - 1
+                t + ( ord(t_) - 1
                     + dt_scenarioOffset(grid, node, 'ts_influx', s)
-                    + dt_circular(t + (ord(counter_) - 1))$(not gn_scenarios(grid, node, 'ts_influx'))))
+                    + dt_circular(t + (ord(t_) - 1))$(not gn_scenarios(grid, node, 'ts_influx'))))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
     ts_cf_(flowNode(flow, node), fts(f, tt_interval(t), s))
-        = sum(intervalStepCounter(counter, counter_),
+        = sum(intervalStepCounter(counter, t_),
             ts_cf(flow, node,
                 f + (df_scenario(f, t)$gn_scenarios(flow, node, 'ts_cf')),
-                t + ( ord(counter_) - 1
+                t + ( ord(t_) - 1
                     + dt_scenarioOffset(flow, node, 'ts_cf', s)
-                    + dt_circular(t + (ord(counter_) - 1))$(not gn_scenarios(flow, node, 'ts_cf'))))
+                    + dt_circular(t + (ord(t_) - 1))$(not gn_scenarios(flow, node, 'ts_cf'))))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
     // Reserves relevant only until reserve_length
     ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(f, tt_interval(t)))
       ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
-        = sum(intervalStepCounter(counter, counter_),
+        = sum(intervalStepCounter(counter, t_),
             ts_reserveDemand(restype, up_down, node,
                 f + (df_scenario(f, t)$gn_scenarios(restype, node, 'ts_reserveDemand')),
-                t + ( ord(counter_) - 1 + dt_circular(t + (ord(counter_) - 1))))
+                t + ( ord(t_) - 1 + dt_circular(t + (ord(t_) - 1))))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
     ts_node_(gn_state(grid, node), param_gnBoundaryTypes, fts(f, tt_interval(t), s))
       $p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
            // Take average if not a limit type
-        = (sum(intervalStepCounter(counter, counter_),
+        = (sum(intervalStepCounter(counter, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
                     f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
-                    t + ( ord(counter_) - 1
+                    t + ( ord(t_) - 1
                         + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                        + dt_circular(t + (ord(counter_) - 1))$(not gn_scenarios(grid, node, 'ts_node'))))
+                        + dt_circular(t + (ord(t_) - 1))$(not gn_scenarios(grid, node, 'ts_node'))))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter))$( not (sameas(param_gnBoundaryTypes, 'upwardLimit')
                                                                 or sameas(param_gnBoundaryTypes, 'downwardLimit')
                                                                 or slack(param_gnBoundaryTypes)))
           // Maximum lower limit
-          + smax(intervalStepCounter(counter, counter_),
+          + smax(intervalStepCounter(counter, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
                     f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
-                    t + ( ord(counter_) - 1
+                    t + ( ord(t_) - 1
                         + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                        + dt_circular(t + (ord(counter_) - 1))$(not gn_scenarios(grid, node, 'ts_node'))))
+                        + dt_circular(t + (ord(t_) - 1))$(not gn_scenarios(grid, node, 'ts_node'))))
                 )
                 $(sameas(param_gnBoundaryTypes, 'downwardLimit') or downwardSlack(param_gnBoundaryTypes))
           // Minimum upper limit
-          + smin(intervalStepCounter(counter, counter_),
+          + smin(intervalStepCounter(counter, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
                     f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
-                    t + ( ord(counter_) - 1
+                    t + ( ord(t_) - 1
                         + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                        + dt_circular(t + (ord(counter_) - 1))$(not gn_scenarios(grid, node, 'ts_node'))))
+                        + dt_circular(t + (ord(t_) - 1))$(not gn_scenarios(grid, node, 'ts_node'))))
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
     // Fuel price time series
     ts_fuelPrice_(fuel, tt_interval(t))
         ${ p_fuelPrice(fuel, 'useTimeSeries') }
-        = sum(intervalStepCounter(counter, counter_),
-            + ts_fuelPrice(fuel, t+(ord(counter_) - 1 + dt_circular(t + (ord(counter_) - 1))))
+        = sum(intervalStepCounter(counter, t_),
+            + ts_fuelPrice(fuel, t+(ord(t_) - 1 + dt_circular(t + (ord(t_) - 1))))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
