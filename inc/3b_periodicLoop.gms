@@ -188,6 +188,9 @@ t_current(t_full(t))
         }
     = yes;
 
+// Initialize dt_active
+Option clear = dt_active;
+
 // Loop over the defined blocks of intervals
 loop(cc(counter),
 
@@ -213,14 +216,17 @@ loop(cc(counter),
 
     // If stepsPerInterval equals one, simply use all the steps within the block
     if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
-        tt_interval(tt(t)) = yes; // Include all time steps within the block
+        // Include all time steps within the block
+        tt_interval(tt(t)) = yes;
 
     // If stepsPerInterval exceeds 1 (stepsPerInterval < 1 not defined)
     elseif mInterval(mSolve, 'stepsPerInterval', counter) > 1,
-        tt_interval(tt(t)) // Select the active time steps within the block
-             ${mod(ord(t) - tSolveFirst - tCounter,
-                   mInterval(mSolve, 'stepsPerInterval', counter)) = 0
-              } = yes;
+
+        // Calculate the displacement required to reach the corresponding active time step from any time step
+        dt_active(tt(t)) = - (mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'stepsPerInterval', counter)));
+
+        // Select the active time steps within the block
+        tt_interval(tt(t))${ not dt_active(t) } = yes;
 
     ); // END ELSEIF intervalLenght
 
@@ -600,9 +606,6 @@ loop(uft_online(unit, f, t)${ p_u_shutdownTimeIntervals(unit) },
 * -----------------------------------------------------------------------------
 * --- Displacements for start-up and shutdown decisions -----------------------
 * -----------------------------------------------------------------------------
-
-// Calculate the time displacement to reach the preceding active time step from any current time step
-dt_active(t_current(t)) = smax(t_active(t_)${ord(t_) <= ord(t)}, ord(t_)) - ord(t);
 
 * --- Start-up decisions ------------------------------------------------------
 
