@@ -245,6 +245,10 @@ v_shutdown.up(unit, sft(s, f, t))${uft_online(unit, f, t)
     = p_unit(unit, 'unitCount')
 ;
 
+// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// The following limits are extremely slow, and shouldn't strictly be required.
+// Commenting them out for now at least.
+$ontext
 // Cannot start a unit if the time when the unit would become online is outside
 // the horizon when the unit has an online variable
 v_startup.up(unitStarttype(unit, starttype), sft(s, f, t))${    uft_online(unit, f, t)
@@ -259,7 +263,7 @@ v_shutdown.up(unit, sft(s, f, t))${uft_online(unit, f, t)
                                    and not sum(t_active(t_)${ord(t) = ord(t_) + dt_toShutdown(unit,t_)}, uft_online(unit, f, t_))
                                   }
     = 0;
-
+$offtext
 
 //These might speed up, but they should be applied only to the new part of the horizon (should be explored)
 *v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
