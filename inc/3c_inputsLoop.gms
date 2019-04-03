@@ -486,9 +486,12 @@ This avoids a discontinuity `jump' after the initial sample.
 $offtext
 
 // Do smoothing
-loop((ms_initial(mSolve, s_), t_, ft(f_, t__))
-    $[ord(t_) = msEnd(mSolve, s_) and mst_end(mSolve, s_, t__)
-      and (mf_realization(mSolve, f_) xor mf_central(mSolve, f_))],
-    $$batinclude 'inc/smoothing.gms' ts_influx
-    $$batinclude 'inc/smoothing.gms' ts_cf
+if(mSettings(mSolve, 'scenarios'),  // Only do smooting if using long-term scenarios
+    // Select the initial sample, first `t` not in it and `f` of the last `t` in it
+    loop((ms_initial(mSolve, s_), t_, ft(f_, t__))
+        $[ord(t_) = msEnd(mSolve, s_) and mst_end(mSolve, s_, t__)
+          and (mf_realization(mSolve, f_) xor mf_central(mSolve, f_))],
+        $$batinclude 'inc/smoothing.gms' ts_influx
+        $$batinclude 'inc/smoothing.gms' ts_cf
+    );
 );
