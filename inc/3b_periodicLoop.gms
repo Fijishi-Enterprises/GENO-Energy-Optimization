@@ -594,14 +594,16 @@ Option clear = uft_startupTrajectory;
 Option clear = uft_shutdownTrajectory;
 
 // Determine the intervals when units need to follow start-up and shutdown trajectories.
-loop(uft_online(unit, f, t)${ p_u_runUpTimeIntervals(unit) },
-    uft_startupTrajectory(unit, f, t)${ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon')}
+loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
+    uft_startupTrajectory(uft_online(unit, f, t))
+        ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
         = yes;
-); // END loop(uf_online)
-loop(uft_online(unit, f, t)${ p_u_shutdownTimeIntervals(unit) },
-    uft_shutdownTrajectory(unit, f, t)${ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon')}
+); // END loop(runUpCounter)
+loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
+    uft_shutdownTrajectory(uft_online(unit, f, t))
+        ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
         = yes;
-); // END loop(uf_online)
+); // END loop(shutdownCounter)
 
 * -----------------------------------------------------------------------------
 * --- Displacements for start-up and shutdown decisions -----------------------
