@@ -23,7 +23,7 @@ $offtext
 * --- Energy Balance ----------------------------------------------------------
 
 q_balance(gn(grid, node), msft(m, s, f, t))${   not p_gn(grid, node, 'boundAll')
-                                            } .. // Energy/power balance dynamics solved using implicit Euler discretization
+                                                } .. // Energy/power balance dynamics solved using implicit Euler discretization
 
     // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
     + p_gn(grid, node, 'energyStoredPerUnitOfState')${gn_state(grid, node)} // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
@@ -42,19 +42,19 @@ q_balance(gn(grid, node), msft(m, s, f, t))${   not p_gn(grid, node, 'boundAll')
                 * v_state(grid, node, s, f+df_central(f,t), t) // The current state of the node
 
             // Energy diffusion from this node to neighbouring nodes
-            - sum(to_node${ gnn_state(grid, node, to_node) },
+            - sum(gnn_state(grid, node, to_node),
                 + p_gnn(grid, node, to_node, 'diffCoeff')
                     * v_state(grid, node, s, f+df_central(f,t), t)
                 ) // END sum(to_node)
 
             // Energy diffusion from neighbouring nodes to this node
-            + sum(from_node${ gnn_state(grid, from_node, node) },
+            + sum(gnn_state(grid, from_node, node),
                 + p_gnn(grid, from_node, node, 'diffCoeff')
                     * v_state(grid, from_node, s, f+df_central(f,t), t) // Incoming diffusion based on the state of the neighbouring node
                 ) // END sum(from_node)
 
             // Controlled energy transfer, applies when the current node is on the left side of the connection
-            - sum(node_${ gn2n_directional(grid, node, node_) },
+            - sum(gn2n_directional(grid, node, node_),
                 + (1 - p_gnn(grid, node, node_, 'transferLoss')) // Reduce transfer losses
                     * v_transfer(grid, node, node_, s, f, t)
                 + p_gnn(grid, node, node_, 'transferLoss') // Add transfer losses back if transfer is from this node to another node
@@ -62,7 +62,7 @@ q_balance(gn(grid, node), msft(m, s, f, t))${   not p_gn(grid, node, 'boundAll')
                 ) // END sum(node_)
 
             // Controlled energy transfer, applies when the current node is on the right side of the connection
-            + sum(node_${ gn2n_directional(grid, node_, node) },
+            + sum(gn2n_directional(grid, node_, node),
                 + v_transfer(grid, node_, node, s, f, t)
                 - p_gnn(grid, node_, node, 'transferLoss') // Reduce transfer losses if transfer is from another node to this node
                     * v_transferRightward(grid, node_, node, s, f, t)
