@@ -110,7 +110,7 @@ Parameters
     dt(t) "Displacement needed to reach the previous time interval (in time steps)"
     dt_circular(t) "Circular t displacement if the time series data is not long enough to cover the model horizon"
     dt_next(t) "Displacement needed to reach the next time interval (in time steps)"
-    dtt(t, t) "Displacement needed to reach any previous time interval (in time steps)"
+    dt_active(t) "Displacement needed to reach the previous active time interval (in time steps)"
     dt_toStartup(unit, t) "Displacement from the current time interval to the time interval where the unit was started up in case online variable changes from 0 to 1 (in time steps)"
     dt_toShutdown(unit, t) "Displacement from the current time interval to the time interval where the shutdown phase began in case generation becomes 0 (in time steps)"
     dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints (in time steps)"

@@ -601,16 +601,8 @@ loop(uft_online(unit, f, t)${ p_u_shutdownTimeIntervals(unit) },
 * --- Displacements for start-up and shutdown decisions -----------------------
 * -----------------------------------------------------------------------------
 
-// Form a temporary clone of the t_active set
-Option clear = tt;
-tt(t_active(t)) = yes;
-
-// Calculate dtt: displacement needed to reach any previous time interval
-// (needed to calculate dt_toStartup and dt_toShutdown)
-Option clear = dtt;
-dtt(t_active(t), tt(t_))
-    ${ ord(t_) <= ord(t) }
-    = ord(t_) - ord(t);
+// Calculate the time displacement to reach the preceding active time step from any current time step
+dt_active(t_current(t)) = smax(t_active(t_)${ord(t_) <= ord(t)}, ord(t_)) - ord(t);
 
 * --- Start-up decisions ------------------------------------------------------
 
@@ -618,13 +610,8 @@ dtt(t_active(t), tt(t_))
 // displacement needed to reach the time interval where the unit was started up
 Option clear = dt_toStartup;
 loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
-    loop(t_active(t),
-        dt_toStartup(unit, tt(t_)) // tt still used as a clone of t_active (see above)
-            ${  dtt(t_, t) > - p_u_runUpTimeIntervalsCeil(unit)
-                and dtt(t_, t+dt(t)) <= - p_u_runUpTimeIntervalsCeil(unit)
-                }
-            = dtt(t_, t+dt(t));
-    ); // END loop(t_active)
+    dt_toStartup(unit, t_active(t))
+        = - p_u_runUpTimeIntervalsCeil(unit) + dt_active(t - p_u_runUpTimeIntervalsCeil(unit));
 ); // END loop(runUpCounter)
 
 * --- Shutdown decisions ------------------------------------------------------
@@ -634,13 +621,8 @@ loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
 // the shutdown decisions was made
 Option clear = dt_toShutdown;
 loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
-    loop(t_active(t),
-        dt_toShutdown(unit, tt(t_)) // tt still used as a clone of t_active (see above)
-            ${  dtt(t_, t) > - p_u_shutdownTimeIntervalsCeil(unit)
-                and dtt(t_, t+dt(t)) <= -p_u_shutdownTimeIntervalsCeil(unit)
-                }
-            = dtt(t_, t+dt(t));
-    ); // END loop(t_active)
+    dt_toShutdown(unit, t_active(t))
+        = - p_u_shutdownTimeIntervalsCeil(unit) + dt_active(t - p_u_shutdownTimeIntervalsCeil(unit))
 ); // END loop(runUpCounter)
 
 * --- Historical Unit LP and MIP information ----------------------------------
