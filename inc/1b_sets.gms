@@ -94,6 +94,7 @@ Sets
     tt_block(counter, t) "Temporary time step subset for storing the time interval blocks"
     tt_interval(t) "Temporary time steps when forming the ft structure, current sample"
     tt_forecast(t) "Temporary subset for time steps used for forecast updating during solve loop"
+    tt_aggregate(t, t) "Time steps included in each active time step for time series aggregation"
     mf(mType, f) "Forecasts present in the models"
     ms(mType, s) "Samples present in the models"
     mst_start(mType, s, t) "Start point of samples"
@@ -125,7 +126,6 @@ Sets
     s_active(s) "Samples with non-zero probability in the current model solve"
     ss(s, s) "Previous sample of sample"
     s_prev(s) "Temporary set for previous sample"
-    intervalStepCounter(counter, t) "Interval step counter for time series averaging NOTE! t is used here as a general counter, not a time step! (counter set too limited in size)"
 $if defined scenario
     s_scenario(s, scenario) "Which samples belong to which scenarios"
     gn_scenarios(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"

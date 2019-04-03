@@ -167,11 +167,6 @@ count_sample = 1;
 cc(counter)${ mInterval(mSolve, 'stepsPerInterval', counter) }
     = yes;
 
-// Determine the interval step counters for each interval
-intervalStepCounter(cc(counter), t)
-    ${ ord(t) <= mInterval(mSolve, 'stepsPerInterval', counter) }
-    = yes;
-
 // Update tForecastNext
 tForecastNext(mSolve)
     ${ tSolveFirst >= tForecastNext(mSolve) }
@@ -265,8 +260,6 @@ loop(cc(counter),
                                            currentForecastLength))
         and ord(t) <= tSolveFirst + currentForecastLength
        } = yes;
-
-    // Set of locked combinations of forecasts and intervals for the reserves?
 
     // Update tActive
     t_active(tt_interval) = yes;
@@ -498,6 +491,11 @@ ft_reservesFixed(node, restype, f_solve(f), t_active(t))
                     and ft_realized(f, t)
                     ]
         }
+    = yes;
+
+// Group each full time step under each active time step for time series aggregation.
+option clear = tt_aggregate;
+tt_aggregate(t_current(t+dt_active(t)), t)
     = yes;
 
 * =============================================================================
