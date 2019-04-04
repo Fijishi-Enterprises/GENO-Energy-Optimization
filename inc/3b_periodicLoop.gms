@@ -439,7 +439,9 @@ loop(ms(mSolve, s),
 ); // END loop(ms)
 // Displacement from the first interval of a sample to the previous interval is always -1,
 // except for stochastic samples
-dt(t)${sum(ms(mSolve, s)$(not ms_central(mSolve, s)), mst_start(mSolve, s, t))} = -1;
+dt(t_active(t))
+    ${ sum(ms(mSolve, s)$(not ms_central(mSolve, s)), mst_start(mSolve, s, t)) }
+    = -1;
 
 // Forecast index displacement between realized and forecasted intervals
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
