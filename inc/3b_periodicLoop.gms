@@ -496,9 +496,12 @@ ft_reservesFixed(node, restype, f_solve(f), t_active(t))
         }
     = yes;
 
+// Form a temporary clone of t_current
+option clear = tt;
+tt(t_current) = yes;
 // Group each full time step under each active time step for time series aggregation.
 option clear = tt_aggregate;
-tt_aggregate(t_current(t+dt_active(t)), t)
+tt_aggregate(t_current(t+dt_active(t)), tt(t))
     = yes;
 
 * =============================================================================
