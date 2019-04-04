@@ -266,9 +266,9 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
             sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
                 + [
                     + v_startup_LP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineLP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                     + v_startup_MIP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineMIP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                     ]
                     * p_uCounter_runUpMin(unit, counter)
                 ) // END sum(runUpCounter)
@@ -394,9 +394,9 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
             sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
                 + [
                     + v_startup_LP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineLP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                     + v_startup_MIP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineMIP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                     ]
                     * p_uCounter_runUpMax(unit, counter)
                 ) // END sum(runUpCounter)
@@ -572,9 +572,9 @@ q_onlineOnStartUp(s_active(s), uft_online(unit, f, t))
 
     + sum(unitStarttype(unit, starttype),
         + v_startup_LP(unit, starttype, s, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) //dt_toStartup displaces the time step to the one where the unit would be started up in order to reach online at t
-            ${ uft_onlineLP(unit, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) }
+            ${ uft_onlineLP_withPrevious(unit, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) }
         + v_startup_MIP(unit, starttype, s, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) //dt_toStartup displaces the time step to the one where the unit would be started up in order to reach online at t
-            ${ uft_onlineMIP(unit, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) }
+            ${ uft_onlineMIP_withPrevious(unit, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) }
       ) // END sum(starttype)
 ;
 
@@ -620,9 +620,9 @@ q_onlineMinUptime(ms(m, s), uft_online(unit, f, t))
                                         },
         + sum(unitStarttype(unit, starttype),
             + v_startup_LP(unit, starttype, s, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
-                ${ uft_onlineLP(unit, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)) }
+                ${ uft_onlineLP_withPrevious(unit, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)) }
             + v_startup_MIP(unit, starttype, s, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
-                ${ uft_onlineMIP(unit, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)) }
+                ${ uft_onlineMIP_withPrevious(unit, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)) }
             ) // END sum(starttype)
         ) // END sum(counter)
 
@@ -633,9 +633,9 @@ q_onlineMinUptime(ms(m, s), uft_online(unit, f, t))
                                             },
             + sum(unitStarttype(unit, starttype),
                 + v_startup_LP(unit, starttype, s, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
-                    ${ uft_onlineLP(unit, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)) }
+                    ${ uft_onlineLP_withPrevious(unit, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)) }
                 + v_startup_MIP(unit, starttype, s, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1))
-                    ${ uft_onlineMIP(unit, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)) }
+                    ${ uft_onlineMIP_withPrevious(unit, f+df(f,t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)), t+(dt_uptimeUnitCounter(unit, counter)+dt_toStartup(unit, t) + 1)) }
                 ) // END sum(starttype)
             ) // END sum(counter)
         )${unit_aggregator(unit)} // END sum(unit_)
@@ -770,9 +770,9 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
             sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
                 + [
                     + v_startup_LP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineLP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                     + v_startup_MIP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineMIP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                     ]
                     * [
                         + p_unit(unit, 'rampSpeedToMinLoad')
@@ -994,9 +994,9 @@ q_rampSlack(ms(m, s), gnuft_rampCost(grid, node, unit, slack, f, t))
             sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
                 + [
                     + v_startup_LP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineLP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                     + v_startup_MIP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineMIP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                     ]
                     * [
                         + p_unit(unit, 'rampSpeedToMinLoad')
@@ -1112,9 +1112,9 @@ q_conversionDirectInputOutput(s_active(s), suft(effDirect(effGroup), unit, f, t)
                 + sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
                     + [
                         + v_startup_LP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                            ${ uft_onlineLP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                            ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                         + v_startup_MIP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                            ${ uft_onlineMIP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                            ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                         ]
                         * p_uCounter_runUpMin(unit, counter)
                         / p_unit(unit, 'op00') // Scaling the p_uCounter_runUp using minload
@@ -1174,9 +1174,9 @@ q_conversionIncHR(s_active(s), suft(effIncHR(effGroup), unit, f, t))
                 + sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
                     + [
                         + v_startup_LP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                            ${ uft_onlineLP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                            ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                         + v_startup_MIP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                            ${ uft_onlineMIP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                            ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                         ]
                         * p_uCounter_runUpMin(unit, counter)
                         / p_unit(unit, 'hrop00') // Scaling the p_uCounter_runUp using minload
@@ -1328,9 +1328,9 @@ q_conversionSOS2Constraint(s_active(s), suft(effLambda(effGroup), unit, f, t))
         + sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
             + [
                 + v_startup_LP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                    ${ uft_onlineLP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                 + v_startup_MIP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                    ${ uft_onlineMIP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                 ]
                 * p_uCounter_runUpMin(unit, counter)
                 / p_unit(unit, 'op00') // Scaling the p_uCounter_runUp using minload
