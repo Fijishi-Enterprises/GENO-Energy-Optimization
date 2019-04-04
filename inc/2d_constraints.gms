@@ -473,9 +473,9 @@ q_startshut(ms(m, s), uft_online(unit, f, t))
     // Add startup of units dt_toStartup before the current t (no start-ups for aggregator units before they become active)
     + sum(unitStarttype(unit, starttype),
         + v_startup_LP(unit, starttype, s, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t))
-            ${ uft_onlineLP(unit, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) }
+            ${ uft_onlineLP_withPrevious(unit, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) }
         + v_startup_MIP(unit, starttype, s, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t))
-            ${ uft_onlineMIP(unit, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) }
+            ${ uft_onlineMIP_withPrevious(unit, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) }
         )${not [unit_aggregator(unit) and ord(t) + dt_toStartup(unit, t) <= tSolveFirst + p_unit(unit, 'lastStepNotAggregated')]} // END sum(starttype)
 
     // NOTE! According to 3d_setVariableLimits,
