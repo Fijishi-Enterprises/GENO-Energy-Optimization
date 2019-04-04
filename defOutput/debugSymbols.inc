@@ -81,7 +81,8 @@ v_online_LP
 v_online_MIP
 v_startup_LP
 v_startup_MIP
-v_shutdown
+v_shutdown_LP
+v_shutdown_MIP
 v_genRampUpDown
 v_transferRightward
 v_transferLeftward

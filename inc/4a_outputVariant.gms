@@ -53,7 +53,8 @@ loop(sft_realized(s, f, t),
             + v_startup_MIP.l(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
     ;
     r_shutdown(uft_online(unit, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        = v_shutdown.l(unit, s, f, t)
+        = v_shutdown_LP.l(unit, s, f, t)${ uft_onlineLP(unit, f, t) }
+            + v_shutdown_MIP.l(unit, s, f, t)${ uft_onlineMIP(unit, f, t) }
     ;
 );
 

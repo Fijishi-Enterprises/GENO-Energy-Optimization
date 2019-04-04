@@ -114,7 +114,13 @@ q_obj ..
 
                 // Shut-down costs, initial shutdown free?
                 + sum(uft_online(unit, f, t),
-                      + v_shutdown(unit, s, f, t) * p_uShutdown(unit, 'cost')
+                    + p_uShutdown(unit, 'cost')
+                      * [
+                            + v_shutdown_LP(unit, s, f, t)
+                                ${ uft_onlineLP(unit, f, t) }
+                            + v_shutdown_MIP(unit, s, f, t)
+                                ${ uft_onlineMIP(unit, f, t) }
+                        ]
                   ) // END sum(uft_online)
 
                 // Ramping costs

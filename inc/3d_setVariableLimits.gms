@@ -253,11 +253,17 @@ v_startup_MIP.up(unitStarttype(unit, starttype), sft(s, f, t))
     = p_unit(unit, 'unitCount');
 
 // v_shutdown cannot exceed unitCount
-v_shutdown.up(unit, sft(s, f, t))${uft_online(unit, f, t)
-                                   and not unit_investLP(unit)
-                                   and not unit_investMIP(unit)}
-    = p_unit(unit, 'unitCount')
-;
+v_shutdown_LP.up(unit, sft(s, f, t))
+    ${  uft_onlineLP(unit, f, t)
+        and not unit_investLP(unit)
+        and not unit_investMIP(unit)}
+    = p_unit(unit, 'unitCount');
+// v_shutdown cannot exceed unitCount
+v_shutdown_MIP.up(unit, sft(s, f, t))
+    ${  uft_onlineMIP(unit, f, t)
+        and not unit_investLP(unit)
+        and not unit_investMIP(unit)}
+    = p_unit(unit, 'unitCount');
 
 // !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // The following limits are extremely slow, and shouldn't strictly be required.
@@ -459,7 +465,8 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
         // Startup and shutdown variables are not applicable at the first time step
         v_startup_LP.fx(unitStarttype(unit_online_LP, starttype), s, f, t) = 0;
         v_startup_MIP.fx(unitStarttype(unit_online_MIP, starttype), s, f, t) = 0;
-        v_shutdown.fx(unit, s, f, t) = 0;
+        v_shutdown_LP.fx(unit_online_LP, s, f, t) = 0;
+        v_shutdown_MIP.fx(unit_online_LP, s, f, t) = 0;
 
     else // For all other solves, fix the initial state values based on previous results.
 
@@ -490,10 +497,12 @@ if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on
         ${ ord(t) <= tSolveFirst } // Only fix previously realized time steps
         = r_startup(unit, starttype, f, t);
 
-    v_shutdown.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
-        ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
-            and unit_online(unit) // Check if the unit has an online variable on the first effLevel
-            }
+    v_shutdown_LP.fx(unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
+        ${  ord(t) <= tSolveFirst } // Only fix previously realized time steps
+        = r_shutdown(unit, f, t);
+
+    v_shutdown_MIP.fx(unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
+        ${  ord(t) <= tSolveFirst } // Only fix previously realized time steps
         = r_shutdown(unit, f, t);
 
     v_online_MIP.fx(unit, sft_realizedNoReset(s, f, t_active(t)))

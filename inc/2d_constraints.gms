@@ -277,7 +277,12 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
     // Units in shutdown phase need to keep up with the shutdown rate
     + p_gnu(grid, node, unit, 'unitSizeGen')
         * sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
-            + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+            + [
+                + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                    ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                    ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                ]
                 * p_uCounter_shutdownMin(unit, counter)
             ) // END sum(shutdownCounter)
 
@@ -405,7 +410,12 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
     // Units in shutdown phase need to keep up with the shutdown rate
     + p_gnu(grid, node, unit, 'unitSizeGen')
         * sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
-            + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+            + [
+                + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                    ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                    ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                ]
                 * p_uCounter_shutdownMax(unit, counter)
             ) // END sum(shutdownCounter)
 ;
@@ -484,7 +494,10 @@ q_startshut(ms(m, s), uft_online(unit, f, t))
     // --> no need to add start-ups of aggregated units to aggregator units
 
     // Shutdown of units at time t
-    - v_shutdown(unit, s, f, t)
+    - v_shutdown_LP(unit, s, f, t)
+        ${ uft_onlineLP(unit, f, t) }
+    - v_shutdown_MIP(unit, s, f, t)
+        ${ uft_onlineMIP(unit, f, t) }
 ;
 
 *--- Startup Type -------------------------------------------------------------
@@ -505,9 +518,13 @@ q_startuptype(ms(m, s), starttypeConstrained(starttype), uft_online(unit, f, t))
     =L=
 
     // Subunit shutdowns within special startup timeframe
-    + sum(unitCounter(unit, counter)${dt_starttypeUnitCounter(starttype, unit, counter)},
-        + v_shutdown(unit, s, f+df(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
-            ${t_active(t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))}
+    + sum(unitCounter(unit, counter)${  dt_starttypeUnitCounter(starttype, unit, counter)
+                                        and t_active(t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
+                                        },
+        + v_shutdown_LP(unit, s, f+df(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
+            ${ uft_onlineLP_withPrevious(unit, f+df(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)) }
+        + v_shutdown_MIP(unit, s, f+df(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1))
+            ${ uft_onlineMIP_withPrevious(unit, f+df(f,t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)), t+(dt_starttypeUnitCounter(starttype, unit, counter)+1)) }
         ) // END sum(counter)
 
     // NOTE: for aggregator units, shutdowns for aggregated units are not considered
@@ -535,16 +552,24 @@ q_onlineLimit(ms(m, s), uft_online(unit, f, t))
     + p_unit(unit, 'unitCount')
 
     // Number of units unable to become online due to restrictions
-    - sum(unitCounter(unit, counter)${dt_downtimeUnitCounter(unit, counter)},
-        + v_shutdown(unit, s, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
-            ${t_active(t+(dt_downtimeUnitCounter(unit, counter) + 1))}
+    - sum(unitCounter(unit, counter)${  dt_downtimeUnitCounter(unit, counter)
+                                        and t_active(t+(dt_downtimeUnitCounter(unit, counter) + 1))
+                                        },
+        + v_shutdown_LP(unit, s, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
+            ${ uft_onlineLP_withPrevious(unit, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1)) }
+        + v_shutdown_MIP(unit, s, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
+            ${ uft_onlineMIP_withPrevious(unit, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1)) }
         ) // END sum(counter)
 
     // Number of units unable to become online due to restrictions (aggregated units in the past horizon or if they have an online variable)
     - sum(unitAggregator_unit(unit, unit_),
-        + sum(unitCounter(unit, counter)${dt_downtimeUnitCounter(unit, counter)},
-            + v_shutdown(unit_, s, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
-                ${t_active(t+(dt_downtimeUnitCounter(unit, counter) + 1))}
+        + sum(unitCounter(unit, counter)${  dt_downtimeUnitCounter(unit, counter)
+                                            and t_active(t+(dt_downtimeUnitCounter(unit, counter) + 1))
+                                            },
+            + v_shutdown_LP(unit_, s, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
+                ${ uft_onlineLP_withPrevious(unit_, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1)) }
+            + v_shutdown_MIP(unit_, s, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1))
+                ${ uft_onlineMIP_withPrevious(unit_, f+df(f,t+(dt_downtimeUnitCounter(unit, counter) + 1)), t+(dt_downtimeUnitCounter(unit, counter) + 1)) }
             ) // END sum(counter)
         )${unit_aggregator(unit)} // END sum(unit_)
 
@@ -598,7 +623,10 @@ q_offlineAfterShutdown(s_active(s), uft_online(unit, f, t))
 
     =G=
 
-    + v_shutdown(unit, s, f, t)
+    + v_shutdown_LP(unit, s, f, t)
+        ${ uft_onlineLP(unit, f, t) }
+    + v_shutdown_MIP(unit, s, f, t)
+        ${ uft_onlineMIP(unit, f, t) }
 ;
 
 *--- Minimum Unit Uptime ------------------------------------------------------
@@ -784,22 +812,32 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
             ) // END sum(unitStarttype)
 
     // Shutdown of consumption units according to maxRampUp
-    + v_shutdown(unit, s, f, t)${uft_online(unit, f, t) and gnu_input(grid, node, unit)}
+    + [
+        + v_shutdown_LP(unit, s, f, t)
+            ${uft_onlineLP(unit, f, t) and gnu_input(grid, node, unit)}
+        + v_shutdown_MIP(unit, s, f, t)
+            ${uft_onlineMIP(unit, f, t) and gnu_input(grid, node, unit)}
+        ]
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnu(grid, node, unit, 'maxRampUp')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
     // Consumption units not be able to ramp from min. load to zero within one time interval according to their maxRampUp
-    + v_shutdown(unit, s, f, t)${   uft_online(unit, f, t)
-                                    and gnu_input(grid, node, unit)
-                                    and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
-                                              + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
-                                              + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
-                                              ) // END sum(effGroup)
-                                              / p_stepLength(m, f, t)
-                                          - p_gnu(grid, node, unit, 'maxRampUp')
-                                              * 60 > 0
-                                          )
-                                    }
+    + [
+        + v_shutdown_LP(unit, s, f, t)
+            ${ uft_onlineLP(unit, f, t) }
+        + v_shutdown_MIP(unit, s, f, t)
+            ${ uft_onlineMIP(unit, f, t) }
+        ]
+        ${  gnu_input(grid, node, unit)
+            and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                      + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
+                      + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
+                      ) // END sum(effGroup)
+                      / p_stepLength(m, f, t)
+                  - p_gnu(grid, node, unit, 'maxRampUp')
+                      * 60 > 0
+                  )
+            }
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * (
             + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
@@ -857,26 +895,36 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
 
     // Shutdown of generation units according to maxRampDown
-    - v_shutdown(unit, s, f, t)${   uft_online(unit, f, t)
-                                    and gnu_output(grid, node, unit)
-                                    and not uft_shutdownTrajectory(unit, f, t)
-                                    }
+    - [
+        + v_shutdown_LP(unit, s, f, t)
+            ${  uft_onlineLP(unit, f, t) }
+        + v_shutdown_MIP(unit, s, f, t)
+            ${  uft_onlineMIP(unit, f, t) }
+        ]
+        ${  gnu_output(grid, node, unit)
+            and not uft_shutdownTrajectory(unit, f, t)
+            }
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnu(grid, node, unit, 'maxRampDown')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
     // Generation units not be able to ramp from min. load to zero within one time interval according to their maxRampDown
-    - v_shutdown(unit, s, f, t)${   uft_online(unit, f, t)
-                                    and gnu_output(grid, node, unit)
-                                    and not uft_shutdownTrajectory(unit, f, t)
-                                    and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
-                                              + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
-                                              + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
-                                            ) // END sum(effGroup)
-                                            / p_stepLength(m, f, t)
-                                          - p_gnu(grid, node, unit, 'maxRampDown')
-                                              * 60 > 0
-                                        )
-                                }
+    - [
+        + v_shutdown_LP(unit, s, f, t)
+            ${  uft_onlineLP(unit, f, t) }
+        + v_shutdown_MIP(unit, s, f, t)
+            ${  uft_onlineMIP(unit, f, t) }
+        ]
+        ${  gnu_output(grid, node, unit)
+            and not uft_shutdownTrajectory(unit, f, t)
+            and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                      + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
+                      + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
+                    ) // END sum(effGroup)
+                    / p_stepLength(m, f, t)
+                  - p_gnu(grid, node, unit, 'maxRampDown')
+                      * 60 > 0
+                )
+        }
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * (
             + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
@@ -892,7 +940,12 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
     - p_gnu(grid, node, unit, 'unitSizeGen')
         * [
             + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
-                + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                + [
+                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    ]
                     * [
                         + p_unit(unit, 'rampSpeedFromMinLoad')
                         + ( p_gnu(grid, node, unit, 'maxRampDown') - p_unit(unit, 'rampSpeedFromMinLoad') )${ not shutdownCounter(unit, counter-1) } // Ramp speed adjusted for the first shutdown interval
@@ -900,7 +953,13 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
                         ]
                 ) // END sum(shutdownCounter)
             // Units need to be able to shut down after shut down trajectory
-            + v_shutdown(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))${uft_shutdownTrajectory(unit, f, t)}
+            + [
+                + v_shutdown_LP(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
+                    ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t)) }
+                + v_shutdown_MIP(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
+                    ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t)) }
+                ]
+                ${uft_shutdownTrajectory(unit, f, t)}
                 * p_unit(unit, 'rampSpeedFromMinload')
             ]
         * 60 // Unit conversion from [p.u./min] to [p.u./h]
@@ -1008,13 +1067,25 @@ q_rampSlack(ms(m, s), gnuft_rampCost(grid, node, unit, slack, f, t))
             ) // END sum(unitStarttype)
 
     // Shutdown of consumption units from full load
-    + v_shutdown(unit, s, f, t)${uft_online(unit, f, t) and gnu_input(grid, node, unit)}
+    + [
+        + v_shutdown_LP(unit, s, f, t)
+            ${  uft_onlineLP(unit, f, t) }
+        + v_shutdown_MIP(unit, s, f, t)
+            ${  uft_onlineMIP(unit, f, t) }
+        ]
+        ${  gnu_input(grid, node, unit) }
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
 
     // Shutdown of generation units from full load and ramping of units in the beginning of the shutdown phase
-    + v_shutdown(unit, s, f, t)${uft_online(unit, f, t) and gnu_output(grid, node, unit)}
+    + [
+        + v_shutdown_LP(unit, s, f, t)
+            ${  uft_onlineLP(unit, f, t) }
+        + v_shutdown_MIP(unit, s, f, t)
+            ${  uft_onlineMIP(unit, f, t) }
+        ]
+        ${  gnu_output(grid, node, unit) }
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
@@ -1023,7 +1094,12 @@ q_rampSlack(ms(m, s), gnuft_rampCost(grid, node, unit, slack, f, t))
     + p_gnu(grid, node, unit, 'unitSizeGen')
         * [
             + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
-                + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                + [
+                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    ]
                     * [
                         + p_unit(unit, 'rampSpeedFromMinLoad')
                         + ( p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit') - p_unit(unit, 'rampSpeedFromMinLoad') )${ not shutdownCounter(unit, counter-1) } // Ramp speed adjusted for the first shutdown interval
@@ -1031,7 +1107,12 @@ q_rampSlack(ms(m, s), gnuft_rampCost(grid, node, unit, slack, f, t))
                         ]
                 ) // END sum(shutdownCounter)
             // Units need to be able to shut down after shut down trajectory
-            + v_shutdown(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
+            + [
+                + v_shutdown_LP(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
+                    ${uft_onlineLP_withPrevious(unit, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))}
+                + v_shutdown_MIP(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
+                    ${uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))}
+                ]
                 * p_unit(unit, 'rampSpeedFromMinload')
             ]
         * 60 // Unit conversion from [p.u./min] to [p.u./h]
@@ -1122,7 +1203,12 @@ q_conversionDirectInputOutput(s_active(s), suft(effDirect(effGroup), unit, f, t)
                 ) // END sum(unitStarttype)
             // Shutdown 'online state'
             + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
-                + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                + [
+                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    ]
                     * p_uCounter_shutdownMin(unit, counter)
                         / p_unit(unit, 'op00') // Scaling the p_uCounter_shutdown using minload
                 ) // END sum(shutdownCounter)
@@ -1183,8 +1269,15 @@ q_conversionIncHR(s_active(s), suft(effIncHR(effGroup), unit, f, t))
                     ) // END sum(runUpCounter)
                 ) // END sum(unitStarttype)
             // Shutdown 'online state'
-            + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
-                + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+            + sum(shutdownCounter(unit, counter)${  t_active(t+dt_trajectory(counter))
+                                                    and uft_shutdownTrajectory(unit, f, t)
+                                                    }, // Sum over the shutdown intervals
+                + [
+                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${  uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${  uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    ]
                     * p_uCounter_shutdownMin(unit, counter)
                         / p_unit(unit, 'hrop00') // Scaling the p_uCounter_shutdown using minload
                 ) // END sum(shutdownCounter)
@@ -1338,7 +1431,12 @@ q_conversionSOS2Constraint(s_active(s), suft(effLambda(effGroup), unit, f, t))
         ) // END sum(unitStarttype)
     // Shutdown 'online state'
     + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
-        + v_shutdown(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+        + [
+            + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+            + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+            ]
             * p_uCounter_shutdownMin(unit, counter)
             / p_unit(unit, 'op00') // Scaling the p_uCounter_shutdown using minload
         ) // END sum(shutdownCounter)
