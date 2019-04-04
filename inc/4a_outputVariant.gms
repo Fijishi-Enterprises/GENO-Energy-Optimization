@@ -49,7 +49,8 @@ loop(sft_realized(s, f, t),
     ;
     // Unit startup and shutdown history
     r_startup(unit, starttype, f, t)${ uft_online(unit, f, t) and [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')] }
-        = v_startup.l(unit, starttype, s, f, t)
+        = v_startup_LP.l(unit, starttype, s, f, t)${ uft_onlineLP(unit, f, t) }
+            + v_startup_MIP.l(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
     ;
     r_shutdown(uft_online(unit, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
         = v_shutdown.l(unit, s, f, t)

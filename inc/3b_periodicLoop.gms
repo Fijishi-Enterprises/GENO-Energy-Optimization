@@ -36,7 +36,8 @@ Option clear = v_help_inc;
 Option clear = v_sos2;
 // Positive Variables
 Option clear = v_fuelUse;
-Option clear = v_startup;
+Option clear = v_startup_LP;
+Option clear = v_startup_MIP;
 Option clear = v_shutdown;
 Option clear = v_genRampUpDown;
 Option clear = v_spill;

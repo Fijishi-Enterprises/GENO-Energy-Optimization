@@ -226,17 +226,31 @@ v_online_MIP.up(unit, sft(s, f, t))${uft_onlineMIP(unit, f, t) and not unit_inve
       ]
 ;
 
+$ontext
+// NOTE! These are unnecessary?
 // Free the upper bound of start-up and shutdown variables (if previously bounded)
-v_startup.up(unitStarttype(unit, starttype), sft(s, f, t)) = inf;
+v_startup_LP.up(unitStarttype(unit, starttype), sft(s, f, t))
+    ${ uft_onlineLP(unit, f, t) }
+    = inf;
+v_startup_MIP.up(unitStarttype(unit, starttype), sft(s, f, t))
+    ${ uft_onlineMIP(unit, f, t) }
+    = inf;
 v_shutdown.up(unit, sft(s, f, t))$uft(unit, f, t) = inf;
+$offtext
 
 // v_startup cannot exceed unitCount
-v_startup.up(unitStarttype(unit, starttype), sft(s, f, t))${    uft_online(unit, f, t)
-                                                            and not unit_investLP(unit)
-                                                            and not unit_investMIP(unit)
-                                                            }
-    = p_unit(unit, 'unitCount')
-;
+v_startup_LP.up(unitStarttype(unit, starttype), sft(s, f, t))
+    ${  uft_onlineLP(unit, f, t)
+        and not unit_investLP(unit)
+        and not unit_investMIP(unit)
+        }
+    = p_unit(unit, 'unitCount');
+v_startup_MIP.up(unitStarttype(unit, starttype), sft(s, f, t))
+    ${  uft_onlineMIP(unit, f, t)
+        and not unit_investLP(unit)
+        and not unit_investMIP(unit)
+        }
+    = p_unit(unit, 'unitCount');
 
 // v_shutdown cannot exceed unitCount
 v_shutdown.up(unit, sft(s, f, t))${uft_online(unit, f, t)
@@ -443,7 +457,8 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
             = p_gnu(grid, node, unit, 'initialGeneration');
 
         // Startup and shutdown variables are not applicable at the first time step
-        v_startup.fx(unitStarttype(unit, starttype), s, f, t) = 0;
+        v_startup_LP.fx(unitStarttype(unit_online_LP, starttype), s, f, t) = 0;
+        v_startup_MIP.fx(unitStarttype(unit_online_MIP, starttype), s, f, t) = 0;
         v_shutdown.fx(unit, s, f, t) = 0;
 
     else // For all other solves, fix the initial state values based on previous results.
@@ -467,10 +482,12 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
 
 // Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up and shutdown phases.
 if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on the first solve handled above
-    v_startup.fx(unitStarttype(unit, starttype), sft_realizedNoReset(s, f, t_active(t)))
-        ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
-            and unit_online(unit) // Check if the unit has an online variable on the first effLevel
-            }
+    v_startup_LP.fx(unitStarttype(unit_online_LP(unit), starttype), sft_realizedNoReset(s, f, t_active(t)))
+        ${ ord(t) <= tSolveFirst } // Only fix previously realized time steps
+        = r_startup(unit, starttype, f, t);
+
+    v_startup_MIP.fx(unitStarttype(unit_online_MIP(unit), starttype), sft_realizedNoReset(s, f, t_active(t)))
+        ${ ord(t) <= tSolveFirst } // Only fix previously realized time steps
         = r_startup(unit, starttype, f, t);
 
     v_shutdown.fx(unit, sft_realizedNoReset(s, f, t_active(t)))

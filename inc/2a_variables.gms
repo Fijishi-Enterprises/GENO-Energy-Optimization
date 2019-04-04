@@ -23,6 +23,7 @@ Free variables
     v_transfer(grid, node, node, s, f, t) "Average electricity transmission level from node to node during an interval (MW)"
 ;
 Integer variables
+    v_startup_MIP(unit, starttype, s, f, t) "Sub-units started up after/during an interval (p.u.), (MIP variant)"
     v_online_MIP(unit, s, f, t) "Number of sub-units online for units with unit commitment restrictions"
     v_invest_MIP(unit, t) "Number of invested sub-units"
     v_investTransfer_MIP(grid, node, node, t) "Number of invested transfer links"
@@ -35,7 +36,7 @@ SOS2 variables
 ;
 Positive variables
     v_fuelUse(fuel, unit, s, f, t) "Fuel use of a unit during an interval (MWh_fuel)"
-    v_startup(unit, starttype, s, f, t) "Sub-units started up after/during an interval (p.u.)"
+    v_startup_LP(unit, starttype, s, f, t) "Sub-units started up after/during an interval (p.u.), (LP variant)"
     v_shutdown(unit, s, f, t) "Sub-units shut down after/during an interval (p.u.)"
     v_genRampUpDown(grid, node, unit, slack, s, f, t) "Change in energy generation or consumption over an interval, separated into different 'slacks' (MW/h)"
     v_spill(grid, node, s, f, t) "Spill of energy from storage node during an interval (MWh)"
