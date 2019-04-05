@@ -94,6 +94,7 @@ Sets
     tt_block(counter, t) "Temporary time step subset for storing the time interval blocks"
     tt_interval(t) "Temporary time steps when forming the ft structure, current sample"
     tt_forecast(t) "Temporary subset for time steps used for forecast updating during solve loop"
+    tt_aggregate(t, t) "Time steps included in each active time step for time series aggregation"
     mf(mType, f) "Forecasts present in the models"
     ms(mType, s) "Samples present in the models"
     mst_start(mType, s, t) "Start point of samples"

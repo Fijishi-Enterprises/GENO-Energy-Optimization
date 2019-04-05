@@ -36,8 +36,10 @@ Option clear = v_help_inc;
 Option clear = v_sos2;
 // Positive Variables
 Option clear = v_fuelUse;
-Option clear = v_startup;
-Option clear = v_shutdown;
+Option clear = v_startup_LP;
+Option clear = v_startup_MIP;
+Option clear = v_shutdown_LP;
+Option clear = v_shutdown_MIP;
 Option clear = v_genRampUpDown;
 Option clear = v_spill;
 Option clear = v_transferRightward;
@@ -157,6 +159,7 @@ $endif
 
 // Initialize the set of active t:s, counters and interval time steps
 Option clear = t_active;
+Option clear = dt_active;
 Option clear = tt_block;
 Option clear = cc;
 tCounter = 1;
@@ -213,14 +216,17 @@ loop(cc(counter),
 
     // If stepsPerInterval equals one, simply use all the steps within the block
     if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
-        tt_interval(tt(t)) = yes; // Include all time steps within the block
+        // Include all time steps within the block
+        tt_interval(tt(t)) = yes;
 
     // If stepsPerInterval exceeds 1 (stepsPerInterval < 1 not defined)
     elseif mInterval(mSolve, 'stepsPerInterval', counter) > 1,
-        tt_interval(tt(t)) // Select the active time steps within the block
-             ${mod(ord(t) - tSolveFirst - tCounter,
-                   mInterval(mSolve, 'stepsPerInterval', counter)) = 0
-              } = yes;
+
+        // Calculate the displacement required to reach the corresponding active time step from any time step
+        dt_active(tt(t)) = - (mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'stepsPerInterval', counter)));
+
+        // Select the active time steps within the block
+        tt_interval(tt(t))${ not dt_active(t) } = yes;
 
     ); // END ELSEIF intervalLenght
 
@@ -256,8 +262,6 @@ loop(cc(counter),
                                            currentForecastLength))
         and ord(t) <= tSolveFirst + currentForecastLength
        } = yes;
-
-    // Set of locked combinations of forecasts and intervals for the reserves?
 
     // Update tActive
     t_active(tt_interval) = yes;
@@ -434,7 +438,9 @@ loop(ms(mSolve, s),
 ); // END loop(ms)
 // Displacement from the first interval of a sample to the previous interval is always -1,
 // except for stochastic samples
-dt(t)${sum(ms(mSolve, s)$(not ms_central(mSolve, s)), mst_start(mSolve, s, t))} = -1;
+dt(t_active(t))
+    ${ sum(ms(mSolve, s)$(not ms_central(mSolve, s)), mst_start(mSolve, s, t)) }
+    = -1;
 
 // Forecast index displacement between realized and forecasted intervals
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
@@ -487,6 +493,14 @@ ft_reservesFixed(node, restype, f_solve(f), t_active(t))
                     and ft_realized(f, t)
                     ]
         }
+    = yes;
+
+// Form a temporary clone of t_current
+option clear = tt;
+tt(t_current) = yes;
+// Group each full time step under each active time step for time series aggregation.
+option clear = tt_aggregate;
+tt_aggregate(t_current(t+dt_active(t)), tt(t))
     = yes;
 
 * =============================================================================
@@ -586,29 +600,20 @@ Option clear = uft_startupTrajectory;
 Option clear = uft_shutdownTrajectory;
 
 // Determine the intervals when units need to follow start-up and shutdown trajectories.
-loop(uft_online(unit, f, t)${ p_u_runUpTimeIntervals(unit) },
-    uft_startupTrajectory(unit, f, t)${ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon')}
+loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
+    uft_startupTrajectory(uft_online(unit, f, t))
+        ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
         = yes;
-); // END loop(uf_online)
-loop(uft_online(unit, f, t)${ p_u_shutdownTimeIntervals(unit) },
-    uft_shutdownTrajectory(unit, f, t)${ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon')}
+); // END loop(runUpCounter)
+loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
+    uft_shutdownTrajectory(uft_online(unit, f, t))
+        ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
         = yes;
-); // END loop(uf_online)
+); // END loop(shutdownCounter)
 
 * -----------------------------------------------------------------------------
 * --- Displacements for start-up and shutdown decisions -----------------------
 * -----------------------------------------------------------------------------
-
-// Form a temporary clone of the t_active set
-Option clear = tt;
-tt(t_active(t)) = yes;
-
-// Calculate dtt: displacement needed to reach any previous time interval
-// (needed to calculate dt_toStartup and dt_toShutdown)
-Option clear = dtt;
-dtt(t_active(t), tt(t_))
-    ${ ord(t_) <= ord(t) }
-    = ord(t_) - ord(t);
 
 * --- Start-up decisions ------------------------------------------------------
 
@@ -616,13 +621,8 @@ dtt(t_active(t), tt(t_))
 // displacement needed to reach the time interval where the unit was started up
 Option clear = dt_toStartup;
 loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
-    loop(t_active(t),
-        dt_toStartup(unit, tt(t_)) // tt still used as a clone of t_active (see above)
-            ${  dtt(t_, t) > - p_u_runUpTimeIntervalsCeil(unit)
-                and dtt(t_, t+dt(t)) <= - p_u_runUpTimeIntervalsCeil(unit)
-                }
-            = dtt(t_, t+dt(t));
-    ); // END loop(t_active)
+    dt_toStartup(unit, t_active(t))
+        = - p_u_runUpTimeIntervalsCeil(unit) + dt_active(t - p_u_runUpTimeIntervalsCeil(unit));
 ); // END loop(runUpCounter)
 
 * --- Shutdown decisions ------------------------------------------------------
@@ -632,13 +632,8 @@ loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
 // the shutdown decisions was made
 Option clear = dt_toShutdown;
 loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
-    loop(t_active(t),
-        dt_toShutdown(unit, tt(t_)) // tt still used as a clone of t_active (see above)
-            ${  dtt(t_, t) > - p_u_shutdownTimeIntervalsCeil(unit)
-                and dtt(t_, t+dt(t)) <= -p_u_shutdownTimeIntervalsCeil(unit)
-                }
-            = dtt(t_, t+dt(t));
-    ); // END loop(t_active)
+    dt_toShutdown(unit, t_active(t))
+        = - p_u_shutdownTimeIntervalsCeil(unit) + dt_active(t - p_u_shutdownTimeIntervalsCeil(unit))
 ); // END loop(runUpCounter)
 
 * --- Historical Unit LP and MIP information ----------------------------------
