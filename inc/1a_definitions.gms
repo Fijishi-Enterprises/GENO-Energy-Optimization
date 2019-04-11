@@ -50,6 +50,8 @@ Sets
         t_forecastStart, // Time step for first reading the forecasts (not necessarily t_start)
         t_forecastJump, // Number of time steps between each update of the forecasts
         t_improveForecast "Number of time steps ahead of time on which the forecast is improved on each solve"
+        t_perfectForesight "Number of time steps for which realized data is used instead of forecasts"
+        onlyExistingForecasts "Use only existing forecast values when reading updated forecasts. Note: zero values need to be saved as Eps in the gdx file."
         scenarios        "Number of long-term scenarios used"
         scenarioLength   "Length of scenario in time steps for creating stocahstic scenarios from time series data"
 
@@ -378,9 +380,9 @@ hr(param_unit) "Heat rate for the corresponding operating point ('hrop') in the 
 // Slack categories
 slack(param_gnBoundaryTypes) "Categories for slack variables"
        / upwardSlack01*upwardSlack20, downwardSlack01*downwardSlack20 /
-upwardSlack(slack) "Set of upward slacks"
+upwardSlack(param_gnBoundaryTypes) "Set of upward slacks"
        / upwardSlack01*upwardSlack20 /
-downwardSlack(slack) "Set of downward slacks"
+downwardSlack(param_gnBoundaryTypes) "Set of downward slacks"
        / downwardSlack01*downwardSlack20 /
 
 // Flags for boundaries

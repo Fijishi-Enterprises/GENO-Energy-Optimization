@@ -3,11 +3,12 @@ if(mSettings(mSolve, 'red_num_leaves')
    or mSettings(mSolve, 'red_percentage'),
 
 * Get probabilitiesfor samples
+Option clear = p_sProbability;
 p_sProbability(s_active(s)) = p_msProbability(mSolve, s);
 
 * SCENRED2 parameters
 ScenRedParms('red_num_leaves') = min(mSettings(mSolve, 'red_num_leaves'),
-                                     mSettings('schedule', 'scenarios'));
+                                     mSettings(mSolve, 'scenarios'));
 ScenRedParms('red_percentage') = mSettings(mSolve, 'red_percentage');
 ScenRedParms('scen_red') = 1$mSettings(mSolve, 'red_num_leaves'); // Reduce scenarios
 ScenRedParms('tree_con') = 1$mSettings(mSolve, 'red_percentage');  // Tree construction
@@ -33,6 +34,7 @@ execute 'scenred2 inc/scenred.cmd > %nuldev%';
 if(errorLevel,
     put log "!!! Scenario reduction (SCENRED2) failed. ";
     put log "See file 'sr.log' for details."/;
+    put_utility log, 'Click' / 'sr.log'; 
     putclose;
     execError = execError + 1;
 else
@@ -48,6 +50,7 @@ else
     msf(mSolve, s, f)$msf(mSolve, s, f) = ms(mSolve, s);
     msft(mSolve, s, f, t)$msft(mSolve, s, f, t) = msf(mSolve, s, f);
     sft(s, f, t)$sft(s, f, t) = yes$p_msProbability(mSolve, s);
+    fts(f, t, s)$fts(f, t, s) = sft(s, f, t);
 
     // Update scenarios
     Option clear = s_scenario;

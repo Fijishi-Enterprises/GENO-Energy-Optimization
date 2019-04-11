@@ -41,11 +41,9 @@ if (mType('invest'),
     // Number of samples used by the model
     mSettings('invest', 'samples') = 3;
 
-    // Define Initial and Central samples
+    // Clear Initial and Central samples
     ms_initial('invest', s) = no;
-    ms_initial('invest', 's000') = yes;
     ms_central('invest', s) = no;
-    ms_central('invest', 's000') = yes;
 
     // Define time span of samples
     msStart('invest', 's000') = 1;

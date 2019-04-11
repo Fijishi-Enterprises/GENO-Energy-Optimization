@@ -94,6 +94,7 @@ Sets
     tt_block(counter, t) "Temporary time step subset for storing the time interval blocks"
     tt_interval(t) "Temporary time steps when forming the ft structure, current sample"
     tt_forecast(t) "Temporary subset for time steps used for forecast updating during solve loop"
+    tt_aggregate(t, t) "Time steps included in each active time step for time series aggregation"
     mf(mType, f) "Forecasts present in the models"
     ms(mType, s) "Samples present in the models"
     mst_start(mType, s, t) "Start point of samples"
@@ -106,12 +107,14 @@ Sets
     msf(mType, s, f) "Combination of samples and forecasts in the models"
     msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
     sft(s, f, t) "Combination of samples, forecasts and t's in the current model solve"
+    fts(f, t, s) "Like `sft` but different order"
     sft_realized(s, f, t) "Realized sft"
     sft_realizedNoReset(s, f, t) "Full set of realized sft, facilitates calculation of results"
     msft_realizedNoReset(mType, s, f, t) "Combination of realized samples, forecasts and t:s in the current model solve and previously realized t:s"
     mft_start(mType, f, t) "Start point of the current model solve"
-    mf_realization(mType, f) "fRealization of the forecasts"
+    mf_realization(mType, f) "Realization of the forecasts"
     mf_central(mType, f) "Forecast that continues as sample(s) after the forecast horizon ends"
+    mf_scenario(mType, f) "Forecast label that is used for long-term scenario data"
     ms_initial(mType, s) "Sample that presents the realized/forecasted period"
     ms_central(mType, s) "Sample that continues the central forecast after the forecast horizon ends"
     mft_lastSteps(mType, f, t) "Last interval of the current model solve"
@@ -121,9 +124,9 @@ Sets
     gnss_bound(grid, node, s, s) "Bound the samples so that the node state at the last interval of the first sample equals the state at the first interval of the second sample"
     uss_bound(unit, s, s) "Bound the samples so that the unit online state at the last interval of the first sample equals the state at the first interval of the second sample"
     s_active(s) "Samples with non-zero probability in the current model solve"
-    s_stochastic(s) "Samples used for stochastic programming"
     ss(s, s) "Previous sample of sample"
     s_prev(s) "Temporary set for previous sample"
+$if defined scenario
     s_scenario(s, scenario) "Which samples belong to which scenarios"
     gn_scenarios(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"
 
@@ -167,6 +170,7 @@ Option clear = modelSolves;
 Option clear = ms;
 Option clear = mf;
 mf_realization(mType, 'f00') = yes;
+Option clear = mf_scenario;
 Option clear = gn_scenarios;
 Option clear = mTimeseries_loop_read;
 

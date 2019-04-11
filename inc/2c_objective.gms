@@ -89,7 +89,10 @@ q_obj ..
                 // Start-up costs, initial startup free as units could have been online before model started
                 + sum(uft_online(unit, f, t),
                     + sum(unitStarttype(unit, starttype),
-                        + v_startup(unit, starttype, s, f, t) // Cost of starting up
+                        + [ // Unit startup variables
+                            + v_startup_LP(unit, starttype, s, f, t)${ uft_onlineLP(unit, f, t) }
+                            + v_startup_MIP(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
+                            ]
                             * [ // Startup variable costs
                                 + p_uStartup(unit, starttype, 'cost')
 
@@ -111,7 +114,13 @@ q_obj ..
 
                 // Shut-down costs, initial shutdown free?
                 + sum(uft_online(unit, f, t),
-                      + v_shutdown(unit, s, f, t) * p_uShutdown(unit, 'cost')
+                    + p_uShutdown(unit, 'cost')
+                      * [
+                            + v_shutdown_LP(unit, s, f, t)
+                                ${ uft_onlineLP(unit, f, t) }
+                            + v_shutdown_MIP(unit, s, f, t)
+                                ${ uft_onlineMIP(unit, f, t) }
+                        ]
                   ) // END sum(uft_online)
 
                 // Ramping costs

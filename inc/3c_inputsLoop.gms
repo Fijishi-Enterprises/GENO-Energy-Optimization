@@ -42,8 +42,9 @@ if (ord(tSolve) = tForecastNext(mSolve) - mSettings(mSolve, 't_forecastJump'), /
         put_utility 'gdxin' / '%input_dir%/ts_unit/' tSolve.tl:0 '.gdx';
         execute_load ts_unit_update=ts_unit;
         ts_unit(unit_timeseries(unit), param_unit, f_solve(f), tt_forecast(t)) // Only update if time series enabled for the unit
-            ${  not mf_realization(mSolve, f) // Realization not updated
-*               and ts_unit_update(unit, param_unit, f, t) // Update only existing values (zeroes need to be EPS)
+            ${not mf_realization(mSolve, f) // Realization not updated
+              and (mSettings(mSolve, 'onlyExistingForecasts')
+                   -> ts_unit_update(unit, param_unit, f, t)) // Update only existing values (zeroes need to be EPS)
                 }
             = ts_unit_update(unit, param_unit, f, t);
     ); // END if('ts_unit')
@@ -79,7 +80,8 @@ $offtext
         execute_load ts_influx_update=ts_influx;
         ts_influx(gn(grid, node), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
-*                and ts_influx_update(grid, node, f, t) // Update only existing values (zeroes need to be EPS)
+                and (mSettings(mSolve, 'onlyExistingForecasts')
+                     -> ts_influx_update(grid, node, f, t)) // Update only existing values (zeroes need to be EPS)
                 }
             = ts_influx_update(grid, node, f, t);
     ); // END if('ts_influx')
@@ -90,7 +92,8 @@ $offtext
         execute_load ts_cf_update=ts_cf;
         ts_cf(flowNode(flow, node), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
-*                and ts_cf_update(flow, node, f, t) // Update only existing values (zeroes need to be EPS)
+                and (mSettings(mSolve, 'onlyExistingForecasts')
+                     -> ts_cf_update(flow, node, f, t)) // Update only existing values (zeroes need to be EPS)
                 }
             = ts_cf_update(flow, node, f, t);
     ); // END if('ts_cf')
@@ -101,7 +104,8 @@ $offtext
         execute_load ts_reserveDemand_update=ts_reserveDemand;
         ts_reserveDemand(restypeDirectionNode(restype, up_down, node), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
-*                and ts_reserveDemand_update(restype, up_down, node, f, t) // Update only existing values (zeroes need to be EPS)
+                and (mSettings(mSolve, 'onlyExistingForecasts')
+                     -> ts_reserveDemand_update(restype, up_down, node, f, t)) // Update only existing values (zeroes need to be EPS)
                 }
             = ts_reserveDemand_update(restype, up_down, node, f, t);
     ); // END if('ts_reserveDemand')
@@ -112,7 +116,8 @@ $offtext
         execute_load ts_node_update=ts_node;
         ts_node(gn(grid, node), param_gnBoundaryTypes, f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
-*                and ts_node_update(grid, node, param_gnBoundaryTypes, f ,t) // Update only existing values (zeroes need to be EPS)
+                and (mSettings(mSolve, 'onlyExistingForecasts')
+                     -> ts_node_update(grid, node, param_gnBoundaryTypes, f ,t)) // Update only existing values (zeroes need to be EPS)
                 }
             = ts_node_update(grid, node, param_gnBoundaryTypes, f, t);
     ); // END if('ts_node')
@@ -294,117 +299,87 @@ loop(cc(counter),
     // Retrieve interval block time steps
     option clear = tt_interval;
     tt_interval(t) = tt_block(counter, t);
-    // Make a temporary clone of tt_interval(t)
-    option clear = tt_;
-    tt_(tt_interval) = yes;
 
-    // If stepsPerInterval equals one, simply use all the steps within the block
-    if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
-
-* --- Select time series data matching the intervals, for stepsPerInterval = 1, this is trivial.
-
-        loop(ft(f_solve(f), tt_interval(t)),
-            ts_unit_(unit_timeseries(unit), param_unit, f, t) // Only if time series enabled for the unit
-                = ts_unit(unit, param_unit, f, t+dt_circular(t));
+    // Select and average time series data matching the intervals
+    ts_unit_(unit_timeseries(unit), param_unit, ft(f, tt_interval(t)))
+        = sum(tt_aggregate(t, t_),
+            ts_unit(unit, param_unit, f, t_+dt_circular(t_))
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
 $ontext
 * Should these be handled here at all? See above comment
-            ts_effUnit_(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f_solve, t)
-                = ts_effUnit(effSelector, unit, effSelector, param_eff, f_solve, t+dt_circular(t));
-            ts_effGroupUnit_(effSelector, unit_timeseries(unit), param_eff, f_solve, t)
-                = ts_effGroupUnit(effSelector, unit, param_eff, f_solve, t+dt_circular(t));
+    ts_effUnit_(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, ft(f, tt_interval(t)))
+        = sum(tt_aggregate(t, t_),
+            ts_effUnit(effSelector, unit, effSelector, param_eff, f, t_+dt_circular(t_))
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
+    ts_effGroupUnit_(effSelector, unit_timeseries(unit), param_eff, ft(f, tt_interval(t)))
+        = sum(tt_aggregate(t, t_),
+            ts_effGroupUnit(effSelector, unit, param_eff, f, t_+dt_circular(t_))
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
 $offtext
-            ts_cf_(flowNode(flow, node), f, t, s)$sft(s, f, t)
-                = ts_cf(flow, node, f + df_scenario(f, t), t + (dt_scenarioOffset(flow, node, 'ts_cf', s)
-                                            + dt_circular(t)$(not gn_scenarios(flow, node, 'ts_cf'))));
-            ts_influx_(gn(grid, node), f, t, s)$sft(s, f, t)
-                = ts_influx(grid, node, f + df_scenario(f, t), t + (dt_scenarioOffset(grid, node, 'ts_influx', s)
-                                                + dt_circular(t)$(not gn_scenarios(grid, node, 'ts_influx'))));
-            // Reserve demand relevant only up until reserve_length
-            ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f, t)
-              ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')}
-                = ts_reserveDemand(restype, up_down, node, f + df_scenario(f,t),
-                                   t+dt_circular(t));
-            ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f, t, s)
-              $p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
-                = ts_node(grid, node, param_gnBoundaryTypes, f + df_scenario(f, t),
-                          t + (dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                               + dt_circular(t)$(not gn_scenarios(grid, node, 'ts_node'))));
-            // Fuel price time series
-            ts_fuelPrice_(fuel, t)
-              ${ p_fuelPrice(fuel, 'useTimeSeries') }
-                = ts_fuelPrice(fuel, t+dt_circular(t));
-        ); // END loop(ft)
+    ts_influx_(gn(grid, node), fts(f, tt_interval(t), s))
+        = sum(tt_aggregate(t, t_),
+            ts_influx(grid, node,
+                f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_influx')),
+                t_+ (   + dt_scenarioOffset(grid, node, 'ts_influx', s)
+                        + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_influx'))))
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
+    ts_cf_(flowNode(flow, node), fts(f, tt_interval(t), s))
+        = sum(tt_aggregate(t, t_),
+            ts_cf(flow, node,
+                f + (df_scenario(f, t)$gn_scenarios(flow, node, 'ts_cf')),
+                t_+ (   + dt_scenarioOffset(flow, node, 'ts_cf', s)
+                        + dt_circular(t_)$(not gn_scenarios(flow, node, 'ts_cf'))))
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
+    // Reserves relevant only until reserve_length
+    ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(f, tt_interval(t)))
+      ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
+        = sum(tt_aggregate(t, t_),
+            ts_reserveDemand(restype, up_down, node,
+                f + (df_scenario(f, t)$gn_scenarios(restype, node, 'ts_reserveDemand')),
+                t_+ dt_circular(t_))
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
+    ts_node_(gn_state(grid, node), param_gnBoundaryTypes, fts(f, tt_interval(t), s))
+      $p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+           // Take average if not a limit type
+        = (sum(tt_aggregate(t, t_),
+                ts_node(grid, node, param_gnBoundaryTypes,
+                    f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
+                    t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
+                            + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter))$( not (sameas(param_gnBoundaryTypes, 'upwardLimit')
+                                                                or sameas(param_gnBoundaryTypes, 'downwardLimit')
+                                                                or slack(param_gnBoundaryTypes)))
+          // Maximum lower limit
+          + smax(tt_aggregate(t, t_),
+                ts_node(grid, node, param_gnBoundaryTypes,
+                    f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
+                    t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
+                            + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
+                )
+                $(sameas(param_gnBoundaryTypes, 'downwardLimit') or downwardSlack(param_gnBoundaryTypes))
+          // Minimum upper limit
+          + smin(tt_aggregate(t, t_),
+                ts_node(grid, node, param_gnBoundaryTypes,
+                    f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
+                    t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
+                            + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
+                )
+                $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
+    // Fuel price time series
+    ts_fuelPrice_(fuel, tt_interval(t))
+        ${ p_fuelPrice(fuel, 'useTimeSeries') }
+        = sum(tt_aggregate(t, t_),
+            + ts_fuelPrice(fuel, t_+dt_circular(t_))
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
 
-* --- If stepsPerInterval exceeds 1 (stepsPerInterval < 1 not defined) --------
-
-    elseif mInterval(mSolve, 'stepsPerInterval', counter) > 1,
-
-        // Select and average time series data matching the intervals, for stepsPerInterval > 1
-        // Loop over the t:s of the interval
-        loop(ft(f_solve(f), tt_interval(t)),
-            // Select t:s within the interval
-            Option clear = tt;
-            tt(tt_(t_))
-                ${  ord(t_) >= ord(t)
-                    and ord(t_) < ord(t) + mInterval(mSolve, 'stepsPerInterval', counter)
-                 }
-                = yes;
-
-            ts_unit_(unit_timeseries(unit), param_unit, f, t)
-                = sum(tt(t_), ts_unit(unit, param_unit, f, t_+dt_circular(t_)))
-                    / mInterval(mSolve, 'stepsPerInterval', counter);
-$ontext
-* Should these be handled here at all? See above comment
-            ts_effUnit_(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f_solve, t)
-                = sum(tt(t_), ts_effUnit(effSelector, unit, effSelector, param_eff, f_solve, t_+dt_circular(t_))))
-                    / mInterval(mSolve, 'stepsPerInterval', counter);
-            ts_effGroupUnit_(effSelector, unit_timeseries(unit), param_eff, f_solve, t)
-                = sum(tt(t_), ts_effGroupUnit(effSelector, unit, param_eff, f_solve, t_+dt_circular(t_))))
-                    / mInterval(mSolve, 'stepsPerInterval', counter);
-$offtext
-            ts_influx_(gn(grid, node), f, t, s)$sft(s, f, t)
-                = sum(tt(t_), ts_influx(grid, node, f + df_scenario(f, t),
-                                        t_ + (dt_scenarioOffset(grid, node, 'ts_influx', s)
-                                              + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_influx')))))
-                    / mInterval(mSolve, 'stepsPerInterval', counter);
-            ts_cf_(flowNode(flow, node), f, t, s)$sft(s, f, t)
-                = sum(tt(t_), ts_cf(flow, node, f + df_scenario(f, t),
-                                    t_ + (dt_scenarioOffset(flow, node, 'ts_cf', s)
-                                          + dt_circular(t_)$(not gn_scenarios(flow, node, 'ts_cf')))))
-                    / mInterval(mSolve, 'stepsPerInterval', counter);
-            // Reserves relevant only until reserve_length
-            ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), f, t)
-              ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
-                = sum(tt(t_), ts_reserveDemand(restype, up_down, node,
-                                               f + df_scenario(f, t), t_+dt_circular(t_)))
-                    / mInterval(mSolve, 'stepsPerInterval', counter);
-            ts_node_(gn_state(grid, node), param_gnBoundaryTypes, f, t, s)
-              ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
-                and sft(s, f, t)}
-                   // Take average if not a limit type
-                = (sum(tt(t_), ts_node(grid, node, param_gnBoundaryTypes,
-                                       f + df_scenario(f, t), t_ + (dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                                                                    + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node')))))
-                    / mInterval(mSolve, 'stepsPerInterval', counter))$(not (sameas(param_gnBoundaryTypes, 'upwardLimit') or sameas(param_gnBoundaryTypes, 'downwardLimit')))
-                  // Maximum lower limit
-                  + smax(tt(t_), ts_node(grid, node, param_gnBoundaryTypes,
-                                         f + df_scenario(f, t), t_ + (dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                                                                      + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node')))))
-                      $sameas(param_gnBoundaryTypes, 'downwardLimit')
-                  // Minimum upper limit
-                  + smin(tt(t_), ts_node(grid, node, param_gnBoundaryTypes,
-                                         f + df_scenario(f, t),
-                                         t_ + (dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                                               + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node')))))
-                       $sameas(param_gnBoundaryTypes, 'upwardLimit');
-            // Fuel price time series
-            ts_fuelPrice_(fuel, t)
-                ${ p_fuelPrice(fuel, 'useTimeSeries') }
-                = sum(tt(t_), ts_fuelPrice(fuel, t_+dt_circular(t_)))
-                    / mInterval(mSolve, 'stepsPerInterval', counter);
-            ); // END loop(ft)
-
-    ); // END if(stepsPerInterval)
 ); // END loop(counter)
 
 * --- Process unit time series data -------------------------------------------
@@ -435,10 +410,12 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
 * --- Input data processing ---------------------------------------------------
 * =============================================================================
 
+$ifthen defined scenario
 * --- Scenario reduction ------------------------------------------------------
-if(active(mSolve, 'scenred'),
+if(active(mSolve, 'scenred') and mSettings('schedule', 'scenarios') > 1,
     $$include 'inc/scenred.gms'
 );
+$endif
 
 * --- Update probabilities ----------------------------------------------------
 Option clear = p_msft_probability;
@@ -460,73 +437,21 @@ loop((mst_start(mSolve, s, t), ss(s, s_)),
 
 * --- Smooting of stochastic scenarios ----------------------------------------
 $ontext
-First calculate standard deviation for over all samples, then smoothen the scenarios
-following the methodology presented in [1, p. 443]. This avoids a discontinuity
-`jump' after the initial sample.
+Smoothen the scenarios following the methodology presented in [1, p. 443].
+This avoids a discontinuity `jump' after the initial sample.
 
 [1] A. Helseth, B. Mo, A. Lote Henden, and G. Warland, "Detailed long-term hydro-
     thermal scheduling for expansion planning in the Nordic power system," IET Gener.
     Transm. Distrib., vol. 12, no. 2, pp. 441 - 447, 2018.
 $offtext
 
-* Only do smoothing if scenarios are used
-* TODO: Also enable when long-term forecast is used
-if(mSettings(msolve, 'scenarios'),
-
-* Influx
-loop(gn(grid, node)$p_autocorrelation(grid, node, 'ts_influx'),
-    ts_influx_mean(grid, node, t_active(t))$(sum(sft(s, f, t), 1))
-        = sum(sft(s, f, t), ts_influx_(grid, node, f, t, s))
-                / sum(sft(s, f, t), 1);
-
-    ts_influx_std(grid, node, t_active(t))$(sum(sft(s, f, t), 1))
-        = sqrt(sum(sft(s, f, t), sqr(ts_influx_(grid, node, f, t, s)
-                                     - ts_influx_mean(grid, node, t)))
-                / sum(sft(s, f, t), 1)
-          );
-
-    // Do smoothing
-    loop(mst_end(ms_initial(mSolve, s_), t_),
-        ts_influx_(grid, node, ft(f, t), s)$(ts_influx_std(grid, node, t_+dt_circular(t_))
-                                             and sft(s, f, t)
-                                             and not ms_initial(mSolve, s))
-            = min(p_tsMaxValue(node, 'ts_influx'), max(p_tsMinValue(node, 'ts_influx'),
-              ts_influx_(grid, node, f, t, s)
-              + (ts_influx_(grid, node, f, t_, s_)
-                 - ts_influx_(grid, node, f, t_, s))
-                * (ts_influx_std(grid, node, t+dt_circular(t))
-                    / ts_influx_std(grid, node, t_+dt_circular(t_)))
-                * power(p_autocorrelation(grid, node, 'ts_influx'), abs(ord(t) - ord(t_)))
-              ));
+// Do smoothing
+if(mSettings(mSolve, 'scenarios'),  // Only do smooting if using long-term scenarios
+    // Select the initial sample, first `t` not in it and `f` of the last `t` in it
+    loop((ms_initial(mSolve, s_), t_, ft(f_, t__))
+        $[ord(t_) = msEnd(mSolve, s_) and mst_end(mSolve, s_, t__)
+          and (mf_realization(mSolve, f_) xor mf_central(mSolve, f_))],
+        $$batinclude 'inc/smoothing.gms' ts_influx
+        $$batinclude 'inc/smoothing.gms' ts_cf
     );
-);
-
-* CF
-loop(flowNode(flow, node)$p_autocorrelation(flow, node, 'ts_cf'),
-    ts_cf_mean(flow, node, t_active(t))$(sum(sft(s, f, t), 1))
-        = sum(sft(s, f, t), ts_cf_(flow, node, f, t, s))
-                / sum(sft(s, f, t), 1);
-
-    ts_cf_std(flow, node, t_active(t))$(sum(sft(s, f, t), 1))
-        = sqrt(sum(sft(s, f, t), sqr(ts_cf_(flow, node, f, t, s)
-                                     - ts_cf_mean(flow, node, t)))
-                / sum(sft(s, f, t), 1)
-          );
-
-    // Do smoothing
-    loop((mst_end(ms_initial(mSolve, s_), t_), f_)$ft(f_, t_),
-        ts_cf_(flow, node, ft(f, t), s)$(ts_cf_std(flow, node, t_+dt_circular(t_))
-                                         and sft(s, f, t)
-                                         and not ms_initial(mSolve, s))
-            = min(p_tsMaxValue(node, 'ts_cf'), max(p_tsMinValue(node, 'ts_cf'),
-              ts_cf_(flow, node, f, t, s)
-              + (ts_cf_(flow, node, f_, t_, s_)
-                 - ts_cf_(flow, node, f, t_, s))
-                * (ts_cf_std(flow, node, t+dt_circular(t))
-                    / ts_cf_std(flow, node, t_+dt_circular(t_)))
-                * power(p_autocorrelation(flow, node, 'ts_cf'), abs(ord(t) - ord(t_)))
-              ));
-    );
-);
-
-); // end if(mSettings(msolve, 'scenarios'),
+); // END if('scenarios')

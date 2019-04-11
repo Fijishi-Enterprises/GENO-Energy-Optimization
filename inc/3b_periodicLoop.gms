@@ -36,8 +36,10 @@ Option clear = v_help_inc;
 Option clear = v_sos2;
 // Positive Variables
 Option clear = v_fuelUse;
-Option clear = v_startup;
-Option clear = v_shutdown;
+Option clear = v_startup_LP;
+Option clear = v_startup_MIP;
+Option clear = v_shutdown_LP;
+Option clear = v_shutdown_MIP;
 Option clear = v_genRampUpDown;
 Option clear = v_spill;
 Option clear = v_transferRightward;
@@ -145,12 +147,19 @@ Option clear = p_stepLength;
 Option clear = msft;
 Option clear = mft;
 Option clear = ft;
-Option clear = sft;
-Option clear = s_active, clear = s_stochastic, clear = s_scenario, clear = ss;
+Option clear = sft, clear = fts;
 Option clear = mst_start, clear = mst_end;
+$ifthen declared scenario
+if(mSettings(mSolve, 'scenarios'),  // Only clear these if using long-term scenarios
+    Options clear = s_active, clear = s_scenario, clear = ss,
+            clear = p_msProbability, clear = ms_central;
+);
+$endif
+
 
 // Initialize the set of active t:s, counters and interval time steps
 Option clear = t_active;
+Option clear = dt_active;
 Option clear = tt_block;
 Option clear = cc;
 tCounter = 1;
@@ -207,14 +216,17 @@ loop(cc(counter),
 
     // If stepsPerInterval equals one, simply use all the steps within the block
     if(mInterval(mSolve, 'stepsPerInterval', counter) = 1,
-        tt_interval(tt(t)) = yes; // Include all time steps within the block
+        // Include all time steps within the block
+        tt_interval(tt(t)) = yes;
 
     // If stepsPerInterval exceeds 1 (stepsPerInterval < 1 not defined)
     elseif mInterval(mSolve, 'stepsPerInterval', counter) > 1,
-        tt_interval(tt(t)) // Select the active time steps within the block
-             ${mod(ord(t) - tSolveFirst - tCounter,
-                   mInterval(mSolve, 'stepsPerInterval', counter)) = 0
-              } = yes;
+
+        // Calculate the displacement required to reach the corresponding active time step from any time step
+        dt_active(tt(t)) = - (mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'stepsPerInterval', counter)));
+
+        // Select the active time steps within the block
+        tt_interval(tt(t))${ not dt_active(t) } = yes;
 
     ); // END ELSEIF intervalLenght
 
@@ -225,76 +237,102 @@ loop(cc(counter),
 
     // Determine the combinations of forecasts and intervals
     // Include the t_jump for the realization
-    mft(mf(mSolve, f_solve), tt_interval(t))
-       ${ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
+    ft(f_solve, tt_interval(t))
+       ${ord(t) <= tSolveFirst + max(mSettings(mSolve, 't_jump'),
+                                     min(mSettings(mSolve, 't_perfectForesight'),
+                                         currentForecastLength))
          and mf_realization(mSolve, f_solve)
         } = yes;
 
     // Include the full horizon for the central forecast
-    mft(mf(mSolve, f_solve), tt_interval(t))
-      ${ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+    ft(f_solve, tt_interval(t))
+      ${ord(t) > tSolveFirst + max(mSettings(mSolve, 't_jump'),
+                                   min(mSettings(mSolve, 't_perfectForesight'),
+                                       currentForecastLength))
         and (mf_central(mSolve, f_solve)
-             or mSettings('schedule', 'forecasts') = 0)
+             or mSettings(mSolve, 'forecasts') = 0)
        } = yes;
 
     // Include up to forecastLength for remaining forecasts
-    mft(mf(mSolve, f_solve), tt_interval(t))
+    ft(f_solve, tt_interval(t))
       ${not mf_central(mSolve, f_solve)
         and not mf_realization(mSolve, f_solve)
-        and ord(t) > tSolveFirst + mSettings(mSolve, 't_jump')
+        and ord(t) > tSolveFirst + max(mSettings(mSolve, 't_jump'),
+                                       min(mSettings(mSolve, 't_perfectForesight'),
+                                           currentForecastLength))
         and ord(t) <= tSolveFirst + currentForecastLength
        } = yes;
 
-    // Set of locked combinations of forecasts and intervals for the reserves?
-
     // Update tActive
     t_active(tt_interval) = yes;
-
-    // Loop over defined samples
-    msft(msf(mSolve, s, f_solve), tt_interval(t))
-        ${ord(t) > msStart(mSolve, s) + tSolveFirst - 1 // Move the samples along with the dispatch
-          and ord(t) < msEnd(mSolve, s) + tSolveFirst   // Move the samples along with the dispatch
-         } = mft(mSolve, f_solve, t);
-
-    // Create stochastic programming scenarios
-    if(mSettings(mSolve, 'scenarios'),
-        // Select root sample and central forecast
-        loop((ms_initial(mSolve, s_), mf_central(mSolve, f_)),
-            s_active(s_) = yes;
-            loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
-                s_scenario(s_, scenario) = yes;
-                loop(tt_interval(t)$(ord(t) >= msEnd(mSolve, s_) + tSolveFirst),
-                    mft(mSolve, f_, t) = yes;
-                    loop(s$(ord(s) = mSettings(mSolve, 'samples') + count_sample),
-                        s_active(s) = yes;
-                        s_stochastic(s) = yes;
-                        msft(mSolve, s, f_, t) = yes;
-                        s_scenario(s, scenario) = yes;
-                        p_msProbability(mSolve, s) = p_scenProbability(scenario);
-                        msStart(mSolve, s) = ord(t) - tSolveFirst;
-                        msEnd(mSolve, s)
-                          = ord(t) - tSolveFirst
-                            + mInterval(mSolve, 'stepsPerInterval', counter);
-                    );
-                    count_sample = count_sample + 1;
-                );
-            );
-            msf(mSolve, s, f_) = s_active(s);
-        );
-        ms(mSolve, s) = s_active(s);
-    );
-    // Reduce the model dimension
-    ft(f_solve, tt_interval(t)) = mft(mSolve, f_solve, t);
-
-    // Reduce the sample dimension
-    sft(s, f, t)$msft(mSolve, s, f, t) = ft(f, t);
 
     // Update tCounter for the next block of intervals
     tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter) + 1;
 
 ); // END loop(counter)
 
+// Reset initial sample start and end times if using scenarios
+if(mSettings(mSolve, 'scenarios'),
+    Option clear = msStart, clear = msEnd;
+    msStart(ms_initial) = 1;
+    msEnd(ms_initial) = currentForecastLength + 1;
+);
+
+$ifthen defined scenario
+// Create stochastic programming scenarios
+// Select root sample and central forecast
+loop((ms_initial(mSolve, s_), mf_central(mSolve, f)),
+    s_active(s_) = yes;
+    p_msProbability(mSolve, s_) = 1;
+    loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
+        s_scenario(s_, scenario) = yes;
+        if(mSettings(mSolve, 'scenarios') > 1,
+            loop(ft(f, t)$(ord(t) >= msEnd(mSolve, s_) + tSolveFirst),
+                loop(s$(ord(s) = mSettings(mSolve, 'samples') + count_sample),
+                    s_active(s) = yes;
+                    ms_central(mSolve, s) = yes;
+                    s_scenario(s, scenario) = yes;
+                    p_msProbability(mSolve, s) = p_scenProbability(scenario);
+                    msStart(mSolve, s) = ord(t) - tSolveFirst;
+                    msEnd(mSolve, s) = ord(t) - tSolveFirst
+                                              + p_stepLength(mSolve, f, t);
+                );
+                count_sample = count_sample + 1;
+            );
+        elseif mSettings(mSolve, 'scenarios') = 1,
+            loop(ms(mSolve, s)$(not sameas(s, s_)),
+                s_active(s) = yes;
+                ms_central(mSolve, s) = yes;
+                p_msProbability(mSolve, s) = 1;
+                s_scenario(s, scenario) = yes;
+                msStart(mSolve, s) = msEnd(mSolve, s_);
+                msEnd(mSolve, s) = msStart(mSolve, s_)
+                                   + mSettings(mSolve, 't_horizon');
+            );
+        );
+    );
+    ms(ms_central(mSolve, s)) = yes;
+    msf(ms_central(mSolve, s), f) = yes;
+);
+$endif
+
+// Loop over defined samples
+loop(msf(mSolve, s, f)$msStart(mSolve, s),
+                      // Move the samples along with the dispatch
+    sft(s, ft(f, t))${ord(t) > msStart(mSolve, s) + tSolveFirst - 1
+                      and ord(t) < msEnd(mSolve, s) + tSolveFirst
+                     } = yes;
+);
+
+// Update the model specific sets and the reversed dimension set
+mft(mSolve, ft(f, t)) = yes;
+ms(mSolve, s)$ms(mSolve, s) = s_active(s);
+msf(mSolve, s, f)$msf(mSolve, s, f) = s_active(s);
+msft(mSolve, sft(s, f, t)) = yes;
+fts(ft(f, t), s)$sft(s, f, t) = yes;
+
 * Build stochastic tree by definfing previous samples
+$ifthen defined scenario
 Option clear = s_prev;
 loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
     loop(s_scenario(s, scenario),
@@ -302,11 +340,14 @@ loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
         Option clear = s_prev; s_prev(s) = yes;
     );
 );
+$endif
+
 
 * --- Define sample offsets for creating stochastic scenarios -----------------
 
 Option clear = dt_scenarioOffset;
 
+$ifthen defined scenario
 loop(s_scenario(s, scenario)$(ord(s) > 1 and ord(scenario) > 1),
     loop(gn_scenarios(grid, node, timeseries),
          dt_scenarioOffset(grid, node, timeseries, s)
@@ -323,6 +364,7 @@ loop(s_scenario(s, scenario)$(ord(s) > 1 and ord(scenario) > 1),
             = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
     );
 );
+$endif
 
 
 * --- Determine various other forecast-time sets required for the model -------
@@ -396,17 +438,21 @@ loop(ms(mSolve, s),
 ); // END loop(ms)
 // Displacement from the first interval of a sample to the previous interval is always -1,
 // except for stochastic samples
-dt(t)${sum(ms(mSolve, s)$(not s_stochastic(s)), mst_start(mSolve, s, t))} = -1;
+dt(t_active(t))
+    ${ sum(ms(mSolve, s)$(not ms_central(mSolve, s)), mst_start(mSolve, s, t)) }
+    = -1;
 
 // Forecast index displacement between realized and forecasted intervals
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
-df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump') }
+df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + max(mSettings(mSolve, 't_jump'),
+                                                          min(mSettings(mSolve, 't_perfectForesight'),
+                                                              currentForecastLength))}
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
-// If using scenarios, central forecast will be using realized data
-if(mSettings('schedule', 'scenarios'),
-    loop(ms_initial(mSolve, s),
+// Central forecast for the long-term scenarios comes from a special forecast label
+if(mSettings(mSolve, 'scenarios') > 1,
+    loop((ms_initial(mSolve, s), mf_central(mSolve, f)),
         df_scenario(f_solve(f), t_active(t))${ord(t) > msEnd(mSolve, s)}
-          = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
+          = sum(mf_scenario(mSolve, f_), ord(f_) - ord(f));
     );
 );
 
@@ -434,11 +480,27 @@ ft_reservesFixed(node, restype, f_solve(f), t_active(t))
         and not tSolveFirst = mSettings(mSolve, 't_start') // No reserves are locked on the first solve!
         and p_nReserves(node, restype, 'update_frequency')
         and p_nReserves(node, restype, 'gate_closure')
-        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - mod(tSolveFirst - 1 + p_nReserves(node, restype, 'gate_closure') - mSettings(mSolve, 't_jump') + p_nReserves(node, restype, 'update_frequency') - p_nReserves(node, restype, 'update_offset'), p_nReserves(node, restype, 'update_frequency')) - mSettings(mSolve, 't_jump')
+        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure')
+                                  + p_nReserves(node, restype, 'update_frequency')
+                                  - mod(tSolveFirst - 1
+                                          + p_nReserves(node, restype, 'gate_closure')
+                                          - mSettings(mSolve, 't_jump')
+                                          + p_nReserves(node, restype, 'update_frequency')
+                                          - p_nReserves(node, restype, 'update_offset'),
+                                        p_nReserves(node, restype, 'update_frequency'))
+                                  - mSettings(mSolve, 't_jump')
         and not [   restypeReleasedForRealization(restype) // Free desired reserves for the to-be-realized time steps
                     and ft_realized(f, t)
                     ]
         }
+    = yes;
+
+// Form a temporary clone of t_current
+option clear = tt;
+tt(t_current) = yes;
+// Group each full time step under each active time step for time series aggregation.
+option clear = tt_aggregate;
+tt_aggregate(t_current(t+dt_active(t)), tt(t))
     = yes;
 
 * =============================================================================
@@ -538,29 +600,20 @@ Option clear = uft_startupTrajectory;
 Option clear = uft_shutdownTrajectory;
 
 // Determine the intervals when units need to follow start-up and shutdown trajectories.
-loop(uft_online(unit, f, t)${ p_u_runUpTimeIntervals(unit) },
-    uft_startupTrajectory(unit, f, t)${ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon')}
+loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
+    uft_startupTrajectory(uft_online(unit, f, t))
+        ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
         = yes;
-); // END loop(uf_online)
-loop(uft_online(unit, f, t)${ p_u_shutdownTimeIntervals(unit) },
-    uft_shutdownTrajectory(unit, f, t)${ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon')}
+); // END loop(runUpCounter)
+loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
+    uft_shutdownTrajectory(uft_online(unit, f, t))
+        ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
         = yes;
-); // END loop(uf_online)
+); // END loop(shutdownCounter)
 
 * -----------------------------------------------------------------------------
 * --- Displacements for start-up and shutdown decisions -----------------------
 * -----------------------------------------------------------------------------
-
-// Form a temporary clone of the t_active set
-Option clear = tt;
-tt(t_active(t)) = yes;
-
-// Calculate dtt: displacement needed to reach any previous time interval
-// (needed to calculate dt_toStartup and dt_toShutdown)
-Option clear = dtt;
-dtt(t_active(t), tt(t_))
-    ${ ord(t_) <= ord(t) }
-    = ord(t_) - ord(t);
 
 * --- Start-up decisions ------------------------------------------------------
 
@@ -568,13 +621,8 @@ dtt(t_active(t), tt(t_))
 // displacement needed to reach the time interval where the unit was started up
 Option clear = dt_toStartup;
 loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
-    loop(t_active(t),
-        dt_toStartup(unit, tt(t_)) // tt still used as a clone of t_active (see above)
-            ${  dtt(t_, t) > - p_u_runUpTimeIntervalsCeil(unit)
-                and dtt(t_, t+dt(t)) <= - p_u_runUpTimeIntervalsCeil(unit)
-                }
-            = dtt(t_, t+dt(t));
-    ); // END loop(t_active)
+    dt_toStartup(unit, t_active(t))$(ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon'))
+        = - p_u_runUpTimeIntervalsCeil(unit) + dt_active(t - p_u_runUpTimeIntervalsCeil(unit));
 ); // END loop(runUpCounter)
 
 * --- Shutdown decisions ------------------------------------------------------
@@ -584,13 +632,8 @@ loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
 // the shutdown decisions was made
 Option clear = dt_toShutdown;
 loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
-    loop(t_active(t),
-        dt_toShutdown(unit, tt(t_)) // tt still used as a clone of t_active (see above)
-            ${  dtt(t_, t) > - p_u_shutdownTimeIntervalsCeil(unit)
-                and dtt(t_, t+dt(t)) <= -p_u_shutdownTimeIntervalsCeil(unit)
-                }
-            = dtt(t_, t+dt(t));
-    ); // END loop(t_active)
+    dt_toShutdown(unit, t_active(t))$(ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon'))
+        = - p_u_shutdownTimeIntervalsCeil(unit) + dt_active(t - p_u_shutdownTimeIntervalsCeil(unit))
 ); // END loop(runUpCounter)
 
 * --- Historical Unit LP and MIP information ----------------------------------
