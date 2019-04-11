@@ -621,7 +621,7 @@ loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
 // displacement needed to reach the time interval where the unit was started up
 Option clear = dt_toStartup;
 loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
-    dt_toStartup(unit, t_active(t))
+    dt_toStartup(unit, t_active(t))$(ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon'))
         = - p_u_runUpTimeIntervalsCeil(unit) + dt_active(t - p_u_runUpTimeIntervalsCeil(unit));
 ); // END loop(runUpCounter)
 
@@ -632,7 +632,7 @@ loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
 // the shutdown decisions was made
 Option clear = dt_toShutdown;
 loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
-    dt_toShutdown(unit, t_active(t))
+    dt_toShutdown(unit, t_active(t))$(ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon'))
         = - p_u_shutdownTimeIntervalsCeil(unit) + dt_active(t - p_u_shutdownTimeIntervalsCeil(unit))
 ); // END loop(runUpCounter)
 
