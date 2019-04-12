@@ -1104,9 +1104,9 @@ q_rampUpDown(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
             + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
                 + [
                     + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineLP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))}
+                        ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))}
                     + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineMIP(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))}
+                        ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))}
                     ]
                     * [
                         // Note that ramping happening during shutdown trajectory when ord(counter) = 1 is considered 'normal ramping' and causes ramping costs
@@ -1119,9 +1119,9 @@ q_rampUpDown(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
             // Units need to be able to shut down after shut down trajectory
             + [
                 + v_shutdown_LP(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
-                    ${ uft_onlineLP(unit, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))}
+                    ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))}
                 + v_shutdown_MIP(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
-                    ${ uft_onlineMIP(unit, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))}
+                    ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))}
                 ]
                 * sum(shutdownCounter(unit, counter)${not shutdownCounter(unit, counter+1)}, p_uCounter_shutdownMin(unit, counter)) // Minimum generation level at the last shutdown interval
                 / p_stepLength(m, f, t) // Ramp is the change of v_gen divided by interval length
