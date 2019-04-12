@@ -680,8 +680,10 @@ q_onlineCyclic(uss_bound(unit, s_, s), m)
     // Initial value of the state of the unit at the start of the sample
     + sum(mst_start(m, s, t),
         + sum(sft(s, f, t),
-            + v_online_LP(unit, s, f+df(f,t+dt(t)), t+dt(t))${uft_onlineLP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))}
-            + v_online_MIP(unit, s, f+df(f,t+dt(t)), t+dt(t))${uft_onlineMIP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))}
+            + v_online_LP(unit, s, f+df(f,t+dt(t)), t+dt(t))
+                ${uft_onlineLP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))}
+            + v_online_MIP(unit, s, f+df(f,t+dt(t)), t+dt(t))
+                ${uft_onlineMIP_withPrevious(unit, f+df(f,t+dt(t)), t+dt(t))}
             ) // END sum(ft)
         ) // END sum(mst_start)
 
@@ -756,8 +758,10 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
 
     // Ramping capability of units with an online variable
     + (
-        + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-        + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+        + v_online_LP(unit, s, f+df_central(f,t), t)
+            ${uft_onlineLP(unit, f, t)}
+        + v_online_MIP(unit, s, f+df_central(f,t), t)
+            ${uft_onlineMIP(unit, f, t)}
       )
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnu(grid, node, unit, 'maxRampUp')
@@ -874,11 +878,14 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
 
     // Ramping capability of units without online variable
     - (
-        + ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f, t)}
+        + ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )
+            ${not uft_online(unit, f, t)}
         + sum(t_invest(t_)${ ord(t_)<=ord(t) },
-            + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f, t) and unit_investLP(unit)}
+            + v_invest_LP(unit, t_)
+                ${not uft_onlineLP(unit, f, t) and unit_investLP(unit)}
                 * p_gnu(grid, node, unit, 'unitSizeTot')
-            + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f, t) and unit_investMIP(unit)}
+            + v_invest_MIP(unit, t_)
+                ${not uft_onlineMIP(unit, f, t) and unit_investMIP(unit)}
                 * p_gnu(grid, node, unit, 'unitSizeTot')
           )
       )
@@ -887,8 +894,10 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
 
     // Ramping capability of units that are online
     - (
-        + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-        + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+        + v_online_LP(unit, s, f+df_central(f,t), t)
+            ${uft_onlineLP(unit, f, t)}
+        + v_online_MIP(unit, s, f+df_central(f,t), t)
+            ${uft_onlineMIP(unit, f, t)}
       )
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnu(grid, node, unit, 'maxRampDown')
@@ -1164,8 +1173,10 @@ q_rampSlack(ms(m, s), gnuft_rampCost(grid, node, unit, slack, f, t))
 
     // Ramping capability of units with an online variable
     + (
-        + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-        + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+        + v_online_LP(unit, s, f+df_central(f,t), t)
+            ${uft_onlineLP(unit, f, t)}
+        + v_online_MIP(unit, s, f+df_central(f,t), t)
+            ${uft_onlineMIP(unit, f, t)}
       )
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
@@ -1295,8 +1306,10 @@ q_conversionDirectInputOutput(s_active(s), suft(effDirect(effGroup), unit, f, t)
         + p_gnu(grid, node, unit, 'unitSizeGen')
         ) // END sum(gnu_output)
         * [ // Unit online state
-            + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-            + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+            + v_online_LP(unit, s, f+df_central(f,t), t)
+                ${uft_onlineLP(unit, f, t)}
+            + v_online_MIP(unit, s, f+df_central(f,t), t)
+                ${uft_onlineMIP(unit, f, t)}
 
             // Run-up and shutdown phase efficiency correction
             // Run-up 'online state'
@@ -2069,8 +2082,10 @@ q_inertiaMin(group, sft(s, f, t))
         + p_gnu(grid, node, unit, 'inertia')
             * p_gnu(grid ,node, unit, 'unitSizeMVA')
             * [
-                + v_online_LP(unit, s, f+df_central(f,t), t)${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, s, f+df_central(f,t), t)${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
+                + v_online_LP(unit, s, f+df_central(f,t), t)
+                    ${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, s, f+df_central(f,t), t)
+                    ${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
                 + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
                     / p_gnu(grid, node, unit, 'unitSizeGen')
                 ] // * p_gnu
@@ -2169,8 +2184,10 @@ q_constrainedOnlineMultiUnit(group, sft(s, f, t))
     + sum(unit$uGroup(unit, group),
         + p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
             * [
-                + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+                + v_online_LP(unit, s, f+df_central(f,t), t)
+                    ${uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, s, f+df_central(f,t), t)
+                    ${uft_onlineMIP(unit, f, t)}
                 ] // END * p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
         ) // END sum(unit)
 
