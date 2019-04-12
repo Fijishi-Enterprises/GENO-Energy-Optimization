@@ -1182,7 +1182,7 @@ q_rampSlack(ms(m, s), gnuft_rampCost(grid, node, unit, slack, f, t))
         * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
 
-    // Shutdown of units from above min. load
+    // Shutdown of units from above min. load and ramping happening during the first interval of the shutdown trajectory (commented out in the other v_shutdown term below)
     + [
         + v_shutdown_LP(unit, s, f, t)
             ${ uft_onlineLP(unit, f, t) }
@@ -1222,7 +1222,7 @@ q_rampSlack(ms(m, s), gnuft_rampCost(grid, node, unit, slack, f, t))
                         ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                     ]
                     * [
-                        + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ not shutdownCounter(unit, counter-1) } // Note that ramping happening during shutdown trajectory when ord(counter) = 1 is considered 'normal ramping' and causes ramping costs
+                        //+ p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ not shutdownCounter(unit, counter-1) } // Note that ramping happening during shutdown trajectory when ord(counter) = 1 is considered 'normal ramping' and causes ramping costs (calculated above in the other v_shutdown term)
                         + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ shutdownCounter(unit, counter-1) and not shutdownCounter(unit, counter-2) } // Ramp speed adjusted for the first shutdown interval
                             * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) )
                         ]
