@@ -1446,7 +1446,37 @@ q_conversionIncHRBounds(gn(grid, node), s_active(s), hr, suft(effIncHR(effGroup)
         - sum(hrop${ord(hrop) = ord(hr) - 1}, p_unit(unit, hrop))
         )
         *  p_gnu(grid, node, unit, 'unitSizeGen')
-        *  v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+        * [ // Unit online state
+            + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+
+            // Run-up and shutdown phase efficiency correction
+            // Run-up 'online state'
+            + sum(unitStarttype(unit, starttype)${uft_startupTrajectory(unit, f, t)},
+                + sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
+                    + [
+                        + v_startup_LP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                            ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        + v_startup_MIP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                            ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        ]
+                        * p_uCounter_runUpMin(unit, counter)
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_runUp using minload
+                    ) // END sum(runUpCounter)
+                ) // END sum(unitStarttype)
+            // Shutdown 'online state'
+            + sum(shutdownCounter(unit, counter)${  t_active(t+dt_trajectory(counter))
+                                                    and uft_shutdownTrajectory(unit, f, t)
+                                                    }, // Sum over the shutdown intervals
+                + [
+                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${  uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${  uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    ]
+                    * p_uCounter_shutdownMin(unit, counter)
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_shutdown using minload
+                ) // END sum(shutdownCounter)
+            ] // END * p_gnu('unitSizeGen')
 ;
 
 * --- Incremental Heat Rate Conversion (First Segments First) -----------------
@@ -1464,7 +1494,37 @@ q_conversionIncHR_help1(gn(grid, node), s_active(s), hr, suft(effIncHR(effGroup)
         - sum(hrop${ord(hrop) = ord(hr) - 1}, p_unit(unit, hrop))
         )
         *  p_gnu(grid, node, unit, 'unitSizeGen')
-        *  v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+        * [ // Unit online state
+            + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+
+            // Run-up and shutdown phase efficiency correction
+            // Run-up 'online state'
+            + sum(unitStarttype(unit, starttype)${uft_startupTrajectory(unit, f, t)},
+                + sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
+                    + [
+                        + v_startup_LP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                            ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        + v_startup_MIP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                            ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                        ]
+                        * p_uCounter_runUpMin(unit, counter)
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_runUp using minload
+                    ) // END sum(runUpCounter)
+                ) // END sum(unitStarttype)
+            // Shutdown 'online state'
+            + sum(shutdownCounter(unit, counter)${  t_active(t+dt_trajectory(counter))
+                                                    and uft_shutdownTrajectory(unit, f, t)
+                                                    }, // Sum over the shutdown intervals
+                + [
+                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${  uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
+                        ${  uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    ]
+                    * p_uCounter_shutdownMin(unit, counter)
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_shutdown using minload
+                ) // END sum(shutdownCounter)
+            ] // END * p_gnu('unitSizeGen')
 
     =G=
 
