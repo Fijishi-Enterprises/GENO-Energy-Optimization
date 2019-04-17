@@ -2025,7 +2025,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
     + p_stepLength(m, f, t)
         * [
             // Downwards reserve provided by input units
-            - sum(nuRescapable(restype, 'down', node_input, unit)${ p_gn(grid, node, 'energyStoredPerUnitOfState') // Reserve provisions not applicable if no state energy content
+            + sum(nuRescapable(restype, 'down', node_input, unit)${ p_gn(grid, node, 'energyStoredPerUnitOfState') // Reserve provisions not applicable if no state energy content
                                                                     and sum(grid_, gn2gnu(grid_, node_input, grid, node, unit))
                                                                     and uft(unit, f, t)
                                                                     and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
@@ -2038,13 +2038,13 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
                 ) // END sum(nuRescapable)
 
             // Downwards reserve provided by output units
-            - sum(nuRescapable(restype, 'down', node_output, unit)${    p_gn(grid, node, 'energyStoredPerUnitOfState') // Reserve provisions not applicable if no state energy content
+            + sum(nuRescapable(restype, 'down', node_output, unit)${    p_gn(grid, node, 'energyStoredPerUnitOfState') // Reserve provisions not applicable if no state energy content
                                                                         and sum(grid_, gn2gnu(grid, node, grid_, node_output, unit))
                                                                         and uft(unit, f, t)
                                                                         and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                         },
                 + v_reserve(restype, 'down', node_output, unit, s, f+df_reserves(node_output, restype, f, t), t)
-                    / sum(suft(effGroup, unit, f, t),
+                    * sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
@@ -2067,7 +2067,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
     + p_gnn(grid, node, node_, 'boundStateMaxDiff')
 
     // Reserve contributions affecting bounding node, converted to energy
-    + p_stepLength(m, f, t)
+    - p_stepLength(m, f, t)
         * [
             // Upwards reserve by input node
             + sum(nuRescapable(restype, 'up', node_input, unit)${   p_gn(grid, node_, 'energyStoredPerUnitOfState')
@@ -2089,7 +2089,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
                                                                     and ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
                                                                     },
                 + v_reserve(restype, 'up', node_output, unit, s, f+df_reserves(node_output, restype, f, t), t)
-                    / sum(suft(effGroup, unit, f, t),
+                    * sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
