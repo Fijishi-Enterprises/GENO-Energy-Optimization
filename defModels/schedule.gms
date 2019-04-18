@@ -74,6 +74,7 @@ Model schedule /
     q_inertiaMin
     q_instantaneousShareMax
     q_constrainedOnlineMultiUnit
+    q_minCons
 *    q_capacityMargin
 *    q_constrainedCapMultiUnit
 *    q_emissioncap

@@ -68,7 +68,7 @@ $loaddc gnGroup
 $loaddc p_groupPolicy
 $loaddc p_groupPolicy3D
 $loaddc gnss_bound
-$loaddc uss_bound  
+$loaddc uss_bound
 $gdxin
 
 $ifthen exist '%input_dir%/includeInputData_ext.inc'
@@ -425,6 +425,7 @@ p_nuReserves(nu(node, unit), restype, 'reserveReliability')
     = 1;
 
 // Reserve provision overlap decreases the capacity of the overlapping category
+loop(restype,
 p_nuReserves(nu(node, unit), restype, up_down)
     ${ nuRescapable(restype, up_down, node, unit) }
     = p_nuReserves(node, unit, restype, up_down)
@@ -432,6 +433,7 @@ p_nuReserves(nu(node, unit), restype, up_down)
             + p_nuReserves(node, unit, restype_, up_down)
                 * p_nuRes2Res(node, unit, restype_, up_down, restype)
         ); // END sum(restype_)
+);
 
 * =============================================================================
 * --- Data Integrity Checks ---------------------------------------------------
