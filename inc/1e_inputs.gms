@@ -117,11 +117,12 @@ $offtext
 * --- Generate Unit Related Sets ----------------------------------------------
 
 // Set of all existing gnu
-gnu(grid, node, unit)${ p_gnu(grid, node, unit, 'maxGen')
-                        or p_gnu(grid, node, unit, 'maxCons')
-                        or p_gnu(grid, node, unit, 'unitSizeGen')
-                        or p_gnu(grid, node, unit, 'unitSizeCons')
-                        and not grid('empty')
+gnu(grid, node, unit)${ not sameas(grid, 'empty')
+                        and (   p_gnu(grid, node, unit, 'maxGen')
+                                or p_gnu(grid, node, unit, 'maxCons')
+                                or p_gnu(grid, node, unit, 'unitSizeGen')
+                                or p_gnu(grid, node, unit, 'unitSizeCons')
+                                )
                       }
     = yes;
 // Reduce the grid dimension
