@@ -1,0 +1,31 @@
+# GAMS specific
+*.gpr
+*.lst
+*.lxi
+*.~gm
+*.~*
+225?/
+*.put
+*.log
+*.gchf
+
+# Backbone
+Backbone.txt
+EnsemblesAndYears.xlsx
+Backbone.dat
+diffile.gdx
+EfficiencyPiecewise.xlsx
+/version
+
+# Data files
+*.gdx
+*.xlsx
+
+# Other files
+*.pptx
+*.docx
+*.pdf
+*.par
+to_UCD/
+*.zip
+sandbox/
