@@ -19,62 +19,67 @@ $offtext
 * --- Load Input Data ---------------------------------------------------------
 * =============================================================================
 
-$gdxin  '%input_dir%/inputData.gdx'
-$loaddcm grid
-$loaddc node
-$loaddc flow
-$loaddc unittype
-$loaddc unit
-$loaddc unitUnittype
-$loaddc unit_fail
-$loaddc fuel
-$loaddc unitUnitEffLevel
-$loaddc uFuel
-$loaddc effLevelGroupUnit
-$loaddc p_gn
-$loaddc p_gnn
-$loaddc p_gnu
-$loaddc p_gnuBoundaryProperties
-$loaddc p_unit
-$loaddc ts_unit
-$loaddc restype
-$loaddc restypeDirection
-$loaddc restypeReleasedForRealization
-$loaddc p_nReserves
-$loaddc p_nuReserves
-$loaddc p_nnReserves
-$loaddc p_nuRes2Res
-$loaddc ts_reserveDemand
-$loaddc p_gnBoundaryPropertiesForStates
-$loaddc p_gnPolicy
-$loaddc p_uFuel
-$loaddc flowUnit
-$loaddc gngnu_fixedOutputRatio
-$loaddc gngnu_constrainedOutputRatio
-$loaddc emission
-$loaddc p_fuelEmission
-$loaddc ts_cf
-*$loaddc p_fuelPrice // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
-$loaddc ts_fuelPriceChange
-$loaddc ts_influx
-$loaddc ts_node
-$loaddc t_invest
-$loaddc p_storageValue
-$loaddc group
-$loaddc uGroup
-$loaddc gnuGroup
-$loaddc gn2nGroup
-$loaddc gnGroup
-$loaddc p_groupPolicy
-$loaddc p_groupPolicy3D
-$loaddc gnss_bound
-$loaddc uss_bound  
-$gdxin
+$ifthen exist '%input_dir%/inputData.gdx'
+    $$gdxin  '%input_dir%/inputData.gdx'
+    $$loaddcm grid
+    $$loaddc node
+    $$loaddc flow
+    $$loaddc unittype
+    $$loaddc unit
+    $$loaddc unitUnittype
+    $$loaddc unit_fail
+    $$loaddc fuel
+    $$loaddc unitUnitEffLevel
+    $$loaddc uFuel
+    $$loaddc effLevelGroupUnit
+    $$loaddc p_gn
+    $$loaddc p_gnn
+    $$loaddc p_gnu
+    $$loaddc p_gnuBoundaryProperties
+    $$loaddc p_unit
+    $$loaddc ts_unit
+    $$loaddc restype
+    $$loaddc restypeDirection
+    $$loaddc restypeReleasedForRealization
+    $$loaddc p_nReserves
+    $$loaddc p_nuReserves
+    $$loaddc p_nnReserves
+    $$loaddc p_nuRes2Res
+    $$loaddc ts_reserveDemand
+    $$loaddc p_gnBoundaryPropertiesForStates
+    $$loaddc p_gnPolicy
+    $$loaddc p_uFuel
+    $$loaddc flowUnit
+    $$loaddc gngnu_fixedOutputRatio
+    $$loaddc gngnu_constrainedOutputRatio
+    $$loaddc emission
+    $$loaddc p_fuelEmission
+    $$loaddc ts_cf
+*    $$loaddc p_fuelPrice // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
+    $$loaddc ts_fuelPriceChange
+    $$loaddc ts_influx
+    $$loaddc ts_node
+    $$loaddc t_invest
+    $$loaddc p_storageValue
+    $$loaddc group
+    $$loaddc uGroup
+    $$loaddc gnuGroup
+    $$loaddc gn2nGroup
+    $$loaddc gnGroup
+    $$loaddc p_groupPolicy
+    $$loaddc p_groupPolicy3D
+    $$loaddc gnss_bound
+    $$loaddc uss_bound
+    $$gdxin
+$endif
 
 $ifthen exist '%input_dir%/includeInputData_ext.inc'
    $$include '%input_dir%/includeInputData_ext.inc'
 $endif
 
+$ifthen exist '%input_dir%/changes.inc'
+   $$include '%input_dir%/changes.inc'
+$endif
 
 * Read changes to inputdata through change.inc and gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx) - allows scenarios through Sceleton Titan Excel files.
 $include 'inc/1e_scenChanges.gms'
