@@ -12,7 +12,7 @@
               "input/ts_reserveDemand/*.gdx",
               "input/ts_influx/*.gdx"],
     "cmdline_args": "",
-    "datafiles": "",
+    "datafiles": [],
     "datafiles_opt": ["input/*.gms",
                       "input/*.gdx",
                       "input/*.inc"],

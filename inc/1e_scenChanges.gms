@@ -1,10 +1,5 @@
 * Read changes for optional scenario inputs
 
-* First from the changes.inc file if such exists
-$ifthen exist '%input_dir%/changes.inc'
-   $$include '%input_dir%/changes.inc'
-$endif
-
 * Then from gdx files (separate for each set or parameter due because GAMS fails if the set or parameter is not present).
 * Currently supports two levels of changes: ...2.gdx and ...3.gdx (add more if needed)
 $ifthen exist '%input_dir%/grid2.gdx'
