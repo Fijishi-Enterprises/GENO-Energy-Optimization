@@ -267,6 +267,16 @@ loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effL
     effGroupSelector(effIncHR(effSelector), effSelector) = yes;
     effGroupSelectorUnit(effIncHR(effSelector), unit, effSelector) = yes;
 
+    // effSelector using effBiochem_S
+    effGroup(effBiochem_S(effSelector)) = yes;
+    effGroupSelector(effBiochem_S(effSelector), effSelector) = yes;
+    effGroupSelectorUnit(effBiochem_S(effSelector), unit, effSelector) = yes;
+
+    // effSelector using effBiochem_X
+    effGroup(effBiochem_X(effSelector)) = yes;
+    effGroupSelector(effBiochem_X(effSelector), effSelector) = yes;
+    effGroupSelectorUnit(effBiochem_X(effSelector), unit, effSelector) = yes;
+
     // effSelector using Lambda
     effGroup(effLambda(effSelector)) = yes;
     loop(effLambda_${ord(effLambda_) <= ord(effSelector)},
