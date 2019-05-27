@@ -355,6 +355,7 @@ gn_stateSlack(grid, node)${ sum((slack, useConstantOrTimeSeries), p_gnBoundaryPr
 // Nodes with states
 gn_state(grid, node)${  gn_stateSlack(grid, node)
                         or p_gn(grid, node, 'energyStoredPerUnitOfState')
+                        or p_gn(grid, node, 'disableDummyGeneration')
                         or sum((stateLimits, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, stateLimits, useConstantOrTimeSeries))
                         or sum(useConstantOrTimeSeries, p_gnBoundaryPropertiesForStates(grid, node, 'reference', useConstantOrTimeSeries))
                         }
