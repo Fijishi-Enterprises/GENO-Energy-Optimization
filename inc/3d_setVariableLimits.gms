@@ -212,14 +212,14 @@ v_genRamp.lo(gnu(grid, node, unit), sft(s, f, t))${ ord(t) > msStart(mSolve, s) 
 
 // v_online cannot exceed unit count if investments disabled
 // LP variant
-v_online_LP.up(unit, sft(s, f, t))${uft_onlineLP(unit, f, t) and not unit_investLP(unit)}
+v_online_LP.up(unit, sft(s, f, t))${uft_onlineLP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
     = p_unit(unit, 'unitCount')
      * [1${not active(mSolve, 'checkUnavailability')}
        + (1 - ts_unit_(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
       ]
 ;
 // MIP variant
-v_online_MIP.up(unit, sft(s, f, t))${uft_onlineMIP(unit, f, t) and not unit_investMIP(unit)}
+v_online_MIP.up(unit, sft(s, f, t))${uft_onlineMIP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
     = p_unit(unit, 'unitCount')
      * [1${not active(mSolve, 'checkUnavailability')}
        + (1 - ts_unit_(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
