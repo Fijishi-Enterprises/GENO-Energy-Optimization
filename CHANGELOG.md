@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 ### Changed 
 - Updated tool defintions for Sceleton Titan and Spine Toolbox
 
+### Fixed
+- Removed hard-coded `elec grids` from *setVariableLimits* and *rampSched files*
+
 ## [1.1] - 2019-04-17
 ### Added
 - New model setting 't_perfectForesight' tells the number of time steps (from 
