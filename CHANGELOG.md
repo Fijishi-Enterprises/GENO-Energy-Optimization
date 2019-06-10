@@ -2,7 +2,16 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
-## Added
+
+### Added
+- All input files, including *inputData.gdx*, are optional
+- Enabling different combinations of LP and MIP online and invest variables
+
+### Changed 
+- Updated tool defintions for Sceleton Titan and Spine Toolbox
+
+## [1.1] - 2019-04-17
+### Added
 - New model setting 't_perfectForesight' tells the number of time steps (from 
   the beginning of current solve) for which realized data is used instead of 
   forecasts. This value cannot exceed current forecast length, however. Setting 
@@ -11,6 +20,34 @@ All notable changes to this project will be documented in this file.
   scenarios. Also setting number of scenarios to one, instructs the model to use
   central forecast for the long-term.
 - Speedup for model dimension calculation (set `msft` etc.)
+- Support long time intervals in the first block
+- Possibility to limit `v_online` to zero according to time series
+- Output for reserve transfer results
+- Reserve provision limits with investments
+- Constrain the set of units to which ramp equations are applied
+- Piecewise linear heat rate curves
+- Checks for reserves
+- Allow to set certain value for `v_gen` at 't000000'
+
+### Changed
+- Removed some old command line arguments
+- Removed obsolete 'emissionIntensity' fuel parameter
+
+### Fixed
+- Unit ramps during start-up and shutdown
+- Refreshing forecast data in *inputsLoop*
+- Aggregated groups that were not in use were included in the model
+- `mst_end` not found for the last sample
+- Start-up not working for units without start costs or start fuel consumption
+- *periodicInit* will fail with multiple model definitions
+- Reserves should not be allowed to be locked when the interval is greater than 
+  smallest interval in use
+- Start-up phase and aggregated time steps do not work together
+- In SOS2 unit cannot exceed the generation of `p_ut_runUp`
+- Startup cost calculation
+- Efficiency presentations
+- `p_uNonoperational` not fully correct
+
 
 ## [1.0.6] - 2019-03-27
 ### Fixed
@@ -82,7 +119,8 @@ All notable changes to this project will be documented in this file.
 
 
 
-[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.6...dev
+[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.1...dev
+[1.1]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.6...v1.1
 [1.0.6]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.5...v1.0.6
 [1.0.5]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.4...v1.0.5
 [1.0.4]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.3...v1.0.4
