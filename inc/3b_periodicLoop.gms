@@ -283,7 +283,6 @@ $ifthen defined scenario
 // Select root sample and central forecast
 loop((ms_initial(mSolve, s_), mf_central(mSolve, f)),
     s_active(s_) = yes;
-    p_msProbability(mSolve, s_) = 1;
     loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
         s_scenario(s_, scenario) = yes;
         if(mSettings(mSolve, 'scenarios') > 1,

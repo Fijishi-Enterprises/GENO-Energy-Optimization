@@ -54,7 +54,8 @@ if (mType('schedule'),
 
     // Define Initial and Central samples
     ms_initial('schedule', s) = no;
-    ms_central('schedule', s) = no; 
+    ms_initial('schedule', 's000') = yes;
+    ms_central('schedule', s) = no;
 
     // Define time span of samples
     msStart('schedule', 's000') = 1;

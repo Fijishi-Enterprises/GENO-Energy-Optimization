@@ -16,7 +16,7 @@ along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
 * =============================================================================
-* --- Model Definition - Schedule ---------------------------------------------
+* --- Model Definition - Invest -----------------------------------------------
 * =============================================================================
 
 if (mType('invest'),
@@ -43,6 +43,9 @@ if (mType('invest'),
 
     // Clear Initial and Central samples
     ms_initial('invest', s) = no;
+    ms_initial('invest', 's000') = yes;
+    ms_initial('invest', 's001') = yes;
+    ms_initial('invest', 's002') = yes;
     ms_central('invest', s) = no;
 
     // Define time span of samples
