@@ -22,6 +22,9 @@ Created by:
     Erkka Rinne
     Topi Rasku
     Niina Helistö
+    Dana Kirchem
+    Ran Li
+    Ciara O'Dwyer
 
 - Based on Stochastic Model Predictive Control method [1].
 - Enables multiple different models (m) to be implemented by changing
