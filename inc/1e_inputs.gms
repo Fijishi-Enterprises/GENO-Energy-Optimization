@@ -439,6 +439,16 @@ p_nuReserves(nu(node, unit), restype, up_down)
 * --- Data Integrity Checks ---------------------------------------------------
 * =============================================================================
 
+* --- Check that nodes aren't assigned to multiple grids ----------------------
+
+loop(node,
+    if(sum(gn(grid, node), 1) > 1,
+        put log '!!! Error occurred on node ' node.tl:0 /;
+        put log '!!! Abort: Nodes cannot be assigned to multiple grids!' /;
+        abort "Nodes cannot be assigned to multiple grids!"
+    ); // END if(sum(gn))
+); // END loop(node)
+
 * --- Check the integrity of node connection related data ---------------------
 
 Option clear = count;
