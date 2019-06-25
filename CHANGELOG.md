@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - All input files, including *inputData.gdx*, are optional
 - Enabling different combinations of LP and MIP online and invest variables
+- Separate availability parameter for output units in the capacity margin constraint
 
 ### Changed 
 - Updated tool defintions for Sceleton Titan and Spine Toolbox
