@@ -480,9 +480,9 @@ tmp = smax(effLevelGroupUnit(effLevel, effSelector, unit), ord(effLevel));
 // Expand the effLevelGroupUnit when possible, abort if impossible
 loop(effLevel${ord(effLevel)<=tmp},
     effLevelGroupUnit(effLevel, effSelector, unit)
-        ${not effLevelGroupUnit(effLevel, effSelector, unit)}
+        ${not sum(effLevelGroupUnit(effLevel, effSelector_, unit), 1)}
         = effLevelGroupUnit(effLevel - 1, effSelector, unit) // Expand previous (effLevel, effSelector) when applicable
-    loop(unit${not unit_flow(unit)},
+    loop(unit${not unit_flow(unit) and not sameas(unit, 'empty')},
         If(not sum(effLevelGroupUnit(effLevel, effSelector, unit), 1),
             put log '!!! Error on unit ' unit.tl:0 /;
             put log '!!! Abort: Insufficient effLevelGroupUnit definitions!' /;
