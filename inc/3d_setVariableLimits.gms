@@ -212,14 +212,14 @@ v_genRamp.lo(gnu(grid, node, unit), sft(s, f, t))${ ord(t) > msStart(mSolve, s) 
 
 // v_online cannot exceed unit count if investments disabled
 // LP variant
-v_online_LP.up(unit, sft(s, f, t))${uft_onlineLP(unit, f, t) and not unit_investLP(unit)}
+v_online_LP.up(unit, sft(s, f, t))${uft_onlineLP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
     = p_unit(unit, 'unitCount')
      * [1${not active(mSolve, 'checkUnavailability')}
        + (1 - ts_unit_(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
       ]
 ;
 // MIP variant
-v_online_MIP.up(unit, sft(s, f, t))${uft_onlineMIP(unit, f, t) and not unit_investMIP(unit)}
+v_online_MIP.up(unit, sft(s, f, t))${uft_onlineMIP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
     = p_unit(unit, 'unitCount')
      * [1${not active(mSolve, 'checkUnavailability')}
        + (1 - ts_unit_(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
@@ -316,7 +316,8 @@ v_transferLeftward.up(gn2n_directional(grid, node, node_), sft(s, f, t))${  not 
 * --- Reserve Provision Boundaries --------------------------------------------
 
 // Loop over the forecasts to minimize confusion regarding the df_reserves forecast displacement
-loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))${ ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length') },
+// NOTE! The loop over gn is not ideal, but the reserve variables are currently lacking the grid dimension.
+loop((restypeDirectionNode(restype, up_down, node), gn(grid, node), sft(s, f, t))${ ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length') },
     // Reserve provision limits without investments
     // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
     v_reserve.up(nuRescapable(restype, up_down, node, unit), s, f+df_reserves(node, restype, f, t), t)
@@ -324,34 +325,30 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))${ ord(t) <= tS
             and not (unit_investLP(unit) or unit_investMIP(unit))
             and not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
             }
-        = min ( p_nuReserves(node, unit, restype, up_down) * [ p_gnu('elec', node, unit, 'maxGen') + p_gnu('elec', node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
-                v_gen.up('elec', node, unit, s, f, t) - v_gen.lo('elec', node, unit, s, f, t) // Generator + consuming unit available unit_elec. output delta
+        = min ( p_nuReserves(node, unit, restype, up_down) * [ p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
+                v_gen.up(grid, node, unit, s, f, t) - v_gen.lo(grid, node, unit, s, f, t) // Generator + consuming unit available unit_elec. output delta
                 ) // END min
 ;
 
     // Reserve transfer upper bounds based on input p_nnReserves data, if investments are disabled
     v_resTransferRightward.up(restypeDirectionNodeNode(restype, up_down, node, node_), s, f+df_reserves(node, restype, f, t), t)
-        ${  not sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit')) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
-            and sum(grid, gn2n_directional(grid, node, node_)) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
+        ${  not p_gnn(grid, node, node_, 'transferCapInvLimit')
+            and gn2n_directional(grid, node, node_)
             and not [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)  // This set contains the combination of reserve types and time intervals that should be fixed
                         or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t) // Commit reserve transfer as long as either end commits.
                         ]
             }
-        = sum(grid, // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
-            + p_gnn(grid, node, node_, 'transferCap')
-            ) // END sum(grid)
+        =  p_gnn(grid, node, node_, 'transferCap')
             * p_nnReserves(node, node_, restype, up_down);
 
     v_resTransferLeftward.up(restypeDirectionNodeNode(restype, up_down, node, node_), s, f+df_reserves(node, restype, f, t), t)
-        ${  not sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit')) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
-            and sum(grid, gn2n_directional(grid, node, node_)) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
+        ${  not p_gnn(grid, node, node_, 'transferCapInvLimit')
+            and gn2n_directional(grid, node, node_)
             and not [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)  // This set contains the combination of reserve types and time intervals that should be fixed
                         or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t) // Commit reserve transfer as long as either end commits.
                         ]
             }
-        = sum(grid, // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
-            + p_gnn(grid, node, node_, 'transferCap')
-            ) // END sum(grid)
+        = p_gnn(grid, node, node_, 'transferCap')
             * p_nnReserves(node, node_, restype, up_down);
 
     // Fix non-flow unit reserves at the gate closure of reserves
@@ -361,9 +358,9 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))${ ord(t) <= tS
             }
       = r_reserve(restype, up_down, node, unit, f+df_reserves(node, restype, f, t), t);
 
-    // Fix transfer of reserves at the gate closure of reserves
+    // Fix transfer of reserves at the gate closure of reserves, LOWER BOUND ONLY!
     v_resTransferRightward.fx(restype, up_down, node, node_, s, f+df_reserves(node, restype, f, t), t)
-        $ { sum(grid, gn2n_directional(grid, node, node_)) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
+        $ { gn2n_directional(grid, node, node_)
             and [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)  // This set contains the combination of reserve types and time intervals that should be fixed
                     or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t) // Commit reserve transfer as long as either end commits.
                     ]
@@ -371,7 +368,7 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))${ ord(t) <= tS
       = r_resTransferRightward(restype, up_down, node, node_, f+df_reserves(node, restype, f, t), t);
 
     v_resTransferLeftward.fx(restype, up_down, node, node_, s, f+df_reserves(node, restype, f, t), t)
-        $ { sum(grid, gn2n_directional(grid, node, node_)) // NOTE! This is not ideal, but the reserve sets and variables are currently lacking the grid dimension...
+        $ { gn2n_directional(grid, node, node_)
             and [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)  // This set contains the combination of reserve types and time intervals that should be fixed
                     or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t) // Commit reserve transfer as long as either end commits.
                     ]

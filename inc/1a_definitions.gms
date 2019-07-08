@@ -272,6 +272,7 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     fomCosts      "Fixed operation and maintenance costs (EUR/MW/a)"
     inertia       "Inertia of the unit (s)"
     unitSizeMVA   "Generator MVA rating of one subunit (MVA)"
+    availabilityCapacityMargin  "Availability of the unit in the capacity margin equation (p.u.). If zero, v_gen is used. Currently used only for output capacity."
 /
 
 param_gnuBoundaryProperties "Properties that can be set for the different boundaries" /

@@ -19,71 +19,68 @@ $offtext
 * --- Load Input Data ---------------------------------------------------------
 * =============================================================================
 
-$gdxin  '%input_dir%/inputData.gdx'
-$loaddcm grid
-$loaddc node
-$loaddc flow
-$loaddc unittype
-$loaddc unit
-$loaddc unitUnittype
-$loaddc unit_fail
-$loaddc fuel
-$loaddc unitUnitEffLevel
-$loaddc uFuel
-$loaddc effLevelGroupUnit
-$loaddc p_gn
-$loaddc p_gnn
-$loaddc p_gnu
-$loaddc p_gnuBoundaryProperties
-$loaddc p_unit
-$loaddc ts_unit
-$loaddc restype
-$loaddc restypeDirection
-$loaddc restypeReleasedForRealization
-$loaddc p_nReserves
-$loaddc p_nuReserves
-$loaddc p_nnReserves
-$loaddc p_nuRes2Res
-$loaddc ts_reserveDemand
-$loaddc p_gnBoundaryPropertiesForStates
-$loaddc p_gnPolicy
-$loaddc p_uFuel
-$loaddc flowUnit
-$loaddc gngnu_fixedOutputRatio
-$loaddc gngnu_constrainedOutputRatio
-$loaddc emission
-$loaddc p_fuelEmission
-$loaddc ts_cf
-*$loaddc p_fuelPrice // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
-$loaddc ts_fuelPriceChange
-$loaddc ts_influx
-$loaddc ts_node
-$loaddc t_invest
-$loaddc p_storageValue
-$loaddc group
-$loaddc uGroup
-$loaddc gnuGroup
-$loaddc gn2nGroup
-$loaddc gnGroup
-$loaddc p_groupPolicy
-$loaddc p_groupPolicy3D
-$loaddc gnss_bound
-$loaddc uss_bound  
-$gdxin
-
-$ifthen exist '%input_dir%/includeInputData_ext.inc'
-   $$include '%input_dir%/includeInputData_ext.inc'
+$ifthen exist '%input_dir%/inputData.gdx'
+    $$gdxin  '%input_dir%/inputData.gdx'
+    $$loaddcm grid
+    $$loaddc node
+    $$loaddc flow
+    $$loaddc unittype
+    $$loaddc unit
+    $$loaddc unitUnittype
+    $$loaddc unit_fail
+    $$loaddc fuel
+    $$loaddc unitUnitEffLevel
+    $$loaddc uFuel
+    $$loaddc effLevelGroupUnit
+    $$loaddc p_gn
+    $$loaddc p_gnn
+    $$loaddc p_gnu
+    $$loaddc p_gnuBoundaryProperties
+    $$loaddc p_unit
+    $$loaddc ts_unit
+    $$loaddc restype
+    $$loaddc restypeDirection
+    $$loaddc restypeReleasedForRealization
+    $$loaddc p_nReserves
+    $$loaddc p_nuReserves
+    $$loaddc p_nnReserves
+    $$loaddc p_nuRes2Res
+    $$loaddc ts_reserveDemand
+    $$loaddc p_gnBoundaryPropertiesForStates
+    $$loaddc p_gnPolicy
+    $$loaddc p_uFuel
+    $$loaddc flowUnit
+    $$loaddc gngnu_fixedOutputRatio
+    $$loaddc gngnu_constrainedOutputRatio
+    $$loaddc emission
+    $$loaddc p_fuelEmission
+    $$loaddc ts_cf
+*    $$loaddc p_fuelPrice // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
+    $$loaddc ts_fuelPriceChange
+    $$loaddc ts_influx
+    $$loaddc ts_node
+    $$loaddc t_invest
+    $$loaddc p_storageValue
+    $$loaddc group
+    $$loaddc uGroup
+    $$loaddc gnuGroup
+    $$loaddc gn2nGroup
+    $$loaddc gnGroup
+    $$loaddc p_groupPolicy
+    $$loaddc p_groupPolicy3D
+    $$loaddc gnss_bound
+    $$loaddc uss_bound
+    $$gdxin
 $endif
 
+* Reads changes or additions to the inputdata through changes.inc file.
 $ifthen exist '%input_dir%/changes.inc'
    $$include '%input_dir%/changes.inc'
 $endif
 
-$ifthen exist '%input_dir%/unit3.gdx'
-    $$gdxin  '%input_dir%/unit3.gdx'
-    $$loaddcm unit
-    $$gdxin
-$endif
+* Read changes to inputdata through gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx) - allows scenarios through Sceleton Titan Excel files.
+$include 'inc/1e_scenChanges.gms'
+
 
 
 $ontext
@@ -367,6 +364,10 @@ gn_state(grid, node)${  gn_stateSlack(grid, node)
 gn(grid, node)${    sum(unit, gnu(grid, node, unit))
                     or gn_state(grid, node)
                     or sum((f, t), ts_influx(grid, node, f, t))
+                    or sum(node_, gn2n(grid, node, node_))
+                    or sum(node_, gn2n(grid, node_, node))
+                    or sum(node_, gnn_state(grid, node, node_))
+                    or sum(node_, gnn_state(grid, node_, node))
                     }
     = yes;
 
@@ -438,6 +439,16 @@ p_nuReserves(nu(node, unit), restype, up_down)
 * --- Data Integrity Checks ---------------------------------------------------
 * =============================================================================
 
+* --- Check that nodes aren't assigned to multiple grids ----------------------
+
+loop(node,
+    if(sum(gn(grid, node), 1) > 1,
+        put log '!!! Error occurred on node ' node.tl:0 /;
+        put log '!!! Abort: Nodes cannot be assigned to multiple grids!' /;
+        abort "Nodes cannot be assigned to multiple grids!"
+    ); // END if(sum(gn))
+); // END loop(node)
+
 * --- Check the integrity of node connection related data ---------------------
 
 Option clear = count;
@@ -465,6 +476,20 @@ loop(gn2n(grid, node, node_),
 Option clear = tmp;
 // Find the largest effLevel used in the data
 tmp = smax(effLevelGroupUnit(effLevel, effSelector, unit), ord(effLevel));
+
+// Expand the effLevelGroupUnit when possible, abort if impossible
+loop(effLevel${ord(effLevel)<=tmp},
+    effLevelGroupUnit(effLevel, effSelector, unit)
+        ${not sum(effLevelGroupUnit(effLevel, effSelector_, unit), 1)}
+        = effLevelGroupUnit(effLevel - 1, effSelector, unit) // Expand previous (effLevel, effSelector) when applicable
+    loop(unit${not unit_flow(unit) and not sameas(unit, 'empty')},
+        If(not sum(effLevelGroupUnit(effLevel, effSelector, unit), 1),
+            put log '!!! Error on unit ' unit.tl:0 /;
+            put log '!!! Abort: Insufficient effLevelGroupUnit definitions!' /;
+            abort "Insufficient effLevelGroupUnit definitions!"
+        );
+    );
+);
 
 loop( unit,
     // Check that 'op' is defined correctly

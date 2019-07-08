@@ -32,15 +32,15 @@ execute_load 'ts_netload.gdx', ts_netLoad;
 
 * Check if there is a change in netLoad
 s_netLoadChanged = 0;
-loop(node,
+loop(gn(grid,node),
         loop(t$(ord(t) = 1),
             if (ts_netLoad(node, t) <>
                 // Calculates a moving window for net load using linearly increasing/decreasing weighting
                 sum((fRealization(f), t_)$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12),
-                    (ts_energyDemand('elec', node, f, t_) -
+                    (ts_energyDemand(grid, node, f, t_) -
                         sum(unit_flow(flow, unit_flow)$nu(unit_flow, node),
                           ts_cf(flow, node, f, t) *
-                          p_data2d('elec', unit_flow, 'maxGen') *
+                          p_data2d(grid, unit_flow, 'maxGen') *
                           p_data(unit_flow, 'availability')
                         )
                     ) * (13 - abs(ord(t) - ord(t_)))  // Weighting
@@ -60,11 +60,11 @@ if (s_netLoadChanged = 1,
     put log;
     put 'Calculating smoothed net load...';
     ts_netLoad(node, t) =
-        sum((fRealization(f), t_)$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12),
-            (ts_energyDemand('elec', node, f, t_) -
+        sum((fRealization(f), gn(grid, node), t_)$(ord(t_) > ord(t) - 12 and ord(t_) <= ord(t) + 12),
+            (ts_energyDemand(grid, node, f, t_) -
                 sum(unit_flow(flow, unit_flow)$nu(unit_flow, node),
                    ts_cf(flow, node, f, t) *
-                   p_data2d('elec', unit_flow, 'maxGen') *
+                   p_data2d(grid, unit_flow, 'maxGen') *
                    p_data(unit_flow, 'availability')
                 )
             ) * (13 - abs(ord(t) - ord(t_)))

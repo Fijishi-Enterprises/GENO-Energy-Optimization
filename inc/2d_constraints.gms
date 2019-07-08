@@ -2258,23 +2258,15 @@ q_constrainedOnlineMultiUnit(group, sft(s, f, t))
 ;
 
 *--- Required Capacity Margin -------------------------------------------------
-// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Niina needs to check these, currently uses maximum conversion output cap.
 
 q_capacityMargin(gn(grid, node), sft(s, f, t))
     ${  p_gn(grid, node, 'capacityMargin')
         } ..
 
-    // Availability of units, including capacity factors
-    + sum(gnu_output(grid, node, unit),
+    // Availability of units, based on 'availabilityCapacityMargin'
+    + sum(gnu_output(grid, node, unit)${p_gnu(grid, node, unit, 'availabilityCapacityMargin')},
         + p_unit(unit, 'availability')
-            * [
-                // Capacity factors for flow units
-                + sum(flowUnit(flow, unit)${ nu(node, unit) },
-                    + ts_cf_(flow, node, f, t, s)
-                    ) // END sum(flow)
-                + 1${not unit_flow(unit)}
-                ]
+            * p_gnu(grid, node, unit, 'availabilityCapacityMargin')
             * [
                 // Output capacity before investments
                 + p_gnu(grid, node, unit, 'maxGen')
@@ -2286,6 +2278,27 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
                         + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
                         ) // END sum(t_invest)
                 ] // END * p_unit(availability)
+        ) // END sum(gnu_output)
+
+    // Availability of units, including capacity factors for flow units and v_gen for other units
+    + sum(gnu_output(grid, node, unit)${not p_gnu(grid, node, unit, 'availabilityCapacityMargin')},
+        // Capacity factors for flow units
+        + sum(flowUnit(flow, unit)${ unit_flow(unit) },
+            + ts_cf_(flow, node, f, t, s)
+            ) // END sum(flow)
+            * p_unit(unit, 'availability')
+            * [
+                // Output capacity before investments
+                + p_gnu(grid, node, unit, 'maxGen')
+
+                // Output capacity investments
+                + p_gnu(grid, node, unit, 'unitSizeGen')
+                    * sum(t_invest(t_)${ord(t_)<=ord(t)},
+                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
+                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
+                        ) // END sum(t_invest)
+                ] // END * p_unit(availability)
+        + v_gen(grid, node, unit, s, f, t)${not unit_flow(unit)}
         ) // END sum(gnu_output)
 
     // Transfer to node
