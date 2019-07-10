@@ -23,7 +23,7 @@ Model schedule /
     q_obj
     q_balance
     q_resDemand
-*    q_resDemandLargestInfeedUnit
+    q_resDemandLargestInfeedUnit
 
     // Unit Operation
     q_maxDownward
@@ -79,7 +79,7 @@ Model schedule /
 *    q_emissioncap
 *    q_energyShareMax
 *    q_energyShareMin
-
+    q_minCons
 $ifthen exist '%input_dir%/schedule_additional_constraints.gms'
    $$include '%input_dir%/schedule_additional_constraints.gms'      // Declare additional constraints from the input data
 $endif

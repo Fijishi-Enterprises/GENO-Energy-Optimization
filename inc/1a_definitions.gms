@@ -352,6 +352,7 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedOnlineMultiplier "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
     constrainedOnlineTotalMax "Total maximum b for online units in equation Sum(i, a(i)*v_online(i)) <= b"
+    minCons "minimum consumption of storage unit when charging"
     // Reserve related parameters, currently without a proper parameter set
     update_frequency "Frequency of updating reserve contributions"
     update_offset "Optional offset for delaying the reserve update frequency"
