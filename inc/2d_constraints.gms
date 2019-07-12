@@ -2147,7 +2147,7 @@ q_inertiaMin(group, sft(s, f, t))
                 + v_online_MIP(unit, s, f+df_central(f,t), t)
                     ${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
                 + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
-                    / p_gnu(grid, node, unit, 'unitSizeGen')
+                    / (p_gnu(grid, node, unit, 'unitSizeGen')*p_unit(unit, 'unitCount'))
                 ] // * p_gnu
         ) // END sum(gnu_output)
 
