@@ -753,9 +753,9 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
     + (
         + ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f, t)}
         + sum(t_invest(t_)${ ord(t_)<=ord(t) },
-            + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f, t) and unit_investLP(unit)}
+            + v_invest_LP(unit, t_)${not uft_online(unit, f, t) and unit_investLP(unit)}
                 * p_gnu(grid, node, unit, 'unitSizeTot')
-            + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f, t) and unit_investMIP(unit)}
+            + v_invest_MIP(unit, t_)${not uft_online(unit, f, t) and unit_investMIP(unit)}
                 * p_gnu(grid, node, unit, 'unitSizeTot')
           )
       )
@@ -888,10 +888,10 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
             ${not uft_online(unit, f, t)}
         + sum(t_invest(t_)${ ord(t_)<=ord(t) },
             + v_invest_LP(unit, t_)
-                ${not uft_onlineLP(unit, f, t) and unit_investLP(unit)}
+                ${not uft_online(unit, f, t) and unit_investLP(unit)}
                 * p_gnu(grid, node, unit, 'unitSizeTot')
             + v_invest_MIP(unit, t_)
-                ${not uft_onlineMIP(unit, f, t) and unit_investMIP(unit)}
+                ${not uft_online(unit, f, t) and unit_investMIP(unit)}
                 * p_gnu(grid, node, unit, 'unitSizeTot')
           )
       )
@@ -1168,9 +1168,9 @@ q_rampSlack(ms(m, s), gnuft_rampCost(grid, node, unit, slack, f, t))
     + (
         + ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )${not uft_online(unit, f, t)}
         + sum(t_invest(t_)${ ord(t_)<=ord(t) },
-            + v_invest_LP(unit, t_)${not uft_onlineLP(unit, f, t) and unit_investLP(unit)}
+            + v_invest_LP(unit, t_)${not uft_online(unit, f, t) and unit_investLP(unit)}
                 * p_gnu(grid, node, unit, 'unitSizeTot')
-            + v_invest_MIP(unit, t_)${not uft_onlineMIP(unit, f, t) and unit_investMIP(unit)}
+            + v_invest_MIP(unit, t_)${not uft_online(unit, f, t) and unit_investMIP(unit)}
                 * p_gnu(grid, node, unit, 'unitSizeTot')
           )
       )
