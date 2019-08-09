@@ -2144,16 +2144,17 @@ q_inertiaMin(group, sft(s, f, t))
     // Kinectic energy in the system
     + sum(gnu_output(grid, node, unit)${    p_gnu(grid, node, unit, 'unitSizeGen')
                                             and gnGroup(grid, node, group)
+                                            and gnuft(grid, node, unit, f, t)
                                             },
         + p_gnu(grid, node, unit, 'inertia')
             * p_gnu(grid ,node, unit, 'unitSizeMVA')
             * [
                 + v_online_LP(unit, s, f+df_central(f,t), t)
-                    ${unit_investLP(unit) and uft_onlineLP(unit, f, t)}
+                    ${uft_onlineLP(unit, f, t)}
                 + v_online_MIP(unit, s, f+df_central(f,t), t)
-                    ${not unit_investLP(unit) and uft_onlineMIP(unit, f, t)}
+                    ${uft_onlineMIP(unit, f, t)}
                 + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
-                    / (p_gnu(grid, node, unit, 'unitSizeGen')*p_unit(unit, 'unitCount'))
+                    / p_gnu(grid, node, unit, 'unitSizeGen')
                 ] // * p_gnu
         ) // END sum(gnu_output)
 
@@ -2172,6 +2173,7 @@ q_instantaneousShareMax(group, sft(s, f, t))
     + sum(gnu(grid, node, unit)${   gnuGroup(grid, node, unit, group)
                                     and p_gnu(grid, node, unit, 'unitSizeGen')
                                     and gnGroup(grid, node, group)
+                                    and gnuft(grid, node, unit, f, t)
                                     },
         + v_gen(grid, node, unit, s, f, t)
         ) // END sum(gnu)
@@ -2204,6 +2206,7 @@ q_instantaneousShareMax(group, sft(s, f, t))
             // Consumption of units
             - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
                                                 and gnGroup(grid, node, group)
+                                                and gnuft(grid, node, unit, f, t)
                                                 },
                 + v_gen(grid, node, unit, s, f, t)
                 ) // END sum(gnu)
@@ -2270,7 +2273,9 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
         } ..
 
     // Availability of units, based on 'availabilityCapacityMargin'
-    + sum(gnu_output(grid, node, unit)${p_gnu(grid, node, unit, 'availabilityCapacityMargin')},
+    + sum(gnu_output(grid, node, unit)${ gnuft(grid, node, unit, f, t)
+                                         and p_gnu(grid, node, unit, 'availabilityCapacityMargin')
+                                         },
         + p_unit(unit, 'availability')
             * p_gnu(grid, node, unit, 'availabilityCapacityMargin')
             * [
@@ -2287,7 +2292,9 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
         ) // END sum(gnu_output)
 
     // Availability of units, including capacity factors for flow units and v_gen for other units
-    + sum(gnu_output(grid, node, unit)${not p_gnu(grid, node, unit, 'availabilityCapacityMargin')},
+    + sum(gnu_output(grid, node, unit)${ gnuft(grid, node, unit, f, t)
+                                         and not p_gnu(grid, node, unit, 'availabilityCapacityMargin')
+                                         },
         // Capacity factors for flow units
         + sum(flowUnit(flow, unit)${ unit_flow(unit) },
             + ts_cf_(flow, node, f, t, s)
@@ -2442,6 +2449,7 @@ q_energyShareMax(group)
                 + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
                                                         and p_gnu(grid, node, unit, 'unitSizeGen')
                                                         and gnGroup(grid, node, group)
+                                                        and gnuft(grid, node, unit, f, t)
                                                         },
                     + v_gen(grid, node, unit, s, f, t)
                     ) // END sum(gnu)
@@ -2454,6 +2462,7 @@ q_energyShareMax(group)
                         ) // END sum(gnGroup)
                     - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
                                                         and gnGroup(grid, node, group)
+                                                        and gnuft(grid, node, unit, f, t)
                                                         },
                         + v_gen(grid, node, unit, s, f, t)
                         ) // END sum(gnu_input)
@@ -2480,6 +2489,7 @@ q_energyShareMin(group)
                 + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
                                                         and p_gnu(grid, node, unit, 'unitSizeGen')
                                                         and gnGroup(grid, node, group)
+                                                        and gnuft(grid, node, unit, f, t)
                                                         },
                     + v_gen(grid, node, unit, s, f, t)
                     ) // END sum(gnu)
@@ -2492,6 +2502,7 @@ q_energyShareMin(group)
                         ) // END sum(gnGroup)
                     - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
                                                         and gnGroup(grid, node, group)
+                                                        and gnuft(grid, node, unit, f, t)
                                                         },
                         + v_gen(grid, node, unit, s, f, t)
                         ) // END sum(gnu_input)
@@ -2510,6 +2521,7 @@ q_energyShareMin(group)
 q_minCons(group, gnu(grid, node, unit), sft(s, f, t))${  p_groupPolicy(group, 'minCons')
                                                          and p_gnu(grid, node, unit, 'unitSizeCons')
                                                          and gnuGroup(grid, node, unit, group)
+                                                         and gnuft(grid, node, unit, f, t)
                                                          } ..
      // Consumption of units
      - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
