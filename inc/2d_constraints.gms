@@ -303,7 +303,7 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
             + [
                 + p_gnu(grid, node, unit, 'unitSizeCons')
                 + p_gnu(grid, node, unit, 'maxCons')${not p_gnu(grid, node, unit, 'unitSizeCons') > 0}
-                    / p_unit(unit, 'unitCount')
+                    / ( p_unit(unit, 'unitCount') + 1${not p_unit(unit, 'unitCount') > 0} )
                 ]
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 * [
