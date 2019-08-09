@@ -299,7 +299,12 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
         * [
             // Online capacity restriction
             + p_gnu(grid, node, unit, 'maxCons')${not uft_online(unit, f, t)} // Use initial maximum if no online variables
-            + p_gnu(grid, node, unit, 'unitSizeCons')
+            // !!! TEMPORARY SOLUTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            + [
+                + p_gnu(grid, node, unit, 'unitSizeCons')
+                + p_gnu(grid, node, unit, 'maxCons')${not p_gnu(grid, node, unit, 'unitSizeCons') > 0}
+                ]
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 * [
                     // Capacity online
                     + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
