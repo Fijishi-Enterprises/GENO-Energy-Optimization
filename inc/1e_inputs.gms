@@ -201,13 +201,17 @@ p_unit(unit, 'unitOutputCapacityTotal')
     = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
 
 // Assume unit sizes based on given maximum capacity parameters and unit counts if able
-p_gnu(gnu(grid, node, unit), 'unitSizeGen')${    p_gnu(grid, node, unit, 'maxGen')
-                                            and p_unit(unit, 'unitCount')
-                                            }
-    = p_gnu(grid, node, unit, 'maxGen') / p_unit(unit, 'unitCount');  // If maxGen and unitCount are given, calculate unitSizeGen based on them.
-p_gnu(gnu(grid, node, unit), 'unitSizeCons')${   p_gnu(grid, node, unit, 'maxCons')
-                                            and p_unit(unit, 'unitCount')
-                                            }
+p_gnu(gnu(grid, node, unit), 'unitSizeGen')
+    ${  not p_gnu(grid, node, unit, 'unitSizeGen')
+        and p_gnu(grid, node, unit, 'maxGen')
+        and p_unit(unit, 'unitCount')
+        }
+    = p_gnu(grid, node, unit, 'maxGen') / p_unit(unit, 'unitCount'); // If maxGen and unitCount are given, calculate unitSizeGen based on them.
+p_gnu(gnu(grid, node, unit), 'unitSizeCons')
+    ${  not p_gnu(grid, node, unit, 'unitSizeCons')
+        and p_gnu(grid, node, unit, 'maxCons')
+        and p_unit(unit, 'unitCount')
+        }
     = p_gnu(grid, node, unit, 'maxCons') / p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
 p_gnu(gnu(grid, node, unit), 'unitSizeTot')
     = p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons');
