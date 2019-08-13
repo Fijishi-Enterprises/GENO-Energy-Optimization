@@ -80,7 +80,7 @@ q_obj ..
                             ) // END sum(restypeDirectionNode)
 
                         // Capacity margin feasibility dummy variable penalties
-                        + sum(gn(grid, node),
+                        + sum(gn(grid, node)${ p_gn(grid, node, 'capacityMargin') },
                             + vq_capacity(grid, node, s, f, t)
                                 * PENALTY_CAPACITY(grid, node)
                             ) // END sum(gn)
