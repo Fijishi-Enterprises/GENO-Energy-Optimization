@@ -112,6 +112,9 @@ if (mType('schedule'),
     mSettings('schedule', 't_forecastJump') = 24;                  // How many time steps before new forecast is available
     mSettings('schedule', 't_improveForecast') = 0;                // Number of time steps ahead of time that the forecast is improved on each solve.
 
+    // Define how/what forecast data is read
+    mSettings(mSolve, 'onlyExistingForecasts') = no; // Read only existing data, zeroes need to be EPS to be recognized as data.
+
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
     mTimeseries_loop_read('schedule', 'ts_unit') = no;
 *    mTimeseries_loop_read('schedule', 'ts_effUnit') = no; // THESE ARE CURRENTLY DISABLED, ENABLE AT OWN RISK
