@@ -520,13 +520,21 @@ loop( unit,
     ); // END loop(effLevelGroupUnit)
 );
 
-* --- Check the start-up fuel fraction related data ---------------------------
+* --- Check fuel fraction related data ----------------------------------------
 
 loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
     if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')) <> 1,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
         put log '!!! Abort: The sum of fixedFuelFraction over start-up fuels needs to be one for all units using start-up fuels!' /;
         abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
+    );
+);
+
+loop( unit_fuel(unit)${sum(fuel, p_uFuel(unit, 'main', fuel, 'maxFuelFraction'))},
+    if(sum(uFuel(unit, 'main', fuel), 1) < 2,
+        put log '!!! Error occurred on unit ' unit.tl:0 /;
+        put log '!!! Abort: maxFuelFraction cannot be applied to units with only a single main fuel!' /;
+        abort "'maxFuelFraction' cannot be applied to units with only a single main fuel!"
     );
 );
 
