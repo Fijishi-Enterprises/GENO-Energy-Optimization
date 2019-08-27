@@ -247,6 +247,7 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     unitSize      "Size of one link for integer investments (MW)"
     invCost       "Investment cost (EUR/MW)"
     annuity       "Investment annuity"
+    ReservePortion "Portion to cover incase fail"
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /

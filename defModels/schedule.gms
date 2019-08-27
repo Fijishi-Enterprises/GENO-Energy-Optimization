@@ -24,7 +24,8 @@ Model schedule /
     q_balance
     q_resDemand
     q_resDemandLargestInfeedUnit
-
+    q_resDemandLargestInfeedIntDown
+    q_resDemandLargestInfeedIntUp
     // Unit Operation
     q_maxDownward
     q_maxUpward

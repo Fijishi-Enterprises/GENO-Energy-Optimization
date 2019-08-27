@@ -49,7 +49,7 @@ Sets
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
     unit_timeseries(unit) "Units with time series enabled"
-    unit_incHRAdditionalConstraints(unit) "Units that use the two additional incremental heat rate constraints" 
+    unit_incHRAdditionalConstraints(unit) "Units that use the two additional incremental heat rate constraints"
 
 * --- Nodes -------------------------------------------------------------------
     node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
@@ -180,7 +180,7 @@ alias(f, f_, f__);
 alias(s, s_, s__);
 alias(grid, grid_, grid_output);
 alias(unit, unit_);
-alias(node, from_node, to_node, node_, node_input, node_output);
+alias(node, from_node, to_node, node_, node_input, node_output, node_fail);
 alias(node, from_node, to_node);
 alias(effSelector, effSelector_);
 alias(effDirect, effDirect_);

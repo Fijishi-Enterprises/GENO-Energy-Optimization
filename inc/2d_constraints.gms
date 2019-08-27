@@ -129,7 +129,7 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), sft(s, f, t))
     =G=
 
     // Demand for reserves
-    + ts_reserveDemand_(restype, up_down, node, f, t)${p_nReserves(node, restype, 'use_time_series')}
+    + ts_reserveDemand(restype, up_down, node, f, t)${p_nReserves(node, restype, 'use_time_series')}
     + p_nReserves(node, restype, up_down)${not p_nReserves(node, restype, 'use_time_series')}
 
     // Reserve demand increase because of units
@@ -197,13 +197,182 @@ q_resDemandLargestInfeedUnit(grid, restypeDirectionNode(restype, 'up', node), un
     =G=
 
     // Demand for reserves of the failing one
-    v_gen(grid,node,unit_,s,f,t) * p_nuReserves(node, unit_, restype, 'portion_of_infeed_to_reserve')
+    + v_gen(grid,node,unit_,s,f,t) * p_nuReserves(node, unit_, restype, 'portion_of_infeed_to_reserve')
 
     // Reserve provisions to another nodes via transfer links
     + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'up', node, node_)},   // If trasferring reserves to another node, increase your own reserves by same amount
         + v_resTransferRightward(restype, 'up', node, node_, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(gn2n_directional)
     + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'up', node, node_)},   // If trasferring reserves to another node, increase your own reserves by same amount
+        + v_resTransferLeftward(restype, 'up', node_, node, s, f+df_reserves(node, restype, f, t), t)
+        ) // END sum(gn2n_directional)
+
+    // Reserve demand feasibility dummy variables
+    - vq_resDemand(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)
+    - vq_resMissing(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+;
+
+* --- N-1 Downward Reserve Demand for interconnector----------------------------------------------------------
+// NOTE! Currently, there are multiple identical instances of the reserve balance equation being generated for each forecast branch even when the reserves are committed and identical between the forecasts.
+// NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
+
+q_resDemandLargestInfeedIntDown(grid, restypeDirectionNode(restype, 'down', node), node_fail, sft(s, f, t))
+    ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+        and not [ restypeReleasedForRealization(restype)
+                  and sft_realized(s, f, t)]
+        and p_gnn(grid, node, node_fail, 'ReservePortion')
+        } ..
+
+    // Reserve provision by capable units on this node
+    + sum(nuft(node, unit, f, t)${nuRescapable(restype, 'down', node, unit)},
+        + v_reserve(restype, 'down', node, unit, s, f+df_reserves(node, restype, f, t), t)
+            * [ // Account for reliability of reserves
+                + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
+                ] // END * v_reserve
+        ) // END sum(nuft)
+
+    // Reserve provision from other reserve categories when they can be shared
+    + sum((nuft(node, unit, f, t), restype_)${p_nuRes2Res(node, unit, restype_, 'down', restype)},
+        + v_reserve(restype_, 'down', node, unit, s, f+df_reserves(node, restype_, f, t), t)
+            * p_nuRes2Res(node, unit, restype_, 'down', restype)
+            * [ // Account for reliability of reserves
+                + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
+                    * p_nuReserves(node, unit, restype_, 'reserveReliability')
+                ] // END * v_reserve
+        ) // END sum(nuft)
+
+    // Reserve provision to this node via transfer links
+    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'down', node_, node) and (ord(node_) eq ord(node_fail))},
+        + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+            * v_resTransferRightward(restype, 'down', node_, node, s, f+df_reserves(node_, restype, f, t), t)
+            * (1-p_gnn(grid, node_, node, 'ReservePortion'))
+          // Reserves from the partly failing transmission line - reduces the need for reserves in the node
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'down', node_, node) and (ord(node_) eq ord(node_fail))},
+        + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+            * v_resTransferLeftward(restype, 'down', node, node_, s, f+df_reserves(node_, restype, f, t), t)
+            * (1-p_gnn(grid, node, node_, 'ReservePortion'))
+          // Reserves from the partly failing transmission line - reduces the need for reserves in the node
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'down', node_, node) and (ord(node_) ne ord(node_fail))},
+        + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+            * v_resTransferRightward(restype, 'down', node_, node, s, f+df_reserves(node_, restype, f, t), t)
+          // Reserves from the partly failing transmission line - reduces the need for reserves in the node
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'down', node_, node) and (ord(node_) ne ord(node_fail))},
+        + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+            * v_resTransferLeftward(restype, 'down', node, node_, s, f+df_reserves(node_, restype, f, t), t)
+          // Reserves from the partly failing transmission line - reduces the need for reserves in the node
+        ) // END sum(gn2n_directional)
+
+    =G=
+
+    // Demand for reserves
+    + p_gnn(grid, node, node_fail, 'ReservePortion')*v_transferRightward(grid, node, node_fail, s, f, t)$p_nReserves(node, restype, 'Trans')
+
+    // Reserve provisions to another nodes via transfer links
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'down', node, node_) and (ord(node_) eq ord(node_fail))},
+          // If trasferring through the failing line, increase your own reserves by the portion
+        + v_resTransferRightward(restype, 'down', node, node_, s, f+df_reserves(node, restype, f, t), t)
+        * p_gnn(grid, node_, node, 'ReservePortion')
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'down', node, node_) and (ord(node_) eq ord(node_fail))},
+          // If trasferring through the failing line, increase your own reserves by the portion
+        + v_resTransferLeftward(restype, 'down', node_, node, s, f+df_reserves(node, restype, f, t), t)
+        * p_gnn(grid, node, node_, 'ReservePortion')
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'down', node, node_) and (ord(node_) ne ord(node_fail))},
+          // If trasferring through the good line, increase your own reserves by same amount
+        + v_resTransferRightward(restype, 'down', node, node_, s, f+df_reserves(node, restype, f, t), t)
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'down', node, node_) and (ord(node_) ne ord(node_fail))},
+          // If trasferring through the good line, increase your own reserves by same amount
+        + v_resTransferLeftward(restype, 'down', node_, node, s, f+df_reserves(node, restype, f, t), t)
+        ) // END sum(gn2n_directional)
+    // Reserve demand feasibility dummy variables
+    - vq_resDemand(restype, 'down', node, s, f+df_reserves(node, restype, f, t), t)
+    - vq_resMissing(restype, 'down', node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+;
+
+* --- N-1 Upward Reserve Demand for interconnector----------------------------------------------------------
+// NOTE! Currently, there are multiple identical instances of the reserve balance equation being generated for each forecast branch even when the reserves are committed and identical between the forecasts.
+// NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
+
+q_resDemandLargestInfeedIntUp(grid, restypeDirectionNode(restype, 'up', node), node_fail, sft(s, f, t))
+    ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+        and not [ restypeReleasedForRealization(restype)
+                  and sft_realized(s, f, t)]
+        and p_gnn(grid, node_fail, node, 'ReservePortion')
+        } ..
+
+    // Reserve provision by capable units on this node
+    + sum(nuft(node, unit, f, t)${nuRescapable(restype, 'up', node, unit)},
+        + v_reserve(restype, 'up', node, unit, s, f+df_reserves(node, restype, f, t), t)
+            * [ // Account for reliability of reserves
+                + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
+                ] // END * v_reserve
+        ) // END sum(nuft)
+
+    // Reserve provision from other reserve categories when they can be shared
+    + sum((nuft(node, unit, f, t), restype_)${p_nuRes2Res(node, unit, restype_, 'up', restype)},
+        + v_reserve(restype_, 'up', node, unit, s, f+df_reserves(node, restype_, f, t), t)
+            * p_nuRes2Res(node, unit, restype_, 'up', restype)
+            * [ // Account for reliability of reserves
+                + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
+                    * p_nuReserves(node, unit, restype_, 'reserveReliability')
+                ] // END * v_reserve
+        ) // END sum(nuft)
+
+    // Reserve provision to this node via transfer links
+    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'up', node_, node) and (ord(node_) eq ord(node_fail))},
+        + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+            * v_resTransferRightward(restype, 'up', node_, node, s, f+df_reserves(node_, restype, f, t), t)
+            * (1-p_gnn(grid, node_, node, 'ReservePortion'))
+          // Reserves from the partly failing transmission line - reduces the need for reserves in the node
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'up', node_, node) and (ord(node_) eq ord(node_fail))},
+        + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+            * v_resTransferLeftward(restype, 'up', node, node_, s, f+df_reserves(node_, restype, f, t), t)
+            * (1-p_gnn(grid, node, node_, 'ReservePortion'))
+          // Reserves from the partly failing transmission line - reduces the need for reserves in the node
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'up', node_, node) and (ord(node_) ne ord(node_fail))},
+        + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+            * v_resTransferRightward(restype, 'up', node_, node, s, f+df_reserves(node_, restype, f, t), t)
+          // Reserves from the partly failing transmission line - reduces the need for reserves in the node
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'up', node_, node) and (ord(node_) ne ord(node_fail))},
+        + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+            * v_resTransferLeftward(restype, 'up', node, node_, s, f+df_reserves(node_, restype, f, t), t)
+          // Reserves from the partly failing transmission line - reduces the need for reserves in the node
+        ) // END sum(gn2n_directional)
+
+    =G=
+
+    // Demand for reserves
+    + p_gnn(grid, node_fail, node, 'ReservePortion')*v_transferLeftward(grid, node, node_fail, s, f, t)$p_nReserves(node, restype, 'Trans')
+
+    // Reserve provisions to another nodes via transfer links
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'up', node, node_) and (ord(node_) eq ord(node_fail))},
+          // If trasferring through the failing line, increase your own reserves by the portion
+        + v_resTransferRightward(restype, 'up', node, node_, s, f+df_reserves(node, restype, f, t), t)
+        * p_gnn(grid, node_, node, 'ReservePortion')
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'up', node, node_) and (ord(node_) eq ord(node_fail))},
+          // If trasferring through the failing line, increase your own reserves by the portion
+        + v_resTransferLeftward(restype, 'up', node_, node, s, f+df_reserves(node, restype, f, t), t)
+        * p_gnn(grid, node, node_, 'ReservePortion')
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'up', node, node_) and (ord(node_) ne ord(node_fail))},
+          // If trasferring through the good line, increase your own reserves by same amount
+        + v_resTransferRightward(restype, 'up', node, node_, s, f+df_reserves(node, restype, f, t), t)
+        ) // END sum(gn2n_directional)
+    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'up', node, node_) and (ord(node_) ne ord(node_fail))},
+          // If trasferring through the good line, increase your own reserves by same amount
         + v_resTransferLeftward(restype, 'up', node_, node, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(gn2n_directional)
 
