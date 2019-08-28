@@ -55,8 +55,7 @@ equations
     q_balance(grid, node, mType, s, f, t) "Energy demand must be satisfied at each node"
     q_resDemand(restype, up_down, node, s, f, t) "Procurement for each reserve type is greater than demand"
     q_resDemandLargestInfeedUnit(grid, restype, up_down, node, unit, s, f, t) "N-1 Reserve"
-    q_resDemandLargestInfeedIntDown(grid, restype, up_down, node, node, s, f, t)
-    q_resDemandLargestInfeedIntUp(grid, restype, up_down, node, node, s, f, t)
+    q_resDemandLargestInfeedTransfer(grid, restype, up_down, node, node, s, f, t)
     // Unit Operation
     q_maxDownward(grid, node, unit, mType, s, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(grid, node, unit, mType, s, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
