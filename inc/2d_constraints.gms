@@ -244,15 +244,14 @@ q_resDemandLargestInfeedTransfer(grid, restypeDirectionNode(restype, 'up', node)
         ) // END sum(nuft)
 
     // Reserve provision to this node via transfer links
+    // SHOULD THE node_fail BE EXCLUDED?
     + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'up', node_, node)},
         + (1 - p_gnn(grid, node_, node, 'transferLoss') )
             * v_resTransferRightward(restype, 'up', node_, node, s, f+df_reserves(node_, restype, f, t), t)
-          // Reserves from the partly failing transmission line - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
     + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'up', node_, node)},
         + (1 - p_gnn(grid, node, node_, 'transferLoss') )
             * v_resTransferLeftward(restype, 'up', node, node_, s, f+df_reserves(node_, restype, f, t), t)
-          // Reserves from the partly failing transmission line - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
 
     =G=
@@ -265,11 +264,11 @@ q_resDemandLargestInfeedTransfer(grid, restypeDirectionNode(restype, 'up', node)
 
     // Reserve provisions to another nodes via transfer links
     + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'up', node, node_)},
-          // If trasferring through the failing line, increase your own reserves by the portion
+          // Reserve transfers to other nodes increase the reserve need of the present node
         + v_resTransferRightward(restype, 'up', node, node_, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(gn2n_directional)
     + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, 'up', node, node_)},
-          // If trasferring through the failing line, increase your own reserves by the portion
+          // Reserve transfers to other nodes increase the reserve need of the present node
         + v_resTransferLeftward(restype, 'up', node_, node, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(gn2n_directional)
 
