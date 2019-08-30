@@ -312,7 +312,7 @@ gn2n(grid, from_node, to_node)${    p_gnn(grid, from_node, to_node, 'transferCap
                                     or p_gnn(grid, from_node, to_node, 'transferCapBidirectional')
                                     or p_gnn(grid, to_node, from_node, 'transferCapBidirectional')
                                     or p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
-                                    or p_gnn(grid, from_node, to_node, 'ReservePortion')
+                                    or p_gnn(grid, from_node, to_node, 'portion_of_transfer_to_reserve')
                                     }
     = yes;
 
