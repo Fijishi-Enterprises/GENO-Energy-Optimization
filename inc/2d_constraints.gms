@@ -331,9 +331,9 @@ q_resDemandLargestInfeedTransfer2(grid, restypeDirectionNode(restype, 'down', no
 
     // Demand for reserves due to potential interconnector failures
     + p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve')
-        * v_transferRightward(grid, node_fail, node, s, f, t)
+        * v_transferLeftward(grid, node_fail, node, s, f, t)
     + p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve')
-        * v_transferLeftward(grid, node, node_fail, s, f, t)
+        * v_transferRightward(grid, node, node_fail, s, f, t)
 
     // Reserve provisions to another nodes via transfer links
     + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, 'up', node, node_)},
