@@ -112,4 +112,5 @@ equations
     q_energyShareMax(group) "Maximum energy share of generation and import from a group of units"
     q_energyShareMin(group) "Minimum energy share of generation and import from a group of units"
     q_minCons(group, grid, node, unit, s, f, t) "Minimum consumption of storage unit when charging"
+    q_ReserveShareMax(group, restype, up_down, node, s, f, t) "Maximum reserve share of a group of units"
 ;

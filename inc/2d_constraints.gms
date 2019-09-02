@@ -2690,6 +2690,64 @@ q_minCons(group, gnu(grid, node, unit), sft(s, f, t))${  p_groupPolicy(group, 'm
     0
 ;
 
+*--- Maximum Share of Reserve Provision --------------------------------
+
+q_ReserveShareMax(group, restypeDirectionNode(restype, up_down, node), sft(s, f, t))
+    ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+        and not [ restypeReleasedForRealization(restype)
+                  and sft_realized(s, f, t)]
+        and p_groupPolicy(group, 'ReserveShareMax')
+        }..
+
+    // Reserve provision from units in the group to a particular node
+    + sum(gnuft(grid, node, unit, f, t)${nuRescapable(restype, up_down, node, unit)
+                                         and gnuGroup(grid, node, unit, group)
+                                         and gnGroup(grid, node, group)
+                                        },
+        + v_reserve(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t)
+            * [ // Account for reliability of reserves
+                + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
+                ] // END * v_reserve
+        ) // END sum(nuft)
+
+    =L=
+
+    + p_groupPolicy(group, 'ReserveShareMax')
+        * [
+    // Reserve provision by units to the node
+            + sum(nuft(node, unit, f, t)${nuRescapable(restype, up_down, node, unit)},
+                  + v_reserve(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t)
+                    * [ // Account for reliability of reserves
+                        + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                        + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
+                      ] // END * v_reserve
+                  ) // END sum(nuft)
+
+    // Reserve provision from other reserve categories when they can be shared
+            + sum((nuft(node, unit, f, t), restype_)${p_nuRes2Res(node, unit, restype_, up_down, restype)},
+                  + v_reserve(restype_, up_down, node, unit, s, f+df_reserves(node, restype_, f, t), t)
+                    * p_nuRes2Res(node, unit, restype_, up_down, restype)
+                    * [ // Account for reliability of reserves
+                        + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                        + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
+                        * p_nuReserves(node, unit, restype_, 'reserveReliability')
+                      ] // END * v_reserve
+                  ) // END sum(nuft)
+
+    // Reserve provision to this node via transfer links
+            + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, up_down, node_, node)},
+                  + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+                  * v_resTransferRightward(restype, up_down, node_, node, s, f+df_reserves(node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
+                  ) // END sum(gn2n_directional)
+            + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, up_down, node_, node)},
+                  + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+                  * v_resTransferLeftward(restype, up_down, node, node_, s, f+df_reserves(node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
+                  ) // END sum(gn2n_directional)
+
+          ] // END * p_groupPolicy
+
+;
 $ifthen exist '%input_dir%/additional_constraints.inc'
    $$include '%input_dir%/additional_constraints.inc'
 $endif
