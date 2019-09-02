@@ -58,7 +58,10 @@ equations
     // Unit Operation
     q_maxDownward(grid, node, unit, mType, s, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(grid, node, unit, mType, s, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
+    q_maxUpward2(grid, node, unit, mType, s, f, t) "Upward commitments will not exceed maximum available capacity or consumed power - offline Res"
+    q_maxUpward3(grid, node, unit, mType, s, f, t) "Upward commitments will not exceed maximum available capacity or consumed power - offline Res"
     q_reserveProvision(restype, up_down, node, unit, s, f, t) "Reserve provision limited for units"
+    q_reserveProvision2(restype, up_down, node, unit, s, f, t) "Reserve provision limited for units offline Res capable"
     q_startshut(mType, s, unit, f, t) "Online capacity now minus online capacity in the previous interval is equal to started up minus shut down capacity"
     q_startuptype(mType, s, starttype, unit, f, t) "Startup type depends on the time the unit has been non-operational"
     q_onlineOnStartUp(s, unit, f, t) "Unit must be online after starting up"
@@ -68,6 +71,7 @@ equations
     q_onlineCyclic(unit, s, s, mType) "Cyclic online state bound for the first and the last states of samples"
     q_genRamp(mType, s, grid, node, unit, f, t) "Record the ramps of units with ramp restricitions or costs"
     q_rampUpLimit(mType, s, grid, node, unit, f, t) "Up ramping limited for units"
+    q_rampUpLimit2(mType, s, grid, node, unit, f, t) "Up ramping limited for units with offline reserve capability"
     q_rampDownLimit(mType, s, grid, node, unit, f, t) "Down ramping limited for units"
     q_rampUpDown(mType, s, grid, node, unit, f, t) "Ramping separated into possibly several upward and downward parts (for different cost levels)"
     q_rampSlack(mType, s, grid, node, unit, slack, f, t) "Upward and downward ramps constrained by slack boundaries (for different cost levels)"

@@ -326,7 +326,7 @@ loop((restypeDirectionNode(restype, up_down, node), gn(grid, node), sft(s, f, t)
             and not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
             }
         = min ( p_nuReserves(node, unit, restype, up_down) * [ p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
-                v_gen.up(grid, node, unit, s, f, t) - v_gen.lo(grid, node, unit, s, f, t) // Generator + consuming unit available unit_elec. output delta
+                v_gen.up(grid, node, unit, s, f, t) - (v_gen.lo(grid, node, unit, s, f, t))${not nuOfflineRescapable(restype, node, unit)} // Generator + consuming unit available unit_elec. output delta
                 ) // END min
 ;
 

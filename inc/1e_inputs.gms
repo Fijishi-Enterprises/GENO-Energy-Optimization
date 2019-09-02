@@ -405,6 +405,24 @@ nuRescapable(restypeDirection(restype, up_down), nu(node, unit))
       }
   = yes;
 
+// Units with offline reserve provision capabilities
+nuOfflineRescapable(restype, nu(node, unit))
+    $ { p_nuReserves(node, unit, restype, 'offlineReserveCapability')
+      }
+  = yes;
+
+// Restypes with offline reserve provision possibility
+offlineRes(restype)
+    $ {sum(nu(node, unit),  p_nuReserves(node, unit, restype, 'offlineReserveCapability'))
+      }
+  = yes;
+
+// Units with offline reserve provision possibility
+offlineResUnit(unit)
+    $ {sum((node, restype),  p_nuReserves(node, unit, restype, 'offlineReserveCapability'))
+      }
+  = yes;
+
 // Node-node connections with reserve transfer capabilities
 restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_)
     $ { p_nnReserves(node, node_, restype, up_down)
@@ -431,6 +449,7 @@ p_nuReserves(nu(node, unit), restype, 'reserveReliability')
     = 1;
 
 // Reserve provision overlap decreases the capacity of the overlapping category
+loop(restype,
 p_nuReserves(nu(node, unit), restype, up_down)
     ${ nuRescapable(restype, up_down, node, unit) }
     = p_nuReserves(node, unit, restype, up_down)
@@ -438,6 +457,7 @@ p_nuReserves(nu(node, unit), restype, up_down)
             + p_nuReserves(node, unit, restype_, up_down)
                 * p_nuRes2Res(node, unit, restype_, up_down, restype)
         ); // END sum(restype_)
+);
 
 * =============================================================================
 * --- Data Integrity Checks ---------------------------------------------------

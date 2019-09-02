@@ -28,7 +28,10 @@ Model invest /
     // Unit Operation
     q_maxDownward
     q_maxUpward
+    q_maxUpward2
+    q_maxUpward3
     q_reserveProvision
+    q_reserveProvision2
     q_startshut
     q_startuptype
     q_onlineOnStartUp
@@ -39,6 +42,7 @@ Model invest /
     q_genRamp
     q_rampUpLimit
     q_rampDownLimit
+    q_rampUpLimit2
     q_rampUpDown
     q_rampSlack
     q_outputRatioFixed

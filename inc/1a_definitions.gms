@@ -362,6 +362,7 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     reserveReliability "Reliability parameter of reserve provisions"
     reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
     portion_of_infeed_to_reserve "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
+    offlineReserveCapability "Proportion of an offline unit which can contribute to a category of reserve"
 /
 
 * --- Efficiency Approximation Related Sets -----------------------------------
