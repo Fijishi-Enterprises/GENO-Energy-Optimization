@@ -25,7 +25,7 @@ Model schedule /
     q_resDemand
     q_resDemandLargestInfeedUnit
     q_resDemandLargestInfeedTransfer
-    q_resDemandLargestInfeedTransfer2
+*    q_resDemandLargestInfeedTransfer2
     // Unit Operation
     q_maxDownward
     q_maxUpward
