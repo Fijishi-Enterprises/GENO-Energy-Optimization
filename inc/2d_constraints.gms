@@ -472,7 +472,7 @@ q_maxUpward2(gnu(grid, node, unit), msft(m, s, f, t))
 
     =L= // must be less than available/online capacity
 
-*    // Consuming units
+    // Consuming units
     - p_gnu(grid, node, unit, 'unitSizeCons')
         * sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
             + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
@@ -503,12 +503,12 @@ q_maxUpward2(gnu(grid, node, unit), msft(m, s, f, t))
                     + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
                     // Investments to non-online capacity
-*                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
-*                                            and not uft_online(unit, f ,t)
-*                                            },
-*                        + (v_invest_LP(unit, t_) - v_online_LP(unit, s, f+df_central(f,t), t))${unit_investLP(unit)}
-*                        + (v_invest_MIP(unit, t_) - v_online_MIP(unit, s, f+df_central(f,t), t))${unit_investMIP(unit)}
-*                        ) // END sum(t_invest)
+                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
+                                            and not uft_online(unit, f ,t)
+                                            },
+                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
+                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
+                        ) // END sum(t_invest)
                     ] // END * p_gnu(unitSizeGen)
             ] // END * p_unit(availability)
 
@@ -528,8 +528,8 @@ q_maxUpward2(gnu(grid, node, unit), msft(m, s, f, t))
             + p_gnu(grid, node, unit, 'unitSizeGen')
                 * [
                     // Capacity online
-                    + (1 - (v_online_LP(unit, s, f+df_central(f,t), t)))${uft_onlineLP(unit, f ,t) and not unit_investLP(unit)}
-                    + (1 - (v_online_MIP(unit, s, f+df_central(f,t), t)))${uft_onlineMIP(unit, f, t)and not unit_investMIP(unit)}
+                    + (p_unit(unit, 'unitCount') - (v_online_LP(unit, s, f+df_central(f,t), t)))${uft_onlineLP(unit, f ,t) and not unit_investLP(unit)}
+                    + (p_unit(unit, 'unitCount') - (v_online_MIP(unit, s, f+df_central(f,t), t)))${uft_onlineMIP(unit, f, t)and not unit_investMIP(unit)}
 
                     // Investments to non-online capacity
                     + sum(t_invest(t_)${    ord(t_)<=ord(t)
@@ -539,13 +539,6 @@ q_maxUpward2(gnu(grid, node, unit), msft(m, s, f, t))
                         + (v_invest_MIP(unit, t_) - v_online_MIP(unit, s, f+df_central(f,t), t))${unit_investMIP(unit)}
                         ) // END sum(t_invest)
 
-                    // Investments to non-online capacity
-*                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
-*                                            and not uft_online(unit, f ,t)
-*                                            },
-*                        + (v_invest_LP(unit, t_) - v_online_LP(unit, s, f+df_central(f,t), t))${unit_investLP(unit)}
-*                        + (v_invest_MIP(unit, t_) - v_online_MIP(unit, s, f+df_central(f,t), t))${unit_investMIP(unit)}
-*                        ) // END sum(t_invest)
 
 
                     ] // END * p_gnu(unitSizeGen)
@@ -1143,7 +1136,7 @@ q_rampUpLimit2(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
     // Ramp speed of the unit?
     + v_genRamp(grid, node, unit, s, f, t)
     + sum(nuRescapable(restype, 'up', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},
-        + v_reserve(restype, 'up', node, unit, s, f+df_reserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+        + (v_reserve(restype, 'up', node, unit, s, f+df_reserves(node, restype, f, t), t))${not offlineRes(restype)} // (v_reserve can be used only if the unit is capable of providing a particular reserve)
         ) // END sum(nuRescapable)
         / p_stepLength(m, f, t)
 
@@ -1164,7 +1157,10 @@ q_rampUpLimit2(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
 
     // Ramping capability of units with an online variable
     + (
-        1
+        + v_online_LP(unit, s, f+df_central(f,t), t)
+            ${uft_onlineLP(unit, f, t)}
+        + v_online_MIP(unit, s, f+df_central(f,t), t)
+            ${uft_onlineMIP(unit, f, t)}
       )
         * p_gnu(grid, node, unit, 'unitSizeTot')
         * p_gnu(grid, node, unit, 'maxRampUp')
