@@ -2697,6 +2697,7 @@ q_ReserveShareMax(group, restypeDirectionNode(restype, up_down, node), sft(s, f,
         and not [ restypeReleasedForRealization(restype)
                   and sft_realized(s, f, t)]
         and p_groupPolicy(group, 'ReserveShareMax')
+        and p_nReserves3D(node, restype, up_down, 'ReserveShareMax')
         }..
 
     // Reserve provision from units in the group to a particular node

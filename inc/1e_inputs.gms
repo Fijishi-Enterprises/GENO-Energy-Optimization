@@ -42,6 +42,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc restypeDirection
     $$loaddc restypeReleasedForRealization
     $$loaddc p_nReserves
+    $$loaddc p_nReserves3D
     $$loaddc p_nuReserves
     $$loaddc p_nnReserves
     $$loaddc p_nuRes2Res

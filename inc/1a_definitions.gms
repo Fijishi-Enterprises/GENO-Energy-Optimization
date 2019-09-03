@@ -364,6 +364,7 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
     portion_of_infeed_to_reserve "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
     ReserveShareMax "Maximum reserve share of a group of units"
+    LossOfTrans
 /
 
 * --- Efficiency Approximation Related Sets -----------------------------------
