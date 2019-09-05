@@ -531,9 +531,8 @@ q_maxUpward2(gnu(grid, node, unit), msft(m, s, f, t))
                     + (p_unit(unit, 'unitCount') - (v_online_LP(unit, s, f+df_central(f,t), t)))${uft_onlineLP(unit, f ,t) and not unit_investLP(unit)}
                     + (p_unit(unit, 'unitCount') - (v_online_MIP(unit, s, f+df_central(f,t), t)))${uft_onlineMIP(unit, f, t)and not unit_investMIP(unit)}
 
-                    // Investments to non-online capacity
+                    // Investments to online capacity with offline reserve capability
                     + sum(t_invest(t_)${    ord(t_)<=ord(t)
-*                                            and not uft_online(unit, f ,t)
                                             },
                         + (v_invest_LP(unit, t_) - v_online_LP(unit, s, f+df_central(f,t), t))${unit_investLP(unit)}
                         + (v_invest_MIP(unit, t_) - v_online_MIP(unit, s, f+df_central(f,t), t))${unit_investMIP(unit)}
