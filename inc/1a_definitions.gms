@@ -214,6 +214,8 @@ param_gn  "Possible parameters for grid, node" /
     boundStartToEnd  "Force the last states to equal the first state"
     forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."
     capacityMargin "Capacity margin used in invest mode (MW)"
+    defaultFrequency "default frequency for each node"
+    ROCOF         "Rate of change of frequency"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /

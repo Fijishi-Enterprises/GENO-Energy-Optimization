@@ -212,6 +212,33 @@ q_resDemandLargestInfeedUnit(grid, restypeDirectionNode(restype, 'up', node), un
     - vq_resMissing(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
 ;
 
+q_RateOfChangeOfFrequency(grid, node, unit_fail(unit_), sft(s, f, t))
+    ${  p_gn(grid, node, 'defaultFrequency')
+        and p_gn(grid, node, 'ROCOF')
+        } ..
+
+    // Kinectic energy in the system
+    [+ sum(gnu_output(grid, node, unit)${   ord(unit) ne ord(unit_)
+                                            },
+        + p_gnu(grid, node, unit, 'inertia')
+            * p_gnu(grid ,node, unit, 'unitSizeMVA')
+            * [
+                + v_online_LP(unit, s, f+df_central(f,t), t)
+                    ${uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, s, f+df_central(f,t), t)
+                    ${uft_onlineMIP(unit, f, t)}
+                + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
+                    / p_gnu(grid, node, unit, 'unitSizeGen')
+                ] // * p_gnu
+        ) // END sum(gnu_output)
+        ]*p_gn(grid, node, 'ROCOF')*2
+
+    =G=
+
+    // Demand for reserves due to a large unit that could fail
+    + v_gen(grid,node,unit_,s,f,t) * p_gn(grid, node, 'defaultFrequency')
+
+;
 
 * --- N-1 Upward reserve demand due to a possibility that an interconnector that is transferring power to the node fails -------------------------------------------------
 // NOTE! Currently, there are multiple identical instances of the reserve balance equation being generated for each forecast branch even when the reserves are committed and identical between the forecasts.
