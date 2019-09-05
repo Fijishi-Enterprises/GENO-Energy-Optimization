@@ -248,7 +248,7 @@ q_resDemandLargestInfeedTransfer(grid, restypeDirectionNode(restype, 'up', node)
     ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
                   and sft_realized(s, f, t)]
-        and p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve')
+        and (p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve') or p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve'))
         and p_nReserves(node, restype, 'LossOfTrans')
         } ..
 
@@ -318,7 +318,7 @@ q_resDemandLargestInfeedTransfer2(grid, restypeDirectionNode(restype, 'down', no
     ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
                   and sft_realized(s, f, t)]
-        and p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve')
+        and (p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve') or p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve'))
         and p_nReserves(node, restype, 'LossOfTrans')
         } ..
 
