@@ -239,7 +239,41 @@ q_RateOfChangeOfFrequency(grid, node, unit_fail(unit_), sft(s, f, t))
     + v_gen(grid,node,unit_,s,f,t) * p_gn(grid, node, 'defaultFrequency')
 
 ;
+q_RateOfChangeOfFrequencyTrans(grid, node, node_fail, sft(s, f, t))
+    ${  p_gn(grid, node, 'defaultFrequency')
+        and p_gn(grid, node, 'ROCOF')
+        } ..
 
+    // Kinectic energy in the system
+    [+ sum(gnu_output(grid, node, unit),
+        + p_gnu(grid, node, unit, 'inertia')
+            * p_gnu(grid ,node, unit, 'unitSizeMVA')
+            * [
+                + v_online_LP(unit, s, f+df_central(f,t), t)
+                    ${uft_onlineLP(unit, f, t)}
+                + v_online_MIP(unit, s, f+df_central(f,t), t)
+                    ${uft_onlineMIP(unit, f, t)}
+                + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
+                    / p_gnu(grid, node, unit, 'unitSizeGen')
+                ] // * p_gnu
+        ) // END sum(gnu_output)
+        ]*p_gn(grid, node, 'ROCOF')*2
+
+    =G=
+
+    // Demand for reserves due to a large unit that could fail
+     // Upward transmission due to potential interconnector failures
+    [+ p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve')
+        * v_transferRightward(grid, node_fail, node, s, f, t)
+    + p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve')
+        * v_transferLeftward(grid, node, node_fail, s, f, t)
+    //Downward transmission  due to potential interconnector failures
+    + p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve')
+        * v_transferLeftward(grid, node_fail, node, s, f, t)
+    + p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve')
+        * v_transferRightward(grid, node, node_fail, s, f, t)] * p_gn(grid, node, 'defaultFrequency')
+
+;
 * --- N-1 Upward reserve demand due to a possibility that an interconnector that is transferring power to the node fails -------------------------------------------------
 // NOTE! Currently, there are multiple identical instances of the reserve balance equation being generated for each forecast branch even when the reserves are committed and identical between the forecasts.
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
@@ -388,7 +422,7 @@ q_resDemandLargestInfeedTransfer2(grid, restypeDirectionNode(restype, 'down', no
 *    ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
 *        and not [ restypeReleasedForRealization(restype)
 *                  and sft_realized(s, f, t)]
-*        and p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve')
+*        and (p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve') and p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve'))
 *        and p_nReserves3D(node, restype, up_down, 'LossOfTrans')
 *        } ..
 *

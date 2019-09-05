@@ -56,6 +56,7 @@ equations
     q_resDemand(restype, up_down, node, s, f, t) "Procurement for each reserve type is greater than demand"
     q_resDemandLargestInfeedUnit(grid, restype, up_down, node, unit, s, f, t) "N-1 Reserve"
     q_RateOfChangeOfFrequency(grid, node, unit, s, f, t) "N-1 Contingency with ROCOF"
+    q_RateOfChangeOfFrequencyTrans(grid, node, node, s, f, t) "N-1 transmission line Contingency with ROCOF"
     q_resDemandLargestInfeedTransfer(grid, restype, up_down, node, node, s, f, t) "N-1 up reserve for transmission lines"
     q_resDemandLargestInfeedTransfer2(grid, restype, up_down, node, node, s, f, t) "N-1 up reserve for transmission lines"
     // Unit Operation
