@@ -26,12 +26,11 @@ Created by:
     Ran Li
     Ciara O'Dwyer
 
-- Based on Stochastic Model Predictive Control method [1].
-- Enables multiple different models (m) to be implemented by changing
-  the temporal structure of the model. (MULTI-MODEL RUNS TO BE IMPLEMENTED)
+This is a GAMS implementation of the Backbone energy system modelling framework
+[1]. Features include:
+- Based on Stochastic Model Predictive Control method [2].
 - Time steps (t) can vary in length.
 - Short term forecast stochasticity (f) and longer term statistical uncertainty (s).
-- Can handle ramp based dispatch in addition to energy blocks. (TO BE IMPLEMENTED)
 
 
 GAMS command line arguments
@@ -63,7 +62,10 @@ GAMS command line arguments
 
 References
 ----------
-[1] K. Nolde, M. Uhr, and M. Morari, ‘Medium term scheduling of a hydro-thermal
+[1] N. Helistö et al., ‘Backbone---An Adaptable Energy Systems Modelling Framework’,
+    Energies, vol. 12, no. 17, p. 3388, Sep. 2019. Available at:
+    https://dx.doi.org/10.3390/en12173388.
+[2] K. Nolde, M. Uhr, and M. Morari, ‘Medium term scheduling of a hydro-thermal
     system using stochastic model predictive control, ’ Automatica, vol. 44,
     no. 6, pp. 1585–1594, Jun. 2008.
 
