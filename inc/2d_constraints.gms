@@ -322,7 +322,7 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
             ] // END * p_unit(availability)
 ;
 
-* --- Maximum Upwards Capacity ------------------------------------------------
+* --- Maximum Upwards Capacity for Production/Consumption and Online Reserves ---
 
 q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
     ${  gnuft(grid, node, unit, f, t)
@@ -342,7 +342,6 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
                 and (unit_investLP(unit) or unit_investMIP(unit))
                 ]
              }
-        and not {  sum(restype, nuOfflineRescapable(restype, node, unit))}
                  }..
 
 
@@ -356,7 +355,8 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
         ) // END sum(gngnu_constrainedOutputRatio)
 
     // Upwards reserve participation
-    + sum(nuRescapable(restype, 'up', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},
+    + sum(nuRescapable(restype, 'up', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+                                                   and not nuOfflineRescapable(restype, node, unit)},
         + v_reserve(restype, 'up', node, unit, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(nuRescapable)
 
@@ -429,30 +429,17 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
             ) // END sum(shutdownCounter)
 ;
 
-* --- Maximum Upwards Capacity Offline ------------------------------------------------
+* --- Maximum Upwards Capacity for Production/Consumption, Online Reserves and Offline Reserves ---
 
 q_maxUpward2(gnu(grid, node, unit), msft(m, s, f, t))
     ${  gnuft(grid, node, unit, f, t)
         and {
-            [   ord(t) < tSolveFirst + smax(restype, p_nReserves(node, restype, 'reserve_length')) // Unit is either providing
+            [   ord(t) < tSolveFirst + smax(restype, p_nReserves(node, restype, 'reserve_length')) // Unit is providing
                 and sum(restype, nuRescapable(restype, 'up', node, unit)) // upward reserves
                 ]
-            or [
-                uft_online(unit, f, t) // or the unit has an online variable
-                and [
-                    [unit_minLoad(unit) and p_gnu(grid, node, unit, 'unitSizeCons')] // consuming units with min_load
-                    or [p_gnu(grid, node, unit, 'maxGen')]                          // generators with an online variable
-                    ]
-                ]
-            or [
-                gnu_output(grid, node, unit) // generators with investment possibility
-                and (unit_investLP(unit) or unit_investMIP(unit))
-                ]
-
-
         }
 
-         and {  sum(restype, nuOfflineRescapable(restype, node, unit))}
+         and {  sum(restype, nuOfflineRescapable(restype, node, unit))}  // and it can provide some reserve products although being offline
 
 }..
 
@@ -470,18 +457,7 @@ q_maxUpward2(gnu(grid, node, unit), msft(m, s, f, t))
         + v_reserve(restype, 'up', node, unit, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(nuRescapable)
 
-    =L= // must be less than available/online capacity
-
-    // Consuming units
-    - p_gnu(grid, node, unit, 'unitSizeCons')
-        * sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
-            + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
-            + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
-            ) // END sum(effGroup)
-        * [
-            + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
-            + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)} // Consuming units are restricted by their min. load (consuming is negative)
-            ] // END * p_gnu(unitSizeCons)
+    =L= // must be less than available capacity
 
     // Generation units
     // Available capacity restrictions
@@ -494,82 +470,20 @@ q_maxUpward2(gnu(grid, node, unit), msft(m, s, f, t))
             + 1${not unit_flow(unit)}
             ] // END * p_unit(availability)
         * [
-            // Online capacity restriction
-            + p_gnu(grid, node, unit, 'maxGen')${not uft_online(unit, f, t)} // Use initial maxGen if no online variables
+            // Capacity restriction
             + p_gnu(grid, node, unit, 'unitSizeGen')
                 * [
-                    // Capacity online
-                    + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f ,t)}
-                    + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+                    // Existing capacity
+                    + p_unit(unit, 'unitCount')
 
-                    // Investments to non-online capacity
+                    // Investments to new capacity
                     + sum(t_invest(t_)${    ord(t_)<=ord(t)
-                                            and not uft_online(unit, f ,t)
-                                            },
+                                             },
                         + v_invest_LP(unit, t_)${unit_investLP(unit)}
                         + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
                         ) // END sum(t_invest)
                     ] // END * p_gnu(unitSizeGen)
             ] // END * p_unit(availability)
-
-    // Capable Offline Generation
-    // Available capacity restrictions
-    + p_unit(unit, 'availability') // Generation units are restricted by their (available) capacity
-        * [
-            // Capacity factor for flow units
-            + sum(flowUnit(flow, unit),
-                + ts_cf_(flow, node, f, t, s)
-                ) // END sum(flow)
-            + 1${not unit_flow(unit)}
-            ] // END * p_unit(availability)
-        * [
-            // Online capacity restriction
-            + p_gnu(grid, node, unit, 'maxGen')${not uft_online(unit, f, t)} // Use initial maxGen if no online variables
-            + p_gnu(grid, node, unit, 'unitSizeGen')
-                * [
-                    // Capacity online
-                    + (p_unit(unit, 'unitCount') - (v_online_LP(unit, s, f+df_central(f,t), t)))${uft_onlineLP(unit, f ,t) and not unit_investLP(unit)}
-                    + (p_unit(unit, 'unitCount') - (v_online_MIP(unit, s, f+df_central(f,t), t)))${uft_onlineMIP(unit, f, t)and not unit_investMIP(unit)}
-
-                    // Investments to online capacity with offline reserve capability
-                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
-                                            },
-                        + (v_invest_LP(unit, t_) - v_online_LP(unit, s, f+df_central(f,t), t))${unit_investLP(unit)}
-                        + (v_invest_MIP(unit, t_) - v_online_MIP(unit, s, f+df_central(f,t), t))${unit_investMIP(unit)}
-                        ) // END sum(t_invest)
-
-
-
-                    ] // END * p_gnu(unitSizeGen)
-
-            ] // END * p_unit(availability)
-
-
-    // Units in run-up phase neet to keep up with the run-up rate
-    + p_gnu(grid, node, unit, 'unitSizeGen')
-        * sum(unitStarttype(unit, starttype)${uft_startupTrajectory(unit, f, t)},
-            sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
-                + [
-                    + v_startup_LP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
-                    + v_startup_MIP(unit, starttype, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
-                    ]
-                    * p_uCounter_runUpMax(unit, counter)
-                ) // END sum(runUpCounter)
-            ) // END sum(unitStarttype)
-
-    // Units in shutdown phase need to keep up with the shutdown rate
-    + p_gnu(grid, node, unit, 'unitSizeGen')
-        * sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and uft_shutdownTrajectory(unit, f, t)}, // Sum over the shutdown intervals
-            + [
-                + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                    ${ uft_onlineLP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
-                + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                    ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
-                ]
-                * p_uCounter_shutdownMax(unit, counter)
-            ) // END sum(shutdownCounter)
 ;
 
 * --- Maximum Upwards Capacity Offline ------------------------------------------------
@@ -671,40 +585,28 @@ q_reserveProvision(nuRescapable(restypeDirectionNode(restype, up_down, node), un
             ] // How to consider reserveReliability in the case of investments when we typically only have "realized" time steps?
 ;
 
-* --- Reserve Provision of Units with Investments Offline Res -----------------------------
+* --- Online Reserve Provision of Units with Online Variables -----------------
 
 q_reserveProvision2(nuRescapable(restypeDirectionNode(restype, up_down, node), unit), sft(s, f, t))
     ${  ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and nuft(node, unit, f, t)
-        and (unit_investLP(unit) or unit_investMIP(unit))
         and not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
-        and OfflineResUnit(unit)
+        and uft_online(unit, f ,t)
+        and not nuOfflineRescapable(restype, node, unit)
         }..
 
-    + v_reserve(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t)${not offlineRes(restype)}
+    + v_reserve(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t)
 
     =L=
 
     + p_nuReserves(node, unit, restype, up_down)
         * [
-            + sum(grid, p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons') )  // Reserve sets and variables are currently lacking the grid dimension...
-*            + sum(t_invest(t_)${ ord(t_)<=ord(t) },
-*                + v_invest_LP(unit, t_)${unit_investLP(unit)}
-*                    * sum(grid, p_gnu(grid, node, unit, 'unitSizeTot')) // Reserve sets and variables are currently lacking the grid dimension...
-*                + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-*                    * sum(grid, p_gnu(grid, node, unit, 'unitSizeTot')) // Reserve sets and variables are currently lacking the grid dimension...
-*                ) // END sum(t_)
+            + sum(grid, p_gnu(grid, node, unit, 'unitSizeTot'))  // Reserve sets and variables are currently lacking the grid dimension...
             ]
-
-          * [
-
-                    + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f ,t)}
-                    + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
-
-
-
-           ]
-
+        * [
+            + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f ,t)}
+            + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+            ]
         * p_unit(unit, 'availability') // Taking into account availability...
         * [
             // ... and capacity factor for flow units
@@ -713,6 +615,7 @@ q_reserveProvision2(nuRescapable(restypeDirectionNode(restype, up_down, node), u
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
             ] // How to consider reserveReliability in the case of investments when we typically only have "realized" time steps?
+
 ;
 
 
@@ -995,12 +898,12 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
               or unit_investLP(unit)
               or unit_investMIP(unit)
               ]
-         and not {  sum(restype, nuOfflineRescapable(restype, node, unit))}
         } ..
 
     // Ramp speed of the unit?
     + v_genRamp(grid, node, unit, s, f, t)
-    + sum(nuRescapable(restype, 'up', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},
+    + sum(nuRescapable(restype, 'up', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+                                                   and not nuOfflineRescapable(restype, node, unit)},
         + v_reserve(restype, 'up', node, unit, s, f+df_reserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
         ) // END sum(nuRescapable)
         / p_stepLength(m, f, t)
