@@ -58,9 +58,13 @@ if (mType('invest'),
 
     // Define the probability (weight) of samples
     p_msProbability('invest', s) = 0;
-    p_msProbability('invest', 's000') = 8760/504;
-    p_msProbability('invest', 's001') = 8760/504;
-    p_msProbability('invest', 's002') = 8760/504;
+    p_msProbability('invest', 's000') = 1;
+    p_msProbability('invest', 's001') = 1;
+    p_msProbability('invest', 's002') = 1;
+    p_msWeight('invest', s) = 0;
+    p_msWeight('invest', 's000') = 8760/504;
+    p_msWeight('invest', 's001') = 8760/504;
+    p_msWeight('invest', 's002') = 8760/504;
 
 * --- Define Time Step Intervals ----------------------------------------------
 

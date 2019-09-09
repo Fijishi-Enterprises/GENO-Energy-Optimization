@@ -422,7 +422,8 @@ Option clear = p_msft_probability;
 p_msft_probability(msft(mSolve, s, f, t))
     = p_mfProbability(mSolve, f)
         / sum(f_${ft(f_, t)},
-              p_mfProbability(mSolve, f_)) * p_msProbability(mSolve, s);
+              p_mfProbability(mSolve, f_)) * p_msProbability(mSolve, s)
+              * p_msWeight(mSolve, s);
 
 
 * --- Calculate sample displacements ------------------------------------------

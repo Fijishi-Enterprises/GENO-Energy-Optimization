@@ -54,6 +54,8 @@ if (mType('building'),
     // Define the probability (weight) of samples
     p_msProbability('building', s) = 0;
     p_msProbability('building', 's000') = 1;
+    p_msWeight('building', s) = 0;
+    p_msWeight('building', 's000') = 1;
 
 * --- Define Time Step Intervals ----------------------------------------------
 

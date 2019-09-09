@@ -64,6 +64,8 @@ if (mType('schedule'),
     // Define the probability (weight) of samples
     p_msProbability('schedule', s) = 0;
     p_msProbability('schedule', 's000') = 1;
+    p_msWeight('schedule', s) = 0;
+    p_msWeight('schedule', 's000') = 1;
 
     // If using long-term samples, uncomment
     //ms_central('schedule', 's001') = yes;
