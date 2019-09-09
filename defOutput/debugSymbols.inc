@@ -102,7 +102,11 @@ v_help_inc
 
     // Unit Operation
     q_maxDownward
+    q_maxDownward2
     q_maxUpward
+    q_maxUpward2
+    q_reserveProvision
+    q_reserveProvision2
     q_startshut
     q_startuptype
     q_onlineLimit

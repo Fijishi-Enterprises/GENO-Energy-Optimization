@@ -27,6 +27,7 @@ Model invest /
 
     // Unit Operation
     q_maxDownward
+    q_maxDownward2
     q_maxUpward
     q_maxUpward2
 *    q_maxUpward3

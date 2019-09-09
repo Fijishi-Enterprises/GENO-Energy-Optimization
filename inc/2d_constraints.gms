@@ -211,7 +211,7 @@ q_resDemandLargestInfeedUnit(grid, restypeDirectionNode(restype, 'up', node), un
     - vq_resDemand(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)
     - vq_resMissing(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
 ;
-* --- Maximum Downward Capacity -----------------------------------------------
+* --- Maximum Downward Capacity for Production/Consumption and Online Reserves -----------------------------------------------
 
 q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
     ${  gnuft(grid, node, unit, f, t)
@@ -243,7 +243,8 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
         ) // END sum(gngnu_constrainedOutputRatio)
 
     // Downward reserve participation
-    - sum(nuRescapable(restype, 'down', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},
+    - sum(nuRescapable(restype, 'down', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+                                                     and not nuOfflineRescapable(restype, node, unit)},
         + v_reserve(restype, 'down', node, unit, s, f+df_reserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
         ) // END sum(nuRescapable)
 
@@ -320,6 +321,64 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
                         ) // END sum(t_invest)
                     ] // END * p_gnu(unitSizeCons)
             ] // END * p_unit(availability)
+;
+
+* --- Maximum Downward Capacity for Production/Consumption, Online Reserves and Offline Reserves ---
+
+q_maxDownward2(gnu(grid, node, unit), msft(m, s, f, t))
+    ${  gnuft(grid, node, unit, f, t)
+        and {
+            [   ord(t) < tSolveFirst + smax(restype, p_nReserves(node, restype, 'reserve_length')) // Unit is providing
+                and sum(restype, nuRescapable(restype, 'down', node, unit)) // downward reserves
+                ]
+        }
+
+         and {  sum(restype, nuOfflineRescapable(restype, node, unit))}  // and it can provide some reserve products although being offline
+
+}..
+
+    // Energy generation/consumption
+    + v_gen(grid, node, unit, s, f, t)
+
+    // Considering output constraints (e.g. cV line)
+    + sum(gngnu_constrainedOutputRatio(grid, node, grid_output, node_, unit),
+        + p_gnu(grid_output, node_, unit, 'cV')
+            * v_gen(grid_output, node_, unit, s, f, t)
+        ) // END sum(gngnu_constrainedOutputRatio)
+
+    // Downward reserve participation
+    - sum(nuRescapable(restype, 'down', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},
+        + v_reserve(restype, 'down', node, unit, s, f+df_reserves(node, restype, f, t), t)
+        ) // END sum(nuRescapable)
+
+    =G= // Must be greater than maximum consumption
+
+    // Consuming units
+    // Available capacity restrictions
+    - p_unit(unit, 'availability') // Consumption units are also restricted by their (available) capacity
+        * [
+            // Capacity factors for flow units
+            + sum(flowUnit(flow, unit),
+                + ts_cf_(flow, node, f, t, s)
+                ) // END sum(flow)
+            + 1${not unit_flow(unit)}
+            ] // END * p_unit(availability)
+        * [
+            // Existing capacity
+            + p_gnu(grid, node, unit, 'maxCons')
+            // Investments to new capacity
+            + [
+                + p_gnu(grid, node, unit, 'unitSizeCons')
+                ]
+                * [
+                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
+                                            },
+                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
+                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
+                        ) // END sum(t_invest)
+                    ] // END * p_gnu(unitSizeCons)
+            ] // END * p_unit(availability)
+
 ;
 
 * --- Maximum Upwards Capacity for Production/Consumption and Online Reserves ---
@@ -1170,7 +1229,8 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
 
     // Ramp speed of the unit?
     + v_genRamp(grid, node, unit, s, f, t)
-    - sum(nuRescapable(restype, 'down', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')},
+    - sum(nuRescapable(restype, 'down', node, unit)${ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+                                                     and not nuOfflineRescapable(restype, node, unit)},
         + v_reserve(restype, 'down', node, unit, s, f+df_reserves(node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
         ) // END sum(nuRescapable)
         / p_stepLength(m, f, t)

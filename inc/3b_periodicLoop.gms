@@ -66,6 +66,7 @@ Option clear = q_resDemand;
 
 // Unit Operation
 Option clear = q_maxDownward;
+Option clear = q_maxDownward2;
 Option clear = q_maxUpward;
 Option clear = q_maxUpward2;
 Option clear = q_maxUpward3;

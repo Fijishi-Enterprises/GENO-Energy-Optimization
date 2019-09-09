@@ -57,6 +57,7 @@ equations
     q_resDemandLargestInfeedUnit(grid, restype, up_down, node, unit, s, f, t) "N-1 Reserve"
     // Unit Operation
     q_maxDownward(grid, node, unit, mType, s, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
+    q_maxDownward2(grid, node, unit, mType, s, f, t) "Downward commitments will not undercut power plant maximum elec. consumption - offline Res"
     q_maxUpward(grid, node, unit, mType, s, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
     q_maxUpward2(grid, node, unit, mType, s, f, t) "Upward commitments will not exceed maximum available capacity or consumed power - offline Res"
     q_maxUpward3(grid, node, unit, mType, s, f, t) "Upward commitments will not exceed maximum available capacity or consumed power - offline Res"
