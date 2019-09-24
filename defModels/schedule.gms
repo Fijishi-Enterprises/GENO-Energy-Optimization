@@ -24,8 +24,8 @@ Model schedule /
     q_balance
     q_resDemand
     q_resDemandLargestInfeedUnit
-    q_RateOfChangeOfFrequency
-    q_RateOfChangeOfFrequencyTrans
+    q_rateOfChangeOfFrequencyUnit
+    q_rateOfChangeOfFrequencyTransfer
     q_resDemandLargestInfeedTransfer
     q_resDemandLargestInfeedTransfer2
     // Unit Operation

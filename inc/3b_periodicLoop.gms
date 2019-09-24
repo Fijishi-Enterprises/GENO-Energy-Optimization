@@ -63,6 +63,11 @@ Option clear = vq_resMissing;
 Option clear = q_obj;
 Option clear = q_balance;
 Option clear = q_resDemand;
+Option clear = q_resDemandLargestInfeedUnit;
+Option clear = q_rateOfChangeOfFrequencyUnit;
+Option clear = q_rateOfChangeOfFrequencyTransfer;
+Option clear = q_resDemandLargestInfeedTransfer;
+Option clear = q_resDemandLargestInfeedTransfer2;
 
 // Unit Operation
 Option clear = q_maxDownward;

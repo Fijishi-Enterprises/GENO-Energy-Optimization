@@ -212,68 +212,92 @@ q_resDemandLargestInfeedUnit(grid, restypeDirectionNode(restype, 'up', node), un
     - vq_resMissing(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
 ;
 
-q_RateOfChangeOfFrequency(grid, node, unit_fail(unit_), sft(s, f, t))
-    ${  p_gn(grid, node, 'defaultFrequency')
-        and p_gn(grid, node, 'ROCOF')
+q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
+    ${  p_groupPolicy(group, 'defaultFrequency')
+        and p_groupPolicy(group, 'ROCOF')
+        and uft(unit_, f, t)
+        and sum(gnu_output(grid, node, unit_)${gnGroup(grid, node, group)}, 1) // only units with output capacity 'inside the group'
         } ..
 
-    // Kinectic energy in the system
-    [+ sum(gnu_output(grid, node, unit)${   ord(unit) ne ord(unit_)
-                                            },
-        + p_gnu(grid, node, unit, 'inertia')
-            * p_gnu(grid ,node, unit, 'unitSizeMVA')
-            * [
-                + v_online_LP(unit, s, f+df_central(f,t), t)
-                    ${uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, s, f+df_central(f,t), t)
-                    ${uft_onlineMIP(unit, f, t)}
-                + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
-                    / p_gnu(grid, node, unit, 'unitSizeGen')
-                ] // * p_gnu
-        ) // END sum(gnu_output)
-        ]*p_gn(grid, node, 'ROCOF')*2
+    // Kinetic/rotational energy in the system
+    + p_groupPolicy(group, 'ROCOF')*2
+        * [
+            + sum(gnu_output(grid, node, unit)${   ord(unit) ne ord(unit_)
+                                                   and gnGroup(grid, node, group)
+                                                   and gnuft(grid, node, unit, f, t)
+                                                   },
+                + p_gnu(grid, node, unit, 'inertia')
+                    * p_gnu(grid ,node, unit, 'unitSizeMVA')
+                    * [
+                        + v_online_LP(unit, s, f+df_central(f,t), t)
+                            ${uft_onlineLP(unit, f, t)}
+                        + v_online_MIP(unit, s, f+df_central(f,t), t)
+                            ${uft_onlineMIP(unit, f, t)}
+                        + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
+                            / p_gnu(grid, node, unit, 'unitSizeGen')
+                        ] // * p_gnu
+                ) // END sum(gnu_output)
+            ] // END * p_groupPolicy
 
     =G=
 
-    // Demand for reserves due to a large unit that could fail
-    + v_gen(grid,node,unit_,s,f,t) * p_gn(grid, node, 'defaultFrequency')
-
+    // Demand for kinetic/rotational energy due to a large unit that could fail
+    + p_groupPolicy(group, 'defaultFrequency')
+        * sum(gnu_output(grid, node, unit_)${   gnGroup(grid, node, group)
+                                                },
+            + v_gen(grid, node, unit_ , s, f, t)
+            ) // END sum(gnu_output)
 ;
-q_RateOfChangeOfFrequencyTrans(grid, node, node_fail, sft(s, f, t))
-    ${  p_gn(grid, node, 'defaultFrequency')
-        and p_gn(grid, node, 'ROCOF')
+
+q_rateOfChangeOfFrequencyTransfer(group, gn(grid, node_), node_fail, sft(s, f, t))
+    ${  p_groupPolicy(group, 'defaultFrequency')
+        and p_groupPolicy(group, 'ROCOF')
+        and gnGroup(grid, node_, group) // only interconnectors where one end is 'inside the group'
+        and not gnGroup(grid, node_fail, group) // and the other end is 'outside the group'
+        and [ p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_reserve')
+              or p_gnn(grid, node_fail, node_, 'portion_of_transfer_to_reserve')
+              ]
         } ..
 
-    // Kinectic energy in the system
-    [+ sum(gnu_output(grid, node, unit),
-        + p_gnu(grid, node, unit, 'inertia')
-            * p_gnu(grid ,node, unit, 'unitSizeMVA')
-            * [
-                + v_online_LP(unit, s, f+df_central(f,t), t)
-                    ${uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, s, f+df_central(f,t), t)
-                    ${uft_onlineMIP(unit, f, t)}
-                + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
-                    / p_gnu(grid, node, unit, 'unitSizeGen')
-                ] // * p_gnu
-        ) // END sum(gnu_output)
-        ]*p_gn(grid, node, 'ROCOF')*2
+    // Kinetic/rotational energy in the system
+    + p_groupPolicy(group, 'ROCOF')*2
+        * [
+            + sum(gnu_output(grid, node, unit)${   gnGroup(grid, node, group)
+                                                   and gnuft(grid, node, unit, f, t)
+                                                   },
+                + p_gnu(grid, node, unit, 'inertia')
+                    * p_gnu(grid ,node, unit, 'unitSizeMVA')
+                    * [
+                        + v_online_LP(unit, s, f+df_central(f,t), t)
+                            ${uft_onlineLP(unit, f, t)}
+                        + v_online_MIP(unit, s, f+df_central(f,t), t)
+                            ${uft_onlineMIP(unit, f, t)}
+                        + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
+                            / p_gnu(grid, node, unit, 'unitSizeGen')
+                        ] // * p_gnu
+                ) // END sum(gnu_output)
+            ] // END * p_groupPolicy
 
     =G=
 
-    // Demand for reserves due to a large unit that could fail
-     // Upward transmission due to potential interconnector failures
-    [+ p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve')
-        * v_transferRightward(grid, node_fail, node, s, f, t)
-    + p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve')
-        * v_transferLeftward(grid, node, node_fail, s, f, t)
-    //Downward transmission  due to potential interconnector failures
-    + p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve')
-        * v_transferLeftward(grid, node_fail, node, s, f, t)
-    + p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve')
-        * v_transferRightward(grid, node, node_fail, s, f, t)] * p_gn(grid, node, 'defaultFrequency')
-
+    // Demand for kinetic/rotational energy due to a large interconnector that could fail
+    + p_groupPolicy(group, 'defaultFrequency')
+        * [
+            // Loss of import due to potential interconnector failures
+            + p_gnn(grid, node_fail, node_, 'portion_of_transfer_to_reserve')
+                * v_transferRightward(grid, node_fail, node_, s, f, t)
+                * (1 - p_gnn(grid, node_fail, node_, 'transferLoss') )
+            + p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_reserve')
+                * v_transferLeftward(grid, node_, node_fail, s, f, t)
+                * (1 - p_gnn(grid, node_, node_fail, 'transferLoss') )
+            // Loss of export due to potential interconnector failures
+            + p_gnn(grid, node_fail, node_, 'portion_of_transfer_to_reserve')
+                * v_transferLeftward(grid, node_fail, node_, s, f, t)
+            + p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_reserve')
+                * v_transferRightward(grid, node_, node_fail, s, f, t)
+            ] // END * p_groupPolicy
 ;
+
 * --- N-1 Upward reserve demand due to a possibility that an interconnector that is transferring power to the node fails -------------------------------------------------
 // NOTE! Currently, there are multiple identical instances of the reserve balance equation being generated for each forecast branch even when the reserves are committed and identical between the forecasts.
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
@@ -282,7 +306,9 @@ q_resDemandLargestInfeedTransfer(grid, restypeDirectionNode(restype, 'up', node)
     ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
                   and sft_realized(s, f, t)]
-        and (p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve') or p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve'))
+        and [ p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve')
+              or p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve')
+              ]
         and p_nReserves(node, restype, 'LossOfTrans')
         } ..
 
@@ -352,7 +378,9 @@ q_resDemandLargestInfeedTransfer2(grid, restypeDirectionNode(restype, 'down', no
     ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
                   and sft_realized(s, f, t)]
-        and (p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve') or p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve'))
+        and [ p_gnn(grid, node, node_fail, 'portion_of_transfer_to_reserve')
+              or p_gnn(grid, node_fail, node, 'portion_of_transfer_to_reserve')
+              ]
         and p_nReserves(node, restype, 'LossOfTrans')
         } ..
 
