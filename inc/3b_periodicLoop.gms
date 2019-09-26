@@ -354,11 +354,6 @@ loop(s_scenario(s, scenario)$(ord(s) > 1 and ord(scenario) > 1),
              = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
     );
 
-    loop(gn_scenarios(grid, node, param_gnBoundaryTypes),
-      dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-          = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
-    );
-
     loop(gn_scenarios(flow, node, timeseries),
         dt_scenarioOffset(flow, node, timeseries, s)
             = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
@@ -448,12 +443,27 @@ df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + max(mSettings(mSolve, 't_j
                                                           min(mSettings(mSolve, 't_perfectForesight'),
                                                               currentForecastLength))}
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
+// Displacement to reach the realized forecast
+loop(mf_realization(mSolve, f_),
+    df_realization(f_solve(f), t)$[ord(t) >= tSolveFirst
+                                   and ord(t) <= tSolveFirst + currentForecastLength
+                                  ]
+      = ord(f_) - ord(f);
+);
 // Central forecast for the long-term scenarios comes from a special forecast label
 if(mSettings(mSolve, 'scenarios') > 1,
     loop((ms_initial(mSolve, s), mf_central(mSolve, f)),
         df_scenario(f_solve(f), t_active(t))${ord(t) > msEnd(mSolve, s)}
           = sum(mf_scenario(mSolve, f_), ord(f_) - ord(f));
     );
+);
+// Check that df_forecast and df_scenario do not overlap
+loop(ft(f, t),
+  if(df_realization(f, t) and df_scenario(f, t),
+      put log "!!! Overlapping period of using realization and scenarios"/;
+      put log "!!! Check forecast lengths, `gn_scenarios` and `gn_forecasts`"/;
+      abort "Overlapping realization and scenarios!";
+  );
 );
 
 // Forecast displacement between central and forecasted intervals at the end of forecast horizon

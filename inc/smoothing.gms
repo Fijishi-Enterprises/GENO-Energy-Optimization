@@ -31,7 +31,10 @@ $endif
     = min(p_tsMaxValue(%linking_set%, '%timeseries%'),
           max(p_tsMinValue(%linking_set%, '%timeseries%'),
               %timeseries%_(%linking_set%, f, t, s)
-              + (%timeseries%(%linking_set%, f_, t_)
+              + (%timeseries%(%linking_set%,
+                              f_ + (df_realization(f_, t_)
+                                    $(not gn_forecasts(%linking_set%, '%timeseries%'))),
+                              t_)
                  - %timeseries%(%linking_set%,
                              f + (df_scenario(f, t)$gn_scenarios(%linking_set%,
                                                                  '%timeseries%')),

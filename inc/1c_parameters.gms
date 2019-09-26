@@ -126,6 +126,7 @@ Parameters
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
     df_reserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
     df_scenario(f, t) "Forecast index displacement needed to get central forecast data for long-term scenarios"
+    df_realization(f, t) "Displacement needed to reach the realized forecast on the current time step when no forecast is available"
 
     // Sample displacement arrays
     ds(s, t) "Displacement needed to reach the sample of previous time step"

@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - All input files, including *inputData.gdx*, are optional
 - Enabling different combinations of LP and MIP online and invest variables
 - Separate availability parameter for output units in the capacity margin constraint
+- Parameter `gn_forecasts(*, node, timeseries)` to tell which nodes and timeseries use forecasts
 
 ### Changed 
 - Updated tool defintions for Sceleton Titan and Spine Toolbox

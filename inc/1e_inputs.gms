@@ -581,3 +581,9 @@ loop(timeseries$(not sameas(timeseries, 'ts_cf')),
 p_autocorrelation(flowNode, 'ts_cf') = 0;
 p_tsMinValue(flowNode, 'ts_cf') = 0;
 p_tsMaxValue(flowNode, 'ts_cf') = 1;
+
+* By default all nodes use forecasts for all timeseries
+gn_forecasts(gn, timeseries) = yes;
+gn_forecasts(flowNode, timeseries) = yes;
+gn_forecasts(restype, node, 'ts_reserveDemand') = yes;
+

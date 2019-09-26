@@ -49,7 +49,7 @@ Sets
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
     unit_timeseries(unit) "Units with time series enabled"
-    unit_incHRAdditionalConstraints(unit) "Units that use the two additional incremental heat rate constraints" 
+    unit_incHRAdditionalConstraints(unit) "Units that use the two additional incremental heat rate constraints"
 
 * --- Nodes -------------------------------------------------------------------
     node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
@@ -128,7 +128,8 @@ Sets
     s_prev(s) "Temporary set for previous sample"
 $if defined scenario
     s_scenario(s, scenario) "Which samples belong to which scenarios"
-    gn_scenarios(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"
+    gn_forecasts(*, node, timeseries) "Which grid/flow, node and timeseries use short-term forecasts"
+    gn_scenarios(*, node, timeseries) "Which grid/flow, node and timeseries have data for long-term scenarios"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
