@@ -128,7 +128,7 @@ $include '%input_dir%/modelsInit.gms'
 
 * === Simulation ==============================================================
 $include 'inc/3a_periodicInit.gms'  // Initialize modelling loop
-loop(modelSolves(mSolve, tSolve),
+loop(modelSolves(mSolve, tSolve)$(execError = 0),
     solveCount = solveCount + 1;
     $$include 'inc/3b_periodicLoop.gms'         // Update modelling loop
     $$include 'inc/3c_inputsLoop.gms'           // Read input data that is updated within the loop
@@ -167,5 +167,5 @@ execute_unload '%output_dir%/results.gdx',
 $ife %debug%>0
 execute_unload '%output_dir%/debug.gdx';
 
-if(errorcount > 0, abort errorcount);
+if(execError, abort execError);
 * === THE END =================================================================

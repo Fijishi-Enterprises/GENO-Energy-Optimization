@@ -31,7 +31,7 @@ set metadata(*) /
    'GAMS system' '%system.gstring%'
 $include 'version'
 /;
-if(errorcount > 0, metadata('FAILED') = yes);
+if(execError > 0, metadata('FAILED') = yes);
 
 put f_info
 put "¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤"/;
