@@ -124,7 +124,7 @@ loop(m,
     r_gnuFOMCost(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
             * [
-                + p_gnu(grid, node, unit, 'maxGen') // Not in v_obj 
+                + p_gnu(grid, node, unit, 'maxGen') // Not in v_obj
                 + p_gnu(grid, node, unit, 'maxCons') // Not in v_obj
                 + r_invest(unit)
                     * p_gnu(grid, node, unit, 'unitSizeTot')
@@ -260,9 +260,9 @@ loop(m,
             ); // END sum(ft_realizedNoReset)
 
     // Total dummy reserve provisions over the simulation
-    r_nTotalqResDemand(restypeDirectionNode(restype, up_down, node))
+    r_nTotalqResDemand(restypeDirectionGroup(restype, up_down, group))
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
-            + r_qResDemand(restype, up_down, node, f, t)
+            + r_qResDemand(restype, up_down, group, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
@@ -296,8 +296,8 @@ r_balanceMarginal(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(
     = 1e6 * r_balanceMarginal(grid, node, f, t);
 
 // Reserve balance
-r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
-    = 1e6 * r_resDemandMarginal(restype, up_down, node, f, t);
+r_resDemandMarginal(restypeDirectionGroup(restype, up_down, group), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
+    = 1e6 * r_resDemandMarginal(restype, up_down, group, f, t);
 
 * --- Total Generation Results ------------------------------------------------
 

@@ -97,11 +97,11 @@ loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))
         = v_resTransferLeftward.l(restype, up_down, node, to_node, s, f+df_reserves(to_node, restype, f, t), t);
 
     // Dummy reserve demand changes
-    r_qResDemand(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
-        = vq_resDemand.l(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t);
+    r_qResDemand(restype, up_down, group, f+df_reservesGroup(group, restype, f, t), t)
+        = vq_resDemand.l(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t);
 
-    r_qResMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
-        = vq_resMissing.l(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t);
+    r_qResMissing(restype, up_down, group, f+df_reservesGroup(group, restype, f, t), t)
+        = vq_resMissing.l(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t);
 
 ); // END loop(restypeDirectionNode, sft)
 
@@ -137,8 +137,8 @@ loop(sft_realized(s, f, t),
         = q_balance.m(grid, node, mSolve, s, f, t)
     ;
     // q_resDemand marginal values
-    r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        = q_resDemand.m(restype, up_down, node, s, f, t)
+    r_resDemandMarginal(restypeDirectionGroup(restype, up_down, group), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = q_resDemand.m(restype, up_down, group, s, f, t)
     ;
     // v_stateSlack values for calculation of realized costs later on
     r_stateSlack(gn_stateSlack(grid, node), slack, f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]

@@ -476,22 +476,34 @@ df_reserves(node, restype, ft(f, t))
         and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - mod(tSolveFirst - 1 + p_nReserves(node, restype, 'gate_closure') + p_nReserves(node, restype, 'update_frequency') - p_nReserves(node, restype, 'update_offset'), p_nReserves(node, restype, 'update_frequency'))
         }
     = sum(f_${ mf_realization(mSolve, f_) }, ord(f_) - ord(f)) + Eps; // The Eps ensures that checks to see if df_reserves exists return positive even if the displacement is zero.
+Option clear = df_reservesGroup;
+df_reservesGroup(group, restype, ft(f, t))
+    ${  p_groupReserves(group, restype, 'update_frequency')
+        and p_groupReserves(group, restype, 'gate_closure')
+        and ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'gate_closure')
+                                  + p_groupReserves(group, restype, 'update_frequency')
+                                  - mod(tSolveFirst - 1 + p_groupReserves(group, restype, 'gate_closure')
+                                                    + p_groupReserves(group, restype, 'update_frequency')
+                                                    - p_groupReserves(group, restype, 'update_offset'),
+                                    p_groupReserves(group, restype, 'update_frequency'))
+        }
+    = sum(f_${ mf_realization(mSolve, f_) }, ord(f_) - ord(f)) + Eps; // The Eps ensures that checks to see if df_reserves exists return positive even if the displacement is zero.
 
 // Set of ft-steps where the reserves are locked due to previous commitment
 Option clear = ft_reservesFixed;
-ft_reservesFixed(node, restype, f_solve(f), t_active(t))
+ft_reservesFixed(group, restype, f_solve(f), t_active(t))
     ${  mf_realization(mSolve, f)
         and not tSolveFirst = mSettings(mSolve, 't_start') // No reserves are locked on the first solve!
-        and p_nReserves(node, restype, 'update_frequency')
-        and p_nReserves(node, restype, 'gate_closure')
-        and ord(t) <= tSolveFirst + p_nReserves(node, restype, 'gate_closure')
-                                  + p_nReserves(node, restype, 'update_frequency')
+        and p_groupReserves(group, restype, 'update_frequency')
+        and p_groupReserves(group, restype, 'gate_closure')
+        and ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'gate_closure')
+                                  + p_groupReserves(group, restype, 'update_frequency')
                                   - mod(tSolveFirst - 1
-                                          + p_nReserves(node, restype, 'gate_closure')
+                                          + p_groupReserves(group, restype, 'gate_closure')
                                           - mSettings(mSolve, 't_jump')
-                                          + p_nReserves(node, restype, 'update_frequency')
-                                          - p_nReserves(node, restype, 'update_offset'),
-                                        p_nReserves(node, restype, 'update_frequency'))
+                                          + p_groupReserves(group, restype, 'update_frequency')
+                                          - p_groupReserves(group, restype, 'update_offset'),
+                                        p_groupReserves(group, restype, 'update_frequency'))
                                   - mSettings(mSolve, 't_jump')
         and not [   restypeReleasedForRealization(restype) // Free desired reserves for the to-be-realized time steps
                     and ft_realized(f, t)

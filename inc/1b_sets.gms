@@ -56,6 +56,7 @@ Sets
     flowNode(flow, node) "Nodes with flows"
 
 * --- Sets bounding geography and units ---------------------------------------
+    group "A group of units, transfer links, nodes, etc."
     gn(grid, node) "Grids and their nodes"
 * NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
     gn2n(grid, node, node) "All (directional) transfer links between nodes in specific energy grids"
@@ -79,6 +80,8 @@ Sets
     restypeDirection(restype, up_down) "Different combinations of reserve types and directions"
     restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
     resTypeDirectionNodeNode(restype, up_down, node, node) "Node node connections that can transfer reserves"
+    restypeDirectionGroup(restype, up_down, group)
+    restypeDirectionGridNodeGroup(restype, up_down, grid, node, group)
     nuRescapable(restype, up_down, node, unit) "Units capable and available to provide particular reserves"
     restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
 
@@ -102,7 +105,7 @@ Sets
     ft(f, t) "Combination of forecasts and t:s in the current solve"
     ft_realized(f, t) "Realized ft"
     ft_realizedNoReset(f, t) "Full set of realized ft, facilitates calculation of results"
-    ft_reservesFixed(node, restype, f, t) "Forecast-time steps with reserves fixed due to commitments on a previous solve."
+    ft_reservesFixed(group, restype, f, t) "Forecast-time steps with reserves fixed due to commitments on a previous solve."
     mft(mType, f, t) "Combination of forecasts and t:s in the current model solve"
     msf(mType, s, f) "Combination of samples and forecasts in the models"
     msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
@@ -156,7 +159,6 @@ $if defined scenario
     shutdownCounter(unit, counter) "Counter used for unit shutdown intervals"
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
-    group "A group of units, transfer links, nodes, etc."
     uGroup(unit, group) "Units in particular groups"
     gnuGroup(grid, node, unit, group) "Combination of grids, nodes and units in particular groups"
     gn2nGroup(grid, node, node, group) "Transfer links in particular groups"

@@ -102,12 +102,12 @@ $offtext
     if (mTimeseries_loop_read(mSolve, 'ts_reserveDemand'),
         put_utility 'gdxin' / '%input_dir%/ts_reserveDemand/' tSolve.tl:0 '.gdx';
         execute_load ts_reserveDemand_update=ts_reserveDemand;
-        ts_reserveDemand(restypeDirectionNode(restype, up_down, node), f_solve(f), tt_forecast(t))
+        ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
                 and (mSettings(mSolve, 'onlyExistingForecasts')
-                     -> ts_reserveDemand_update(restype, up_down, node, f, t)) // Update only existing values (zeroes need to be EPS)
+                     -> ts_reserveDemand_update(restype, up_down, group, f, t)) // Update only existing values (zeroes need to be EPS)
                 }
-            = ts_reserveDemand_update(restype, up_down, node, f, t);
+            = ts_reserveDemand_update(restype, up_down, group, f, t);
     ); // END if('ts_reserveDemand')
 
     // Update ts_node
@@ -194,8 +194,8 @@ $offtext
         ts_cf(flowNode(flow, node), f, tt(t))
             = ts_cf(flow, node, f, t) - ts_cf(flow, node, f+ddf(f), t);
         // ts_reserveDemand
-        ts_reserveDemand(restypeDirectionNode(restype, up_down, node), f, tt(t))
-            = ts_reserveDemand(restype, up_down, node, f, t) - ts_reserveDemand(restype, up_down, node, f+ddf(f), t);
+        ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
+            = ts_reserveDemand(restype, up_down, group, f, t) - ts_reserveDemand(restype, up_down, group, f+ddf(f), t);
         // ts_node
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) - ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
@@ -243,11 +243,11 @@ $offtext
                     * ts_cf(flow, node, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
         // ts_reserveDemand
-        ts_reserveDemand(restypeDirectionNode(restype, up_down, node), f, tt(t))
+        ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
             = [ + (ord(t) - tSolveFirst)
-                    * ts_reserveDemand(restype, up_down, node, f, t)
+                    * ts_reserveDemand(restype, up_down, group, f, t)
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
-                    * ts_reserveDemand(restype, up_down, node, f+ddf_(f), t)
+                    * ts_reserveDemand(restype, up_down, group, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
         // ts_node
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
@@ -280,8 +280,8 @@ $offtext
         ts_cf(flowNode(flow, node), f, tt(t))
             = max(min(ts_cf(flow, node, f, t) + ts_cf(flow, node, f+ddf(f), t), 1), 0); // Ensure that capacity factor forecasts remain between 0-1
         // ts_reserveDemand
-        ts_reserveDemand(restypeDirectionNode(restype, up_down, node), f, tt(t))
-            = max(ts_reserveDemand(restype, up_down, node, f, t) + ts_reserveDemand(restype, up_down, node, f+ddf(f), t), 0); // Ensure that reserve demand forecasts remains positive
+        ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
+            = max(ts_reserveDemand(restype, up_down, group, f, t) + ts_reserveDemand(restype, up_down, group, f+ddf(f), t), 0); // Ensure that reserve demand forecasts remains positive
         // ts_node
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) + ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
@@ -336,11 +336,11 @@ $offtext
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
     // Reserves relevant only until reserve_length
-    ts_reserveDemand_(restypeDirectionNode(restype, up_down, node), ft(f, tt_interval(t)))
-      ${ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')  }
+    ts_reserveDemand_(restypeDirectionGroup(restype, up_down, group), ft(f, tt_interval(t)))
+      ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')  }
         = sum(tt_aggregate(t, t_),
-            ts_reserveDemand(restype, up_down, node,
-                f + (df_scenario(f, t)$gn_scenarios(restype, node, 'ts_reserveDemand')),
+            ts_reserveDemand(restype, up_down, group,
+                f + (df_scenario(f, t)${sum(gnGroup(grid, node, group), gn_scenarios(restype, node, 'ts_reserveDemand'))} ),
                 t_+ dt_circular(t_))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);

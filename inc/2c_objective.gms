@@ -72,10 +72,10 @@ q_obj ..
                             ) // END sum(inc_dec)
 
                         // Reserve provision feasibility dummy variable penalties
-                        + sum(restypeDirectionNode(restype, up_down, node),
-                            + vq_resDemand(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t)
+                        + sum(restypeDirectionGroup(restype, up_down, group),
+                            + vq_resDemand(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t)
                                 * PENALTY_RES(restype, up_down)
-                            + vq_resMissing(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t)${ ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t) }
+                            + vq_resMissing(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t)${ ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t) }
                                 * PENALTY_RES_MISSING(restype, up_down)
                             ) // END sum(restypeDirectionNode)
 

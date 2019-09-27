@@ -90,23 +90,23 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
 // NOTE! Currently, there are multiple identical instances of the reserve balance equation being generated for each forecast branch even when the reserves are committed and identical between the forecasts.
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
 
-q_resDemand(restypeDirectionNode(restype, up_down, node), sft(s, f, t))
-    ${  ord(t) < tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
+    ${  ord(t) < tSolveFirst + p_groupReserves(group, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
                   and sft_realized(s, f, t)]
         } ..
 
-    // Reserve provision by capable units on this node
-    + sum(nuft(node, unit, f, t)${nuRescapable(restype, up_down, node, unit)},
+    // Reserve provision by capable units on this group
+    + sum(gnuft(grid, node, unit, f, t)${gnGroup(grid, node, group) and nuRescapable(restype, up_down, node, unit)},
         + v_reserve(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t)
             * [ // Account for reliability of reserves
                 + 1${sft_realized(s, f+df_reserves(node, restype, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
                 + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
                 ] // END * v_reserve
-        ) // END sum(nuft)
+        ) // END sum(gnuft)
 
     // Reserve provision from other reserve categories when they can be shared
-    + sum((nuft(node, unit, f, t), restype_)${p_nuRes2Res(node, unit, restype_, up_down, restype)},
+    + sum((gnuft(grid, node, unit, f, t), restype_)${gnGroup(grid, node, group) and p_nuRes2Res(node, unit, restype_, up_down, restype)},
         + v_reserve(restype_, up_down, node, unit, s, f+df_reserves(node, restype_, f, t), t)
             * p_nuRes2Res(node, unit, restype_, up_down, restype)
             * [ // Account for reliability of reserves
@@ -114,14 +114,20 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), sft(s, f, t))
                 + p_nuReserves(node, unit, restype, 'reserveReliability')${not sft_realized(s, f+df_reserves(node, restype, f, t), t)}
                     * p_nuReserves(node, unit, restype_, 'reserveReliability')
                 ] // END * v_reserve
-        ) // END sum(nuft)
+        ) // END sum(gnuft)
 
-    // Reserve provision to this node via transfer links
-    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, up_down, node_, node)},
+    // Reserve provision to this group via transfer links
+    + sum(gn2n_directional(grid, node_, node)${gnGroup(grid, node, group)
+                                               and not gnGroup(grid, node_, group)
+                                               and restypeDirectionNodeNode(restype, up_down, node_, node)
+                                               },
         + (1 - p_gnn(grid, node_, node, 'transferLoss') )
             * v_resTransferRightward(restype, up_down, node_, node, s, f+df_reserves(node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
-    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, up_down, node_, node)},
+    + sum(gn2n_directional(grid, node, node_)${gnGroup(grid, node, group)
+                                               and not gnGroup(grid, node_, group)
+                                               and restypeDirectionNodeNode(restype, up_down, node_, node)
+                                               },
         + (1 - p_gnn(grid, node, node_, 'transferLoss') )
             * v_resTransferLeftward(restype, up_down, node, node_, s, f+df_reserves(node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
@@ -129,26 +135,32 @@ q_resDemand(restypeDirectionNode(restype, up_down, node), sft(s, f, t))
     =G=
 
     // Demand for reserves
-    + ts_reserveDemand(restype, up_down, node, f, t)${p_nReserves(node, restype, 'use_time_series')}
-    + p_nReserves(node, restype, up_down)${not p_nReserves(node, restype, 'use_time_series')}
+    + ts_reserveDemand(restype, up_down, group, f, t)${p_groupReserves(group, restype, 'use_time_series')}
+    + p_groupReserves(group, restype, up_down)${not p_groupReserves(group, restype, 'use_time_series')}
 
     // Reserve demand increase because of units
-    + sum(nuft(node, unit, f, t)${p_nuReserves(node, unit, restype, 'reserve_increase_ratio')}, // Could be better to have 'reserve_increase_ratio' separately for up and down directions
+    + sum(gnuft(grid, node, unit, f, t)${gnGroup(grid, node, group) and p_nuReserves(node, unit, restype, 'reserve_increase_ratio')}, // Could be better to have 'reserve_increase_ratio' separately for up and down directions
         + sum(gnu(grid, node, unit), v_gen(grid, node, unit, s, f, t)) // Reserve sets and variables are currently lacking the grid dimension...
             * p_nuReserves(node, unit, restype, 'reserve_increase_ratio')
         ) // END sum(nuft)
 
-    // Reserve provisions to another nodes via transfer links
-    + sum(gn2n_directional(grid, node, node_)${restypeDirectionNodeNode(restype, up_down, node, node_)},   // If trasferring reserves to another node, increase your own reserves by same amount
+    // Reserve provisions to other groups via transfer links
+    + sum(gn2n_directional(grid, node, node_)${gnGroup(grid, node, group)
+                                               and not gnGroup(grid, node_, group)
+                                               and restypeDirectionNodeNode(restype, up_down, node, node_)
+                                               },   // If trasferring reserves to another node, increase your own reserves by same amount
         + v_resTransferRightward(restype, up_down, node, node_, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(gn2n_directional)
-    + sum(gn2n_directional(grid, node_, node)${restypeDirectionNodeNode(restype, up_down, node, node_)},   // If trasferring reserves to another node, increase your own reserves by same amount
+    + sum(gn2n_directional(grid, node_, node)${gnGroup(grid, node, group)
+                                               and not gnGroup(grid, node_, group)
+                                               and restypeDirectionNodeNode(restype, up_down, node, node_)
+                                               },   // If trasferring reserves to another node, increase your own reserves by same amount
         + v_resTransferLeftward(restype, up_down, node_, node, s, f+df_reserves(node, restype, f, t), t)
         ) // END sum(gn2n_directional)
 
     // Reserve demand feasibility dummy variables
-    - vq_resDemand(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t)
-    - vq_resMissing(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+    - vq_resDemand(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t)
+    - vq_resMissing(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t)${ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t)}
 ;
 
 * --- N-1 Reserve Demand ----------------------------------------------------------
@@ -208,8 +220,8 @@ q_resDemandLargestInfeedUnit(grid, restypeDirectionNode(restype, 'up', node), un
         ) // END sum(gn2n_directional)
 
     // Reserve demand feasibility dummy variables
-    - vq_resDemand(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)
-    - vq_resMissing(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+*    - vq_resDemand(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)
+*    - vq_resMissing(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
 ;
 
 q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
@@ -366,8 +378,8 @@ q_resDemandLargestInfeedTransfer(grid, restypeDirectionNode(restype, 'up', node)
         ) // END sum(gn2n_directional)
 
     // Reserve demand feasibility dummy variables
-    - vq_resDemand(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)
-    - vq_resMissing(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+*    - vq_resDemand(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)
+*    - vq_resMissing(restype, 'up', node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
 ;
 
 * --- N-1 Downward reserve demand due to a possibility that an interconnector that is transferring power to the node fails -------------------------------------------------
@@ -438,8 +450,8 @@ q_resDemandLargestInfeedTransfer2(grid, restypeDirectionNode(restype, 'down', no
         ) // END sum(gn2n_directional)
 
     // Reserve demand feasibility dummy variables
-    - vq_resDemand(restype, 'down', node, s, f+df_reserves(node, restype, f, t), t)
-    - vq_resMissing(restype, 'down', node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
+*    - vq_resDemand(restype, 'down', node, s, f+df_reserves(node, restype, f, t), t)
+*    - vq_resMissing(restype, 'down', node, s, f+df_reserves(node, restype, f, t), t)${ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)}
 ;
 
 * --- N-1 Upward reserve demand due to a possibility that an interconnector that is transferring power to the node fails -------------------------------------------------
@@ -738,7 +750,8 @@ q_reserveProvision(nuRescapable(restypeDirectionNode(restype, up_down, node), un
     ${  ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')
         and nuft(node, unit, f, t)
         and (unit_investLP(unit) or unit_investMIP(unit))
-        and not ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
+        and not sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group),
+                    ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t))
         } ..
 
     + v_reserve(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t)
@@ -2111,8 +2124,10 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), sft(s, f, t))
 q_reserveProvisionRightward(restypeDirectionNodeNode(restype, up_down, node, node_), sft(s, f, t))
     ${  sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit'))
         and sum(grid, gn2n_directional(grid, node, node_))
-        and not [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
-                 or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t)
+        and not [   sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group),
+                        ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t))
+                 or sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node_, group),
+                        ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t))
                  ]
         } ..
 
@@ -2141,9 +2156,11 @@ q_reserveProvisionRightward(restypeDirectionNodeNode(restype, up_down, node, nod
 q_reserveProvisionLeftward(restypeDirectionNodeNode(restype, up_down, node_, node), sft(s, f, t))
     ${  sum(grid, p_gnn(grid, node, node_, 'transferCapInvLimit'))
         and sum(grid, gn2n_directional(grid, node, node_))
-        and not [   ft_reservesFixed(node, restype, f+df_reserves(node, restype, f, t), t)
-                    or ft_reservesFixed(node_, restype, f+df_reserves(node_, restype, f, t), t)
-                    ]
+        and not [   sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group),
+                        ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t))
+                 or sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node_, group),
+                        ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t))
+                 ]
         } ..
 
     + v_resTransferLeftward(restype, up_down, node, node_, s, f+df_reserves(node, restype, f, t), t) // df_reserves based on the receiving node
