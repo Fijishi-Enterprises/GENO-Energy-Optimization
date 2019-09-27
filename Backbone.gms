@@ -145,7 +145,6 @@ $ifthene.debug %debug%>1
             $$include defOutput/debugSymbols.inc
         ;
 $endif.debug
-    if(execError, put log "!!! Errors encountered: " execError:0:0);
 );
 
 $if exist '%input_dir%/3z_modelsClose.gms' $include '%input_dir%/3z_modelsClose.gms';
@@ -166,6 +165,8 @@ execute_unload '%output_dir%/results.gdx',
 
 $ife %debug%>0
 execute_unload '%output_dir%/debug.gdx';
-
-if(execError, abort execError);
+if(execError,
+   putclose log "!!! Errors encountered: " execError:0:0/;
+   abort "FAILED";
+);
 * === THE END =================================================================
