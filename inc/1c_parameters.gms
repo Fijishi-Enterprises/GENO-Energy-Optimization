@@ -187,9 +187,6 @@ Parameters
     p_tsMaxValue(*, node, timeseries) "Maximum allowed value of timeseries in grid/flow and node"
 ;
 
-* Reset values for some parameters
-Options clear = ts_influx_std, clear = ts_cf_std;
-
 * --- Other time dependent parameters -----------------------------------------
 Parameters
     p_storageValue(grid, node, t) "Value of stored something at the end of a time step"

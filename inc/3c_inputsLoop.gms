@@ -452,6 +452,9 @@ This avoids a discontinuity `jump' after the initial sample.
     Transm. Distrib., vol. 12, no. 2, pp. 441 - 447, 2018.
 $offtext
 
+* Check that we have values for the autocorrelations
+$ifthen.autocorr defined p_autocorrelation
+
 // Do smoothing
 if(mSettings(mSolve, 'scenarios'),  // Only do smooting if using long-term scenarios
     // Select the initial sample, first `t` not in it and `f` of the last `t` in it
@@ -462,3 +465,4 @@ if(mSettings(mSolve, 'scenarios'),  // Only do smooting if using long-term scena
         $$batinclude 'inc/smoothing.gms' ts_cf
     );
 ); // END if('scenarios')
+$endif.autocorr

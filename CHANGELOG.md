@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Removed hard-coded `elec grids` from *setVariableLimits* and *rampSched files*
+- Time series smooting not working at all (#100)
 
 ## [1.1] - 2019-04-17
 ### Added
