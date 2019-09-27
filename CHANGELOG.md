@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed 
 - Updated tool defintions for Sceleton Titan and Spine Toolbox
+- The program will now stop looping in case of execution errors.
 
 ### Fixed
 - Removed hard-coded `elec grids` from *setVariableLimits* and *rampSched files*
