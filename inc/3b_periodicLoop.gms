@@ -444,25 +444,24 @@ df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + max(mSettings(mSolve, 't_j
                                                               currentForecastLength))}
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
 // Displacement to reach the realized forecast
+Option clear = df_realization;
 loop(mf_realization(mSolve, f_),
-    df_realization(f_solve(f), t)$[ord(t) >= tSolveFirst
-                                   and ord(t) <= tSolveFirst + currentForecastLength
-                                  ]
+    df_realization(ft(f, t))$[ord(t) <= tSolveFirst + currentForecastLength]
       = ord(f_) - ord(f);
 );
 // Central forecast for the long-term scenarios comes from a special forecast label
+Option clear = df_scenario;
 if(mSettings(mSolve, 'scenarios') > 1,
-    loop((ms_initial(mSolve, s), mf_central(mSolve, f)),
-        df_scenario(f_solve(f), t_active(t))${ord(t) > msEnd(mSolve, s)}
-          = sum(mf_scenario(mSolve, f_), ord(f_) - ord(f));
+    loop((msft(ms_central(mSolve, s), f, t), mf_scenario(mSolve, f_)),
+        df_scenario(ft(f, t)) = ord(f_) - ord(f);
     );
 );
 // Check that df_forecast and df_scenario do not overlap
 loop(ft(f, t),
-  if(df_realization(f, t) and df_scenario(f, t),
+  if(df_realization(f, t) <> 0 and df_scenario(f, t) <> 0,
       put log "!!! Overlapping period of using realization and scenarios"/;
       put log "!!! Check forecast lengths, `gn_scenarios` and `gn_forecasts`"/;
-      abort "Overlapping realization and scenarios!";
+      execError = execError + 1;
   );
 );
 
