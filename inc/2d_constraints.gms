@@ -2118,7 +2118,7 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
         and tSolveFirst = mSettings(m, 't_start')
         }..
 
-    // Initial value of the state of the node at the start of the sample
+    // Initial value of the state of the node at the start of the sample s
     + sum(mst_start(m, s, t),
         + sum(sft(s, f, t),
             + v_state(grid, node, s, f+df(f,t+dt(t)), t+dt(t))
@@ -2127,12 +2127,28 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
 
     =E=
 
-    // State of the node at the end of the sample
-    + sum(mst_end(m, s_, t_),
-        + sum(sft(s_, f_, t_),
-            + v_state(grid, node, s_, f_, t_)
+    // Initial value of the state of the node at the start of the sample s_
+    + sum(mst_start(m, s_, t),
+        + sum(sft(s_, f, t),
+            + v_state(grid, node, s_, f+df(f,t+dt(t)), t+dt(t))
             ) // END sum(ft)
-        ) // END sum(mst_end)
+        ) // END sum(mst_start)
+    // Change in the state value over the sample s_, multiplied by sample s_ temporal weight
+    + p_msWeight(m, s_)
+        * [
+            // State of the node at the end of the sample s_
+            + sum(mst_end(m, s_, t),
+                + sum(sft(s_, f, t),
+                    + v_state(grid, node, s_, f, t)
+                    ) // END sum(ft)
+                ) // END sum(mst_end)
+            // State of the node at the end of the sample s_
+            - sum(mst_start(m, s_, t),
+                + sum(sft(s_, f, t),
+                    + v_state(grid, node, s_, f+df(f,t+dt(t)), t+dt(t))
+                    ) // END sum(ft)
+                ) // END sum(mst_start)
+            ] // END * p_msWeight(m, s_)
 ;
 
 *--- Minimum Inertia ----------------------------------------------------------
