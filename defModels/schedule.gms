@@ -23,11 +23,12 @@ Model schedule /
     q_obj
     q_balance
     q_resDemand
-*    q_resDemandLargestInfeedUnit
-*    q_rateOfChangeOfFrequencyUnit
-*    q_rateOfChangeOfFrequencyTransfer
-*    q_resDemandLargestInfeedTransfer
-*    q_resDemandLargestInfeedTransfer2
+    q_resDemandLargestInfeedUnit
+    q_rateOfChangeOfFrequencyUnit
+    q_rateOfChangeOfFrequencyTransfer
+*    q_resDemandLargestInfeedTransferUp
+*    q_resDemandLargestInfeedTransferDown
+    q_resDemandLargestInfeedTransfer
     // Unit Operation
     q_maxDownward
     q_maxUpward

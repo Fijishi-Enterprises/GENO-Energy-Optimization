@@ -182,8 +182,7 @@ alias(f, f_, f__);
 alias(s, s_, s__);
 alias(grid, grid_, grid_output);
 alias(unit, unit_);
-alias(node, from_node, to_node, node_, node_input, node_output, node_fail);
-alias(node, from_node, to_node);
+alias(node, from_node, to_node, node_, node_input, node_output, node_fail, node_left, node_right);
 alias(effSelector, effSelector_);
 alias(effDirect, effDirect_);
 alias(effDirectOff, effDirectOff_);
@@ -197,6 +196,7 @@ alias(hr, hr_, hr__);
 alias(fuel, fuel_);
 alias(effLevel, effLevel_);
 alias(restype, restype_);
+alias(group, group_);
 
 
 *if(active('rampSched'),

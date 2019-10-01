@@ -54,11 +54,12 @@ equations
     q_obj "Objective function"
     q_balance(grid, node, mType, s, f, t) "Energy demand must be satisfied at each node"
     q_resDemand(restype, up_down, group, s, f, t) "Procurement for each reserve type is greater than demand"
-    q_resDemandLargestInfeedUnit(grid, restype, up_down, node, unit, s, f, t) "N-1 Reserve"
+    q_resDemandLargestInfeedUnit(restype, up_down, group, unit, s, f, t) "N-1 reserve for units"
     q_rateOfChangeOfFrequencyUnit(group, unit, s, f, t) "N-1 unit contingency with ROCOF"
     q_rateOfChangeOfFrequencyTransfer(group, grid, node, node, s, f, t) "N-1 transmission line contingency with ROCOF"
-    q_resDemandLargestInfeedTransfer(grid, restype, up_down, node, node, s, f, t) "N-1 up reserve for transmission lines"
-    q_resDemandLargestInfeedTransfer2(grid, restype, up_down, node, node, s, f, t) "N-1 down reserve for transmission lines"
+    q_resDemandLargestInfeedTransferUp(restype, up_down, group, grid, node, node, s, f, t) "N-1 up reserve for transmission lines"
+    q_resDemandLargestInfeedTransferDown(restype, up_down, group, grid, node, node, s, f, t) "N-1 down reserve for transmission lines"
+    q_resDemandLargestInfeedTransfer(restype, up_down, group, grid, node, node, s, f, t) "N-1 up/down reserve for transmission lines"
     // Unit Operation
     q_maxDownward(grid, node, unit, mType, s, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(grid, node, unit, mType, s, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
@@ -114,5 +115,5 @@ equations
     q_energyShareMax(group) "Maximum energy share of generation and import from a group of units"
     q_energyShareMin(group) "Minimum energy share of generation and import from a group of units"
     q_minCons(group, grid, node, unit, s, f, t) "Minimum consumption of storage unit when charging"
-    q_ReserveShareMax(group, restype, up_down, node, s, f, t) "Maximum reserve share of a group of units"
+    q_ReserveShareMax(group, restype, up_down, group, s, f, t) "Maximum reserve share of a group of units"
 ;

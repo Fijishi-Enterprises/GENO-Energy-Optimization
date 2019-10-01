@@ -66,8 +66,9 @@ Option clear = q_resDemand;
 Option clear = q_resDemandLargestInfeedUnit;
 Option clear = q_rateOfChangeOfFrequencyUnit;
 Option clear = q_rateOfChangeOfFrequencyTransfer;
+Option clear = q_resDemandLargestInfeedTransferUp;
+Option clear = q_resDemandLargestInfeedTransferDown;
 Option clear = q_resDemandLargestInfeedTransfer;
-Option clear = q_resDemandLargestInfeedTransfer2;
 
 // Unit Operation
 Option clear = q_maxDownward;
@@ -124,6 +125,7 @@ Option clear = q_emissioncap;
 Option clear = q_energyShareMax;
 Option clear = q_energyShareMin;
 Option clear = q_minCons;
+Option clear = q_ReserveShareMax;
 
 * --- Temporary Time Series ---------------------------------------------------
 
