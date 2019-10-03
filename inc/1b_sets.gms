@@ -78,11 +78,11 @@ Sets
 * --- Reserve types -----------------------------------------------------------
     restype "Reserve types"
     restypeDirection(restype, up_down) "Different combinations of reserve types and directions"
-    restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
-    resTypeDirectionNodeNode(restype, up_down, node, node) "Node node connections that can transfer reserves"
+    restypeDirectionGridNode(restype, up_down, grid, node) "Nodes with reserve requirements"
+    resTypeDirectionGridNodeNode(restype, up_down, grid, node, node) "Node node connections that can transfer reserves"
     restypeDirectionGroup(restype, up_down, group)
     restypeDirectionGridNodeGroup(restype, up_down, grid, node, group)
-    nuRescapable(restype, up_down, node, unit) "Units capable and available to provide particular reserves"
+    gnuRescapable(restype, up_down, grid, node, unit) "Units capable and available to provide particular reserves"
     restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
 
 * --- Sets to define time, forecasts and samples ------------------------------
@@ -143,7 +143,7 @@ $if defined scenario
     uft_startupTrajectory(unit, f, t) "Units with start-up trajectories on intervals"
     uft_shutdownTrajectory(unit, f, t) "Units with shutdown trajectories on intervals"
     uft_aggregator_first(unit, f, t) "The first intervals when aggregator units are active"
-    nuft(node, unit, f, t) "Enables aggregation of nodes and units for later intervals"
+*    nuft(node, unit, f, t) "Enables aggregation of nodes and units for later intervals"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later intervals"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"
     gnuft_rampCost(grid, node, unit, slack, f, t) "Units with ramp costs"

@@ -252,15 +252,15 @@ loop(m,
 * --- Total Reserve Provision -------------------------------------------------
 
     // Total reserve provisions over the simulation
-    r_nuTotalReserve(nuRescapable(restype, up_down, node, unit))
+    r_gnuTotalReserve(gnuRescapable(restype, up_down, grid, node, unit))
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
-            + r_reserve(restype, up_down, node, unit, f, t)
+            + r_reserve(restype, up_down, grid, node, unit, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Total dummy reserve provisions over the simulation
-    r_nTotalqResDemand(restypeDirectionGroup(restype, up_down, group))
+    r_groupTotalqResDemand(restypeDirectionGroup(restype, up_down, group))
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_qResDemand(restype, up_down, group, f, t)
                 * p_stepLengthNoReset(m, f, t)
@@ -447,20 +447,23 @@ r_totalRealizedNetCost
 * --- Reserve Provision Overlap Results ---------------------------------------
 
 // Calculate the overlapping reserve provisions
-r_reserve2Reserve(nuRescapable(restype, up_down, node, unit), restype_, ft_realizedNoReset(f, t))
-    ${ p_nuRes2Res(node, unit, restype, up_down, restype_) }
-    = r_reserve(restype, up_down, node, unit, f, t)
-        * p_nuRes2Res(node, unit, restype, up_down, restype_);
+r_reserve2Reserve(gnuRescapable(restype, up_down, grid, node, unit), restype_, ft_realizedNoReset(f, t))
+    ${ p_gnuRes2Res(grid, node, unit, restype, up_down, restype_) }
+    = r_reserve(restype, up_down, grid, node, unit, f, t)
+        * p_gnuRes2Res(grid, node, unit, restype, up_down, restype_);
 
 * --- Total Reserve Provision Results -----------------------------------------
 
-// Total reserve provision in nodes over the simulation
-r_nTotalReserve(restypeDirectionNode(restype, up_down, node))
-    = sum(nuRescapable(restype, up_down, node, unit), r_nuTotalReserve(restype, up_down, node, unit));
+// Total reserve provision in groups over the simulation
+r_groupTotalReserve(restypeDirectionGroup(restype, up_down, group))
+    = sum(gnuRescapable(restype, up_down, grid, node, unit)${gnGroup(grid, node, group)},
+        + r_gnuTotalReserve(restype, up_down, grid, node, unit)
+    ); // END sum(gnuRescapable)
 
-r_nuTotalReserveShare(nuRescapable(restype, up_down, node, unit))${ r_nTotalReserve(restype, up_down, node) > 0 }
-    = r_nuTotalReserve(restype, up_down, node, unit)
-        / r_nTotalReserve(restype, up_down, node);
+r_gnuTotalReserveShare(gnuRescapable(restype, up_down, grid, node, unit))
+    ${ sum(gnGroup(grid, node, group), r_groupTotalReserve(restype, up_down, group)) > 0 }
+    = r_gnuTotalReserve(restype, up_down, grid, node, unit)
+        / sum(gnGroup(grid, node, group), r_groupTotalReserve(restype, up_down, group));
 
 * --- Total Unit Online State Results -----------------------------------------
 

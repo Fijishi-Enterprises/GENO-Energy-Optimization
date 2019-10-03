@@ -580,19 +580,19 @@ loop(unit,
 
 loop(m,
     // Disable node reserve requirements
-    restypeDirectionNode(restype, up_down, node)
+    restypeDirectionGridNode(restype, up_down, grid, node)
         ${  not mSettingsReservesInUse(m, restype, up_down)
             }
         = no;
 
     // Disable node-node reserve connections
-    restypeDirectionNodeNode(restype, up_down, node, node_)
+    restypeDirectionGridNodeNode(restype, up_down, grid, node, node_)
         ${  not mSettingsReservesInUse(m, restype, up_down)
             }
       = no;
 
     // Disable reserve provision capability from units
-    nuRescapable(restype, up_down, node, unit)
+    gnuRescapable(restype, up_down, grid, node, unit)
         ${  not mSettingsReservesInUse(m, restype, up_down)
             }
       = no;
@@ -621,7 +621,9 @@ p_slackDirection(downwardSlack) = -1;
 * --- Using default value for reserves update frequency -----------------------
 
 loop(m,
-    p_nReserves(node, restype, 'update_frequency')${  not p_nReserves(node, restype, 'update_frequency')  }
+    p_groupReserves(group, restype, 'update_frequency')${  not p_groupReserves(group, restype, 'update_frequency')  }
+        = mSettings(m, 't_jump');
+    p_gnReserves(grid, node, restype, 'update_frequency')${  not p_gnReserves(grid, node, restype, 'update_frequency')  }
         = mSettings(m, 't_jump');
 );
 
@@ -654,28 +656,28 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
 
 * --- Reserve structure checks ------------------------------------------------
 
-    loop(restypeDirectionNode(restype, up_down, node),
+    loop(restypeDirectionGroup(restype, up_down, group),
         // Check that 'update_frequency' is longer than 't_jump'
-        if(p_nReserves(node, restype, 'update_frequency') < mSettings(m, 't_jump'),
-            put log '!!! Error occurred on p_nReserves ' node.tl:0 ',' restype.tl:0 /;
+        if(p_groupReserves(group, restype, 'update_frequency') < mSettings(m, 't_jump'),
+            put log '!!! Error occurred on p_groupReserves ' group.tl:0 ',' restype.tl:0 /;
             put log '!!! Abort: The update_frequency parameter should be longer than or equal to t_jump!' /;
             abort "The 'update_frequency' parameter should be longer than or equal to 't_jump'!";
         ); // END if('update_frequency' < 't_jump')
 
         // Check that 'update_frequency' is divisible by 't_jump'
-        if(mod(p_nReserves(node, restype, 'update_frequency'), mSettings(m, 't_jump')) <> 0,
-            put log '!!! Error occurred on p_nReserves ' node.tl:0 ',' restype.tl:0 /;
+        if(mod(p_groupReserves(group, restype, 'update_frequency'), mSettings(m, 't_jump')) <> 0,
+            put log '!!! Error occurred on p_groupReserves ' group.tl:0 ',' restype.tl:0 /;
             put log '!!! Abort: The update_frequency parameter should be divisible by t_jump!' /;
             abort "The 'update_frequency' parameter should be divisible by 't_jump'!";
         ); // END if(mod('update_frequency'))
 
         // Check if the first interval is long enough for proper commitment of reserves
-        if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
-            put log '!!! Error occurred on p_nReserves ' node.tl:0 ',' restype.tl:0 /;
+        if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_groupReserves(group, restype, 'update_frequency') + p_groupReserves(group, restype, 'gate_closure'),
+            put log '!!! Error occurred on p_groupReserves ' group.tl:0 ',' restype.tl:0 /;
             put log '!!! Abort: The first interval block should not be shorter than update_frequency + gate_closure for proper commitment of reserves!' /;
             abort "The first interval block should not be shorter than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
         ); // END if
-    ); // END loop(restypeDirectionNode)
+    ); // END loop(restypeDirectionGroup)
 
 * --- Check that there aren't more effLevels defined than exist in data -------
 

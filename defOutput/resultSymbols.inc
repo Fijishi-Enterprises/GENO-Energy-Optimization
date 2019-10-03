@@ -134,10 +134,11 @@ r_resTransferLeftward
 
 // Interesting reserve results
 r_resDemandMarginal
-r_nuTotalReserve
-r_nuTotalReserveShare
-r_nTotalReserve
+r_gnuTotalReserve
+r_gnuTotalReserveShare
+r_groupTotalReserve
 r_resDemandLargestInfeedUnit
+
 * --- Investment Result Symbols -----------------------------------------------
 
 // Interesting investment results
@@ -152,7 +153,7 @@ r_gnTotalqGen
 r_gTotalqGen
 r_qResDemand
 r_qResMissing
-r_nTotalqResDemand
+r_groupTotalqResDemand
 r_qCapacity
 r_solveStatus
 

@@ -63,7 +63,7 @@ equations
     // Unit Operation
     q_maxDownward(grid, node, unit, mType, s, f, t) "Downward commitments will not undercut power plant minimum load constraints or maximum elec. consumption"
     q_maxUpward(grid, node, unit, mType, s, f, t) "Upward commitments will not exceed maximum available capacity or consumed power"
-    q_reserveProvision(restype, up_down, node, unit, s, f, t) "Reserve provision limited for units"
+    q_reserveProvision(restype, up_down, grid, node, unit, s, f, t) "Reserve provision limited for units"
     q_startshut(mType, s, unit, f, t) "Online capacity now minus online capacity in the previous interval is equal to started up minus shut down capacity"
     q_startuptype(mType, s, starttype, unit, f, t) "Startup type depends on the time the unit has been non-operational"
     q_onlineOnStartUp(s, unit, f, t) "Unit must be online after starting up"
@@ -95,8 +95,8 @@ equations
     q_transferLeftwardLimit(grid, node, node, s, f, t) "Transfer of energy and capacity reservations to the leftward direction are less than the transfer capacity"
     q_resTransferLimitRightward(grid, node, node, s, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the rightward direction"
     q_resTransferLimitLeftward(grid, node, node, s, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the leftward direction"
-    q_reserveProvisionRightward(restype, up_down, node, node, s, f, t) "Rightward reserve provision limited"
-    q_reserveProvisionLeftward(restype, up_down, node, node, s, f, t) "Leftward reserve provision limited"
+    q_reserveProvisionRightward(restype, up_down, grid, node, node, s, f, t) "Rightward reserve provision limited"
+    q_reserveProvisionLeftward(restype, up_down, grid, node, node, s, f, t) "Leftward reserve provision limited"
 
     // State Variables
     q_stateSlack(grid, node, slack, s, f, t) "Slack variable greater than the difference between v_state and the slack boundary"
