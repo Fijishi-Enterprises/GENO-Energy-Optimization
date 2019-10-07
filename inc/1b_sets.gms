@@ -83,7 +83,10 @@ Sets
     restypeDirectionGroup(restype, up_down, group)
     restypeDirectionGridNodeGroup(restype, up_down, grid, node, group)
     gnuRescapable(restype, up_down, grid, node, unit) "Units capable and available to provide particular reserves"
+    gnuOfflineRescapable(restype, grid, node, unit) "Units capable and available to provide offline reserves"
     restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
+    offlineRes (restype) "Reserve types where offline reserve provision possible"
+    offlineResUnit (unit) "Units where offline reserve provision possible"
 
 * --- Sets to define time, forecasts and samples ------------------------------
     $$include '%input_dir%/timeAndSamples.inc'
@@ -131,7 +134,8 @@ Sets
     s_prev(s) "Temporary set for previous sample"
 $if defined scenario
     s_scenario(s, scenario) "Which samples belong to which scenarios"
-    gn_scenarios(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"
+    gn_forecasts(*, node, timeseries) "Which grid/flow, node and timeseries use short-term forecasts"
+    gn_scenarios(*, node, timeseries) "Which grid/flow, node and timeseries have data for long-term scenarios"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"

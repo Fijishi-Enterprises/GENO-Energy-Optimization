@@ -17,7 +17,6 @@ $offtext
 
 * --- Internal counters -------------------------------------------------------
 Scalars
-    errorcount /0/
     solveCount /0/
     tSolveFirst "counter (ord) for the first t in the solve"
     tSolveLast "counter for the last t in the solve"
@@ -95,7 +94,7 @@ Parameters
 
 * --- Probability -------------------------------------------------------------
 Parameters
-    p_msWeight(mType, s) "Weight of sample"
+    p_msWeight(mType, s) "Temporal weight of sample: number of similar periods represented by sample s"
     p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"
@@ -130,6 +129,7 @@ Parameters
     df_reserves(grid, node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
     df_reservesGroup(group, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
     df_scenario(f, t) "Forecast index displacement needed to get central forecast data for long-term scenarios"
+    df_realization(f, t) "Displacement needed to reach the realized forecast on the current time step when no forecast is available"
 
     // Sample displacement arrays
     ds(s, t) "Displacement needed to reach the sample of previous time step"
@@ -189,9 +189,6 @@ Parameters
     p_tsMinValue(*, node, timeseries) "Minimum allowed value of timeseries for grid/flow and node"
     p_tsMaxValue(*, node, timeseries) "Maximum allowed value of timeseries in grid/flow and node"
 ;
-
-* Reset values for some parameters
-Options clear = ts_influx_std, clear = ts_cf_std;
 
 * --- Other time dependent parameters -----------------------------------------
 Parameters

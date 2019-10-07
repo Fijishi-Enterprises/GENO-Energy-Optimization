@@ -322,17 +322,19 @@ $offtext
     ts_influx_(gn(grid, node), fts(f, tt_interval(t), s))
         = sum(tt_aggregate(t, t_),
             ts_influx(grid, node,
-                f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_influx')),
-                t_+ (   + dt_scenarioOffset(grid, node, 'ts_influx', s)
-                        + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_influx'))))
+                f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_influx'))
+                     + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_influx')),
+                t_+ (+ dt_scenarioOffset(grid, node, 'ts_influx', s)
+                     + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_influx'))))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
     ts_cf_(flowNode(flow, node), fts(f, tt_interval(t), s))
         = sum(tt_aggregate(t, t_),
             ts_cf(flow, node,
-                f + (df_scenario(f, t)$gn_scenarios(flow, node, 'ts_cf')),
-                t_+ (   + dt_scenarioOffset(flow, node, 'ts_cf', s)
-                        + dt_circular(t_)$(not gn_scenarios(flow, node, 'ts_cf'))))
+                f + (  df_realization(f, t)$(not gn_forecasts(flow, node, 'ts_cf'))
+                     + df_scenario(f, t)$gn_scenarios(flow, node, 'ts_cf')),
+                t_+ (  dt_scenarioOffset(flow, node, 'ts_cf', s)
+                     + dt_circular(t_)$(not gn_scenarios(flow, node, 'ts_cf'))))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
     // Reserves relevant only until reserve_length
@@ -340,8 +342,8 @@ $offtext
       ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')  }
         = sum(tt_aggregate(t, t_),
             ts_reserveDemand(restype, up_down, group,
-                f + (df_scenario(f, t)${sum(gnGroup(grid, node, group), gn_scenarios(restype, node, 'ts_reserveDemand'))} ),
-                t_+ dt_circular(t_))
+                f + (  df_realization(f, t)${not sum(gnGroup(grid, node, group), gn_forecasts(restype, node, 'ts_reserveDemand'))}
+                     + df_scenario(f, t)${sum(gnGroup(grid, node, group), gn_scenarios(restype, node, 'ts_reserveDemand'))} ),                t_+ dt_circular(t_))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
     ts_node_(gn_state(grid, node), param_gnBoundaryTypes, fts(f, tt_interval(t), s))
@@ -349,7 +351,8 @@ $offtext
            // Take average if not a limit type
         = (sum(tt_aggregate(t, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
+                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))
+                         + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
                     t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
                             + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
             )
@@ -359,7 +362,8 @@ $offtext
           // Maximum lower limit
           + smax(tt_aggregate(t, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
+                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))
+                         + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
                     t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
                             + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
                 )
@@ -367,7 +371,8 @@ $offtext
           // Minimum upper limit
           + smin(tt_aggregate(t, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
+                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))
+                         + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
                     t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
                             + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
                 )
@@ -422,7 +427,8 @@ Option clear = p_msft_probability;
 p_msft_probability(msft(mSolve, s, f, t))
     = p_mfProbability(mSolve, f)
         / sum(f_${ft(f_, t)},
-              p_mfProbability(mSolve, f_)) * p_msProbability(mSolve, s);
+              p_mfProbability(mSolve, f_)) * p_msProbability(mSolve, s)
+              * p_msWeight(mSolve, s);
 
 
 * --- Calculate sample displacements ------------------------------------------
@@ -445,6 +451,9 @@ This avoids a discontinuity `jump' after the initial sample.
     Transm. Distrib., vol. 12, no. 2, pp. 441 - 447, 2018.
 $offtext
 
+* Check that we have values for the autocorrelations
+$ifthen.autocorr defined p_autocorrelation
+
 // Do smoothing
 if(mSettings(mSolve, 'scenarios'),  // Only do smooting if using long-term scenarios
     // Select the initial sample, first `t` not in it and `f` of the last `t` in it
@@ -455,3 +464,4 @@ if(mSettings(mSolve, 'scenarios'),  // Only do smooting if using long-term scena
         $$batinclude 'inc/smoothing.gms' ts_cf
     );
 ); // END if('scenarios')
+$endif.autocorr

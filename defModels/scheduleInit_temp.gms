@@ -64,6 +64,8 @@ if (mType('schedule'),
     // Define the probability (weight) of samples
     p_msProbability('schedule', s) = 0;
     p_msProbability('schedule', 's000') = 1;
+    p_msWeight('schedule', s) = 0;
+    p_msWeight('schedule', 's000') = 1;
 
     // If using long-term samples, uncomment
     //ms_central('schedule', 's001') = yes;
@@ -103,6 +105,10 @@ if (mType('schedule'),
 
     // Define the number of forecasts used by the model
     mSettings('schedule', 'forecasts') = 3;
+
+    // Define which nodes and timeseries use forecasts
+    //Option clear = gn_forecasts;  // By default includes everything, so clear first
+    //gn_forecasts('wind', 'XXX', 'ts_cf') = yes;
 
     // Define forecast properties and features
     mSettings('schedule', 't_forecastStart') = 1;                  // At which time step the first forecast is available ( 1 = t000001 )

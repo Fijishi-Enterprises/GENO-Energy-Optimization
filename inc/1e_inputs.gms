@@ -414,6 +414,24 @@ gnuRescapable(restypeDirection(restype, up_down), gnu(grid, node, unit))
       }
   = yes;
 
+// Units with offline reserve provision capabilities
+gnuOfflineRescapable(restype, gnu(grid, node, unit))
+    $ { p_gnuReserves(grid, node, unit, restype, 'offlineReserveCapability')
+      }
+  = yes;
+
+// Restypes with offline reserve provision possibility
+offlineRes(restype)
+    $ {sum(gnu(grid, node, unit),  p_gnuReserves(grid, node, unit, restype, 'offlineReserveCapability'))
+      }
+  = yes;
+
+// Units with offline reserve provision possibility
+offlineResUnit(unit)
+    $ {sum((gn(grid, node), restype),  p_gnuReserves(grid, node, unit, restype, 'offlineReserveCapability'))
+      }
+  = yes;
+
 // Node-node connections with reserve transfer capabilities
 restypeDirectionGridNodeNode(restypeDirection(restype, up_down), gn2n(grid, node, node_))
     $ { p_gnnReserves(grid, node, node_, restype, up_down)
@@ -450,6 +468,7 @@ p_gnuReserves(gnu(grid, node, unit), restype, 'reserveReliability')
     = 1;
 
 // Reserve provision overlap decreases the capacity of the overlapping category
+loop(restype,
 p_gnuReserves(gnu(grid, node, unit), restype, up_down)
     ${ gnuRescapable(restype, up_down, grid, node, unit) }
     = p_gnuReserves(grid, node, unit, restype, up_down)
@@ -457,6 +476,7 @@ p_gnuReserves(gnu(grid, node, unit), restype, up_down)
             + p_gnuReserves(grid, node, unit, restype_, up_down)
                 * p_gnuRes2Res(grid, node, unit, restype_, up_down, restype)
         ); // END sum(restype_)
+);
 
 * =============================================================================
 * --- Data Integrity Checks ---------------------------------------------------
@@ -539,13 +559,21 @@ loop( unit,
     ); // END loop(effLevelGroupUnit)
 );
 
-* --- Check the start-up fuel fraction related data ---------------------------
+* --- Check fuel fraction related data ----------------------------------------
 
 loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
     if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')) <> 1,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
         put log '!!! Abort: The sum of fixedFuelFraction over start-up fuels needs to be one for all units using start-up fuels!' /;
         abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
+    );
+);
+
+loop( unit_fuel(unit)${sum(fuel, p_uFuel(unit, 'main', fuel, 'maxFuelFraction'))},
+    if(sum(uFuel(unit, 'main', fuel), 1) < 2,
+        put log '!!! Error occurred on unit ' unit.tl:0 /;
+        put log '!!! Abort: maxFuelFraction cannot be applied to units with only a single main fuel!' /;
+        abort "'maxFuelFraction' cannot be applied to units with only a single main fuel!"
     );
 );
 
@@ -598,10 +626,14 @@ loop( (gnu(grid, node, unit), restypeDirection(restype, up_down)),
 * --- Default values  ---------------------------------------------------------
 * =============================================================================
 loop(timeseries$(not sameas(timeseries, 'ts_cf')),
-    p_autocorrelation(gn, timeseries) = 0;
     p_tsMinValue(gn, timeseries) = -Inf;
     p_tsMaxValue(gn, timeseries) = Inf;
 );
-p_autocorrelation(flowNode, 'ts_cf') = 0;
 p_tsMinValue(flowNode, 'ts_cf') = 0;
 p_tsMaxValue(flowNode, 'ts_cf') = 1;
+
+* By default all nodes use forecasts for all timeseries
+gn_forecasts(gn, timeseries) = yes;
+gn_forecasts(flowNode, timeseries) = yes;
+gn_forecasts(restype, node, 'ts_reserveDemand') = yes;
+
