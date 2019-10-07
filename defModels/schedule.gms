@@ -23,12 +23,13 @@ Model schedule /
     q_obj
     q_balance
     q_resDemand
-    q_resDemandLargestInfeedUnit
-    q_rateOfChangeOfFrequencyUnit
+    q_resDemandLargestInfeedUnit // Use with extra caution if there are several sub-units
+    q_rateOfChangeOfFrequencyUnit // Use with extra caution if there are several sub-units
     q_rateOfChangeOfFrequencyTransfer
-*    q_resDemandLargestInfeedTransferUp
-*    q_resDemandLargestInfeedTransferDown
+*    q_resDemandLargestInfeedTransferUp // Could we remove this contraint?
+*    q_resDemandLargestInfeedTransferDown  // Could we remove this contraint?
     q_resDemandLargestInfeedTransfer
+
     // Unit Operation
     q_maxDownward
     q_maxDownwardOfflineReserve

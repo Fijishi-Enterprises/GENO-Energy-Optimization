@@ -23,7 +23,12 @@ Model invest /
     q_obj
     q_balance
     q_resDemand
-    q_resDemandLargestInfeedUnit
+    q_resDemandLargestInfeedUnit // Use with extra caution if there are several sub-units
+    q_rateOfChangeOfFrequencyUnit // Use with extra caution if there are several sub-units
+    q_rateOfChangeOfFrequencyTransfer
+*    q_resDemandLargestInfeedTransferUp // Could we remove this contraint?
+*    q_resDemandLargestInfeedTransferDown  // Could we remove this contraint?
+    q_resDemandLargestInfeedTransfer
 
     // Unit Operation
     q_maxDownward
@@ -82,6 +87,8 @@ Model invest /
     q_emissioncap
     q_energyShareMax
     q_energyShareMin
+    q_minCons
+    q_ReserveShareMax
 
 $ifthen exist '%input_dir%/invest_additional_constraints.gms'
    $$include '%input_dir%/invest_additional_constraints.gms'      // Declare additional constraints from the input data
