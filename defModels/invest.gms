@@ -27,11 +27,11 @@ Model invest /
 
     // Unit Operation
     q_maxDownward
-    q_maxDownward2
+    q_maxDownwardOfflineReserve
     q_maxUpward
-    q_maxUpward2
+    q_maxUpwardOfflineReserve
     q_reserveProvision
-    q_reserveProvision2
+    q_reserveProvisionOnline
     q_startshut
     q_startuptype
     q_onlineOnStartUp

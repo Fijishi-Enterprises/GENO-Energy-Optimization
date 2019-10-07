@@ -102,11 +102,11 @@ v_help_inc
 
     // Unit Operation
     q_maxDownward
-    q_maxDownward2
+    q_maxDownwardOfflineReserve
     q_maxUpward
-    q_maxUpward2
+    q_maxUpwardOfflineReserve
     q_reserveProvision
-    q_reserveProvision2
+    q_reserveProvisionOnline
     q_startshut
     q_startuptype
     q_onlineLimit
@@ -161,3 +161,4 @@ vq_gen
 vq_resDemand
 vq_resMissing
 v_stateSlack
+vq_capacity

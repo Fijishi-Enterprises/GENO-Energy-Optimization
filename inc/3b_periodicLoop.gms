@@ -56,6 +56,7 @@ Option clear = v_stateSlack;
 Option clear = vq_gen;
 Option clear = vq_resDemand;
 Option clear = vq_resMissing;
+Option clear = vq_capacity;
 
 * --- Equations ---------------------------------------------------------------
 
@@ -66,11 +67,11 @@ Option clear = q_resDemand;
 
 // Unit Operation
 Option clear = q_maxDownward;
-Option clear = q_maxDownward2;
+Option clear = q_maxDownwardOfflineReserve;
 Option clear = q_maxUpward;
-Option clear = q_maxUpward2;
+Option clear = q_maxUpwardOfflineReserve;
 Option clear = q_reserveProvision;
-Option clear = q_reserveProvision2;
+Option clear = q_reserveProvisionOnline;
 Option clear = q_startshut;
 Option clear = q_startuptype;
 Option clear = q_onlineLimit;
