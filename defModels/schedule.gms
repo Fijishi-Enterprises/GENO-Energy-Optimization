@@ -30,7 +30,6 @@ Model schedule /
     q_maxDownward2
     q_maxUpward
     q_maxUpward2
-*    q_maxUpward3
 *    q_reserveProvision
     q_startshut
     q_startuptype
@@ -41,7 +40,6 @@ Model schedule /
 *   q_onlineCyclic
     q_genRamp
     q_rampUpLimit
-*    q_rampUpLimit2
     q_rampDownLimit
     q_rampUpDown
     q_rampSlack
