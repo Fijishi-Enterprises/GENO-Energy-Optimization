@@ -58,9 +58,13 @@ if (mType('invest'),
 
     // Define the probability (weight) of samples
     p_msProbability('invest', s) = 0;
-    p_msProbability('invest', 's000') = 8760/504;
-    p_msProbability('invest', 's001') = 8760/504;
-    p_msProbability('invest', 's002') = 8760/504;
+    p_msProbability('invest', 's000') = 1;
+    p_msProbability('invest', 's001') = 1;
+    p_msProbability('invest', 's002') = 1;
+    p_msWeight('invest', s) = 0;
+    p_msWeight('invest', 's000') = 8760/504;
+    p_msWeight('invest', 's001') = 8760/504;
+    p_msWeight('invest', 's002') = 8760/504;
 
 * --- Define Time Step Intervals ----------------------------------------------
 
@@ -77,6 +81,10 @@ if (mType('invest'),
 
     // Define the number of forecasts used by the model
     mSettings('invest', 'forecasts') = 0;
+
+    // Define which nodes and timeseries use forecasts
+    //Option clear = gn_forecasts;  // By default includes everything, so clear first
+    //gn_forecasts('wind', 'XXX', 'ts_cf') = yes;
 
     // Define forecast properties and features
     mSettings('invest', 't_forecastStart') = 0;                // At which time step the first forecast is available ( 1 = t000001 )

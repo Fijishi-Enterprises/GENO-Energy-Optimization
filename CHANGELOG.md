@@ -7,12 +7,15 @@ All notable changes to this project will be documented in this file.
 - All input files, including *inputData.gdx*, are optional
 - Enabling different combinations of LP and MIP online and invest variables
 - Separate availability parameter for output units in the capacity margin constraint
+- Parameter `gn_forecasts(*, node, timeseries)` to tell which nodes and timeseries use forecasts
 
 ### Changed 
 - Updated tool defintions for Sceleton Titan and Spine Toolbox
+- The program will now stop looping in case of execution errors.
 
 ### Fixed
 - Removed hard-coded `elec grids` from *setVariableLimits* and *rampSched files*
+- Time series smooting not working at all (#100)
 
 ## [1.1] - 2019-04-17
 ### Added

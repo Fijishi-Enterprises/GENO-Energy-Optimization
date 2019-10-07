@@ -131,7 +131,8 @@ Sets
     s_prev(s) "Temporary set for previous sample"
 $if defined scenario
     s_scenario(s, scenario) "Which samples belong to which scenarios"
-    gn_scenarios(*, node, *) "Which grid/flow, node and timeseries/param have data for long-term scenarios"
+    gn_forecasts(*, node, timeseries) "Which grid/flow, node and timeseries use short-term forecasts"
+    gn_scenarios(*, node, timeseries) "Which grid/flow, node and timeseries have data for long-term scenarios"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
