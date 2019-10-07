@@ -12,6 +12,8 @@ In order to get a copy of the Backbone project, you need to clone it using Git. 
 
 You should now have *Backbone.gms*, a few additional files and five subdirectories in the directory where you cloned Backbone.
 
+Small example input datasets are provided online in the [wiki](https://gitlab.vtt.fi/backbone/backbone/wikis/Example-data-sets).
+
 ## Model File Structure
 
 Backbone has been designed with a modular structure, making it easier to change even large portions of the model if necessary. The various gms-files of the model are described briefly below, in the order of their execution when running Backbone. 
