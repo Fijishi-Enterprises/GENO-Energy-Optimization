@@ -579,6 +579,17 @@ loop(unit,
 * =============================================================================
 
 loop(m,
+
+    // Disable group reserve requirements
+    restypeDirectionGroup(restype, up_down, group)
+        ${  not mSettingsReservesInUse(m, restype, up_down)
+            }
+        = no;
+    restypeDirectionGridNodeGroup(restype, up_down, grid, node, group)
+        ${  not mSettingsReservesInUse(m, restype, up_down)
+            }
+        = no;
+
     // Disable node reserve requirements
     restypeDirectionGridNode(restype, up_down, grid, node)
         ${  not mSettingsReservesInUse(m, restype, up_down)
