@@ -27,8 +27,11 @@ Model building /
 
     // Unit Operation
     q_maxDownward
+*    q_maxDownwardOfflineReserve
     q_maxUpward
+*    q_maxUpwardOfflineReserve
 *    q_reserveProvision
+*    q_reserveProvisionOnline
 *    q_startup
 *    q_startuptype
 *    q_onlineLimit

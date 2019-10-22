@@ -64,6 +64,8 @@ if (mType('schedule'),
     // Define the probability (weight) of samples
     p_msProbability('schedule', s) = 0;
     p_msProbability('schedule', 's000') = 1;
+    p_msWeight('schedule', s) = 0;
+    p_msWeight('schedule', 's000') = 1;
 
     // If using long-term samples, uncomment
     //ms_central('schedule', 's001') = yes;
@@ -104,6 +106,10 @@ if (mType('schedule'),
     // Define the number of forecasts used by the model
     mSettings('schedule', 'forecasts') = 3;
 
+    // Define which nodes and timeseries use forecasts
+    //Option clear = gn_forecasts;  // By default includes everything, so clear first
+    //gn_forecasts('wind', 'XXX', 'ts_cf') = yes;
+
     // Define forecast properties and features
     mSettings('schedule', 't_forecastStart') = 1;                  // At which time step the first forecast is available ( 1 = t000001 )
     mSettings('schedule', 't_forecastLengthUnchanging') = 36;      // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
@@ -112,6 +118,10 @@ if (mType('schedule'),
     mSettings('schedule', 't_forecastJump') = 24;                  // How many time steps before new forecast is available
     mSettings('schedule', 't_improveForecast') = 0;                // Number of time steps ahead of time that the forecast is improved on each solve.
 
+    // Define how forecast data is read
+    mSettings(mSolve, 'onlyExistingForecasts') = no; // yes = Read only existing data; zeroes need to be EPS to be recognized as data.
+
+    // Define what forecast data is read
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
     mTimeseries_loop_read('schedule', 'ts_unit') = no;
 *    mTimeseries_loop_read('schedule', 'ts_effUnit') = no; // THESE ARE CURRENTLY DISABLED, ENABLE AT OWN RISK

@@ -18,6 +18,9 @@ $offtext
 * Argument gives time series type
 $setargs timeseries
 
+* Check that we have values for the standard deviation
+$ifthen.std defined %timeseries%_std
+
 * Select set linking nodes based on the time series type
 $ifthen %timeseries% == 'ts_cf'
 $setlocal linking_set flowNode
@@ -31,7 +34,10 @@ $endif
     = min(p_tsMaxValue(%linking_set%, '%timeseries%'),
           max(p_tsMinValue(%linking_set%, '%timeseries%'),
               %timeseries%_(%linking_set%, f, t, s)
-              + (%timeseries%(%linking_set%, f_, t_)
+              + (%timeseries%(%linking_set%,
+                              f_ + (df_realization(f_, t_)
+                                    $(not gn_forecasts(%linking_set%, '%timeseries%'))),
+                              t_)
                  - %timeseries%(%linking_set%,
                              f + (df_scenario(f, t)$gn_scenarios(%linking_set%,
                                                                  '%timeseries%')),
@@ -46,3 +52,4 @@ $endif
                 * power(p_autocorrelation(%linking_set%, '%timeseries%'),
                         abs(ord(t) - ord(t_)))
       ));
+$endif.std

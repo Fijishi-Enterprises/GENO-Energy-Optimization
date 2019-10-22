@@ -356,6 +356,7 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedOnlineMultiplier "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
     constrainedOnlineTotalMax "Total maximum b for online units in equation Sum(i, a(i)*v_online(i)) <= b"
+    minCons "minimum consumption of storage unit when charging"
     // Reserve related parameters, currently without a proper parameter set
     update_frequency "Frequency of updating reserve contributions"
     update_offset "Optional offset for delaying the reserve update frequency"
@@ -365,6 +366,7 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     reserveReliability "Reliability parameter of reserve provisions"
     reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
     portion_of_infeed_to_reserve "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
+    offlineReserveCapability "Proportion of an offline unit which can contribute to a category of reserve"
 /
 
 * --- Efficiency Approximation Related Sets -----------------------------------

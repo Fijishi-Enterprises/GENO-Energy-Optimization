@@ -1,8 +1,8 @@
 # Backbone
 
-Backbone is a generic energy network optimization tool written in [GAMS](https://www.gams.com/). It has been designed to be highly adaptable in different dimensions: temporal, spatial, technology representation and market design. The model can represent stochastics with a model predictive control method [1], with short-term forecasts and longer-term statistical uncertainties. Backbone can support multiple different models due to the modifiable temporal structure and varying lengths of the time steps.
+Backbone is a generic energy network optimization tool written in [GAMS](https://www.gams.com/). It has been designed to be highly adaptable in different dimensions: temporal, spatial, technology representation and market design. The model can represent stochastics with a [model predictive control method](https://doi.org/10.1016/j.automatica.2008.03.002), with short-term forecasts and longer-term statistical uncertainties. Backbone can support multiple different models due to the modifiable temporal structure and varying lengths of the time steps.
 
-[1] Nolde, K., Uhr, M., & Morari, M. (2008). Medium term scheduling of a hydro-thermal system using stochastic model predictive control. Automatica, 1585-1594.
+If you use Backbone in a published work, please cite the [following publication](https://doi.org/10.3390/en12173388), which describes the Backbone energy systems modelling framework.
 
 ## Getting Started
 
@@ -10,7 +10,9 @@ Make sure that you have [Git](https://git-scm.com/) version control system and a
 
 In order to get a copy of the Backbone project, you need to clone it using Git. Copy and paste the URL of the original Backbone repository and select the directory where you want Backbone to be cloned. The URL of the original Backbone repository is https://gitlab.vtt.fi/backbone/backbone. 
 
-You should now have *Backbone.gms*, a few additional files and three subdirectories in the directory where you cloned Backbone. Note that you need to manually create two additional subdirectories in order to get Backbone working. These subdirectories should be named *input* and *output* and they should be created in the same directory where *Backbone.gms* is.
+You should now have *Backbone.gms*, a few additional files and five subdirectories in the directory where you cloned Backbone.
+
+Small example input datasets are provided online in the [wiki](https://gitlab.vtt.fi/backbone/backbone/wikis/Example-data-sets).
 
 ## Model File Structure
 
@@ -29,8 +31,8 @@ Backbone has been designed with a modular structure, making it easier to change 
 * 2d_constraints.gms - Contains definitions for constraint equations.
 * *Model Definition Files* - Contains GAMS definitions for different models, essentially lists the equations (constraints) that apply. Current files include *schedule.gms*, *building.gms* and *invest.gms*.
 * 3a_periodicInit.gms - Initializes various data and sets for the solve loop.
-* 3b_inputsLoop.gms	- Instructions for possible data import inside the solve loop, as well as forecast in-the-loop improvements.
-* 3c_periodicLoop.gms - Contains instructions for the forecast-time structure of the desired model.
+* 3b_periodicLoop.gms - Contains instructions for the forecast-interval structure of the desired model.
+* 3c_inputsLoop.gms - Contains instructions for updating the forecast data, optional forecast improvements, aggregating time series data for the time intervals, and other input data processing.
 * 3d_setVariableLimits.gms - Defines the variable boundaries for each solve.
 * 3e_solve.gms - Contains the GAMS solve command for using the solver.
 * 3f_afterSolve.gms - Fixes some variable values after solve.
@@ -45,7 +47,7 @@ Most of these files are under *\inc* in the Backbone folder, except for the mode
 * timeAndSamples.inc - Contains definitions for the time, forecast and sample index ranges.
 * modelsInit.gms - Contains model parameters for the solve (or a link to a template under *\defModels* to be used). Useful for any additional GAMS scripting.
 
-Backbone folder contains three template files *1_options_temp.gms*, *timeAndSamples_temp.inc*, and *modelsInit_temp.gms* to provide examples of the input format. These files can be copied into *\input* and renamed to *1_options.gms*, *timeAndSamples.inc*, and *modelsInit.gms*.
+Backbone folder contains template files *1_options_temp.gms*, *timeAndSamples_temp.inc*, and *modelsInit_temp.gms* to provide examples of the input format. These files can be copied into *\input* and renamed to *1_options.gms*, *timeAndSamples.inc*, and *modelsInit.gms*.
 
 ## When Simply Using Backbone
 
@@ -62,6 +64,9 @@ When starting to use Backbone, there is no immediate need to understand every si
 * Erkka Rinne
 * Topi Rasku
 * Niina Helisto
+* Dana Kirchem
+* Ran Li
+* Ciara O'Dwyer
 
 ## License
 

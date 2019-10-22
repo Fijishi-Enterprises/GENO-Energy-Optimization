@@ -96,35 +96,35 @@ loop(m,
     r_gnuTotalVOMCost(gnu_output(grid, node, unit))
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_gnuVOMCost(grid, node, unit, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             );
 
     // Total fuel & emission costs
     r_uTotalFuelEmissionCost(fuel, unit)${ uFuel(unit, 'main', fuel) }
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_uFuelEmissionCost(fuel, unit, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             );
 
     // Total unit startup costs
     r_uTotalStartupCost(unit)${ sum(starttype, unitStarttype(unit, starttype)) }
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_uStartupCost(unit, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             );
 
     // Total state variable slack costs
     r_gnTotalStateSlackCost(gn_stateSlack(grid, node))
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_gnStateSlackCost(grid, node, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             );
 
     // Fixed O&M costs
     r_gnuFOMCost(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
             * [
-                + p_gnu(grid, node, unit, 'maxGen') // Not in v_obj 
+                + p_gnu(grid, node, unit, 'maxGen') // Not in v_obj
                 + p_gnu(grid, node, unit, 'maxCons') // Not in v_obj
                 + r_invest(unit)
                     * p_gnu(grid, node, unit, 'unitSizeTot')
@@ -196,7 +196,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_gen(grid, node, unit, f, t)
                 * p_stepLengthNoReset(m, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Energy generation by fuels
@@ -219,7 +219,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_genFuel(grid, node, fuel, f, t)
                 * p_stepLengthNoReset(m, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Total dummy generation/consumption
@@ -227,7 +227,7 @@ loop(m,
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_qGen(inc_dec, grid, node, f, t)
                 * p_stepLengthNoReset(m, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
 * --- Total Unit Online Results -----------------------------------------------
@@ -237,7 +237,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_online(unit, f, t)
                 * p_stepLengthNoReset(m, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Approximate utilization rates for gnus over the simulation
@@ -256,7 +256,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_reserve(restype, up_down, node, unit, f, t)
                 * p_stepLengthNoReset(m, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Total dummy reserve provisions over the simulation
@@ -264,7 +264,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_qResDemand(restype, up_down, node, f, t)
                 * p_stepLengthNoReset(m, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
 * --- Total Transfer and Spill ------------------------------------------------
@@ -274,7 +274,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_transfer(grid, from_node, to_node, f, t)
                 * p_stepLengthNoReset(m, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Total energy spill from nodes
@@ -282,7 +282,7 @@ loop(m,
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_spill(grid, node, f, t)
                 * p_stepLengthNoReset(m, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
 * =============================================================================
@@ -331,7 +331,7 @@ r_gTotalqGen(inc_dec, grid)
 r_gnTotalConsumption(gn(grid, node))
     = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
         + r_gnConsumption(grid, node, f ,t)
-            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
         );
 
 // Total consumption in each grid over the simulation
@@ -375,7 +375,7 @@ r_gnTotalSpillShare(gn(grid, node_spill))${ r_gTotalSpill(grid) > 0 }
 r_gnTotalRealizedOperatingCost(gn(grid, node))
     = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
         + r_gnRealizedOperatingCost(grid, node, f ,t)
-            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
         );
 
 // Total realized net operating costs on each gn over the simulation
@@ -473,14 +473,14 @@ r_uTotalOnlinePerUnit(unit)${ p_unit(unit, 'unitCount') > 0 }
 r_uTotalStartup(unit, starttype)
     = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
         + r_startup(unit, starttype, f, t)
-            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
         ); // END sum(ft_realizedNoReset)
 
 // Total sub-unit shutdowns over the simulation
 r_uTotalShutdown(unit)
     = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
         + r_shutdown(unit, f, t)
-            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s))
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
         ); // END sum(ft_realizedNoReset)
 
 * --- Diagnostic Results ------------------------------------------------------

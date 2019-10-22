@@ -5,6 +5,7 @@
     "description": "Backbone energy systems model",
     "files": ["Backbone.gms",
               "inc/*.gms",
+              "cplex.opt",
               "inc/rampSched/*.gms",
               "defModels/*.gms",
               "defOutput/*.inc",

@@ -56,6 +56,7 @@ Option clear = v_stateSlack;
 Option clear = vq_gen;
 Option clear = vq_resDemand;
 Option clear = vq_resMissing;
+Option clear = vq_capacity;
 
 * --- Equations ---------------------------------------------------------------
 
@@ -66,8 +67,11 @@ Option clear = q_resDemand;
 
 // Unit Operation
 Option clear = q_maxDownward;
+Option clear = q_maxDownwardOfflineReserve;
 Option clear = q_maxUpward;
+Option clear = q_maxUpwardOfflineReserve;
 Option clear = q_reserveProvision;
+Option clear = q_reserveProvisionOnline;
 Option clear = q_startshut;
 Option clear = q_startuptype;
 Option clear = q_onlineLimit;
@@ -118,7 +122,7 @@ Option clear = q_constrainedCapMultiUnit;
 Option clear = q_emissioncap;
 Option clear = q_energyShareMax;
 Option clear = q_energyShareMin;
-
+Option clear = q_minCons;
 
 * --- Temporary Time Series ---------------------------------------------------
 
@@ -283,6 +287,7 @@ $ifthen defined scenario
 // Select root sample and central forecast
 loop((ms_initial(mSolve, s_), mf_central(mSolve, f)),
     s_active(s_) = yes;
+    p_msProbability(mSolve, s_)$mSettings(mSolve, 'scenarios') = 1;
     loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
         s_scenario(s_, scenario) = yes;
         if(mSettings(mSolve, 'scenarios') > 1,
@@ -351,11 +356,6 @@ loop(s_scenario(s, scenario)$(ord(s) > 1 and ord(scenario) > 1),
     loop(gn_scenarios(grid, node, timeseries),
          dt_scenarioOffset(grid, node, timeseries, s)
              = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
-    );
-
-    loop(gn_scenarios(grid, node, param_gnBoundaryTypes),
-      dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-          = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
     );
 
     loop(gn_scenarios(flow, node, timeseries),
@@ -447,12 +447,26 @@ df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + max(mSettings(mSolve, 't_j
                                                           min(mSettings(mSolve, 't_perfectForesight'),
                                                               currentForecastLength))}
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
+// Displacement to reach the realized forecast
+Option clear = df_realization;
+loop(mf_realization(mSolve, f_),
+    df_realization(ft(f, t))$[ord(t) <= tSolveFirst + currentForecastLength]
+      = ord(f_) - ord(f);
+);
 // Central forecast for the long-term scenarios comes from a special forecast label
+Option clear = df_scenario;
 if(mSettings(mSolve, 'scenarios') > 1,
-    loop((ms_initial(mSolve, s), mf_central(mSolve, f)),
-        df_scenario(f_solve(f), t_active(t))${ord(t) > msEnd(mSolve, s)}
-          = sum(mf_scenario(mSolve, f_), ord(f_) - ord(f));
+    loop((msft(ms_central(mSolve, s), f, t), mf_scenario(mSolve, f_)),
+        df_scenario(ft(f, t)) = ord(f_) - ord(f);
     );
+);
+// Check that df_forecast and df_scenario do not overlap
+loop(ft(f, t),
+  if(df_realization(f, t) <> 0 and df_scenario(f, t) <> 0,
+      put log "!!! Overlapping period of using realization and scenarios"/;
+      put log "!!! Check forecast lengths, `gn_scenarios` and `gn_forecasts`"/;
+      execError = execError + 1;
+  );
 );
 
 // Forecast displacement between central and forecasted intervals at the end of forecast horizon

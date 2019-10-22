@@ -327,7 +327,9 @@ loop((restypeDirectionNode(restype, up_down, node), gn(grid, node), sft(s, f, t)
             }
         = min ( p_nuReserves(node, unit, restype, up_down) * [ p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
                 v_gen.up(grid, node, unit, s, f, t) - v_gen.lo(grid, node, unit, s, f, t) // Generator + consuming unit available unit_elec. output delta
-                ) // END min
+                )${not nuOfflineRescapable(restype, node, unit)} // END min
+            + p_nuReserves(node, unit, restype, up_down)${nuOfflineRescapable(restype, node, unit)}
+              * [ p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') ]
 ;
 
     // Reserve transfer upper bounds based on input p_nnReserves data, if investments are disabled
