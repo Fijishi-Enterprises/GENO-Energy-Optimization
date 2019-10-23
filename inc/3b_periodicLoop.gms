@@ -284,7 +284,7 @@ $ifthen defined scenario
 loop((ms_initial(mSolve, s_), mf_central(mSolve, f)),
     s_active(s_) = yes;
     p_msProbability(mSolve, s_)$mSettings(mSolve, 'scenarios') = 1;
-    loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
+    loop(scenario $p_scenProbability(scenario),
         s_scenario(s_, scenario) = yes;
         if(mSettings(mSolve, 'scenarios') > 1,
             loop(ft(f, t)$(ord(t) >= msEnd(mSolve, s_) + tSolveFirst),
@@ -334,7 +334,7 @@ fts(ft(f, t), s)$sft(s, f, t) = yes;
 * Build stochastic tree by definfing previous samples
 $ifthen defined scenario
 Option clear = s_prev;
-loop(scenario$(ord(scenario) <= mSettings(mSolve, 'scenarios')),
+loop(scenario $p_scenProbability(scenario),
     loop(s_scenario(s, scenario),
         if(not ms_initial(mSolve, s), ss(s, s_prev) = yes);
         Option clear = s_prev; s_prev(s) = yes;
