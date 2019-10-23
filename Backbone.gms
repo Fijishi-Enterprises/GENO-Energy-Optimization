@@ -88,7 +88,7 @@ $eolcom //
 $onempty   // Allow empty data definitions
 
 * Output file streams
-files log /''/, gdx, f_info /'%output_dir%/info.txt'/;
+Files log /''/, gdx /''/, f_info /'%output_dir%/info.txt'/;
 
 * Include options file to control the solver
 $include '%input_dir%/1_options.gms';
