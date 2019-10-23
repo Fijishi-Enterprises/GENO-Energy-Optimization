@@ -25,7 +25,8 @@ Scalars
     continueLoop "Helper to stop the looping early"
     currentForecastLength "Length of the forecast in the curren solve, minimum of unchanging and decreasing forecast lengths"
     count "General counter"
-    count_lambda, count_lambda2 "Counter for lambdas"
+    count_lambda
+    count_lambda2 "Counter for lambdas"
     count_sample "Counter for samples"
     cum_slope "Cumulative for slope"
     cum_lambda "Cumulative for lambda"
