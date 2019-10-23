@@ -45,31 +45,33 @@ else
     // Update probabilities
     p_msProbability(mSolve, s) = p_sProbability(s);
 
+    // Update scenarios
+    loop(mft_lastSteps(mSolve, f, t), // Select last time step
+        // Select each scenario and the leaf sample of the scenario (using non-reduced msft)
+        loop((scenario, msft(mSolve, s_, f, t))$s_scenario(s_, scenario),
+            // Set scen. probability to the prob. of leaf sample
+            p_scenProbability(scenario) = p_msProbability(mSolve, s_);
+            // Drop scenarios with zero probability
+            s_scenario(s, scenario)$(not p_scenProbability(scenario)) = no;
+            // Build scenarios starting from the leaf samples
+            Option clear = s_prev; s_prev(s_) = yes;
+            tmp = 0;
+            while(not tmp and p_scenProbability(scenario),
+                loop(ss(s__, s)$s_prev(s__),
+                    s_scenario(s, scenario) = yes$p_msProbability(mSolve, s);
+                    Option clear = s_prev; s_prev(s) = yes;
+                    tmp = ms_initial(mSolve, s);
+                );
+            );
+        );
+    );
+
     // Update sets
     ms(mSolve, s)$ms(mSolve, s) = yes$p_msProbability(mSolve, s);
     msf(mSolve, s, f)$msf(mSolve, s, f) = ms(mSolve, s);
     msft(mSolve, s, f, t)$msft(mSolve, s, f, t) = msf(mSolve, s, f);
     sft(s, f, t)$sft(s, f, t) = yes$p_msProbability(mSolve, s);
     fts(f, t, s)$fts(f, t, s) = sft(s, f, t);
-
-    // Update scenarios
-    Option clear = s_scenario;
-    count = 1;
-    loop((mft_lastSteps(mSolve, f, t), msft(mSolve, s_, f, t)),  // Select each leaf sample
-        Option clear = s_prev; s_prev(s_) = yes;
-        loop(scenario$(ord(scenario) = count),
-            s_scenario(s_, scenario) = yes;
-            tmp = 0;
-            repeat(
-                loop(ss(s__, s)$s_prev(s__),
-                    s_scenario(s, scenario) = yes;
-                    Option clear = s_prev; s_prev(s) = yes;
-                    tmp = ms_initial(mSolve, s);
-                );
-            until tmp);
-        );
-        count = count + 1;
-    );
 
     // Clear data from removed samples
     ts_influx_(gn, ft, s_active(s))$(not p_sProbability(s)) = 0;
