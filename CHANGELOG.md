@@ -13,10 +13,12 @@ All notable changes to this project will be documented in this file.
 - Updated tool defintions for Sceleton Titan and Spine Toolbox
 - The program will now stop looping in case of execution errors.
 - Scenario reduction is done based on total available energy
+- Maintain original scenario labels after reduction
 
 ### Fixed
 - Removed hard-coded `elec grids` from *setVariableLimits* and *rampSched files*
 - Time series smooting not working at all (#100)
+- Fix a number of compilation warnings
 
 ## [1.1] - 2019-04-17
 ### Added
