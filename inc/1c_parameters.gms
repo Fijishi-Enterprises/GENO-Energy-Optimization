@@ -98,7 +98,7 @@ Parameters
     p_msft_probability(mType, s, f, t) "Probability of forecast"
     p_sProbability(s) "Probability of sample"
 $if defined scenario
-    p_scenProbability(scenario) "Probability of scenarios"
+    p_scenProbability(scenario) "Original probability of scenario"
 ;
 
 $if declared p_scenProbability

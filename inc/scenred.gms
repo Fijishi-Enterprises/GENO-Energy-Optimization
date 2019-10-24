@@ -49,14 +49,13 @@ else
     loop(mft_lastSteps(mSolve, f, t), // Select last time step
         // Select each scenario and the leaf sample of the scenario (using non-reduced msft)
         loop((scenario, msft(mSolve, s_, f, t))$s_scenario(s_, scenario),
-            // Set scen. probability to the prob. of leaf sample
-            p_scenProbability(scenario) = p_msProbability(mSolve, s_);
             // Drop scenarios with zero probability
-            s_scenario(s, scenario)$(not p_scenProbability(scenario)) = no;
+            s_scenario(s, scenario)$(not p_msProbability(mSolve, s_)) = no;
             // Build scenarios starting from the leaf samples
             Option clear = s_prev; s_prev(s_) = yes;
             tmp = 0;
-            while(not tmp and p_scenProbability(scenario),
+            // Re-construct scenarios left from reduction
+            while(not tmp and p_msProbability(mSolve, s_),
                 loop(ss(s__, s)$s_prev(s__),
                     s_scenario(s, scenario) = yes$p_msProbability(mSolve, s);
                     Option clear = s_prev; s_prev(s) = yes;
