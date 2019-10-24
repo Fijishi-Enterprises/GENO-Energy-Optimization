@@ -19,10 +19,24 @@ ScenRedParms('visual_init') = 1;
 ScenRedParms('visual_red') = 1;
 $endif
 
+* Calculate data for scenario reduction
+Option clear = ts_energy_;
+ts_energy_(s)
+    = sum(sft(s, f, t)$mf_central(mSolve, f),
+          sum(gn(grid, node),
+              ts_influx_(grid, node, s, f, t)
+               + sum((flowNode(flow, node), flowUnit(flow, unit))
+                      $gnu_output(grid, node, unit),
+                     ts_cf_(flow, node, s, f, t)
+                      * p_gnu(grid, node, unit, 'maxGen')
+                 )
+          ) * p_stepLength(mSolve, f, t)
+      );
+
 * Export data
 execute_unload 'srin.gdx', ScenRedParms,
                            s_active, ss, p_sProbability,
-                           ts_influx_, ts_cf_;
+                           ts_energy_;
 * Choose right null device
 $ifthen %system.filesys% == 'MSNT' $set nuldev NUL
 $else $set nuldev /dev/null
@@ -34,7 +48,7 @@ execute 'scenred2 inc/scenred.cmd > %nuldev%';
 if(errorLevel,
     put log "!!! Scenario reduction (SCENRED2) failed. ";
     put log "See file 'sr.log' for details."/;
-    put_utility log, 'Click' / 'sr.log'; 
+    put_utility log, 'Click' / 'sr.log';
     putclose;
     execError = execError + 1;
 else
@@ -78,11 +92,10 @@ else
     msf(mSolve, s, f)$msf(mSolve, s, f) = ms(mSolve, s);
     msft(mSolve, s, f, t)$msft(mSolve, s, f, t) = msf(mSolve, s, f);
     sft(s, f, t)$sft(s, f, t) = yes$p_msProbability(mSolve, s);
-    fts(f, t, s)$fts(f, t, s) = sft(s, f, t);
 
     // Clear data from removed samples
-    ts_influx_(gn, ft, s_active(s))$(not p_sProbability(s)) = 0;
-    ts_cf_(flowNode, ft, s_active(s))$(not p_sProbability(s)) = 0;
+    ts_influx_(gn, s_active(s), ft)$(not p_sProbability(s)) = 0;
+    ts_cf_(flowNode, s_active(s), ft)$(not p_sProbability(s)) = 0;
 
     s_active(s)$s_active(s) = yes$p_sProbability(s);
 );

@@ -319,7 +319,7 @@ $ontext
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 $offtext
-    ts_influx_(gn(grid, node), fts(f, tt_interval(t), s))
+    ts_influx_(gn(grid, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggregate(t, t_),
             ts_influx(grid, node,
                 f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_influx'))
@@ -328,7 +328,7 @@ $offtext
                      + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_influx'))))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
-    ts_cf_(flowNode(flow, node), fts(f, tt_interval(t), s))
+    ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggregate(t, t_),
             ts_cf(flow, node,
                 f + (  df_realization(f, t)$(not gn_forecasts(flow, node, 'ts_cf'))
@@ -347,7 +347,7 @@ $offtext
                 t_+ dt_circular(t_))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
-    ts_node_(gn_state(grid, node), param_gnBoundaryTypes, fts(f, tt_interval(t), s))
+    ts_node_(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f, tt_interval(t)))
       $p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
            // Take average if not a limit type
         = (sum(tt_aggregate(t, t_),

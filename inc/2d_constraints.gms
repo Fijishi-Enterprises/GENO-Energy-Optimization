@@ -78,7 +78,7 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
             - v_spill(grid, node, s, f, t)${node_spill(node)}
 
             // Power inflow and outflow timeseries to/from the node
-            + ts_influx_(grid, node, f, t, s)   // Incoming (positive) and outgoing (negative) absolute value time series
+            + ts_influx_(grid, node, s, f, t)   // Incoming (positive) and outgoing (negative) absolute value time series
 
             // Dummy generation variables, for feasibility purposes
             + vq_gen('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
@@ -293,7 +293,7 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
         * [
             // Capacity factors for flow units
             + sum(flowUnit(flow, unit),
-                + ts_cf_(flow, node, f, t, s)
+                + ts_cf_(flow, node, s, f, t)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
             ] // END * p_unit(availability)
@@ -359,7 +359,7 @@ q_maxDownwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
         * [
             // Capacity factors for flow units
             + sum(flowUnit(flow, unit),
-                + ts_cf_(flow, node, f, t, s)
+                + ts_cf_(flow, node, s, f, t)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
             ] // END * p_unit(availability)
@@ -438,7 +438,7 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
         * [
             // Capacity factor for flow units
             + sum(flowUnit(flow, unit),
-                + ts_cf_(flow, node, f, t, s)
+                + ts_cf_(flow, node, s, f, t)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
             ] // END * p_unit(availability)
@@ -524,7 +524,7 @@ q_maxUpwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
         * [
             // Capacity factor for flow units
             + sum(flowUnit(flow, unit),
-                + ts_cf_(flow, node, f, t, s)
+                + ts_cf_(flow, node, s, f, t)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
             ] // END * p_unit(availability)
@@ -572,7 +572,7 @@ q_reserveProvision(nuRescapable(restypeDirectionNode(restype, up_down, node), un
         * [
             // ... and capacity factor for flow units
             + sum(flowUnit(flow, unit),
-                + ts_cf_(flow, node, f, t, s)
+                + ts_cf_(flow, node, s, f, t)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
             ] // How to consider reserveReliability in the case of investments when we typically only have "realized" time steps?
@@ -604,7 +604,7 @@ q_reserveProvisionOnline(nuRescapable(restypeDirectionNode(restype, up_down, nod
         * [
             // ... and capacity factor for flow units
             + sum(flowUnit(flow, unit),
-                + ts_cf_(flow, node, f, t, s)
+                + ts_cf_(flow, node, s, f, t)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
             ] // How to consider reserveReliability in the case of investments when we typically only have "realized" time steps?
@@ -2033,7 +2033,7 @@ q_stateSlack(gn_stateSlack(grid, node), slack, sft(s, f, t))
         * [
             + v_state(grid, node, s, f, t)
             - p_gnBoundaryPropertiesForStates(grid, node, slack, 'constant')$p_gnBoundaryPropertiesForStates(grid, node, slack, 'useConstant')
-            - ts_node_(grid, node, slack, f, t, s)${ p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries') }
+            - ts_node_(grid, node, slack, s, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, slack, 'useTimeSeries') }
             ] // END * p_slackDirection
 ;
 
@@ -2049,7 +2049,7 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
     + [
         // Upper boundary of the variable
         + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')}
-        + ts_node_(grid, node, 'upwardLimit', f, t, s)${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeseries') }
+        + ts_node_(grid, node, 'upwardLimit', s, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeseries') }
 
         // Investments
         + sum(gnu(grid, node, unit),
@@ -2126,7 +2126,7 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
 
         // Lower boundary of the variable
         - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')}
-        - ts_node_(grid, node, 'downwardLimit', f, t, s)${ p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeseries') }
+        - ts_node_(grid, node, 'downwardLimit', s, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeseries') }
         ] // END Headroom
         * [
             // Conversion to energy
@@ -2372,7 +2372,7 @@ q_instantaneousShareMax(group, sft(s, f, t))
         * [
             // External power inflow/outflow
             - sum(gnGroup(grid, node, group),
-                + ts_influx_(grid, node, f, t, s)
+                + ts_influx_(grid, node, s, f, t)
                 ) // END sum(gnGroup)
 
             // Consumption of units
@@ -2469,7 +2469,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
                                          },
         // Capacity factors for flow units
         + sum(flowUnit(flow, unit)${ unit_flow(unit) },
-            + ts_cf_(flow, node, f, t, s)
+            + ts_cf_(flow, node, s, f, t)
             ) // END sum(flow)
             * p_unit(unit, 'availability')
             * [
@@ -2518,7 +2518,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
         ) // END sum(gnu_input)
 
     // Energy influx
-    + ts_influx_(grid, node, f, t, s)
+    + ts_influx_(grid, node, s, f, t)
 
     // Capacity margin feasibility dummy variables
     + vq_capacity(grid, node, s, f, t)
@@ -2630,7 +2630,7 @@ q_energyShareMax(group)
                 - p_groupPolicy(group, 'energyShareMax')
                   * [
                     - sum(gnGroup(grid, node, group),
-                        + ts_influx_(grid, node, f, t, s)
+                        + ts_influx_(grid, node, s, f, t)
                         ) // END sum(gnGroup)
                     - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
                                                         and gnGroup(grid, node, group)
@@ -2670,7 +2670,7 @@ q_energyShareMin(group)
                 - p_groupPolicy(group, 'energyShareMin')
                   * [
                     - sum(gnGroup(grid, node, group),
-                        + ts_influx_(grid, node, f, t, s)
+                        + ts_influx_(grid, node, s, f, t)
                         ) // END sum(gnGroup)
                     - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
                                                         and gnGroup(grid, node, group)
