@@ -6,8 +6,15 @@ All notable changes to this project will be documented in this file.
 - Scenario reduction is done based on total available energy
 
 
-## [1.1.1] - 2019-09-27
+## [1.1.2] - 2019-10-23
+### Changed 
+- Maintain original scenario labels after reduction
 
+### Fixed
+- Fix a number of compilation warnings
+
+
+## [1.1.1] - 2019-09-27
 ### Added
 - All input files, including *inputData.gdx*, are optional
 - Enabling different combinations of LP and MIP online and invest variables
@@ -21,6 +28,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Removed hard-coded `elec grids` from *setVariableLimits* and *rampSched files*
 - Time series smooting not working at all (#100)
+
 
 ## [1.1] - 2019-04-17
 ### Added
@@ -131,7 +139,8 @@ All notable changes to this project will be documented in this file.
 
 
 
-[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.1.1...dev
+[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.1.2...dev
+[1.1.2]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.1.1...v1.1.2
 [1.1.1]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.1...v1.1.1
 [1.1]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.6...v1.1
 [1.0.6]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.5...v1.0.6
