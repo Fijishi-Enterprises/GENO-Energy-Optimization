@@ -147,7 +147,7 @@ Option clear = p_stepLength;
 Option clear = msft;
 Option clear = mft;
 Option clear = ft;
-Option clear = sft, clear = fts;
+Option clear = sft;
 Option clear = mst_start, clear = mst_end;
 $ifthen declared scenario
 if(mSettings(mSolve, 'scenarios'),  // Only clear these if using long-term scenarios
@@ -329,7 +329,6 @@ mft(mSolve, ft(f, t)) = yes;
 ms(mSolve, s)$ms(mSolve, s) = s_active(s);
 msf(mSolve, s, f)$msf(mSolve, s, f) = s_active(s);
 msft(mSolve, sft(s, f, t)) = yes;
-fts(ft(f, t), s)$sft(s, f, t) = yes;
 
 * Build stochastic tree by definfing previous samples
 $ifthen defined scenario

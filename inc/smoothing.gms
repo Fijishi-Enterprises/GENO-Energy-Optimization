@@ -28,12 +28,12 @@ $else
 $setlocal linking_set gn
 $endif
 
-%timeseries%_(%linking_set%, fts(f, t, s))$[p_autocorrelation(%linking_set%,
+%timeseries%_(%linking_set%, sft(s, f, t))$[p_autocorrelation(%linking_set%,
                                                               '%timeseries%')
                                             and ms_central(mSolve, s)]
     = min(p_tsMaxValue(%linking_set%, '%timeseries%'),
           max(p_tsMinValue(%linking_set%, '%timeseries%'),
-              %timeseries%_(%linking_set%, f, t, s)
+              %timeseries%_(%linking_set%, s, f, t)
               + (%timeseries%(%linking_set%,
                               f_ + (df_realization(f_, t_)
                                     $(not gn_forecasts(%linking_set%, '%timeseries%'))),

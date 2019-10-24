@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Changed 
+- Scenario reduction is done based on total available energy
+
+
 ## [1.1.1] - 2019-09-27
 
 ### Added

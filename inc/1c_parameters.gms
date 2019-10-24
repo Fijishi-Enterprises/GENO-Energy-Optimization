@@ -159,10 +159,10 @@ Parameters
 
     // Aliases used in the equations after interval aggregation
     // NOTE: Sample dimension has to be last because of the scenario reduction algorithm
-    ts_influx_(grid, node, f, t, s) "Mean external power inflow/outflow during a time step (MWh/h)"
-    ts_cf_(flow, node, f, t, s) "Mean available capacity factor time series (p.u.)"
+    ts_influx_(grid, node, s, f, t) "Mean external power inflow/outflow during a time step (MWh/h)"
+    ts_cf_(flow, node, s, f, t) "Mean available capacity factor time series (p.u.)"
     ts_reserveDemand_(restype, up_down, node, f, t) "Mean reserve demand in region in the time step (MW)"
-    ts_node_(grid, node, param_gnBoundaryTypes, f, t, s) "Mean value of ts_node"
+    ts_node_(grid, node, param_gnBoundaryTypes, s, f, t) "Mean value of ts_node"
     ts_fuelPrice_(fuel, t) "Mean fuel price time during time step (EUR/MWh)"
 
     // Aliases used for updating data in inputsLoop.gms
@@ -185,6 +185,9 @@ Parameters
     // Bounds for scenario smoothening
     p_tsMinValue(*, node, timeseries) "Minimum allowed value of timeseries for grid/flow and node"
     p_tsMaxValue(*, node, timeseries) "Maximum allowed value of timeseries in grid/flow and node"
+
+    // Help parameters for scenario reduction
+    ts_energy_(s) "Total energy available from inflow and other flows (MWh)"
 ;
 
 * --- Other time dependent parameters -----------------------------------------
