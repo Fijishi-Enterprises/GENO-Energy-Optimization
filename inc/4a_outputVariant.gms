@@ -79,9 +79,9 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))
             );
 
     // Reserve requirement due to N-1 reserve constraint
-    r_resDemandLargestInfeedUnit(restype, up_down, group, f+df_reserves(grid, node, restype, f, t), t)
-        ${ sum((gnGroup(grid, node, group), unit_fail), gnuRescapable(restype, up_down, grid, node, unit_fail)) } // Calculate only for groups with units that can fail.
-        = smax(unit_fail(unit_),
+    r_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), f+df_reserves(grid, node, restype, f, t), t)
+        ${ sum((gnGroup(grid, node, group), unit_fail), p_gnuReserves(grid, node, unit_fail, restype, 'portion_of_infeed_to_reserve')) } // Calculate only for groups with units that can fail.
+        = smax(unit_fail(unit_)${ sum(gnGroup(grid, node, group), p_gnuReserves(grid, node, unit_, restype, 'portion_of_infeed_to_reserve')) },
             + v_gen.l(grid, node, unit_, s, f, t)
                 * p_gnuReserves(grid, node, unit_, restype, 'portion_of_infeed_to_reserve')
             ) // END smax(unit_fail)
