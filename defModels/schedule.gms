@@ -26,8 +26,6 @@ Model schedule /
     q_resDemandLargestInfeedUnit // Use with extra caution if there are several sub-units
     q_rateOfChangeOfFrequencyUnit // Use with extra caution if there are several sub-units
     q_rateOfChangeOfFrequencyTransfer
-*    q_resDemandLargestInfeedTransferUp // Could we remove this contraint?
-*    q_resDemandLargestInfeedTransferDown  // Could we remove this contraint?
     q_resDemandLargestInfeedTransfer
 
     // Unit Operation
