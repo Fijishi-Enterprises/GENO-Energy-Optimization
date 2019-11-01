@@ -2687,41 +2687,6 @@ q_energyShareMin(group)
     0
 ;
 
-
-*--- Minimum Consumption ----------------------------------------------------------
-
-q_minCons(group, gnu(grid, node, unit), sft(s, f, t))${  p_groupPolicy(group, 'minCons')
-                                                         and p_gnu(grid, node, unit, 'unitSizeCons')
-                                                         and gnuGroup(grid, node, unit, group)
-                                                         and gnuft(grid, node, unit, f, t)
-                                                         } ..
-     // Consumption of units
-     - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSizeCons')
-                                         and gnuGroup(grid, node, unit, group)
-                                         },
-        [
-        + v_gen(grid, node, unit, s, f, t)
-        ]
-        /[
-        + p_gnu(grid, node, unit, 'unitSizeCons')
-        ]
-    ) // END sum(gnu)
-
-     // unit online state * minimum consumption
-     + sum(gnuGroup(grid, node, unit, group)${ p_gnu(grid, node, unit, 'unitSizeCons')
-                                               },
-         - p_groupPolicy(group, 'minCons')
-             * [
-               + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
-               + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
-               ]
-     )
-
-    =G=
-
-    0
-;
-
 $ifthen exist '%input_dir%/additional_constraints.inc'
    $$include '%input_dir%/additional_constraints.inc'
 $endif

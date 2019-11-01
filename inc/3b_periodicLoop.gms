@@ -122,7 +122,6 @@ Option clear = q_constrainedCapMultiUnit;
 Option clear = q_emissioncap;
 Option clear = q_energyShareMax;
 Option clear = q_energyShareMin;
-Option clear = q_minCons;
 
 * --- Temporary Time Series ---------------------------------------------------
 
