@@ -43,9 +43,9 @@ Positive variables
     v_spill(grid, node, s, f, t) "Spill of energy from storage node during an interval (MWh)"
     v_transferRightward(grid, node, node, s, f, t) "Average electricity transmission level from the first node to the second node during an interval (MW)"
     v_transferLeftward(grid, node, node, s, f, t) "Average electricity transmission level from the second node to the first node during an interval (MW)"
-    v_resTransferRightward(restype, up_down, node, node, s, f, t) "Electricity transmission capacity from the first node to the second node reserved for providing reserves (MW)"
-    v_resTransferLeftward(restype, up_down, node, node, s, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
-    v_reserve(restype, up_down, node, unit, s, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
+    v_resTransferRightward(restype, up_down, grid, node, node, s, f, t) "Electricity transmission capacity from the first node to the second node reserved for providing reserves (MW)"
+    v_resTransferLeftward(restype, up_down, grid, node, node, s, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
+    v_reserve(restype, up_down, grid, node, unit, s, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
     v_investTransfer_LP(grid, node, node, t) "Invested transfer capacity (MW)"
     v_online_LP(unit, s, f, t) "Number of sub-units online for 'units' with unit commitment restrictions (LP variant)"
     v_invest_LP(unit, t) "Number of invested 'sub-units' (LP variant)"
@@ -56,8 +56,8 @@ Positive variables
 Positive variables
     v_stateSlack(grid, node, slack, s, f, t) "Slack variable for different v_state slack categories, permits e.g. costs for exceeding acceptable v_states (MWh, unless modified by energyCapacity parameter)"
     vq_gen(inc_dec, grid, node, s, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
-    vq_resDemand(restype, up_down, node, s, f, t) "Dummy to decrease demand for a reserve (MW) before the reserve has been locked"
-    vq_resMissing(restype, up_down, node, s, f, t) "Dummy to decrease demand for a reserve (MW) after the reserve has been locked"
+    vq_resDemand(restype, up_down, group, s, f, t) "Dummy to decrease demand for a reserve (MW) before the reserve has been locked"
+    vq_resMissing(restype, up_down, group, s, f, t) "Dummy to decrease demand for a reserve (MW) after the reserve has been locked"
     vq_capacity(grid, node, s, f, t) "Dummy variable to ensure capacity margin equation feasibility (MW)"
 ;
 

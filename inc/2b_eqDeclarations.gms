@@ -53,15 +53,18 @@ equations
     // Objective Function, Energy Balance, and Reserve demand
     q_obj "Objective function"
     q_balance(grid, node, mType, s, f, t) "Energy demand must be satisfied at each node"
-    q_resDemand(restype, up_down, node, s, f, t) "Procurement for each reserve type is greater than demand"
-    q_resDemandLargestInfeedUnit(grid, restype, up_down, node, unit, s, f, t) "N-1 Reserve"
+    q_resDemand(restype, up_down, group, s, f, t) "Procurement for each reserve type is greater than demand"
+    q_resDemandLargestInfeedUnit(restype, up_down, group, unit, s, f, t) "N-1 reserve for units"
+    q_rateOfChangeOfFrequencyUnit(group, unit, s, f, t) "N-1 unit contingency with ROCOF"
+    q_rateOfChangeOfFrequencyTransfer(group, grid, node, node, s, f, t) "N-1 transmission line contingency with ROCOF"
+    q_resDemandLargestInfeedTransfer(restype, up_down, group, grid, node, node, s, f, t) "N-1 up/down reserve for transmission lines"
     // Unit Operation
     q_maxDownward(grid, node, unit, mType, s, f, t) "Downward commitments (v_gen and online v_reserve) will not undercut minimum (online) production capacity (+) or maximum (online) consumption capacity (-)"
     q_maxDownwardOfflineReserve(grid, node, unit, mType, s, f, t) "Downward commitments (v_gen and all v_reserve) will not undercut zero production (+) or maximum consumption capacity (-)"
     q_maxUpward(grid, node, unit, mType, s, f, t) "Upward commitments (v_gen and online v_reserve) will not exceed maximum (online) production capacity (+) or minimum (online) consumption capacity (-)"
     q_maxUpwardOfflineReserve(grid, node, unit, mType, s, f, t) "Upward commitments (v_gen and all v_reserve) will not exceed maximum production capacity (+) or zero consumption (-)"
-    q_reserveProvision(restype, up_down, node, unit, s, f, t) "Reserve provision limited for units with investment possibility"
-    q_reserveProvisionOnline(restype, up_down, node, unit, s, f, t) "Reserve provision limited for units that are not capable of providing offline reserve"
+    q_reserveProvision(restype, up_down, grid, node, unit, s, f, t) "Reserve provision limited for units with investment possibility"
+    q_reserveProvisionOnline(restype, up_down, grid, node, unit, s, f, t) "Reserve provision limited for units that are not capable of providing offline reserve"
     q_startshut(mType, s, unit, f, t) "Online capacity now minus online capacity in the previous interval is equal to started up minus shut down capacity"
     q_startuptype(mType, s, starttype, unit, f, t) "Startup type depends on the time the unit has been non-operational"
     q_onlineOnStartUp(s, unit, f, t) "Unit must be online after starting up"
@@ -93,8 +96,8 @@ equations
     q_transferLeftwardLimit(grid, node, node, s, f, t) "Transfer of energy and capacity reservations to the leftward direction are less than the transfer capacity"
     q_resTransferLimitRightward(grid, node, node, s, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the rightward direction"
     q_resTransferLimitLeftward(grid, node, node, s, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the leftward direction"
-    q_reserveProvisionRightward(restype, up_down, node, node, s, f, t) "Rightward reserve provision limited"
-    q_reserveProvisionLeftward(restype, up_down, node, node, s, f, t) "Leftward reserve provision limited"
+    q_reserveProvisionRightward(restype, up_down, grid, node, node, s, f, t) "Rightward reserve provision limited"
+    q_reserveProvisionLeftward(restype, up_down, grid, node, node, s, f, t) "Leftward reserve provision limited"
 
     // State Variables
     q_stateSlack(grid, node, slack, s, f, t) "Slack variable greater than the difference between v_state and the slack boundary"
@@ -112,4 +115,5 @@ equations
     q_emissioncap(group, emission) "Limit for emissions"
     q_energyShareMax(group) "Maximum energy share of generation and import from a group of units"
     q_energyShareMin(group) "Minimum energy share of generation and import from a group of units"
+    q_ReserveShareMax(group, restype, up_down, group, s, f, t) "Maximum reserve share of a group of units"
 ;

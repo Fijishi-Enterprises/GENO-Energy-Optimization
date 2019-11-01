@@ -130,17 +130,17 @@ Parameters
 * --- Reserve Provision Results -----------------------------------------------
 
     // Reserve provision results required for model structure
-    r_reserve(restype, up_down, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
-    r_resTransferRightward(restype, up_down, node, node, f, t) "Electricity transmission capacity from the first node to the second node reserved for providing reserves (MW)"
-    r_resTransferLeftward(restype, up_down, node, node, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
-    r_reserve2Reserve(restype, up_down, node, unit, restype, f, t) "Reserve provided for another reserve category (MW) (also included in r_reserve - this is just for debugging)"
+    r_reserve(restype, up_down, grid, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
+    r_resTransferRightward(restype, up_down, grid, node, node, f, t) "Electricity transmission capacity from the first node to the second node reserved for providing reserves (MW)"
+    r_resTransferLeftward(restype, up_down, grid, node, node, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
+    r_reserve2Reserve(restype, up_down, grid, node, unit, restype, f, t) "Reserve provided for another reserve category (MW) (also included in r_reserve - this is just for debugging)"
 
     // Interesting reserve results
-    r_resDemandMarginal(restype, up_down, node, f, t) "Marginal values of the q_resDemand equation"
-    r_nuTotalReserve(restype, up_down, node, unit) "Total nu reserve provision over the simulation (MW*h)"
-    r_nuTotalReserveShare(restype, up_down, node, unit) "Total nu/n reserve provision share over the simulation"
-    r_nTotalReserve(restype, up_down, node) "Total reserve provisions in nodes over the simulation (MW*h)"
-    r_resDemandLargestInfeedUnit(grid, f, t, restype, up_down, node) "Reserve Demand from the loss of largest infeed unit"
+    r_resDemandMarginal(restype, up_down, group, f, t) "Marginal values of the q_resDemand equation"
+    r_gnuTotalReserve(restype, up_down, grid, node, unit) "Total gnu reserve provision over the simulation (MW*h)"
+    r_gnuTotalReserveShare(restype, up_down, grid, node, unit) "Total gnu/group reserve provision share over the simulation"
+    r_groupTotalReserve(restype, up_down, group) "Total reserve provisions in groups over the simulation (MW*h)"
+    r_resDemandLargestInfeedUnit(restype, up_down, group, f, t) "Reserve Demand from the loss of largest infeed unit"
 
 * --- Investment Results ------------------------------------------------------
 
@@ -154,9 +154,9 @@ Parameters
     r_qGen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
     r_gnTotalqGen(inc_dec, grid, node) "Total dummy energy generation/consumption in gn over the simulation (MWh)."
     r_gTotalqGen(inc_dec, grid) "Total dummy energy generation/consumption in g over the simulation (MWh)."
-    r_qResDemand(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW) before reserve commitment"
-    r_qResMissing(restype, up_down, node, f, t) "Dummy to decrease demand for a reserve (MW) after reserve commitment"
-    r_nTotalqResDemand(restype, up_down, node) "Total dummy reserve provisions in n over the simulation"
+    r_qResDemand(restype, up_down, group, f, t) "Dummy to decrease demand for a reserve (MW) before reserve commitment"
+    r_qResMissing(restype, up_down, group, f, t) "Dummy to decrease demand for a reserve (MW) after reserve commitment"
+    r_groupTotalqResDemand(restype, up_down, group) "Total dummy reserve provisions in the group over the simulation"
     r_qCapacity(grid, node, f, t) "Dummy capacity to ensure capacity margin equation feasibility (MW)"
     r_solveStatus(t, solve_info) "Information about the solve"
 

@@ -51,10 +51,13 @@ Parameters
     p_gnu(grid, node, unit, param_gnu) "Unit data where energy type matters"
     p_gnuBoundaryProperties(grid, node, unit, slack, param_gnuBoundaryProperties) "Properties for unit boundaries where energy type matters"
     p_unit(unit, param_unit) "Unit data where energy type does not matter"
-    p_nReserves(node, restype, *) "Data defining the reserve rules in each node"
-    p_nuReserves(node, unit, restype, *) "Reserve provision data for units"
-    p_nnReserves(node, node, restype, up_down) "Reserve provision data for node node connections"
-    p_nuRes2Res(node, unit, restype, up_down, restype) "The first type of reserve can be used also in the second reserve category (with a possible multiplier)"
+    p_gnReserves(grid, node, restype, *) "Data defining the reserve rules in each node"
+    p_groupReserves(group, restype, *) "Data defining the reserve rules in each node group"
+    p_groupReserves3D(group, restype, up_down, param_policy) "Reserve policy in each node group separately for each reserve type and direction"
+    p_groupReserves4D(group, restype, up_down, group, param_policy) "Reserve policy in each node group separately for each reserve type and direction, also linking to another group"
+    p_gnuReserves(grid, node, unit, restype, *) "Reserve provision data for units"
+    p_gnnReserves(grid, node, node, restype, up_down) "Reserve provision data for node node connections"
+    p_gnuRes2Res(grid, node, unit, restype, up_down, restype) "The first type of reserve can be used also in the second reserve category (with a possible multiplier)"
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
     p_groupPolicy(group, param_policy) "Two-dimensional policy data for groups"
     p_groupPolicy3D(group, param_policy, *) "Three-dimensional policy data for groups"
@@ -124,7 +127,8 @@ Parameters
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
-    df_reserves(node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
+    df_reserves(grid, node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
+    df_reservesGroup(group, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
     df_scenario(f, t) "Forecast index displacement needed to get central forecast data for long-term scenarios"
     df_realization(f, t) "Displacement needed to reach the realized forecast on the current time step when no forecast is available"
 
@@ -151,7 +155,7 @@ Parameters
     // Used mostly for raw data storage
     ts_influx(grid, node, f, t) "External power inflow/outflow during a time step (MWh/h)"
     ts_cf(flow, node, f, t) "Available capacity factor time series (p.u.)"
-    ts_reserveDemand(restype, up_down, node, f, t) "Reserve demand in region in the time step (MW)"
+    ts_reserveDemand(restype, up_down, group, f, t) "Reserve demand in region in the time step (MW)"
     ts_node(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input ([v_state])"
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (EUR/MWh)"
     ts_fuelPrice(fuel, t) "Fuel price time series (EUR/MWh)"
@@ -161,7 +165,7 @@ Parameters
     // NOTE: Sample dimension has to be last because of the scenario reduction algorithm
     ts_influx_(grid, node, s, f, t) "Mean external power inflow/outflow during a time step (MWh/h)"
     ts_cf_(flow, node, s, f, t) "Mean available capacity factor time series (p.u.)"
-    ts_reserveDemand_(restype, up_down, node, f, t) "Mean reserve demand in region in the time step (MW)"
+    ts_reserveDemand_(restype, up_down, group, f, t) "Mean reserve demand in region in the time step (MW)"
     ts_node_(grid, node, param_gnBoundaryTypes, s, f, t) "Mean value of ts_node"
     ts_fuelPrice_(fuel, t) "Mean fuel price time during time step (EUR/MWh)"
 
@@ -171,7 +175,7 @@ Parameters
     ts_effGroupUnit_update(effSelector, unit, param_eff, f, t)
     ts_influx_update(grid, node, f, t)
     ts_cf_update(flow, node, f, t)
-    ts_reserveDemand_update(restype, up_down, node, f, t)
+    ts_reserveDemand_update(restype, up_down, group, f, t)
     ts_node_update(grid, node, param_gnBoundaryTypes, f, t)
     ts_fuelPriceChange_update(fuel, t)
     ts_unavailability_update(unit, t)

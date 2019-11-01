@@ -61,47 +61,51 @@ loop(sft_realized(s, f, t),
 * --- Reserve results ---------------------------------------------------------
 
 // Loop over reserve horizon, as the reserve variables use a different ft-structure due to commitment
-loop((restypeDirectionNode(restype, up_down, node), sft(s, f, t))
-    ${  ord(t) <= tSolveFirst + p_nReserves(node, restype, 'reserve_length')
+loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))
+    ${  ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
         and ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
         },
 
     // Reserve provisions of units
-    r_reserve(nuRescapable(restype, up_down, node, unit), f+df_reserves(node, restype, f, t), t)
+    r_reserve(gnuRescapable(restype, up_down, grid, node, unit), f+df_reserves(grid, node, restype, f, t), t)
         ${  not [   restypeReleasedForRealization(restype)
-                    and sft_realized(s, f+df_reserves(node, restype, f, t), t)
+                    and sft_realized(s, f+df_reserves(grid, node, restype, f, t), t)
                     ]
             }
-        = + v_reserve.l(restype, up_down, node, unit, s, f+df_reserves(node, restype, f, t), t)
-          + sum(restype_$p_nuRes2Res(node, unit, restype_, up_down, restype),
-              + v_reserve.l(restype_, up_down, node, unit, s, f+df_reserves(node, restype_, f, t), t)
-                  * p_nuRes2Res(node, unit, restype_, up_down, restype)
+        = + v_reserve.l(restype, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t)
+          + sum(restype_$p_gnuRes2Res(grid, node, unit, restype_, up_down, restype),
+              + v_reserve.l(restype_, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype_, f, t), t)
+                  * p_gnuRes2Res(grid, node, unit, restype_, up_down, restype)
             );
 
     // Reserve requirement due to N-1 reserve constraint
-    r_resDemandLargestInfeedUnit(grid, f+df_reserves(node, restype, f, t), t, restype, up_down, node)
-        ${ sum(unit_fail, nuRescapable(restype, up_down, node, unit_fail)) } // Calculate only for nodes with units that can fail.
-        = smax(unit_fail(unit_), v_gen.l(grid, node, unit_, s, f, t) * p_nuReserves(node, unit_, restype, 'portion_of_infeed_to_reserve'));
+    r_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), f+df_reserves(grid, node, restype, f, t), t)
+        ${ sum((gnGroup(grid, node, group), unit_fail), p_gnuReserves(grid, node, unit_fail, restype, 'portion_of_infeed_to_reserve')) } // Calculate only for groups with units that can fail.
+        = smax(unit_fail(unit_)${ sum(gnGroup(grid, node, group), p_gnuReserves(grid, node, unit_, restype, 'portion_of_infeed_to_reserve')) },
+            + v_gen.l(grid, node, unit_, s, f, t)
+                * p_gnuReserves(grid, node, unit_, restype, 'portion_of_infeed_to_reserve')
+            ) // END smax(unit_fail)
+        ;
 
     // Reserve transfer capacity for links defined out from this node
-    r_resTransferRightward(restype, up_down, node, to_node, f+df_reserves(node, restype, f, t), t)
-        ${  sum(grid, gn2n_directional(grid, node, to_node))
-            and restypeDirectionNodeNode(restype, up_down, node, to_node)
+    r_resTransferRightward(restype, up_down, grid, node, to_node, f+df_reserves(grid, node, restype, f, t), t)
+        ${  gn2n_directional(grid, node, to_node)
+            and restypeDirectionGridNodeNode(restype, up_down, grid, node, to_node)
             }
-        = v_resTransferRightward.l(restype, up_down, node, to_node, s, f+df_reserves(node, restype, f, t), t);
+        = v_resTransferRightward.l(restype, up_down, grid, node, to_node, s, f+df_reserves(grid, node, restype, f, t), t);
 
-    r_resTransferLeftward(restype, up_down, node, to_node, f+df_reserves(to_node, restype, f, t), t)
-        ${  sum(grid, gn2n_directional(grid, node, to_node))
-            and restypeDirectionNodeNode(restype, up_down, to_node, node)
+    r_resTransferLeftward(restype, up_down, grid, node, to_node, f+df_reserves(grid, to_node, restype, f, t), t)
+        ${  gn2n_directional(grid, node, to_node)
+            and restypeDirectionGridNodeNode(restype, up_down, grid, to_node, node)
             }
-        = v_resTransferLeftward.l(restype, up_down, node, to_node, s, f+df_reserves(to_node, restype, f, t), t);
+        = v_resTransferLeftward.l(restype, up_down, grid, node, to_node, s, f+df_reserves(grid, to_node, restype, f, t), t);
 
     // Dummy reserve demand changes
-    r_qResDemand(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
-        = vq_resDemand.l(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t);
+    r_qResDemand(restype, up_down, group, f+df_reservesGroup(group, restype, f, t), t)
+        = vq_resDemand.l(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t);
 
-    r_qResMissing(restype, up_down, node, f+df_reserves(node, restype, f, t), t)
-        = vq_resMissing.l(restype, up_down, node, s, f+df_reserves(node, restype, f, t), t);
+    r_qResMissing(restype, up_down, group, f+df_reservesGroup(group, restype, f, t), t)
+        = vq_resMissing.l(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t);
 
 ); // END loop(restypeDirectionNode, sft)
 
@@ -137,8 +141,8 @@ loop(sft_realized(s, f, t),
         = q_balance.m(grid, node, mSolve, s, f, t)
     ;
     // q_resDemand marginal values
-    r_resDemandMarginal(restypeDirectionNode(restype, up_down, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        = q_resDemand.m(restype, up_down, node, s, f, t)
+    r_resDemandMarginal(restypeDirectionGroup(restype, up_down, group), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = q_resDemand.m(restype, up_down, group, s, f, t)
     ;
     // v_stateSlack values for calculation of realized costs later on
     r_stateSlack(gn_stateSlack(grid, node), slack, f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]

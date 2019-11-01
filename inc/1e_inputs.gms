@@ -32,6 +32,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc unitUnitEffLevel
     $$loaddc uFuel
     $$loaddc effLevelGroupUnit
+    $$loaddc group
     $$loaddc p_gn
     $$loaddc p_gnn
     $$loaddc p_gnu
@@ -41,10 +42,12 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc restype
     $$loaddc restypeDirection
     $$loaddc restypeReleasedForRealization
-    $$loaddc p_nReserves
-    $$loaddc p_nuReserves
-    $$loaddc p_nnReserves
-    $$loaddc p_nuRes2Res
+    $$loaddc p_groupReserves
+    $$loaddc p_groupReserves3D
+    $$loaddc p_groupReserves4D
+    $$loaddc p_gnuReserves
+    $$loaddc p_gnnReserves
+    $$loaddc p_gnuRes2Res
     $$loaddc ts_reserveDemand
     $$loaddc p_gnBoundaryPropertiesForStates
     $$loaddc p_gnPolicy
@@ -61,7 +64,6 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc ts_node
     $$loaddc t_invest
     $$loaddc p_storageValue
-    $$loaddc group
     $$loaddc uGroup
     $$loaddc gnuGroup
     $$loaddc gn2nGroup
@@ -92,7 +94,7 @@ gngnu_constrainedOutputRatio
 restype
 restypeReleasedForRealization
 p_gnn
-p_nnReserves
+p_gnnReserves
 p_gnuBoundaryProperties
 ts_node
 ts_reserveDemand
@@ -312,6 +314,7 @@ gn2n(grid, from_node, to_node)${    p_gnn(grid, from_node, to_node, 'transferCap
                                     or p_gnn(grid, from_node, to_node, 'transferCapBidirectional')
                                     or p_gnn(grid, to_node, from_node, 'transferCapBidirectional')
                                     or p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
+                                    or p_gnn(grid, from_node, to_node, 'portion_of_transfer_to_reserve')
                                     }
     = yes;
 
@@ -399,63 +402,79 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
 // NOTE! Reserves can be disabled through the model settings file.
 // The sets are disabled in "3a_periodicInit.gms" accordingly.
 
+// Copy data from p_groupReserves to p_gnReserves
+loop(gnGroup(grid, node, group)${sum(restype, p_groupReserves(group, restype, 'reserve_length'))},
+    p_gnReserves(grid, node, restype, param_policy) = p_groupReserves(group, restype, param_policy);
+    p_gnReserves(grid, node, restype, up_down) = p_groupReserves(group, restype, up_down);
+);
+
 // Units with reserve provision capabilities
-nuRescapable(restypeDirection(restype, up_down), nu(node, unit))
-    $ { p_nuReserves(node, unit, restype, up_down)
+gnuRescapable(restypeDirection(restype, up_down), gnu(grid, node, unit))
+    $ { p_gnuReserves(grid, node, unit, restype, up_down)
       }
   = yes;
 
 // Units with offline reserve provision capabilities
-nuOfflineRescapable(restype, nu(node, unit))
-    $ { p_nuReserves(node, unit, restype, 'offlineReserveCapability')
+gnuOfflineRescapable(restype, gnu(grid, node, unit))
+    $ { p_gnuReserves(grid, node, unit, restype, 'offlineReserveCapability')
       }
   = yes;
 
 // Restypes with offline reserve provision possibility
 offlineRes(restype)
-    $ {sum(nu(node, unit),  p_nuReserves(node, unit, restype, 'offlineReserveCapability'))
+    $ {sum(gnu(grid, node, unit),  p_gnuReserves(grid, node, unit, restype, 'offlineReserveCapability'))
       }
   = yes;
 
 // Units with offline reserve provision possibility
 offlineResUnit(unit)
-    $ {sum((node, restype),  p_nuReserves(node, unit, restype, 'offlineReserveCapability'))
+    $ {sum((gn(grid, node), restype),  p_gnuReserves(grid, node, unit, restype, 'offlineReserveCapability'))
       }
   = yes;
 
 // Node-node connections with reserve transfer capabilities
-restypeDirectionNodeNode(restypeDirection(restype, up_down), node, node_)
-    $ { p_nnReserves(node, node_, restype, up_down)
+restypeDirectionGridNodeNode(restypeDirection(restype, up_down), gn2n(grid, node, node_))
+    $ { p_gnnReserves(grid, node, node_, restype, up_down)
       }
   = yes;
 
 // Nodes with reserve requirements, units capable of providing reserves, or reserve capable connections
-restypeDirectionNode(restypeDirection(restype, up_down), node)
-    $ { p_nReserves(node, restype, up_down)
-        or p_nReserves(node, restype, 'use_time_series')
-        or sum(nu(node, unit), p_nuReserves(node, unit, restype, 'portion_of_infeed_to_reserve'))
-        or sum(nu(node, unit), nuRescapable(restype, up_down, node, unit))
-        or sum(gn2n(grid, node, to_node), restypeDirectionNodeNode(restype, up_down, node, to_node))
+restypeDirectionGridNode(restypeDirection(restype, up_down), gn(grid, node))
+    $ { p_gnReserves(grid, node, restype, up_down)
+        or p_gnReserves(grid, node, restype, 'use_time_series')
+        or sum(gnu(grid, node, unit), p_gnuReserves(grid, node, unit, restype, 'portion_of_infeed_to_reserve'))
+        or sum(gnu(grid, node, unit), gnuRescapable(restype, up_down, grid, node, unit))
+        or sum(gn2n(grid, node, to_node), restypeDirectionGridNodeNode(restype, up_down, grid, node, to_node))
+      }
+  = yes;
+
+// Groups with reserve requirements
+restypeDirectionGroup(restypeDirection(restype, up_down), group)
+    $ { p_groupReserves(group, restype, 'reserve_length')
+      }
+  = yes;
+restypeDirectionGridNodeGroup(restypeDirection(restype, up_down), gnGroup(grid, node, group))
+    $ { p_groupReserves(group, restype, 'reserve_length')
       }
   = yes;
 
 * --- Correct values for critical reserve related parameters ------------------
 
 // Reserve reliability assumed to be perfect if not provided in data
-p_nuReserves(nu(node, unit), restype, 'reserveReliability')
-    ${  not p_nuReserves(node, unit, restype, 'reserveReliability')
-        and sum(up_down, nuRescapable(restype, up_down, node, unit))
+p_gnuReserves(gnu(grid, node, unit), restype, 'reserveReliability')
+    ${  not p_gnuReserves(grid, node, unit, restype, 'reserveReliability')
+        and sum(up_down, gnuRescapable(restype, up_down, grid, node, unit))
         }
     = 1;
 
 // Reserve provision overlap decreases the capacity of the overlapping category
 loop(restype,
-p_nuReserves(nu(node, unit), restype, up_down)
-    ${ nuRescapable(restype, up_down, node, unit) }
-    = p_nuReserves(node, unit, restype, up_down)
-        - sum(restype_${ p_nuRes2Res(node, unit, restype_, up_down, restype) },
-            + p_nuReserves(node, unit, restype_, up_down)
-                * p_nuRes2Res(node, unit, restype_, up_down, restype)
+p_gnuReserves(gnu(grid, node, unit), restype, up_down)
+    ${ gnuRescapable(restype, up_down, grid, node, unit) }
+    = p_gnuReserves(grid, node, unit, restype, up_down)
+        - sum(restype_${ p_gnuRes2Res(grid, node, unit, restype_, up_down, restype) },
+            + p_gnuReserves(grid, node, unit, restype_, up_down)
+                * p_gnuRes2Res(grid, node, unit, restype_, up_down, restype)
         ); // END sum(restype_)
 );
 
@@ -572,22 +591,35 @@ loop( unitStarttype(unit, starttypeConstrained),
 * --- Check reserve related data ----------------------------------------------
 
 // Check that reserve_length is long enough for properly commitment of reserves
-loop( restypeDirectionNode(restype, up_down, node),
-    if(p_nReserves(node, restype, 'reserve_length') < p_nReserves(node, restype, 'update_frequency') + p_nReserves(node, restype, 'gate_closure'),
+loop( restypeDirectionGridNode(restype, up_down, grid, node),
+    // Check that reserve_length is long enough for properly commitment of reserves
+    if(p_gnReserves(grid, node, restype, 'reserve_length') < p_gnReserves(grid, node, restype, 'update_frequency') + p_gnReserves(grid, node, restype, 'gate_closure'),
         put log '!!! Error occurred on node ', node.tl:0 /;
         put log '!!! Abort: The reserve_length parameter should be longer than update_frequency + gate_closure to fix the reserves properly!' /;
         abort "The 'reserve_length' parameter should be longer than 'update_frequency' + 'gate_closure' to fix the reserves properly!"
     ); // END if
+    // Check for each restype that a node does not belong to multiple groups
+    if(sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group), 1) > 1,
+        put log '!!! Error occurred on node ', node.tl:0 /;
+        put log '!!! Abort: For each reserve type, a node can belong to at maximum one reserve node group!' /;
+        abort "For each reserve type, a node can belong to at maximum one reserve node group!"
+    ); // END if
+    // Check if there are units/interconnections connected to a node that does not belong to any restypeDirectionGroup
+    if(sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group), 1) < 1,
+        put log '!!! Error occurred on node ', node.tl:0 /;
+        put log '!!! Abort: A node with reserve provision/transfer capability has to belong to a reserve node group!' /;
+        abort "A node with reserve provision/transfer capability has to belong to a reserve node group!"
+    ); // END if
 ); // END loop(restypeDirectionNode)
 
 // Check that reserve overlaps are possible
-loop( (nu(node, unit), restypeDirection(restype, up_down)),
-    if( p_nuReserves(node, unit, restype, up_down) < 0,
+loop( (gnu(grid, node, unit), restypeDirection(restype, up_down)),
+    if( p_gnuReserves(grid, node, unit, restype, up_down) < 0,
         put log '!!! Error occurred on unit ', unit.tl:0 /;
-        put log '!!! Abort: Overlapping reserve capacities in p_nuRes2Res can result in excess reserve production!' /;
-        abort "Overlapping reserve capacities in p_nuRes2Res can result in excess reserve production!"
-    ); // END if(p_nuReserves)
-); // END loop((nu,restypeDirection))
+        put log '!!! Abort: Overlapping reserve capacities in p_gnuRes2Res can result in excess reserve production!' /;
+        abort "Overlapping reserve capacities in p_gnuRes2Res can result in excess reserve production!"
+    ); // END if(p_gnuReserves)
+); // END loop((gnu,restypeDirection))
 
 
 * =============================================================================

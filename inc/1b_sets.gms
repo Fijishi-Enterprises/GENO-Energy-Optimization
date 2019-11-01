@@ -56,6 +56,7 @@ Sets
     flowNode(flow, node) "Nodes with flows"
 
 * --- Sets bounding geography and units ---------------------------------------
+    group "A group of units, transfer links, nodes, etc."
     gn(grid, node) "Grids and their nodes"
 * NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
     gn2n(grid, node, node) "All (directional) transfer links between nodes in specific energy grids"
@@ -77,10 +78,12 @@ Sets
 * --- Reserve types -----------------------------------------------------------
     restype "Reserve types"
     restypeDirection(restype, up_down) "Different combinations of reserve types and directions"
-    restypeDirectionNode(restype, up_down, node) "Nodes with reserve requirements"
-    resTypeDirectionNodeNode(restype, up_down, node, node) "Node node connections that can transfer reserves"
-    nuRescapable(restype, up_down, node, unit) "Units capable and available to provide particular reserves"
-    nuOfflineRescapable(restype, node, unit) "Units capable and available to provide offline reserves"
+    restypeDirectionGridNode(restype, up_down, grid, node) "Nodes with reserve requirements"
+    resTypeDirectionGridNodeNode(restype, up_down, grid, node, node) "Node node connections that can transfer reserves"
+    restypeDirectionGroup(restype, up_down, group)
+    restypeDirectionGridNodeGroup(restype, up_down, grid, node, group)
+    gnuRescapable(restype, up_down, grid, node, unit) "Units capable and available to provide particular reserves"
+    gnuOfflineRescapable(restype, grid, node, unit) "Units capable and available to provide offline reserves"
     restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
     offlineRes (restype) "Reserve types where offline reserve provision possible"
     offlineResUnit (unit) "Units where offline reserve provision possible"
@@ -105,7 +108,7 @@ Sets
     ft(f, t) "Combination of forecasts and t:s in the current solve"
     ft_realized(f, t) "Realized ft"
     ft_realizedNoReset(f, t) "Full set of realized ft, facilitates calculation of results"
-    ft_reservesFixed(node, restype, f, t) "Forecast-time steps with reserves fixed due to commitments on a previous solve."
+    ft_reservesFixed(group, restype, f, t) "Forecast-time steps with reserves fixed due to commitments on a previous solve."
     mft(mType, f, t) "Combination of forecasts and t:s in the current model solve"
     msf(mType, s, f) "Combination of samples and forecasts in the models"
     msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
@@ -143,7 +146,7 @@ $if defined scenario
     uft_startupTrajectory(unit, f, t) "Units with start-up trajectories on intervals"
     uft_shutdownTrajectory(unit, f, t) "Units with shutdown trajectories on intervals"
     uft_aggregator_first(unit, f, t) "The first intervals when aggregator units are active"
-    nuft(node, unit, f, t) "Enables aggregation of nodes and units for later intervals"
+*    nuft(node, unit, f, t) "Enables aggregation of nodes and units for later intervals"
     gnuft(grid, node, unit, f, t) "Enables aggregation of nodes and units for later intervals"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"
     gnuft_rampCost(grid, node, unit, slack, f, t) "Units with ramp costs"
@@ -159,7 +162,6 @@ $if defined scenario
     shutdownCounter(unit, counter) "Counter used for unit shutdown intervals"
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
-    group "A group of units, transfer links, nodes, etc."
     uGroup(unit, group) "Units in particular groups"
     gnuGroup(grid, node, unit, group) "Combination of grids, nodes and units in particular groups"
     gn2nGroup(grid, node, node, group) "Transfer links in particular groups"
@@ -183,8 +185,7 @@ alias(f, f_, f__);
 alias(s, s_, s__);
 alias(grid, grid_, grid_output);
 alias(unit, unit_);
-alias(node, from_node, to_node, node_, node_input, node_output);
-alias(node, from_node, to_node);
+alias(node, from_node, to_node, node_, node_input, node_output, node_fail, node_left, node_right);
 alias(effSelector, effSelector_);
 alias(effDirect, effDirect_);
 alias(effDirectOff, effDirectOff_);
@@ -198,6 +199,7 @@ alias(hr, hr_, hr__);
 alias(fuel, fuel_);
 alias(effLevel, effLevel_);
 alias(restype, restype_);
+alias(group, group_);
 
 
 *if(active('rampSched'),
