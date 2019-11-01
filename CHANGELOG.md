@@ -8,17 +8,23 @@ All notable changes to this project will be documented in this file.
 - Enabling different combinations of LP and MIP online and invest variables
 - Separate availability parameter for output units in the capacity margin constraint
 - Parameter `gn_forecasts(*, node, timeseries)` to tell which nodes and timeseries use forecasts
+- Dynamic inertia requirements based on loss of unit and loss of export/import (ROCOF constraints)
+- N-1 reserve requirement for transfer links
+- A separate parameter to tell whether units can provide offline reserve
+- Maximum share of reserve provision from a group of units
 
 ### Changed 
-- Updated tool defintions for Sceleton Titan and Spine Toolbox
+- Updated tool definitions for Sceleton Titan and Spine Toolbox
 - The program will now stop looping in case of execution errors.
 - Scenario reduction is done based on total available energy
 - Maintain original scenario labels after reduction
+- Reserve requirements are now based on groups (previously node based)
 
 ### Fixed
 - Removed hard-coded `elec grids` from *setVariableLimits* and *rampSched files*
 - Time series smooting not working at all (#100)
 - Fix a number of compilation warnings
+- Limiting the provision of online reserve based on the online variable
 
 ## [1.1] - 2019-04-17
 ### Added
