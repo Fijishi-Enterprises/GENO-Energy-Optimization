@@ -83,13 +83,17 @@ else
 
     // Update sets
     ms(mSolve, s)$ms(mSolve, s) = yes$p_msProbability(mSolve, s);
+    ms_central(mSolve, s)$ms_central(mSolve, s) = ms(mSolve, s);
     msf(mSolve, s, f)$msf(mSolve, s, f) = ms(mSolve, s);
     msft(mSolve, s, f, t)$msft(mSolve, s, f, t) = msf(mSolve, s, f);
     sft(s, f, t)$sft(s, f, t) = yes$p_msProbability(mSolve, s);
+    mst_start(mSolve, s, t)$mst_start(mSolve, s, t) = ms(mSolve, s);
+    mst_end(mSolve, s, t)$mst_end(mSolve, s, t) = ms(mSolve, s);
 
     // Clear data from removed samples
     ts_influx_(gn, s_active(s), ft)$(not p_sProbability(s)) = 0;
     ts_cf_(flowNode, s_active(s), ft)$(not p_sProbability(s)) = 0;
+    ts_node_(gn, param_gnBoundaryTypes, s_active(s), ft)$(not p_sProbability(s)) = 0;
 
     s_active(s)$s_active(s) = yes$p_sProbability(s);
 );
