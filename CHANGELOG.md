@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 1.1.4
+### Fixed
+- Sample probability bug from scenario reduction
+
+
 ## [1.1.3] - 2019-10-24
 ### Changed 
 - Scenario reduction is done based on total available energy
