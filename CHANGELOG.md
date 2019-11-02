@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Scenario reduction is done based on total available energy
 - Maintain original scenario labels after reduction
 - Reserve requirements are now based on groups (previously node based)
+- Clear time series data from droppped samples after scenario reduction
 
 ### Fixed
 - Removed hard-coded `elec grids` from *setVariableLimits* and *rampSched files*
