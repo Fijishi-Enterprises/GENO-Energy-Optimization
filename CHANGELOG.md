@@ -25,6 +25,8 @@ All notable changes to this project will be documented in this file.
 - Time series smooting not working at all (#100)
 - Fix a number of compilation warnings
 - Limiting the provision of online reserve based on the online variable
+- Sample probability bug from scenario reduction (probability of single scneario
+  above one)
 
 ## [1.1] - 2019-04-17
 ### Added

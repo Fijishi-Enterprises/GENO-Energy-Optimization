@@ -57,7 +57,9 @@ else
                               p_sProbability=red_prob;
 
     // Update probabilities
-    p_msProbability(mSolve, s) = p_sProbability(s);
+    // Account for small errors from SCENRED2 where the probability of a single
+    // scenario can be slightly above one.
+    p_msProbability(mSolve, s) = min(p_sProbability(s), 1);
 
     // Update scenarios
     loop(mft_lastSteps(mSolve, f, t), // Select last time step
