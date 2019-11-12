@@ -87,6 +87,7 @@ Sets
     restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
     offlineRes (restype) "Reserve types where offline reserve provision possible"
     offlineResUnit (unit) "Units where offline reserve provision possible"
+    restype_inertia(restype) "Reserve types where the requirement can also be fulfilled with the inertia of synchronous machines"
 
 * --- Sets to define time, forecasts and samples ------------------------------
     $$include '%input_dir%/timeAndSamples.inc'

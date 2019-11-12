@@ -94,6 +94,7 @@ q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
     ${  ord(t) < tSolveFirst + p_groupReserves(group, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
                   and sft_realized(s, f, t)]
+        and not restype_inertia(restype)
         } ..
 
     // Reserve provision by capable units on this group
@@ -2544,30 +2545,46 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
 
 *--- Minimum Inertia ----------------------------------------------------------
 
-q_inertiaMin(group, sft(s, f, t))
-    ${  p_groupPolicy(group, 'kineticEnergyMin')
+q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t))
+    ${  ord(t) < tSolveFirst + p_groupReserves(group, restype_inertia, 'reserve_length')
+        and not [ restypeReleasedForRealization(restype_inertia)
+                  and sft_realized(s, f, t)]
+        and p_groupPolicy(group, 'ROCOF')
+        and p_groupPolicy(group, 'defaultFrequency')
         } ..
 
-    // Kinectic energy in the system
-    + sum(gnu_output(grid, node, unit)${    p_gnu(grid, node, unit, 'unitSizeGen')
-                                            and gnGroup(grid, node, group)
-                                            and gnuft(grid, node, unit, f, t)
-                                            },
-        + p_gnu(grid, node, unit, 'inertia')
-            * p_gnu(grid ,node, unit, 'unitSizeMVA')
-            * [
-                + v_online_LP(unit, s, f+df_central(f,t), t)
-                    ${uft_onlineLP(unit, f, t)}
-                + v_online_MIP(unit, s, f+df_central(f,t), t)
-                    ${uft_onlineMIP(unit, f, t)}
-                + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
-                    / p_gnu(grid, node, unit, 'unitSizeGen')
-                ] // * p_gnu
-        ) // END sum(gnu_output)
+    // Rotational energy in the system
+    + p_groupPolicy(group, 'ROCOF')*2
+        * [
+            + sum(gnu_output(grid, node, unit)${   gnGroup(grid, node, group)
+                                                   and gnuft(grid, node, unit, f, t)
+                                                   },
+                + p_gnu(grid, node, unit, 'inertia')
+                    * p_gnu(grid ,node, unit, 'unitSizeMVA')
+                    * [
+                        + v_online_LP(unit, s, f+df_central(f,t), t)
+                            ${uft_onlineLP(unit, f, t)}
+                        + v_online_MIP(unit, s, f+df_central(f,t), t)
+                            ${uft_onlineMIP(unit, f, t)}
+                        + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
+                            / p_gnu(grid, node, unit, 'unitSizeGen')
+                        ] // * p_gnu
+                ) // END sum(gnu_output)
+            ] // END * p_groupPolicy
 
     =G=
 
-    + p_groupPolicy(group, 'kineticEnergyMin')
+    // Demand for rotational energy / fast frequency reserve
+    + p_groupPolicy(group, 'defaultFrequency')
+        * [
+            + p_groupReserves(group, restype_inertia, up_down)
+            - sum(gnu(grid, node, unit)${   gnGroup(grid, node, group)
+                                            and gnuft(grid, node, unit, f, t)
+                                            and gnuRescapable(restype_inertia, up_down, grid, node, unit)											
+                                            },
+                + v_reserve(restype_inertia, up_down, grid, node, unit, s, f, t)
+                ) // END sum(gnu)
+            ] // END * p_groupPolicy
 ;
 
 *--- Maximum Share of Instantaneous Generation --------------------------------
