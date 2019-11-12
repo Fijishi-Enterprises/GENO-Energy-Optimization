@@ -1,33 +1,34 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.2] - 2019-11-12
 
 ### Added
+- Dynamic inertia requirements based on loss of unit and loss of export/import (ROCOF constraints)
+- N-1 reserve requirement for transfer links
+- A separate parameter to tell whether units can provide offline reserve (non-spinning reserve)
+- Maximum share of reserve provision from a group of units
 - All input files, including *inputData.gdx*, are optional
 - Enabling different combinations of LP and MIP online and invest variables
 - Separate availability parameter for output units in the capacity margin constraint
 - Parameter `gn_forecasts(*, node, timeseries)` to tell which nodes and timeseries use forecasts
-- Dynamic inertia requirements based on loss of unit and loss of export/import (ROCOF constraints)
-- N-1 reserve requirement for transfer links
-- A separate parameter to tell whether units can provide offline reserve
-- Maximum share of reserve provision from a group of units
 
 ### Changed 
+- Reserve requirements are now based on groups (previously node based)
+- Changed the v_startup (and v_shutdown) variables into integers to improve the performance online approximations
 - Updated tool definitions for Sceleton Titan and Spine Toolbox
-- The program will now stop looping in case of execution errors.
+- The program will now stop looping in case of execution errors
 - Scenario reduction is done based on total available energy
 - Maintain original scenario labels after reduction
-- Reserve requirements are now based on groups (previously node based)
 - Clear time series data from droppped samples after scenario reduction
 
 ### Fixed
 - Removed hard-coded `elec grids` from *setVariableLimits* and *rampSched files*
-- Time series smooting not working at all (#100)
+- Cyclic bounds between different samples was not working correctly (#97)
+- Time series smoothing not working at all (#100)
 - Fix a number of compilation warnings
 - Limiting the provision of online reserve based on the online variable
-- Sample probability bug from scenario reduction (probability of single scneario
-  above one)
+- Sample probability bug from scenario reduction (probability of single scenario above one)
 
 ## [1.1] - 2019-04-17
 ### Added
@@ -138,7 +139,8 @@ All notable changes to this project will be documented in this file.
 
 
 
-[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.1...dev
+[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.2...dev
+[1.2]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.1...v1.2
 [1.1]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.6...v1.1
 [1.0.6]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.5...v1.0.6
 [1.0.5]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.4...v1.0.5
