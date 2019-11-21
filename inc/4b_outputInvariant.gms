@@ -241,7 +241,7 @@ loop(m,
             ); // END sum(ft_realizedNoReset)
 
     // Approximate utilization rates for gnus over the simulation
-    r_gnuUtilizationRate(gnu_output(grid, node, unit))${r_gnuTotalGen(grid, node, unit)}
+    r_gnuUtilizationRate(gnu_output(grid, node, unit))${r_gnuTotalGen(grid, node, unit) and (p_gnu(grid, node, unit, 'maxGen') or r_invest(unit))}
         = r_gnuTotalGen(grid, node, unit)
             / [
                 + (p_gnu(grid, node, unit, 'maxGen') + r_invest(unit)*p_gnu(grid, node, unit, 'unitSizeGen'))
