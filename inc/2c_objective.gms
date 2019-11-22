@@ -35,10 +35,10 @@ q_obj ..
                 + p_stepLength(m, f, t)
                     * [
                         // Variable O&M costs
-                        + sum(gnuft(gnu_output(grid, node, unit), f, t),  // Calculated only for output energy
+                        + sum(gnuft(grid, node, unit, f, t),
                             + v_gen(grid, node, unit, s, f, t)
-                                * p_unit(unit, 'omCosts')
-                            ) // END sum(gnu_output)
+                                * p_gnu(grid, node, unit, 'vomCosts')
+                            ) // END sum(gnuft)
 
                         // Fuel and emission costs
                         + sum(uFuel(unit, 'main', fuel)${uft(unit, f, t)},
