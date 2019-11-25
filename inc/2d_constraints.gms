@@ -2556,9 +2556,9 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
     // Rotational energy in the system
     + p_groupPolicy(group, 'ROCOF')*2
         * [
-            + sum(gnu_output(grid, node, unit)${   gnGroup(grid, node, group)
-                                                   and gnuft(grid, node, unit, f, t)
-                                                   },
+            + sum(gnu(grid, node, unit)${   gnGroup(grid, node, group)
+                                            and gnuft(grid, node, unit, f, t)
+                                            },
                 + p_gnu(grid, node, unit, 'inertia')
                     * p_gnu(grid ,node, unit, 'unitSizeMVA')
                     * [
@@ -2567,9 +2567,9 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
                         + v_online_MIP(unit, s, f+df_central(f,t), t)
                             ${uft_onlineMIP(unit, f, t)}
                         + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
-                            / p_gnu(grid, node, unit, 'unitSizeGen')
+                            / (p_gnu(grid, node, unit, 'unitSizeGen') - p_gnu(grid, node, unit, 'unitSizeCons'))
                         ] // * p_gnu
-                ) // END sum(gnu_output)
+                ) // END sum(gnu)
             ] // END * p_groupPolicy
 
     =G=
