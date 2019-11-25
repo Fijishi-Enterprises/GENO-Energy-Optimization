@@ -280,7 +280,7 @@ q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
                         ] // * p_gnu
                 ) // END sum(gnu_output)
             ] // END * p_groupPolicy
-
+    + vq_Rocof(group,s,f,t)
     =G=
 
     // Demand for kinetic/rotational energy due to a large unit that could fail
@@ -2564,6 +2564,7 @@ q_inertiaMin(group, sft(s, f, t))
                     / p_gnu(grid, node, unit, 'unitSizeGen')
                 ] // * p_gnu
         ) // END sum(gnu_output)
+    + vq_Inertia(group,s,f,t)
 
     =G=
 

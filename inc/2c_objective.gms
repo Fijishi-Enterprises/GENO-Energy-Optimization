@@ -85,7 +85,12 @@ q_obj ..
                                 * PENALTY_CAPACITY(grid, node)
                             ) // END sum(gn)
                         ] // END * p_stepLength
-
+                        + sum(group,
+                            + sum(sft(s,f,t),
+                                + vq_Rocof(group,s,f,t)
+                                + vq_Inertia(group,s,f,t)
+                                  )
+                              )*1000000
                 // Start-up costs, initial startup free as units could have been online before model started
                 + sum(uft_online(unit, f, t),
                     + sum(unitStarttype(unit, starttype),

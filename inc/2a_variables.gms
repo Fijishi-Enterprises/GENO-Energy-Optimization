@@ -59,5 +59,7 @@ Positive variables
     vq_resDemand(restype, up_down, group, s, f, t) "Dummy to decrease demand for a reserve (MW) before the reserve has been locked"
     vq_resMissing(restype, up_down, group, s, f, t) "Dummy to decrease demand for a reserve (MW) after the reserve has been locked"
     vq_capacity(grid, node, s, f, t) "Dummy variable to ensure capacity margin equation feasibility (MW)"
+    vq_Rocof(group,s,f,t) "Dummy ROCOF"
+    vq_Inertia(group,s,f,t)  "Dummy Inertia"
 ;
 

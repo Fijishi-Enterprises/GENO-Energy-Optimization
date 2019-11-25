@@ -166,3 +166,5 @@ vq_resDemand
 vq_resMissing
 v_stateSlack
 vq_capacity
+vq_Inertia
+vq_Rocof
