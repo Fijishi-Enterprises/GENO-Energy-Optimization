@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2019-11-26
+### Fixed
+- Fixed a possible division by zero in the calculation of r_gnuUtilizationRate
+- Updated debugSymbols.inc and 1e_scenChanges.gms to match with the current naming of sets and parameters
+
+### Changed
+- Changed variable O&M costs from p_unit(unit, 'omCosts') to p_gnu(grid, node, unit, 'vomCosts')
+
 ## [1.2] - 2019-11-12
 
 ### Added
