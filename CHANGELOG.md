@@ -147,7 +147,8 @@ All notable changes to this project will be documented in this file.
 
 
 
-[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.2...dev
+[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.2.1...dev
+[1.2.1]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.2...v1.2.1
 [1.2]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.1...v1.2
 [1.1]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.6...v1.1
 [1.0.6]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.5...v1.0.6
