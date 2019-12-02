@@ -44,8 +44,8 @@ p_gn
 p_gnBoundaryPropertiesForStates
 p_gnn
 p_gnu
-p_nReserves
-p_nuReserves
+p_groupReserves
+p_gnuReserves
 p_gnPolicy
 p_groupPolicy
 p_groupPolicy3D
