@@ -318,6 +318,7 @@ param_unit "Set of possible data parameters for units" /
     maxUnitCount  "Maximum number of units when making integer investments"
     minUnitCount  "Minimum number of units when making integer investments"
     lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
+    ReserveShift
 /
 
 param_eff "Parameters used for unit efficiency approximations" /

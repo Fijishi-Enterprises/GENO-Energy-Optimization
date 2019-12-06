@@ -31,6 +31,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc fuel
     $$loaddc unitUnitEffLevel
     $$loaddc uFuel
+    $$loaddc ts_reserveShift
     $$loaddc effLevelGroupUnit
     $$loaddc group
     $$loaddc p_gn

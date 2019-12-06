@@ -141,7 +141,7 @@ q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
     // Demand for reserves
     + ts_reserveDemand(restype, up_down, group, f, t)${p_groupReserves(group, restype, 'use_time_series')}
     + p_groupReserves(group, restype, up_down)${not p_groupReserves(group, restype, 'use_time_series')}
-
+    + ts_reserveShift(restype, up_down, group, f, t)
     // Reserve demand increase because of units
     + sum(gnuft(grid, node, unit, f, t)${ gnGroup(grid, node, group)
                                           and p_gnuReserves(grid, node, unit, restype, 'reserve_increase_ratio') // Could be better to have 'reserve_increase_ratio' separately for up and down directions
@@ -232,7 +232,7 @@ q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_f
         + v_gen(grid, node, unit_, s, f, t)
             * p_gnuReserves(grid, node, unit_, restype, 'portion_of_infeed_to_reserve')
         ) // END sum(gnGroup)
-
+    + ts_reserveShift(restype, 'up', group, f, t)
     // Reserve provisions to other groups via transfer links
     + sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
                                                 and not gnGroup(grid, node_, group)

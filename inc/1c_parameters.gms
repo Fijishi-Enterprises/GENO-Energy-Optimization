@@ -156,6 +156,7 @@ Parameters
     ts_influx(grid, node, f, t) "External power inflow/outflow during a time step (MWh/h)"
     ts_cf(flow, node, f, t) "Available capacity factor time series (p.u.)"
     ts_reserveDemand(restype, up_down, group, f, t) "Reserve demand in region in the time step (MW)"
+    ts_reserveShift(restype, up_down, group, f, t) "Reserve shift in region in the time step (MW)"
     ts_node(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input ([v_state])"
     ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (EUR/MWh)"
     ts_fuelPrice(fuel, t) "Fuel price time series (EUR/MWh)"
