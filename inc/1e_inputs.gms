@@ -31,7 +31,6 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc fuel
     $$loaddc unitUnitEffLevel
     $$loaddc uFuel
-    $$loaddc ts_reserveShift
     $$loaddc effLevelGroupUnit
     $$loaddc group
     $$loaddc p_gn
@@ -62,6 +61,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
 *    $$loaddc p_fuelPrice // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
     $$loaddc ts_fuelPriceChange
     $$loaddc ts_influx
+    $$loaddc ts_reserveShift
     $$loaddc ts_node
     $$loaddc t_invest
     $$loaddc p_storageValue
