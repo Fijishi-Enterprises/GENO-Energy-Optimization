@@ -25,11 +25,11 @@ loop(m,
 * --- Realized Individual Costs ----------------------------------------------
 
     // Variable O&M costs
-    r_gnuVOMCost(gnu_output(grid, node, unit), ft_realizedNoReset(f,t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
+    r_gnuVOMCost(gnu(grid, node, unit), ft_realizedNoReset(f,t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * r_gen(grid, node, unit, f, t)
-            * p_unit(unit, 'omCosts');
+            * p_gnu(grid, node, unit, 'vomCosts');
 
     // Fuel and emission costs during normal operation
     r_uFuelEmissionCost(fuel, unit_fuel(unit), ft_realizedNoReset(f,t))${ uFuel(unit, 'main', fuel) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}

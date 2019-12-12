@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2019-11-26
+### Fixed
+- Fixed a possible division by zero in the calculation of r_gnuUtilizationRate
+- Updated debugSymbols.inc and 1e_scenChanges.gms to match with the current naming of sets and parameters
+
+### Changed
+- Changed variable O&M costs from p_unit(unit, 'omCosts') to p_gnu(grid, node, unit, 'vomCosts')
+
 ## [1.2] - 2019-11-12
 
 ### Added
@@ -139,7 +147,8 @@ All notable changes to this project will be documented in this file.
 
 
 
-[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.2...dev
+[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.2.1...dev
+[1.2.1]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.2...v1.2.1
 [1.2]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.1...v1.2
 [1.1]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.6...v1.1
 [1.0.6]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.5...v1.0.6
