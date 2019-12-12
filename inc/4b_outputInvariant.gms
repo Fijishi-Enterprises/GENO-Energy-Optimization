@@ -154,15 +154,15 @@ loop(m,
 
     // Total realized gn operating costs
     r_gnRealizedOperatingCost(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
-        = sum(gnu_output(grid, node, unit),
+        = sum(gnu(grid, node, unit),
 
             // VOM costs
             + r_gnuVOMCost(grid, node, unit, f, t)
 
             // Divide fuel and startup costs based on output capacities
             + [
-                + p_gnu(grid, node, unit, 'maxGen')${p_unit(unit, 'outputCapacityTotal')}
-                + p_gnu(grid, node, unit, 'unitSizeGen')${not p_unit(unit, 'outputCapacityTotal')}
+                + p_gnu(grid, node, unit, 'capacity')${p_unit(unit, 'outputCapacityTotal')}
+                + p_gnu(grid, node, unit, 'unitSize')${not p_unit(unit, 'outputCapacityTotal')}
                 ]
                     / [
                         + p_unit(unit, 'outputCapacityTotal')${p_unit(unit, 'outputCapacityTotal') > 0}
