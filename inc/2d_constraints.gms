@@ -2548,8 +2548,8 @@ q_inertiaMin(group, sft(s, f, t))
     ${  p_groupPolicy(group, 'kineticEnergyMin')
         } ..
 
-    // Kinectic energy in the system
-    + sum(gnu_output(grid, node, unit)${    p_gnu(grid, node, unit, 'unitSizeGen')
+    // Kinetic energy in the system
+    + sum(gnu(grid, node, unit)${           p_gnu(grid, node, unit, 'unitSize')
                                             and gnGroup(grid, node, group)
                                             and gnuft(grid, node, unit, f, t)
                                             },
