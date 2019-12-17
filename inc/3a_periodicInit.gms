@@ -705,6 +705,15 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         put log '!!! Warning: Trajectories used on aggregated time steps! This could result in significant distortion of the trajectories.';
     ); // END if()
 
+* --- Check if 't_trajectoryHorizon' is long enough -----
+
+    if ((mSettings(m, 't_trajectoryHorizon') < mSettings(m, 't_jump') + smax(unit, p_u_runUpTimeIntervalsCeil(unit))
+      OR mSettings(m, 't_trajectoryHorizon') < mSettings(m, 't_jump') + smax(unit, p_u_shutdownTimeIntervalsCeil(unit)))
+      AND mSettings(m, 't_trajectoryHorizon') ne 0,
+        put log '!!! Abort: t_trajectoryHorizon should be at least as long as t+jump + max trajectory.';
+        abort "t_trajectoryHorizon should be at least as long as t+jump + max trajectory. This may lead to infeasibilities";
+    ); // END if()
+
 * --- Check that the first interval block is compatible with t_jump' ----------
 
     if (mod(mSettings(m, 't_jump'), mInterval(m, 'stepsPerInterval', 'c000')) <> 0,
