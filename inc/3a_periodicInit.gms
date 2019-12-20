@@ -168,15 +168,10 @@ loop(m,
     unit_noAggregate(unit)${ sum((unit_, effLevel), unitUnitEffLevel(unit, unit_, effLevel)) } = no;
 
     // Process data for unit aggregations
-    // Aggregate maxGen as the sum of aggregated maxGen
-    p_gnu(grid, node, unit_aggregator(unit), 'maxGen')
+    // Aggregate output as the sum of capacity
+    p_gnu(grid, node, unit_aggregator(unit), 'capacity')
         = sum(unit_$unitAggregator_unit(unit, unit_),
-            + p_gnu(grid, node, unit_, 'maxGen')
-            );
-    // Aggregate maxCons as the sum of aggregated maxCons
-    p_gnu(grid, node, unit_aggregator(unit), 'maxCons')
-        = sum(unit_$unitAggregator_unit(unit, unit_),
-            + p_gnu(grid, node, unit_, 'maxCons')
+            + p_gnu(grid, node, unit_, 'capacity')
             );
 
 * --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units ---
@@ -615,13 +610,13 @@ loop(m,
 
 * --- Calculating fuel price time series --------------------------------------
 
-loop(fuel${ p_fuelPrice(fuel, 'useTimeSeries') },
+loop(commodity${ p_price(commodity, 'useTimeSeries') },
     // Determine the time steps where the prices change
     Option clear = tt;
-    tt(t)${ ts_fuelPriceChange(fuel ,t) }
+    tt(t)${ ts_priceChange(commodity,t) }
         = yes;
-    ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
-); // END loop(fuel)
+    ts_price(commodity, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_priceChange(commodity, t_));
+); // END loop(commodity)
 
 * --- Slack Direction ---------------------------------------------------------
 

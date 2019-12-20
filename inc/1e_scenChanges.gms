@@ -446,15 +446,15 @@ $ifthen exist '%input_dir%/ts_cf3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/ts_fuelPriceChange2.gdx'
-    $$gdxin '%input_dir%/ts_fuelPriceChange2.gdx'
-    $$loaddcm ts_fuelPriceChange
+$ifthen exist '%input_dir%/ts_priceChange2.gdx'
+    $$gdxin '%input_dir%/ts_priceChange2.gdx'
+    $$loaddcm ts_priceChange
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/ts_fuelPriceChange3.gdx'
-    $$gdxin '%input_dir%/ts_fuelPriceChange3.gdx'
-    $$loaddcm ts_fuelPriceChange
+$ifthen exist '%input_dir%/ts_priceChange3.gdx'
+    $$gdxin '%input_dir%/ts_priceChange3.gdx'
+    $$loaddcm ts_priceChange
     $$gdxin
 $endif
 

@@ -28,7 +28,7 @@ ts_energy_(s)
                + sum((flowNode(flow, node), flowUnit(flow, unit))
                       $gnu_output(grid, node, unit),
                      ts_cf_(flow, node, s, f, t)
-                      * p_gnu(grid, node, unit, 'maxGen')
+                      * p_gnu(grid, node, unit, 'capacity')
                  )
           ) * p_stepLength(mSolve, f, t)
       );

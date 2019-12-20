@@ -20,15 +20,15 @@ Sets
     grid "Forms of energy endogenously presented in the model" / empty /
     node "Nodes where different types of energy are converted"
 
-* --- Fuels & resources -------------------------------------------------------
+* --- Commodities & resources -------------------------------------------------------
     emission "Emissions"
-    fuel "Fuels"
+    commodity(node) "Commodities that can be bought or sold exogenous to model"
     flow "Flow based energy resources (time series)"
 
 * --- Energy generation and consumption ---------------------------------------
     unit "Set of generators, storages and loads"
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
-    unit_fuel(unit) "Units using a commercial fuel"
+    unit_commodity(unit) "Units using an exogenous commodity with a price"
     unit_fail(unit) "Units that might fail"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
     unit_online(unit) "Units that have an online variable in the first active effLevel"
@@ -44,7 +44,7 @@ Sets
     flowUnit(flow, *) "Units or storages linked to a certain energy flow time series"
     unitUnittype(unit, *) "Link generation technologies to types"
     unitStarttype(unit, starttype) "Units with special startup properties"
-    uFuel(unit, param_fuel, fuel) "Units linked with fuels"
+    un_commodity(unit, node) "Units linked with commodities"
     unittype "Unit technology types"
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
@@ -196,7 +196,7 @@ alias(op, op_, op__);
 alias(hrop, hrop_, hrop__);
 alias(eff, eff_, eff__);
 alias(hr, hr_, hr__);
-alias(fuel, fuel_);
+alias(commodity, commodity_);
 alias(effLevel, effLevel_);
 alias(restype, restype_);
 alias(group, group_);

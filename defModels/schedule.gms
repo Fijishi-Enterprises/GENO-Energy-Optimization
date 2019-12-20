@@ -33,7 +33,7 @@ Model schedule /
     q_maxDownwardOfflineReserve
     q_maxUpward
     q_maxUpwardOfflineReserve
-*    q_reserveProvision
+    q_reserveProvision
     q_reserveProvisionOnline
     q_startshut
     q_startuptype
@@ -41,24 +41,23 @@ Model schedule /
     q_onlineOnStartUp
     q_offlineAfterShutDown
     q_onlineMinUptime
-*   q_onlineCyclic
+*    q_onlineCyclic
     q_genRamp
     q_rampUpLimit
     q_rampDownLimit
     q_rampUpDown
     q_rampSlack
-    q_outputRatioFixed
-    q_outputRatioConstrained
     q_conversionDirectInputOutput
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
     q_conversionIncHR
-    q_conversionIncHRMaxGen
+    q_conversionIncHRMaxOutput
     q_conversionIncHRBounds
     q_conversionIncHR_help1
     q_conversionIncHR_help2
-    q_fuelUseLimit
+*    q_unitEqualityConstraint
+*    q_commodityUseLimit
 
     // Energy Transfer
     q_transfer
@@ -66,8 +65,8 @@ Model schedule /
     q_transferLeftwardLimit
     q_resTransferLimitRightward
     q_resTransferLimitLeftward
-*    q_reserveProvisionRightward
-*    q_reserveProvisionLeftward
+    q_reserveProvisionRightward
+    q_reserveProvisionLeftward
 
     // State Variables
     q_stateSlack
@@ -80,7 +79,7 @@ Model schedule /
     q_inertiaMin
     q_instantaneousShareMax
     q_constrainedOnlineMultiUnit
-*    q_capacityMargin
+    q_capacityMargin
 *    q_constrainedCapMultiUnit
 *    q_emissioncap
 *    q_energyShareMax

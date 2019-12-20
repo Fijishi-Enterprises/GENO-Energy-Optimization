@@ -28,16 +28,18 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc unit
     $$loaddc unitUnittype
     $$loaddc unit_fail
-    $$loaddc fuel
+    $$loaddc commodity
     $$loaddc unitUnitEffLevel
-    $$loaddc uFuel
+    $$loaddc un_commodity
     $$loaddc effLevelGroupUnit
     $$loaddc group
     $$loaddc p_gn
     $$loaddc p_gnn
-    $$loaddc p_gnu
+    $$loaddc p_gnu_io
     $$loaddc p_gnuBoundaryProperties
     $$loaddc p_unit
+    $$loaddc p_unitConstraint
+    $$loaddc p_unitConstraintNode
     $$loaddc ts_unit
     $$loaddc restype
     $$loaddc restypeDirection
@@ -51,15 +53,15 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc ts_reserveDemand
     $$loaddc p_gnBoundaryPropertiesForStates
     $$loaddc p_gnPolicy
-    $$loaddc p_uFuel
+    $$loaddc p_uStartupfuel
     $$loaddc flowUnit
-    $$loaddc gngnu_fixedOutputRatio
-    $$loaddc gngnu_constrainedOutputRatio
+*    $$loaddc gngnu_fixedOutputRatio
+*    $$loaddc gngnu_constrainedOutputRatio
     $$loaddc emission
-    $$loaddc p_fuelEmission
+    $$loaddc p_nEmission
     $$loaddc ts_cf
-*    $$loaddc p_fuelPrice // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
-    $$loaddc ts_fuelPriceChange
+*    $$loaddc p_price // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
+    $$loaddc ts_priceChange
     $$loaddc ts_influx
     $$loaddc ts_node
     $$loaddc t_invest
@@ -115,25 +117,29 @@ $offtext
 
 * --- Generate Unit Related Sets ----------------------------------------------
 
+p_gnu(grid, node, unit, param_gnu) = sum(input_output, p_gnu_io(grid, node, unit, input_output, param_gnu));
+
 // Set of all existing gnu
 gnu(grid, node, unit)${ not sameas(grid, 'empty')
-                        and (   p_gnu(grid, node, unit, 'maxGen')
-                                or p_gnu(grid, node, unit, 'maxCons')
-                                or p_gnu(grid, node, unit, 'unitSizeGen')
-                                or p_gnu(grid, node, unit, 'unitSizeCons')
+                        and (   p_gnu(grid, node, unit, 'capacity')
+                                or p_gnu(grid, node, unit, 'unitSize')
+                                or p_gnu(grid, node, unit, 'conversionCoeff')
                                 )
                       }
     = yes;
 // Reduce the grid dimension
 nu(node, unit) = sum(grid, gnu(grid, node, unit));
+//p_gnu(grid, node, unit, 'capacity')$(p_gnu(grid, node, unit, 'capacity') = 0) = inf;
 
 // Separation of gnu into inputs and outputs
-gnu_output(gnu(grid, node, unit))${ p_gnu(grid, node, unit, 'maxGen')
-                                    or p_gnu(grid, node, unit, 'unitSizeGen')
+gnu_output(gnu(grid, node, unit))${ p_gnu_io(grid, node, unit, 'output', 'capacity')
+                                    or p_gnu_io(grid, node, unit, 'output', 'unitSize')
+                                    or p_gnu_io(grid, node, unit, 'output', 'conversionCoeff')
                                     }
     = yes;
-gnu_input(gnu(grid, node, unit))${  p_gnu(grid, node, unit, 'maxCons')
-                                    or p_gnu(grid, node, unit, 'unitSizeCons')
+gnu_input(gnu(grid, node, unit))${  p_gnu_io(grid, node, unit, 'input', 'capacity')
+                                    or p_gnu_io(grid, node, unit, 'input', 'unitSize')
+                                    or p_gnu_io(grid, node, unit, 'input', 'conversionCoeff')
                                     }
     = yes;
 
@@ -149,10 +155,10 @@ unit_minload(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operati
                         }
     = yes;
 
-// Units with flows/fuels
+// Units with flows/commodities
 unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
-unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
+unit_commodity(unit)${ sum(node, un_commodity(unit, node)) }
     = yes;
 
 // Units with investment variables
@@ -198,25 +204,17 @@ p_unit(unit, 'unitCount')${ not p_unit(unit, 'unitCount')
 
 // By default add outputs in order to get the total capacity of the unit
 p_unit(unit, 'outputCapacityTotal')${ not p_unit(unit, 'outputCapacityTotal') }
-    = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));
+    = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'capacity'));
 p_unit(unit, 'unitOutputCapacityTotal')
-    = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+    = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 
 // Assume unit sizes based on given maximum capacity parameters and unit counts if able
-p_gnu(gnu(grid, node, unit), 'unitSizeGen')
-    ${  not p_gnu(grid, node, unit, 'unitSizeGen')
-        and p_gnu(grid, node, unit, 'maxGen')
+p_gnu(gnu(grid, node, unit), 'unitSize')
+    ${  not p_gnu(grid, node, unit, 'unitSize')
+        and p_gnu(grid, node, unit, 'capacity')
         and p_unit(unit, 'unitCount')
         }
-    = p_gnu(grid, node, unit, 'maxGen') / p_unit(unit, 'unitCount'); // If maxGen and unitCount are given, calculate unitSizeGen based on them.
-p_gnu(gnu(grid, node, unit), 'unitSizeCons')
-    ${  not p_gnu(grid, node, unit, 'unitSizeCons')
-        and p_gnu(grid, node, unit, 'maxCons')
-        and p_unit(unit, 'unitCount')
-        }
-    = p_gnu(grid, node, unit, 'maxCons') / p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
-p_gnu(gnu(grid, node, unit), 'unitSizeTot')
-    = p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons');
+    = p_gnu(grid, node, unit, 'capacity') / p_unit(unit, 'unitCount'); // If capacity and unitCount are given, calculate unitSize based on them.
 
 // Determine unit startup parameters based on data
 // Hot startup parameters
@@ -226,10 +224,10 @@ p_uNonoperational(unitStarttype(unit, 'hot'), 'max')
     = p_unit(unit, 'startWarmAfterXhours');
 p_uStartup(unitStarttype(unit, 'hot'), 'cost')
     = p_unit(unit, 'startCostHot')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 p_uStartup(unitStarttype(unit, 'hot'), 'consumption')
     = p_unit(unit, 'startFuelConsHot')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 
 // Warm startup parameters
 p_uNonoperational(unitStarttype(unit, 'warm'), 'min')
@@ -238,69 +236,67 @@ p_uNonoperational(unitStarttype(unit, 'warm'), 'max')
     = p_unit(unit, 'startColdAfterXhours');
 p_uStartup(unitStarttype(unit, 'warm'), 'cost')
     = p_unit(unit, 'startCostWarm')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 p_uStartup(unitStarttype(unit, 'warm'), 'consumption')
     = p_unit(unit, 'startFuelConsWarm')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 
 // Cold startup parameters
 p_uNonoperational(unitStarttype(unit, 'cold'), 'min')
     = p_unit(unit, 'startColdAfterXhours');
 p_uStartup(unit, 'cold', 'cost')
     = p_unit(unit, 'startCostCold')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 p_uStartup(unit, 'cold', 'consumption')
     = p_unit(unit, 'startFuelConsCold')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 
 
 //shutdown cost parameters
 p_uShutdown(unit, 'cost')
     = p_unit(unit, 'shutdownCost')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 
 // Determine unit emission costs
-p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_fuel, param_fuel, fuel)) }
-    = p_fuelEmission(fuel, emission)
+p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, emission)}
+    = p_nEmission(node, emission)
         / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
-        * sum(gnu_output(grid, node, unit_fuel),
-            + p_gnPolicy(grid, node, 'emissionTax', emission)  // Weighted average of emission costs from different output energy types
-                * [ + p_gnu(grid, node, unit_fuel, 'maxGen')
-                    + p_gnu(grid, node, unit_fuel, 'unitSizeGen')${not p_gnu(grid, node, unit_fuel, 'maxGen')}
-                    ] // END * p_gnPolicy
-        ) // END sum(gnu_output)
-        / sum(gnu_output(grid, node, unit_fuel), // Weighted average of emission costs from different output energy types
-            + p_gnu(grid, node, unit_fuel, 'maxGen')
-            + p_gnu(grid, node, unit_fuel, 'unitSizeGen')$(not p_gnu(grid, node, unit_fuel, 'maxGen'))
-        ) // END sum(gnu_output)
+        * sum(gnu_output(grid, node, unit_commodity),
+            + p_gnPolicy(grid, node, 'emissionTax', emission)
+          )
 ;
 
 // If the start-up fuel fraction is not defined, it equals 1
-p_uFuel(uFuel(unit_fuel, 'startup', fuel), 'fixedFuelFraction')${ not p_uFuel(unit_fuel, 'startup', fuel, 'fixedFuelFraction') }
+p_uStartupfuel(unit, commodity, 'fixedFuelFraction')${ ( p_unit(unit, 'startFuelConsHot')
+                                                         or p_unit(unit, 'startFuelConsWarm')
+                                                         or p_unit(unit, 'startFuelConsCold')
+                                                       )
+                                                       and un_commodity(unit, commodity)
+                                                       and not p_uStartupfuel(unit, commodity, 'fixedFuelFraction')
+                                                     }
     = 1;
 
 * =============================================================================
-* --- Determine Fuel Price Representation -------------------------------------
+* --- Determine Commodity Price Representation -------------------------------------
 * =============================================================================
-// Use either constant or time series for fuel prices depending on 'ts_fuelPriceChange'
-// Should be handled separately by 'p_fuelPrice' also being included in the input data,
-// but this is more convenient for now as no changes to inputs are required
+// Use time series for commodity prices depending on 'ts_priceChange'
 
-// Determine if fuel prices require a time series representation or not
-loop(fuel,
+// Determine if commodity prices require a time series representation or not
+loop(commodity,
     // Find the steps with changing fuel prices
     option clear = tt;
-    tt(t)${ ts_fuelPriceChange(fuel, t) } = yes;
+    tt(t)${ ts_priceChange(commodity, t) } = yes;
 
     // If only up to a single value
     if(sum(tt, 1) <= 1,
-        p_fuelPrice(fuel, 'useConstant') = 1; // Use a constant for fuel prices
-        p_fuelPrice(fuel, 'fuelPrice') = sum(tt, ts_fuelpriceChange(fuel, tt)) // Determine the price as the only value in the time series
+        p_price(commodity, 'useConstant') = 1; // Use a constant for commodity prices
+        p_price(commodity, 'price') = sum(tt, ts_priceChange(commodity, tt)) // Determine the price as the only value in the time series
     // If multiple values found, use time series
     else
-        p_fuelPrice(fuel, 'useTimeSeries') = 1;
+        p_price(commodity, 'useTimeSeries') = 1;
         ); // END if(sum(tt))
 ); // END loop(fuel)
+
 
 * =============================================================================
 * --- Generate Node Related Sets Based on Input Data --------------------------
@@ -559,21 +555,21 @@ loop( unit,
     ); // END loop(effLevelGroupUnit)
 );
 
-* --- Check fuel fraction related data ----------------------------------------
+* --- Check startupfuel fraction related data ----------------------------------------
 
-loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
-    if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')) <> 1,
+loop( unit${sum(commodity$p_uStartupfuel(unit, commodity, 'fixedFuelFraction'), 1)},
+    if(sum(commodity, p_uStartupfuel(unit, commodity, 'fixedFuelFraction')) <> 1,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
         put log '!!! Abort: The sum of fixedFuelFraction over start-up fuels needs to be one for all units using start-up fuels!' /;
         abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
     );
 );
 
-loop( unit_fuel(unit)${sum(fuel, p_uFuel(unit, 'main', fuel, 'maxFuelFraction'))},
-    if(sum(uFuel(unit, 'main', fuel), 1) < 2,
+loop( unit${sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1)},
+    if(sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1) < 2,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
-        put log '!!! Abort: maxFuelFraction cannot be applied to units with only a single main fuel!' /;
-        abort "'maxFuelFraction' cannot be applied to units with only a single main fuel!"
+        put log '!!! Abort: constraint requires at least two inputs or outputs!' /;
+        abort "a constraint has to have more tha one input or output!"
     );
 );
 

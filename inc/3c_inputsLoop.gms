@@ -125,14 +125,14 @@ $offtext
 * --- NO FORECAST DIMENSION, SHOULD THESE BE HANDLED SEPARATELY? --------------
 // Currently, only updated until the forecast horizon, but is this correct?
 
-    // Update ts_fuelPriceChange
-    if (mTimeseries_loop_read(mSolve, 'ts_fuelPriceChange'),
-        put_utility 'gdxin' / '%input_dir%/ts_fuelPriceChange/' tSolve.tl:0 '.gdx';
-        execute_load ts_fuelPriceChange_update=ts_fuelPriceChange;
-        ts_fuelPriceChange(fuel, tt_forecast(t))
-*            ${ ts_fuelPriceChange_update(fuel, t) } // Update only existing values (zeroes need to be EPS)
-            = ts_fuelPriceChange_update(fuel, t);
-    ); // END if('ts_fuelPriceChange')
+    // Update ts_priceChange
+    if (mTimeseries_loop_read(mSolve, 'ts_priceChange'),
+        put_utility 'gdxin' / '%input_dir%/ts_priceChange/' tSolve.tl:0 '.gdx';
+        execute_load ts_priceChange_update=ts_priceChange;
+        ts_priceChange(node, tt_forecast(t))
+*            ${ ts_priceChange_update(fuel, t) } // Update only existing values (zeroes need to be EPS)
+            = ts_priceChange_update(node, t);
+    ); // END if('ts_priceChange')
 
     // Update ts_unavailability
     if (mTimeseries_loop_read(mSolve, 'ts_unavailability'),
@@ -377,15 +377,51 @@ $offtext
                             + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
-    // Fuel price time series
-    ts_fuelPrice_(fuel, tt_interval(t))
-        ${ p_fuelPrice(fuel, 'useTimeSeries') }
-        = sum(tt_aggregate(t, t_),
-            + ts_fuelPrice(fuel, t_+dt_circular(t_))
-            )
-            / mInterval(mSolve, 'stepsPerInterval', counter);
 
+    // Commodity price time series
+    ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
+        = + p_gnu(grid, node, unit, 'vomCosts')
+          + sum(un_commodity(unit, commodity)$commodity(node),
+              + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
+              + sum(tt_aggregate(t, t_)$p_price(commodity, 'useTimeSeries'),
+                  + ts_price(node, t_+dt_circular(t_))
+                )
+                / mInterval(mSolve, 'stepsPerInterval', counter)
+            )
+          + sum(emission$p_unitEmissionCost(unit, node, emission), // Emission taxes
+              + p_unitEmissionCost(unit, node, emission)
+            ); // END sum(emission)
+
+    p_uStartupEmission(unit, starttype, emission)
+      =
+        + sum(node$p_uStartupfuel(unit, node, 'fixedFuelFraction'),
+            + p_uStartup(unit, starttype, 'consumption')
+              * p_uStartupfuel(unit, node, 'fixedFuelFraction')
+              * p_nEmission(node, emission) / 1e3
+          ); // END sum(unit, node)
+
+    // Calculating startup cost time series
+    ts_startupCost_(unit, starttype, tt_interval(t))
+      =
+        + p_uStartup(unit, starttype, 'cost')
+        // Start-up fuel and emission costs
+        + sum(commodity$p_uStartupfuel(unit, commodity, 'fixedFuelFraction'),
+            + p_uStartup(unit, starttype, 'consumption')
+              * p_uStartupfuel(unit, commodity, 'fixedFuelFraction')
+              * [
+                  + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
+                  + sum(tt_aggregate(t, t_)$p_price(commodity, 'useTimeseries'),
+                      + ts_price(commodity, t_+dt_circular(t_))
+                    )
+                    / mInterval(mSolve, 'stepsPerInterval', counter)
+                ] // END * p_uStartup
+          ) // END sum(commodity)
+        + sum((node, emission)$p_unitEmissionCost(unit, node, emission),
+            + p_uStartupEmission(unit, starttype, emission)
+              * p_unitEmissionCost(unit, node, emission)
+          )
 ); // END loop(counter)
+
 
 * --- Process unit time series data -------------------------------------------
 
@@ -411,6 +447,7 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
         = smin(effSelector$effGroupSelectorUnit(effGroup, unit, effSelector), ts_effUnit(effGroup, unit, effSelector, 'slope', f, t)); // Uses maximum efficiency for the group
 ); // END loop(effLevelGroupUnit)
 
+
 * =============================================================================
 * --- Input data processing ---------------------------------------------------
 * =============================================================================
@@ -426,9 +463,10 @@ $endif.scenarios
 Option clear = p_msft_probability;
 p_msft_probability(msft(mSolve, s, f, t))
     = p_mfProbability(mSolve, f)
-        / sum(f_${ft(f_, t)},
-              p_mfProbability(mSolve, f_)) * p_msProbability(mSolve, s)
-              * p_msWeight(mSolve, s);
+        / sum(f_$ft(f_, t),
+              p_mfProbability(mSolve, f_)
+          ) * p_msProbability(mSolve, s)
+            * p_msWeight(mSolve, s);
 
 
 * --- Calculate sample displacements ------------------------------------------
