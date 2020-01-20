@@ -203,7 +203,7 @@ alias(group, group_);
 
 
 *if(active('rampSched'),
-  $$include inc/rampSched/sets_rampSched.gms
+*  $$include inc/rampSched/sets_rampSched.gms
 *);
 
 
