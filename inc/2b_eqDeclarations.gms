@@ -107,7 +107,7 @@ equations
     q_boundCyclic(grid, node, s, s, mType) "Cyclic node state bound for the first and the last states of samples"
 
     // Policy
-    q_inertiaMin(group, s, f, t) "Minimum inertia in a group of nodes"
+    q_inertiaMin(restype, up_down, group, s, f, t) "Minimum inertia in a group of nodes"
     q_instantaneousShareMax(group, s, f, t) "Maximum instantaneous share of generation and controlled import from a group of units and links"
     q_constrainedOnlineMultiUnit(group, s, f, t) "Constrained number of online units for a group of units"
     q_capacityMargin(grid, node, s, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
