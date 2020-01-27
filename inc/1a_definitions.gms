@@ -243,6 +243,7 @@ param_gnBoundaryProperties "Properties that can be set for the different boundar
 /
 
 param_gnn "Set of possible data parameters for grid, node, node (nodal interconnections)" /
+    transferMin   "Minimum Transfer capacity (MW)"
     transferCap   "Transfer capacity limits (MW)"
     transferCapBidirectional "Total bidirectional transfer capacity limit (MW)"
     transferLoss  "Transfer losses"

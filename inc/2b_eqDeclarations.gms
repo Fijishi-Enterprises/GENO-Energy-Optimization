@@ -90,7 +90,9 @@ equations
     // Energy Transfer
     q_transfer(grid, node, node, s, f, t) "Rightward and leftward transfer must match the total transfer"
     q_transferRightwardLimit(grid, node, node, s, f, t) "Transfer of energy and capacity reservations to the rightward direction are less than the transfer capacity"
-    q_transferLeftwardLimit(grid, node, node, s, f, t) "Transfer of energy and capacity reservations to the leftward direction are less than the transfer capacity"
+    q_transferLeftwardLimit(grid, node, node, s, f, t)  "Transfer of energy and capacity reservations to the leftward direction are less than the transfer capacity"
+    q_transferRightwardMin(grid, node, node_, s, f, t)  "Transfer of energy and capacity to the rightward direction are greater than the minimum transfer"
+    q_transferLeftwardMin(grid, node, node_, s, f, t)   "Transfer of energy and capacity to the leftward direction are greater than the minimum transfer"
     q_resTransferLimitRightward(grid, node, node, s, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the rightward direction"
     q_resTransferLimitLeftward(grid, node, node, s, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the leftward direction"
     q_reserveProvisionRightward(restype, up_down, node, node, s, f, t) "Rightward reserve provision limited"

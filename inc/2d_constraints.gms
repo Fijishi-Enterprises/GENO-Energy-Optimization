@@ -1891,6 +1891,32 @@ q_transferLeftwardLimit(gn2n_directional(grid, node, node_), sft(s, f, t))
             * p_gnn(grid, node, node_, 'unitSize')
         ) // END sum(t_invest)
 ;
+* --- Rightward minimum Transfer -----------------------------------------------
+
+q_transferRightwardMin(gn2n_directional(grid, node, node_), sft(s, f, t))
+..
+
+    // Rightward transfer
+    + v_transferRightward(grid, node, node_, s, f, t)
+
+    =G=
+
+    // Existing transfer capacity
+    + p_gnn(grid, node, node_, 'transferMin')
+;
+
+* --- Leftward minimum Transfer ------------------------------------------------
+
+q_transferLeftwardMin(gn2n_directional(grid, node, node_), sft(s, f, t))
+..
+
+    // Leftward transfer
+    + v_transferLeftward(grid, node, node_, s, f, t)
+
+    =G=
+
+    // Existing transfer capacity
+    + p_gnn(grid, node_, node, 'transferMin')
 
 * --- Rightward Reserve Transfer Limits ---------------------------------------
 
