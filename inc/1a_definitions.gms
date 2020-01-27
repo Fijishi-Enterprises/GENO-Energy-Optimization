@@ -258,6 +258,8 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
 param_gnu "Set of possible data parameters for grid, node, unit" /
     maxGen        "Maximum output capacity (MW)"
     maxCons       "Maximum loading capacity (MW)"
+    avGen         "Average output capacity (MW)"
+    avCons        "Average loading capacity (MW)"
     useInitialGeneration     "A flag to indicate whether to fix generation for the first time step (binary)"
     initialGeneration        "Initial generation/consumption of the unit in the first time step (MW)"
     conversionFactor "Conversion factor for inputs or outputs (for changing the unit of measurement)"
