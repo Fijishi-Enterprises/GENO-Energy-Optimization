@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Changed
+- Static inertia requirement can be fulfilled by both rotational inertia of machines and certain reserve products
+
 ## [1.2.1] - 2019-11-26
 ### Fixed
 - Fixed a possible division by zero in the calculation of r_gnuUtilizationRate
