@@ -145,7 +145,7 @@ Parameters
 * --- Investment Results ------------------------------------------------------
 
     // Interesting investment results
-    r_invest(unit) "Number/amount of invested sub-units"
+    r_invest(unit, t) "Number/amount of invested sub-units"
     r_investTransfer(grid, node, node, t) "Amount of invested transfer link capacity"
 
 * --- Dummy Variable Results --------------------------------------------------

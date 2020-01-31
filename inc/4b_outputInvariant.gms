@@ -126,7 +126,7 @@ loop(m,
             * [
                 + p_gnu(grid, node, unit, 'maxGen') // Not in v_obj
                 + p_gnu(grid, node, unit, 'maxCons') // Not in v_obj
-                + r_invest(unit)
+                + sum(t_invest, r_invest(unit, t_invest))
                     * p_gnu(grid, node, unit, 'unitSizeTot')
                 ]
             * p_gnu(grid, node, unit, 'fomCosts');
@@ -134,7 +134,7 @@ loop(m,
     // Unit investment costs
     r_gnuUnitInvestmentCost(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
-            * r_invest(unit)
+            * sum(t_invest, r_invest(unit, t_invest))
             * p_gnu(grid, node, unit, 'unitSizeTot')
             * p_gnu(grid, node, unit, 'invCosts')
             * p_gnu(grid, node, unit, 'annuity');
@@ -241,10 +241,14 @@ loop(m,
             ); // END sum(ft_realizedNoReset)
 
     // Approximate utilization rates for gnus over the simulation
-    r_gnuUtilizationRate(gnu_output(grid, node, unit))${r_gnuTotalGen(grid, node, unit) and (p_gnu(grid, node, unit, 'maxGen') or r_invest(unit))}
+    r_gnuUtilizationRate(gnu_output(grid, node, unit))${ r_gnuTotalGen(grid, node, unit)
+                                                         and ( p_gnu(grid, node, unit, 'maxGen')
+                                                               or sum(t_invest, r_invest(unit, t_invest))
+                                                               )
+                                                         }
         = r_gnuTotalGen(grid, node, unit)
             / [
-                + (p_gnu(grid, node, unit, 'maxGen') + r_invest(unit)*p_gnu(grid, node, unit, 'unitSizeGen'))
+                + (p_gnu(grid, node, unit, 'maxGen') + sum(t_invest, r_invest(unit, t_invest))*p_gnu(grid, node, unit, 'unitSizeGen'))
                     * (mSettings(m, 't_end') - (mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')) + 1)
                     * mSettings(m, 'stepLengthInHours')
                 ]; // END division

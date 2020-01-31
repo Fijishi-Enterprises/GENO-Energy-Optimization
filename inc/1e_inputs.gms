@@ -63,12 +63,15 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc ts_fuelPriceChange
     $$loaddc ts_influx
     $$loaddc ts_node
+    $$loaddc p_discountFactor
     $$loaddc t_invest
+    $$loaddc ut
     $$loaddc p_storageValue
     $$loaddc uGroup
     $$loaddc gnuGroup
     $$loaddc gn2nGroup
     $$loaddc gnGroup
+    $$loaddc sGroup
     $$loaddc p_groupPolicy
     $$loaddc p_groupPolicy3D
     $$loaddc gnss_bound
@@ -279,6 +282,11 @@ p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_f
 // If the start-up fuel fraction is not defined, it equals 1
 p_uFuel(uFuel(unit_fuel, 'startup', fuel), 'fixedFuelFraction')${ not p_uFuel(unit_fuel, 'startup', fuel, 'fixedFuelFraction') }
     = 1;
+
+// Unit lifetime
+loop(ut(unit, t, start_end),
+    p_unit(unit, start_end) = ord(t)
+); // END loop(ut)
 
 * =============================================================================
 * --- Determine Fuel Price Representation -------------------------------------

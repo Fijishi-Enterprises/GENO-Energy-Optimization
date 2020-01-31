@@ -318,6 +318,8 @@ param_unit "Set of possible data parameters for units" /
     maxUnitCount  "Maximum number of units when making integer investments"
     minUnitCount  "Minimum number of units when making integer investments"
     lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
+    start        "The relative position of the time step when the unit becomes available (calculated from ut(unit, t, start_end))"
+    end          "The relative position of the time step when the unit becomes unavailable (calculated from ut(unit, t, start_end))"
 /
 
 param_eff "Parameters used for unit efficiency approximations" /
@@ -402,4 +404,8 @@ spillLimits(param_gnBoundaryTypes) "set of upward and downward state limits"
        / maxSpill, minSpill /
 useConstantOrTimeSeries(param_gnBoundaryProperties) "useTimeSeries and useConstant property together"
        / useTimeSeries, useConstant /
+
+// Other
+start_end(param_unit) "Start and end, e.g. of unit lifetime"
+       / start, end /
 ; // END parameter set declarations

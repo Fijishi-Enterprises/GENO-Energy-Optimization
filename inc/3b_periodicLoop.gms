@@ -326,9 +326,15 @@ $endif
 
 // Loop over defined samples
 loop(msf(mSolve, s, f)$msStart(mSolve, s),
-                      // Move the samples along with the dispatch
+                      // Move the samples along with the dispatch if scenarios are used
     sft(s, ft(f, t))${ord(t) > msStart(mSolve, s) + tSolveFirst - 1
                       and ord(t) < msEnd(mSolve, s) + tSolveFirst
+                      and mSettings(mSolve, 'scenarios')
+                     } = yes;
+                      // Otherwise do not move the samples along with the rolling horizon
+    sft(s, ft(f, t))${ord(t) > msStart(mSolve, s)
+                      and ord(t) <= msEnd(mSolve, s)
+                      and not mSettings(mSolve, 'scenarios')
                      } = yes;
 );
 
@@ -556,6 +562,12 @@ uft(unit, ft(f, t))${   (   [
                      }
 // only units with capacities or investment option
     = yes;
+
+// Units are not active before or after their lifetime
+uft(unit, ft(f, t))${   [ ord(t) < p_unit(unit, 'start') and p_unit(unit, 'start') ]
+                        or [ ord(t) >= p_unit(unit, 'end') and p_unit(unit, 'end') ]
+                        }
+    = no;
 
 // First ft:s for each aggregator unit
 Option clear = uft_aggregator_first;

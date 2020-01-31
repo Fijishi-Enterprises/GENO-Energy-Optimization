@@ -96,6 +96,7 @@ Parameters
 * --- Probability -------------------------------------------------------------
 Parameters
     p_msWeight(mType, s) "Temporal weight of sample: number of similar periods represented by sample s"
+    p_msAnnuityWeight(mType, s) "Temporal weight of sample: used when calculating annuities"
     p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"
@@ -199,4 +200,5 @@ Parameters
     p_storageValue(grid, node, t) "Value of stored something at the end of a time step"
     p_stepLength(mType, f, t) "Length of an interval in hours"
     p_stepLengthNoReset(mType, f, t) "Length of an interval in hours - includes also lengths of previously realized intervals"
+    p_discountFactor(s) "Discount factor for samples when using a multi-year horizon"
 ;

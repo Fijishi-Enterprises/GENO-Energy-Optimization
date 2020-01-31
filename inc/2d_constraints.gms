@@ -2288,7 +2288,7 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
         + ts_node_(grid, node, 'upwardLimit', s, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeseries') }
 
         // Investments
-        + sum(gnu(grid, node, unit),
+        + sum(gnu(grid, node, unit)${gnuft(grid, node, unit, f, t)},
             + p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
                 * p_gnu(grid, node, unit, 'unitSizeTot')
                 * sum(t_invest(t_)${ord(t_)<=ord(t)},
@@ -2580,7 +2580,7 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
             + p_groupReserves(group, restype_inertia, up_down)
             - sum(gnu(grid, node, unit)${   gnGroup(grid, node, group)
                                             and gnuft(grid, node, unit, f, t)
-                                            and gnuRescapable(restype_inertia, up_down, grid, node, unit)											
+                                            and gnuRescapable(restype_inertia, up_down, grid, node, unit)
                                             },
                 + v_reserve(restype_inertia, up_down, grid, node, unit, s, f, t)
                 ) // END sum(gnu)
@@ -2812,7 +2812,7 @@ q_emissioncap(group, emission)
     ${  p_groupPolicy3D(group, 'emissionCap', emission)
         } ..
 
-    + sum(msft(m, s, f, t),
+    + sum(msft(m, s, f, t)${sGroup(s, group)},
         + p_msft_Probability(m,s,f,t)
         * [
             // Time step length dependent emissions
@@ -2865,7 +2865,7 @@ q_energyShareMax(group)
     ${  p_groupPolicy(group, 'energyShareMax')
         } ..
 
-    + sum(msft(m, s, f, t),
+    + sum(msft(m, s, f, t)${sGroup(s, group)},
         + p_msft_Probability(m,s,f,t)
             * p_stepLength(m, f, t)
             * [
@@ -2905,7 +2905,7 @@ q_energyShareMin(group)
     ${  p_groupPolicy(group, 'energyShareMin')
         } ..
 
-    + sum(msft(m, s, f, t),
+    + sum(msft(m, s, f, t)${sGroup(s, group)},
         + p_msft_Probability(m,s,f,t)
             * p_stepLength(m, f, t)
             * [

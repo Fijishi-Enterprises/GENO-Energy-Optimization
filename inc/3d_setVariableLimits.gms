@@ -535,3 +535,26 @@ if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on
             }
         = r_online(unit, f, t);
 ); // END if
+
+* =============================================================================
+* --- Fix previously realized investment results ------------------------------
+* =============================================================================
+
+v_invest_LP.fx(unit_investLP(unit), t_invest(t))${ p_unit(unit, 'start') <= tSolveFirst } // Should this be ord(t) <= tSolveFirst?
+    = r_invest(unit, t)
+;
+v_invest_MIP.fx(unit_investMIP(unit), t_invest(t))${ p_unit(unit, 'start') <= tSolveFirst } // Should this be ord(t) <= tSolveFirst?
+    = r_invest(unit, t)
+;
+v_investTransfer_LP.fx(gn2n_directional(grid, node, node_), t_invest(t))${    not p_gnn(grid, node, node_, 'investMIP')
+                                                                              and p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                              and ord(t) <= tSolveFirst
+                                                                              }
+    = r_investTransfer(grid, node, node_, t)
+;
+v_investTransfer_MIP.fx(gn2n_directional(grid, node, node_), t_invest(t))${   p_gnn(grid, node, node_, 'investMIP')
+                                                                              and p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                              and ord(t) <= tSolveFirst
+                                                                              }
+    = r_investTransfer(grid, node, node_, t) / p_gnn(grid, node, node_, 'unitSize')
+;
