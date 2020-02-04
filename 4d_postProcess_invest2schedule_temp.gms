@@ -13,15 +13,15 @@ loop(unit,
 );
 
 * Update the number of subunits in the child setups (rounded here to the nearest integer)
-loop(unit${r_invest(unit)},
-    tmp = round(r_invest(unit), 0)
+loop(unit${sum(t_invest, r_invest(unit, t_invest))},
+    tmp = round(sum(t_invest, r_invest(unit, t_invest)), 0)
     put "p_unit('", unit.tl, "', 'unitCount') = p_unit('", unit.tl, "', 'unitCount') + ", tmp, ";"/;
 );
 * Update maxGen and maxCons values in the child setups
 loop(gnu(grid, node, unit)${r_invest(unit)},
-    tmp = round(r_invest(unit), 0) * p_gnu(grid, node, unit, 'unitSizeGen');
+    tmp = round(sum(t_invest, r_invest(unit, t_invest)), 0) * p_gnu(grid, node, unit, 'unitSizeGen');
     put "p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'maxGen') = p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'maxGen') + ", tmp, ";"/;
-    tmp = round(r_invest(unit), 0) * p_gnu(grid, node, unit, 'unitSizeCons');
+    tmp = round(sum(t_invest, r_invest(unit, t_invest)), 0) * p_gnu(grid, node, unit, 'unitSizeCons');
     put "p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'maxCons') = p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'maxCons') + ", tmp, ";"/;
 );
 

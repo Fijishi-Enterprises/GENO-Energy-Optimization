@@ -90,59 +90,77 @@ loop(m,
                     ) // END sum(ft_realizedNoReset)
                 ]; // END * 1e-6
 
-* --- Total Cost Components ---------------------------------------------------
+* --- Total Cost Components (discounted) --------------------------------------
 
     // Total VOM costs
     r_gnuTotalVOMCost(gnu_output(grid, node, unit))
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_gnuVOMCost(grid, node, unit, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_discountFactor(s))
             );
 
     // Total fuel & emission costs
     r_uTotalFuelEmissionCost(fuel, unit)${ uFuel(unit, 'main', fuel) }
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_uFuelEmissionCost(fuel, unit, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_discountFactor(s))
             );
 
     // Total unit startup costs
     r_uTotalStartupCost(unit)${ sum(starttype, unitStarttype(unit, starttype)) }
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_uStartupCost(unit, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_discountFactor(s))
             );
 
     // Total state variable slack costs
     r_gnTotalStateSlackCost(gn_stateSlack(grid, node))
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_gnStateSlackCost(grid, node, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_discountFactor(s))
             );
 
     // Fixed O&M costs
     r_gnuFOMCost(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
-            * [
-                + p_gnu(grid, node, unit, 'maxGen') // Not in v_obj
-                + p_gnu(grid, node, unit, 'maxCons') // Not in v_obj
-                + sum(t_invest, r_invest(unit, t_invest))
-                    * p_gnu(grid, node, unit, 'unitSizeTot')
-                ]
+            * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
+                + [
+                    + p_gnu(grid, node, unit, 'maxGen')$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // Not in v_obj; only units active in msft_realizedNoReset
+                    + p_gnu(grid, node, unit, 'maxCons')$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // Not in v_obj; only units active in msft_realizedNoReset
+                    + sum(t_invest(t)${ord(t) <= msEnd(m, s)},
+                        + r_invest(unit, t)$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // only units active in msft_realizedNoReset
+                        )
+                        * p_gnu(grid, node, unit, 'unitSizeTot')
+                    ]
+                    * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
+                    * p_discountFactor(s) // Discount costs
+                ) // END * sum(ms)
             * p_gnu(grid, node, unit, 'fomCosts');
 
     // Unit investment costs
     r_gnuUnitInvestmentCost(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
-            * sum(t_invest, r_invest(unit, t_invest))
+            * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
+                + sum(t_invest(t)${ord(t) <= msEnd(m, s)},
+                    + r_invest(unit, t)$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // only units active in msft_realizedNoReset
+                    )
+                    * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
+                    * p_discountFactor(s) // Discount costs
+                ) // END * sum(ms)
             * p_gnu(grid, node, unit, 'unitSizeTot')
             * p_gnu(grid, node, unit, 'invCosts')
             * p_gnu(grid, node, unit, 'annuity');
 
     // Transfer link investment costs
-    r_gnnLinkInvestmentCost(grid, from_node, to_node)
+    r_gnnLinkInvestmentCost(gn2n_directional(grid, from_node, to_node)) // gn2n_directional only, as in q_obj
         = 1e-6 // Scaling to MEUR
-            * sum(t_invest, r_investTransfer(grid, from_node, to_node, t_invest))
+            * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
+                + sum(t_invest(t)${ord(t) <= msEnd(m, s)}, // only if investment was made before or during the sample
+                    + r_investTransfer(grid, from_node, to_node, t)
+                    )
+                    * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
+                    * p_discountFactor(s) // Discount costs
+                ) // END * sum(ms)
             * [
                 + p_gnn(grid, from_node, to_node, 'invCost')
                     * p_gnn(grid, from_node, to_node, 'annuity')
@@ -373,13 +391,13 @@ r_gnTotalSpillShare(gn(grid, node_spill))${ r_gTotalSpill(grid) > 0 }
     = r_gnTotalSpill(grid, node_spill)
         / r_gTotalSpill(grid);
 
-* --- Total Costs Results -----------------------------------------------------
+* --- Total Costs Results (discounted) ----------------------------------------
 
 // Total realized operating costs on each gn over the simulation
 r_gnTotalRealizedOperatingCost(gn(grid, node))
     = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
         + r_gnRealizedOperatingCost(grid, node, f ,t)
-            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_discountFactor(s))
         );
 
 // Total realized net operating costs on each gn over the simulation
@@ -416,11 +434,11 @@ r_gnTotalRealizedCost(gn(grid, node))
             )
         + sum(gn2n_directional(grid, from_node, node),
             + r_gnnLinkInvestmentCost(grid, from_node, node)
-                / 2
+                / 2 // Half of the link costs are allocated to the receiving end
             )
         + sum(gn2n_directional(grid, node, to_node),
             + r_gnnLinkInvestmentCost(grid, node, to_node)
-                / 2
+                / 2 // Half of the link costs are allocated to the sending end
             );
 
 // Total realized net costs on each gn over the simulation
@@ -447,6 +465,26 @@ r_totalRealizedCost
 // Total realized net operating costs over the simulation
 r_totalRealizedNetCost
     = sum(gn(grid, node), r_gnTotalRealizedNetCost(grid, node));
+
+// Total realized fixed costs on each gn over the simulation
+r_gnTotalRealizedFixedCost(gn(grid, node))
+    = r_gnTotalRealizedCost(grid, node)
+        - r_gnTotalRealizedOperatingCost(grid, node);
+
+// Total realized fixed costs on each grid over the simulation
+r_gTotalRealizedFixedCost(grid)
+    = r_gTotalRealizedCost(grid)
+        - r_gTotalRealizedOperatingCost(grid);
+
+// Total realized fixed costs gn/g share
+r_gnTotalRealizedFixedCostShare(gn(grid, node))${ r_gTotalRealizedFixedCost(grid) > 0 }
+    = r_gnTotalRealizedFixedCost(grid, node)
+        / r_gTotalRealizedFixedCost(grid);
+
+// Total realized fixed costs over the simulation
+r_totalRealizedFixedCost
+    = r_totalRealizedCost
+        - r_totalRealizedOperatingCost;
 
 * --- Reserve Provision Overlap Results ---------------------------------------
 

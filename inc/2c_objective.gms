@@ -130,11 +130,11 @@ q_obj ..
                   ) // END sum(gnuft_rampCost)
 
                 ]  // END * p_sft_probability(s,f,t)
-            // Discount costs
-            * p_discountFactor(s)
+
+            * p_discountFactor(s) // Discount costs
         ) // END sum over msft(m, s, f, t)
 
-    // Cost of energy storage change
+    // Cost of energy storage change (note: not discounted)
     + sum(gn_state(grid, node),
         + sum(mft_start(m, f, t)${  p_storageValue(grid, node, t)
                                     and active(m, 'storageValue')
@@ -196,10 +196,9 @@ q_obj ..
                         ] // END * v_investTransfer_MIP
                 ) // END sum(gn2n_directional)
             ) // END sum(t_invest)
-            // Sample weighting to calculate annual costs
-            * p_msAnnuityWeight(m, s)
-            // Discount costs
-            * p_discountFactor(s)
+
+            * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
+            * p_discountFactor(s) // Discount costs
         ) // END sum(ms)
 
 $ifthen.addterms exist '%input_dir%/2c_additional_objective_terms.gms'
