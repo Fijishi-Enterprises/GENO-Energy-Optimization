@@ -183,12 +183,12 @@ loop(m,
             ); // END sum(ft_realizedNoReset)
 
     // Energy generation by fuels
-    r_genFuel(gn(grid, node), commodity, ft_realizedNoReset(f, t))$[sum(gnu_input(grid, node, unit), un_commodity(unit, commodity)) and ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
+    r_genFuel(gn(grid, node), commodity, ft_realizedNoReset(f, t))$[sum(unit, un_commodity(unit, node)) and sum(gnu_input(grid, node_, unit)$gnu(grid, node, unit), r_gen(grid, node_, unit, f, t)) and ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
         = sum(gnu_output(grid, node, unit),
             + r_gen(grid, node, unit, f, t)
           )
           * sum(gnu_input(grid, commodity, unit), r_gen(grid, commodity, unit, f, t))
-          / sum(gnu_input(grid, node_, unit)$un_commodity(unit, node_), r_gen(grid, node_, unit, f, t));
+          / sum(gnu_input(grid, node_, unit)$gnu(grid, node, unit), r_gen(grid, node_, unit, f, t));
 
     // Energy generation by fuels
     r_genUnittype(gn(grid, node), unittype, ft_realizedNoReset(f,t))
