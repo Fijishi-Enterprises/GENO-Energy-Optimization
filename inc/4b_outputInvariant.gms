@@ -36,9 +36,12 @@ loop(m,
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * r_fuelUse(commodity, unit, f, t)
-            * [ // Fuel price
-                + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
-                + ts_price(commodity, t)$p_price(commodity, 'useTimeSeries')
+            * [ // Fuel price when input
+                + p_price(commodity, 'price')${p_price(commodity, 'useConstant') and un_commodity_in(unit, commodity)}
+                + ts_price(commodity, t)${p_price(commodity, 'useTimeSeries')  and un_commodity_in(unit, commodity)}
+                // Fuel price when output
+                - p_price(commodity, 'price')${p_price(commodity, 'useConstant') and un_commodity_out(unit, commodity)}
+                - ts_price(commodity, t)${p_price(commodity, 'useTimeSeries')  and un_commodity_out(unit, commodity)}
                 // Emission costs
                 + sum(emission, p_unitEmissionCost(unit, commodity, emission))
               ];
