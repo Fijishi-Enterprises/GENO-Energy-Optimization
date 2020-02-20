@@ -397,7 +397,7 @@ $offtext
         + sum(node$p_uStartupfuel(unit, node, 'fixedFuelFraction'),
             + p_uStartup(unit, starttype, 'consumption')
               * p_uStartupfuel(unit, node, 'fixedFuelFraction')
-              * p_nEmission(node, emission) / 1e3
+*              * p_nEmission(node, emission) / 1e3 // double multiplication? should be checked
           ); // END sum(unit, node)
 
     // Calculating startup cost time series
