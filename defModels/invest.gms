@@ -57,6 +57,7 @@ Model invest /
     q_conversionIncHR_help1
     q_conversionIncHR_help2
     q_unitEqualityConstraint
+    q_unitGreaterThanConstraint
 *    q_commodityUseLimit
 
     // Energy Transfer
