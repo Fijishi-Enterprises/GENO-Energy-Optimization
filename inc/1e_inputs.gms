@@ -156,6 +156,8 @@ unit_minload(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operati
 unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
 un_commodity(unit, commodity)$sum(grid, gnu(grid, commodity, unit)) = yes;
+un_commodity_in(unit, commodity)$sum(grid, gnu_input(grid, commodity, unit)) = yes;
+un_commodity_out(unit, commodity)$sum(grid, gnu_output(grid, commodity, unit)) = yes;
 unit_commodity(unit)${ sum(node, un_commodity(unit, node)) }
     = yes;
 
