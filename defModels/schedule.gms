@@ -33,7 +33,7 @@ Model schedule /
     q_maxDownwardOfflineReserve
     q_maxUpward
     q_maxUpwardOfflineReserve
-    q_reserveProvision
+*    q_reserveProvision
     q_reserveProvisionOnline
     q_startshut
     q_startuptype
@@ -66,8 +66,8 @@ Model schedule /
     q_transferLeftwardLimit
     q_resTransferLimitRightward
     q_resTransferLimitLeftward
-    q_reserveProvisionRightward
-    q_reserveProvisionLeftward
+*    q_reserveProvisionRightward
+*    q_reserveProvisionLeftward
 
     // State Variables
     q_stateSlack

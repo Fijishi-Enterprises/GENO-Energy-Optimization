@@ -72,8 +72,6 @@ Sets
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
     gnn_boundState(grid, node, node) "Nodes with state variables bound by other nodes"
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
-    gngnu_fixedOutputRatio(grid, node, grid, node, unit) "Units with a fixed ratio between two different grids of output (e.g. backpressure)"
-    gngnu_constrainedOutputRatio(grid, node, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
 
 * --- Reserve types -----------------------------------------------------------
     restype "Reserve types"
