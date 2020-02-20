@@ -1067,7 +1067,6 @@ q_onlineMinUptime(ms(m, s), uft_online(unit, f, t))
 q_onlineCyclic(uss_bound(unit, s_, s), m)
     ${  ms(m, s_)
         and ms(m, s)
-        and tSolveFirst = mSettings(m, 't_start')
         }..
 
     // Initial value of the state of the unit at the start of the sample
@@ -2507,7 +2506,6 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
 q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
     ${  ms(m, s_)
         and ms(m, s)
-        and tSolveFirst = mSettings(m, 't_start')
         }..
 
     // Initial value of the state of the node at the start of the sample s
