@@ -381,13 +381,23 @@ $offtext
     // Commodity price time series
     ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
         = + p_gnu(grid, node, unit, 'vomCosts')
-          + sum(un_commodity(unit, commodity)$commodity(node),
+          // input commodity cost
+          + sum(un_commodity_in(unit, commodity)$commodity(node),
               + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
               + sum(tt_aggregate(t, t_)$p_price(commodity, 'useTimeSeries'),
                   + ts_price(node, t_+dt_circular(t_))
                 )
                 / mInterval(mSolve, 'stepsPerInterval', counter)
             )
+          // output commodity cost
+          - sum(un_commodity_out(unit, commodity)$commodity(node),
+              + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
+              + sum(tt_aggregate(t, t_)$p_price(commodity, 'useTimeSeries'),
+                  + ts_price(node, t_+dt_circular(t_))
+                )
+                / mInterval(mSolve, 'stepsPerInterval', counter)
+            )
+          // emission cost
           + sum(emission$p_unitEmissionCost(unit, node, emission), // Emission taxes
               + p_unitEmissionCost(unit, node, emission)
             ); // END sum(emission)
