@@ -30,7 +30,6 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc unit_fail
     $$loaddc commodity
     $$loaddc unitUnitEffLevel
-    $$loaddc un_commodity
     $$loaddc effLevelGroupUnit
     $$loaddc group
     $$loaddc p_gn
@@ -158,6 +157,7 @@ unit_minload(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operati
 // Units with flows/commodities
 unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
+un_commodity(unit, commodity)$sum(grid, gnu(grid, commodity, unit)) = yes;
 unit_commodity(unit)${ sum(node, un_commodity(unit, node)) }
     = yes;
 
@@ -266,23 +266,6 @@ p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, e
           )
 ;
 
-*p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, emission)}
-*    = p_nEmission(node, emission)
-*        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
-*        * sum(gnu_input(grid, node, unit),
-*            + p_gnPolicy(grid, node, 'emissionTax', emission)
-*          )
-*;
-
-// If the start-up fuel fraction is not defined, it equals 1
-*p_uStartupfuel(unit, commodity, 'fixedFuelFraction')${ ( p_unit(unit, 'startFuelConsHot')
-*                                                         or p_unit(unit, 'startFuelConsWarm')
-*                                                         or p_unit(unit, 'startFuelConsCold')
-*                                                       )
-*                                                       and un_commodity(unit, commodity)
-*                                                       and not p_uStartupfuel(unit, commodity, 'fixedFuelFraction')
-*                                                     }
-*    = 1;
 
 * =============================================================================
 * --- Determine Commodity Price Representation -------------------------------------

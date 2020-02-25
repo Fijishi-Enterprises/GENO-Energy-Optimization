@@ -8,6 +8,7 @@
 *.put
 *.log
 *.gchf
+*.dat
 
 # Backbone
 Backbone.txt
