@@ -266,15 +266,23 @@ p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, e
           )
 ;
 
+*p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, emission)}
+*    = p_nEmission(node, emission)
+*        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+*        * sum(gnu_input(grid, node, unit),
+*            + p_gnPolicy(grid, node, 'emissionTax', emission)
+*          )
+*;
+
 // If the start-up fuel fraction is not defined, it equals 1
-p_uStartupfuel(unit, commodity, 'fixedFuelFraction')${ ( p_unit(unit, 'startFuelConsHot')
-                                                         or p_unit(unit, 'startFuelConsWarm')
-                                                         or p_unit(unit, 'startFuelConsCold')
-                                                       )
-                                                       and un_commodity(unit, commodity)
-                                                       and not p_uStartupfuel(unit, commodity, 'fixedFuelFraction')
-                                                     }
-    = 1;
+*p_uStartupfuel(unit, commodity, 'fixedFuelFraction')${ ( p_unit(unit, 'startFuelConsHot')
+*                                                         or p_unit(unit, 'startFuelConsWarm')
+*                                                         or p_unit(unit, 'startFuelConsCold')
+*                                                       )
+*                                                       and un_commodity(unit, commodity)
+*                                                       and not p_uStartupfuel(unit, commodity, 'fixedFuelFraction')
+*                                                     }
+*    = 1;
 
 * =============================================================================
 * --- Determine Commodity Price Representation -------------------------------------
@@ -558,8 +566,9 @@ loop( unit,
 * --- Check startupfuel fraction related data ----------------------------------------
 
 loop( unit${sum(commodity$p_uStartupfuel(unit, commodity, 'fixedFuelFraction'), 1)},
+    tmp = sum(commodity, p_uStartupfuel(unit, commodity, 'fixedFuelFraction'));
     if(sum(commodity, p_uStartupfuel(unit, commodity, 'fixedFuelFraction')) <> 1,
-        put log '!!! Error occurred on unit ' unit.tl:0 /;
+        put log '!!! Error occurred on unit ' unit.tl:0 ',' tmp/;
         put log '!!! Abort: The sum of fixedFuelFraction over start-up fuels needs to be one for all units using start-up fuels!' /;
         abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
     );

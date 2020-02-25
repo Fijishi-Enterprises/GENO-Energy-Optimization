@@ -81,13 +81,13 @@ else
         );
     );
 
-    $$ifthene.debug %debug%>0
-    put log "Used scenarios are:"/;
-    loop((ms_initial(mSolve, s), s_scenario(s, scenario)),
-        put log scenario.tl/;
-    );
-    putclose log;
-    $$endif.debug
+*    $$ifthene.debug %debug%>0
+*    put log "Used scenarios are:"/;
+*    loop((ms_initial(mSolve, s), s_scenario(s, scenario)),
+*        put log scenario.tl/;
+*    );
+*    putclose log;
+*    $$endif.debug
 
     // Update sets
     ms(mSolve, s)$ms(mSolve, s) = yes$p_msProbability(mSolve, s);

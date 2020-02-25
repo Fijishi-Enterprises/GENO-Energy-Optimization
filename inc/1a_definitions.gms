@@ -134,9 +134,9 @@ Sets
     min_max "Minimum and maximum"
         / min, max /
     constraint "Possible names for constraints"
-        / eq1*eq9, gt1*gt9, lt1*lt9 /
+        / eq1*eq20, gt1*gt9, lt1*lt9 /
     eq_constraint(constraint) "Equality constraints"
-        / eq1*eq9 /
+        / eq1*eq20 /
     gt_constraint(constraint) "Greater than constraints"
         / gt1*gt9 /
     lt_constraint(constraint) "Less than constraints"
