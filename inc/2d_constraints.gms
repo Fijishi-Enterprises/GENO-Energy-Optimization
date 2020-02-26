@@ -2578,12 +2578,20 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
     + p_groupPolicy(group, 'defaultFrequency')
         * [
             + p_groupReserves(group, restype_inertia, up_down)
-            - sum(gnu(grid, node, unit)${   gnGroup(grid, node, group)
-                                            and gnuft(grid, node, unit, f, t)
-                                            and gnuRescapable(restype_inertia, up_down, grid, node, unit)											
-                                            },
-                + v_reserve(restype_inertia, up_down, grid, node, unit, s, f, t)
-                ) // END sum(gnu)
+            - sum(gnuft(grid, node, unit, f, t)${   gnGroup(grid, node, group)
+                                                    and gnuRescapable(restype_inertia, up_down, grid, node, unit)
+                                                    },
+                + v_reserve(restype_inertia, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype_inertia, f, t), t)
+                    * [ // Account for reliability of reserves
+                        + 1${sft_realized(s, f+df_reserves(grid, node, restype_inertia, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                        + p_gnuReserves(grid, node, unit, restype_inertia, 'reserveReliability')${not sft_realized(s, f+df_reserves(grid, node, restype_inertia, f, t), t)}
+                        ] // END * v_reserve
+                ) // END sum(gnuft)
+
+            // Reserve demand feasibility dummy variables
+            - vq_resDemand(restype_inertia, up_down, group, s, f+df_reservesGroup(group, restype_inertia, f, t), t)
+            - vq_resMissing(restype_inertia, up_down, group, s, f+df_reservesGroup(group, restype_inertia, f, t), t)${
+                ft_reservesFixed(group, restype_inertia, f+df_reservesGroup(group, restype_inertia, f, t), t)}
             ] // END * p_groupPolicy
 ;
 
