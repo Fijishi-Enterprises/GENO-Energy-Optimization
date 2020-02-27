@@ -447,7 +447,7 @@ q_resDemandLargestInfeedTransfer(restypeDirectionGroup(restype, up_down, group),
 
 q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
     ${  gnuft(grid, node, unit, f, t)
-        and p_gnu(grid, node, unit, 'capacity')
+        and (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
             [   ord(t) < tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is either providing
                 and sum(restype, gnuRescapable(restype, 'down', grid, node, unit)) // downward reserves
@@ -555,7 +555,7 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
 
 q_maxDownwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
     ${  gnuft(grid, node, unit, f, t)
-        and p_gnu(grid, node, unit, 'capacity')
+        and (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
             [   ord(t) < tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is providing
                 and sum(restype, gnuRescapable(restype, 'down', grid, node, unit)) // downward reserves
@@ -608,7 +608,7 @@ q_maxDownwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
 
 q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
     ${  gnuft(grid, node, unit, f, t)
-        and p_gnu(grid, node, unit, 'capacity')
+        and (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
             [   ord(t) < tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is either providing
                 and sum(restype, gnuRescapable(restype, 'up', grid, node, unit)) // upward reserves
@@ -711,7 +711,7 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
 
 q_maxUpwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
     ${  gnuft(grid, node, unit, f, t)
-        and p_gnu(grid, node, unit, 'capacity')
+        and (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
             [   ord(t) < tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is providing
                 and sum(restype, gnuRescapable(restype, 'up', grid, node, unit)) // upward reserves
@@ -2003,6 +2003,24 @@ q_unitEqualityConstraint(s_active(s), eq_constraint, uft(unit, f, t))
 
     // Constant multiplied by capacity
     + p_unitConstraint(unit, eq_constraint)
+;
+
+* --- Commodity Use Limitation -----------------------------------------------------
+
+q_unitGreaterThanConstraint(s_active(s), gt_constraint, uft(unit, f, t))
+    ${  sft(s, f, t)
+        and sum(node$p_unitConstraintNode(unit, gt_constraint, node), 1)
+        } ..
+
+    // Inputs and/or outputs multiplied by their coefficient
+    + sum(gnu(grid, node, unit)$p_unitConstraintNode(unit, gt_constraint, node),
+        + v_gen(grid, node, unit, s, f, t) * p_unitConstraintNode(unit, gt_constraint, node)
+      )
+
+    =G=
+
+    // Constant multiplied by capacity
+    + p_unitConstraint(unit, gt_constraint)
 ;
 
 * --- Total Transfer Limits ---------------------------------------------------

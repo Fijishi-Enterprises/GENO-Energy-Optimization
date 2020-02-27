@@ -54,8 +54,6 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc p_gnPolicy
     $$loaddc p_uStartupfuel
     $$loaddc flowUnit
-*    $$loaddc gngnu_fixedOutputRatio
-*    $$loaddc gngnu_constrainedOutputRatio
     $$loaddc emission
     $$loaddc p_nEmission
     $$loaddc ts_cf
@@ -261,7 +259,7 @@ p_uShutdown(unit, 'cost')
 p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, emission)}
     = p_nEmission(node, emission)
         / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
-        * sum(gnu_output(grid, node, unit_commodity),
+        * sum(gnu_input(grid, node, unit),
             + p_gnPolicy(grid, node, 'emissionTax', emission)
           )
 ;

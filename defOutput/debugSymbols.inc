@@ -130,6 +130,8 @@ v_help_inc
     q_conversionIncHRBounds
     q_conversionIncHR_help1
     q_conversionIncHR_help2
+    q_unitEqualityConstraint
+    q_unitGreaterThanConstraint
 *    q_commodityUseLimit
 
     // Energy Transfer
@@ -138,6 +140,8 @@ v_help_inc
     q_transferLeftwardLimit
     q_resTransferLimitRightward
     q_resTransferLimitLeftward
+    q_reserveProvisionRightward
+    q_reserveProvisionLeftward
 
     // State Variables
     q_stateSlack
@@ -155,6 +159,7 @@ v_help_inc
     q_emissioncap
     q_energyShareMax
     q_energyShareMin
+    q_ReserveShareMax
 
 * Dummy variables
 vq_gen

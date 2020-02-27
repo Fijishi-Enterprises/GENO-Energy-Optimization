@@ -268,7 +268,6 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     conversionCoeff "Coefficient for conversion equation (multiplies each input or output when summing v_gen from multiple inputs/outputs)"
     useInitialGeneration     "A flag to indicate whether to fix generation for the first time step (binary)"
     initialGeneration        "Initial generation/consumption of the unit in the first time step (MW)"
-    cV            "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
     maxRampUp     "Speed to ramp up (p.u./min)"
     maxRampDown   "Speed to ramp down (p.u./min)"
     upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment ([v_state]/MW)"

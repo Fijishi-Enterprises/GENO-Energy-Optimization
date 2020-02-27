@@ -33,7 +33,7 @@ Model schedule /
     q_maxDownwardOfflineReserve
     q_maxUpward
     q_maxUpwardOfflineReserve
-    q_reserveProvision
+*    q_reserveProvision
     q_reserveProvisionOnline
     q_startshut
     q_startuptype
@@ -56,7 +56,8 @@ Model schedule /
     q_conversionIncHRBounds
     q_conversionIncHR_help1
     q_conversionIncHR_help2
-*    q_unitEqualityConstraint
+    q_unitEqualityConstraint
+    q_unitGreaterThanConstraint
 *    q_commodityUseLimit
 
     // Energy Transfer
@@ -65,8 +66,8 @@ Model schedule /
     q_transferLeftwardLimit
     q_resTransferLimitRightward
     q_resTransferLimitLeftward
-    q_reserveProvisionRightward
-    q_reserveProvisionLeftward
+*    q_reserveProvisionRightward
+*    q_reserveProvisionLeftward
 
     // State Variables
     q_stateSlack

@@ -87,6 +87,7 @@ equations
     q_conversionIncHR_help1(grid, node, s, hr, effSelector, unit, f, t) "Helper equation 1 to ensure that the first heat rate segments are used first"
     q_conversionIncHR_help2(grid, node, s, hr, effSelector, unit, f, t) "Helper equation 2 to ensure that the first heat rate segments are used first"
     q_unitEqualityConstraint(s, eq_constraint, unit, f, t) "Fixing the ratio between inputs and/or outputs"
+    q_unitGreaterThanConstraint(s, gt_constraint, unit, f, t) "Lower limit for the ratio between inputs and/or outputs"
 *    q_commodityUseLimit(s, commodity, unit, f, t) "Commodity use cannot exceed limits"
 
     // Energy Transfer
@@ -95,8 +96,8 @@ equations
     q_transferLeftwardLimit(grid, node, node, s, f, t) "Transfer of energy and capacity reservations to the leftward direction are less than the transfer capacity"
     q_resTransferLimitRightward(grid, node, node, s, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the rightward direction"
     q_resTransferLimitLeftward(grid, node, node, s, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the leftward direction"
-    q_reserveProvisionRightward(restype, up_down, grid, node, node, s, f, t) "Rightward reserve provision limited"
-    q_reserveProvisionLeftward(restype, up_down, grid, node, node, s, f, t) "Leftward reserve provision limited"
+    q_reserveProvisionRightward(restype, up_down, grid, node, node, s, f, t) "Rightward reserve provision limited - needed for links with investment possibility"
+    q_reserveProvisionLeftward(restype, up_down, grid, node, node, s, f, t) "Leftward reserve provision limited - needed for links with investment possibility"
 
     // State Variables
     q_stateSlack(grid, node, slack, s, f, t) "Slack variable greater than the difference between v_state and the slack boundary"

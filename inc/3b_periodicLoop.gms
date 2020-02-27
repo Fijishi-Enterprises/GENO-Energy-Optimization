@@ -97,6 +97,7 @@ Option clear = q_conversionIncHRBounds;
 Option clear = q_conversionIncHR_help1;
 Option clear = q_conversionIncHR_help2;
 Option clear = q_unitEqualityConstraint;
+Option clear = q_unitGreaterThanConstraint;
 *Option clear = q_commodityUseLimit;
 
 // Energy Transfer
