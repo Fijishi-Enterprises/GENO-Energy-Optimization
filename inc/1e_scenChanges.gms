@@ -242,6 +242,18 @@ $ifthen exist '%input_dir%/restypeReleasedForRealization3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/restype_inertia2.gdx'
+    $$gdxin '%input_dir%/restype_inertia2.gdx'
+    $$loaddcm restype_inertia
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/restype_inertia3.gdx'
+    $$gdxin '%input_dir%/restype_inertia3.gdx'
+    $$loaddcm restype_inertia
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/p_groupReserves2.gdx'
     $$gdxin '%input_dir%/p_groupReserves2.gdx'
     $$loaddcm p_groupReserves

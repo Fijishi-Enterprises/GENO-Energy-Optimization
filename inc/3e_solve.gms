@@ -25,7 +25,7 @@ $offtext
         put_utility 'gdxin' / mSolve.tl:0 '_p.gdx';
         execute_loadpoint;
     elseif mSettings(mSolve, 'loadPoint') = 2,
-        put_utility 'gdxin' / 'schedule_p' solveCount:0:0 '.gdx';
+        put_utility 'gdxin' / mSolve.tl:0 '_p' solveCount:0:0 '.gdx';
         execute_loadpoint;
     elseif mSettings(mSolve, 'loadPoint') = 3 and solveCount = 1,
         put_utility 'gdxin' / mSolve.tl:0 '_p.gdx';

@@ -223,10 +223,8 @@ param_gn  "Possible parameters for grid, node" /
     boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
     boundAll      "A flag to bound the state to the reference in all time steps"
     boundStartToEnd  "Force the last states to equal the first state"
-    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."
+*    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."  // NOT IMPLEMENTED
     capacityMargin "Capacity margin used in invest mode (MW)"
-*    defaultFrequency "default frequency for each node"
-*    ROCOF         "Rate of change of frequency"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
@@ -243,7 +241,7 @@ param_gnBoundaryTypes "Types of boundaries that can be set for a node with a sta
 param_gnBoundaryProperties "Properties that can be set for the different boundaries" /
     useTimeSeries "A flag to use time series to set state bounds and limits"
     useConstant   "A flag to use constant to set state bounds and limits"
-    deltaFromReference "The constant or the time series indicate how much the boundary deviates from reference (instead of being an absolute number)"
+*    deltaFromReference "The constant or the time series indicate how much the boundary deviates from reference (instead of being an absolute number)"  // NOT IMPLEMENTED
     constant      "A constant value for the boundary or the reference"
     slackCost     "The cost of exceeding the slack boundary"
     multiplier    "A multiplier to change the value (either constant or time series), default 1"
@@ -287,6 +285,7 @@ param_gnuBoundaryProperties "Properties that can be set for the different bounda
 /
 
 param_unit "Set of possible data parameters for units" /
+    // Given in input data
     unitCount     "Number of subunits if aggregated"
     outputCapacityTotal "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"
     unitOutputCapacityTotal "Output capacity of the unit, calculated by summing all the subunit output sizes together by default"
@@ -307,10 +306,10 @@ param_unit "Set of possible data parameters for units" /
     rampSpeedFromMinLoad "Ramping speed from shutdown decision to zero load (p.u./min)"
     minOperationHours "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
     minShutdownHours "Minimum shut down time (h), prevents starting up again after the defined amount of time has passed"
-    SO2           "SO2 emissions (tonne per MWh_fuel)"
-    NOx           "NOx emissions (tonne per MWh_fuel)"
-    CH4           "CH4 emissions (tonne per MWh_fuel)"
-    resTimelim    "How long should a storage be able to provide reserve (h)"
+*    SO2           "SO2 emissions (tonne per MWh_fuel)"  // NOT IMPLEMENTED
+*    NOx           "NOx emissions (tonne per MWh_fuel)"  // NOT IMPLEMENTED
+*    CH4           "CH4 emissions (tonne per MWh_fuel)"  // NOT IMPLEMENTED
+*    resTimelim    "How long should a storage be able to provide reserve (h)"  // NOT IMPLEMENTED
     eff00 * eff12 "Efficiency of the unit to convert input to output/intermediate product"
     opFirstCross  "The operating point where the real efficiency curve and approximated efficiency curve cross"
     op00 * op12   "Right border of the efficiency point"
@@ -323,6 +322,7 @@ param_unit "Set of possible data parameters for units" /
     investMIP     "A flag to make integer investment instead of continous investment"
     maxUnitCount  "Maximum number of units when making integer investments"
     minUnitCount  "Minimum number of units when making integer investments"
+    // Calculated based on other input data
     lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
 /
 
@@ -348,32 +348,31 @@ param_unitStartupfuel "Parameters for startup fuel limits in units" /
     fixedFuelFraction "Fixed share of a fuel in the consumption mix"   //only for start-up fuels
 /
 
-param_policy "Set of possible data parameters for grid, node, regulation" /
+param_policy "Set of possible data parameters for groups or grid, node, regulation" /
     emissionTax   "Emission tax (EUR/tonne)"
     emissionCap   "Emission limit (tonne)"
     instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
     energyShareMax "Maximum energy share of generation from a particular group of units"
     energyShareMin "Minimum energy share of generation from a particular group of units"
-    kineticEnergyMin "Minimum system kinetic energy (MWs)"
     constrainedCapMultiplier "Multiplier a(i) for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedOnlineMultiplier "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
     constrainedOnlineTotalMax "Total maximum b for online units in equation Sum(i, a(i)*v_online(i)) <= b"
-    minCons "minimum consumption of storage unit when charging"
+*    minCons "minimum consumption of storage unit when charging" // NOT USED, PENDING REMOVAL
     ROCOF "Maximum rate of change of frequency (Hz/s)"
     defaultFrequency "Nominal frequency in the system (Hz)"
     // Reserve related parameters, currently without a proper parameter set
     update_frequency "Frequency of updating reserve contributions"
     update_offset "Optional offset for delaying the reserve update frequency"
     gate_closure  "Number of timesteps ahead of dispatch that reserves are fixed"
-    use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
+*    use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
     reserve_length "Length of reserve horizon"
     reserveReliability "Reliability parameter of reserve provisions"
     reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
     portion_of_infeed_to_reserve "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
     offlineReserveCapability "Proportion of an offline unit which can contribute to a category of reserve"
     ReserveShareMax "Maximum reserve share of a group of units"
-    LossOfTrans
+    LossOfTrans "A flag to tell that N-1 reserve is needed due to a possibility that an interconnector to/from the node group fails"
 /
 
 * --- Efficiency Approximation Related Sets -----------------------------------

@@ -677,11 +677,13 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
             abort "The 'update_frequency' parameter should be divisible by 't_jump'!";
         ); // END if(mod('update_frequency'))
 
-        // Check if the first interval is long enough for proper commitment of reserves
-        if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_groupReserves(group, restype, 'update_frequency') + p_groupReserves(group, restype, 'gate_closure'),
-            put log '!!! Error occurred on p_groupReserves ' group.tl:0 ',' restype.tl:0 /;
-            put log '!!! Abort: The first interval block should not be shorter than update_frequency + gate_closure for proper commitment of reserves!' /;
-            abort "The first interval block should not be shorter than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
+        // Check if the first interval is long enough for proper commitment of reserves in the schedule model
+        if(sameas(m, 'schedule'),
+            if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_groupReserves(group, restype, 'update_frequency') + p_groupReserves(group, restype, 'gate_closure'),
+                put log '!!! Error occurred on p_groupReserves ' group.tl:0 ',' restype.tl:0 /;
+                put log '!!! Abort: The first interval block should not be shorter than update_frequency + gate_closure for proper commitment of reserves!' /;
+                abort "The first interval block should not be shorter than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
+            ); // END if
         ); // END if
     ); // END loop(restypeDirectionGroup)
 
@@ -700,17 +702,28 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         put log '!!! Warning: Trajectories used on aggregated time steps! This could result in significant distortion of the trajectories.';
     ); // END if()
 
-* --- Check that the first interval block is compatible with t_jump' ----------
+* --- Check if 't_trajectoryHorizon' is long enough -----
 
-    if (mod(mSettings(m, 't_jump'), mInterval(m, 'stepsPerInterval', 'c000')) <> 0,
-        put log '!!! Abort: t_jump should be divisible by the first interval!' /;
-        abort "'t_jump' should be divisible by the first interval!";
+    if ((mSettings(m, 't_trajectoryHorizon') < mSettings(m, 't_jump') + smax(unit, p_u_runUpTimeIntervalsCeil(unit))
+      OR mSettings(m, 't_trajectoryHorizon') < mSettings(m, 't_jump') + smax(unit, p_u_shutdownTimeIntervalsCeil(unit)))
+      AND mSettings(m, 't_trajectoryHorizon') ne 0,
+        put log '!!! Abort: t_trajectoryHorizon should be at least as long as t+jump + max trajectory.';
+        abort "t_trajectoryHorizon should be at least as long as t+jump + max trajectory. This may lead to infeasibilities";
     ); // END if()
 
-    if (mInterval(m, 'lastStepInIntervalBlock', 'c000') < mSettings(m, 't_jump'),
-        put log '!!! Abort: The first interval block should not be shorter than t_jump!' /;
-        abort "The first interval block should not be shorter than 't_jump'!";
-    ); // END if()
+* --- Check that the first interval block is compatible with 't_jump' in the schedule model -----
+
+    if(sameas(m, 'schedule'),
+        if (mod(mSettings(m, 't_jump'), mInterval(m, 'stepsPerInterval', 'c000')) <> 0,
+            put log '!!! Abort: t_jump should be divisible by the first interval!' /;
+            abort "'t_jump' should be divisible by the first interval!";
+        ); // END if()
+
+        if (mInterval(m, 'lastStepInIntervalBlock', 'c000') < mSettings(m, 't_jump'),
+            put log '!!! Abort: The first interval block should not be shorter than t_jump!' /;
+            abort "The first interval block should not be shorter than 't_jump'!";
+        ); // END if()
+    ); // END if
 
 ); // END loop(m)
 
