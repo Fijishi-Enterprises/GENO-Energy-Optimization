@@ -366,6 +366,7 @@ param_policy "Set of possible data parameters for groups or grid, node, regulati
     update_offset "Optional offset for delaying the reserve update frequency"
     gate_closure  "Number of timesteps ahead of dispatch that reserves are fixed"
 *    use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
+    useTimeSeries "Flag for using time series data"
     reserve_length "Length of reserve horizon"
     reserveReliability "Reliability parameter of reserve provisions"
     reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
