@@ -18,7 +18,7 @@ $offtext
 Sets
 * --- Geography ---------------------------------------------------------------
     grid "Forms of energy endogenously presented in the model" / empty /
-    node "Nodes where different types of energy are converted"
+    node "Nodes maintain the energy balance or track exogenous commodities"
 
 * --- Commodities & resources -------------------------------------------------------
     emission "Emissions"
@@ -46,7 +46,7 @@ Sets
     unitStarttype(unit, starttype) "Units with special startup properties"
     un_commodity(unit, node) "Units linked with commodities"
     un_commodity_in(unit, node) "Units linked with input commodities"
-    un_commodity_out(unit, node) "Units linked with input commodities"
+    un_commodity_out(unit, node) "Units linked with output commodities"
     unittype "Unit technology types"
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
