@@ -491,7 +491,7 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
             ] // END v_online
 
     // Units in run-up phase neet to keep up with the run-up rate
-    + p_gnu(grid, node, unit, 'unitSize')$gnu_input(grid, node, unit)
+    + p_gnu(grid, node, unit, 'unitSize')$gnu_output(grid, node, unit)
         * sum(unitStarttype(unit, starttype)${uft_startupTrajectory(unit, f, t)},
             sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
                 + [
@@ -2777,12 +2777,13 @@ q_emissioncap(group, emission)
     + sum(msft(m, s, f, t),
         + p_msft_Probability(m,s,f,t)
         * [
-            // Time step length dependent emissions
+            // Time step length dependent emissions - calculated from consumption
             + p_stepLength(m, f, t)
-                * sum(gnu(grid, node, unit)${gnGroup(grid, node, group) and p_nEmission(node, emission)},
-                    + v_gen(grid, node, unit, s, f, t)
-                        * p_nEmission(node, emission) / 1e3
-                  ) // END sum(gnu, emission)
+                * sum(gnu_input(grid, node, unit)${gnGroup(grid, node, group) and p_nEmission(node, emission)},
+                    - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative
+                        * p_nEmission(node, emission) // kg/MWh
+                        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                  ) // END sum(gnu_input)
 
             // Start-up emissions
             + sum((uft_online(unit, f, t), starttype)$[unitStarttype(unit, starttype) and p_uStartup(unit, starttype, 'consumption')],
@@ -2792,7 +2793,11 @@ q_emissioncap(group, emission)
                     + v_startup_MIP(unit, starttype, s, f, t)
                         ${ uft_onlineMIP(unit, f, t) }
                   ]
-                  * p_uStartupEmission(unit, starttype, emission)
+                * sum(nu(node, unit)${p_nEmission(node, emission)},
+                    + p_unStartup(unit, node, starttype) // MWh/start-up
+                        * p_nEmission(node, emission) // kg/MWh
+                        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                    ) // END sum(nu, emission)
               ) // sum(uft_online)
           ] // END * p_sft_Probability
       ) // END sum(msft)

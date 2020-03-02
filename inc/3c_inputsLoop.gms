@@ -402,13 +402,10 @@ $offtext
               + p_unitEmissionCost(unit, node, emission)
             ); // END sum(emission)
 
-    p_uStartupEmission(unit, starttype, emission)
+    p_unStartup(unit, node, starttype)$p_uStartupfuel(unit, node, 'fixedFuelFraction')
       =
-        + sum(node$p_uStartupfuel(unit, node, 'fixedFuelFraction'),
-            + p_uStartup(unit, starttype, 'consumption')
-              * p_uStartupfuel(unit, node, 'fixedFuelFraction')
-*              * p_nEmission(node, emission) / 1e3 // double multiplication? should be checked
-          ); // END sum(unit, node)
+        + p_uStartup(unit, starttype, 'consumption')
+            * p_uStartupfuel(unit, node, 'fixedFuelFraction');
 
     // Calculating startup cost time series
     ts_startupCost_(unit, starttype, tt_interval(t))
@@ -427,9 +424,9 @@ $offtext
                 ] // END * p_uStartup
           ) // END sum(commodity)
         + sum((node, emission)$p_unitEmissionCost(unit, node, emission),
-            + p_uStartupEmission(unit, starttype, emission)
+            + p_unStartup(unit, node, starttype)
               * p_unitEmissionCost(unit, node, emission)
-          )
+          ) // END sum(node, emission)
 ); // END loop(counter)
 
 
