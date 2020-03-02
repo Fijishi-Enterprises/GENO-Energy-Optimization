@@ -53,7 +53,7 @@ Parameters
     p_gnuBoundaryProperties(grid, node, unit, slack, param_gnuBoundaryProperties) "Properties for unit boundaries where energy type matters"
     p_unit(unit, param_unit) "Unit data where energy type does not matter"
     p_unitConstraint(unit, constraint) "Constant for constraints (eq1-9, gt1-9, lt1-9) between inputs and outputs"
-    p_unitConstraintNode(unit, constraint, node) "Coefficients for constraints (eq1-9, gt1-9, lt1-9) between inputs and outputs"
+    p_unitConstraintNode(unit, constraint, node, param_constraint) "Coefficients for constraints (eq1-9, gt1-9, lt1-9) between inputs and outputs"
     p_gnReserves(grid, node, restype, *) "Data defining the reserve rules in each node"
     p_groupReserves(group, restype, *) "Data defining the reserve rules in each node group"
     p_groupReserves3D(group, restype, up_down, param_policy) "Reserve policy in each node group separately for each reserve type and direction"
@@ -91,8 +91,10 @@ Parameters
     ts_unit(unit, param_unit, f, t) "Time dependent unit data, where energy type doesn't matter"
     ts_effUnit(effSelector, unit, effSelector, param_eff, f, t) "Time dependent data for piece-wise linear efficiency blocks"
     ts_effGroupUnit(effSelector, unit, param_eff, f, t) "Time dependent efficiency group unit data"
+    ts_unitConstraintNode(unit, constraint, node,t) "Time dependent unit data for input and output constraints"
 // Alias used for interval aggregation
     ts_unit_(unit, param_unit, f, t)
+    ts_unitConstraintNode_(unit, constraint, node,  t) "Time dependent unit data for input and output constraints, aggregated time steps"
 *    ts_effUnit_(effSelector, unit, effSelector, param_eff, f, t)
 *    ts_effGroupUnit_(effSelector, unit, param_eff, f, t)
 ;

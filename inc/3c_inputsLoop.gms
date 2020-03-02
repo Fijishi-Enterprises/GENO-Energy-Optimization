@@ -429,8 +429,17 @@ $offtext
         + sum((node, emission)$p_unitEmissionCost(unit, node, emission),
             + p_uStartupEmission(unit, starttype, emission)
               * p_unitEmissionCost(unit, node, emission)
-          )
+          );
+
+
+     ts_unitConstraintNode_(unit, constraint, node, tt_interval(t))${ p_unitConstraintNode(unit, constraint, node, 'useTimeSeries') }
+       =
+         + sum(tt_aggregate(t, t_),
+                  + ts_unitConstraintNode(unit, constraint, node, t_+dt_circular(t_))
+           )
+           / mInterval(mSolve, 'stepsPerInterval', counter);
 ); // END loop(counter)
+
 
 
 * --- Process unit time series data -------------------------------------------

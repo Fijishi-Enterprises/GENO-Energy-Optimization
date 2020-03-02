@@ -1991,12 +1991,17 @@ q_conversionSOS2IntermediateOutput(s_active(s), suft(effLambda(effGroup), unit, 
 
 q_unitEqualityConstraint(s_active(s), eq_constraint, uft(unit, f, t))
     ${  sft(s, f, t)
-        and sum(node$p_unitConstraintNode(unit, eq_constraint, node), 1)
+        and [sum(node$p_unitConstraintNode(unit, eq_constraint, node, 'useConstant'), 1) or
+             sum(node$p_unitConstraintNode(unit, eq_constraint, node, 'useTimeSeries'), 1)
+            ]
         } ..
 
     // Inputs and/or outputs multiplied by their coefficient
-    + sum(gnu(grid, node, unit)$p_unitConstraintNode(unit, eq_constraint, node),
-        + v_gen(grid, node, unit, s, f, t) * p_unitConstraintNode(unit, eq_constraint, node)
+    + sum(gnu(grid, node, unit),
+        + v_gen(grid, node, unit, s, f, t) *
+              [+ p_unitConstraintNode(unit, eq_constraint, node,'constant')${p_unitConstraintNode(unit, eq_constraint, node,'useConstant') }
+               + ts_unitConstraintNode_(unit, eq_constraint, node, t)${p_unitConstraintNode(unit, eq_constraint, node,'useTimeSeries')}
+              ]
       )
 
     =E=
@@ -2009,12 +2014,17 @@ q_unitEqualityConstraint(s_active(s), eq_constraint, uft(unit, f, t))
 
 q_unitGreaterThanConstraint(s_active(s), gt_constraint, uft(unit, f, t))
     ${  sft(s, f, t)
-        and sum(node$p_unitConstraintNode(unit, gt_constraint, node), 1)
+        and [sum(node$p_unitConstraintNode(unit, gt_constraint, node, 'useConstant'), 1) or
+             sum(node$p_unitConstraintNode(unit, gt_constraint, node, 'useTimeSeries'), 1)
+            ]
         } ..
 
     // Inputs and/or outputs multiplied by their coefficient
-    + sum(gnu(grid, node, unit)$p_unitConstraintNode(unit, gt_constraint, node),
-        + v_gen(grid, node, unit, s, f, t) * p_unitConstraintNode(unit, gt_constraint, node)
+    + sum(gnu(grid, node, unit),
+        + v_gen(grid, node, unit, s, f, t) *
+              [+ p_unitConstraintNode(unit, gt_constraint, node,'constant')${p_unitConstraintNode(unit, gt_constraint, node,'useConstant') }
+               + ts_unitConstraintNode_(unit, gt_constraint, node, t)${p_unitConstraintNode(unit, gt_constraint, node,'useTimeSeries')}
+              ]
       )
 
     =G=

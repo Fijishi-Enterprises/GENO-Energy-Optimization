@@ -334,8 +334,9 @@ param_eff "Parameters used for unit efficiency approximations" /
 /
 
 param_constraint "Parameters for constraints" /
+    useTimeSeries "A flag to use time series"
+    useConstant   "A flag to use constant"
     constant    "Constant when binding inputs/outputs"
-    coefficient "Coefficient when binding inputs/outputs"
 /
 
 param_price "Parameters for commodity prices" /

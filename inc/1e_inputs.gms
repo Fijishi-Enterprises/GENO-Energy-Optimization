@@ -38,7 +38,8 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc p_gnuBoundaryProperties
     $$loaddc p_unit
     $$loaddc p_unitConstraint
-    $$loaddc p_unitConstraintNode
+*    $$loaddc p_unitConstraintNode
+    $$loaddc ts_unitConstraintNode
     $$loaddc ts_unit
     $$loaddc restype
     $$loaddc restypeDirection
@@ -288,6 +289,23 @@ loop(commodity,
         ); // END if(sum(tt))
 ); // END loop(fuel)
 
+
+loop((unit, constraint, node),
+    // Find the steps with nonzero constraint coefficients
+    option clear = tt;
+    tt(t)${ ts_unitConstraintNode(unit, constraint, node, t) } = yes;
+
+    // If only up to a single value
+    if(sum(tt, 1) = 1,
+         p_unitConstraintNode(unit, constraint, node, 'useConstant') = 1; // Use a constant for constraint coefficients
+         p_unitConstraintNode(unit, constraint, node, 'constant') = sum(tt, ts_unitConstraintNode(unit, constraint, node, tt))
+    );
+    // If multiple values found, use time series
+    if(sum(tt, 1) > 1,
+        p_unitConstraintNode(unit, constraint, node, 'useTimeSeries') = 1;
+    ); // END if(sum(tt))
+
+); // END loop(unit, constraint, node)
 
 * =============================================================================
 * --- Generate Node Related Sets Based on Input Data --------------------------
@@ -557,13 +575,13 @@ loop( unit${sum(commodity$p_uStartupfuel(unit, commodity, 'fixedFuelFraction'), 
     );
 );
 
-loop( unit${sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1)},
-    if(sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1) < 2,
-        put log '!!! Error occurred on unit ' unit.tl:0 /;
-        put log '!!! Abort: constraint requires at least two inputs or outputs!' /;
-        abort "a constraint has to have more tha one input or output!"
-    );
-);
+*loop( unit${sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1)},
+*    if(sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1) < 2,
+*        put log '!!! Error occurred on unit ' unit.tl:0 /;
+*        put log '!!! Abort: constraint requires at least two inputs or outputs!' /;
+*        abort "a constraint has to have more tha one input or output!"
+*    );
+*);
 
 * --- Check the shutdown time related data ------------------------------------
 
