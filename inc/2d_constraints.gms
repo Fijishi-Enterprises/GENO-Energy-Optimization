@@ -141,8 +141,8 @@ q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
     =G=
 
     // Demand for reserves
-    + ts_reserveDemand(restype, up_down, group, f, t)${p_groupReserves(group, restype, 'use_time_series')}
-    + p_groupReserves(group, restype, up_down)${not p_groupReserves(group, restype, 'use_time_series')}
+    + ts_reserveDemand(restype, up_down, group, f, t)${p_groupReserves(group, restype, 'useTimeSeries')}
+    + p_groupReserves(group, restype, up_down)${not p_groupReserves(group, restype, 'useTimeSeries')}
 
     // Reserve demand increase because of units
     + sum(gnuft(grid, node, unit, f, t)${ gnGroup(grid, node, group)
