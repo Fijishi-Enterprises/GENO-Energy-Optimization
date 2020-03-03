@@ -382,7 +382,7 @@ $offtext
     ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
         = + p_gnu(grid, node, unit, 'vomCosts')
           // input commodity cost
-          + sum(un_commodity_in(unit, commodity)$commodity(node),
+          + sum(gnu_input(grid, commodity, unit)$un_commodity_in(unit,commodity), 
               + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
               + sum(tt_aggregate(t, t_)$p_price(commodity, 'useTimeSeries'),
                   + ts_price(node, t_+dt_circular(t_))
@@ -390,7 +390,7 @@ $offtext
                 / mInterval(mSolve, 'stepsPerInterval', counter)
             )
           // output commodity cost
-          - sum(un_commodity_out(unit, commodity)$commodity(node),
+          - sum(gnu_output(grid, commodity, unit)$un_commodity_out(unit,commodity),  
               + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
               + sum(tt_aggregate(t, t_)$p_price(commodity, 'useTimeSeries'),
                   + ts_price(node, t_+dt_circular(t_))
