@@ -429,7 +429,7 @@ restypeDirectionGridNodeNode(restypeDirection(restype, up_down), gn2n(grid, node
 // Nodes with reserve requirements, units capable of providing reserves, or reserve capable connections
 restypeDirectionGridNode(restypeDirection(restype, up_down), gn(grid, node))
     $ { p_gnReserves(grid, node, restype, up_down)
-        or p_gnReserves(grid, node, restype, 'use_time_series')
+        or p_gnReserves(grid, node, restype, 'useTimeSeries')
         or sum(gnu(grid, node, unit), p_gnuReserves(grid, node, unit, restype, 'portion_of_infeed_to_reserve'))
         or sum(gnu(grid, node, unit), gnuRescapable(restype, up_down, grid, node, unit))
         or sum(gn2n(grid, node, to_node), restypeDirectionGridNodeNode(restype, up_down, grid, node, to_node))
