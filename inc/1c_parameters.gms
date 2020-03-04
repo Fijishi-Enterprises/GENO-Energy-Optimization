@@ -64,7 +64,7 @@ Parameters
     p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
     p_groupPolicy(group, param_policy) "Two-dimensional policy data for groups"
     p_groupPolicy3D(group, param_policy, *) "Three-dimensional policy data for groups"
-    p_price(commodity, param_price) "Commodity price parameters"
+    p_price(node, param_price) "Commodity price parameters"
     p_nEmission(node, emission) "Emission content (kg/MWh)"
     p_uStartupfuel(unit, node, param_unitStartupfuel) "Parameters for startup fuels"
     p_unStartup(unit, node, starttype) "Consumption during the start-up (MWh/start-up)"

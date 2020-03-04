@@ -127,6 +127,8 @@ $offtext
 
     // Update ts_priceChange
     if (mTimeseries_loop_read(mSolve, 'ts_priceChange'),
+        put log '!!! Abort: mTimeseries_loop_read(mSolve, ts_priceChange) currently not working!' /;
+        abort "mTimeseries_loop_read(mSolve, ts_priceChange) currently not working!";
         put_utility 'gdxin' / '%input_dir%/ts_priceChange/' tSolve.tl:0 '.gdx';
         execute_load ts_priceChange_update=ts_priceChange;
         ts_priceChange(node, tt_forecast(t))
@@ -378,25 +380,21 @@ $offtext
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
 
-    // Commodity price time series
+    // Node price time series
     ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
         = + p_gnu(grid, node, unit, 'vomCosts')
-          // input commodity cost
-          + sum(gnu_input(grid, commodity, unit)$un_commodity_in(unit,commodity), 
-              + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
-              + sum(tt_aggregate(t, t_)$p_price(commodity, 'useTimeSeries'),
-                  + ts_price(node, t_+dt_circular(t_))
-                )
-                / mInterval(mSolve, 'stepsPerInterval', counter)
-            )
-          // output commodity cost
-          - sum(gnu_output(grid, commodity, unit)$un_commodity_out(unit,commodity),  
-              + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
-              + sum(tt_aggregate(t, t_)$p_price(commodity, 'useTimeSeries'),
-                  + ts_price(node, t_+dt_circular(t_))
-                )
-                / mInterval(mSolve, 'stepsPerInterval', counter)
-            )
+          // input node cost
+          + p_price(node, 'price')${un_commodity_in(unit, node) and p_price(node, 'useConstant')}
+          + sum(tt_aggregate(t, t_)${un_commodity_in(unit, node) and p_price(node, 'useTimeSeries')},
+              + ts_price(node, t_+dt_circular(t_))
+              )
+              / mInterval(mSolve, 'stepsPerInterval', counter)
+          // output node cost (if price > 0 --> ts_vomCost_ < 0, i.e. considered as revenue)
+          - p_price(node, 'price')${un_commodity_out(unit, node) and p_price(node, 'useConstant')}
+          - sum(tt_aggregate(t, t_)${un_commodity_out(unit, node) and p_price(node, 'useTimeSeries')},
+              + ts_price(node, t_+dt_circular(t_))
+              )
+              / mInterval(mSolve, 'stepsPerInterval', counter)
           // emission cost
           + sum(emission$p_unitEmissionCost(unit, node, emission), // Emission taxes
               + p_unitEmissionCost(unit, node, emission)
@@ -410,23 +408,22 @@ $offtext
     // Calculating startup cost time series
     ts_startupCost_(unit, starttype, tt_interval(t))
       =
-        + p_uStartup(unit, starttype, 'cost')
+        + p_uStartup(unit, starttype, 'cost') // CUR/start-up
         // Start-up fuel and emission costs
-        + sum(commodity$p_uStartupfuel(unit, commodity, 'fixedFuelFraction'),
-            + p_uStartup(unit, starttype, 'consumption')
-              * p_uStartupfuel(unit, commodity, 'fixedFuelFraction')
+        + sum(nu(node,unit)$p_unStartup(unit, node, starttype),
+            + p_unStartup(unit, node, starttype) // MWh/start-up
               * [
-                  + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
-                  + sum(tt_aggregate(t, t_)$p_price(commodity, 'useTimeseries'),
-                      + ts_price(commodity, t_+dt_circular(t_))
+                  + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
+                  + sum(tt_aggregate(t, t_)$p_price(node, 'useTimeseries'),
+                      + ts_price(node, t_+dt_circular(t_)) // CUR/MWh
                     )
                     / mInterval(mSolve, 'stepsPerInterval', counter)
                 ] // END * p_uStartup
-          ) // END sum(commodity)
-        + sum((node, emission)$p_unitEmissionCost(unit, node, emission),
-            + p_unStartup(unit, node, starttype)
-              * p_unitEmissionCost(unit, node, emission)
-          ) // END sum(node, emission)
+          ) // END sum(node)
+        + sum((nu(node, unit), emission)$p_unitEmissionCost(unit, node, emission),
+            + p_unStartup(unit, node, starttype) // MWh/start-up
+              * p_unitEmissionCost(unit, node, emission) // CUR/MWh
+          ) // END sum(nu, emission)
 ); // END loop(counter)
 
 
