@@ -393,7 +393,6 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
 // Copy data from p_groupReserves to p_gnReserves
 loop(gnGroup(grid, node, group)${sum(restype, p_groupReserves(group, restype, 'reserve_length'))},
     p_gnReserves(grid, node, restype, param_policy) = p_groupReserves(group, restype, param_policy);
-    p_gnReserves(grid, node, restype, up_down) = p_groupReserves(group, restype, up_down);
 );
 
 // Units with reserve provision capabilities

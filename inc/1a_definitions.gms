@@ -127,8 +127,6 @@ Sets
     // Directional Sets
     input_output "Designating nodes as either inputs or outputs"
         / input, output /
-    up_down "Direction set used by some variables, e.g. reserve provisions and generation ramps"
-        / up, down /
     inc_dec "Increase or decrease in dummy, or slack variables"
         / increase, decrease /
     min_max "Minimum and maximum"
@@ -372,6 +370,8 @@ param_policy "Set of possible data parameters for groups or grid, node, regulati
     offlineReserveCapability "Proportion of an offline unit which can contribute to a category of reserve"
     ReserveShareMax "Maximum reserve share of a group of units"
     LossOfTrans "A flag to tell that N-1 reserve is needed due to a possibility that an interconnector to/from the node group fails"
+    up          "Upward direction, e.g. for reserve provisions"
+    down        "Downward direction, e.g. for reserve provisions"
 /
 
 * --- Efficiency Approximation Related Sets -----------------------------------
@@ -387,6 +387,7 @@ hrop(param_unit) "Operating points in the incremental heat rate curves, also fun
         /hrop00*hrop12/ // IMPORTANT! Has to equal the same param_unit!
 hr(param_unit) "Heat rate for the corresponding operating point ('hrop') in the heat rate curves, also used for data indexing"
         /hr00*hr12/ // IMPORTANT! Has to equal the same param_unit!
+
 * --- Counters and Directional Sets -------------------------------------------
 
 // Slack categories
@@ -404,4 +405,8 @@ spillLimits(param_gnBoundaryTypes) "set of upward and downward state limits"
        / maxSpill, minSpill /
 useConstantOrTimeSeries(param_gnBoundaryProperties) "useTimeSeries and useConstant property together"
        / useTimeSeries, useConstant /
+
+// Directional sets that are subsets of others
+up_down(param_policy) "Direction set used by some variables, e.g. reserve provisions and generation ramps"
+       / up, down /
 ; // END parameter set declarations
