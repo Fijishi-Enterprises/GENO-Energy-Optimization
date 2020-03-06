@@ -153,6 +153,7 @@ loop(m,
                     / [
                         + p_unit(unit, 'outputCapacityTotal')${p_unit(unit, 'outputCapacityTotal') > 0}
                         + p_unit(unit, 'unitOutputCapacityTotal')${not p_unit(unit, 'outputCapacityTotal') > 0}
+                        + 1${p_unit(unit, 'unitOutputCapacityTotal') + p_unit(unit, 'outputCapacityTotal') = 0}                        
                         ] // END /
                     * [
                         + sum(un_commodity(unit, node), r_uFuelEmissionCost(node, unit, f, t))
