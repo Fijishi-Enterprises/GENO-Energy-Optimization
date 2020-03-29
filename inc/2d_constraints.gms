@@ -73,6 +73,7 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
             // Interactions between the node and its units
             + sum(gnuft(grid, node, unit, f, t),
                 + v_gen(grid, node, unit, s, f, t) // Unit energy generation and consumption
+                  * p_gnu(grid, node, unit, 'effectOnState') //times the coefficient of effect on state
                 )
 
             // Spilling energy out of the endogenous grids in the model
@@ -85,6 +86,59 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
             + vq_gen('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
             - vq_gen('decrease', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
     ) // END * p_stepLength
+;
+
+* --- Maximum increase for node state with respect to the state upper limit --------------------------
+
+q_stateMaxInc(gn(grid, node), msft(m, s, f, t))
+    ${  p_gnBoundaryPropertiesForStates(grid, node, 'maxIncRate', 'useConstant')
+     } ..
+
+    // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
+    + p_gn(grid, node, 'energyStoredPerUnitOfState')${gn_state(grid, node)} // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
+        * [
+            + v_state(grid, node, s, f+df_central(f,t), t)                   // The difference between current
+            - v_state(grid, node, s+ds_state(grid,node,s,t), f+df(f,t+dt(t)), t+dt(t))       // ... and previous state of the node
+            ]
+
+    =L=
+
+    p_gnBoundaryPropertiesForStates(grid, node, 'maxIncRate', 'constant')
+    * p_stepLength(m, f, t)
+    * (
+
+        // Upper boundary of the variable
+        + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')}
+        + ts_node_(grid, node, 'upwardLimit', s, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeseries') }
+
+        // Investments
+        + sum(gnu(grid, node, unit),
+            + p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
+                * p_gnu(grid, node, unit, 'unitSize')
+                * sum(t_invest(t_)${ord(t_)<=ord(t)},
+                    + v_invest_LP(unit, t_)${unit_investLP(unit)}
+                    + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
+                    ) // END sum(t_invest)
+            ) // END sum(gnu)
+
+    )
+;
+
+* --- Limit the generation, connected to a state, according to the state value --------------
+
+q_stateLimitGen(gnu(grid, node, unit), msft(m, s, f, t))
+    ${  gnuft(grid, node, unit, f, t)
+        and (p_gnu(grid, node, unit, 'stateLimitGen') )
+        } ..
+
+    // Energy generation/consumption
+    + v_gen(grid, node, unit, s, f, t)
+
+    =E=
+
+    // previous value of the node state, multiplied by the given coefficient
+    v_state(grid, node, s+ds_state(grid,node,s,t), f+df(f,t+dt(t)), t+dt(t))
+    * p_gnu(grid, node, unit, 'stateLimitGen')
 ;
 
 * --- Reserve Demand ----------------------------------------------------------

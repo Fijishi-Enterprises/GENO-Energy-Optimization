@@ -238,6 +238,7 @@ param_gnBoundaryTypes "Types of boundaries that can be set for a node with a sta
     maxSpill      "Maximum spill rate from the node (MWh/h)"
     minSpill      "Minimum spill rate from the node (MWh/h)"
     balancePenalty "Penalty value for violating the energy balance of that particular node (EUR/MWh) (can be interpretated as the energy price in certain settings)"
+    maxIncRate     "Maximum increase rate of the state e.g. MWh/h"
 /
 
 param_gnBoundaryProperties "Properties that can be set for the different boundaries" /
@@ -279,6 +280,8 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     inertia       "Inertia of the unit (s)"
     unitSizeMVA   "Generator MVA rating of one subunit (MVA)"
     availabilityCapacityMargin  "Availability of the unit in the capacity margin equation (p.u.). If zero, v_gen is used. Currently used only for output capacity."
+    effectOnState "effect of v_gen on the state variable"
+    stateLimitGen "v_gen is limited by the state variable"
 /
 
 param_gnuBoundaryProperties "Properties that can be set for the different boundaries" /

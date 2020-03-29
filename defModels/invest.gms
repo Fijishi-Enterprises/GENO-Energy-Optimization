@@ -22,6 +22,8 @@ $offtext
 Model invest /
     q_obj
     q_balance
+    q_stateLimitGen
+    q_stateMaxInc
     q_resDemand
     q_resDemandLargestInfeedUnit // Use with extra caution if there are several sub-units
     q_rateOfChangeOfFrequencyUnit // Use with extra caution if there are several sub-units

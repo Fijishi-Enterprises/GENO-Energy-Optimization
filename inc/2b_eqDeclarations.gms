@@ -53,6 +53,8 @@ equations
     // Objective Function, Energy Balance, and Reserve demand
     q_obj "Objective function"
     q_balance(grid, node, mType, s, f, t) "Energy demand must be satisfied at each node"
+    q_stateMaxInc(grid, node, mType, s, f, t)  "Limit for the node state maximum change"
+    q_stateLimitGen(grid, node, unit, mType, s, f, t)  "v_gen limited by the state of the connecting node"
     q_resDemand(restype, up_down, group, s, f, t) "Procurement for each reserve type is greater than demand"
     q_resDemandLargestInfeedUnit(restype, up_down, group, unit, s, f, t) "N-1 reserve for units"
     q_rateOfChangeOfFrequencyUnit(group, unit, s, f, t) "N-1 unit contingency with ROCOF"
