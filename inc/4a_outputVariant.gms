@@ -118,7 +118,7 @@ loop(sft_realized(s, f, t),
     ;
     // Fuel use of units
     r_fuelUse(node, uft(unit_commodity, f, t))$[un_commodity(unit_commodity, node) and ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        = sum(grid$gnu(grid, node, unit_commodity), v_gen.l(grid, node, unit_commodity, s, f, t))
+        = - sum(grid$gnu(grid, node, unit_commodity), v_gen.l(grid, node, unit_commodity, s, f, t))
     ;
     // Transfer of energy between nodes
     r_transfer(gn2n(grid, from_node, to_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]

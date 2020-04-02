@@ -51,7 +51,21 @@ loop(m,
         = 1e-6 // Scaling to MEUR
             * sum(unitStarttype(unit, starttype),
                 + r_startup(unit, starttype, f, t)
-                    * ts_startupCost_(unit, starttype, t)
+                    * [
+                        + p_uStartup(unit, starttype, 'cost') // CUR/start-up
+                        // Start-up fuel and emission costs
+                        + sum(nu(node,unit)$p_unStartup(unit, node, starttype),
+                            + p_unStartup(unit, node, starttype) // MWh/start-up
+                              * [
+                                  + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
+                                  + ts_price(node, t)$p_price(node, 'useTimeseries') // CUR/MWh
+                                ] // END * p_uStartup
+                          ) // END sum(node)
+                        + sum((nu(node, unit), emission)$p_unitEmissionCost(unit, node, emission),
+                            + p_unStartup(unit, node, starttype) // MWh/start-up
+                              * p_unitEmissionCost(unit, node, emission) // CUR/MWh
+                          ) // END sum(nu, emission)
+                      ] // END * r_startup
               ); // END sum(starttype)
 
     // Node state slack costs
@@ -153,10 +167,10 @@ loop(m,
                     / [
                         + p_unit(unit, 'outputCapacityTotal')${p_unit(unit, 'outputCapacityTotal') > 0}
                         + p_unit(unit, 'unitOutputCapacityTotal')${not p_unit(unit, 'outputCapacityTotal') > 0}
-                        + 1${p_unit(unit, 'unitOutputCapacityTotal') + p_unit(unit, 'outputCapacityTotal') = 0}                        
+                        + 1${p_unit(unit, 'unitOutputCapacityTotal') + p_unit(unit, 'outputCapacityTotal') = 0}
                         ] // END /
                     * [
-                        + sum(un_commodity(unit, node), r_uFuelEmissionCost(node, unit, f, t))
+                        + sum(un_commodity(unit, commodity), r_uFuelEmissionCost(commodity, unit, f, t))
                         + r_uStartupCost(unit, f, t)
                         ] // END *
             ) // END sum(gnu_output)
