@@ -154,29 +154,25 @@ loop(m,
 
     // Total realized gn operating costs
     r_gnRealizedOperatingCost(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
-        = sum(gnu(grid, node, unit),
-
-            // VOM costs
-            + r_gnuVOMCost(grid, node, unit, f, t)
-
-            // Divide fuel and startup costs based on output capacities
-            + [
-                + p_gnu(grid, node, unit, 'capacity')${p_unit(unit, 'outputCapacityTotal')}
-                + p_gnu(grid, node, unit, 'unitSize')${not p_unit(unit, 'outputCapacityTotal')}
-                ]
-                    / [
-                        + p_unit(unit, 'outputCapacityTotal')${p_unit(unit, 'outputCapacityTotal') > 0}
-                        + p_unit(unit, 'unitOutputCapacityTotal')${not p_unit(unit, 'outputCapacityTotal') > 0}
-                        + 1${p_unit(unit, 'unitOutputCapacityTotal') + p_unit(unit, 'outputCapacityTotal') = 0}
-                        ] // END /
-                    * [
-                        + sum(un_commodity(unit, commodity), r_uFuelEmissionCost(commodity, unit, f, t))
-                        + r_uStartupCost(unit, f, t)
-                        ] // END *
-            ) // END sum(gnu_output)
-
-            // Node state slack costs
-            + r_gnStateSlackCost(grid, node, f, t);
+        = + sum(gnu(grid, node, unit),
+              // VOM costs
+              + r_gnuVOMCost(grid, node, unit, f, t)
+            )
+          // Allocate fuel and startup costs on energy basis, but for output nodes only
+          + sum(unit$gnu(grid, node, unit),
+              + sum(gnu(grid, node, unit)$(gnu_output(grid, node, unit) and r_gen[grid, node, unit, f, t]),
+                  + abs{r_gen[grid, node, unit, f, t]}  // abs is due to potential negative outputs like energy from a cooling unit. It's the energy contribution that matters, not direction.
+                    /
+                    sum(gnu_output(grid_output, node_output, unit)$r_gen[grid_output, node_output, unit, f, t], abs{r_gen[grid_output, node_output, unit, f, t]})
+                )
+                *
+                {
+                  + sum(un_commodity(unit, commodity), r_uFuelEmissionCost(commodity, unit, f, t))
+                  + r_uStartupCost(unit, f, t)
+                }
+            )
+          // Node state slack costs
+          + r_gnStateSlackCost(grid, node, f, t);
 
 * --- Realized Nodal Energy Consumption ---------------------------------------
 // !!! NOTE !!! This is a bit of an approximation at the moment !!!!!!!!!!!!!!!
