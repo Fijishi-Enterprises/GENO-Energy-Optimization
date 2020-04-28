@@ -197,12 +197,19 @@ loop(m,
             ); // END sum(ft_realizedNoReset)
 
     // Energy generation by fuels
-    r_genFuel(gn(grid, node), commodity, ft_realizedNoReset(f, t))$[sum(unit, un_commodity(unit, node)) and sum(gnu_input(grid, node_, unit)$gnu(grid, node, unit), r_gen(grid, node_, unit, f, t)) and ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
-        = sum(gnu_output(grid, node, unit),
+    r_genFuel(gn(grid, node), commodity, ft_realizedNoReset(f, t))$[    sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit), r_gen(grid_, node_, unit, f, t))
+                                                                    and ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
+        = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, commodity, unit), 1),
             + r_gen(grid, node, unit, f, t)
-          )
-          * sum(gnu_input(grid, commodity, unit), r_gen(grid, commodity, unit, f, t))
-          / sum(gnu_input(grid, node_, unit)$gnu(grid, node, unit), r_gen(grid, node_, unit, f, t));
+          );
+// The calculation with multiple inputs needs to be fixed below (right share for different commodities - now units with multiple input commodities will get the same amount allocated which will then be too big
+//          * sum((grid_, unit)$gnu_output(grid, node, unit),
+//                r_gen(grid_, commodity, unit, f, t))
+//                  / sum(gnu_input(grid__, node_, unit), r_gen(grid__, node_, unit, f, t));
+
+    r_genFuel(gn(grid, node), flow, ft_realizedNoReset(f, t))$flowNode(flow, node)
+        = sum(gnu_output(grid, node, unit)$flowUnit(flow, unit),
+            + r_gen(grid, node, unit, f, t));
 
     // Energy generation by fuels
     r_genUnittype(gn(grid, node), unittype, ft_realizedNoReset(f,t))
