@@ -19,6 +19,11 @@ $offtext
 * --- Load Input Data ---------------------------------------------------------
 * =============================================================================
 
+* Reads changes or additions to the inputdata through changes.inc file.
+$ifthen exist '%input_dir%/changes.inc'
+   $$include '%input_dir%/changes.inc'
+$endif
+
 $ifthen exist '%input_dir%/inputData.gdx'
     $$gdxin  '%input_dir%/inputData.gdx'
     $$loaddcm grid
@@ -36,6 +41,9 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc p_gn
     $$loaddc p_gnn
     $$loaddc p_gnu
+    $$loaddc p_ww_threshold
+    $$loaddc p_ww_A
+    $$loaddc p_ww_dilution
     $$loaddc p_gnuBoundaryProperties
     $$loaddc p_unit
     $$loaddc ts_unit
@@ -77,12 +85,6 @@ $endif
 
 * Read changes to inputdata through gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx) - allows scenarios through Sceleton Titan Excel files.
 $include 'inc/1e_scenChanges.gms'
-
-* Reads changes or additions to the inputdata through changes.inc file.
-$ifthen exist '%input_dir%/changes.inc'
-   $$include '%input_dir%/changes.inc'
-$endif
-
 
 
 $ontext
