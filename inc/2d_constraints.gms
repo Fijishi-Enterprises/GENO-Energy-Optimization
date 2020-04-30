@@ -23,7 +23,8 @@ $offtext
 * --- Energy Balance ----------------------------------------------------------
 
 q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics solved using implicit Euler discretization
-    ${  not p_gn(grid, node, 'boundAll')
+    ${  not {p_gn(grid, node, 'boundAll') and gnGroup(grid, node, 'ww_reactionGroup')
+           }
         } ..
 
     // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
