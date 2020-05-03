@@ -255,6 +255,8 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     invCost       "Investment cost (EUR/MW)"
     annuity       "Investment annuity"
     portion_of_transfer_to_reserve "Portion to cover incase fail"
+    ICrampUp
+    ICrampDown
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /

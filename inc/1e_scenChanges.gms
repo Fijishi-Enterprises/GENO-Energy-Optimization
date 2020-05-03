@@ -422,15 +422,15 @@ $ifthen exist '%input_dir%/emission3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_fuelEmission2.gdx'
-    $$gdxin '%input_dir%/p_fuelEmission2.gdx'
-    $$loaddcm p_fuelEmission
+$ifthen exist '%input_dir%/p_nEmission2.gdx'
+    $$gdxin '%input_dir%/p_nEmission2.gdx'
+    $$loaddcm p_nEmission
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_fuelEmission3.gdx'
-    $$gdxin '%input_dir%/p_fuelEmission3.gdx'
-    $$loaddcm p_fuelEmission
+$ifthen exist '%input_dir%/p_nEmission3.gdx'
+    $$gdxin '%input_dir%/p_nEmission3.gdx'
+    $$loaddcm p_nEmission
     $$gdxin
 $endif
 
