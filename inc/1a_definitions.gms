@@ -358,6 +358,7 @@ param_policy "Set of possible data parameters for grid, node, regulation" /
     constrainedOnlineTotalMax "Total maximum b for online units in equation Sum(i, a(i)*v_online(i)) <= b"
     minCons "minimum consumption of storage unit when charging"
     ROCOF "Maximum rate of change of frequency (Hz/s)"
+    minPowerLoss "Minimum Generation/Load Loss(MW)"
     defaultFrequency "Nominal frequency in the system (Hz)"
     // Reserve related parameters, currently without a proper parameter set
     update_frequency "Frequency of updating reserve contributions"

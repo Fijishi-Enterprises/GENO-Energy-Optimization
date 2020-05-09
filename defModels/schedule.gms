@@ -27,7 +27,7 @@ Model schedule /
     q_rateOfChangeOfFrequencyUnit // Use with extra caution if there are several sub-units
     q_rateOfChangeOfFrequencyTransfer
     q_resDemandLargestInfeedTransfer
-
+    q_rateOfChangeOfFrequencyMin
     // Unit Operation
     q_maxDownward
     q_maxDownwardOfflineReserve

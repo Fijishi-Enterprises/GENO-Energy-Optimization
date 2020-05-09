@@ -342,6 +342,42 @@ q_rateOfChangeOfFrequencyTransfer(group, gn2n(grid, node_, node_fail), sft(s, f,
             ] // END * p_groupPolicy
 ;
 
+* --- ROCOF Limit -- Minimum Loss -------------------------------------------
+q_rateOfChangeOfFrequencyMin(group, sft(s, f, t))
+    ${  p_groupPolicy(group, 'defaultFrequency')
+        and p_groupPolicy(group, 'ROCOF')
+        and p_groupPolicy(group, 'minPowerLoss')
+        } ..
+
+    // Kinetic/rotational energy in the system
+    + p_groupPolicy(group, 'ROCOF')*2
+        * [
+            + sum(gnu_output(grid, node, unit)${   gnGroup(grid, node, group)
+                                                   and gnuft(grid, node, unit, f, t)
+                                                   },
+                + p_gnu(grid, node, unit, 'inertia')
+                    * p_gnu(grid ,node, unit, 'unitSizeMVA')
+                    * [
+                        + v_online_LP(unit, s, f+df_central(f,t), t)
+                            ${uft_onlineLP(unit, f, t)}
+                        + v_online_MIP(unit, s, f+df_central(f,t), t)
+                            ${uft_onlineMIP(unit, f, t)}
+                        + v_gen(grid, node, unit, s, f, t)${not uft_online(unit, f, t)}
+                            / p_gnu(grid, node, unit, 'unitSizeGen')
+                        ] // * p_gnu
+                ) // END sum(gnu_output)
+            ] // END * p_groupPolicy
+
+    =G=
+
+    // Demand for kinetic/rotational energy due to a large interconnector that could fail
+    + p_groupPolicy(group, 'defaultFrequency')
+        * [
+            // Loss of minimum load/generation
+            p_groupPolicy(group, 'minPowerLoss')
+            ] // END * p_groupPolicy
+;
+
 * --- N-1 reserve demand due to a possibility that an interconnector that is transferring power to/from the node group fails -------------------------------------------------
 // NOTE! Currently, there are multiple identical instances of the reserve balance equation being generated for each forecast branch even when the reserves are committed and identical between the forecasts.
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
