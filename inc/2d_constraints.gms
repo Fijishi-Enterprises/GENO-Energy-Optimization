@@ -472,7 +472,7 @@ q_resDemandLargestInfeedTransfer(restypeDirectionGroup(restype, up_down, group),
           // Reserve transfers to other nodes increase the reserve need of the present node
         + v_resTransferLeftward(restype, up_down, grid, node_, node, s, f+df_reserves(grid, node, restype, f, t), t)
         ) // END sum(gn2n_directional)
-
+    + ts_reserveShift(restype, up_down, group, f, t)   //Forced reserve shift
     // Reserve demand feasibility dummy variables
     - vq_resDemand(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t)
     - vq_resMissing(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t)${ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t)}
