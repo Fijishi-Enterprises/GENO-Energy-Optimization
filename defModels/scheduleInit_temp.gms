@@ -26,10 +26,10 @@ if (mType('schedule'),
 
     // Define simulation start and end time indeces
     mSettings('schedule', 't_start') = 1;  // First time step to be solved, 1 corresponds to t000001 (t000000 will then be used for initial status of dynamic variables)
-    mSettings('schedule', 't_end') = 24; // Last time step to be included in the solve (may solve and output more time steps in case t_jump does not match)
+    mSettings('schedule', 't_end') = 6; // Last time step to be included in the solve (may solve and output more time steps in case t_jump does not match)
 
     // Define simulation horizon and moving horizon optimization "speed"
-    mSettings('schedule', 't_horizon') = 48;    // How many active time steps the solve contains (aggregation of time steps does not impact this, unless the aggregation does not match)
+    mSettings('schedule', 't_horizon') = 24;    // How many active time steps the solve contains (aggregation of time steps does not impact this, unless the aggregation does not match)
     mSettings('schedule', 't_jump') = 3;          // How many time steps the model rolls forward between each solve
 
     // Define length of data for proper circulation
@@ -171,9 +171,9 @@ if (mType('schedule'),
 * --- Define Unit Approximations ----------------------------------------------
 
     // Define the last time step for each unit aggregation and efficiency level (3a_periodicInit.gms ensures that there is a effLevel until t_horizon)
-    mSettingsEff('schedule', 'level1') = 12;
-    mSettingsEff('schedule', 'level2') = 24;
-    mSettingsEff('schedule', 'level3') = 8760;
+    mSettingsEff('schedule', 'level1') = 8760;
+*    mSettingsEff('schedule', 'level2') = 24;
+*    mSettingsEff('schedule', 'level3') = 8760;
 
     // Define the horizon when start-up and shutdown trajectories are considered
     mSettings('schedule', 't_trajectoryHorizon') = 8760;
