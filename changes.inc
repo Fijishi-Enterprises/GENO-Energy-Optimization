@@ -18,22 +18,27 @@ ww_dilution                            "Dilution factors D in the waste water tr
 alias(ww_flowType, ww_flowType_);
 alias(ww_range, ww_range_);
 
-//Aggregate sets
+//Aggregate sets and subsets
 Sets
 
-ww_flowRange(ww_flowType, ww_range)    "Ranges of flow in which linearization parameters are valid (e.g. low,mid,high)"
-ww_rangeRange(ww_range, ww_range_)     "All possible combinations of flow ranges"
+ww_in(ww_flowType)
+     /inflow/
+ww_air(ww_flowType)
+     /airflow/
+
+ww_flowRange(ww_flowType, ww_range)                                       "Ranges of flow in which linearization parameters are valid (e.g. low,mid,high)"
+ww_flowRangeflowRange(ww_in, ww_range, ww_air, ww_range_)                 "All possible combinations of flow ranges"
 ;
 
 ww_flowRange(ww_flowType, ww_range) = yes;
-ww_rangeRange(ww_range, ww_range_) = yes;
+ww_flowRangeflowRange(ww_in, ww_range, ww_air, ww_range_) = yes;
 
 *-----------Additional parameters-----------------------------------------------
 
 Parameters
 
 p_ww_threshold(ww_flowType, ww_range, ww_lowerUpper)                          "Lower and upper thresholds for flow ranges"
-p_ww_A(ww_flowType, ww_range, ww_flowType_, ww_range_, ww_A)                  "Linearization parameters A for the wastewater treatment model"
+p_ww_A(ww_in, ww_range, ww_air, ww_range_, ww_A)                              "Linearization parameters A for the wastewater treatment model"
 p_ww_dilution(ww_flowType, ww_range, ww_dilution)                             "Dilution factor D for the waste water treatment model"
 
 ;
@@ -41,12 +46,12 @@ p_ww_dilution(ww_flowType, ww_range, ww_dilution)                             "D
 *---------------------Additional variables--------------------------------------
 
 Binary variables
-         v_flowFlag(ww_flowType, ww_range, s, f, t)              "Flag for the respective flow range [one if inflow lies within respective range]"
-         v_flowHelper(ww_range, ww_range_, s, f, t)              "Helper flag representing the product of the inflow flag and the airflow flag"
+         v_flowFlag(ww_flowType, ww_range, s, f, t)                             "Flag for the respective flow range [one if inflow lies within respective range]"
+         v_flowHelper(ww_in, ww_range, ww_air, ww_range_, s, f, t)              "Helper flag representing the product of the inflow flag and the airflow flag"
 ;
 
 Free variables
-         v_flowState(grid, node, ww_range, ww_range_, s, f, t)   "The product of the state variable of the node and the binary v_flowHelper"
+         v_flowState(grid, node, ww_in, ww_range, ww_air, ww_range_, s, f, t)   "The product of the state variable of the node and the binary v_flowHelper"
 ;
 
 *-------------Additional input data - not necessary when running Backbone from titan------
