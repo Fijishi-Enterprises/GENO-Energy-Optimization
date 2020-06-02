@@ -12,12 +12,12 @@ q_upperLimit_flow(grid, node, ww_flowType, ww_range, s, f, t)          "Activate
 q_flowSum(ww_flowType, s , f, t)                                       "Exactly one of the binary variables for each flow range has to equal one"
 
 //Specific balance equation for the wastewater treatment reaction nodes
-q_ww_balance(grid, node, mType, s, f, t)                               "Reaction within the nodes of the wastewater reaction tank"
-q_ww_help1(ww_flowType, ww_range, ww_range_, s, f, t)                  "Helper equation to express the product of the two binary variables for inflow and airflow"
-q_ww_help2(ww_range, ww_range_, s, f, t)                               "Helper equation to express the product of the two binary variables for inflow and airflow"
-q_ww_help3(grid, node, ww_range, ww_range_, s, f, t)
-q_ww_help4(grid, node, ww_range, ww_range_, s, f, t)
-q_ww_help5(grid, node, ww_range, ww_range_, s, f, t)
+q_ww_balance(grid, node, mType, s, f, t)                                  "Reaction within the nodes of the wastewater reaction tank"
+q_ww_help1(ww_flowType, ww_in, ww_range, ww_air, ww_range_, s, f, t)      "Helper equation to express the product of the two binary variables for inflow and airflow"
+q_ww_help2(ww_in, ww_range, ww_air, ww_range_, s, f, t)                   "Helper equation to express the product of the two binary variables for inflow and airflow"
+q_ww_help3(grid, node, ww_in, ww_range, ww_air, ww_range_, s, f, t)
+q_ww_help4(grid, node, ww_in, ww_range, ww_air, ww_range_, s, f, t)
+q_ww_help5(grid, node, ww_in, ww_range, ww_air, ww_range_, s, f, t)
 ;
 
 * ===============================================================================
@@ -153,21 +153,21 @@ q_ww_balance(gn(grid, node), msft(m, s, f, t))${ gnGroup(grid, node, 'ww_reactio
 ;
 *------- Helper Constraints for the new balance equation ---------------
 
-q_ww_help1(ww_flowType, ww_rangeRange(ww_range, ww_range_), sft(s, f, t))
+q_ww_help1(ww_flowType, ww_flowRangeflowRange(ww_in, ww_range, ww_air, ww_range_), sft(s, f, t))
 ..
 
          v_flowFlag(ww_flowType, ww_range, s, f, t)
 
          =G=
 
-         v_flowHelper(ww_range, ww_range_, s, f, t)
+         v_flowHelper(ww_in, ww_range, ww_air, ww_range_, s, f, t)
 
 ;
 
-q_ww_help2(ww_rangeRange(ww_range, ww_range_), sft(s, f, t))
+q_ww_help2(ww_flowRangeflowRange(ww_in, ww_range, ww_air, ww_range_), sft(s, f, t))
 ..
 
-         v_flowHelper(ww_range, ww_range_, s, f, t)
+         v_flowHelper(ww_in, ww_range, ww_air, ww_range_, s, f, t)
 
          =G=
 
@@ -175,39 +175,45 @@ q_ww_help2(ww_rangeRange(ww_range, ww_range_), sft(s, f, t))
 
 ;
 
-q_ww_help3(gn(grid, node), ww_rangeRange(ww_range, ww_range_), sft(s, f, t))${ gnGroup(grid, node, 'ww_reactionGroup')}
+q_ww_help3(gn(grid, node), ww_flowRangeflowRange(ww_in, ww_range, ww_air, ww_range_), sft(s, f, t))${ gnGroup(grid, node, 'ww_reactionGroup')}
 ..
 
-         v_flowHelper(ww_range, ww_range_, s, f, t) * BIG_M
+         v_flowHelper(ww_in, ww_range, ww_air, ww_range_, s, f, t) * BIG_M
 
          =G=
 
-         v_flowState(grid, node, ww_range, ww_range_, s, f, t)
+         v_flowState(grid, node, ww_in, ww_range, ww_air, ww_range_, s, f, t)
 ;
 
-q_ww_help4(gn(grid, node), ww_rangeRange(ww_range, ww_range_), sft(s, f, t))${ gnGroup(grid, node, 'ww_reactionGroup')}
+q_ww_help4(gn(grid, node), ww_flowRangeflowRange(ww_in, ww_range, ww_air, ww_range_), sft(s, f, t))${ gnGroup(grid, node, 'ww_reactionGroup')}
 ..
 
          v_state(grid, node, s, f, t)
 
          =G=
 
-         v_flowState(grid, node, ww_range, ww_range_, s, f, t)
+         v_flowState(grid, node, ww_in, ww_range, ww_air, ww_range_, s, f, t)
 
 ;
 
-q_ww_help5(gn(grid, node), ww_rangeRange(ww_range, ww_range_), sft(s, f, t))${ gnGroup(grid, node, 'ww_reactionGroup')}
+q_ww_help5(gn(grid, node), ww_flowRangeflowRange(ww_in, ww_range, ww_air, ww_range_), sft(s, f, t))${ gnGroup(grid, node, 'ww_reactionGroup')}
 ..
 
-         v_flowState(grid, node, ww_range, ww_range_, s, f, t)
+         v_flowState(grid, node, ww_in, ww_range, ww_air, ww_range_, s, f, t)
 
          =G=
 
-         v_state(grid, node, s, f, t) - [(1-v_flowHelper(ww_range, ww_range_, s, f, t)) * BIG_M]
+         v_state(grid, node, s, f, t) - [(1-v_flowHelper(ww_in, ww_range, ww_air, ww_range_, s, f, t)) * BIG_M]
 ;
 
+
+
+
+
+
+$ontext //this part of the code is moved to the respective parts of Backbone
 * ===============================================================================
-* --- periodicLoop - Initialize variables and equations in order to save memory -
+* --- 3b_periodicLoop - Initialize variables and equations in order to save memory -
 * ===============================================================================
 
 * --- Variables -----------------------------------------------------------------
