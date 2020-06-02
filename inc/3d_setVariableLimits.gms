@@ -294,6 +294,24 @@ $offtext
 *v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 *v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 
+*----------------------------------------------------------------------IC RAMP-------------------------------------------------------------------------------------------------------------------------------------
+v_ICramp.up(gn2n_directional(grid, node, node_), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
+                                                                 and p_gnn(grid, node, node_, 'ICrampUp')
+                                                                 and not p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                 }
+ = p_gnn(grid, node, node_, 'transferCap')
+       * p_gnn(grid, node, node_, 'ICrampUp')
+       * 60;    // Unit conversion from [p.u./min] to [p.u./h]
+v_ICramp.lo(gn2n_directional(grid, node, node_), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
+                                                                 and p_gnn(grid, node, node_, 'ICrampDown')
+                                                                 and not p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                 }
+ = -(p_gnn(grid, node, node_, 'transferCap'))
+       * p_gnn(grid, node, node_, 'ICrampDown')
+       * 60;    // Unit conversion from [p.u./min] to [p.u./h]
+
+*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 * --- Energy Transfer Boundaries ----------------------------------------------
 

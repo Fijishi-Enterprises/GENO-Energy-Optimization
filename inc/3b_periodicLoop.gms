@@ -26,6 +26,7 @@ Option clear = v_gen;
 Option clear = v_state;
 Option clear = v_genRamp;
 Option clear = v_transfer;
+Option clear = v_ICramp;     
 // Integer Variables
 Option clear = v_online_MIP;
 Option clear = v_invest_MIP;

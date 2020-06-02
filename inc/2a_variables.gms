@@ -21,6 +21,7 @@ Free variables
     v_state(grid, node, s, f, t) "State variable for nodes that maintain a state (MWh, unless modified by energyStoredPerUnitOfState and diffCoeff parameters)"
     v_genRamp(grid, node, unit, s, f, t) "Change in energy generation or consumption over an interval (MW/h)"
     v_transfer(grid, node, node, s, f, t) "Average electricity transmission level from node to node during an interval (MW)"
+    v_ICramp(grid, node, node, s, f, t) "Change in energy transfer over an interval (MW/h)"      
 ;
 Integer variables
     v_startup_MIP(unit, starttype, s, f, t) "Sub-units started up after/during an interval (p.u.), (MIP variant)"

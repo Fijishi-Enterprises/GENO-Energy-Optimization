@@ -2146,6 +2146,48 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), sft(s, f, t))
         ) // END sum(t_invest)
 ;
 
+*----------------------------------------------------------------------IC RAMP-------------------------------------------------------------------------------------------------------------------------------------
+q_ICramp(gn2n_directional(grid, node, node_), sft(s, f, t)) ..
+
+    + v_ICramp(grid, node, node_, s, f, t)
+
+    =E=
+
+    // Change in transfers over the interval: v_transfer(t) - v_transfer(t-1)
+    + v_transfer(grid, node, node_, s, f, t)
+    - v_transfer(grid, node, node_, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))
+;
+* --- Ramp Up Limits ----------------------------------------------------------
+ q_ICrampUpLimit(gn2n_directional(grid, node, node_), sft(s, f, t))
+     ${ p_gnn(grid, node, node_, 'ICrampUp')
+       } ..
+
+    + v_ICramp(grid, node, node_, s, f, t)
+
+    =L=
+
+    + ( p_gnn(grid, node, node_, 'transferCap')
+        * p_gnn(grid, node, node_, 'ICrampUp')
+        * 60
+       )
+;
+* --- Ramp Down Limits ----------------------------------------------------------
+q_ICrampDownLimit(gn2n_directional(grid, node, node_), sft(s, f, t))
+     ${ p_gnn(grid, node, node_, 'ICrampDown')
+       } ..
+
+    + v_ICramp(grid, node, node_, s, f, t)
+
+    =G=
+
+    - ( p_gnn(grid, node, node_, 'transferCap')
+        * p_gnn(grid, node, node_, 'ICrampDown')
+        * 60
+       )
+;
+*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 * --- Rightward Reserve Provision Limits ----------------------------------------
 
 q_reserveProvisionRightward(restypeDirectionGridNodeNode(restype, up_down, grid, node, node_), sft(s, f, t))
