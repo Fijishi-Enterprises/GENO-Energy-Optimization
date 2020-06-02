@@ -86,6 +86,7 @@ Parameters
 
     // Results required for model structure
     r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
+    r_gen_gnUnittype(grid, node, unittype) "Energy generation for each unittype in each node (MWh)"
 
     // Fuel use results
     r_fuelUse(node, unit, f, t) "Fuel use of units"

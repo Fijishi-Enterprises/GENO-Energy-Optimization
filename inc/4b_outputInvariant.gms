@@ -196,6 +196,15 @@ loop(m,
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
+    r_gen_gnUnittype(gn(grid, node), unittype)$sum(unit$unitUnittype(unit, unittype), 1)
+      = sum(gnu(grid,node,unit)$unitUnittype(unit, unittype),
+            sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
+              + r_gen(grid, node, unit, f, t)
+                  * p_stepLengthNoReset(m, f, t)
+                  * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+            ) // END sum(ft_realizedNoReset)
+        );
+
     // Energy generation by fuels
     r_genFuel(gn(grid, node), commodity, ft_realizedNoReset(f, t))$[    sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit), r_gen(grid_, node_, unit, f, t))
                                                                     and ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
