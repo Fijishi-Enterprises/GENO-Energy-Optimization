@@ -248,10 +248,7 @@ Option clear = q_ww_help5;
 
 v_flowState.lo(grid, node, ww_range, ww_range_, s, f, t) = 0; //v_flowState has zero as a lower bound
 
-
-
-$ontext //I should probably also adjust the constraint q_outputRatioFixed, but double check whether necessary...
-* --- Fixed Output Ratio ------------------------------------------------------
+* --- Fixed Output Ratio ------------------------------------------------------ //I should probably also adjust the constraint q_outputRatioFixed, but double check whether necessary... 
 q_outputRatioFixed(gngnu_fixedOutputRatio(grid, node, grid_, node_, unit), sft(s, f, t))
     ${  uft(unit, f, t)
         } ..
