@@ -97,14 +97,14 @@ q_ww_balance(gn(grid, node), msft(m, s, f, t))${ gnGroup(grid, node, 'ww_reactio
             // Energy diffusion from this node to neighbouring nodes
             - sum(gnn_state(grid, node, to_node),
                 + [p_gnn(grid, node, to_node, 'diffCoeff')
-                     * sum(ww_flowType,
-                          sum(ww_range,
-                             sum(ww_flowType_,
+                     * sum(ww_in,
+                         sum(ww_range,
+                             sum(ww_air,
                                  sum(ww_range_,
-                             + p_ww_A(ww_flowType, ww_range, ww_flowType_, ww_range_, 'A1')$gn2n_directional(grid, node, 'DO_reaction')
-                             + p_ww_A(ww_flowType, ww_range, ww_flowType_, ww_range_, 'A2')$gn2n_directional(grid, node, 'S_reaction')
-                             + p_ww_A(ww_flowType, ww_range, ww_flowType_, ww_range_, 'A3')$gn2n_directional(grid, node, 'X_reaction')
-                               * v_flowState(grid, node, ww_range, ww_range_, s, f+df_central(f,t), t)
+                             + p_ww_A(ww_in, ww_range, ww_air, ww_range_, 'A1')$gn2n_directional(grid, node, 'DO_reaction')
+                             + p_ww_A(ww_in, ww_range, ww_air, ww_range_, 'A2')$gn2n_directional(grid, node, 'S_reaction')
+                             + p_ww_A(ww_in, ww_range, ww_air, ww_range_, 'A3')$gn2n_directional(grid, node, 'X_reaction')
+                               * v_flowState(grid, node, ww_in, ww_range, ww_air, ww_range_, s, f+df_central(f,t), t)
                                  )
                              )
                           )
@@ -115,14 +115,14 @@ q_ww_balance(gn(grid, node), msft(m, s, f, t))${ gnGroup(grid, node, 'ww_reactio
             // Energy diffusion from neighbouring nodes to this node
             + sum(gnn_state(grid, from_node, node),
                 + [p_gnn(grid, from_node, node, 'diffCoeff')
-                     * sum(ww_flowType,
-                          sum(ww_range,
-                             sum(ww_flowType_,
+                     * sum(ww_in,
+                         sum(ww_range,
+                             sum(ww_air,
                                  sum(ww_range_,
-                             + p_ww_A(ww_flowType, ww_range, ww_flowType_, ww_range_, 'A1')$gn2n_directional(grid, node, 'DO_reaction')
-                             + p_ww_A(ww_flowType, ww_range, ww_flowType_, ww_range_, 'A2')$gn2n_directional(grid, node, 'S_reaction')
-                             + p_ww_A(ww_flowType, ww_range, ww_flowType_, ww_range_, 'A3')$gn2n_directional(grid, node, 'X_reaction')
-                               * v_flowState(grid, node, ww_range, ww_range_, s, f+df_central(f,t), t)
+                             + p_ww_A(ww_in, ww_range, ww_air, ww_range_, 'A1')$gn2n_directional(grid, node, 'DO_reaction')
+                             + p_ww_A(ww_in, ww_range, ww_air, ww_range_, 'A2')$gn2n_directional(grid, node, 'S_reaction')
+                             + p_ww_A(ww_in, ww_range, ww_air, ww_range_, 'A3')$gn2n_directional(grid, node, 'X_reaction')
+                               * v_flowState(grid, node, ww_in, ww_range, ww_air, ww_range_, s, f+df_central(f,t), t)
                                  )
                              )
                           )
