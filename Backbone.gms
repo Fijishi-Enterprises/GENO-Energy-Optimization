@@ -72,6 +72,9 @@ References
 ==========================================================================
 $offtext
 
+* Check current GAMS version
+$ife %system.gamsversion%<240 $abort GAMS distribution 24.0 or later required!
+
 * Set default debugging level
 $if not set debug $setglobal debug 0
 
