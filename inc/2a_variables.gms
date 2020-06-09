@@ -21,6 +21,7 @@ Free variables
     v_state(grid, node, s, f, t) "State variable for nodes that maintain a state (MWh, unless modified by energyStoredPerUnitOfState and diffCoeff parameters)"
     v_genRamp(grid, node, unit, s, f, t) "Change in energy generation or consumption over an interval (MW/h)"
     v_transfer(grid, node, node, s, f, t) "Average electricity transmission level from node to node during an interval (MW)"
+    v_ICramp(grid, node, node, s, f, t) "Change in energy transfer over an interval (MW/h)"      
 ;
 Integer variables
     v_startup_MIP(unit, starttype, s, f, t) "Sub-units started up after/during an interval (p.u.), (MIP variant)"
@@ -36,7 +37,6 @@ SOS2 variables
     v_sos2(unit, s, f, t, effSelector) "Intermediate lambda variable for SOS2 based piece-wise linear efficiency curve"
 ;
 Positive variables
-    v_fuelUse(fuel, unit, s, f, t) "Fuel use of a unit during an interval (MWh_fuel)"
     v_startup_LP(unit, starttype, s, f, t) "Sub-units started up after/during an interval (p.u.), (LP variant)"
     v_shutdown_LP(unit, s, f, t) "Sub-units shut down after/during an interval (p.u.) (LP variant)"
     v_genRampUpDown(grid, node, unit, slack, s, f, t) "Change in energy generation or consumption over an interval, separated into different 'slacks' (MW/h)"

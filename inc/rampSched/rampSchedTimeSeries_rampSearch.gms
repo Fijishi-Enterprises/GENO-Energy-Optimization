@@ -40,7 +40,7 @@ loop(gn(grid,node),
                     (ts_energyDemand(grid, node, f, t_) -
                         sum(unit_flow(flow, unit_flow)$nu(unit_flow, node),
                           ts_cf(flow, node, f, t) *
-                          p_data2d(grid, unit_flow, 'maxGen') *
+                          p_data2d(grid, unit_flow, 'capacity') *
                           p_data(unit_flow, 'availability')
                         )
                     ) * (13 - abs(ord(t) - ord(t_)))  // Weighting
@@ -64,7 +64,7 @@ if (s_netLoadChanged = 1,
             (ts_energyDemand(grid, node, f, t_) -
                 sum(unit_flow(flow, unit_flow)$nu(unit_flow, node),
                    ts_cf(flow, node, f, t) *
-                   p_data2d(grid, unit_flow, 'maxGen') *
+                   p_data2d(grid, unit_flow, 'capacity') *
                    p_data(unit_flow, 'availability')
                 )
             ) * (13 - abs(ord(t) - ord(t_)))

@@ -125,12 +125,18 @@ Sets
     cc(counter) "Temporary subset of counter used for calculations"
 
     // Directional Sets
-    up_down "Direction set used by some variables, e.g. reserve provisions and generation ramps"
-        / up, down /
+    input_output "Designating nodes as either inputs or outputs"
+        / input, output /
     inc_dec "Increase or decrease in dummy, or slack variables"
         / increase, decrease /
     min_max "Minimum and maximum"
         / min, max /
+    constraint "Possible names for constraints"
+        / eq1*eq9, gt1*gt9 /
+    eq_constraint(constraint) "Equality constraints"
+        / eq1*eq9 /
+    gt_constraint(constraint) "Greater than constraints"
+        / gt1*gt9 /
 
 * --- Model Feature Sets ------------------------------------------------------
 
@@ -165,8 +171,8 @@ Sets
         ts_cf
         ts_reserveDemand
         ts_node
-        ts_fuelPriceChange
-        ts_fuelPrice
+        ts_priceChange
+        ts_price
         ts_unavailability
         /
 
@@ -205,6 +211,7 @@ Sets
 * --- Parameter Data Related Sets ---------------------------------------------
 
 param_gn  "Possible parameters for grid, node" /
+    nodeBalance   "A flag to decide whether node balance constraint is to be used"
     selfDischargeLoss "Self discharge rate of the node (MW/[v_state])"
     energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh (MWh/[v_state])"
     boundStart    "A flag to bound the first t in the run using reference constant or time series"
@@ -248,22 +255,19 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     invCost       "Investment cost (EUR/MW)"
     annuity       "Investment annuity"
     portion_of_transfer_to_reserve "Portion to cover incase fail"
+    ICrampUp
+    ICrampDown
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /
-    maxGen        "Maximum output capacity (MW)"
-    maxCons       "Maximum loading capacity (MW)"
+    capacity      "Maximum capacity (MW)"
+    conversionCoeff "Coefficient for conversion equation (multiplies each input or output when summing v_gen from multiple inputs/outputs)"
     useInitialGeneration     "A flag to indicate whether to fix generation for the first time step (binary)"
     initialGeneration        "Initial generation/consumption of the unit in the first time step (MW)"
-    conversionFactor "Conversion factor for inputs or outputs (for changing the unit of measurement)"
-    doNotOutput   "Flag for inputs that are not included in the output commodities"
-    cV            "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
     maxRampUp     "Speed to ramp up (p.u./min)"
     maxRampDown   "Speed to ramp down (p.u./min)"
     upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment ([v_state]/MW)"
-    unitSizeGen   "Output capacity of one subunit for integer investments (MW)"
-    unitSizeCons  "Loading capacity of one subunit for integer investments (MW)"
-    unitSizeTot   "Sum of output and loading capacity of one subunit (MW)"
+    unitSize      "Input/Output capacity of one subunit for integer investments (MW)"
     invCosts      "Investment costs (EUR/MW)"
     annuity       "Investment annuity factor"
     fomCosts      "Fixed operation and maintenance costs (EUR/MW/a)"
@@ -327,20 +331,18 @@ param_eff "Parameters used for unit efficiency approximations" /
     slope   "Heat rate parameter representing no-load fuel consumption"
 /
 
-param_fuel "Parameters for fuels" /
-    main          "Main fuel of the unit - unless input fuels defined as grids"
-    startup       "Startup fuel of the unit, if exists. Can be the same as main fuel - consumption using startupFuelCons"
+param_constraint "Parameters for constraints" /
+    constant    "Constant when binding inputs/outputs"
+    coefficient "Coefficient when binding inputs/outputs"
 /
 
-param_fuelPrice "Paramters for fuel prices" /
-    fuelPrice     "Fuel price (EUR/MWh)"
-    useConstant   "Flag to use constant data for fuels"
-    useTimeSeries "Flag to use time series form data for fuels"
+param_price "Parameters for commodity prices" /
+    price         "Commodity price (EUR/MWh)"
+    useConstant   "Flag to use constant data for commodities"
+    useTimeSeries "Flag to use time series form data for commodities"
 /
 
-param_unitFuel "Parameters for fuel limits in units" /
-    maxFuelCons   "Maximum absolute fuel consumption in a unit - not used for start-up fuels"
-    maxFuelFraction "Maximum share of a fuel in the consumption mix"   //only for main fuels
+param_unitStartupfuel "Parameters for startup fuel limits in units" /
     fixedFuelFraction "Fixed share of a fuel in the consumption mix"   //only for start-up fuels
 /
 
@@ -362,6 +364,7 @@ param_policy "Set of possible data parameters for groups or grid, node, regulati
     update_offset "Optional offset for delaying the reserve update frequency"
     gate_closure  "Number of timesteps ahead of dispatch that reserves are fixed"
 *    use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
+    useTimeSeries "Flag for using time series data"
     reserve_length "Length of reserve horizon"
     reserveReliability "Reliability parameter of reserve provisions"
     reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
@@ -369,6 +372,8 @@ param_policy "Set of possible data parameters for groups or grid, node, regulati
     offlineReserveCapability "Proportion of an offline unit which can contribute to a category of reserve"
     ReserveShareMax "Maximum reserve share of a group of units"
     LossOfTrans "A flag to tell that N-1 reserve is needed due to a possibility that an interconnector to/from the node group fails"
+    up          "Upward direction, e.g. for reserve provisions"
+    down        "Downward direction, e.g. for reserve provisions"
 /
 
 * --- Efficiency Approximation Related Sets -----------------------------------
@@ -384,6 +389,7 @@ hrop(param_unit) "Operating points in the incremental heat rate curves, also fun
         /hrop00*hrop12/ // IMPORTANT! Has to equal the same param_unit!
 hr(param_unit) "Heat rate for the corresponding operating point ('hrop') in the heat rate curves, also used for data indexing"
         /hr00*hr12/ // IMPORTANT! Has to equal the same param_unit!
+
 * --- Counters and Directional Sets -------------------------------------------
 
 // Slack categories
@@ -401,4 +407,8 @@ spillLimits(param_gnBoundaryTypes) "set of upward and downward state limits"
        / maxSpill, minSpill /
 useConstantOrTimeSeries(param_gnBoundaryProperties) "useTimeSeries and useConstant property together"
        / useTimeSeries, useConstant /
+
+// Directional sets that are subsets of others
+up_down(param_policy) "Direction set used by some variables, e.g. reserve provisions and generation ramps"
+       / up, down /
 ; // END parameter set declarations
