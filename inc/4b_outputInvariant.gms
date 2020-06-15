@@ -32,40 +32,41 @@ loop(m,
             * p_gnu(grid, node, unit, 'vomCosts');
 
     // Fuel and emission costs during normal operation
-    r_uFuelEmissionCost(fuel, unit_fuel(unit), ft_realizedNoReset(f,t))${ uFuel(unit, 'main', fuel) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
+    r_uFuelEmissionCost(commodity, unit_commodity(unit), ft_realizedNoReset(f,t))${ un_commodity(unit, commodity) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
-            * r_fuelUse(fuel, unit, f, t)
-            * [ // Fuel price
-                + p_fuelPrice(fuel, 'fuelPrice')${ p_fuelPrice(fuel, 'useConstant') }
-                + ts_fuelPrice(fuel, t)${ p_fuelPrice(fuel, 'useTimeSeries') }
+            * r_fuelUse(commodity, unit, f, t)
+            * [ // Fuel price when input
+                + p_price(commodity, 'price')${p_price(commodity, 'useConstant') and un_commodity_in(unit, commodity)}
+                + ts_price(commodity, t)${p_price(commodity, 'useTimeSeries')  and un_commodity_in(unit, commodity)}
+                // Fuel price when output
+                - p_price(commodity, 'price')${p_price(commodity, 'useConstant') and un_commodity_out(unit, commodity)}
+                - ts_price(commodity, t)${p_price(commodity, 'useTimeSeries')  and un_commodity_out(unit, commodity)}
                 // Emission costs
-                + sum(emission, p_unitFuelEmissionCost(unit, fuel, emission))
-                ];
+                + sum(emission, p_unitEmissionCost(unit, commodity, emission))
+              ];
 
     // Unit startup costs
     r_uStartupCost(unit, ft_realizedNoReset(f,t))${sum(starttype, unitStarttype(unit, starttype)) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
         = 1e-6 // Scaling to MEUR
             * sum(unitStarttype(unit, starttype),
                 + r_startup(unit, starttype, f, t)
-                    * [ // Startup VOM
-                        + p_uStartup(unit, starttype, 'cost')
-
-                        // Startup fuel consumption and emissions
-                        + sum(uFuel(unit, 'startup', fuel),
-                            + p_uStartup(unit, starttype, 'consumption')
-                                * p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')
-                                * [ // Fuel price
-                                    + p_fuelPrice(fuel, 'fuelPrice')${ p_fuelPrice(fuel, 'useConstant') }
-                                    + ts_fuelPrice(fuel, t)${ p_fuelPrice(fuel, 'useTimeSeries') }
-                                    // Emission costs
-                                    + sum(emission, // Emission taxes
-                                        + p_unitFuelEmissionCost(unit, fuel, emission)
-                                        ) // END sum(emission)
-                                    ] // END * p_uStartup
-                            ) // END sum(uFuel)
-                        ] // END * r_startup
-                ); // END sum(unitStarttype)
+                    * [
+                        + p_uStartup(unit, starttype, 'cost') // CUR/start-up
+                        // Start-up fuel and emission costs
+                        + sum(nu(node,unit)$p_unStartup(unit, node, starttype),
+                            + p_unStartup(unit, node, starttype) // MWh/start-up
+                              * [
+                                  + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
+                                  + ts_price(node, t)$p_price(node, 'useTimeseries') // CUR/MWh
+                                ] // END * p_uStartup
+                          ) // END sum(node)
+                        + sum((nu(node, unit), emission)$p_unitEmissionCost(unit, node, emission),
+                            + p_unStartup(unit, node, starttype) // MWh/start-up
+                              * p_unitEmissionCost(unit, node, emission) // CUR/MWh
+                          ) // END sum(nu, emission)
+                      ] // END * r_startup
+              ); // END sum(starttype)
 
     // Node state slack costs
     r_gnStateSlackCost(gn_stateSlack(grid, node), ft_realizedNoReset(f,t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
@@ -100,9 +101,9 @@ loop(m,
             );
 
     // Total fuel & emission costs
-    r_uTotalFuelEmissionCost(fuel, unit)${ uFuel(unit, 'main', fuel) }
+    r_uTotalFuelEmissionCost(commodity, unit)$un_commodity(unit, commodity)
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
-            + r_uFuelEmissionCost(fuel, unit, f, t)
+            + r_uFuelEmissionCost(commodity, unit, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_discountFactor(s))
             );
 
@@ -125,12 +126,11 @@ loop(m,
         = 1e-6 // Scaling to MEUR
             * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
                 + [
-                    + p_gnu(grid, node, unit, 'maxGen')$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // Not in v_obj; only units active in msft_realizedNoReset
-                    + p_gnu(grid, node, unit, 'maxCons')$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // Not in v_obj; only units active in msft_realizedNoReset
+                    + p_gnu(grid, node, unit, 'capacity')$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // Not in v_obj; only units active in msft_realizedNoReset
                     + sum(t_invest(t)${ord(t) <= msEnd(m, s)},
                         + r_invest(unit, t)$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // only units active in msft_realizedNoReset
                         )
-                        * p_gnu(grid, node, unit, 'unitSizeTot')
+                        * p_gnu(grid, node, unit, 'unitSize')
                     ]
                     * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
                     * p_discountFactor(s) // Discount costs
@@ -147,7 +147,7 @@ loop(m,
                     * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
                     * p_discountFactor(s) // Discount costs
                 ) // END * sum(ms)
-            * p_gnu(grid, node, unit, 'unitSizeTot')
+            * p_gnu(grid, node, unit, 'unitSize')
             * p_gnu(grid, node, unit, 'invCosts')
             * p_gnu(grid, node, unit, 'annuity');
 
@@ -172,28 +172,25 @@ loop(m,
 
     // Total realized gn operating costs
     r_gnRealizedOperatingCost(gn(grid, node), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
-        = sum(gnu_output(grid, node, unit),
-
-            // VOM costs
-            + r_gnuVOMCost(grid, node, unit, f, t)
-
-            // Divide fuel and startup costs based on output capacities
-            + [
-                + p_gnu(grid, node, unit, 'maxGen')${p_unit(unit, 'outputCapacityTotal')}
-                + p_gnu(grid, node, unit, 'unitSizeGen')${not p_unit(unit, 'outputCapacityTotal')}
-                ]
-                    / [
-                        + p_unit(unit, 'outputCapacityTotal')${p_unit(unit, 'outputCapacityTotal') > 0}
-                        + p_unit(unit, 'unitOutputCapacityTotal')${not p_unit(unit, 'outputCapacityTotal') > 0}
-                        ] // END /
-                    * [
-                        + sum(uFuel(unit, 'main', fuel), r_uFuelEmissionCost(fuel, unit, f, t))
-                        + r_uStartupCost(unit, f, t)
-                        ] // END *
-            ) // END sum(gnu_output)
-
-            // Node state slack costs
-            + r_gnStateSlackCost(grid, node, f, t);
+        = + sum(gnu(grid, node, unit),
+              // VOM costs
+              + r_gnuVOMCost(grid, node, unit, f, t)
+            )
+          // Allocate fuel and startup costs on energy basis, but for output nodes only
+          + sum(unit$gnu(grid, node, unit),
+              + sum(gnu(grid, node, unit)$(gnu_output(grid, node, unit) and r_gen[grid, node, unit, f, t]),
+                  + abs{r_gen[grid, node, unit, f, t]}  // abs is due to potential negative outputs like energy from a cooling unit. It's the energy contribution that matters, not direction.
+                    /
+                    sum(gnu_output(grid_output, node_output, unit)$r_gen[grid_output, node_output, unit, f, t], abs{r_gen[grid_output, node_output, unit, f, t]})
+                )
+                *
+                {
+                  + sum(un_commodity(unit, commodity), r_uFuelEmissionCost(commodity, unit, f, t))
+                  + r_uStartupCost(unit, f, t)
+                }
+            )
+          // Node state slack costs
+          + r_gnStateSlackCost(grid, node, f, t);
 
 * --- Realized Nodal Energy Consumption ---------------------------------------
 // !!! NOTE !!! This is a bit of an approximation at the moment !!!!!!!!!!!!!!!
@@ -217,11 +214,29 @@ loop(m,
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
+    r_gen_gnUnittype(gn(grid, node), unittype)$sum(unit$unitUnittype(unit, unittype), 1)
+      = sum(gnu(grid,node,unit)$unitUnittype(unit, unittype),
+            sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
+              + r_gen(grid, node, unit, f, t)
+                  * p_stepLengthNoReset(m, f, t)
+                  * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+            ) // END sum(ft_realizedNoReset)
+        );
+
     // Energy generation by fuels
-    r_genFuel(gn(grid, node), fuel, ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
-        = sum(uFuel(unit, 'main', fuel)${ gnu_output(grid, node, unit) },
+    r_genFuel(gn(grid, node), commodity, ft_realizedNoReset(f, t))$[    sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit), r_gen(grid_, node_, unit, f, t))
+                                                                    and ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
+        = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, commodity, unit), 1),
             + r_gen(grid, node, unit, f, t)
-            ); // END sum(uFuel)
+          );
+// The calculation with multiple inputs needs to be fixed below (right share for different commodities - now units with multiple input commodities will get the same amount allocated which will then be too big
+//          * sum((grid_, unit)$gnu_output(grid, node, unit),
+//                r_gen(grid_, commodity, unit, f, t))
+//                  / sum(gnu_input(grid__, node_, unit), r_gen(grid__, node_, unit, f, t));
+
+    r_genFuel(gn(grid, node), flow, ft_realizedNoReset(f, t))$flowNode(flow, node)
+        = sum(gnu_output(grid, node, unit)$flowUnit(flow, unit),
+            + r_gen(grid, node, unit, f, t));
 
     // Energy generation by fuels
     r_genUnittype(gn(grid, node), unittype, ft_realizedNoReset(f,t))
@@ -233,9 +248,9 @@ loop(m,
             ); // END sum(unit)
 
     // Total generation on each node by fuels
-    r_gnTotalGenFuel(gn(grid, node), fuel)
+    r_gnTotalGenFuel(gn(grid, node), commodity)
         = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
-            + r_genFuel(grid, node, fuel, f, t)
+            + r_genFuel(grid, node, commodity, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
@@ -260,13 +275,13 @@ loop(m,
 
     // Approximate utilization rates for gnus over the simulation
     r_gnuUtilizationRate(gnu_output(grid, node, unit))${ r_gnuTotalGen(grid, node, unit)
-                                                         and ( p_gnu(grid, node, unit, 'maxGen')
+                                                         and ( p_gnu(grid, node, unit, 'capacity')
                                                                or sum(t_invest, r_invest(unit, t_invest))
                                                                )
                                                          }
         = r_gnuTotalGen(grid, node, unit)
             / [
-                + (p_gnu(grid, node, unit, 'maxGen') + sum(t_invest, r_invest(unit, t_invest))*p_gnu(grid, node, unit, 'unitSizeGen'))
+                + (p_gnu(grid, node, unit, 'capacity') + sum(t_invest, r_invest(unit, t_invest))*p_gnu(grid, node, unit, 'unitSize'))
                     * (mSettings(m, 't_end') - (mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')) + 1)
                     * mSettings(m, 'stepLengthInHours')
                 ]; // END division
@@ -368,16 +383,16 @@ r_gnTotalConsumptionShare(gn(grid, node))${ r_gTotalConsumption(grid) > 0 }
 * --- Total Fuel Consumption Results ------------------------------------------
 
 // Total fuel consumption in grids over the simulation
-r_gTotalGenFuel(grid, fuel)
-    = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, fuel));
+r_gTotalGenFuel(grid, commodity)
+    = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, commodity));
 
 // Total fuel consumption over the simulation
-r_totalGenFuel(fuel)
-    = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, fuel));
+r_totalGenFuel(commodity)
+    = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, commodity));
 
 // Total fuel consumption gn/g shares
-r_gnTotalGenFuelShare(gn(grid, node), fuel)${ r_gnTotalGen(grid, node) > 0 }
-    = r_gnTotalGenFuel(grid, node, fuel)
+r_gnTotalGenFuelShare(gn(grid, node), commodity)${ r_gnTotalGen(grid, node) }
+    = r_gnTotalGenFuel(grid, node, commodity)
         / r_gnTotalGen(grid, node);
 
 * --- Total Spilled Energy Results --------------------------------------------
@@ -547,7 +562,7 @@ d_cop(unit, ft_realizedNoReset(f, t))${  [ord(t) > mSettings(m, 't_start') + mSe
         + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 
 // Estimated efficiency
-d_eff(unit_fuel(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
+d_eff(unit_commodity(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
     = sum(gnu_output(grid, node, unit),
         + r_gen(grid, node, unit, f, t)
         ) // END sum(gnu_output)

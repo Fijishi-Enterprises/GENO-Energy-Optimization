@@ -34,23 +34,17 @@ q_obj ..
                 // Time step length dependent costs
                 + p_stepLength(m, f, t)
                     * [
-                        // Variable O&M costs
-                        + sum(gnuft(grid, node, unit, f, t),
+                        // Variable O&M costs for inputs
+                        - sum(gnuft(grid, node, unit, f, t)$gnu_input(grid, node, unit),
                             + v_gen(grid, node, unit, s, f, t)
-                                * p_gnu(grid, node, unit, 'vomCosts')
+                                * ts_vomCost_(grid, node, unit, t)
                             ) // END sum(gnuft)
 
-                        // Fuel and emission costs
-                        + sum(uFuel(unit, 'main', fuel)${uft(unit, f, t)},
-                            + v_fuelUse(fuel, unit, s, f, t)
-                                * [
-                                    + p_fuelPrice(fuel, 'fuelPrice')${ p_fuelPrice(fuel, 'useConstant') }
-                                    + ts_fuelPrice_(fuel ,t)${ p_fuelPrice(fuel, 'useTimeSeries') }
-                                    + sum(emission, // Emission taxes
-                                        + p_unitFuelEmissionCost(unit, fuel, emission)
-                                        )
-                                    ] // END * v_fuelUse
-                            ) // END sum(uFuel)
+                        // Variable O&M costs
+                        + sum(gnuft(grid, node, unit, f, t)$gnu_output(grid, node, unit),
+                            + v_gen(grid, node, unit, s, f, t)
+                                * ts_vomCost_(grid, node, unit, t)
+                            ) // END sum(gnuft)
 
                         // Node state slack variable costs
                         + sum(gn_stateSlack(grid, node),
@@ -92,23 +86,8 @@ q_obj ..
                         + [ // Unit startup variables
                             + v_startup_LP(unit, starttype, s, f, t)${ uft_onlineLP(unit, f, t) }
                             + v_startup_MIP(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
-                            ]
-                            * [ // Startup variable costs
-                                + p_uStartup(unit, starttype, 'cost')
-
-                                // Start-up fuel and emission costs
-                                + sum(uFuel(unit, 'startup', fuel),
-                                    + p_uStartup(unit, starttype, 'consumption')
-                                        * p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')
-                                        * [
-                                            + p_fuelPrice(fuel, 'fuelPrice')${ p_fuelPrice(fuel, 'useConstant') }
-                                            + ts_fuelPrice_(fuel, t)${ p_fuelPrice(fuel, 'useTimeseries') }
-                                            + sum(emission, // Emission taxes of startup fuel use
-                                                + p_unitFuelEmissionCost(unit, fuel, emission)
-                                              ) // END sum(emission)
-                                          ] // END * p_uStartup
-                                  ) // END sum(uFuel)
-                              ] // END * v_startup
+                          ]
+                          * ts_startupCost_(unit, starttype, t)
                       ) // END sum(starttype)
                   ) // END sum(uft_online)
 
@@ -163,13 +142,13 @@ q_obj ..
             // Unit investment costs (including fixed operation and maintenance costs)
             + sum(gnu(grid, node, unit),
                 + v_invest_LP(unit, t)${ unit_investLP(unit) and sum(msft(m, s, f, t_), uft(unit, f, t_))} // consider unit only if it is active in the sample
-                    * p_gnu(grid, node, unit, 'unitSizeTot')
+                    * p_gnu(grid, node, unit, 'unitSize')
                     * [
                         + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
                         + p_gnu(grid, node, unit, 'fomCosts')
                       ]
                 + v_invest_MIP(unit, t)${ unit_investMIP(unit) and sum(msft(m, s, f, t_), uft(unit, f, t_))} // consider unit only if it is active in the sample
-                    * p_gnu(grid, node, unit, 'unitSizeTot')
+                    * p_gnu(grid, node, unit, 'unitSize')
                     * [
                         + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
                         + p_gnu(grid, node, unit, 'fomCosts')

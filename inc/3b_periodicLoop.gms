@@ -26,6 +26,7 @@ Option clear = v_gen;
 Option clear = v_state;
 Option clear = v_genRamp;
 Option clear = v_transfer;
+Option clear = v_ICramp;     
 // Integer Variables
 Option clear = v_online_MIP;
 Option clear = v_invest_MIP;
@@ -35,7 +36,6 @@ Option clear = v_help_inc;
 // SOS2 Variables
 Option clear = v_sos2;
 // Positive Variables
-Option clear = v_fuelUse;
 Option clear = v_startup_LP;
 Option clear = v_startup_MIP;
 Option clear = v_shutdown_LP;
@@ -88,18 +88,18 @@ Option clear = q_rampUpLimit;
 Option clear = q_rampDownLimit;
 Option clear = q_rampUpDown;
 Option clear = q_rampSlack;
-Option clear = q_outputRatioFixed;
-Option clear = q_outputRatioConstrained;
 Option clear = q_conversionDirectInputOutput;
 Option clear = q_conversionSOS2InputIntermediate;
 Option clear = q_conversionSOS2Constraint;
 Option clear = q_conversionSOS2IntermediateOutput;
 Option clear = q_conversionIncHR;
-Option clear = q_conversionIncHRMaxGen;
+Option clear = q_conversionIncHRMaxOutput;
 Option clear = q_conversionIncHRBounds;
 Option clear = q_conversionIncHR_help1;
 Option clear = q_conversionIncHR_help2;
-Option clear = q_fuelUseLimit;
+Option clear = q_unitEqualityConstraint;
+Option clear = q_unitGreaterThanConstraint;
+*Option clear = q_commodityUseLimit;
 
 // Energy Transfer
 Option clear = q_transfer;
@@ -139,6 +139,8 @@ Option clear = ts_cf_;
 Option clear = ts_unit_;
 Option clear = ts_reserveDemand_;
 Option clear = ts_node_;
+Option clear = ts_vomCost_;
+Option clear = ts_startupCost_;
 
 
 * =============================================================================

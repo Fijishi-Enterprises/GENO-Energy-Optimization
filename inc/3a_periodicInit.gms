@@ -168,15 +168,10 @@ loop(m,
     unit_noAggregate(unit)${ sum((unit_, effLevel), unitUnitEffLevel(unit, unit_, effLevel)) } = no;
 
     // Process data for unit aggregations
-    // Aggregate maxGen as the sum of aggregated maxGen
-    p_gnu(grid, node, unit_aggregator(unit), 'maxGen')
+    // Aggregate output as the sum of capacity
+    p_gnu(grid, node, unit_aggregator(unit), 'capacity')
         = sum(unit_$unitAggregator_unit(unit, unit_),
-            + p_gnu(grid, node, unit_, 'maxGen')
-            );
-    // Aggregate maxCons as the sum of aggregated maxCons
-    p_gnu(grid, node, unit_aggregator(unit), 'maxCons')
-        = sum(unit_$unitAggregator_unit(unit, unit_),
-            + p_gnu(grid, node, unit_, 'maxCons')
+            + p_gnu(grid, node, unit_, 'capacity')
             );
 
 * --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units ---
@@ -615,13 +610,13 @@ loop(m,
 
 * --- Calculating fuel price time series --------------------------------------
 
-loop(fuel${ p_fuelPrice(fuel, 'useTimeSeries') },
+loop(commodity${ p_price(commodity, 'useTimeSeries') },
     // Determine the time steps where the prices change
     Option clear = tt;
-    tt(t)${ ts_fuelPriceChange(fuel ,t) }
+    tt(t)${ ts_priceChange(commodity,t) }
         = yes;
-    ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
-); // END loop(fuel)
+    ts_price(commodity, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_priceChange(commodity, t_));
+); // END loop(commodity)
 
 * --- Slack Direction ---------------------------------------------------------
 
@@ -682,11 +677,13 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
             abort "The 'update_frequency' parameter should be divisible by 't_jump'!";
         ); // END if(mod('update_frequency'))
 
-        // Check if the first interval is long enough for proper commitment of reserves
-        if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_groupReserves(group, restype, 'update_frequency') + p_groupReserves(group, restype, 'gate_closure'),
-            put log '!!! Error occurred on p_groupReserves ' group.tl:0 ',' restype.tl:0 /;
-            put log '!!! Abort: The first interval block should not be shorter than update_frequency + gate_closure for proper commitment of reserves!' /;
-            abort "The first interval block should not be shorter than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
+        // Check if the first interval is long enough for proper commitment of reserves in the schedule model
+        if(sameas(m, 'schedule'),
+            if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_groupReserves(group, restype, 'update_frequency') + p_groupReserves(group, restype, 'gate_closure'),
+                put log '!!! Error occurred on p_groupReserves ' group.tl:0 ',' restype.tl:0 /;
+                put log '!!! Abort: The first interval block should not be shorter than update_frequency + gate_closure for proper commitment of reserves!' /;
+                abort "The first interval block should not be shorter than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
+            ); // END if
         ); // END if
     ); // END loop(restypeDirectionGroup)
 
@@ -714,17 +711,19 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         abort "t_trajectoryHorizon should be at least as long as t+jump + max trajectory. This may lead to infeasibilities";
     ); // END if()
 
-* --- Check that the first interval block is compatible with t_jump' ----------
+* --- Check that the first interval block is compatible with 't_jump' in the schedule model -----
 
-    if (mod(mSettings(m, 't_jump'), mInterval(m, 'stepsPerInterval', 'c000')) <> 0,
-        put log '!!! Abort: t_jump should be divisible by the first interval!' /;
-        abort "'t_jump' should be divisible by the first interval!";
-    ); // END if()
+    if(sameas(m, 'schedule'),
+        if (mod(mSettings(m, 't_jump'), mInterval(m, 'stepsPerInterval', 'c000')) <> 0,
+            put log '!!! Abort: t_jump should be divisible by the first interval!' /;
+            abort "'t_jump' should be divisible by the first interval!";
+        ); // END if()
 
-    if (mInterval(m, 'lastStepInIntervalBlock', 'c000') < mSettings(m, 't_jump'),
-        put log '!!! Abort: The first interval block should not be shorter than t_jump!' /;
-        abort "The first interval block should not be shorter than 't_jump'!";
-    ); // END if()
+        if (mInterval(m, 'lastStepInIntervalBlock', 'c000') < mSettings(m, 't_jump'),
+            put log '!!! Abort: The first interval block should not be shorter than t_jump!' /;
+            abort "The first interval block should not be shorter than 't_jump'!";
+        ); // END if()
+    ); // END if
 
 ); // END loop(m)
 

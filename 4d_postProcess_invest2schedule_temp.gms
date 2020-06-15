@@ -17,13 +17,10 @@ loop(unit${sum(t_invest, r_invest(unit, t_invest))},
     tmp = round(sum(t_invest, r_invest(unit, t_invest)), 0)
     put "p_unit('", unit.tl, "', 'unitCount') = p_unit('", unit.tl, "', 'unitCount') + ", tmp, ";"/;
 );
-* Update maxGen and maxCons values in the child setups
+* Update capacity values in the child setups
 loop(gnu(grid, node, unit)${r_invest(unit)},
-    tmp = round(sum(t_invest, r_invest(unit, t_invest)), 0) * p_gnu(grid, node, unit, 'unitSizeGen');
-    put "p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'maxGen') = p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'maxGen') + ", tmp, ";"/;
-    tmp = round(sum(t_invest, r_invest(unit, t_invest)), 0) * p_gnu(grid, node, unit, 'unitSizeCons');
-    put "p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'maxCons') = p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'maxCons') + ", tmp, ";"/;
-);
+    tmp = round(sum(t_invest, r_invest(unit, t_invest)), 0) * p_gnu(grid, node, unit, 'unitSize');
+    put "p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'capacity') = p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'capacity') + ", tmp, ";"/;);
 
 * Do not allow investments in the child setups (commented out at the moment)
 *loop(gn2n_directional(grid, node, node_),

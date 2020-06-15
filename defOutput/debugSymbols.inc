@@ -49,13 +49,12 @@ p_gnuReserves
 p_gnPolicy
 p_groupPolicy
 p_groupPolicy3D
-p_fuelEmission
-p_uFuel
-p_unitFuelEmissionCost
+p_nEmission
+p_unitEmissionCost
 p_effUnit
 p_effGroupUnit
 p_uNonoperational
-p_uStartup
+p_uStartupfuel
 p_u_maxOutputInLastRunUpInterval
 p_u_runUpTimeIntervals
 dt_toStartup
@@ -74,7 +73,6 @@ v_gen_inc
 v_genRamp
 v_transfer
 v_state
-v_fuelUse
 v_sos2
 v_spill
 v_online_LP
@@ -123,18 +121,18 @@ v_help_inc
     q_rampDownLimit
     q_rampUpDown
     q_rampSlack
-    q_outputRatioFixed
-    q_outputRatioConstrained
     q_conversionDirectInputOutput
     q_conversionSOS2InputIntermediate
     q_conversionSOS2Constraint
     q_conversionSOS2IntermediateOutput
     q_conversionIncHR
-    q_conversionIncHRMaxGen
+    q_conversionIncHRMaxOutput
     q_conversionIncHRBounds
     q_conversionIncHR_help1
     q_conversionIncHR_help2
-    q_fuelUseLimit
+    q_unitEqualityConstraint
+    q_unitGreaterThanConstraint
+*    q_commodityUseLimit
 
     // Energy Transfer
     q_transfer
@@ -142,6 +140,8 @@ v_help_inc
     q_transferLeftwardLimit
     q_resTransferLimitRightward
     q_resTransferLimitLeftward
+    q_reserveProvisionRightward
+    q_reserveProvisionLeftward
 
     // State Variables
     q_stateSlack
@@ -159,6 +159,7 @@ v_help_inc
     q_emissioncap
     q_energyShareMax
     q_energyShareMin
+    q_ReserveShareMax
 
 * Dummy variables
 vq_gen
