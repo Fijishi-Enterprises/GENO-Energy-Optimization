@@ -482,14 +482,14 @@ $ifthen exist '%input_dir%/ts_node3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_discountFactor2.gdx'
-    $$gdxin '%input_dir%/p_discountFactor2.gdx'
+$ifthen exist '%input_dir%/p_s_discountFactor2.gdx'
+    $$gdxin '%input_dir%/p_s_discountFactor2.gdx'
     $$loaddcm p_discountFactor
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_discountFactor3.gdx'
-    $$gdxin '%input_dir%/p_discountFactor3.gdx'
+$ifthen exist '%input_dir%/p_s_discountFactor3.gdx'
+    $$gdxin '%input_dir%/p_s_discountFactor3.gdx'
     $$loaddcm p_discountFactor
     $$gdxin
 $endif
@@ -506,14 +506,14 @@ $ifthen exist '%input_dir%/t_invest3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/ut2.gdx'
-    $$gdxin '%input_dir%/ut2.gdx'
+$ifthen exist '%input_dir%/utAvailabilityLimits2.gdx'
+    $$gdxin '%input_dir%/utAvailabilityLimits2.gdx'
     $$loaddcm ut
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/ut3.gdx'
-    $$gdxin '%input_dir%/ut3.gdx'
+$ifthen exist '%input_dir%/utAvailabilityLimits3.gdx'
+    $$gdxin '%input_dir%/utAvailabilityLimits3.gdx'
     $$loaddcm ut
     $$gdxin
 $endif
