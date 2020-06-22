@@ -161,7 +161,7 @@ $if defined scenario
     unitCounter(unit, counter) "Counter used for restricting excessive looping over the counter set when defining unit startup/shutdown/online time restrictions"
     runUpCounter(unit, counter) "Counter used for unit run-up intervals"
     shutdownCounter(unit, counter) "Counter used for unit shutdown intervals"
-    ut(unit, t, start_end) "Time step when the unit becomes available/unavailable, e.g. because of technical lifetime"
+    utAvailabilityLimits(unit, t, availabilityLimits) "Time step when the unit becomes available/unavailable, e.g. because of technical lifetime"
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
     uGroup(unit, group) "Units in particular groups"

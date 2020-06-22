@@ -110,7 +110,7 @@ q_obj ..
 
                 ]  // END * p_sft_probability(s,f,t)
 
-            * p_discountFactor(s) // Discount costs
+            * p_s_discountFactor(s) // Discount costs
         ) // END sum over msft(m, s, f, t)
 
     // Cost of energy storage change (note: not discounted)
@@ -177,7 +177,7 @@ q_obj ..
             ) // END sum(t_invest)
 
             * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
-            * p_discountFactor(s) // Discount costs
+            * p_s_discountFactor(s) // Discount costs
         ) // END sum(ms)
 
 $ifthen.addterms exist '%input_dir%/2c_additional_objective_terms.gms'

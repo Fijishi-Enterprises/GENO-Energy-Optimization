@@ -558,10 +558,10 @@ if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on
 * --- Fix previously realized investment results ------------------------------
 * =============================================================================
 
-v_invest_LP.fx(unit_investLP(unit), t_invest(t))${ p_unit(unit, 'start') <= tSolveFirst } // Should this be ord(t) <= tSolveFirst?
+v_invest_LP.fx(unit_investLP(unit), t_invest(t))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
     = r_invest(unit, t)
 ;
-v_invest_MIP.fx(unit_investMIP(unit), t_invest(t))${ p_unit(unit, 'start') <= tSolveFirst } // Should this be ord(t) <= tSolveFirst?
+v_invest_MIP.fx(unit_investMIP(unit), t_invest(t))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
     = r_invest(unit, t)
 ;
 v_investTransfer_LP.fx(gn2n_directional(grid, node, node_), t_invest(t))${    not p_gnn(grid, node, node_, 'investMIP')

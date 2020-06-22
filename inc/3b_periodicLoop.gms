@@ -26,7 +26,7 @@ Option clear = v_gen;
 Option clear = v_state;
 Option clear = v_genRamp;
 Option clear = v_transfer;
-Option clear = v_ICramp;     
+Option clear = v_ICramp;
 // Integer Variables
 Option clear = v_online_MIP;
 Option clear = v_invest_MIP;
@@ -566,8 +566,8 @@ uft(unit, ft(f, t))${   (   [
     = yes;
 
 // Units are not active before or after their lifetime
-uft(unit, ft(f, t))${   [ ord(t) < p_unit(unit, 'start') and p_unit(unit, 'start') ]
-                        or [ ord(t) >= p_unit(unit, 'end') and p_unit(unit, 'end') ]
+uft(unit, ft(f, t))${   [ ord(t) < p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeAvailable') ]
+                        or [ ord(t) >= p_unit(unit, 'becomeUnavailable') and p_unit(unit, 'becomeUnavailable') ]
                         }
     = no;
 

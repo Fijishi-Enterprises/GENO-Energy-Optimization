@@ -97,28 +97,28 @@ loop(m,
     r_gnuTotalVOMCost(gnu_output(grid, node, unit))
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_gnuVOMCost(grid, node, unit, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_discountFactor(s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
 
     // Total fuel & emission costs
     r_uTotalFuelEmissionCost(commodity, unit)$un_commodity(unit, commodity)
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_uFuelEmissionCost(commodity, unit, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_discountFactor(s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
 
     // Total unit startup costs
     r_uTotalStartupCost(unit)${ sum(starttype, unitStarttype(unit, starttype)) }
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_uStartupCost(unit, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_discountFactor(s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
 
     // Total state variable slack costs
     r_gnTotalStateSlackCost(gn_stateSlack(grid, node))
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_gnStateSlackCost(grid, node, f, t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_discountFactor(s))
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
 
     // Fixed O&M costs
@@ -133,7 +133,7 @@ loop(m,
                         * p_gnu(grid, node, unit, 'unitSize')
                     ]
                     * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
-                    * p_discountFactor(s) // Discount costs
+                    * p_s_discountFactor(s) // Discount costs
                 ) // END * sum(ms)
             * p_gnu(grid, node, unit, 'fomCosts');
 
@@ -145,7 +145,7 @@ loop(m,
                     + r_invest(unit, t)$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // only units active in msft_realizedNoReset
                     )
                     * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
-                    * p_discountFactor(s) // Discount costs
+                    * p_s_discountFactor(s) // Discount costs
                 ) // END * sum(ms)
             * p_gnu(grid, node, unit, 'unitSize')
             * p_gnu(grid, node, unit, 'invCosts')
@@ -159,7 +159,7 @@ loop(m,
                     + r_investTransfer(grid, from_node, to_node, t)
                     )
                     * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
-                    * p_discountFactor(s) // Discount costs
+                    * p_s_discountFactor(s) // Discount costs
                 ) // END * sum(ms)
             * [
                 + p_gnn(grid, from_node, to_node, 'invCost')
@@ -412,7 +412,7 @@ r_gnTotalSpillShare(gn(grid, node_spill))${ r_gTotalSpill(grid) > 0 }
 r_gnTotalRealizedOperatingCost(gn(grid, node))
     = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
         + r_gnRealizedOperatingCost(grid, node, f ,t)
-            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_discountFactor(s))
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
         );
 
 // Total realized net operating costs on each gn over the simulation

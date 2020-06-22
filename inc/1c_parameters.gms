@@ -204,5 +204,5 @@ Parameters
     p_storageValue(grid, node, t) "Value of stored something at the end of a time step"
     p_stepLength(mType, f, t) "Length of an interval in hours"
     p_stepLengthNoReset(mType, f, t) "Length of an interval in hours - includes also lengths of previously realized intervals"
-    p_discountFactor(s) "Discount factor for samples when using a multi-year horizon"
+    p_s_discountFactor(s) "Discount factor for samples when using a multi-year horizon"
 ;
