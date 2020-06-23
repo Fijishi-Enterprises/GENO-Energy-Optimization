@@ -127,9 +127,7 @@ loop(m,
             * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
                 + [
                     + p_gnu(grid, node, unit, 'capacity')$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // Not in v_obj; only units active in msft_realizedNoReset
-                    + sum(t_invest(t)${ord(t) <= msEnd(m, s)},
-                        + r_invest(unit, t)$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // only units active in msft_realizedNoReset
-                        )
+                    + r_invest(unit)$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // only units active in msft_realizedNoReset
                         * p_gnu(grid, node, unit, 'unitSize')
                     ]
                     * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
@@ -141,9 +139,7 @@ loop(m,
     r_gnuUnitInvestmentCost(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
             * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
-                + sum(t_invest(t)${ord(t) <= msEnd(m, s)},
-                    + r_invest(unit, t)$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // only units active in msft_realizedNoReset
-                    )
+                + r_invest(unit)$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // only units active in msft_realizedNoReset
                     * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
                     * p_s_discountFactor(s) // Discount costs
                 ) // END * sum(ms)
@@ -276,12 +272,12 @@ loop(m,
     // Approximate utilization rates for gnus over the simulation
     r_gnuUtilizationRate(gnu_output(grid, node, unit))${ r_gnuTotalGen(grid, node, unit)
                                                          and ( p_gnu(grid, node, unit, 'capacity')
-                                                               or sum(t_invest, r_invest(unit, t_invest))
+                                                               or r_invest(unit)
                                                                )
                                                          }
         = r_gnuTotalGen(grid, node, unit)
             / [
-                + (p_gnu(grid, node, unit, 'capacity') + sum(t_invest, r_invest(unit, t_invest))*p_gnu(grid, node, unit, 'unitSize'))
+                + (p_gnu(grid, node, unit, 'capacity') + r_invest(unit)*p_gnu(grid, node, unit, 'unitSize'))
                     * (mSettings(m, 't_end') - (mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')) + 1)
                     * mSettings(m, 'stepLengthInHours')
                 ]; // END division

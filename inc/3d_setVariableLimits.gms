@@ -425,17 +425,17 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
 
 // Unit Investments
 // LP variant
-v_invest_LP.up(unit, t_invest)${    unit_investLP(unit) }
+v_invest_LP.up(unit)${    unit_investLP(unit) }
     = p_unit(unit, 'maxUnitCount')
 ;
-v_invest_LP.lo(unit, t_invest)${    unit_investLP(unit) }
+v_invest_LP.lo(unit)${    unit_investLP(unit) }
     = p_unit(unit, 'minUnitCount')
 ;
 // MIP variant
-v_invest_MIP.up(unit, t_invest)${   unit_investMIP(unit)    }
+v_invest_MIP.up(unit)${   unit_investMIP(unit)    }
     = p_unit(unit, 'maxUnitCount')
 ;
-v_invest_MIP.lo(unit, t_invest)${   unit_investMIP(unit)    }
+v_invest_MIP.lo(unit)${   unit_investMIP(unit)    }
     = p_unit(unit, 'minUnitCount')
 ;
 
@@ -558,11 +558,11 @@ if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on
 * --- Fix previously realized investment results ------------------------------
 * =============================================================================
 
-v_invest_LP.fx(unit_investLP(unit), t_invest(t))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
-    = r_invest(unit, t)
+v_invest_LP.fx(unit_investLP(unit))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
+    = r_invest(unit)
 ;
-v_invest_MIP.fx(unit_investMIP(unit), t_invest(t))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
-    = r_invest(unit, t)
+v_invest_MIP.fx(unit_investMIP(unit))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
+    = r_invest(unit)
 ;
 v_investTransfer_LP.fx(gn2n_directional(grid, node, node_), t_invest(t))${    not p_gnn(grid, node, node_, 'investMIP')
                                                                               and p_gnn(grid, node, node_, 'transferCapInvLimit')

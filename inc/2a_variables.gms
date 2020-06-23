@@ -21,13 +21,13 @@ Free variables
     v_state(grid, node, s, f, t) "State variable for nodes that maintain a state (MWh, unless modified by energyStoredPerUnitOfState and diffCoeff parameters)"
     v_genRamp(grid, node, unit, s, f, t) "Change in energy generation or consumption over an interval (MW/h)"
     v_transfer(grid, node, node, s, f, t) "Average electricity transmission level from node to node during an interval (MW)"
-    v_ICramp(grid, node, node, s, f, t) "Change in energy transfer over an interval (MW/h)"      
+    v_ICramp(grid, node, node, s, f, t) "Change in energy transfer over an interval (MW/h)"
 ;
 Integer variables
     v_startup_MIP(unit, starttype, s, f, t) "Sub-units started up after/during an interval (p.u.), (MIP variant)"
     v_shutdown_MIP(unit, s, f, t) "Sub-units shut down after/during an interval (p.u.) (MIP variant)"
     v_online_MIP(unit, s, f, t) "Number of sub-units online for units with unit commitment restrictions"
-    v_invest_MIP(unit, t) "Number of invested sub-units"
+    v_invest_MIP(unit) "Number of invested sub-units"
     v_investTransfer_MIP(grid, node, node, t) "Number of invested transfer links"
 ;
 Binary variables
@@ -48,7 +48,7 @@ Positive variables
     v_reserve(restype, up_down, grid, node, unit, s, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
     v_investTransfer_LP(grid, node, node, t) "Invested transfer capacity (MW)"
     v_online_LP(unit, s, f, t) "Number of sub-units online for 'units' with unit commitment restrictions (LP variant)"
-    v_invest_LP(unit, t) "Number of invested 'sub-units' (LP variant)"
+    v_invest_LP(unit) "Number of invested 'sub-units' (LP variant)"
     v_gen_inc(grid, node, unit, hr, s, f, t) "Energy generation in hr block in an interval (MW)"
 ;
 

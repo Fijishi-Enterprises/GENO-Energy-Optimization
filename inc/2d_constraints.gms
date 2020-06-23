@@ -542,12 +542,8 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
                     + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
                     // Investments to additional non-online capacity
-                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
-                                            and not uft_online(unit, f, t)
-                                            },
-                        + v_invest_LP(unit, t_)${unit_investLP(unit)} // NOTE! v_invest_LP also for consuming units is positive
-                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)} // NOTE! v_invest_MIP also for consuming units is positive
-                        ) // END sum(t_invest)
+                    + v_invest_LP(unit)${unit_investLP(unit) and not uft_online(unit, f, t)} // NOTE! v_invest_LP also for consuming units is positive
+                    + v_invest_MIP(unit)${unit_investMIP(unit) and not uft_online(unit, f, t)} // NOTE! v_invest_MIP also for consuming units is positive
                     ] // END * p_gnu(unitSize)
             ] // END * p_unit(availability)
 ;
@@ -595,11 +591,8 @@ q_maxDownwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
                 + p_gnu(grid, node, unit, 'unitSize')
                 ]
                 * [
-                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
-                                            },
-                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                        ) // END sum(t_invest)
+                    + v_invest_LP(unit)${unit_investLP(unit)}
+                    + v_invest_MIP(unit)${unit_investMIP(unit)}
                     ] // END * p_gnu(unitSize)
             ] // END * p_unit(availability)
 
@@ -672,12 +665,8 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
                     + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
                     // Investments to non-online capacity
-                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
-                                            and not uft_online(unit, f ,t)
-                                            },
-                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                        ) // END sum(t_invest)
+                    + v_invest_LP(unit)${unit_investLP(unit) and not uft_online(unit, f ,t)}
+                    + v_invest_MIP(unit)${unit_investMIP(unit) and not uft_online(unit, f ,t)}
                     ] // END * p_gnu(unitSize)
             ] // END * p_unit(availability)
 
@@ -751,11 +740,8 @@ q_maxUpwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
                     + p_unit(unit, 'unitCount')
 
                     // Investments to new capacity
-                    + sum(t_invest(t_)${    ord(t_)<=ord(t)
-                                             },
-                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                        ) // END sum(t_invest)
+                    + v_invest_LP(unit)${unit_investLP(unit)}
+                    + v_invest_MIP(unit)${unit_investMIP(unit)}
                     ] // END * p_gnu(unitSize)
             ] // END * p_unit(availability)
 ;
@@ -777,12 +763,10 @@ q_reserveProvision(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid
     + p_gnuReserves(grid, node, unit, restype, up_down)
         * [
             + p_gnu(grid, node, unit, 'capacity')
-            + sum(t_invest(t_)${ ord(t_)<=ord(t) },
-                + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                    * p_gnu(grid, node, unit, 'unitSize')
-                + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                    * p_gnu(grid, node, unit, 'unitSize')
-                ) // END sum(t_)
+            + v_invest_LP(unit)${unit_investLP(unit)}
+                * p_gnu(grid, node, unit, 'unitSize')
+            + v_invest_MIP(unit)${unit_investMIP(unit)}
+                * p_gnu(grid, node, unit, 'unitSize')
             ]
         * p_unit(unit, 'availability') // Taking into account availability...
         * [
@@ -948,10 +932,8 @@ q_onlineLimit(ms(m, s), uft_online(unit, f, t))
         )${unit_aggregator(unit)} // END sum(unit_)
 
     // Investments into units
-    + sum(t_invest(t_)${ord(t_)<=ord(t)},
-        + v_invest_LP(unit, t_)${unit_investLP(unit)}
-        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-        ) // END sum(t_invest)
+    + v_invest_LP(unit)${unit_investLP(unit)}
+    + v_invest_MIP(unit)${unit_investMIP(unit)}
 ;
 
 *--- Both q_offlineAfterShutdown and q_onlineOnStartup work when there is only one unit.
@@ -986,10 +968,8 @@ q_offlineAfterShutdown(s_active(s), uft_online(unit, f, t))
     + p_unit(unit, 'unitCount')
 
     // Investments into units
-    + sum(t_invest(t_)${ord(t_)<=ord(t)},
-        + v_invest_LP(unit, t_)${unit_investLP(unit)}
-        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-        ) // END sum(t_invest)
+    + v_invest_LP(unit)${unit_investLP(unit)}
+    + v_invest_MIP(unit)${unit_investMIP(unit)}
 
     // Units currently online
     - v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f, t)}
@@ -1121,12 +1101,10 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
     // Ramping capability of units without an online variable
     + (
         + p_gnu(grid, node, unit, 'capacity')${not uft_online(unit, f, t)}
-        + sum(t_invest(t_)${ ord(t_)<=ord(t) },
-            + v_invest_LP(unit, t_)${not uft_online(unit, f, t) and unit_investLP(unit)}
-                * p_gnu(grid, node, unit, 'unitSize')
-            + v_invest_MIP(unit, t_)${not uft_online(unit, f, t) and unit_investMIP(unit)}
-                * p_gnu(grid, node, unit, 'unitSize')
-          )
+        + v_invest_LP(unit)${(not uft_online(unit, f, t)) and unit_investLP(unit)}
+            * p_gnu(grid, node, unit, 'unitSize')
+        + v_invest_MIP(unit)${(not uft_online(unit, f, t)) and unit_investMIP(unit)}
+            * p_gnu(grid, node, unit, 'unitSize')
       )
         * p_gnu(grid, node, unit, 'maxRampUp')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
@@ -1257,14 +1235,10 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
     // Ramping capability of units without online variable
     - (
         + p_gnu(grid, node, unit, 'capacity')${not uft_online(unit, f, t)}
-        + sum(t_invest(t_)${ ord(t_)<=ord(t) },
-            + v_invest_LP(unit, t_)
-                ${not uft_online(unit, f, t) and unit_investLP(unit)}
-                * p_gnu(grid, node, unit, 'unitSize')
-            + v_invest_MIP(unit, t_)
-                ${not uft_online(unit, f, t) and unit_investMIP(unit)}
-                * p_gnu(grid, node, unit, 'unitSize')
-          )
+        + v_invest_LP(unit)${(not uft_online(unit, f, t)) and unit_investLP(unit)}
+            * p_gnu(grid, node, unit, 'unitSize')
+        + v_invest_MIP(unit)${(not uft_online(unit, f, t)) and unit_investMIP(unit)}
+            * p_gnu(grid, node, unit, 'unitSize')
       )
         * p_gnu(grid, node, unit, 'maxRampDown')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
@@ -1538,12 +1512,10 @@ q_rampSlack(ms(m, s), gnuft_rampCost(grid, node, unit, slack, f, t))
     // Ramping capability of units without an online variable
     + (
         + p_gnu(grid, node, unit, 'capacity')${not uft_online(unit, f, t)}
-        + sum(t_invest(t_)${ ord(t_)<=ord(t) },
-            + v_invest_LP(unit, t_)${not uft_online(unit, f, t) and unit_investLP(unit)}
-                * p_gnu(grid, node, unit, 'unitSize')
-            + v_invest_MIP(unit, t_)${not uft_online(unit, f, t) and unit_investMIP(unit)}
-                * p_gnu(grid, node, unit, 'unitSize')
-          )
+        + v_invest_LP(unit)${(not uft_online(unit, f, t)) and unit_investLP(unit)}
+            * p_gnu(grid, node, unit, 'unitSize')
+        + v_invest_MIP(unit)${(not uft_online(unit, f, t)) and unit_investMIP(unit)}
+            * p_gnu(grid, node, unit, 'unitSize')
       )
         * p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')
         * 60   // Unit conversion from [p.u./min] to [p.u./h]
@@ -2286,10 +2258,10 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
         + sum(gnu(grid, node, unit)${gnuft(grid, node, unit, f, t)},
             + p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
                 * p_gnu(grid, node, unit, 'unitSize')
-                * sum(t_invest(t_)${ord(t_)<=ord(t)},
-                    + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                    + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                    ) // END sum(t_invest)
+                * [
+                    + v_invest_LP(unit)${unit_investLP(unit)}
+                    + v_invest_MIP(unit)${unit_investMIP(unit)}
+                    ]
             ) // END sum(gnu)
 
         // Current state of the variable
@@ -2710,10 +2682,10 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
 
                 // Output capacity investments
                 + p_gnu(grid, node, unit, 'unitSize')
-                    * sum(t_invest(t_)${ord(t_)<=ord(t)},
-                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                        ) // END sum(t_invest)
+                    * [
+                        + v_invest_LP(unit)${unit_investLP(unit)}
+                        + v_invest_MIP(unit)${unit_investMIP(unit)}
+                        ] // END * p_gnu(unitSize)
                 ] // END * p_unit(availability)
         ) // END sum(gnu_output)
 
@@ -2732,10 +2704,10 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
 
                 // Output capacity investments
                 + p_gnu(grid, node, unit, 'unitSize')
-                    * sum(t_invest(t_)${ord(t_)<=ord(t)},
-                        + v_invest_LP(unit, t_)${unit_investLP(unit)}
-                        + v_invest_MIP(unit, t_)${unit_investMIP(unit)}
-                        ) // END sum(t_invest)
+                    * [
+                        + v_invest_LP(unit)${unit_investLP(unit)}
+                        + v_invest_MIP(unit)${unit_investMIP(unit)}
+                        ] // END * p_gnu(unitSize)
                 ] // END * p_unit(availability)
         + v_gen(grid, node, unit, s, f, t)${not unit_flow(unit)}
         ) // END sum(gnu_output)
@@ -2785,7 +2757,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
 
 *--- Constrained Investment Ratios and Sums For Groups of Units -----------
 
-q_constrainedCapMultiUnit(group, t_invest(t))
+q_constrainedCapMultiUnit(group)
     ${  p_groupPolicy(group, 'constrainedCapTotalMax')
         or sum(uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)))
         } ..
@@ -2794,8 +2766,8 @@ q_constrainedCapMultiUnit(group, t_invest(t))
     + sum(uGroup(unit, group),
         + p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
             * [
-                + v_invest_LP(unit, t)${unit_investLP(unit)}
-                + v_invest_MIP(unit, t)${unit_investMIP(unit)}
+                + v_invest_LP(unit)${unit_investLP(unit)}
+                + v_invest_MIP(unit)${unit_investMIP(unit)}
                 ] // END * p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
         ) // END sum(unit)
 

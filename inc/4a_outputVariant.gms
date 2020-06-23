@@ -150,10 +150,10 @@ loop(sft_realized(s, f, t),
     ;
 );
 // Unit investments
-r_invest(unit, t_invest(t))${ (unit_investLP(unit) or unit_investMIP(unit))
-                              and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
-                              }
-    = v_invest_LP.l(unit, t) + v_invest_MIP.l(unit, t)
+r_invest(unit)${ (unit_investLP(unit) or unit_investMIP(unit))
+                  and p_unit(unit, 'becomeAvailable') <= tSolveFirst + mSettings(mSolve, 't_jump')
+                  }
+    = v_invest_LP.l(unit) + v_invest_MIP.l(unit)
 ;
 // Link investments
 r_investTransfer(grid, node, node_, t_invest(t))${ p_gnn(grid, node, node_, 'transferCapInvLimit')
