@@ -55,6 +55,12 @@ Parameters
     r_totalRealizedOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
     r_totalRealizedNetOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
 
+    // Realized System Fixed Costs
+    r_gnTotalRealizedFixedCost(grid, node) "Total realized system fixed costs in gn over the simulation (MEUR)"
+    r_gnTotalRealizedFixedCostShare(grid, node) "Total realized system fixed cost gn/g shares over the simulation"
+    r_gTotalRealizedFixedCost(grid) "Total realized system fixed costs in g over the simulation (MEUR)"
+    r_totalRealizedFixedCost "Total realized system fixed costs over the simulation (MEUR)" / 0 /
+
     // Realized System Costs
     r_gnTotalRealizedCost(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
     r_gnTotalRealizedCostShare(grid, node) "Total realized system cost gn/g shares over the simulation"

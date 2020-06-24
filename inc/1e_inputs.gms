@@ -62,12 +62,15 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc ts_priceChange
     $$loaddc ts_influx
     $$loaddc ts_node
+    $$loaddc p_s_discountFactor
     $$loaddc t_invest
+    $$loaddc utAvailabilityLimits
     $$loaddc p_storageValue
     $$loaddc uGroup
     $$loaddc gnuGroup
     $$loaddc gn2nGroup
     $$loaddc gnGroup
+    $$loaddc sGroup
     $$loaddc p_groupPolicy
     $$loaddc p_groupPolicy3D
     $$loaddc gnss_bound
@@ -267,6 +270,11 @@ p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, e
           )
 ;
 
+
+// Unit lifetime
+loop(utAvailabilityLimits(unit, t, availabilityLimits),
+    p_unit(unit, availabilityLimits) = ord(t)
+); // END loop(ut)
 
 * =============================================================================
 * --- Determine Commodity Price Representation -------------------------------------
@@ -607,6 +615,25 @@ loop( (gnu(grid, node, unit), restypeDirection(restype, up_down)),
         abort "Overlapping reserve capacities in p_gnuRes2Res can result in excess reserve production!"
     ); // END if(p_gnuReserves)
 ); // END loop((gnu,restypeDirection))
+
+* --- Check investment related data -------------------------------------------
+
+// Check that units with LP investment possibility have unitSize
+loop( unit_investLP(unit),
+    if(not sum(gnu(grid, node, unit), abs(p_gnu(grid, node, unit, 'unitSize'))),
+        put log '!!! Error occurred on unit ', unit.tl:0 /;
+        put log '!!! Abort: Unit is listed as an investment option but it has no unitSize!' /;
+        abort "All units with investment possibility should have 'unitSize' in p_gnu!"
+    ); // END if
+); // END loop(unit_investLP)
+// Check that units with MIP investment possibility have unitSize
+loop( unit_investMIP(unit),
+    if(not sum(gnu(grid, node, unit), abs(p_gnu(grid, node, unit, 'unitSize'))),
+        put log '!!! Error occurred on unit ', unit.tl:0 /;
+        put log '!!! Abort: Unit is listed as an investment option but it has no unitSize!' /;
+        abort "All units with investment possibility should have 'unitSize' in p_gnu!"
+    ); // END if
+); // END loop(unit_investMIP)
 
 
 * =============================================================================

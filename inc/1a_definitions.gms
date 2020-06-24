@@ -322,6 +322,8 @@ param_unit "Set of possible data parameters for units" /
     minUnitCount  "Minimum number of units when making integer investments"
     // Calculated based on other input data
     lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
+    becomeAvailable       "The relative position of the time step when the unit becomes available (calculated from ut(unit, t, start_end))"
+    becomeUnavailable     "The relative position of the time step when the unit becomes unavailable (calculated from ut(unit, t, start_end))"
 /
 
 param_eff "Parameters used for unit efficiency approximations" /
@@ -411,4 +413,6 @@ useConstantOrTimeSeries(param_gnBoundaryProperties) "useTimeSeries and useConsta
 // Directional sets that are subsets of others
 up_down(param_policy) "Direction set used by some variables, e.g. reserve provisions and generation ramps"
        / up, down /
+availabilityLimits(param_unit) "Start and end, e.g. of unit lifetime"
+       / becomeAvailable, becomeUnavailable /
 ; // END parameter set declarations

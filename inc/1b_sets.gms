@@ -137,7 +137,7 @@ $if defined scenario
     gn_forecasts(*, node, timeseries) "Which grid/flow, node and timeseries use short-term forecasts"
     gn_scenarios(*, node, timeseries) "Which grid/flow, node and timeseries have data for long-term scenarios"
 
-* --- Sets used for the changing unit aggregation and efficiency approximations
+* --- Sets used for the changing unit aggregation and efficiency approximations as well as unit lifetimes
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
     uft_online(unit, f, t) "Units with any online and startup variables on intervals"
     uft_onlineLP(unit, f, t) "Units with LP online and startup variables on intervals"
@@ -161,12 +161,14 @@ $if defined scenario
     unitCounter(unit, counter) "Counter used for restricting excessive looping over the counter set when defining unit startup/shutdown/online time restrictions"
     runUpCounter(unit, counter) "Counter used for unit run-up intervals"
     shutdownCounter(unit, counter) "Counter used for unit shutdown intervals"
+    utAvailabilityLimits(unit, t, availabilityLimits) "Time step when the unit becomes available/unavailable, e.g. because of technical lifetime"
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
     uGroup(unit, group) "Units in particular groups"
     gnuGroup(grid, node, unit, group) "Combination of grids, nodes and units in particular groups"
     gn2nGroup(grid, node, node, group) "Transfer links in particular groups"
     gnGroup(grid, node, group) "Combination of grids and nodes in particular groups"
+    sGroup(s, group) "Samples in particular groups"
 
 * --- Set of timeseries that will be read from files between solves -----------
     mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"

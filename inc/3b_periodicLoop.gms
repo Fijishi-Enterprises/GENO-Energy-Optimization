@@ -26,7 +26,7 @@ Option clear = v_gen;
 Option clear = v_state;
 Option clear = v_genRamp;
 Option clear = v_transfer;
-Option clear = v_ICramp;     
+Option clear = v_ICramp;
 // Integer Variables
 Option clear = v_online_MIP;
 Option clear = v_invest_MIP;
@@ -328,9 +328,15 @@ $endif
 
 // Loop over defined samples
 loop(msf(mSolve, s, f)$msStart(mSolve, s),
-                      // Move the samples along with the dispatch
+                      // Move the samples along with the dispatch if scenarios are used
     sft(s, ft(f, t))${ord(t) > msStart(mSolve, s) + tSolveFirst - 1
                       and ord(t) < msEnd(mSolve, s) + tSolveFirst
+                      and mSettings(mSolve, 'scenarios')
+                     } = yes;
+                      // Otherwise do not move the samples along with the rolling horizon
+    sft(s, ft(f, t))${ord(t) > msStart(mSolve, s)
+                      and ord(t) <= msEnd(mSolve, s)
+                      and not mSettings(mSolve, 'scenarios')
                      } = yes;
 );
 
@@ -558,6 +564,12 @@ uft(unit, ft(f, t))${   (   [
                      }
 // only units with capacities or investment option
     = yes;
+
+// Units are not active before or after their lifetime
+uft(unit, ft(f, t))${   [ ord(t) < p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeAvailable') ]
+                        or [ ord(t) >= p_unit(unit, 'becomeUnavailable') and p_unit(unit, 'becomeUnavailable') ]
+                        }
+    = no;
 
 // First ft:s for each aggregator unit
 Option clear = uft_aggregator_first;

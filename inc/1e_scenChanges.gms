@@ -482,6 +482,18 @@ $ifthen exist '%input_dir%/ts_node3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/p_s_discountFactor2.gdx'
+    $$gdxin '%input_dir%/p_s_discountFactor2.gdx'
+    $$loaddcm p_discountFactor
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_s_discountFactor3.gdx'
+    $$gdxin '%input_dir%/p_s_discountFactor3.gdx'
+    $$loaddcm p_discountFactor
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/t_invest2.gdx'
     $$gdxin '%input_dir%/t_invest2.gdx'
     $$loaddcm t_invest
@@ -491,6 +503,18 @@ $endif
 $ifthen exist '%input_dir%/t_invest3.gdx'
     $$gdxin '%input_dir%/t_invest3.gdx'
     $$loaddcm t_invest
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/utAvailabilityLimits2.gdx'
+    $$gdxin '%input_dir%/utAvailabilityLimits2.gdx'
+    $$loaddcm ut
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/utAvailabilityLimits3.gdx'
+    $$gdxin '%input_dir%/utAvailabilityLimits3.gdx'
+    $$loaddcm ut
     $$gdxin
 $endif
 
@@ -551,6 +575,18 @@ $endif
 $ifthen exist '%input_dir%/gnGroup3.gdx'
     $$gdxin '%input_dir%/gnGroup3.gdx'
     $$loaddcm gnGroup
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/sGroup2.gdx'
+    $$gdxin '%input_dir%/sGroup2.gdx'
+    $$loaddcm sGroup
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/sGroup3.gdx'
+    $$gdxin '%input_dir%/sGroup3.gdx'
+    $$loaddcm sGroup
     $$gdxin
 $endif
 

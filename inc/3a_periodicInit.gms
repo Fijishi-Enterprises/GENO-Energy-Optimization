@@ -725,5 +725,24 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         ); // END if()
     ); // END if
 
+* --- Check investment related data -------------------------------------------
+
+    loop( unit_investLP(unit),
+        // Check that the investment decisions are not by accident fixed to zero in 3d_setVariableLimits.gms
+        if(p_unit(unit, 'becomeAvailable') <= mSettings(m, 't_start'),
+            put log '!!! Error occurred on unit ', unit.tl:0 /;
+            put log '!!! Abort: Unit with investment possibility should not become available before t_start!' /;
+            abort "The 'utAvailabilityLimits(unit, t, 'becomeAvailable')' should correspond to a timestep in the model without the initial timestep!"
+        ); // END if
+    ); // END loop(unit_investLP)
+    loop( unit_investMIP(unit),
+        // Check that the investment decisions are not by accident fixed to zero in 3d_setVariableLimits.gms
+        if(p_unit(unit, 'becomeAvailable') <= mSettings(m, 't_start'),
+            put log '!!! Error occurred on unit ', unit.tl:0 /;
+            put log '!!! Abort: Unit with investment possibility should not become available before t_start!' /;
+            abort "The 'utAvailabilityLimits(unit, t, 'becomeAvailable')' should correspond to a timestep in the model without the initial timestep!"
+        ); // END if
+    ); // END loop(unit_investMIP)
+
 ); // END loop(m)
 

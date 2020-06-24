@@ -65,6 +65,10 @@ if (mType('invest'),
     p_msWeight('invest', 's000') = 8760/504;
     p_msWeight('invest', 's001') = 8760/504;
     p_msWeight('invest', 's002') = 8760/504;
+    p_msAnnuityWeight('invest', s) = 0;
+    p_msAnnuityWeight('invest', 's000') = 1/3;
+    p_msAnnuityWeight('invest', 's001') = 1/3;
+    p_msAnnuityWeight('invest', 's002') = 1/3;
 
 * --- Define Time Step Intervals ----------------------------------------------
 
