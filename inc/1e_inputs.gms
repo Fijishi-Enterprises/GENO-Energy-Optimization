@@ -66,6 +66,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc t_invest
     $$loaddc utAvailabilityLimits
     $$loaddc p_storageValue
+    $$loaddc ts_storageValue
     $$loaddc uGroup
     $$loaddc gnuGroup
     $$loaddc gn2nGroup
