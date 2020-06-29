@@ -426,7 +426,7 @@ $offtext
           ); // END sum(nu, emission)
 
     // `storageValue`
-    ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))
+    ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'storageValueUseTimeSeries') }
         = sum(tt_aggregate(t, t_),
             ts_storageValue(grid, node,
                 f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_storageValue'))
