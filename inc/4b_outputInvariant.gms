@@ -83,14 +83,14 @@ loop(m,
             * [
                 + sum(ft_realizedNoReset(f,t)${ ord(t) = mSettings(m, 't_end') + 1 },
                     + [
-                        + p_storageValue(grid, node, t)${ not p_gn(grid, node, 'storageValueUseTimeSeries') }
+                        + p_storageValue(grid, node)${ not p_gn(grid, node, 'storageValueUseTimeSeries') }
                         + ts_storageValue(grid, node, f, t)${ p_gn(grid, node, 'storageValueUseTimeSeries') }
                       ]
                         * r_state(grid, node, f, t)
                     ) // END sum(ft_realizedNoReset)
                 - sum(ft_realizedNoReset(f,t)${ ord(t) = mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod') }, // INITIAL v_state NOW INCLUDED IN THE RESULTS
                     + [
-                        + p_storageValue(grid, node, t)${ not p_gn(grid, node, 'storageValueUseTimeSeries') }
+                        + p_storageValue(grid, node)${ not p_gn(grid, node, 'storageValueUseTimeSeries') }
                         + ts_storageValue(grid, node, f, t)${ p_gn(grid, node, 'storageValueUseTimeSeries') }
                       ]
                         * r_state(grid, node, f, t)

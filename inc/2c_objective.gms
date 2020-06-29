@@ -116,7 +116,7 @@ q_obj ..
     // Cost of energy storage change (note: not discounted)
     + sum(gn_state(grid, node),
         + sum(mft_start(m, f, t)${ active(m, 'storageValue') },
-            * sum(ms(m, s)${ p_msft_probability(m, s, f, t) },
+            + sum(ms(m, s)${ p_msft_probability(m, s, f, t) },
                 + [
                     + p_storageValue(grid, node)${ not p_gn(grid, node, 'storageValueUseTimeSeries') }
                     + ts_storageValue_(grid, node, s, f+df_central(f,t), t)${ p_gn(grid, node, 'storageValueUseTimeSeries') }
@@ -126,7 +126,7 @@ q_obj ..
                ) // END sum(s)
             ) // END sum(mftStart)
         - sum(mft_lastSteps(m, f, t)${ active(m, 'storageValue') },
-            * sum(ms(m, s)${p_msft_probability(m, s, f, t)},
+            + sum(ms(m, s)${p_msft_probability(m, s, f, t)},
                 + [
                     + p_storageValue(grid, node)${ not p_gn(grid, node, 'storageValueUseTimeSeries') }
                     + ts_storageValue_(grid, node, s, f+df_central(f,t), t)${ p_gn(grid, node, 'storageValueUseTimeSeries') }

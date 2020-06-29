@@ -423,7 +423,7 @@ $offtext
         + sum((nu(node, unit), emission)$p_unitEmissionCost(unit, node, emission),
             + p_unStartup(unit, node, starttype) // MWh/start-up
               * p_unitEmissionCost(unit, node, emission) // CUR/MWh
-          ) // END sum(nu, emission)
+          ); // END sum(nu, emission)
 
     // `storageValue`
     ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))
