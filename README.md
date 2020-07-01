@@ -6,9 +6,11 @@ If you use Backbone in a published work, please cite the [following publication]
 
 ## Getting Started
 
-Make sure that you have [Git](https://git-scm.com/) version control system and a Git interface, such as [TortoiseGit](https://tortoisegit.org/) or [SourceTree](https://www.sourcetreeapp.com/), installed on your computer. You also need to have [GAMS](https://www.gams.com/) installed.
+Check the Backbone wiki pages: [Backbone wiki](https://gitlab.vtt.fi/backbone/backbone/-/wikis/home) 
 
-In order to get a copy of the Backbone project, you need to clone it using Git. Copy and paste the URL of the original Backbone repository and select the directory where you want Backbone to be cloned. The URL of the original Backbone repository is https://gitlab.vtt.fi/backbone/backbone. 
+Backbone requires [GAMS](https://www.gams.com) to work. While you can just download the repository, it will be easier to get new updates and to contribute to the development with [Git](https://git-scm.com/) version control system and a Git interface, such as [TortoiseGit](https://tortoisegit.org/) or [SourceTree](https://www.sourcetreeapp.com/), installed on your computer. 
+
+Cloning the repository with Git: Copy and paste the URL of the original Backbone repository and select the directory where you want Backbone to be cloned. The URL of the original Backbone repository is https://gitlab.vtt.fi/backbone/backbone. 
 
 You should now have *Backbone.gms*, a few additional files and five subdirectories in the directory where you cloned Backbone.
 
@@ -67,6 +69,7 @@ When starting to use Backbone, there is no immediate need to understand every si
 * Dana Kirchem
 * Ran Li
 * Ciara O'Dwyer
+* Jussi Ikäheimo
 
 ## License
 
