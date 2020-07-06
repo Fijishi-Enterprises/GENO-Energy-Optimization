@@ -115,23 +115,25 @@ q_obj ..
 
     // Cost of energy storage change (note: not discounted)
     + sum(gn_state(grid, node),
-        + sum(mft_start(m, f, t)${  p_storageValue(grid, node, t)
-                                    and active(m, 'storageValue')
-                                    },
-            + p_storageValue(grid, node, t)
-                * sum(ms(m, s)${ p_msft_probability(m, s, f, t) },
-                    + p_msft_probability(m, s, f, t)
-                      * v_state(grid, node, s, f+df_central(f,t), t)
-                    ) // END sum(s)
+        + sum(mft_start(m, f, t)${ active(m, 'storageValue') },
+            + sum(ms(m, s)${ p_msft_probability(m, s, f, t) },
+                + [
+                    + p_storageValue(grid, node)${ not p_gn(grid, node, 'storageValueUseTimeSeries') }
+                    + ts_storageValue_(grid, node, s, f+df_central(f,t), t)${ p_gn(grid, node, 'storageValueUseTimeSeries') }
+                  ]
+                    * p_msft_probability(m, s, f, t)
+                    * v_state(grid, node, s, f+df_central(f,t), t)
+               ) // END sum(s)
             ) // END sum(mftStart)
-        - sum(mft_lastSteps(m, f, t)${  p_storageValue(grid, node, t)
-                                        and active(m, 'storageValue')
-                                        },
-            + p_storageValue(grid, node, t)
-                * sum(ms(m, s)${p_msft_probability(m, s, f, t)},
-                    + p_msft_probability(m, s, f, t)
-                      * v_state(grid, node, s, f+df_central(f,t), t)
-                    ) // END sum(s)
+        - sum(mft_lastSteps(m, f, t)${ active(m, 'storageValue') },
+            + sum(ms(m, s)${p_msft_probability(m, s, f, t)},
+                + [
+                    + p_storageValue(grid, node)${ not p_gn(grid, node, 'storageValueUseTimeSeries') }
+                    + ts_storageValue_(grid, node, s, f+df_central(f,t), t)${ p_gn(grid, node, 'storageValueUseTimeSeries') }
+                  ]
+                    * p_msft_probability(m, s, f, t)
+                    * v_state(grid, node, s, f+df_central(f,t), t)
+                ) // END sum(s)
             ) // END sum(mftLastSteps)
         ) // END sum(gn_state)
 

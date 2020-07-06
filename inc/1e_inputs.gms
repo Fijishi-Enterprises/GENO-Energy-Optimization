@@ -37,9 +37,9 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc p_gnu_io
     $$loaddc p_gnuBoundaryProperties
     $$loaddc p_unit
+	$$loaddc ts_unit
     $$loaddc p_unitConstraint
     $$loaddc p_unitConstraintNode
-    $$loaddc ts_unit
     $$loaddc restype
     $$loaddc restypeDirection
     $$loaddc restypeReleasedForRealization
@@ -66,6 +66,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc t_invest
     $$loaddc utAvailabilityLimits
     $$loaddc p_storageValue
+    $$loaddc ts_storageValue
     $$loaddc uGroup
     $$loaddc gnuGroup
     $$loaddc gn2nGroup
