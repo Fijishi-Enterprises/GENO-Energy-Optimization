@@ -530,6 +530,18 @@ $ifthen exist '%input_dir%/p_storageValue3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/ts_storageValue2.gdx'
+    $$gdxin '%input_dir%/ts_storageValue2.gdx'
+    $$loaddcm ts_storageValue
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/ts_storageValue3.gdx'
+    $$gdxin '%input_dir%/ts_storageValue3.gdx'
+    $$loaddcm ts_storageValue
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/uGroup2.gdx'
     $$gdxin '%input_dir%/uGroup2.gdx'
     $$loaddcm uGroup
