@@ -206,6 +206,30 @@ $ifthen exist '%input_dir%/ts_unit3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/p_unitConstraint2.gdx'
+    $$gdxin '%input_dir%/p_unitConstraint2.gdx'
+    $$loaddcm p_unitConstraint
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_unitConstraint3.gdx'
+    $$gdxin '%input_dir%/p_unitConstraint3.gdx'
+    $$loaddcm p_unitConstraint
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_unitConstraintNode2.gdx'
+    $$gdxin '%input_dir%/p_unitConstraintNode2.gdx'
+    $$loaddcm p_unitConstraintNode
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_unitConstraintNode3.gdx'
+    $$gdxin '%input_dir%/p_unitConstraintNode3.gdx'
+    $$loaddcm p_unitConstraintNode
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/restype2.gdx'
     $$gdxin '%input_dir%/restype2.gdx'
     $$loaddcm restype
@@ -383,30 +407,6 @@ $endif
 $ifthen exist '%input_dir%/flowUnit3.gdx'
     $$gdxin '%input_dir%/flowUnit3.gdx'
     $$loaddcm flowUnit
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/p_unitConstraint2.gdx'
-    $$gdxin '%input_dir%/p_unitConstraint2.gdx'
-    $$loaddcm p_unitConstraint
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/p_unitConstraint3.gdx'
-    $$gdxin '%input_dir%/p_unitConstraint3.gdx'
-    $$loaddcm p_unitConstraint
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/p_unitConstraintNode2.gdx'
-    $$gdxin '%input_dir%/p_unitConstraintNode2.gdx'
-    $$loaddcm p_unitConstraintNode
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/p_unitConstraintNode3.gdx'
-    $$gdxin '%input_dir%/p_unitConstraintNode3.gdx'
-    $$loaddcm p_unitConstraintNode
     $$gdxin
 $endif
 
