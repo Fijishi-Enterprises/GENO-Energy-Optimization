@@ -363,6 +363,8 @@ param_policy "Set of possible data parameters for groups or grid, node, regulati
 *    minCons "minimum consumption of storage unit when charging" // NOT USED, PENDING REMOVAL
     ROCOF "Maximum rate of change of frequency (Hz/s)"
     defaultFrequency "Nominal frequency in the system (Hz)"
+    staticInertia "A flag to indicate static inertia constraint should be implemented - q_inertiaMin"
+    dynamicInertia "A flag to indicate dynamic inertia constraint should be implemented - q_rateOfChangeOfFrequencyUnit/Transfer"
     // Reserve related parameters, currently without a proper parameter set
     update_frequency "Frequency of updating reserve contributions"
     update_offset "Optional offset for delaying the reserve update frequency"
