@@ -33,7 +33,7 @@ if (mType('schedule'),
     mSettings('schedule', 't_jump') = 3;          // How many time steps the model rolls forward between each solve
 
     // Define length of data for proper circulation
-    mSettings('schedule', 'dataLength') = 8760;
+    mSettings('schedule', 'dataLength') = 1344;
 
 * =============================================================================
 * --- Model Time Structure ----------------------------------------------------
