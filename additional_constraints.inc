@@ -243,12 +243,17 @@ Option clear = q_ww_help4;
 Option clear = q_ww_help5;
 
 * =============================================================================
-* --- Variable limits ---------------------------------------------------------
+* --- 3d_set Variable limits ---------------------------------------------------------
 * =============================================================================
 
-v_flowState.lo(grid, node, ww_range, ww_range_, s, f, t) = 0; //v_flowState has zero as a lower bound
+v_flowState.lo(gn(grid, node), ww_rangeRange(ww_range, ww_range_), sft(s, f, t))${ gnGroup(grid, node, 'ww_reactionGroup')}
 
-* --- Fixed Output Ratio ------------------------------------------------------ //I should probably also adjust the constraint q_outputRatioFixed, but double check whether necessary... 
+= 0; //v_flowState has zero as a lower bound
+
+
+
+*I should probably also adjust the constraint q_outputRatioFixed, but double check whether necessary...
+* --- Fixed Output Ratio ------------------------------------------------------
 q_outputRatioFixed(gngnu_fixedOutputRatio(grid, node, grid_, node_, unit), sft(s, f, t))
     ${  uft(unit, f, t)
         } ..
