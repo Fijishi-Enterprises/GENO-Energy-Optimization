@@ -78,15 +78,21 @@ loop(m,
                 ); // END sum(slack)
 
     // Storage Value Change
-    r_gnStorageValueChange(gn_state(grid, node))${ sum(t_full(t), p_storageValue(grid, node, t)) }
+    r_gnStorageValueChange(gn_state(grid, node))${ active(m, 'storageValue') }
         = 1e-6
             * [
                 + sum(ft_realizedNoReset(f,t)${ ord(t) = mSettings(m, 't_end') + 1 },
-                    + p_storageValue(grid, node, t)
+                    + [
+                        + p_storageValue(grid, node)${ not p_gn(grid, node, 'storageValueUseTimeSeries') }
+                        + ts_storageValue(grid, node, f, t)${ p_gn(grid, node, 'storageValueUseTimeSeries') }
+                      ]
                         * r_state(grid, node, f, t)
                     ) // END sum(ft_realizedNoReset)
                 - sum(ft_realizedNoReset(f,t)${ ord(t) = mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod') }, // INITIAL v_state NOW INCLUDED IN THE RESULTS
-                    + p_storageValue(grid, node, t)
+                    + [
+                        + p_storageValue(grid, node)${ not p_gn(grid, node, 'storageValueUseTimeSeries') }
+                        + ts_storageValue(grid, node, f, t)${ p_gn(grid, node, 'storageValueUseTimeSeries') }
+                      ]
                         * r_state(grid, node, f, t)
                     ) // END sum(ft_realizedNoReset)
                 ]; // END * 1e-6

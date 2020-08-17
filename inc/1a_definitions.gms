@@ -174,6 +174,7 @@ Sets
         ts_priceChange
         ts_price
         ts_unavailability
+        ts_storageValue
         /
 
 ; // END Sets
@@ -221,6 +222,7 @@ param_gn  "Possible parameters for grid, node" /
     boundStartToEnd  "Force the last states to equal the first state"
 *    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."  // NOT IMPLEMENTED
     capacityMargin "Capacity margin used in invest mode (MW)"
+    storageValueUseTimeSeries "A flag to determine whether to use time series form `storageValue`"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /

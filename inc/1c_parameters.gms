@@ -47,6 +47,7 @@ Scalars
 Parameters
     p_gn(grid, node, param_gn) "Properties for energy nodes"
     p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, param_gnBoundaryProperties) "Properties of different state boundaries and limits"
+    p_storageValue(grid, node) "Constant value of stored something at the end of a time step (EUR/<v_state_unit>)"
     p_gnn(grid, node, node, param_gnn) "Data for interconnections between energy nodes"
     p_gnu(grid, node, unit, param_gnu) "Unit data where energy type matters"
     p_gnu_io(grid, node, unit, input_output, param_gnu) "Unit data where energy type matters"
@@ -162,6 +163,7 @@ Parameters
     ts_cf(flow, node, f, t) "Available capacity factor time series (p.u.)"
     ts_reserveDemand(restype, up_down, group, f, t) "Reserve demand in region in the time step (MW)"
     ts_node(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input ([v_state])"
+    ts_storageValue(grid, node, f, t) "Timeseries value of stored something at the end of a time step (EUR/<v_state_unit>)"
     ts_priceChange(node, t) "Initial commodity price and consequent changes in commodity price (EUR/MWh)"
     ts_price(node, t) "Commodity price time series (EUR/MWh)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time step (p.u.)"
@@ -171,6 +173,7 @@ Parameters
     ts_cf_(flow, node, s, f, t) "Mean available capacity factor time series (p.u.)"
     ts_reserveDemand_(restype, up_down, group, f, t) "Mean reserve demand in region in the time step (MW)"
     ts_node_(grid, node, param_gnBoundaryTypes, s, f, t) "Mean value of ts_node"
+    ts_storageValue_(grid, node, s, f, t) "Mean value of ts_storageValue"
     ts_vomCost_(grid, node, unit, t) "Calculated variable O&M cost that includes O&M cost, fuel cost and emission cost"
     ts_startupCost_(unit, starttype, t) "Calculated variable startup cost that includes startup cost, fuel cost and emission cost"
 
@@ -201,7 +204,6 @@ Parameters
 
 * --- Other time dependent parameters -----------------------------------------
 Parameters
-    p_storageValue(grid, node, t) "Value of stored something at the end of a time step"
     p_stepLength(mType, f, t) "Length of an interval in hours"
     p_stepLengthNoReset(mType, f, t) "Length of an interval in hours - includes also lengths of previously realized intervals"
     p_s_discountFactor(s) "Discount factor for samples when using a multi-year horizon"

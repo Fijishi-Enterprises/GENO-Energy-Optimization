@@ -423,7 +423,19 @@ $offtext
         + sum((nu(node, unit), emission)$p_unitEmissionCost(unit, node, emission),
             + p_unStartup(unit, node, starttype) // MWh/start-up
               * p_unitEmissionCost(unit, node, emission) // CUR/MWh
-          ) // END sum(nu, emission)
+          ); // END sum(nu, emission)
+
+    // `storageValue`
+    ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'storageValueUseTimeSeries') }
+        = sum(tt_aggregate(t, t_),
+            ts_storageValue(grid, node,
+                f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_storageValue'))
+                     + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_storageValue')),
+                t_+ (+ dt_scenarioOffset(grid, node, 'ts_storageValue', s)
+                     + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_storageValue'))))
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
+
 ); // END loop(counter)
 
 
