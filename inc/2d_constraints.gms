@@ -1973,8 +1973,16 @@ q_unitEqualityConstraint(s_active(s), eq_constraint, uft(unit, f, t))
 
     =E=
 
-    // Constant multiplied by capacity
+    // Constant multiplied by the number of online sub-units
     + p_unitConstraint(unit, eq_constraint)
+        * [ // Unit online state
+            + 1 // if the unit does not have an online variable
+                ${not uft_online(unit, f, t)}
+            + v_online_LP(unit, s, f+df_central(f,t), t)
+                ${uft_onlineLP(unit, f, t)}
+            + v_online_MIP(unit, s, f+df_central(f,t), t)
+                ${uft_onlineMIP(unit, f, t)}
+            ]
 ;
 
 * --- Commodity Use Limitation -----------------------------------------------------
@@ -1991,8 +1999,16 @@ q_unitGreaterThanConstraint(s_active(s), gt_constraint, uft(unit, f, t))
 
     =G=
 
-    // Constant multiplied by capacity
+    // Constant multiplied by the number of online sub-units
     + p_unitConstraint(unit, gt_constraint)
+        * [ // Unit online state
+            + 1 // if the unit does not have an online variable
+                ${not uft_online(unit, f, t)}
+            + v_online_LP(unit, s, f+df_central(f,t), t)
+                ${uft_onlineLP(unit, f, t)}
+            + v_online_MIP(unit, s, f+df_central(f,t), t)
+                ${uft_onlineMIP(unit, f, t)}
+            ]  
 ;
 
 * --- Total Transfer Limits ---------------------------------------------------
