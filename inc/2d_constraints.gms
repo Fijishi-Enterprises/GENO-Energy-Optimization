@@ -259,6 +259,7 @@ q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_f
 q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
     ${  p_groupPolicy(group, 'defaultFrequency')
         and p_groupPolicy(group, 'ROCOF')
+        and p_groupPolicy(group, 'dynamicInertia')
         and uft(unit_, f, t) // only active units
         and sum(gnGroup(grid, node, group), gnu_output(grid, node, unit_)) // only units with output capacity 'inside the group'
         } ..
@@ -298,6 +299,7 @@ q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
 q_rateOfChangeOfFrequencyTransfer(group, gn2n(grid, node_, node_fail), sft(s, f, t))
     ${  p_groupPolicy(group, 'defaultFrequency')
         and p_groupPolicy(group, 'ROCOF')
+        and p_groupPolicy(group, 'dynamicInertia')
         and gnGroup(grid, node_, group) // only interconnectors where one end is 'inside the group'
         and not gnGroup(grid, node_fail, group) // and the other end is 'outside the group'
         and [ p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_reserve')
@@ -2517,6 +2519,7 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
                   and sft_realized(s, f, t)]
         and p_groupPolicy(group, 'ROCOF')
         and p_groupPolicy(group, 'defaultFrequency')
+        and p_groupPolicy(group, 'staticInertia')     
         } ..
 
     // Rotational energy in the system
