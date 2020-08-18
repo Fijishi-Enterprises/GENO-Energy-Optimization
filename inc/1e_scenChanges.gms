@@ -374,18 +374,6 @@ $ifthen exist '%input_dir%/p_gnBoundaryPropertiesForStates3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_gnPolicy2.gdx'
-    $$gdxin '%input_dir%/p_gnPolicy2.gdx'
-    $$loaddcm p_gnPolicy
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/p_gnPolicy3.gdx'
-    $$gdxin '%input_dir%/p_gnPolicy3.gdx'
-    $$loaddcm p_gnPolicy
-    $$gdxin
-$endif
-
 $ifthen exist '%input_dir%/p_uStartupFuel2.gdx'
     $$gdxin '%input_dir%/p_uStartupFuel2.gdx'
     $$loaddcm p_uStartupFuel
@@ -614,15 +602,27 @@ $ifthen exist '%input_dir%/p_groupPolicy3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_groupPolicy3D2.gdx'
-    $$gdxin '%input_dir%/p_groupPolicy3D2.gdx'
-    $$loaddcm p_groupPolicy3D
+$ifthen exist '%input_dir%/p_groupPolicyUnit2.gdx'
+    $$gdxin '%input_dir%/p_groupPolicyUnit2.gdx'
+    $$loaddcm p_groupPolicyUnit
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_groupPolicy3D3.gdx'
-    $$gdxin '%input_dir%/p_groupPolicy3D3.gdx'
-    $$loaddcm p_groupPolicy3D
+$ifthen exist '%input_dir%/p_groupPolicyUnit3.gdx'
+    $$gdxin '%input_dir%/p_groupPolicyUnit3.gdx'
+    $$loaddcm p_groupPolicyUnit
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_groupPolicyEmission2.gdx'
+    $$gdxin '%input_dir%/p_groupPolicyEmission2.gdx'
+    $$loaddcm p_groupPolicyEmission
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_groupPolicyEmission3.gdx'
+    $$gdxin '%input_dir%/p_groupPolicyEmission3.gdx'
+    $$loaddcm p_groupPolicyEmission
     $$gdxin
 $endif
 
