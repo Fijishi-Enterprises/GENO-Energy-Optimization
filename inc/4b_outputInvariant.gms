@@ -28,7 +28,7 @@ loop(m,
     r_gnuVOMCost(gnu(grid, node, unit), ft_realizedNoReset(f,t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
-            * r_gen(grid, node, unit, f, t)
+            * abs(r_gen(grid, node, unit, f, t))
             * p_gnu(grid, node, unit, 'vomCosts');
 
     // Fuel and emission costs during normal operation
