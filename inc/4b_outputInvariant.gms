@@ -180,11 +180,12 @@ loop(m,
             )
           // Allocate fuel and startup costs on energy basis, but for output nodes only
           + sum(unit$gnu(grid, node, unit),
-              + sum(gnu(grid, node, unit)$(gnu_output(grid, node, unit) and r_gen[grid, node, unit, f, t]),
-                  + abs{r_gen[grid, node, unit, f, t]}  // abs is due to potential negative outputs like energy from a cooling unit. It's the energy contribution that matters, not direction.
-                    /
-                    sum(gnu_output(grid_output, node_output, unit)$r_gen[grid_output, node_output, unit, f, t], abs{r_gen[grid_output, node_output, unit, f, t]})
-                )
+              + [
+                  + abs{r_gen(grid, node, unit, f, t)}  // abs is due to potential negative outputs like energy from a cooling unit. It's the energy contribution that matters, not direction.
+                      / sum(gnu_output(grid_output, node_output, unit),
+                          + abs{r_gen(grid_output, node_output, unit, f, t)}
+                        ) // END sum(gnu_output)
+                ]$(gnu_output(grid, node, unit) and abs{r_gen(grid, node, unit, f, t)} > eps)
                 *
                 {
                   + sum(un_commodity(unit, commodity), r_uFuelEmissionCost(commodity, unit, f, t))
