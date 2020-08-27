@@ -134,11 +134,11 @@ Sets
     min_max "Minimum and maximum"
         / min, max /
     constraint "Possible names for constraints"
-        / eq1*eq40, gt1*gt9, lt1*lt9 /
+        / eq1*eq40, gt1*gt40, lt1*lt9 /
     eq_constraint(constraint) "Equality constraints"
         / eq1*eq40 /
     gt_constraint(constraint) "Greater than constraints"
-        / gt1*gt9 /
+        / gt1*gt40 /
     lt_constraint(constraint) "Less than constraints"
         / lt1*lt9 /
 
@@ -262,6 +262,8 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     invCost       "Investment cost (EUR/MW)"
     annuity       "Investment annuity"
     portion_of_transfer_to_reserve "Portion to cover incase fail"
+    ICrampDown
+    ICrampUp
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /

@@ -1,1 +1,7 @@
-relaxfixedinfeas = 1
+relaxfixedinfeas 1
+*mipsearch 1
+probe 0
+*feasopt 1
+*feasoptmode 3
+eprhs 1e-5
+epint 1e-5

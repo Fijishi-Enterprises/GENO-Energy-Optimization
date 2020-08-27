@@ -1755,8 +1755,9 @@ q_conversionIncHR(s_active(s), suft(effIncHR(effGroup), unit, f, t))
             + v_gen_inc(grid, node, unit, hr, s, f, t) // output of each heat rate segment
                 * p_gnu(grid, node, unit, 'conversionCoeff')
                 * [
+                    //incremental heat rate. the first heat rate hr00 describes the heat rate up to the minimum load
                     + p_unit(unit, hr) // heat rate
-                    / 3.6 // unit conversion from [GJ/MWh] into [MWh/MWh]
+*                    / 3.6 // unit conversion from [GJ/MWh] into [MWh/MWh]
                   ] // END * v_gen_inc
           ) // END sum(hr)
       ) // END sum(gnu_output)
@@ -1767,6 +1768,7 @@ q_conversionIncHR(s_active(s), suft(effIncHR(effGroup), unit, f, t))
       ) // END sum(gnu_output)
         * [ // Unit online state
             + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+            + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f ,t)}
 
             // Run-up and shutdown phase efficiency correction
             // Run-up 'online state'
@@ -1838,6 +1840,7 @@ q_conversionIncHRBounds(gn(grid, node), s_active(s), hr, suft(effIncHR(effGroup)
         *  p_gnu(grid, node, unit, 'unitSize')
         * [ // Unit online state
             + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
+            + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f ,t)}
 
             // Run-up and shutdown phase efficiency correction
             // Run-up 'online state'
@@ -2267,6 +2270,13 @@ q_reserveProvisionLeftward(restypeDirectionGridNodeNode(restype, up_down, grid, 
                     * p_gnn(grid, node, node_, 'unitSize')
                 ) // END sum(t_invest)
             ]
+;
+
+* --- Limiting investments  ----------------------------------------------------
+
+q_investTransferLimit_LP(gn2n_directional(grid, from_node, to_node), t_invest)${ gn2n_directional_investLP(grid, from_node, to_node) } ..
+
+v_investTransfer_LP(grid, from_node, to_node, t_invest)  =L=  p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
 ;
 
 * --- State Variable Slack ----------------------------------------------------

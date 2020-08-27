@@ -620,7 +620,7 @@ loop(effOnline(effSelector),
     uft_online(uft(unit, f, t))${ suft(effOnline, unit, f, t) }
         = yes;
 ); // END loop(effOnline)
-uft_onlineLP(uft(unit, f, t))${ suft('directOnLP', unit, f, t) }
+uft_onlineLP(uft(unit, f, t))${ suft('directOnLP', unit, f, t) or suft('IncHR', unit, f, t)}
     = yes;
 uft_onlineMIP(uft_online(unit, f, t)) = uft_online(unit, f, t) - uft_onlineLP(unit, f, t);
 

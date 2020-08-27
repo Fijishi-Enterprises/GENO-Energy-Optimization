@@ -27,7 +27,8 @@ Scalars
 ;
 
 $If set penalty PENALTY=%penalty%;
-$If not set penalty PENALTY=1e9;
+*$If not set penalty PENALTY=1e9;
+$If not set penalty PENALTY=1e6;
 BIG_M = 1e5;
 
 Parameters
@@ -100,6 +101,7 @@ equations
     q_resTransferLimitLeftward(grid, node, node, s, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the leftward direction"
     q_reserveProvisionRightward(restype, up_down, grid, node, node, s, f, t) "Rightward reserve provision limited - needed for links with investment possibility"
     q_reserveProvisionLeftward(restype, up_down, grid, node, node, s, f, t) "Leftward reserve provision limited - needed for links with investment possibility"
+    q_investTransferLimit_LP(grid, node, node, t) "Limiting the investments to transfer capacity"
 
     // State Variables
     q_stateSlack(grid, node, slack, s, f, t) "Slack variable greater than the difference between v_state and the slack boundary"

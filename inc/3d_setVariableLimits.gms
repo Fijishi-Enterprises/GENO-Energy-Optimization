@@ -100,12 +100,26 @@ loop(mst_start(mSolve, s, t)$(tSolveFirst = mSettings(mSolve, 't_start')),
         = p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
             * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier');
 
+    // Upper bound time series
+    v_state.up(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeSeries')
+                                                and not df_central(f_solve,t)
+                                                }
+    = sum(mf_realization(mSolve, f_), ts_node_(grid, node, 'upwardLimit', s, f_, t) )
+        * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier');
+
     // Lower bound
     v_state.lo(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
                                                             and not df_central(f_solve,t)
                                                             }
         = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
             * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
+
+    v_state.lo(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
+                                                and not df_central(f_solve,t)
+                                                }
+    = sum(mf_realization(mSolve, f_), ts_node_(grid, node, 'downwardLimit', s, f_, t) )
+        * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
+
 ); // END loop(mst_start)
 
 // Spilling of energy from the nodes
@@ -133,7 +147,7 @@ v_spill.up(gn(grid, node_spill), sft(s, f, t))${    p_gnBoundaryPropertiesForSta
 v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
                                           and not unit_flow(unit)
                                           and not (unit_investLP(unit) or unit_investMIP(unit))
-                                          and p_gnu(grid, node, unit, 'capacity')
+*                                          and p_gnu(grid, node, unit, 'capacity')
                                     }
     = p_gnu(grid, node, unit, 'capacity')
         * p_unit(unit, 'availability')
@@ -422,10 +436,13 @@ v_invest_MIP.lo(unit, t_invest)${   unit_investMIP(unit)    }
 ;
 
 // Transfer Capacity Investments
-// LP investments
-v_investTransfer_LP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ gn2n_directional_investLP(grid, from_node, to_node) }
-    = p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
-;
+// LP investments handled by equation q_investtransfer_LP
+*    v_investTransfer_LP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ gn2n_directional_investLP(grid, from_node, to_node) }
+*    = p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
+*;
+
+
+
 // MIP investments
 v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ gn2n_directional_investMIP(grid, from_node, to_node) }
     = p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
@@ -499,6 +516,12 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
     ); // END if(tSolveFirst)
 ) // END loop(mft_start)
 ;
+
+if (m('invest'),
+         //it may be useful to include these in the investment model
+*         vq_gen.fx('increase', gn(grid, node), sft(s, f, t)) = 0;
+*         vq_gen.fx('decrease', gn(grid, node), sft(s, f, t)) = 0;
+);
 
 
 * =============================================================================

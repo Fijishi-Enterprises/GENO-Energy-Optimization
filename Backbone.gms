@@ -157,6 +157,7 @@ $include 'inc/4b_outputInvariant.gms'
 $include 'inc/4c_outputQuickFile.gms'
 
 * Post-process results
+$if exist '%input_dir%/4d_postProcess_invest2schedule.gms' $include '%input_dir%/4d_postProcess_invest2schedule.gms'
 $if exist '%input_dir%/4d_postProcess.gms' $include '%input_dir%/4d_postProcess.gms'
 
 execute_unload '%output_dir%/results.gdx',
