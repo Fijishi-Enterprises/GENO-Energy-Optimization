@@ -40,8 +40,8 @@ loop(m,
                 + p_price(commodity, 'price')${p_price(commodity, 'useConstant') and un_commodity_in(unit, commodity)}
                 + ts_price(commodity, t)${p_price(commodity, 'useTimeSeries')  and un_commodity_in(unit, commodity)}
                 // Fuel price when output
-                - p_price(commodity, 'price')${p_price(commodity, 'useConstant') and un_commodity_out(unit, commodity)}
-                - ts_price(commodity, t)${p_price(commodity, 'useTimeSeries')  and un_commodity_out(unit, commodity)}
+                + p_price(commodity, 'price')${p_price(commodity, 'useConstant') and un_commodity_out(unit, commodity)}
+                + ts_price(commodity, t)${p_price(commodity, 'useTimeSeries')  and un_commodity_out(unit, commodity)}
                 // Emission costs
                 + sum(emission, p_unitEmissionCost(unit, commodity, emission))
               ];
