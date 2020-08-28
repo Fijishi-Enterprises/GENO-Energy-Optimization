@@ -124,6 +124,17 @@ r_uTotalOnlinePerUnit
 r_uTotalStartup
 r_uTotalShutdown
 
+* --- Emissions Results -----------------------------------------------
+
+// Unit level emissions
+r_emissions
+
+// Emission sums
+r_nuTotalEmissions
+r_nTotalEmissions
+r_uTotalEmissions
+r_totalEmissions
+
 * --- Reserve Provision Result Symbols ----------------------------------------
 
 // Reserve provision results required for model structure !!!!!!!!!!!!!!!!!!!!!
