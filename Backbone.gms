@@ -59,7 +59,10 @@ GAMS command line arguments
 --output_dir=<path>
     Directory to write output to. Defaults to './output'.
 
+--output_file=<filename.gdx>
+    Filename of the results file. Defaults to 'results.gdx'
 
+    
 References
 ----------
 [1] N. Helistö et al., ‘Backbone---An Adaptable Energy Systems Modelling Framework’,
