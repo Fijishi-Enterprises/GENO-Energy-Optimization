@@ -21,7 +21,7 @@ Created by:
     Juha Kiviluoma
     Erkka Rinne
     Topi Rasku
-    Niina Helistï¿½
+    Niina Helistö
     Dana Kirchem
     Ran Li
     Ciara O'Dwyer
@@ -34,7 +34,7 @@ This is a GAMS implementation of the Backbone energy system modelling framework
 
 
 GAMS command line arguments
-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
 --debug=[0|1|2]
     Set level of debugging information. Default is 0 when no extra information is
     saved or displayded. At level 1, file 'debug.gdx' containing all GAMS symbols
@@ -62,12 +62,12 @@ GAMS command line arguments
 
 References
 ----------
-[1] N. Helistï¿½ et al., ï¿½Backbone---An Adaptable Energy Systems Modelling Frameworkï¿½,
+[1] N. Helistö et al., ‘Backbone---An Adaptable Energy Systems Modelling Framework’,
     Energies, vol. 12, no. 17, p. 3388, Sep. 2019. Available at:
     https://dx.doi.org/10.3390/en12173388.
-[2] K. Nolde, M. Uhr, and M. Morari, ï¿½Medium term scheduling of a hydro-thermal
-    system using stochastic model predictive control, ï¿½ Automatica, vol. 44,
-    no. 6, pp. 1585ï¿½1594, Jun. 2008.
+[2] K. Nolde, M. Uhr, and M. Morari, ‘Medium term scheduling of a hydro-thermal
+    system using stochastic model predictive control, ’ Automatica, vol. 44,
+    no. 6, pp. 1585–1594, Jun. 2008.
 
 ==========================================================================
 $offtext
@@ -162,9 +162,7 @@ $include 'inc/4c_outputQuickFile.gms'
 * Post-process results
 $if exist '%input_dir%/4d_postProcess.gms' $include '%input_dir%/4d_postProcess.gms'
 
-$if not set output_file $setglobal output_file 'results.gdx'
-
-execute_unload '%output_dir%/%output_file%',
+execute_unload '%output_dir%/results.gdx',
     $$include 'defOutput/resultSymbols.inc'
 ;
 
