@@ -162,7 +162,9 @@ $include 'inc/4c_outputQuickFile.gms'
 * Post-process results
 $if exist '%input_dir%/4d_postProcess.gms' $include '%input_dir%/4d_postProcess.gms'
 
-execute_unload '%output_dir%/results.gdx',
+$if not set output_file $setglobal output_file 'results.gdx'
+
+execute_unload '%output_dir%/%output_file%',
     $$include 'defOutput/resultSymbols.inc'
 ;
 
