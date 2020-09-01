@@ -41,6 +41,13 @@ loop(m,
                 and ord(t) <= mSettings(m, 't_end') + mSettings(m, 't_horizon')
                 }
         = yes;
+    if(mSettings(m, 't_jump') > mSettings(m, 't_end'),
+        mSettings(m, 't_jump') = mSettings(m, 't_end');
+        put log "!!! t_jump was larger than t_end. t_jump was decreased to t_end."/
+    );
+    if(mod(mSettings(m, 't_end'), mSettings(m, 't_jump')) > 0,
+        abort "t_end is not divisible by t_jump";
+    );
 
 * --- Samples and Forecasts ---------------------------------------------------
 $ontext
