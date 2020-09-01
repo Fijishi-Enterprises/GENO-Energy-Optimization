@@ -184,7 +184,7 @@ loop(m,
 * --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units ---
 
     loop(effLevel$mSettingsEff(m, effLevel),
-        loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) < ord(effLevel)},
+        loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) <= ord(effLevel)},
             p_unit(unit_aggregated(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit_, unit, effLevel)) }
                 = mSettingsEff(m, effLevel_);
             p_unit(unit_aggregator(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit, unit_, effLevel)) }
