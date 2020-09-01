@@ -188,7 +188,6 @@ Sets
          availability                        "Availability of given energy conversion technology (p.u.)"
          useInitialOnlineStatus              "A flag to fix the online status of a unit for the first time step (binary)"
          initialOnlineStatus                 "Initial online status of the unit in the first time step (0-1)"
-         unavailability                      "Unavailability of given energy conversion technology (p.u.)"
          startCostCold                       "Variable start-up costs for cold starts excluding fuel costs (EUR/MW)"
          startCostWarm                       "Variable start-up costs for warm starts excluding fuel costs (EUR/MW)"
          startCostHot                        "Variable start-up costs for hot starts excluding fuel costs (EUR/MW)"
