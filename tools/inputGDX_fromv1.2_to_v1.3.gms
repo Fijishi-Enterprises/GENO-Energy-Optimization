@@ -61,7 +61,7 @@ Parameters
     p_nuReserves(*,*,*,*)                         "Reserve provision data for units"
     p_nnReserves(*,*,*,*)                         "Reserve provision data for node node connections"
     p_nuRes2Res(*,*,*,*,*)                        "The first type of reserve can be used also in the second reserve category (with a possible multiplier)"
-    p_storageValue(*,*,*)                         "Value of stored something at the end of a time step"
+    p_storageValue(*,*)                           "Value of stored something at the end of a time step"
     p_uFuel(*,*,*,*)                              "Parameters interacting between units and fuels"
     p_unit(*,*)                                   "Unit data where energy type does not matter"
     ts_cf(*,*,*,*)                                "Available capacity factor time series (p.u.)"
@@ -132,7 +132,7 @@ $loaddc  p_nReserves
 $loaddc  p_nuReserves
 $loaddc  p_nnReserves
 $loaddc  p_nuRes2Res
-$loaddc  p_storageValue
+*$loaddc  p_storageValue
 $loaddc  p_uFuel
 $loaddc  p_unit
 $loaddc  ts_cf
@@ -218,13 +218,41 @@ Sets
          becomeAvailable                     "The relative position of the time step when the unit becomes available (calculated from ut(unit, t, start_end))"
          becomeUnavailable                   "The relative position of the time step when the unit becomes unavailable (calculated from ut(unit, t, start_end))"
      /
-
+     param_policy                            "Set of possible data parameters for grid, node, regulation" /
+         emissionTax                         "Emission tax (EUR/tonne)"
+         emissionCap                         "Emission limit (tonne)"
+         instantaneousShareMax               "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
+         energyShareMax                      "Maximum energy share of generation from a particular group of units"
+         energyShareMin                      "Minimum energy share of generation from a particular group of units"
+         kineticEnergyMin                    "Minimum system kinetic energy (MWs)"
+         constrainedCapMultiplier            "Multiplier a(i) for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
+         constrainedCapTotalMax              "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
+         constrainedOnlineMultiplier         "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
+         constrainedOnlineTotalMax           "Total maximum b for online units in equation Sum(i, a(i)*v_online(i)) <= b"
+         minCons                             "minimum consumption of storage unit when charging"
+         ROCOF                               "Maximum rate of change of frequency (Hz/s)"
+         defaultFrequency                    "Nominal frequency in the system (Hz)"
+         update_frequency                    "Frequency of updating reserve contributions"
+         update_offset                       "Optional offset for delaying the reserve update frequency"
+         gate_closure                        "Number of timesteps ahead of dispatch that reserves are fixed"
+         use_time_series                     "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
+         reserve_length                      "Length of reserve horizon"
+         reserveReliability                  "Reliability parameter of reserve provisions"
+         reserve_increase_ratio              "Unit output is multiplied by this factor to get the increase in reserve demand"
+         portion_of_infeed_to_reserve        "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
+         offlineReserveCapability            "Proportion of an offline unit which can contribute to a category of reserve"
+         ReserveShareMax                     "Maximum reserve share of a group of units"
+         LossOfTrans
+/
+    up_down                                  "Direction set used by some variables, e.g. reserve provisions and generation ramps"
+        / up, down /
     commodity(*)                             "Commodities that can be bought or sold exogenous to model"
        / set.fuel /
     grid_2                                   "New grid"
        / set.grid, fuel /
     node_2                                   "New node"
        / set.node, set.fuel /
+    elec_node(*)                             "Electricity nodes"
 ;
 
 alias(node,node_);
@@ -251,7 +279,7 @@ p_gn_2(grid,node,param_gn)
      = p_gn(grid,node,param_gn);
 p_gn_2(grid,node,'nodeBalance')
      $(p_gn_2(grid,node,'energyStoredPerUnitOfState')) = YES;
-p_gn_2('fuel',commodity,'selfDischargeLoss') = Eps;
+p_gn_2('fuel',commodity,'boundStartAndEnd') = 1;
 
 * Making copy of p_unit
 *----------------------------------------------------------------------------
@@ -329,10 +357,29 @@ p_unitConstraintNode(unit,'gt1',node)
        /(sum(grid,p_gnu(grid,node,unit,'conversionFactor'))))
        $(sum(grid,p_gnu(grid,node,unit,'conversionFactor'))<>0);
 
+* Creating groups (i.e. electricity nodes) and fixing reserve parameters
+*----------------------------------------------------------------------------0
+elec_node(node) = yes$(p_nReserves(node,'primary','gate_closure'));
+alias(elec_node,elec_node_);
+gnGroup('elec',elec_node,elec_node_) = yes$(sameas(elec_node,elec_node_));
+
+p_gnuReserves('elec',elec_node, unit, restype, up_down)
+     = p_nuReserves(elec_node, unit, restype, up_down);
+p_gnnReserves('elec', elec_node, elec_node_, restype, up_down)
+     = p_nnReserves(elec_node,elec_node_,restype,up_down);
+
+p_groupReserves(elec_node,restype,param_policy)
+     = p_nReserves(elec_node,restype,param_policy)
+     $(not sameas(param_policy,'use_time_series'));
+p_groupReserves(elec_node,restype,up_down)
+     = p_nReserves(elec_node,restype,up_down);
+p_groupReserves(elec_node,restype,'useTimeSeries')
+     = p_nReserves(elec_node,restype,'use_time_series');
+
 *============================================================================
 *----------Export to gdx-----------------------------------------------------
 *============================================================================
-execute_unload 'tools/%output_name%.gdx',            grid_2=grid
+execute_unload 'input/%output_name%.gdx',      grid_2=grid
                                                node_2=node
                                                flow
                                                unittype
@@ -342,7 +389,7 @@ execute_unload 'tools/%output_name%.gdx',            grid_2=grid
                                                commodity
                                                unitUnitEffLevel
                                                effLevelGroupUnit
-                                               group
+                                               elec_node=group
                                                p_gn_2=p_gn
                                                p_gnn
                                                p_gnu_io
