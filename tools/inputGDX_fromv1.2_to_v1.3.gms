@@ -18,7 +18,9 @@ $offtext
 *============================================================================
 *----------Define sets and parameters for import-----------------------------
 *============================================================================
+
 Sets
+$$include '%directory%/timeAndSamples.inc'
     grid                                          "Forms of energy endogenously presented in the model"
     node                                          "Nodes maintain the energy balance or track exogenous commodities"
     emission                                      "Emissions"
@@ -92,7 +94,7 @@ Parameters
 *----------Import data from .gdx---------------------------------------------
 *============================================================================
 
-$Gdxin 'tools/%input_name%.gdx'
+$Gdxin '%directory%/%input_gdx%.gdx'
 $loaddcm grid
 $loaddc  node
 $loaddc  emission
@@ -235,6 +237,7 @@ Parameters
      p_uStartupfuel(*,*,*)                   "Parameters for startup fuels"
      p_gn_2(*,*,*)                           "New p_gn"
      p_unit_2(*,*)                           "New p_unit"
+     p_storageValue_2(*,*)                   "New p_storage_value"
      p_gnPolicy(*,*,*,*)                     "Emission tax"
      p_unitConstraint(*,*)                   "Unit fixed constraint"
      p_unitConstraintNode(*,*,*)             "Unit node Constraint"
@@ -257,6 +260,10 @@ p_gn_2('fuel',commodity,'selfDischargeLoss') = Eps;
 *----------------------------------------------------------------------------
 p_unit_2(unit,param_unit)
      = p_unit(unit,param_unit);
+
+
+p_storageValue_2(grid, node)$sum(t$p_storageValue(grid, node, t), 1)
+    = sum(t, p_storageValue(grid, node, t))/sum(t$p_storageValue(grid, node, t), 1);
 
 * Emission cost must be created here
 *----------------------------------------------------------------------------
@@ -332,7 +339,8 @@ p_unitConstraintNode(unit,'gt1',node)
 *============================================================================
 *----------Export to gdx-----------------------------------------------------
 *============================================================================
-execute_unload 'tools/%output_name%.gdx',            grid_2=grid
+execute_unload '%directory%/%output_gdx%.gdx',
+                                               grid_2=grid
                                                node_2=node
                                                flow
                                                unittype
@@ -375,7 +383,7 @@ execute_unload 'tools/%output_name%.gdx',            grid_2=grid
                                                p_s_discountFactor
                                                t_invest
                                                utAvailabilityLimits
-                                               p_storageValue
+                                               p_storageValue_2=p_storageValue
                                                ts_storageValue
                                                uGroup
                                                gnuGroup
