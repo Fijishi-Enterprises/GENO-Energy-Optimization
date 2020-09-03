@@ -63,7 +63,7 @@ Parameters
     p_nuReserves(*,*,*,*)                         "Reserve provision data for units"
     p_nnReserves(*,*,*,*)                         "Reserve provision data for node node connections"
     p_nuRes2Res(*,*,*,*,*)                        "The first type of reserve can be used also in the second reserve category (with a possible multiplier)"
-    p_storageValue(*,*)                           "Value of stored something at the end of a time step"
+    p_storageValue(*,*,*)                         "Value of stored something at the end of a time step"
     p_uFuel(*,*,*,*)                              "Parameters interacting between units and fuels"
     p_unit(*,*)                                   "Unit data where energy type does not matter"
     ts_cf(*,*,*,*)                                "Available capacity factor time series (p.u.)"
@@ -124,7 +124,7 @@ $loaddc  uss_bound
 $loaddc  p_fuelEmission
 $loaddc  p_gn
 $loaddc  p_gnBoundaryPropertiesForStates
-*$loaddc  p_gnPolicy
+$loaddc  p_gnPolicy
 $loaddc  p_gnn
 $loaddc  p_gnu
 $loaddc  p_gnuBoundaryProperties
@@ -134,7 +134,7 @@ $loaddc  p_nReserves
 $loaddc  p_nuReserves
 $loaddc  p_nnReserves
 $loaddc  p_nuRes2Res
-*$loaddc  p_storageValue
+$loaddc  p_storageValue
 $loaddc  p_uFuel
 $loaddc  p_unit
 $loaddc  ts_cf
@@ -283,6 +283,7 @@ p_gn_2(grid,node,param_gn)
 p_gn_2(grid,node,'nodeBalance')
      $(p_gn_2(grid,node,'energyStoredPerUnitOfState')) = YES;
 p_gn_2('fuel',commodity,'boundStartAndEnd') = 1;
+p_gn_2(grid,node,'nodeBalance')$(not sum(t, abs(ts_fuelPriceChange(node,t)))) = 1;
 
 * Making copy of p_unit
 *----------------------------------------------------------------------------
@@ -295,8 +296,8 @@ p_storageValue_2(grid, node)$sum(t$p_storageValue(grid, node, t), 1)
 
 * Emission cost must be created here
 *----------------------------------------------------------------------------
-p_gnPolicy('fuel',commodity,'emissionTax','CO2')
-     $(p_fuelEmission(commodity,'CO2')>0) = 30;
+*p_gnPolicy('fuel',commodity,'emissionTax','CO2')
+*     $(p_fuelEmission(commodity,'CO2')>0) = 30;
 
 * p_gnu_io: setting conversionCoeff to 1 for fuels (commodities)
 *----------------------------------------------------------------------------
