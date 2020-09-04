@@ -330,8 +330,12 @@ p_gnu_io(grid,node,unit,'output','unitsize')
 
 * Extraction of p_uStartupfuel
 *----------------------------------------------------------------------------
-p_uStartupfuel(unit,commodity,'fixedFuelFraction')
-     = p_uFuel(unit,'startup',commodity,'fixedFuelFraction');
+p_uStartupfuel(unit,commodity,'fixedFuelFraction')$(ufuel(unit,'startup',commodity))
+     = p_uFuel(unit,'startup',commodity,'fixedFuelFraction')
+     +1$(not p_uFuel(unit,'startup',commodity,'fixedFuelFraction'));
+
+
+
 
 * Creating intermediate tables for gngnu-sets and setting value to 1
 *----------------------------------------------------------------------------
