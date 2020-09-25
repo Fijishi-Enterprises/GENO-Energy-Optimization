@@ -55,8 +55,8 @@ equations
     q_balance(grid, node, mType, s, f, t) "Energy demand must be satisfied at each node"
     q_resDemand(restype, up_down, group, s, f, t) "Procurement for each reserve type is greater than demand"
     q_resDemandLargestInfeedUnit(restype, up_down, group, unit, s, f, t) "N-1 reserve for units"
-    q_rateOfChangeOfFrequencyUnit(group, unit, s, f, t) "N-1 unit contingency with ROCOF"
-    q_rateOfChangeOfFrequencyTransfer(group, grid, node, node, s, f, t) "N-1 transmission line contingency with ROCOF"
+    q_rateOfChangeOfFrequencyUnit(restype, up_down, group, unit, s, f, t) "N-1 unit contingency with ROCOF"
+    q_rateOfChangeOfFrequencyTransfer(restype, up_down, group, grid, node, node, s, f, t) "N-1 transmission line contingency with ROCOF"
     q_resDemandLargestInfeedTransfer(restype, up_down, group, grid, node, node, s, f, t) "N-1 up/down reserve for transmission lines"
     // Unit Operation
     q_maxDownward(grid, node, unit, mType, s, f, t) "Downward commitments (v_gen and online v_reserve) will not undercut minimum (online) production capacity (+) or maximum (online) consumption capacity (-)"

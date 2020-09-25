@@ -256,7 +256,7 @@ q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_f
 
 * --- ROCOF Limit -- Units ----------------------------------------------------
 
-q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
+q_rateOfChangeOfFrequencyUnit(restypeDirectionGroup(restype_inertia, up_down, group), unit_fail(unit_), sft(s, f, t))
     ${  p_groupPolicy(group, 'defaultFrequency')
         and p_groupPolicy(group, 'ROCOF')
         and p_groupPolicy(group, 'dynamicInertia')
@@ -288,15 +288,39 @@ q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
 
     // Demand for kinetic/rotational energy due to a large unit that could fail
     + p_groupPolicy(group, 'defaultFrequency')
-        * sum(gnu_output(grid, node, unit_)${   gnGroup(grid, node, group)
+        * [sum(gnu_output(grid, node, unit_)${   gnGroup(grid, node, group)
                                                 },
             + v_gen(grid, node, unit_ , s, f, t)
             ) // END sum(gnu_output)
+    // less the available FFR
+            - sum(gnu(grid, node, unit)${   gnGroup(grid, node, group)
+                                            and gnuft(grid, node, unit, f, t)
+                                            and gnuRescapable(restype_inertia, up_down, grid, node, unit)
+                                            },
+                + v_reserve(restype_inertia, up_down, grid, node, unit, s, f, t)
+                ) // END sum(gnu)
+    // less reserve provision to this group via transfer links
+            - sum(gn2n_directional(grid, node_, node)${ gnGroup(grid, node, group)
+                                                        and not gnGroup(grid, node_, group)
+                                                        and restypeDirectionGridNodeNode(restype_inertia, 'up', grid, node_, node)
+                                                        },
+                + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+                    * v_resTransferRightward(restype_inertia, 'up', grid, node_, node, s, f+df_reserves(grid, node_, restype_inertia, f, t), t) // Reserves from another node - reduces the need for reserves in the node
+                ) // END sum(gn2n_directional)
+            - sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
+                                                        and not gnGroup(grid, node_, group)
+                                                        and restypeDirectionGridNodeNode(restype_inertia, 'up', grid, node_, node)
+                                                        },
+                + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+                    * v_resTransferLeftward(restype_inertia, 'up', grid, node, node_, s, f+df_reserves(grid, node_, restype_inertia, f, t), t) // Reserves from another node - reduces the need for reserves in the node
+                ) // END sum(gn2n_directional)
+
+          ]
 ;
 
 * --- ROCOF Limit -- Transfer Links -------------------------------------------
 
-q_rateOfChangeOfFrequencyTransfer(group, gn2n(grid, node_, node_fail), sft(s, f, t))
+q_rateOfChangeOfFrequencyTransfer(restypeDirectionGroup(restype_inertia, up_down, group), gn2n(grid, node_, node_fail), sft(s, f, t))
     ${  p_groupPolicy(group, 'defaultFrequency')
         and p_groupPolicy(group, 'ROCOF')
         and p_groupPolicy(group, 'dynamicInertia')
@@ -343,6 +367,29 @@ q_rateOfChangeOfFrequencyTransfer(group, gn2n(grid, node_, node_fail), sft(s, f,
                 * v_transferLeftward(grid, node_fail, node_, s, f, t)${gn2n_directional(grid, node_fail, node_)}
             + p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_reserve')
                 * v_transferRightward(grid, node_, node_fail, s, f, t)${gn2n_directional(grid, node_, node_fail)}
+            - sum(gnu(grid, node, unit)${   gnGroup(grid, node, group)
+                                            and gnuft(grid, node, unit, f, t)
+                                            and gnuRescapable(restype_inertia, up_down, grid, node, unit)
+                                            },
+                + v_reserve(restype_inertia, up_down, grid, node, unit, s, f, t)
+                ) // END sum(gnu)
+                // Reserve provision to this group via transfer links
+                - sum(gn2n_directional(grid, node_, node)${ gnGroup(grid, node, group)
+                                                            and not gnGroup(grid, node_, group)
+                                                            and not (sameas(node_, node) and sameas(node, node_fail)) // excluding the failing link
+                                                            and restypeDirectionGridNodeNode(restype_inertia, up_down, grid, node_, node)
+                                                            },
+                    + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+                        * v_resTransferRightward(restype_inertia, up_down, grid, node_, node, s, f+df_reserves(grid, node_, restype_inertia, f, t), t)
+                    ) // END sum(gn2n_directional)
+                - sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
+                                                            and not gnGroup(grid, node_, group)
+                                                            and not (sameas(node, node_) and sameas(node_, node_fail)) // excluding the failing link
+                                                            and restypeDirectionGridNodeNode(restype_inertia, up_down, grid, node_, node)
+                                                            },
+                   + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+                       * v_resTransferLeftward(restype_inertia, up_down, grid, node, node_, s, f+df_reserves(grid, node_, restype_inertia, f, t), t)
+                   ) // END sum(gn2n_directional)
             ] // END * p_groupPolicy
 ;
 
@@ -2519,7 +2566,7 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
                   and sft_realized(s, f, t)]
         and p_groupPolicy(group, 'ROCOF')
         and p_groupPolicy(group, 'defaultFrequency')
-        and p_groupPolicy(group, 'staticInertia')     
+        and p_groupPolicy(group, 'staticInertia')
         } ..
 
     // Rotational energy in the system
