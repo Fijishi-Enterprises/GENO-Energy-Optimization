@@ -1,6 +1,6 @@
 # Backbone
 
-Backbone is a generic energy network optimization tool written in [GAMS](https://www.gams.com/). It has been designed to be highly adaptable in different dimensions: temporal, spatial, technology representation and market design. The model can represent stochastics with a [model predictive control method](https://doi.org/10.1016/j.automatica.2008.03.002), with short-term forecasts and longer-term statistical uncertainties. Backbone can support multiple different models due to the modifiable temporal structure and varying lengths of the time steps.
+Backbone is a generic energy network optimization tool written in [GAMS](https://www.gams.com/). It has been designed to be highly adaptable in different dimensions: temporal, spatial, technology representation and market design. The model can represent stochastics with a [model predictive control method](https://doi.org/10.1016/j.automatica.2008.03.002), with short-term forecasts and longer-term statistical uncertainties. Backbone can support multiple different models (e.g. investment or unit commitment) due to the modifiable temporal structure and varying lengths of the time steps.
 
 If you use Backbone in a published work, please cite the [following publication](https://doi.org/10.3390/en12173388), which describes the Backbone energy systems modelling framework.
 
