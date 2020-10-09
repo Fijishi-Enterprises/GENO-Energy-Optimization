@@ -77,6 +77,7 @@ Parameters
 
     // Interesting node related results
     r_balanceMarginal(grid, node, f, t) "Marginal values of the q_balance equation"
+    r_balanceMarginalPerUnit(grid, node, f, t) "Marginal values of the q_balance equation per unit of balance"
     r_gnnTotalTransfer(grid, node, node) "Total amount of energy transferred between gnn over the simulation (MWh)"
     r_gnTotalSpill(grid, node) "Total spilled energy from gn over the simulation (MWh)"
     r_gnTotalSpillShare(grid, node) "Total spilled energy gn/g share"
@@ -97,7 +98,8 @@ Parameters
     r_totalGenFuel(commodity) "Total overall energy generation/consumption per fuel over the simulation (MWh)"
 
     // Interesting energy generation results
-    r_gnuTotalGen(grid, node, unit) "Total energy generation in gnu over the simulation (MWh)"
+    r_gnuTotalGen(grid, node, unit) "Total generation in gnu over the simulation (MWh)"
+    r_gnuTotalCons(grid, node, unit) "Total consumption in gnu over the simulation (MWh)"
     r_gnuTotalGenShare(grid, node, unit) "Total energy generation gnu/gn share"
     r_gnTotalGen(grid, node) "Total energy generation in gn over the simulation (MWh)"
     r_gnTotalGenShare(grid, node) "Total energy generation gn/g share"

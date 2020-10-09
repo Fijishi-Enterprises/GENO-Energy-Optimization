@@ -74,6 +74,7 @@ r_spill
 
 // Interesting node related results
 r_balanceMarginal
+r_balanceMarginalPerUnit
 r_gnnTotalTransfer
 r_gnTotalSpill
 r_gnTotalSpillShare
@@ -106,6 +107,7 @@ r_gnuUtilizationRate
 // Interesting energy consumption results
 r_gnConsumption
 r_gnTotalConsumption
+r_gnuTotalCons
 r_gnTotalConsumptionShare
 r_gTotalConsumption
 

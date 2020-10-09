@@ -42,6 +42,7 @@ Sets
     unitAggregator_unit(unit, unit) "Aggregate unit linked to aggregated units"
     unitUnitEffLevel(unit, unit, EffLevel) "Aggregator unit linke to aggreted units with a definition when to start the aggregation"
     flowUnit(flow, *) "Units or storages linked to a certain energy flow time series"
+    flowUnitNode(flow, *, node) "Unit or storages linked to certain energy flow time series at certain node"
     unitUnittype(unit, *) "Link generation technologies to types"
     unitStarttype(unit, starttype) "Units with special startup properties"
     un_commodity(unit, node) "Units linked with commodities"

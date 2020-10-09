@@ -55,6 +55,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc p_gnPolicy
     $$loaddc p_uStartupfuel
     $$loaddc flowUnit
+    $$loaddc flowUnitNode
     $$loaddc emission
     $$loaddc p_nEmission
     $$loaddc ts_cf

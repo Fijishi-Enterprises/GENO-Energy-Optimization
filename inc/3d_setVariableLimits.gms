@@ -519,9 +519,14 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
 
 if (m('invest'),
          //it may be useful to include these in the investment model
-*         vq_gen.fx('increase', gn(grid, node), sft(s, f, t)) = 0;
-*         vq_gen.fx('decrease', gn(grid, node), sft(s, f, t)) = 0;
+         vq_gen.fx('increase', gn(grid, node), sft(s, f, t)) = 0;
+         vq_gen.fx('decrease', gn(grid, node), sft(s, f, t)) = 0;
+
+*         v_online_MIP.fx("U75FI_02Es_Su2_GasCHP_Hpturb", sft("s002", f, t)) = 0;
+*         v_online_MIP.fx("U75FI_02Es_Su2_GasCHP_Hpturb", sft("s003", f, t)) = 0;
+*         v_online_MIP.fx("U75FI_02Es_Su2_GasCHP_Hpturb", sft("s004", f, t)) = 0;
 );
+
 
 
 * =============================================================================

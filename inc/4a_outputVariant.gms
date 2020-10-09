@@ -128,6 +128,16 @@ loop(sft_realized(s, f, t),
     r_spill(gn(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
         = v_spill.l(grid, node, s, f, t)
     ;
+
+    // Unit startup costs
+    r_uStartupCost(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]}
+        = 1e-6 // Scaling to MEUR
+            * sum(unitStarttype(unit, starttype),
+                + r_startup(unit, starttype, f, t)
+                    * ts_startupCost_(unit, starttype, t)
+              ); // END sum(starttype)
+
+
 );
 
 // Total Objective function

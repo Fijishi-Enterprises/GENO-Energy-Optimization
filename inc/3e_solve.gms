@@ -49,7 +49,15 @@ $offtext
 
     if (mSolve('schedule'),
         schedule.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
-        schedule.OptFile = 1;
+
+*        if (tSolveFirst >= 2350,
+*                 schedule.OptFile = 2;
+*        else
+*                 schedule.OptFile = 1;
+*        );
+
+        //schedule.optcr = 1e-3;
+        schedule.OptFile = 2;
         solve schedule using mip minimizing v_obj;
     ); // END IF SCHEDULE
 
