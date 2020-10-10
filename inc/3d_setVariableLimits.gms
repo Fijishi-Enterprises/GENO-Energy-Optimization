@@ -145,7 +145,8 @@ v_spill.up(gn(grid, node_spill), sft(s, f, t))${    p_gnBoundaryPropertiesForSta
 
 // Constant max. energy generation if investments disabled
 v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
-                                          and not unit_flow(unit)
+*                                          and not unit_flow(unit)
+                                          and not sum(flow, flowUnitNode(flow, unit, node))
                                           and not (unit_investLP(unit) or unit_investMIP(unit))
 *                                          and p_gnu(grid, node, unit, 'capacity')
                                     }
@@ -154,6 +155,7 @@ v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f,
 ;
 // Time series capacity factor based max. energy generation if investments disabled
 v_gen.up(gnu_output(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, unit_flow, f, t)
+                                                           and sum(flow, flowUnitNode(flow, unit_flow, node))
                                                            and not (unit_investLP(unit_flow) or unit_investMIP(unit_flow)) }
     = sum(flow${    flowUnit(flow, unit_flow)
                     and nu(node, unit_flow)
@@ -185,6 +187,7 @@ v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, 
 
 // Time series capacity factor based max. consumption if investments disabled
 v_gen.lo(gnu_input(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, unit_flow, f, t)
+                                          and sum(flow, flowUnitNode(flow, unit_flow, node))
                                           and not (unit_investLP(unit_flow) or unit_investMIP(unit_flow))}
     = - sum(flow${  flowUnit(flow, unit_flow)
                     and nu(node, unit_flow)

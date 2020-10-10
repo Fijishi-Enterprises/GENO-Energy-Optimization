@@ -576,8 +576,8 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
             // Capacity factors for flow units
             + sum(flowUnit(flow, unit),
                 + ts_cf_(flow, node, s, f, t)
-                ) // END sum(flow)
-            + 1${not unit_flow(unit)}
+                )$(sum(flow, flowUnitNode(flow, unit, node)) ) // END sum(flow)
+            + 1${not sum(flow, flowUnitNode(flow, unit, node)) }
             ] // END * p_unit(availability)
         * [
             // Online capacity restriction
@@ -712,8 +712,8 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
             // Capacity factor for flow units
             + sum(flowUnit(flow, unit),
                 + ts_cf_(flow, node, s, f, t)
-                ) // END sum(flow)
-            + 1${not unit_flow(unit)}
+                )$(sum(flow, flowUnitNode(flow, unit, node)) ) // END sum(flow)
+            + 1${not sum(flow, flowUnitNode(flow, unit, node)) }
             ] // END * p_unit(availability)
         * [
             // Online capacity restriction
