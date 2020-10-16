@@ -212,6 +212,7 @@ param_gn  "Possible parameters for grid, node" /
     boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
     boundAll      "A flag to bound the state to the reference in all time steps"
     boundStartToEnd  "Force the last states to equal the first state"
+    decay          "decay parameter for biomass USED IN THE WWTP MODEL"
     forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."
     capacityMargin "Capacity margin used in invest mode (MW)"
 *    defaultFrequency "default frequency for each node"
@@ -248,6 +249,8 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     investMIP     "A flag to make integer investment instead of continous investment (MW versus number of links)"
     unitSize      "Size of one link for integer investments (MW)"
     invCost       "Investment cost (EUR/MW)"
+    transferCost  "Direct transfer cost (EUR/MW)"
+    transferCoeff "Fixed coefficient for transfer of one node pair in relation to another node pair"
     annuity       "Investment annuity"
     portion_of_transfer_to_reserve "Portion to cover incase fail"
 /

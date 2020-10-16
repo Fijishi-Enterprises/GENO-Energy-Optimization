@@ -20,8 +20,8 @@ $offtext
 * =============================================================================
 
 * Reads changes or additions to the inputdata through changes.inc file.
-$ifthen exist '%input_dir%/changes.inc'
-   $$include '%input_dir%/changes.inc'
+$ifthen exist '%input_dir%/changes_SetsParam.inc'
+   $$include '%input_dir%/changes_SetsParam.inc'
 $endif
 
 $ifthen exist '%input_dir%/inputData.gdx'
@@ -41,6 +41,9 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc p_gn
     $$loaddc p_gnn
     $$loaddc p_gnu
+    $$loaddc ww_range
+    $$loaddc ww_flowType
+    $$loaddc ww_flowRange
     $$loaddc p_ww_threshold
     $$loaddc p_ww_A
     $$loaddc p_ww_dilution
@@ -75,6 +78,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc uGroup
     $$loaddc gnuGroup
     $$loaddc gn2nGroup
+    $$loaddc gn2nFlowType
     $$loaddc gnGroup
     $$loaddc p_groupPolicy
     $$loaddc p_groupPolicy3D

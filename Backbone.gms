@@ -105,6 +105,9 @@ $include 'inc/1e_inputs.gms'        // Load input data
 
 * === Variables and equations =================================================
 $include 'inc/2a_variables.gms'                         // Define variables for the models
+$ifthen exist '%input_dir%/2aa_additional_variables.inc'
+   $$include '%input_dir%/2aa_additional_variables.inc'
+$endif
 $include 'inc/2b_eqDeclarations.gms'                    // Equation declarations
 $ifthen exist '%input_dir%/2c_alternative_objective.gms'      // Objective function - either the default or an alternative from input files
     $$include '%input_dir%/2c_alternative_objective.gms';
@@ -112,8 +115,8 @@ $else
     $$include 'inc/2c_objective.gms'
 $endif
 $include 'inc/2d_constraints.gms'                       // Define constraint equations for the models
-$ifthen exist '%input_dir%/2e_additional_constraints.gms'
-   $$include '%input_dir%/2e_additional_constraints.gms'      // Define additional constraints from the input data
+$ifthen exist '%input_dir%/2e_additional_constraints.inc'
+   $$include '%input_dir%/2e_additional_constraints.inc'      // Define additional constraints from the input data
 $endif
 
 
@@ -170,3 +173,4 @@ if(execError,
    abort "FAILED";
 );
 * === THE END =================================================================
+

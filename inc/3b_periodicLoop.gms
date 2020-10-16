@@ -26,15 +26,15 @@ Option clear = v_gen;
 Option clear = v_state;
 Option clear = v_genRamp;
 Option clear = v_transfer;
-Option clear = v_flowState; // part of the WWTP model
+Option clear = v_flagState; // part of the WWTP model
+Option clear = v_flagTransfer; // part of the WWTP model
 // Integer Variables
 Option clear = v_online_MIP;
 Option clear = v_invest_MIP;
 Option clear = v_investTransfer_MIP;
-Option clear = v_flowFlag;   //part of the WWTP model
-Option clear = v_flowHelper; //part of the WWTP model
 // Binary Variables
 Option clear = v_help_inc;
+Option clear = v_flowFlag;   //part of the WWTP model
 // SOS2 Variables
 Option clear = v_sos2;
 // Positive Variables
@@ -66,7 +66,6 @@ Option clear = vq_capacity;
 // Objective Function, Energy Balance, and Reserve demand
 Option clear = q_obj;
 Option clear = q_balance;
-Option clear = q_ww_balance; //Specific balance equation for the WWTP reaction nodes
 Option clear = q_resDemand;
 Option clear = q_resDemandLargestInfeedUnit;
 Option clear = q_rateOfChangeOfFrequencyUnit;
@@ -132,19 +131,24 @@ Option clear = q_energyShareMax;
 Option clear = q_energyShareMin;
 Option clear = q_ReserveShareMax;
 
-//Switching function of the WWTP model
-Option clear = q_lowerLimit_flag;
-Option clear = q_lowerLimit_flow;
-Option clear = q_upperLimit_flag;
-Option clear = q_upperLimit_flow;
-Option clear = q_flowSum;
 
-//Helper constraints for the binary variables in the WWTP model
-Option clear = q_ww_help1;
-Option clear = q_ww_help2;
-Option clear = q_ww_help3;
-Option clear = q_ww_help4;
-Option clear = q_ww_help5;
+//Switching function of the WWTP model
+Option clear = q_ww_lowerLimit;
+Option clear = q_ww_upperLimit;
+Option clear = q_ww_limithelp1;
+Option clear = q_ww_limithelp2;
+Option clear = q_ww_limithelp3;
+Option clear = q_ww_flowSum;
+Option clear = q_ww_transferShareInfluent;
+Option clear = q_ww_transferShareEffluent;
+
+//Specific balance equation for the WWTP reaction nodes
+Option clear = q_ww_balance;
+
+//Helper constraints for the variables in the WWTP model
+Option clear = q_ww_flagState1;
+Option clear = q_ww_flagState2;
+Option clear = q_ww_flagState3;
 
 * --- Temporary Time Series ---------------------------------------------------
 

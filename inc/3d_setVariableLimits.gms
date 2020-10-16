@@ -536,10 +536,4 @@ if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on
         = r_online(unit, f, t);
 ); // END if
 
-* =============================================================================
-* --- Variable limits for the wastewater treatment model ----------------------
-* =============================================================================
 
-v_flowState.lo(gn(grid, node), ww_flowRangeflowRange(ww_in, ww_range, ww_air, ww_range_), sft(s, f, t))${ gnGroup(grid, node, 'ww_reactionGroup')}
-
-= 0; //v_flowState [interaction term of the binary v_flowHelper and v_state] has zero as a lower bound

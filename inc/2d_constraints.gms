@@ -23,8 +23,8 @@ $offtext
 * --- Energy Balance ----------------------------------------------------------
 
 q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics solved using implicit Euler discretization
-    ${  not {p_gn(grid, node, 'boundAll') and gnGroup(grid, node, 'ww_reactionGroup')
-           }
+    ${  not [p_gn(grid, node, 'boundAll')
+        or gnGroup(grid, node, 'ww_reactionGroup')]
         } ..
 
     // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
@@ -37,7 +37,7 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
     =E=
 
     // The right side of the equation contains all the changes converted to energy terms
-    + p_stepLength(m, f, t) // Multiply with the length of the timestep to convert power into energy
+    + p_stepLength(m, f, t) * [((1/p_stepLength(m, f, t))${gn_state('wastewater', node)}) + 1${not gn_state('wastewater', node)}] // Multiply with the length of the timestep to convert power into energy
         * (
             // Self discharge out of the model boundaries
             - p_gn(grid, node, 'selfDischargeLoss')${ gn_state(grid, node) }
@@ -3003,7 +3003,3 @@ q_ReserveShareMax(group, restypeDirectionGroup(restype, up_down, group_), sft(s,
 
           ] // END * p_groupPolicy
 ;
-
-$ifthen exist '%input_dir%/additional_constraints.inc'
-   $$include '%input_dir%/additional_constraints.inc'
-$endif
