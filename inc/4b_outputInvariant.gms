@@ -64,6 +64,15 @@ loop(m,
                       ] // END * r_startup
               ); // END sum(starttype)
 
+    //Wheeling Costs
+    r_gnnWheelingCost(gn2n_directional(grid, node_, node), ft_realizedNoReset(f,t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
+        = 1e-6 // Scaling to MEUR
+            * p_stepLengthNoReset(m, f, t)
+                    *[+ p_gnn(grid, node, node_, 'wheeling')
+                    * r_transferLeftward(grid, node_, node, f, t)
+                    + p_gnn(grid, node_, node, 'wheeling')
+                    * r_transferRightward(grid, node_, node, f, t)];
+
     // Node state slack costs
     r_gnStateSlackCost(gn_stateSlack(grid, node), ft_realizedNoReset(f,t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
         = 1e-6 // Scaling to MEUR
@@ -99,6 +108,13 @@ loop(m,
     r_gnuTotalVOMCost(gnu_output(grid, node, unit))
         = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
             + r_gnuVOMCost(grid, node, unit, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
+            );
+
+    // Total Wheeling costs
+    r_gnnTotalWheelingCost(gn2n_directional(grid, node_, node))
+        = sum(ft_realizedNoReset(f,t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
+            + r_gnnWheelingCost(grid, node_, node, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
 
@@ -187,6 +203,10 @@ loop(m,
                   + sum(un_commodity(unit, commodity), r_uFuelEmissionCost(commodity, unit, f, t))
                   + r_uStartupCost(unit, f, t)
                 }
+            )
+          + sum(gn2n_directional(grid, node_, node),
+              // wheeling costs
+              + r_gnnWheelingCost(grid, node_, node, f, t)
             )
           // Node state slack costs
           + r_gnStateSlackCost(grid, node, f, t);

@@ -124,6 +124,14 @@ loop(sft_realized(s, f, t),
     r_transfer(gn2n(grid, from_node, to_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
         = v_transfer.l(grid, from_node, to_node, s, f, t)
     ;
+    // Transfer of energy from first node to second node
+    r_transferRightward(gn2n_directional(grid, from_node, to_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_transferRightward.l(grid, from_node, to_node, s, f, t)
+    ;
+    // Transfer of energy from second node to first node
+    r_transferLeftward(gn2n_directional(grid, to_node, from_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_transferLeftward.l(grid, to_node, from_node, s, f, t)
+    ;
     // Energy spilled from nodes
     r_spill(gn(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
         = v_spill.l(grid, node, s, f, t)

@@ -36,6 +36,8 @@ r_uTotalStartupCost
 r_gnStateSlackCost
 r_gnTotalStateSlackCost
 r_gnStorageValueChange
+r_gnnWheelingCost
+r_gnnTotalWheelingCost
 
 // Investment and Fixed Operation and Maintenance Cost Components
 r_gnuFOMCost
@@ -70,6 +72,8 @@ r_stateSlack
 
 // Energy transfer and spill variable results
 r_transfer
+r_transferRightward
+r_transferLeftward
 r_spill
 
 // Interesting node related results

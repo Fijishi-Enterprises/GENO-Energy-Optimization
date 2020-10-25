@@ -259,6 +259,7 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     portion_of_transfer_to_reserve "Portion of the infeed from the unit that needs to be available as reserve if the unit fails"
     ICrampUp
     ICrampDown
+    Wheeling     "Variable cost applied to transfers (EUR/MW)"
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /
