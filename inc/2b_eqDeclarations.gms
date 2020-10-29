@@ -116,6 +116,7 @@ equations
     q_capacityMargin(grid, node, s, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
     q_constrainedCapMultiUnit(group) "Constrained unit number ratios and sums for a group of units"
     q_emissioncap(group, emission) "Limit for emissions"
+    q_energyMax(group) "Maximum energy production or consumption from a group of units"
     q_energyShareMax(group) "Maximum energy share of generation and import from a group of units"
     q_energyShareMin(group) "Minimum energy share of generation and import from a group of units"
     q_ReserveShareMax(group, restype, up_down, group, s, f, t) "Maximum reserve share of a group of units"

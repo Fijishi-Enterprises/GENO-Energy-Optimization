@@ -353,6 +353,8 @@ param_policy "Set of possible data parameters for groups or grid, node, regulati
     emissionTax   "Emission tax (EUR/tonne)"
     emissionCap   "Emission limit (tonne)"
     instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
+    energyMax      "Maximum energy production or consumption from a particular group of units over samples"
+    energyMaxVgenSign "Sign for v_gen in the maximum energy constraint - use -1 when you need a minimum energy constraint (then also energyMax should be negative)"
     energyShareMax "Maximum energy share of generation from a particular group of units"
     energyShareMin "Minimum energy share of generation from a particular group of units"
     constrainedCapMultiplier "Multiplier a(i) for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"

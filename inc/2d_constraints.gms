@@ -2519,7 +2519,7 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
                   and sft_realized(s, f, t)]
         and p_groupPolicy(group, 'ROCOF')
         and p_groupPolicy(group, 'defaultFrequency')
-        and p_groupPolicy(group, 'staticInertia')     
+        and p_groupPolicy(group, 'staticInertia')
         } ..
 
     // Rotational energy in the system
@@ -2821,6 +2821,40 @@ q_emissioncap(group, emission)
 
     // Permitted nodal emission cap
     + p_groupPolicy3D(group, 'emissionCap', emission)
+;
+
+*--- Maximum Energy -----------------------------------------------------------
+
+q_energyMax(group)
+    ${  p_groupPolicy(group, 'energyMax')
+        } ..
+
+    + sum(msft(m, s, f, t)${sGroup(s, group)},
+        + p_msft_Probability(m,s,f,t)
+            * p_stepLength(m, f, t)
+            * [
+                + 1${not p_groupPolicy(group, 'energyMaxVgenSign')}
+                + p_groupPolicy(group, 'energyMaxVgenSign') // Multiply by -1 in order to convert to minimum energy constraint
+                ]
+            * [
+                // Production of units in the group
+                + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
+                                                        and gnuft(grid, node, unit, f, t)
+                                                        },
+                    + v_gen(grid, node, unit, s, f, t)
+                    ) // END sum(gnu)
+                // Consumption of units in the group
+                + sum(gnu_input(grid, node, unit)${    gnuGroup(grid, node, unit, group)
+                                                       and gnuft(grid, node, unit, f, t)
+                                                       },
+                    - v_gen(grid, node, unit, s, f, t)
+                    ) // END sum(gnu)
+                ] // END * p_stepLength
+        ) // END sum(msft)
+
+    =L=
+
+    + p_groupPolicy(group, 'energyMax') // Use negative energyMax value if you need a "minimum energy" equation
 ;
 
 *--- Maximum Energy Share -----------------------------------------------------
