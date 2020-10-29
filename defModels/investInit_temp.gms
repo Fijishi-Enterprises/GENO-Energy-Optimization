@@ -129,7 +129,7 @@ if (mType('invest'),
     mSettingsEff('invest', 'level1') = inf;
 
     // Define the horizon when start-up and shutdown trajectories are considered
-    mSettings('invest', 't_trajectoryHorizon') = 8760;
+    mSettings('invest', 't_trajectoryHorizon') = 0;
 
 * --- Define output settings for results --------------------------------------
 
