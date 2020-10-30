@@ -255,6 +255,13 @@ q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_f
 ;
 
 * --- ROCOF Limit -- Units ----------------------------------------------------
+* This equation is based on the following general equation describing the rate-of-change-of-frequency in the system
+* (2*H/f_n)*(f_sys/f_n)*(df_sys/dt) = (\Delta P)/S_sys
+* where H is the inertia constant, S_sys is the aggregated sum of apparent power, f_n is the nominal frequency,
+* f_sys is the system frequency, df_sys/dt is the rate of change of the system frequency, and \Delta P is the
+* imbalance in the MW-power.
+* \Delta P depends on the output of units that can fail and the available 'inertia reserve' (fast frequency reserve, FFR).
+* Note: Use inertia reserve provision of transfer links with caution!
 
 q_rateOfChangeOfFrequencyUnit(restypeDirectionGroup(restype_inertia, up_down, group), unit_fail(unit_), sft(s, f, t))
     ${  p_groupPolicy(group, 'defaultFrequency')
@@ -288,18 +295,25 @@ q_rateOfChangeOfFrequencyUnit(restypeDirectionGroup(restype_inertia, up_down, gr
 
     // Demand for kinetic/rotational energy due to a large unit that could fail
     + p_groupPolicy(group, 'defaultFrequency')
-        * [sum(gnu_output(grid, node, unit_)${   gnGroup(grid, node, group)
-                                                },
-            + v_gen(grid, node, unit_ , s, f, t)
-            ) // END sum(gnu_output)
-    // less the available FFR
+        * [
+            + sum(gnu_output(grid, node, unit_)${   gnGroup(grid, node, group)
+                                                    },
+                + v_gen(grid, node, unit_ , s, f, t)
+                ) // END sum(gnu_output)
+
+            // less the available FFR
             - sum(gnu(grid, node, unit)${   gnGroup(grid, node, group)
                                             and gnuft(grid, node, unit, f, t)
                                             and gnuRescapable(restype_inertia, up_down, grid, node, unit)
                                             },
-                + v_reserve(restype_inertia, up_down, grid, node, unit, s, f, t)
+                + v_reserve(restype_inertia, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype_inertia, f, t), t)
+                    * [ // Account for reliability of reserves
+                        + 1${sft_realized(s, f+df_reserves(grid, node, restype_inertia, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                        + p_gnuReserves(grid, node, unit, restype_inertia, 'reserveReliability')${not sft_realized(s, f+df_reserves(grid, node, restype_inertia, f, t), t)}
+                        ] // END * v_reserve
                 ) // END sum(gnu)
-    // less reserve provision to this group via transfer links
+
+            // less reserve provision to this group via transfer links
             - sum(gn2n_directional(grid, node_, node)${ gnGroup(grid, node, group)
                                                         and not gnGroup(grid, node_, group)
                                                         and restypeDirectionGridNodeNode(restype_inertia, 'up', grid, node_, node)
@@ -315,10 +329,23 @@ q_rateOfChangeOfFrequencyUnit(restypeDirectionGroup(restype_inertia, up_down, gr
                     * v_resTransferLeftward(restype_inertia, 'up', grid, node, node_, s, f+df_reserves(grid, node_, restype_inertia, f, t), t) // Reserves from another node - reduces the need for reserves in the node
                 ) // END sum(gn2n_directional)
 
-          ]
+            // Reserve demand feasibility dummy variables
+            - vq_resDemand(restype_inertia, up_down, group, s, f+df_reservesGroup(group, restype_inertia, f, t), t)
+            - vq_resMissing(restype_inertia, up_down, group, s, f+df_reservesGroup(group, restype_inertia, f, t), t)${
+                ft_reservesFixed(group, restype_inertia, f+df_reservesGroup(group, restype_inertia, f, t), t)}
+
+          ] // END * p_groupPolicy
 ;
 
 * --- ROCOF Limit -- Transfer Links -------------------------------------------
+* This equation is based on the following general equation describing the rate-of-change-of-frequency in the system
+* (2*H/f_n)*(f_sys/f_n)*(df_sys/dt) = (\Delta P)/S_sys
+* where H is the inertia constant, S_sys is the aggregated sum of apparent power, f_n is the nominal frequency,
+* f_sys is the system frequency, df_sys/dt is the rate of change of the system frequency, and \Delta P is the
+* imbalance in the MW-power.
+* \Delta P depends on the transfer of the interconnections that can fail and the available 'inertia reserve' (fast
+* frequency reserve, FFR).
+* Note: Use inertia reserve provision of transfer links with caution!
 
 q_rateOfChangeOfFrequencyTransfer(restypeDirectionGroup(restype_inertia, up_down, group), gn2n(grid, node_, node_fail), sft(s, f, t))
     ${  p_groupPolicy(group, 'defaultFrequency')
@@ -367,29 +394,42 @@ q_rateOfChangeOfFrequencyTransfer(restypeDirectionGroup(restype_inertia, up_down
                 * v_transferLeftward(grid, node_fail, node_, s, f, t)${gn2n_directional(grid, node_fail, node_)}
             + p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_reserve')
                 * v_transferRightward(grid, node_, node_fail, s, f, t)${gn2n_directional(grid, node_, node_fail)}
+
+            // less the available FFR
             - sum(gnu(grid, node, unit)${   gnGroup(grid, node, group)
                                             and gnuft(grid, node, unit, f, t)
                                             and gnuRescapable(restype_inertia, up_down, grid, node, unit)
                                             },
-                + v_reserve(restype_inertia, up_down, grid, node, unit, s, f, t)
+                + v_reserve(restype_inertia, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype_inertia, f, t), t)
+                    * [ // Account for reliability of reserves
+                        + 1${sft_realized(s, f+df_reserves(grid, node, restype_inertia, f, t), t)} // reserveReliability limits the reliability of reserves locked ahead of time.
+                        + p_gnuReserves(grid, node, unit, restype_inertia, 'reserveReliability')${not sft_realized(s, f+df_reserves(grid, node, restype_inertia, f, t), t)}
+                        ] // END * v_reserve
                 ) // END sum(gnu)
-                // Reserve provision to this group via transfer links
-                - sum(gn2n_directional(grid, node_, node)${ gnGroup(grid, node, group)
-                                                            and not gnGroup(grid, node_, group)
-                                                            and not (sameas(node_, node) and sameas(node, node_fail)) // excluding the failing link
-                                                            and restypeDirectionGridNodeNode(restype_inertia, up_down, grid, node_, node)
+
+            // less reserve provision to this group via transfer links
+            - sum(gn2n_directional(grid, node_left, node)${ gnGroup(grid, node, group)
+                                                            and not gnGroup(grid, node_left, group)
+                                                            and not (sameas(node_, node) and sameas(node_left, node_fail)) // excluding the failing link
+                                                            and restypeDirectionGridNodeNode(restype_inertia, up_down, grid, node_left, node)
                                                             },
-                    + (1 - p_gnn(grid, node_, node, 'transferLoss') )
-                        * v_resTransferRightward(restype_inertia, up_down, grid, node_, node, s, f+df_reserves(grid, node_, restype_inertia, f, t), t)
-                    ) // END sum(gn2n_directional)
-                - sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
-                                                            and not gnGroup(grid, node_, group)
-                                                            and not (sameas(node, node_) and sameas(node_, node_fail)) // excluding the failing link
-                                                            and restypeDirectionGridNodeNode(restype_inertia, up_down, grid, node_, node)
-                                                            },
-                   + (1 - p_gnn(grid, node, node_, 'transferLoss') )
-                       * v_resTransferLeftward(restype_inertia, up_down, grid, node, node_, s, f+df_reserves(grid, node_, restype_inertia, f, t), t)
-                   ) // END sum(gn2n_directional)
+                + (1 - p_gnn(grid, node_left, node, 'transferLoss') )
+                    * v_resTransferRightward(restype_inertia, up_down, grid, node_left, node, s, f+df_reserves(grid, node_left, restype_inertia, f, t), t)
+                ) // END sum(gn2n_directional)
+            - sum(gn2n_directional(grid, node, node_right)${ gnGroup(grid, node, group)
+                                                             and not gnGroup(grid, node_right, group)
+                                                             and not (sameas(node, node_) and sameas(node_right, node_fail)) // excluding the failing link
+                                                             and restypeDirectionGridNodeNode(restype_inertia, up_down, grid, node_right, node)
+                                                             },
+               + (1 - p_gnn(grid, node, node_right, 'transferLoss') )
+                   * v_resTransferLeftward(restype_inertia, up_down, grid, node, node_right, s, f+df_reserves(grid, node_right, restype_inertia, f, t), t)
+               ) // END sum(gn2n_directional)
+
+            // Reserve demand feasibility dummy variables
+            - vq_resDemand(restype_inertia, up_down, group, s, f+df_reservesGroup(group, restype_inertia, f, t), t)
+            - vq_resMissing(restype_inertia, up_down, group, s, f+df_reservesGroup(group, restype_inertia, f, t), t)${
+                ft_reservesFixed(group, restype_inertia, f+df_reservesGroup(group, restype_inertia, f, t), t)}
+
             ] // END * p_groupPolicy
 ;
 
@@ -2559,6 +2599,13 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
 ;
 
 *--- Minimum Inertia ----------------------------------------------------------
+* This equation is based on the following general equation describing the rate-of-change-of-frequency in the system
+* (2*H/f_n)*(f_sys/f_n)*(df_sys/dt) = (\Delta P)/S_sys
+* where H is the inertia constant, S_sys is the aggregated sum of apparent power, f_n is the nominal frequency,
+* f_sys is the system frequency, df_sys/dt is the rate of change of the system frequency, and \Delta P is the
+* imbalance in the MW-power.
+* \Delta P is a static value less the available 'inertia reserve' (fast frequency reserve, FFR).
+* Note: Use inertia reserve provision of transfer links with caution!
 
 q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t))
     ${  ord(t) < tSolveFirst + p_groupReserves(group, restype_inertia, 'reserve_length')
@@ -2593,7 +2640,10 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
     // Demand for rotational energy / fast frequency reserve
     + p_groupPolicy(group, 'defaultFrequency')
         * [
+            // static demand
             + p_groupReserves(group, restype_inertia, up_down)
+
+            // less the available FFR
             - sum(gnuft(grid, node, unit, f, t)${   gnGroup(grid, node, group)
                                                     and gnuRescapable(restype_inertia, up_down, grid, node, unit)
                                                     },
@@ -2603,6 +2653,22 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
                         + p_gnuReserves(grid, node, unit, restype_inertia, 'reserveReliability')${not sft_realized(s, f+df_reserves(grid, node, restype_inertia, f, t), t)}
                         ] // END * v_reserve
                 ) // END sum(gnuft)
+
+            // less reserve provision to this group via transfer links
+            - sum(gn2n_directional(grid, node_, node)${ gnGroup(grid, node, group)
+                                                        and not gnGroup(grid, node_, group)
+                                                        and restypeDirectionGridNodeNode(restype_inertia, up_down, grid, node_, node)
+                                                        },
+                + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+                    * v_resTransferRightward(restype_inertia, up_down, grid, node_, node, s, f+df_reserves(grid, node_, restype_inertia, f, t), t) // Reserves from another node - reduces the need for reserves in the node
+                ) // END sum(gn2n_directional)
+            - sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
+                                                        and not gnGroup(grid, node_, group)
+                                                        and restypeDirectionGridNodeNode(restype_inertia, up_down, grid, node_, node)
+                                                        },
+                + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+                    * v_resTransferLeftward(restype_inertia, up_down, grid, node, node_, s, f+df_reserves(grid, node_, restype_inertia, f, t), t) // Reserves from another node - reduces the need for reserves in the node
+                ) // END sum(gn2n_directional)
 
             // Reserve demand feasibility dummy variables
             - vq_resDemand(restype_inertia, up_down, group, s, f+df_reservesGroup(group, restype_inertia, f, t), t)

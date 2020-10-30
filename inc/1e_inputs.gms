@@ -636,6 +636,35 @@ loop( unit_investMIP(unit),
     ); // END if
 ); // END loop(unit_investMIP)
 
+* --- Check static or dynamic ROCOF related data ------------------------------
+
+// Check that default frequency and static or dynamic constraint exists if ROCOF is defined
+loop( group,
+    if(p_groupPolicy(group, 'ROCOF') and not p_groupPolicy(group, 'defaultFrequency'),
+        put log '!!! Error occurred on group ', group.tl:0 /;
+        put log '!!! Abort: p_groupPolicy(group, ROCOF) is defined without defaultFrequency!' /;
+        abort "Default frequency should be defined if ROCOF is defined!"
+    ); // END if
+    if(p_groupPolicy(group, 'ROCOF')
+            and not (p_groupPolicy(group, 'dynamicInertia') or p_groupPolicy(group, 'staticInertia')),
+        put log '!!! Error occurred on group ', group.tl:0 /;
+        put log '!!! Abort: p_groupPolicy(group, ROCOF) is defined without dynamicInertia or staticInertia!' /;
+        abort "Static or dynamic inertia requirement should be defined if ROCOF is defined!"
+    ); // END if
+    if((p_groupPolicy(group, 'ROCOF') and p_groupPolicy(group, 'staticInertia'))
+            and not sum(restypeDirectionGroup(restype_inertia, up_down, group), p_groupReserves(group, restype_inertia, up_down)),
+        put log '!!! Warning: ROCOF and staticInertia defined without p_groupReserves(group, restype_inertia, up_down).' /;
+    ); // END if
+); // END loop(group)
+// Check that units cannot provide both rotational energy and 'inertia reserve'
+loop( gnu(grid, node, unit),
+    if((p_gnu(grid, node, unit, 'inertia') and p_gnu(grid, node, unit, 'unitSizeMVA'))
+            and sum((restype_inertia, up_down), gnuRescapable(restype_inertia, up_down, grid, node, unit)),
+        put log '!!! Error occurred on unit ', unit.tl:0 /;
+        put log '!!! Abort: Unit has inertia and unitSizeMVA parameters but it can also provide restype_inertia!' /;
+        abort "The same unit should not be able to provide both rotational energy and 'inertia reserve'!"
+    ); // END if
+); // END loop(unit_investMIP)
 
 * =============================================================================
 * --- Default values  ---------------------------------------------------------
