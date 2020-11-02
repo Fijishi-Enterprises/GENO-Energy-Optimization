@@ -5,6 +5,8 @@
 * Output file streams
 file f_changes /'output\changes.inc'/;
 
+f_changes.lw = 26; // Field width of set label output, default in GAMS is 12, increase as needed
+
 put f_changes
 
 * Do not allow investments in the child setups
