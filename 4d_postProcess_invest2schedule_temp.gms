@@ -6,6 +6,7 @@
 file f_changes /'output\changes.inc'/;
 
 f_changes.lw = 26; // Field width of set label output, default in GAMS is 12, increase as needed
+f_changes.pw = 500; // Number of characters that may be placed on a single row of the page, default in GAMS is 255, increase as needed
 
 put f_changes
 
