@@ -1,0 +1,15 @@
+q_ww_lowerLimit
+q_ww_upperLimit
+q_ww_limithelp1
+q_ww_limithelp2
+q_ww_limithelp3
+
+q_ww_flowSum
+q_ww_transferShareInfluent
+q_ww_transferShareEffluent
+
+q_ww_balance
+
+q_ww_flagState1
+q_ww_flagState2
+q_ww_flagState3
