@@ -36,8 +36,8 @@ r_uTotalStartupCost
 r_gnStateSlackCost
 r_gnTotalStateSlackCost
 r_gnStorageValueChange
-r_gnnWheelingCost
-r_gnnTotalWheelingCost
+r_gnnVariableTransCost
+r_gnnTotalVariableTransCost
 
 // Investment and Fixed Operation and Maintenance Cost Components
 r_gnuFOMCost

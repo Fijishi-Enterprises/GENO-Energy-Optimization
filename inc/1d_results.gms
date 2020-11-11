@@ -39,8 +39,8 @@ Parameters
     r_gnStateSlackCost(grid, node, f, t) "Costs for states requiring slack (MEUR)"
     r_gnTotalStateSlackCost(grid, node) "Total costs for state slacks over the simulation (MEUR)"
     r_gnStorageValueChange(grid, node) "Change in storage values over the simulation (MEUR)"
-    r_gnnWheelingCost(grid, node_,node, f, t) "Wheeling costs (MEUR)"
-    r_gnnTotalWheelingCost(grid, node_, node) "Total wheeling costs over the simulation (MEUR)"
+    r_gnnVariableTransCost(grid, node_,node, f, t) "Variable Transfer costs (MEUR)"
+    r_gnnTotalVariableTransCost(grid, node_, node) "Total Variable Transfer costs over the simulation (MEUR)"
 
     // Investment and Fixed Operation and Maintenance Cost Components
     r_gnuFOMCost(grid, node, unit) "Total gnu fixed O&M costs over the simulation (MEUR)"
