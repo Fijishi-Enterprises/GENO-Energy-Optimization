@@ -399,6 +399,23 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
 // NOTE! Reserves can be disabled through the model settings file.
 // The sets are disabled in "3a_periodicInit.gms" accordingly.
 
+* --- Correct values for critical reserve related parameters - Part 1 ---------
+
+// Reserve activation duration assumed to be 1 hour if not provided in data
+p_groupReserves(group, restype, 'reserve_activation_duration')
+    ${  not p_groupReserves(group, restype, 'reserve_activation_duration')
+        and p_groupReserves(group, restype, 'reserve_length')
+        }
+    = 1;
+// Reserve reactivation time assumed to be 1 hour if not provided in data
+p_groupReserves(group, restype, 'reserve_reactivation_time')
+    ${  not p_groupReserves(group, restype, 'reserve_reactivation_time')
+        and p_groupReserves(group, restype, 'reserve_length')
+        }
+    = 1;
+
+* --- Copy reserve data and create necessary sets -----------------------------
+
 // Copy data from p_groupReserves to p_gnReserves
 loop(gnGroup(grid, node, group)${sum(restype, p_groupReserves(group, restype, 'reserve_length'))},
     p_gnReserves(grid, node, restype, param_policy) = p_groupReserves(group, restype, param_policy);
@@ -454,7 +471,7 @@ restypeDirectionGridNodeGroup(restypeDirection(restype, up_down), gnGroup(grid, 
       }
   = yes;
 
-* --- Correct values for critical reserve related parameters ------------------
+* --- Correct values for critical reserve related parameters - Part 2 ---------
 
 // Reserve reliability assumed to be perfect if not provided in data
 p_gnuReserves(gnu(grid, node, unit), restype, 'reserveReliability')
@@ -586,14 +603,22 @@ loop( unitStarttype(unit, starttypeConstrained),
 
 * --- Check reserve related data ----------------------------------------------
 
-// Check that reserve_length is long enough for properly commitment of reserves
-loop( restypeDirectionGridNode(restype, up_down, grid, node),
-    // Check that reserve_length is long enough for properly commitment of reserves
-    if(p_gnReserves(grid, node, restype, 'reserve_length') < p_gnReserves(grid, node, restype, 'update_frequency') + p_gnReserves(grid, node, restype, 'gate_closure'),
-        put log '!!! Error occurred on node ', node.tl:0 /;
+loop( restypeDirectionGroup(restype, up_down, group),
+    // Check that reserve_length is long enough for proper commitment of reserves
+    if(p_groupReserves(group, restype, 'reserve_length') < p_groupReserves(group, restype, 'update_frequency') + p_groupReserves(group, restype, 'gate_closure'),
+        put log '!!! Error occurred on group ', group.tl:0 /;
         put log '!!! Abort: The reserve_length parameter should be longer than update_frequency + gate_closure to fix the reserves properly!' /;
         abort "The 'reserve_length' parameter should be longer than 'update_frequency' + 'gate_closure' to fix the reserves properly!"
     ); // END if
+    // Check that the duration of reserve activation is less than the reserve reactivation time
+    if(p_groupReserves(group, restype, 'reserve_reactivation_time') < p_groupReserves(group, restype, 'reserve_activation_duration'),
+        put log '!!! Error occurred on group ', group.tl:0 /;
+        put log '!!! Abort: The reserve_reactivation_time should be greater than or equal to the reserve_activation_duration!' /;
+        abort "The reserve_reactivation_time should be greater than or equal to the reserve_activation_duration!"
+    ); // END if
+); // END loop(restypeDirectionGroup)
+
+loop( restypeDirectionGridNode(restype, up_down, grid, node),
     // Check for each restype that a node does not belong to multiple groups
     if(sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group), 1) > 1,
         put log '!!! Error occurred on node ', node.tl:0 /;
@@ -606,7 +631,7 @@ loop( restypeDirectionGridNode(restype, up_down, grid, node),
         put log '!!! Abort: A node with reserve provision/transfer capability has to belong to a reserve node group!' /;
         abort "A node with reserve provision/transfer capability has to belong to a reserve node group!"
     ); // END if
-); // END loop(restypeDirectionNode)
+); // END loop(restypeDirectionGridNode)
 
 // Check that reserve overlaps are possible
 loop( (gnu(grid, node, unit), restypeDirection(restype, up_down)),
