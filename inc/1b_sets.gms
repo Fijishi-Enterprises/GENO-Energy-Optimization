@@ -40,7 +40,7 @@ Sets
     unit_slope(unit) "Units with piecewise linear efficiency constraints"
     unit_noSlope(unit) "Units without piecewise linear efficiency constraints"
     unitAggregator_unit(unit, unit) "Aggregate unit linked to aggregated units"
-    unitUnitEffLevel(unit, unit, EffLevel) "Aggregator unit linke to aggreted units with a definition when to start the aggregation"
+    unitUnitEffLevel(unit, unit, EffLevel) "Aggregator unit linked to aggreted units with a definition when to start the aggregation"
     flowUnit(flow, *) "Units or storages linked to a certain energy flow time series"
     unitUnittype(unit, *) "Link generation technologies to types"
     unitStarttype(unit, starttype) "Units with special startup properties"
