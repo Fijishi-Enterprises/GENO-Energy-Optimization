@@ -226,11 +226,11 @@ param_gn  "Possible parameters for grid, node" /
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
-    upwardLimit   "Absolute maximum state of the node (unit depends on energyCapacity)"
-    downwardLimit "Absolute minimum energy in the node (unit depends on energyCapacity)"
-    upwardSlack01*upwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit depends on energyCapacity)"
-    downwardSlack01*downwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit depends on energyCapacity)"
-    reference     "Reference value for a state that can be used to bound a state (unit depends on energyCapacity)"
+    upwardLimit   "Absolute maximum state of the node (unit of measure depends on energyStoredPerUnitOfState)"
+    downwardLimit "Absolute minimum energy in the node (unit of measure depends on energyStoredPerUnitOfState)"
+    upwardSlack01*upwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit of measure depends on energyStoredPerUnitOfState)"
+    downwardSlack01*downwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit of measure depends on energyStoredPerUnitOfState)"
+    reference     "Reference value for a state that can be used to bound a state (unit of measure depends on energyStoredPerUnitOfState)"
     maxSpill      "Maximum spill rate from the node (MWh/h)"
     minSpill      "Minimum spill rate from the node (MWh/h)"
     balancePenalty "Penalty value for violating the energy balance of that particular node (EUR/MWh) (can be interpretated as the energy price in certain settings)"
