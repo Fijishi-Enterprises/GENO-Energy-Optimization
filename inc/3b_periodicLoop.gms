@@ -450,7 +450,7 @@ loop(mf_realization(mSolve, f_),
 );
 // Central forecast for the long-term scenarios comes from a special forecast label
 Option clear = df_scenario;
-if(mSettings(mSolve, 'scenarios') > 1,
+if(mSettings(mSolve, 'scenarios') >= 1,
     loop((msft(ms_central(mSolve, s), f, t), mf_scenario(mSolve, f_)),
         df_scenario(ft(f, t)) = ord(f_) - ord(f);
     );
