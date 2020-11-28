@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## 1.1.5
 ### Fixed
 - Long-term scenario data when using only one scenario
+- Bug with scenario smooting which caused wrong values on later than first solve
 
 ## 1.1.4
 ### Fixed
