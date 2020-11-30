@@ -1,0 +1,17 @@
+{
+    "name": "BB_base_sets",
+    "tooltype": "gams",
+    "includes": [
+        "Backbone_base_sets_to_gdx.gms"
+    ],
+    "description": "Make Bacbkone base sets and output them to GDX",
+    "inputfiles": [],
+    "inputfiles_opt": [],
+    "outputfiles": [
+        "Backbone_base_sets.gdx",
+        "Backbone_base_sets_to_gdx.lst"
+    ],
+    "cmdline_args": [],
+    "execute_in_work": true,
+    "includes_main_path": "C:/HJY_projects/spine/Case_study_B3/BB_in_Spine"
+}
