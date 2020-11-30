@@ -1,0 +1,23 @@
+{
+    "name": "Backbone",
+    "type": "gams",
+    "short_name": "backbone",
+    "description": "Backbone energy systems model",
+    "files": ["Backbone.gms",
+              "inc/*.gms",
+              "cplex.opt",
+              "inc/rampSched/*.gms",
+              "defModels/*.gms",
+              "defOutput/*.inc"],
+    "cmdline_args": "",
+    "datafiles": [],
+    "datafiles_opt": ["input/*.gms",
+                      "input/*.gdx",
+                      "input/*.inc",
+                      "input/ts_cf/*.gdx",
+                      "input/ts_reserveDemand/*.gdx",
+                      "input/ts_influx/*.gdx"],
+    "outfiles": ["output/debug.gdx",
+                 "output/results.gdx",
+                 "output/info.txt"]
+}

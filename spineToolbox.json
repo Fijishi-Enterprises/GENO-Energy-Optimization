@@ -12,8 +12,8 @@
     ],
     "description": "Backbone",
     "inputfiles": [
-        "input/modelsInit.gms",
-        "input/inputData.gdx"
+        "input/inputData.gdx",
+        "input/modelsInit.gms"
     ],
     "inputfiles_opt": [
         "input/*.*"
@@ -24,5 +24,5 @@
     ],
     "cmdline_args": [],
     "execute_in_work": true,
-    "includes_main_path": "C:/HJY_projects/spine/Case_study_B3/BB_in_Spine"
+    "includes_main_path": "C:/data/backbone"
 }
