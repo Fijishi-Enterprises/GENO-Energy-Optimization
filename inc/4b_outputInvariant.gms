@@ -591,15 +591,15 @@ d_cop(unit, ft_realizedNoReset(f, t))${  [ord(t) > mSettings(m, 't_start') + mSe
             ]
         + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 
-// Estimated efficiency
+// Estimated efficiency, calculated from commodity based inputs
 d_eff(unit_commodity(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
     = sum(gnu_output(grid, node, unit),
         + r_gen(grid, node, unit, f, t)
         ) // END sum(gnu_output)
-        / [ sum(uFuel(unit, 'main', fuel),
-                + r_fuelUse(fuel, unit, f, t)
-                ) // END sum(uFuel)
-            + 1${not sum(uFuel(unit, 'main', fuel), r_fuelUse(fuel, unit, f, t))}
+        / [ sum(gnu_input(grid, node, unit)$un_commodity(unit, node),
+                + r_fuelUse(node, unit, f, t)
+                ) // END sum(gnu_input)
+            + 1${not sum(gnu_input(grid, node, unit)$un_commodity(unit, node), r_fuelUse(node, unit, f, t))}
             ]
         + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 $endif.diag
