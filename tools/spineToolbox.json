@@ -12,17 +12,17 @@
     ],
     "description": "Backbone",
     "inputfiles": [
-        "input/modelsInit.gms",
-        "input/inputData.gdx"
+        "input/inputData.gdx",
+        "input/modelsInit.gms"
     ],
     "inputfiles_opt": [
         "input/*.*"
     ],
     "outputfiles": [
-        "output/results.gdx",
-        "Backbone.lst"
+        "Backbone.lst",
+        "output/results.gdx"
     ],
     "cmdline_args": [],
-    "execute_in_work": true,
+    "execute_in_work": false,
     "includes_main_path": "C:/HJY_projects/spine/Case_study_B3/BB_in_Spine"
 }
