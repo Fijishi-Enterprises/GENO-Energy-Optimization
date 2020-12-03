@@ -12,8 +12,8 @@
     ],
     "description": "Backbone",
     "inputfiles": [
-        "input/inputData.gdx",
-        "input/modelsInit.gms"
+        "input/modelsInit.gms",
+        "input/inputData.gdx"
     ],
     "inputfiles_opt": [
         "input/*.*"
