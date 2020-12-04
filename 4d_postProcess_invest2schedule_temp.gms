@@ -25,6 +25,18 @@ loop(gnu(grid, node, unit)${r_invest(unit)},
     tmp = round(r_invest(unit), 0) * p_gnu(grid, node, unit, 'unitSize');
     put "p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'capacity') = p_gnu('", grid.tl, "', '", node.tl, "', '", unit.tl, "', 'capacity') + ", tmp, ";"/;);
 
+* Example updates for storage units (commented out at the moment, use names etc. that work in your case)
+*p_gnBoundaryPropertiesForStates('battery_grid', 'battery_node', 'upwardLimit', 'useConstant') = 1;
+*p_gnBoundaryPropertiesForStates('battery_grid', 'battery_node', 'upwardLimit', 'multiplier') = 1;
+*p_gnBoundaryPropertiesForStates('battery_grid', 'battery_node', 'upwardLimit', 'constant')
+*    = p_gnu('battery_grid', 'battery_node', 'battery_charge', 'upperLimitCapacityRatio') * p_gnu('battery_grid', 'battery_node', 'battery_charge', 'capacity');
+*p_gnu('battery_grid', 'battery_node', 'battery_charge', 'upperLimitCapacityRatio') = 0;
+*uGroup('battery_charge', 'battery_online_group1') = yes;
+*uGroup('battery_discharge', 'battery_online_group1') = yes;
+*p_groupPolicy('battery_online_group1', 'constrainedOnlineTotalMax') = p_unit('battery_charge', 'unitCount');
+*p_groupPolicy3D('battery_online_group1', 'constrainedOnlineMultiplier', 'battery_charge') = 1;
+*p_groupPolicy3D('battery_online_group1', 'constrainedOnlineMultiplier', 'battery_discharge') = 1;
+
 * Do not allow investments in the child setups (commented out at the moment)
 *loop(gn2n_directional(grid, node, node_),
 *    put "p_gnn('", grid.tl, "', '", node.tl, "', '", node_.tl, "', 'transferCapMax') = 0;"/;
