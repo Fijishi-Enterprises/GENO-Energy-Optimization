@@ -12,8 +12,11 @@
     ],
     "description": "Backbone",
     "inputfiles": [
+        "input/realized_hydro.gdx",
+        "input/realized_forecasts.gdx",
         "input/modelsInit.gms",
-        "input/inputData.gdx"
+        "input/inputData.gdx",
+        "input/changes.inc"
     ],
     "inputfiles_opt": [
         "input/*.*"
