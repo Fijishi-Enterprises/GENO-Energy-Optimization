@@ -96,6 +96,7 @@ Sets
     t_current(t) "Set of time steps within the current solve horizon"
     t_active(t) "Set of active t:s within the current solve horizon, including necessary history"
     t_invest(t) "Time steps when investments can be made"
+    t_realized(t) "Set of realized time steps in the simulation"
     tt(t) "Temporary subset for time steps used for calculations"
     tt_(t) "Another temporary subset for time steps used for calculations"
     tt_block(counter, t) "Temporary time step subset for storing the time interval blocks"
