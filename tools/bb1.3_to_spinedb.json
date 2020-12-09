@@ -22,8 +22,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "node": [
@@ -45,8 +44,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "flow": [
@@ -68,8 +66,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "unittype": [
@@ -91,8 +88,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "unit": [
@@ -114,8 +110,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "unitUnittype": [
@@ -153,8 +148,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "unit_fail": [
@@ -184,8 +178,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "commodity": [
@@ -215,8 +208,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "unitUnitEffLevel": [
@@ -262,8 +254,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "effLevelGroupUnit": [
@@ -309,8 +300,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "group": [
@@ -332,8 +322,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_gn": [
@@ -393,8 +382,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_gnn": [
@@ -463,8 +451,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_gnu_io": [
@@ -535,8 +522,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_gnuBoundaryProperties": [
@@ -614,8 +600,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_unit": [
@@ -658,8 +643,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "ts_unit": [
@@ -729,8 +713,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_groupReserves": [
@@ -789,8 +772,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_groupReserves3D": [
@@ -853,8 +835,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_groupReserves4D": [
@@ -925,8 +906,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_gnuReserves": [
@@ -1003,8 +983,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_gnnReserves": [
@@ -1075,8 +1054,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_gnuRes2Res": [
@@ -1169,8 +1147,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "ts_reserveDemand": [
@@ -1254,8 +1231,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_gnBoundaryPropertiesForStates": [
@@ -1324,8 +1300,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_gnPolicy": [
@@ -1401,8 +1376,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "flowUnit": [
@@ -1440,8 +1414,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_unitConstraint": [
@@ -1496,8 +1469,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_unitConstraintNode": [
@@ -1560,8 +1532,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "emission": [
@@ -1583,8 +1554,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_nEmission": [
@@ -1643,8 +1613,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "ts_cf": [
@@ -1720,8 +1689,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "ts_influx": [
@@ -1797,8 +1765,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "ts_node": [
@@ -1882,8 +1849,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "t_invest": [
@@ -1905,8 +1871,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "gnGroup": [
@@ -1952,8 +1917,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_groupPolicy": [
@@ -1992,8 +1956,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_groupPolicy3D": [
@@ -2048,8 +2011,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "gnss_bound": [
@@ -2103,8 +2065,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "uss_bound": [
@@ -2150,8 +2111,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "restype": [
@@ -2173,8 +2133,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "restypeDirection": [
@@ -2212,8 +2171,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "restypeReleasedForRealization": [
@@ -2243,8 +2201,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "restype_inertia": [
@@ -2274,8 +2231,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_s_discountFactor": [
@@ -2314,8 +2270,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "utAvailabilityLimits": [
@@ -2361,8 +2316,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "ts_storageValue": [
@@ -2432,8 +2386,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "sGroup": [
@@ -2471,8 +2424,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "p_storageValue": [
@@ -2527,8 +2479,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "uGroup": [
@@ -2566,8 +2517,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "gnuGroup": [
@@ -2621,8 +2571,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "gn2nGroup": [
@@ -2676,8 +2625,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "ts_priceChange": [
@@ -2731,11 +2679,10 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
-            "p_uStartupFuel": [
+            "p_uStartupfuel": [
                 {
                     "map_type": "RelationshipClass",
                     "skip_columns": [],
@@ -2787,8 +2734,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ]
         },
@@ -2846,7 +2792,7 @@
             "gnuGroup": {},
             "gn2nGroup": {},
             "ts_priceChange": {},
-            "p_uStartupFuel": {}
+            "p_uStartupfuel": {}
         },
         "table_types": {
             "grid": {
@@ -3029,7 +2975,8 @@
             "p_unitConstraintNode": {
                 "0": "string",
                 "1": "string",
-                "2": "float"
+                "2": "string",
+                "3": "float"
             },
             "emission": {
                 "0": "string"
@@ -3110,12 +3057,6 @@
                 "1": "string",
                 "2": "float"
             },
-            "p_uStartupFuel": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "float"
-            },
             "uGroup": {
                 "0": "string",
                 "1": "string"
@@ -3129,6 +3070,12 @@
                 "0": "string",
                 "1": "string",
                 "2": "string"
+            },
+            "p_uStartupfuel": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "float"
             }
         },
         "table_row_types": {
@@ -3156,9 +3103,9 @@
             "p_gnu_io",
             "p_gnuBoundaryProperties",
             "p_unit",
+            "ts_unit",
             "p_unitConstraint",
             "p_unitConstraintNode",
-            "ts_unit",
             "restype",
             "restypeDirection",
             "restypeReleasedForRealization",
@@ -3172,7 +3119,7 @@
             "ts_reserveDemand",
             "p_gnBoundaryPropertiesForStates",
             "p_gnPolicy",
-            "p_uStartupFuel",
+            "p_uStartupfuel",
             "flowUnit",
             "emission",
             "p_nEmission",
