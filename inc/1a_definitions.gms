@@ -256,7 +256,8 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     unitSize      "Size of one link for integer investments (MW)"
     invCost       "Investment cost (EUR/MW)"
     annuity       "Investment annuity"
-    portion_of_transfer_to_reserve "Portion of the infeed from the unit that needs to be available as reserve if the unit fails"
+    portion_of_transfer_to_reserve "Portion of the infeed that needs to be covered by reserve if the unit fails"
+    portion_of_transfer_to_rocof "Portion of the infeed that needs to be covered by RateOfChangeOfFrequency constraints if the unit fails"
     ICrampUp
     ICrampDown
 /

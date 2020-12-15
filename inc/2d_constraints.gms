@@ -353,8 +353,8 @@ q_rateOfChangeOfFrequencyTransfer(restypeDirectionGroup(restype_inertia, up_down
         and p_groupPolicy(group, 'dynamicInertia')
         and gnGroup(grid, node_, group) // only interconnectors where one end is 'inside the group'
         and not gnGroup(grid, node_fail, group) // and the other end is 'outside the group'
-        and [ p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_reserve')
-              or p_gnn(grid, node_fail, node_, 'portion_of_transfer_to_reserve')
+        and [ p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_rocof')
+              or p_gnn(grid, node_fail, node_, 'portion_of_transfer_to_rocof')
               ]
         } ..
 
@@ -383,16 +383,16 @@ q_rateOfChangeOfFrequencyTransfer(restypeDirectionGroup(restype_inertia, up_down
     + p_groupPolicy(group, 'defaultFrequency')
         * [
             // Loss of import due to potential interconnector failures
-            + p_gnn(grid, node_fail, node_, 'portion_of_transfer_to_reserve')
+            + p_gnn(grid, node_fail, node_, 'portion_of_transfer_to_rocof')
                 * v_transferRightward(grid, node_fail, node_, s, f, t)${gn2n_directional(grid, node_fail, node_)}
                 * (1 - p_gnn(grid, node_fail, node_, 'transferLoss') )
-            + p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_reserve')
+            + p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_rocof')
                 * v_transferLeftward(grid, node_, node_fail, s, f, t)${gn2n_directional(grid, node_, node_fail)}
                 * (1 - p_gnn(grid, node_, node_fail, 'transferLoss') )
             // Loss of export due to potential interconnector failures
-            + p_gnn(grid, node_fail, node_, 'portion_of_transfer_to_reserve')
+            + p_gnn(grid, node_fail, node_, 'portion_of_transfer_to_rocof')
                 * v_transferLeftward(grid, node_fail, node_, s, f, t)${gn2n_directional(grid, node_fail, node_)}
-            + p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_reserve')
+            + p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_rocof')
                 * v_transferRightward(grid, node_, node_fail, s, f, t)${gn2n_directional(grid, node_, node_fail)}
 
             // less the available FFR

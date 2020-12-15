@@ -312,6 +312,7 @@ gn2n(grid, from_node, to_node)${    p_gnn(grid, from_node, to_node, 'transferCap
                                     or p_gnn(grid, to_node, from_node, 'transferCapBidirectional')
                                     or p_gnn(grid, from_node, to_node, 'transferCapInvLimit')
                                     or p_gnn(grid, from_node, to_node, 'portion_of_transfer_to_reserve')
+                                    or p_gnn(grid, from_node, to_node, 'portion_of_transfer_to_rocof')
                                     }
     = yes;
 
@@ -647,9 +648,7 @@ loop( group,
     ); // END if
     if(p_groupPolicy(group, 'ROCOF')
             and not (p_groupPolicy(group, 'dynamicInertia') or p_groupPolicy(group, 'staticInertia')),
-        put log '!!! Error occurred on group ', group.tl:0 /;
-        put log '!!! Abort: p_groupPolicy(group, ROCOF) is defined without dynamicInertia or staticInertia!' /;
-        abort "Static or dynamic inertia requirement should be defined if ROCOF is defined!"
+        put log '!!! Warning: p_groupPolicy(group, ROCOF) is defined without dynamicInertia or staticInertia!' /;
     ); // END if
     if((p_groupPolicy(group, 'ROCOF') and p_groupPolicy(group, 'staticInertia'))
             and not sum(restypeDirectionGroup(restype_inertia, up_down, group), p_groupReserves(group, restype_inertia, up_down)),
