@@ -1,6 +1,6 @@
 {
     "project": {
-        "version": 4,
+        "version": 5,
         "name": "VabiSys_Backbone_model",
         "description": "",
         "specifications": {
@@ -20,12 +20,17 @@
                 {
                     "type": "path",
                     "relative": true,
-                    "path": "tools/bb1.3_to_spinedb.json"
+                    "path": "tools/Import_Bacbkone_base_sets_to_SpineDB.json"
                 },
                 {
                     "type": "path",
                     "relative": true,
-                    "path": "tools/Import_Bacbkone_base_sets_to_SpineDB.json"
+                    "path": "tools/bb_to_spinedb_ts.json"
+                },
+                {
+                    "type": "path",
+                    "relative": true,
+                    "path": "tools/bb1.3_to_spinedb.json"
                 }
             ],
             "Data Transformer": [
@@ -44,122 +49,172 @@
         "connections": [
             {
                 "from": [
-                    "Gdx_Exporter",
-                    "right"
-                ],
-                "to": [
-                    "Backbone",
-                    "left"
-                ]
-            },
-            {
-                "from": [
-                    "inputData",
-                    "right"
-                ],
-                "to": [
-                    "Convert",
-                    "bottom"
-                ]
-            },
-            {
-                "from": [
-                    "Convert_base_sets",
-                    "bottom"
-                ],
-                "to": [
-                    "inputData",
-                    "left"
-                ]
-            },
-            {
-                "from": [
-                    "BB_config_files",
-                    "right"
-                ],
-                "to": [
-                    "Backbone",
-                    "bottom"
-                ]
-            },
-            {
-                "from": [
-                    "BB_parameters",
-                    "right"
-                ],
-                "to": [
-                    "Gdx_Exporter",
-                    "left"
-                ]
-            },
-            {
-                "from": [
-                    "BB_sets",
-                    "right"
-                ],
-                "to": [
-                    "BB_parameters",
-                    "left"
-                ]
-            },
-            {
-                "from": [
-                    "BB_data",
-                    "right"
-                ],
-                "to": [
-                    "BB_sets",
-                    "left"
-                ]
-            },
-            {
-                "from": [
-                    "Convert_base_sets",
-                    "right"
-                ],
-                "to": [
-                    "BB_data",
-                    "left"
-                ]
-            },
-            {
-                "from": [
-                    "Convert",
-                    "right"
-                ],
-                "to": [
-                    "BB_data",
-                    "left"
-                ]
-            },
-            {
-                "from": [
-                    "inputData",
-                    "right"
-                ],
-                "to": [
-                    "Backbone vara",
-                    "left"
-                ]
-            },
-            {
-                "from": [
-                    "BB_config_files",
-                    "right"
-                ],
-                "to": [
-                    "Backbone vara",
-                    "left"
-                ]
-            },
-            {
-                "from": [
                     "BB_base_sets",
                     "right"
                 ],
                 "to": [
                     "Convert_base_sets",
                     "left"
+                ]
+            },
+            {
+                "from": [
+                    "supplement_inputData_ts",
+                    "right"
+                ],
+                "to": [
+                    "Convert_ts",
+                    "bottom"
+                ]
+            },
+            {
+                "from": [
+                    "inputData",
+                    "right"
+                ],
+                "to": [
+                    "Convert",
+                    "bottom"
+                ]
+            },
+            {
+                "from": [
+                    "Convert_base_sets",
+                    "right"
+                ],
+                "to": [
+                    "BB_data",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "BB_data",
+                    "right"
+                ],
+                "to": [
+                    "BB_sets",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "BB_sets",
+                    "right"
+                ],
+                "to": [
+                    "BB_parameters",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "BB_parameters",
+                    "right"
+                ],
+                "to": [
+                    "Gdx_Exporter",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "BB_config_files",
+                    "right"
+                ],
+                "to": [
+                    "Backbone vara",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "Convert_base_sets",
+                    "bottom"
+                ],
+                "to": [
+                    "inputData",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "inputData",
+                    "right"
+                ],
+                "to": [
+                    "Backbone vara",
+                    "bottom"
+                ]
+            },
+            {
+                "from": [
+                    "supplement_inputData_ts",
+                    "right"
+                ],
+                "to": [
+                    "Backbone vara",
+                    "bottom"
+                ]
+            },
+            {
+                "from": [
+                    "Convert_ts",
+                    "left"
+                ],
+                "to": [
+                    "BB_data",
+                    "bottom"
+                ]
+            },
+            {
+                "from": [
+                    "Convert",
+                    "right"
+                ],
+                "to": [
+                    "BB_data",
+                    "bottom"
+                ]
+            },
+            {
+                "from": [
+                    "BB_config_files_vara",
+                    "right"
+                ],
+                "to": [
+                    "Backbone vara",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "inputData",
+                    "bottom"
+                ],
+                "to": [
+                    "supplement_inputData_ts",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "Gdx_Exporter",
+                    "right"
+                ],
+                "to": [
+                    "Backbone",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "BB_config_files",
+                    "right"
+                ],
+                "to": [
+                    "Backbone",
+                    "bottom"
                 ]
             }
         ]
@@ -168,8 +223,8 @@
         "BB_data": {
             "type": "Data Store",
             "description": "",
-            "x": -98.21225952861522,
-            "y": -103.57175505370083,
+            "x": -106.38126700713067,
+            "y": -143.6098997852837,
             "url": {
                 "dialect": "sqlite",
                 "username": "",
@@ -188,18 +243,8 @@
             "type": "Data Connection",
             "description": "",
             "x": -300.4477396385093,
-            "y": 115.97989002120524,
+            "y": 79.00512309406567,
             "references": [
-                {
-                    "type": "path",
-                    "relative": true,
-                    "path": "input/VabiSys/realized_forecasts.gdx"
-                },
-                {
-                    "type": "path",
-                    "relative": true,
-                    "path": "input/VabiSys/realized_hydro.gdx"
-                },
                 {
                     "type": "path",
                     "relative": true,
@@ -210,8 +255,8 @@
         "BB_config_files": {
             "type": "Data Connection",
             "description": "",
-            "x": 192.64471365960785,
-            "y": 19.562506245899698,
+            "x": 192.64471365960787,
+            "y": -48.046038725672844,
             "references": [
                 {
                     "type": "path",
@@ -231,12 +276,38 @@
                 {
                     "type": "path",
                     "relative": true,
-                    "path": "input/VabiSys/changes.inc"
+                    "path": "input/VabiSys/timeAndSamples.inc"
+                }
+            ]
+        },
+        "supplement_inputData_ts": {
+            "type": "Data Connection",
+            "description": "",
+            "x": -144.99988274364932,
+            "y": 152.9546569483448,
+            "references": [
+                {
+                    "type": "path",
+                    "relative": true,
+                    "path": "input/VabiSys/realized_forecasts.gdx"
                 },
                 {
                     "type": "path",
                     "relative": true,
-                    "path": "input/VabiSys/timeAndSamples.inc"
+                    "path": "input/VabiSys/realized_hydro.gdx"
+                }
+            ]
+        },
+        "BB_config_files_vara": {
+            "type": "Data Connection",
+            "description": "",
+            "x": 132.74637152587613,
+            "y": 37.56742631431395,
+            "references": [
+                {
+                    "type": "path",
+                    "relative": true,
+                    "path": "input/VabiSys/changes.inc"
                 }
             ]
         },
@@ -244,7 +315,7 @@
             "type": "Tool",
             "description": "",
             "x": 442.86124348844345,
-            "y": -87.03941425197135,
+            "y": -124.01418117911092,
             "specification": "Backbone",
             "execute_in_work": false,
             "cmd_line_args": []
@@ -252,15 +323,20 @@
         "Backbone vara": {
             "type": "Tool",
             "description": "",
-            "x": 335.1163513825373,
-            "y": 114.07569775947238,
+            "x": 349.4121144699393,
+            "y": 30.12913783086894,
             "specification": "Backbone",
             "execute_in_work": false,
             "cmd_line_args": [
                 {
                     "type": "path",
                     "relative": false,
-                    "path": "--t_start=1 --t_end=6"
+                    "path": "--t_start=1"
+                },
+                {
+                    "type": "path",
+                    "relative": false,
+                    "path": "--t_end=6"
                 }
             ]
         },
@@ -268,7 +344,7 @@
             "type": "Tool",
             "description": "",
             "x": -445.3612434884435,
-            "y": -111.1574217862688,
+            "y": -148.13218871340837,
             "specification": "BB_base_sets",
             "execute_in_work": false,
             "cmd_line_args": []
@@ -277,8 +353,52 @@
             "type": "Importer",
             "description": "",
             "x": -192.19462193654752,
-            "y": 3.5861645998434852,
+            "y": -33.388602327296084,
             "specification": "BB1.3_to_SpineDB",
+            "cancel_on_error": true,
+            "file_selection": [
+                [
+                    {
+                        "type": "path",
+                        "relative": true,
+                        "path": "input/VabiSys/inputData.gdx"
+                    },
+                    true
+                ]
+            ]
+        },
+        "Convert_base_sets": {
+            "type": "Importer",
+            "description": "",
+            "x": -287.8415342698604,
+            "y": -141.38529343283048,
+            "specification": "Import_Bacbkone_base_sets_to_SpineDB",
+            "cancel_on_error": true,
+            "file_selection": [
+                [
+                    {
+                        "type": "path",
+                        "relative": false,
+                        "path": "{Backbone_base_sets_to_gdx.lst}"
+                    },
+                    false
+                ],
+                [
+                    {
+                        "type": "path",
+                        "relative": false,
+                        "path": "{Backbone_base_sets.gdx}"
+                    },
+                    true
+                ]
+            ]
+        },
+        "Convert_ts": {
+            "type": "Importer",
+            "description": "",
+            "x": -5.105629674072162,
+            "y": -39.01701879676844,
+            "specification": "BB_to_SpineDB_ts",
             "cancel_on_error": true,
             "file_selection": [
                 [
@@ -296,40 +416,6 @@
                         "path": "input/VabiSys/realized_hydro.gdx"
                     },
                     true
-                ],
-                [
-                    {
-                        "type": "path",
-                        "relative": true,
-                        "path": "input/VabiSys/inputData.gdx"
-                    },
-                    true
-                ]
-            ]
-        },
-        "Convert_base_sets": {
-            "type": "Importer",
-            "description": "",
-            "x": -287.8415342698604,
-            "y": -104.41052650569091,
-            "specification": "Import_Bacbkone_base_sets_to_SpineDB",
-            "cancel_on_error": true,
-            "file_selection": [
-                [
-                    {
-                        "type": "path",
-                        "relative": false,
-                        "path": "{Backbone_base_sets.gdx}"
-                    },
-                    true
-                ],
-                [
-                    {
-                        "type": "path",
-                        "relative": false,
-                        "path": "{Backbone_base_sets_to_gdx.lst}"
-                    },
-                    false
                 ]
             ]
         },
@@ -337,56 +423,35 @@
             "type": "GdxExporter",
             "description": "",
             "x": 290.4604631698028,
-            "y": -100.20688022235879,
+            "y": -137.18164714949836,
             "settings_pack": {
                 "settings": {
                     "domains": {
-                        "emission": {
-                            "tier": 5,
+                        "param_unit_ts": {
+                            "tier": 38,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": [
                                     [
-                                        "CO2"
-                                    ],
-                                    [
-                                        "SO2"
+                                        "unavailability"
                                     ]
                                 ]
                             },
                             "metadata": {
-                                "exportable": 1,
+                                "exportable": 2,
                                 "origin": 1
                             }
                         },
-                        "restype": {
-                            "tier": 11,
+                        "grid": {
+                            "tier": 7,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": [
                                     [
-                                        "primary"
+                                        "elec"
                                     ],
                                     [
-                                        "secondary"
-                                    ],
-                                    [
-                                        "tertiary"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "flow": {
-                            "tier": 13,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "wind"
+                                        "fuel"
                                     ]
                                 ]
                             },
@@ -26697,6 +26762,318 @@
                                 "description": ""
                             }
                         },
+                        "param_gnBoundaryProperties": {
+                            "tier": 19,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "useConstant"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 3,
+                                "description": ""
+                            }
+                        },
+                        "param_policy": {
+                            "tier": 16,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "update_frequency"
+                                    ],
+                                    [
+                                        "reserve_length"
+                                    ],
+                                    [
+                                        "portion_of_infeed_to_reserve"
+                                    ],
+                                    [
+                                        "up"
+                                    ],
+                                    [
+                                        "down"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 3,
+                                "description": ""
+                            }
+                        },
+                        "group": {
+                            "tier": 6,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "reserveGroup"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "availability": {
+                            "tier": 26,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "unit": {
+                            "tier": 9,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "U_ccgt"
+                                    ],
+                                    [
+                                        "U_nuclear"
+                                    ],
+                                    [
+                                        "U_ocgt1"
+                                    ],
+                                    [
+                                        "U_ocgt2"
+                                    ],
+                                    [
+                                        "U_ocgtAgg"
+                                    ],
+                                    [
+                                        "U_wind"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "param_unit": {
+                            "tier": 21,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "availability"
+                                    ],
+                                    [
+                                        "useInitialOnlineStatus"
+                                    ],
+                                    [
+                                        "initialOnlineStatus"
+                                    ],
+                                    [
+                                        "shutdownCost"
+                                    ],
+                                    [
+                                        "startCostCold"
+                                    ],
+                                    [
+                                        "startFuelConsCold"
+                                    ],
+                                    [
+                                        "startWarmAfterXHours"
+                                    ],
+                                    [
+                                        "startColdAfterXhours"
+                                    ],
+                                    [
+                                        "rampSpeedToMinLoad"
+                                    ],
+                                    [
+                                        "minOperationHours"
+                                    ],
+                                    [
+                                        "minShutDownHours"
+                                    ],
+                                    [
+                                        "eff00"
+                                    ],
+                                    [
+                                        "eff01"
+                                    ],
+                                    [
+                                        "op00"
+                                    ],
+                                    [
+                                        "op01"
+                                    ],
+                                    [
+                                        "startCostHot"
+                                    ],
+                                    [
+                                        "startCostWarm"
+                                    ],
+                                    [
+                                        "startFuelConsHot"
+                                    ],
+                                    [
+                                        "startfuelConsWarm"
+                                    ],
+                                    [
+                                        "unitCount"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 3,
+                                "description": ""
+                            }
+                        },
+                        "slack": {
+                            "tier": 10,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "t_availability": {
+                            "tier": 27,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "effSelector": {
+                            "tier": 15,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "directOnLP"
+                                    ],
+                                    [
+                                        "directOnMIP"
+                                    ],
+                                    [
+                                        "lambda02"
+                                    ],
+                                    [
+                                        "directOff"
+                                    ],
+                                    [
+                                        "incHR"
+                                    ],
+                                    [
+                                        "lambda01"
+                                    ],
+                                    [
+                                        "lambda03"
+                                    ],
+                                    [
+                                        "lambda04"
+                                    ],
+                                    [
+                                        "lambda05"
+                                    ],
+                                    [
+                                        "lambda06"
+                                    ],
+                                    [
+                                        "lambda07"
+                                    ],
+                                    [
+                                        "lambda08"
+                                    ],
+                                    [
+                                        "lambda09"
+                                    ],
+                                    [
+                                        "lambda10"
+                                    ],
+                                    [
+                                        "lambda11"
+                                    ],
+                                    [
+                                        "lambda12"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "t_reserveDemand": {
+                            "tier": 34,
+                            "records": {
+                                "indexing_type": "extracted",
+                                "parameter_name": "ts_reserveDemand",
+                                "domain_names": [
+                                    "restype",
+                                    "up_down",
+                                    "group",
+                                    "f"
+                                ],
+                                "indexes": [
+                                    [
+                                        "t000000"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 2,
+                                "description": ""
+                            }
+                        },
+                        "param_unitStartupFuel": {
+                            "tier": 37,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "fixedFuelFraction"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 3,
+                                "description": ""
+                            }
+                        },
+                        "input_output": {
+                            "tier": 3,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "input"
+                                    ],
+                                    [
+                                        "output"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
                         "t_unit": {
                             "tier": 28,
                             "records": {
@@ -26723,238 +27100,6 @@
                                 "exportable": 2,
                                 "origin": 2,
                                 "description": ""
-                            }
-                        },
-                        "param_gnBoundaryTypes": {
-                            "tier": 14,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "downwardLimit"
-                                    ],
-                                    [
-                                        "upwardLimit"
-                                    ],
-                                    [
-                                        "reference"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "param_gnBoundaryProperties": {
-                            "tier": 19,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "useConstant"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 3,
-                                "description": ""
-                            }
-                        },
-                        "availability": {
-                            "tier": 26,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "sample_discountFactor": {
-                            "tier": 25,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "s000"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "effLevel": {
-                            "tier": 37,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "level1"
-                                    ],
-                                    [
-                                        "level2"
-                                    ],
-                                    [
-                                        "level3"
-                                    ],
-                                    [
-                                        "level4"
-                                    ],
-                                    [
-                                        "level5"
-                                    ],
-                                    [
-                                        "level6"
-                                    ],
-                                    [
-                                        "level7"
-                                    ],
-                                    [
-                                        "level8"
-                                    ],
-                                    [
-                                        "level9"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "constraint": {
-                            "tier": 12,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "param_gnn": {
-                            "tier": 23,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "transferCap"
-                                    ],
-                                    [
-                                        "transferLoss"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 3,
-                                "description": ""
-                            }
-                        },
-                        "up_down": {
-                            "tier": 18,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "up"
-                                    ],
-                                    [
-                                        "down"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "t_storageValue": {
-                            "tier": 33,
-                            "records": {
-                                "indexing_type": "extracted",
-                                "parameter_name": "ts_storageValue",
-                                "domain_names": [
-                                    "grid",
-                                    "node",
-                                    "f"
-                                ],
-                                "indexes": [
-                                    [
-                                        "t000000"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 2,
-                                "description": ""
-                            }
-                        },
-                        "input_output": {
-                            "tier": 3,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "input"
-                                    ],
-                                    [
-                                        "output"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "scenario": {
-                            "tier": 2,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "scen01"
-                                    ],
-                                    [
-                                        "scen02"
-                                    ],
-                                    [
-                                        "scen03"
-                                    ],
-                                    [
-                                        "scen04"
-                                    ],
-                                    [
-                                        "scen05"
-                                    ],
-                                    [
-                                        "scen06"
-                                    ],
-                                    [
-                                        "scen07"
-                                    ],
-                                    [
-                                        "scen08"
-                                    ],
-                                    [
-                                        "scen09"
-                                    ],
-                                    [
-                                        "scen10"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
                             }
                         },
                         "t_cf": {
@@ -53247,25 +53392,109 @@
                                 "description": ""
                             }
                         },
-                        "param_policy": {
-                            "tier": 16,
+                        "scenario": {
+                            "tier": 2,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": [
                                     [
-                                        "update_frequency"
+                                        "scen01"
                                     ],
                                     [
-                                        "reserve_length"
+                                        "scen02"
                                     ],
                                     [
-                                        "portion_of_infeed_to_reserve"
+                                        "scen03"
                                     ],
                                     [
-                                        "up"
+                                        "scen04"
                                     ],
                                     [
-                                        "down"
+                                        "scen05"
+                                    ],
+                                    [
+                                        "scen06"
+                                    ],
+                                    [
+                                        "scen07"
+                                    ],
+                                    [
+                                        "scen08"
+                                    ],
+                                    [
+                                        "scen09"
+                                    ],
+                                    [
+                                        "scen10"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "policy": {
+                            "tier": 35,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "emissionTax"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "param_gnBoundaryTypes": {
+                            "tier": 14,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "downwardLimit"
+                                    ],
+                                    [
+                                        "upwardLimit"
+                                    ],
+                                    [
+                                        "reference"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "sample_discountFactor": {
+                            "tier": 25,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "s000"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "param_gnn": {
+                            "tier": 23,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "transferCap"
+                                    ],
+                                    [
+                                        "transferLoss"
                                     ]
                                 ]
                             },
@@ -53273,6 +53502,92 @@
                                 "exportable": 2,
                                 "origin": 3,
                                 "description": ""
+                            }
+                        },
+                        "t_priceChange": {
+                            "tier": 31,
+                            "records": {
+                                "indexing_type": "extracted",
+                                "parameter_name": "ts_priceChange",
+                                "domain_names": [
+                                    "node"
+                                ],
+                                "indexes": [
+                                    [
+                                        "t000000"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 2,
+                                "description": ""
+                            }
+                        },
+                        "param_gn": {
+                            "tier": 20,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "energyStoredPerUnitOfState"
+                                    ],
+                                    [
+                                        "nodeBalance"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 3,
+                                "description": ""
+                            }
+                        },
+                        "t_node": {
+                            "tier": 32,
+                            "records": {
+                                "indexing_type": "extracted",
+                                "parameter_name": "ts_node",
+                                "domain_names": [
+                                    "grid",
+                                    "node",
+                                    "param_gnBoundaryTypes",
+                                    "f"
+                                ],
+                                "indexes": [
+                                    [
+                                        "t000000"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 2,
+                                "description": ""
+                            }
+                        },
+                        "unittype": {
+                            "tier": 17,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "Nat. gas CCGT"
+                                    ],
+                                    [
+                                        "Nat. gas OCGT"
+                                    ],
+                                    [
+                                        "nuclear"
+                                    ],
+                                    [
+                                        "wind"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
                             }
                         },
                         "t_invest": {
@@ -53291,6 +53606,226 @@
                             "metadata": {
                                 "exportable": 1,
                                 "origin": 1
+                            }
+                        },
+                        "restype": {
+                            "tier": 11,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "primary"
+                                    ],
+                                    [
+                                        "tertiary"
+                                    ],
+                                    [
+                                        "secondary"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "up_down": {
+                            "tier": 18,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "up"
+                                    ],
+                                    [
+                                        "down"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "node": {
+                            "tier": 4,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "A"
+                                    ],
+                                    [
+                                        "B"
+                                    ],
+                                    [
+                                        "fuel_oil"
+                                    ],
+                                    [
+                                        "natural_gas"
+                                    ],
+                                    [
+                                        "nuclear"
+                                    ],
+                                    [
+                                        "wind"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "emission": {
+                            "tier": 5,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "CO2"
+                                    ],
+                                    [
+                                        "SO2"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "flow": {
+                            "tier": 13,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "wind"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "s": {
+                            "tier": 0,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "s000"
+                                    ],
+                                    [
+                                        "s001"
+                                    ],
+                                    [
+                                        "s002"
+                                    ],
+                                    [
+                                        "s003"
+                                    ],
+                                    [
+                                        "s004"
+                                    ],
+                                    [
+                                        "s005"
+                                    ],
+                                    [
+                                        "s006"
+                                    ],
+                                    [
+                                        "s007"
+                                    ],
+                                    [
+                                        "s008"
+                                    ],
+                                    [
+                                        "s009"
+                                    ],
+                                    [
+                                        "s010"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "effLevel": {
+                            "tier": 36,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "level1"
+                                    ],
+                                    [
+                                        "level2"
+                                    ],
+                                    [
+                                        "level3"
+                                    ],
+                                    [
+                                        "level4"
+                                    ],
+                                    [
+                                        "level5"
+                                    ],
+                                    [
+                                        "level6"
+                                    ],
+                                    [
+                                        "level7"
+                                    ],
+                                    [
+                                        "level8"
+                                    ],
+                                    [
+                                        "level9"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "t_storageValue": {
+                            "tier": 33,
+                            "records": {
+                                "indexing_type": "extracted",
+                                "parameter_name": "ts_storageValue",
+                                "domain_names": [
+                                    "grid",
+                                    "node",
+                                    "f"
+                                ],
+                                "indexes": [
+                                    [
+                                        "t000000"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 2,
+                                "description": ""
+                            }
+                        },
+                        "param_gnuBoundaryProperties": {
+                            "tier": 24,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 3,
+                                "description": ""
                             }
                         },
                         "f": {
@@ -53368,421 +53903,6 @@
                                 "origin": 1
                             }
                         },
-                        "param_unit_ts": {
-                            "tier": 38,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "unavailability"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "grid": {
-                            "tier": 7,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "elec"
-                                    ],
-                                    [
-                                        "fuel"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "unit": {
-                            "tier": 9,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "U_ccgt"
-                                    ],
-                                    [
-                                        "U_nuclear"
-                                    ],
-                                    [
-                                        "U_ocgt1"
-                                    ],
-                                    [
-                                        "U_ocgt2"
-                                    ],
-                                    [
-                                        "U_ocgtAgg"
-                                    ],
-                                    [
-                                        "U_wind"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "group": {
-                            "tier": 6,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "reserveGroup"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "t_reserveDemand": {
-                            "tier": 34,
-                            "records": {
-                                "indexing_type": "extracted",
-                                "parameter_name": "ts_reserveDemand",
-                                "domain_names": [
-                                    "restype",
-                                    "up_down",
-                                    "group",
-                                    "f"
-                                ],
-                                "indexes": [
-                                    [
-                                        "t000000"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 2,
-                                "description": ""
-                            }
-                        },
-                        "t_priceChange": {
-                            "tier": 31,
-                            "records": {
-                                "indexing_type": "extracted",
-                                "parameter_name": "ts_priceChange",
-                                "domain_names": [
-                                    "node"
-                                ],
-                                "indexes": [
-                                    [
-                                        "t000000"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 2,
-                                "description": ""
-                            }
-                        },
-                        "s": {
-                            "tier": 0,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "s000"
-                                    ],
-                                    [
-                                        "s001"
-                                    ],
-                                    [
-                                        "s002"
-                                    ],
-                                    [
-                                        "s003"
-                                    ],
-                                    [
-                                        "s004"
-                                    ],
-                                    [
-                                        "s005"
-                                    ],
-                                    [
-                                        "s006"
-                                    ],
-                                    [
-                                        "s007"
-                                    ],
-                                    [
-                                        "s008"
-                                    ],
-                                    [
-                                        "s009"
-                                    ],
-                                    [
-                                        "s010"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "param_unitStartupFuel": {
-                            "tier": 38,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "fixedFuelFraction"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 3,
-                                "description": ""
-                            }
-                        },
-                        "node": {
-                            "tier": 4,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "A"
-                                    ],
-                                    [
-                                        "B"
-                                    ],
-                                    [
-                                        "fuel_oil"
-                                    ],
-                                    [
-                                        "natural_gas"
-                                    ],
-                                    [
-                                        "nuclear"
-                                    ],
-                                    [
-                                        "wind"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "param_unit": {
-                            "tier": 21,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "availability"
-                                    ],
-                                    [
-                                        "useInitialOnlineStatus"
-                                    ],
-                                    [
-                                        "initialOnlineStatus"
-                                    ],
-                                    [
-                                        "shutdownCost"
-                                    ],
-                                    [
-                                        "startCostCold"
-                                    ],
-                                    [
-                                        "startFuelConsCold"
-                                    ],
-                                    [
-                                        "startWarmAfterXHours"
-                                    ],
-                                    [
-                                        "startColdAfterXhours"
-                                    ],
-                                    [
-                                        "rampSpeedToMinLoad"
-                                    ],
-                                    [
-                                        "minOperationHours"
-                                    ],
-                                    [
-                                        "minShutDownHours"
-                                    ],
-                                    [
-                                        "eff00"
-                                    ],
-                                    [
-                                        "eff01"
-                                    ],
-                                    [
-                                        "op00"
-                                    ],
-                                    [
-                                        "op01"
-                                    ],
-                                    [
-                                        "startCostHot"
-                                    ],
-                                    [
-                                        "startCostWarm"
-                                    ],
-                                    [
-                                        "startFuelConsHot"
-                                    ],
-                                    [
-                                        "startfuelConsWarm"
-                                    ],
-                                    [
-                                        "unitCount"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 3,
-                                "description": ""
-                            }
-                        },
-                        "param_gnuBoundaryProperties": {
-                            "tier": 24,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 3,
-                                "description": ""
-                            }
-                        },
-                        "policy": {
-                            "tier": 35,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "emissionTax"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "param_gn": {
-                            "tier": 20,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "energyStoredPerUnitOfState"
-                                    ],
-                                    [
-                                        "nodeBalance"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 3,
-                                "description": ""
-                            }
-                        },
-                        "unittype": {
-                            "tier": 17,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "Nat. gas CCGT"
-                                    ],
-                                    [
-                                        "Nat. gas OCGT"
-                                    ],
-                                    [
-                                        "nuclear"
-                                    ],
-                                    [
-                                        "wind"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "effSelector": {
-                            "tier": 15,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "directOnLP"
-                                    ],
-                                    [
-                                        "directOnMIP"
-                                    ],
-                                    [
-                                        "lambda02"
-                                    ],
-                                    [
-                                        "directOff"
-                                    ],
-                                    [
-                                        "incHR"
-                                    ],
-                                    [
-                                        "lambda01"
-                                    ],
-                                    [
-                                        "lambda03"
-                                    ],
-                                    [
-                                        "lambda04"
-                                    ],
-                                    [
-                                        "lambda05"
-                                    ],
-                                    [
-                                        "lambda06"
-                                    ],
-                                    [
-                                        "lambda07"
-                                    ],
-                                    [
-                                        "lambda08"
-                                    ],
-                                    [
-                                        "lambda09"
-                                    ],
-                                    [
-                                        "lambda10"
-                                    ],
-                                    [
-                                        "lambda11"
-                                    ],
-                                    [
-                                        "lambda12"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
                         "param_gnu": {
                             "tier": 22,
                             "records": {
@@ -53826,42 +53946,8 @@
                                 "description": ""
                             }
                         },
-                        "t_availability": {
-                            "tier": 27,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "t_node": {
-                            "tier": 32,
-                            "records": {
-                                "indexing_type": "extracted",
-                                "parameter_name": "ts_node",
-                                "domain_names": [
-                                    "grid",
-                                    "node",
-                                    "param_gnBoundaryTypes",
-                                    "f"
-                                ],
-                                "indexes": [
-                                    [
-                                        "t000000"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 2,
-                                "description": ""
-                            }
-                        },
-                        "slack": {
-                            "tier": 10,
+                        "constraint": {
+                            "tier": 12,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": []
@@ -53873,20 +53959,14 @@
                         }
                     },
                     "sets": {
-                        "gnGroup": {
-                            "tier": 9,
+                        "flowUnit": {
+                            "tier": 4,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": [
                                     [
-                                        "elec",
-                                        "A",
-                                        "reserveGroup"
-                                    ],
-                                    [
-                                        "elec",
-                                        "B",
-                                        "reserveGroup"
+                                        "wind",
+                                        "U_wind"
                                     ]
                                 ]
                             },
@@ -53895,16 +53975,15 @@
                                 "origin": 1
                             }
                         },
-                        "ts_grid__node__boundary__f": {
-                            "tier": 35,
+                        "grid__node__node": {
+                            "tier": 17,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": [
                                     [
                                         "elec",
-                                        "A",
-                                        "reference",
-                                        "f00"
+                                        "B",
+                                        "A"
                                     ]
                                 ]
                             },
@@ -53913,25 +53992,35 @@
                                 "origin": 1
                             }
                         },
-                        "unitUnitEffLevel": {
-                            "tier": 34,
+                        "grid__node__boundary": {
+                            "tier": 16,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": [
                                     [
-                                        "U_ocgtAgg",
-                                        "U_ocgt1",
-                                        "level3"
+                                        "elec",
+                                        "A",
+                                        "upwardLimit"
                                     ],
                                     [
-                                        "U_ocgtAgg",
-                                        "U_ocgt2",
-                                        "level3"
+                                        "elec",
+                                        "A",
+                                        "downwardLimit"
+                                    ],
+                                    [
+                                        "elec",
+                                        "B",
+                                        "upwardLimit"
+                                    ],
+                                    [
+                                        "elec",
+                                        "B",
+                                        "downwardLimit"
                                     ]
                                 ]
                             },
                             "metadata": {
-                                "exportable": 1,
+                                "exportable": 2,
                                 "origin": 1
                             }
                         },
@@ -53971,17 +54060,6 @@
                                 "origin": 1
                             }
                         },
-                        "unit__constraint": {
-                            "tier": 31,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
                         "ts_flow__node__f": {
                             "tier": 21,
                             "records": {
@@ -54011,6 +54089,487 @@
                             },
                             "metadata": {
                                 "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "group__restype__up_down": {
+                            "tier": 20,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "grid__node__unit__restype": {
+                            "tier": 18,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_nuclear",
+                                        "primary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_nuclear",
+                                        "secondary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_nuclear",
+                                        "tertiary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgt1",
+                                        "primary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgt1",
+                                        "secondary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgt1",
+                                        "tertiary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgt2",
+                                        "primary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgt2",
+                                        "secondary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgt2",
+                                        "tertiary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgtAgg",
+                                        "primary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgtAgg",
+                                        "secondary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgtAgg",
+                                        "tertiary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "B",
+                                        "U_ccgt",
+                                        "primary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "B",
+                                        "U_ccgt",
+                                        "secondary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "B",
+                                        "U_ccgt",
+                                        "tertiary"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "uGroup": {
+                            "tier": 0,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "grid__node__unit__io": {
+                            "tier": 15,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_nuclear",
+                                        "output"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgt1",
+                                        "output"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgt2",
+                                        "output"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgtAgg",
+                                        "output"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_wind",
+                                        "output"
+                                    ],
+                                    [
+                                        "elec",
+                                        "B",
+                                        "U_ccgt",
+                                        "output"
+                                    ],
+                                    [
+                                        "fuel",
+                                        "natural_gas",
+                                        "U_ocgt1",
+                                        "input"
+                                    ],
+                                    [
+                                        "fuel",
+                                        "natural_gas",
+                                        "U_ocgt2",
+                                        "input"
+                                    ],
+                                    [
+                                        "fuel",
+                                        "natural_gas",
+                                        "U_ocgtAgg",
+                                        "input"
+                                    ],
+                                    [
+                                        "fuel",
+                                        "natural_gas",
+                                        "U_ccgt",
+                                        "input"
+                                    ],
+                                    [
+                                        "fuel",
+                                        "nuclear",
+                                        "U_nuclear",
+                                        "input"
+                                    ],
+                                    [
+                                        "fuel",
+                                        "fuel_oil",
+                                        "U_ocgt1",
+                                        "input"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "grid__node__node__restype": {
+                            "tier": 12,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "elec",
+                                        "A",
+                                        "B",
+                                        "primary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "B",
+                                        "secondary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "B",
+                                        "tertiary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "B",
+                                        "A",
+                                        "primary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "B",
+                                        "A",
+                                        "secondary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "B",
+                                        "A",
+                                        "tertiary"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "commodity": {
+                            "tier": 37,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "natural_gas"
+                                    ],
+                                    [
+                                        "nuclear"
+                                    ],
+                                    [
+                                        "fuel_oil"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "gn2nGroup": {
+                            "tier": 36,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "group__restype__up_down__group": {
+                            "tier": 22,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "group__unit": {
+                            "tier": 2,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "node__emission": {
+                            "tier": 25,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "natural_gas",
+                                        "CO2"
+                                    ],
+                                    [
+                                        "natural_gas",
+                                        "SO2"
+                                    ],
+                                    [
+                                        "fuel_oil",
+                                        "CO2"
+                                    ],
+                                    [
+                                        "fuel_oil",
+                                        "SO2"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "gnGroup": {
+                            "tier": 9,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "elec",
+                                        "A",
+                                        "reserveGroup"
+                                    ],
+                                    [
+                                        "elec",
+                                        "B",
+                                        "reserveGroup"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "gnu__restype__up_down__restype": {
+                            "tier": 13,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_nuclear",
+                                        "primary",
+                                        "up",
+                                        "secondary"
+                                    ],
+                                    [
+                                        "elec",
+                                        "A",
+                                        "U_ocgt1",
+                                        "primary",
+                                        "up",
+                                        "secondary"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "restypeDirection": {
+                            "tier": 7,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "primary",
+                                        "up"
+                                    ],
+                                    [
+                                        "primary",
+                                        "down"
+                                    ],
+                                    [
+                                        "tertiary",
+                                        "up"
+                                    ],
+                                    [
+                                        "tertiary",
+                                        "down"
+                                    ],
+                                    [
+                                        "secondary",
+                                        "up"
+                                    ],
+                                    [
+                                        "secondary",
+                                        "down"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "unitUnitEffLevel": {
+                            "tier": 34,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "U_ocgtAgg",
+                                        "U_ocgt1",
+                                        "level3"
+                                    ],
+                                    [
+                                        "U_ocgtAgg",
+                                        "U_ocgt2",
+                                        "level3"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "unit_fail": {
+                            "tier": 10,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "U_nuclear"
+                                    ],
+                                    [
+                                        "U_ocgt1"
+                                    ],
+                                    [
+                                        "U_ocgt2"
+                                    ],
+                                    [
+                                        "U_ccgt"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "sGroup": {
+                            "tier": 28,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 1,
                                 "origin": 1
                             }
                         },
@@ -54133,60 +54692,14 @@
                                 "origin": 1
                             }
                         },
-                        "uss_bound": {
-                            "tier": 3,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "sGroup": {
-                            "tier": 28,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "group__restype": {
-                            "tier": 24,
+                        "grid__node__f_storageValue": {
+                            "tier": 27,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": [
                                     [
-                                        "reserveGroup",
-                                        "primary"
-                                    ],
-                                    [
-                                        "reserveGroup",
-                                        "secondary"
-                                    ],
-                                    [
-                                        "reserveGroup",
-                                        "tertiary"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "unit_ts": {
-                            "tier": 38,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "U_nuclear",
-                                        "unavailability",
+                                        "elec",
+                                        "A",
                                         "f00"
                                     ]
                                 ]
@@ -54196,72 +54709,8 @@
                                 "origin": 1
                             }
                         },
-                        "node__emission": {
-                            "tier": 25,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "natural_gas",
-                                        "CO2"
-                                    ],
-                                    [
-                                        "natural_gas",
-                                        "SO2"
-                                    ],
-                                    [
-                                        "fuel_oil",
-                                        "CO2"
-                                    ],
-                                    [
-                                        "fuel_oil",
-                                        "SO2"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "restypeDirection": {
-                            "tier": 7,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "primary",
-                                        "up"
-                                    ],
-                                    [
-                                        "primary",
-                                        "down"
-                                    ],
-                                    [
-                                        "secondary",
-                                        "up"
-                                    ],
-                                    [
-                                        "secondary",
-                                        "down"
-                                    ],
-                                    [
-                                        "tertiary",
-                                        "up"
-                                    ],
-                                    [
-                                        "tertiary",
-                                        "down"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "restype_inertia": {
-                            "tier": 1,
+                        "utAvailabilityLimits": {
+                            "tier": 29,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": []
@@ -54271,140 +54720,11 @@
                                 "origin": 1
                             }
                         },
-                        "uGroup": {
-                            "tier": 0,
+                        "gnss_bound": {
+                            "tier": 6,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "gn2nGroup": {
-                            "tier": 36,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "grid__node__unit__restype": {
-                            "tier": 18,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_nuclear",
-                                        "primary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_nuclear",
-                                        "secondary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_nuclear",
-                                        "tertiary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgt1",
-                                        "primary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgt1",
-                                        "secondary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgt1",
-                                        "tertiary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgt2",
-                                        "primary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgt2",
-                                        "secondary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgt2",
-                                        "tertiary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgtAgg",
-                                        "primary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgtAgg",
-                                        "secondary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgtAgg",
-                                        "tertiary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "B",
-                                        "U_ccgt",
-                                        "primary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "B",
-                                        "U_ccgt",
-                                        "secondary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "B",
-                                        "U_ccgt",
-                                        "tertiary"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "flowUnit": {
-                            "tier": 4,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "wind",
-                                        "U_wind"
-                                    ]
-                                ]
                             },
                             "metadata": {
                                 "exportable": 1,
@@ -54435,70 +54755,6 @@
                                 "origin": 1
                             }
                         },
-                        "group__restype__up_down": {
-                            "tier": 20,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "group__restype__up_down__group": {
-                            "tier": 22,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "utAvailabilityLimits": {
-                            "tier": 29,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "unit__constraint__node": {
-                            "tier": 32,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "unit__startupFuel": {
-                            "tier": 26,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "U_ocgt1",
-                                        "natural_gas"
-                                    ],
-                                    [
-                                        "U_ocgt1",
-                                        "fuel_oil"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
                         "grid__node": {
                             "tier": 19,
                             "records": {
@@ -54511,200 +54767,6 @@
                                     [
                                         "elec",
                                         "B"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "group__unit": {
-                            "tier": 2,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "restypeReleasedForRealization": {
-                            "tier": 5,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "tertiary"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "grid__node__unit__boundary": {
-                            "tier": 11,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "grid__node__unit__io": {
-                            "tier": 15,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_nuclear",
-                                        "output"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgt1",
-                                        "output"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgt2",
-                                        "output"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgtAgg",
-                                        "output"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_wind",
-                                        "output"
-                                    ],
-                                    [
-                                        "elec",
-                                        "B",
-                                        "U_ccgt",
-                                        "output"
-                                    ],
-                                    [
-                                        "fuel",
-                                        "natural_gas",
-                                        "U_ocgt1",
-                                        "input"
-                                    ],
-                                    [
-                                        "fuel",
-                                        "natural_gas",
-                                        "U_ocgt2",
-                                        "input"
-                                    ],
-                                    [
-                                        "fuel",
-                                        "natural_gas",
-                                        "U_ocgtAgg",
-                                        "input"
-                                    ],
-                                    [
-                                        "fuel",
-                                        "natural_gas",
-                                        "U_ccgt",
-                                        "input"
-                                    ],
-                                    [
-                                        "fuel",
-                                        "nuclear",
-                                        "U_nuclear",
-                                        "input"
-                                    ],
-                                    [
-                                        "fuel",
-                                        "fuel_oil",
-                                        "U_ocgt1",
-                                        "input"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "grid__node__f_storageValue": {
-                            "tier": 27,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "elec",
-                                        "A",
-                                        "f00"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "gnuGroup": {
-                            "tier": 8,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": []
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "gnu__restype__up_down__restype": {
-                            "tier": 13,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_nuclear",
-                                        "primary",
-                                        "up",
-                                        "secondary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "U_ocgt1",
-                                        "primary",
-                                        "up",
-                                        "secondary"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "grid__node__node": {
-                            "tier": 17,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "elec",
-                                        "B",
-                                        "A"
                                     ]
                                 ]
                             },
@@ -54731,101 +54793,21 @@
                                 "origin": 1
                             }
                         },
-                        "unit_fail": {
-                            "tier": 10,
+                        "group__restype": {
+                            "tier": 24,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": [
                                     [
-                                        "U_nuclear"
-                                    ],
-                                    [
-                                        "U_ocgt1"
-                                    ],
-                                    [
-                                        "U_ocgt2"
-                                    ],
-                                    [
-                                        "U_ccgt"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "grid__node__boundary": {
-                            "tier": 16,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "elec",
-                                        "A",
-                                        "upwardLimit"
-                                    ],
-                                    [
-                                        "elec",
-                                        "A",
-                                        "downwardLimit"
-                                    ],
-                                    [
-                                        "elec",
-                                        "B",
-                                        "upwardLimit"
-                                    ],
-                                    [
-                                        "elec",
-                                        "B",
-                                        "downwardLimit"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 2,
-                                "origin": 1
-                            }
-                        },
-                        "grid__node__node__restype": {
-                            "tier": 12,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "elec",
-                                        "A",
-                                        "B",
+                                        "reserveGroup",
                                         "primary"
                                     ],
                                     [
-                                        "elec",
-                                        "A",
-                                        "B",
+                                        "reserveGroup",
                                         "secondary"
                                     ],
                                     [
-                                        "elec",
-                                        "A",
-                                        "B",
-                                        "tertiary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "B",
-                                        "A",
-                                        "primary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "B",
-                                        "A",
-                                        "secondary"
-                                    ],
-                                    [
-                                        "elec",
-                                        "B",
-                                        "A",
+                                        "reserveGroup",
                                         "tertiary"
                                     ]
                                 ]
@@ -54835,35 +54817,139 @@
                                 "origin": 1
                             }
                         },
-                        "commodity": {
-                            "tier": 37,
-                            "records": {
-                                "indexing_type": "fixed",
-                                "indexes": [
-                                    [
-                                        "natural_gas"
-                                    ],
-                                    [
-                                        "nuclear"
-                                    ],
-                                    [
-                                        "fuel_oil"
-                                    ]
-                                ]
-                            },
-                            "metadata": {
-                                "exportable": 1,
-                                "origin": 1
-                            }
-                        },
-                        "gnss_bound": {
-                            "tier": 6,
+                        "restype_inertia": {
+                            "tier": 1,
                             "records": {
                                 "indexing_type": "fixed",
                                 "indexes": []
                             },
                             "metadata": {
                                 "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "gnuGroup": {
+                            "tier": 8,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "unit__startupFuel": {
+                            "tier": 26,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "U_ocgt1",
+                                        "natural_gas"
+                                    ],
+                                    [
+                                        "U_ocgt1",
+                                        "fuel_oil"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "unit__constraint__node": {
+                            "tier": 32,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "unit__constraint": {
+                            "tier": 31,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "restypeReleasedForRealization": {
+                            "tier": 5,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "tertiary"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "uss_bound": {
+                            "tier": 3,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 1,
+                                "origin": 1
+                            }
+                        },
+                        "unit_ts": {
+                            "tier": 38,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "U_nuclear",
+                                        "unavailability",
+                                        "f00"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "ts_grid__node__boundary__f": {
+                            "tier": 35,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": [
+                                    [
+                                        "elec",
+                                        "A",
+                                        "reference",
+                                        "f00"
+                                    ]
+                                ]
+                            },
+                            "metadata": {
+                                "exportable": 2,
+                                "origin": 1
+                            }
+                        },
+                        "grid__node__unit__boundary": {
+                            "tier": 11,
+                            "records": {
+                                "indexing_type": "fixed",
+                                "indexes": []
+                            },
+                            "metadata": {
+                                "exportable": 2,
                                 "origin": 1
                             }
                         }
@@ -54881,6 +54967,21 @@
                             "domain_names": [
                                 "unit",
                                 "param_unit_ts",
+                                "f"
+                            ]
+                        }
+                    ],
+                    "ts_reserveDemand": [
+                        {
+                            "indexing_domain": "t_reserveDemand",
+                            "index_position": 4,
+                            "picking": {
+                                "picking": "all 1"
+                            },
+                            "domain_names": [
+                                "restype",
+                                "up_down",
+                                "group",
                                 "f"
                             ]
                         }
@@ -54953,21 +55054,6 @@
                                 "node"
                             ]
                         }
-                    ],
-                    "ts_reserveDemand": [
-                        {
-                            "indexing_domain": "t_reserveDemand",
-                            "index_position": 4,
-                            "picking": {
-                                "picking": "all 1"
-                            },
-                            "domain_names": [
-                                "restype",
-                                "up_down",
-                                "group",
-                                "f"
-                            ]
-                        }
                     ]
                 },
                 "merging_settings": {
@@ -54992,7 +55078,8 @@
                         {
                             "parameters": [
                                 "energyStoredPerUnitOfState",
-                                "nodeBalance"
+                                "nodeBalance",
+                                "p_storageValue"
                             ],
                             "new_domain": "param_gn",
                             "domain_description": "",
@@ -55223,31 +55310,30 @@
             },
             "databases": [
                 {
-                    "scenario": null,
                     "output_file_name": "inputData.gdx",
                     "database_url": {
                         "type": "file_url",
                         "relative": true,
                         "path": ".spinetoolbox/items/bb_data/BB_data.sqlite",
-                        "scheme": "sqlite",
-                        "query": "spinedbfilter=C%3A%5CHJY_projects%5Cspine%5CCase_study_B3%5CBB_in_Spine%5C.spinetoolbox%5Citems%5Cbb_sets%5Cfilter_config.json&spinedbfilter=C%3A%5CHJY_projects%5Cspine%5CCase_study_B3%5CBB_in_Spine%5C.spinetoolbox%5Citems%5Cbb_parameters%5Cfilter_config.json"
+                        "scheme": "sqlite"
                     }
                 }
             ],
+            "output_time_stamps": false,
             "cancel_on_error": true
         },
         "BB_sets": {
             "type": "Data Transformer",
             "description": "",
             "x": 37.494726617994715,
-            "y": -106.0869965975867,
+            "y": -143.06176352472627,
             "specification": "ToBackboneSets"
         },
         "BB_parameters": {
             "type": "Data Transformer",
             "description": "",
             "x": 154.38008256789178,
-            "y": -111.97989002120522,
+            "y": -148.9546569483448,
             "specification": "ToBackboneParameters"
         }
     }
