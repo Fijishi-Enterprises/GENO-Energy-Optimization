@@ -144,55 +144,11 @@
                     },
                     "mapping_name": "Mapping 0"
                 }
-            ],
-            "total_influx": [
-                {
-                    "map_type": "ObjectClass",
-                    "skip_columns": [],
-                    "read_start_row": 0,
-                    "name": {
-                        "map_type": "None"
-                    },
-                    "parameters": {
-                        "map_type": "None"
-                    },
-                    "import_objects": true,
-                    "objects": {
-                        "map_type": "None"
-                    },
-                    "object_metadata": {
-                        "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
-                }
-            ],
-            "total_hydro": [
-                {
-                    "map_type": "ObjectClass",
-                    "skip_columns": [],
-                    "read_start_row": 0,
-                    "name": {
-                        "map_type": "None"
-                    },
-                    "parameters": {
-                        "map_type": "None"
-                    },
-                    "import_objects": true,
-                    "objects": {
-                        "map_type": "None"
-                    },
-                    "object_metadata": {
-                        "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
-                }
             ]
         },
         "table_options": {
             "ts_cf": {},
-            "ts_influx": {},
-            "total_influx": {},
-            "total_hydro": {}
+            "ts_influx": {}
         },
         "table_types": {
             "ts_cf": {
@@ -212,8 +168,8 @@
         },
         "table_row_types": {},
         "selected_tables": [
-            "ts_influx",
-            "ts_cf"
+            "ts_cf",
+            "ts_influx"
         ],
         "source_type": "GdxConnector"
     },
