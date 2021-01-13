@@ -6,7 +6,8 @@ ww_range                               "Possible ranges for linearization parame
 ww_flowType                            "Possible types of flows for ranges in waste water treatment model"
 ww_lowerUpper                          "Lower or upper threshold for ranges in waste water treatment model"
      /lower, upper/
-
+diff_direction                         "Direction of diffusion between nodes"
+     /diff_in, diff_out/
 ;
 
 alias(ww_flowType, ww_flowType_);
@@ -24,8 +25,7 @@ gn2nFlowType(grid, node, node_, ww_flowType)
 Parameters
 
 p_ww_threshold(ww_flowType, ww_range, ww_lowerUpper)                          "Lower and upper thresholds for flow ranges"
-p_ww_A(ww_flowType, ww_range, node)                                           "Linearization parameters A for the wastewater treatment model"
-p_ww_dilution(ww_flowType, ww_range)                                          "Dilution factor D in the waste water treatment model for different inflow ranges"
-
+p_ww_A(ww_flowType, ww_range, node, node_, diff_direction)                    "Linearization parameters A for the wastewater treatment model"
+p_ww_dilution(ww_flowType, ww_range, node, node_)                             "Dilution factor D in the waste water treatment model for different inflow ranges"
 ;
 
