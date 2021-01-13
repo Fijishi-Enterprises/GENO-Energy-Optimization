@@ -329,7 +329,8 @@ gnn_boundState(grid, node, node_)${ p_gnn(grid, node, node_, 'boundStateMaxDiff'
     = yes;
 
 // Node pairs connected via energy diffusion
-gnn_state(grid, node, node_)${  p_gnn(grid, node, node_, 'diffCoeff')
+gnn_state(grid, node, node_)${  p_gnn(grid, node, node_, 'diffCoeff_in')
+                                or p_gnn(grid, node, node_, 'diffCoeff_out')
                                 or gnn_boundState(grid, node, node_)
                                 }
     = yes;

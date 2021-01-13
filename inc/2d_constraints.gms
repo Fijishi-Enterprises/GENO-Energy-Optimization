@@ -2308,7 +2308,7 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
                 * [
                     + p_gn(grid, node, 'selfDischargeLoss')
                     + sum(gnn_state(grid, node, to_node),
-                        + p_gnn(grid, node, to_node, 'diffCoeff')
+                        + p_gnn(grid, node, to_node, 'diffCoeff_out')
                         ) // END sum(to_node)
                     ]
             ] // END * Headroom
@@ -2372,7 +2372,7 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
                 * [
                     + p_gn(grid, node, 'selfDischargeLoss')
                     + sum(gnn_state(grid, node, to_node),
-                        + p_gnn(grid, node, to_node, 'diffCoeff')
+                        + p_gnn(grid, node, to_node, 'diffCoeff_out')
                         ) // END sum(to_node)
                     ]
             ] // END * Headroom
@@ -2738,13 +2738,13 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
 
     // Diffusion to node
     + sum(gnn_state(grid, from_node, node),
-        + p_gnn(grid, from_node, node, 'diffCoeff')
+        + p_gnn(grid, from_node, node, 'diffCoeff_in')
             * v_state(grid, from_node, s, f+df_central(f,t), t)
         ) // END sum(gnn_state)
 
     // Diffusion from node
     - sum(gnn_state(grid, node, to_node),
-        + p_gnn(grid, node, to_node, 'diffCoeff')
+        + p_gnn(grid, node, to_node, 'diffCoeff_out')
             * v_state(grid, node, s, f+df_central(f,t), t)
         ) // END sum(gnn_state)
 
