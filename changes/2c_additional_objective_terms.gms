@@ -26,8 +26,8 @@ $offtext
         + p_msft_probability(m, s, f, t)
             * [
                 // Time step length dependent costs
-                + p_stepLength(m, f, t)
-                    * [
+          //      + p_stepLength(m, f, t)*
+                    [
                          + sum(gn2n_directional(grid, from_node, to_node),
                                  + v_transfer(grid, from_node, to_node, s, f, t)
                                  * [+ p_gnn(grid, from_node, to_node, 'transferCost')]
