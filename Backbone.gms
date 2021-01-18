@@ -157,6 +157,9 @@ $echon "'version' " > 'version'
 $call 'git describe --dirty=+ --always >> version'
 $ifi not %dummy% == 'yes'
 $include 'inc/4b_outputInvariant.gms'
+$ifthen exist '%input_dir%/4bb_additional_output.inc'
+   $$include '%input_dir%/4bb_additional_output.inc'      // Define additional results from the input data
+$endif
 $include 'inc/4c_outputQuickFile.gms'
 
 * Post-process results

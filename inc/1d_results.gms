@@ -75,6 +75,10 @@ Parameters
     r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
     r_spill(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
 
+    //Energy diffusion results - ADDITIONS OF THE WWTP MODEL
+    r_incomingDiffusion          "Incoming diffusion into a node in time interval (MW)"
+    r_outgoingDiffusion          "Outgoing diffusion from a node in time interval (MW)"
+
     // Interesting node related results
     r_balanceMarginal(grid, node, f, t) "Marginal values of the q_balance equation"
     r_gnnTotalTransfer(grid, node, node) "Total amount of energy transferred between gnn over the simulation (MWh)"

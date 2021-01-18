@@ -72,6 +72,10 @@ r_stateSlack
 r_transfer
 r_spill
 
+//Energy diffusion - ADDITIONS OF THE WWTP MODEL
+r_incomingDiffusion
+r_outgoingDiffusion
+
 // Interesting node related results
 r_balanceMarginal
 r_gnnTotalTransfer
