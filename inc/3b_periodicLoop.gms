@@ -124,6 +124,7 @@ Option clear = q_constrainedOnlineMultiUnit;
 Option clear = q_capacityMargin;
 Option clear = q_constrainedCapMultiUnit;
 Option clear = q_emissioncap;
+Option clear = q_energyMax;
 Option clear = q_energyShareMax;
 Option clear = q_energyShareMin;
 Option clear = q_ReserveShareMax;
