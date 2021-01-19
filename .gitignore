@@ -18,7 +18,6 @@ EfficiencyPiecewise.xlsx
 /version
 
 # Data files
-*.sqlite
 *.gdx
 *.xlsx
 

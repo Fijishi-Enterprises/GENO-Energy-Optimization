@@ -140,6 +140,9 @@ if (mType('schedule'),
     mf_realization('schedule', 'f00') = yes;
     mf_central('schedule', f) = no;
     mf_central('schedule', 'f02') = yes;
+    
+    // Define special forecast label that holds scenario data
+    //mf_scenario('schedule', 'scen') = yes;
 
     // Define forecast probabilities (weights)
     p_mfProbability('schedule', f) = 0;

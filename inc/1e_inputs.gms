@@ -52,7 +52,6 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc p_gnuRes2Res
     $$loaddc ts_reserveDemand
     $$loaddc p_gnBoundaryPropertiesForStates
-    $$loaddc p_gnPolicy
     $$loaddc p_uStartupfuel
     $$loaddc flowUnit
     $$loaddc emission
@@ -73,7 +72,8 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc gnGroup
     $$loaddc sGroup
     $$loaddc p_groupPolicy
-    $$loaddc p_groupPolicy3D
+    $$loaddc p_groupPolicyUnit
+    $$loaddc p_groupPolicyEmission
     $$loaddc gnss_bound
     $$loaddc uss_bound
     $$gdxin
@@ -266,8 +266,8 @@ p_uShutdown(unit, 'cost')
 p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, emission)}
     = p_nEmission(node, emission)
         / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
-        * sum(gnu_input(grid, node, unit),
-            + p_gnPolicy(grid, node, 'emissionTax', emission)
+        * sum(gnGroup(grid, node, group)$gnu_input(grid, node, unit),
+            + p_groupPolicyEmission(group, 'emissionTax', emission)
           )
 ;
 

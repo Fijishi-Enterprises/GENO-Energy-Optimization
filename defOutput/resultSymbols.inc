@@ -19,6 +19,9 @@ $offtext
 * --- Results Symbols Included in Output --------------------------------------
 * =============================================================================
 
+* --- Symbols related to the simulation setup ---------------------------------
+t_realized = t
+
 * --- Cost Result Symbols -----------------------------------------------------
 
 // Total Objective Function
