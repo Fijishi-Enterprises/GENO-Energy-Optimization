@@ -19,6 +19,9 @@ $offtext
 * --- Results Symbols Included in Output --------------------------------------
 * =============================================================================
 
+* --- Symbols related to the simulation setup ---------------------------------
+t_realized = t
+
 * --- Cost Result Symbols -----------------------------------------------------
 
 // Total Objective Function
@@ -123,6 +126,17 @@ r_uTotalOnlinePerUnit
 // Interesting unit startup and shutdown results
 r_uTotalStartup
 r_uTotalShutdown
+
+* --- Emissions Results -----------------------------------------------
+
+// Unit level emissions
+r_emissions
+
+// Emission sums
+r_nuTotalEmissions
+r_nTotalEmissions
+r_uTotalEmissions
+r_totalEmissions
 
 * --- Reserve Provision Result Symbols ----------------------------------------
 

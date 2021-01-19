@@ -83,6 +83,7 @@ Model schedule /
     q_capacityMargin
 *    q_constrainedCapMultiUnit
 *    q_emissioncap
+*    q_energyMax 
 *    q_energyShareMax
 *    q_energyShareMin
     q_ReserveShareMax

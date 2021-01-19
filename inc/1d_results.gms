@@ -119,6 +119,19 @@ Parameters
     r_gnTotalConsumptionShare(grid, node) "Total consumption gn/g share"
     r_gTotalConsumption(grid) "Total consumption of energy in g over the simulation (MWh)"
 
+
+* --- Emissions Results -------------------------------------------------------
+
+    // Unit level emissions
+    r_emissions (node, emission, unit, f, t) "Emissions from units (tCO2)"
+
+    // Emission sums
+    r_nuTotalEmissions (node, unit, emission) "Total emissions from units (tCO2)"
+    r_nTotalEmissions(node, emission) "Emissions in gn (tCO2)"
+    r_uTotalEmissions(unit, emission) "Emissions in gn (tCO2)"
+    r_totalEmissions (emission) "Summed emissions (tCO2)"
+
+
 * --- Unit Online State Results -----------------------------------------------
 
     // Online results required for model structure
