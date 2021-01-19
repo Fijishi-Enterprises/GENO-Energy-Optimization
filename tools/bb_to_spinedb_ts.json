@@ -71,8 +71,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "ts_influx": [
@@ -143,8 +142,7 @@
                     ],
                     "relationship_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "total_influx": [
@@ -164,8 +162,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ],
             "total_hydro": [
@@ -185,8 +182,7 @@
                     },
                     "object_metadata": {
                         "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    }
                 }
             ]
         },
