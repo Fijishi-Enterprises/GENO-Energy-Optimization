@@ -28,7 +28,7 @@ loop(m,
     r_gnuVOMCost(gnu(grid, node, unit), ft_realizedNoReset(f,t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
-            * r_gen(grid, node, unit, f, t)
+            * abs(r_gen(grid, node, unit, f, t))
             * p_gnu(grid, node, unit, 'vomCosts');
 
     // Fuel and emission costs during normal operation
@@ -36,12 +36,8 @@ loop(m,
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * r_fuelUse(commodity, unit, f, t)
-            * [ // Fuel price when input
-                + p_price(commodity, 'price')${p_price(commodity, 'useConstant') and un_commodity_in(unit, commodity)}
-                + ts_price(commodity, t)${p_price(commodity, 'useTimeSeries')  and un_commodity_in(unit, commodity)}
-                // Fuel price when output
-                - p_price(commodity, 'price')${p_price(commodity, 'useConstant') and un_commodity_out(unit, commodity)}
-                - ts_price(commodity, t)${p_price(commodity, 'useTimeSeries')  and un_commodity_out(unit, commodity)}
+            * [ + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
+                + ts_price(commodity, t)$p_price(commodity, 'useTimeSeries')
                 // Emission costs
                 + sum(emission, p_unitEmissionCost(unit, commodity, emission))
               ];
@@ -180,11 +176,12 @@ loop(m,
             )
           // Allocate fuel and startup costs on energy basis, but for output nodes only
           + sum(unit$gnu(grid, node, unit),
-              + sum(gnu(grid, node, unit)$(gnu_output(grid, node, unit) and r_gen[grid, node, unit, f, t]),
-                  + abs{r_gen[grid, node, unit, f, t]}  // abs is due to potential negative outputs like energy from a cooling unit. It's the energy contribution that matters, not direction.
-                    /
-                    sum(gnu_output(grid_output, node_output, unit)$r_gen[grid_output, node_output, unit, f, t], abs{r_gen[grid_output, node_output, unit, f, t]})
-                )
+              + [
+                  + abs{r_gen(grid, node, unit, f, t)}  // abs is due to potential negative outputs like energy from a cooling unit. It's the energy contribution that matters, not direction.
+                      / sum(gnu_output(grid_output, node_output, unit),
+                          + abs{r_gen(grid_output, node_output, unit, f, t)}
+                        ) // END sum(gnu_output)
+                ]$(gnu_output(grid, node, unit) and abs{r_gen(grid, node, unit, f, t)} > eps)
                 *
                 {
                   + sum(un_commodity(unit, commodity), r_uFuelEmissionCost(commodity, unit, f, t))
@@ -264,6 +261,37 @@ loop(m,
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
+
+* --- Emission Results --------------------------------------------------------
+
+    // Emissions of units (only for commodities, not including startup fuels)
+    r_emissions(commodity, emission, unit, ft_realizedNoReset(f,t))$ {un_commodity(unit, commodity) and [ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]}
+        =   + p_stepLengthNoReset(m, f, t)
+            * r_fuelUse(commodity, unit, f, t)
+            * p_nEmission(commodity, emission)
+            / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+    ;
+
+
+    // Emission sums
+    r_nuTotalEmissions (commodity, unit, emission)
+        = sum(ft_realizedNoReset(f, t)$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')],
+            + r_emissions(commodity, emission, unit, f, t)
+                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+            )
+    ;
+
+    r_nTotalEmissions(commodity, emission)
+        = sum(unit, r_nuTotalEmissions (commodity, unit, emission))
+    ;
+
+    r_uTotalEmissions(unit, emission)
+        = sum(commodity, r_nuTotalEmissions (commodity, unit, emission))
+    ;
+
+    r_totalEmissions (emission)
+        = sum(commodity, r_nTotalEmissions(commodity, emission))
+    ;
 
 * --- Total Unit Online Results -----------------------------------------------
 
@@ -563,15 +591,15 @@ d_cop(unit, ft_realizedNoReset(f, t))${  [ord(t) > mSettings(m, 't_start') + mSe
             ]
         + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 
-// Estimated efficiency
+// Estimated efficiency, calculated from commodity based inputs
 d_eff(unit_commodity(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
     = sum(gnu_output(grid, node, unit),
         + r_gen(grid, node, unit, f, t)
         ) // END sum(gnu_output)
-        / [ sum(uFuel(unit, 'main', fuel),
-                + r_fuelUse(fuel, unit, f, t)
-                ) // END sum(uFuel)
-            + 1${not sum(uFuel(unit, 'main', fuel), r_fuelUse(fuel, unit, f, t))}
+        / [ sum(gnu_input(grid, node, unit)$un_commodity(unit, node),
+                + r_fuelUse(node, unit, f, t)
+                ) // END sum(gnu_input)
+            + 1${not sum(gnu_input(grid, node, unit)$un_commodity(unit, node), r_fuelUse(node, unit, f, t))}
             ]
         + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 $endif.diag

@@ -259,6 +259,7 @@ q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_f
 q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
     ${  p_groupPolicy(group, 'defaultFrequency')
         and p_groupPolicy(group, 'ROCOF')
+        and p_groupPolicy(group, 'dynamicInertia')
         and uft(unit_, f, t) // only active units
         and sum(gnGroup(grid, node, group), gnu_output(grid, node, unit_)) // only units with output capacity 'inside the group'
         } ..
@@ -298,6 +299,7 @@ q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
 q_rateOfChangeOfFrequencyTransfer(group, gn2n(grid, node_, node_fail), sft(s, f, t))
     ${  p_groupPolicy(group, 'defaultFrequency')
         and p_groupPolicy(group, 'ROCOF')
+        and p_groupPolicy(group, 'dynamicInertia')
         and gnGroup(grid, node_, group) // only interconnectors where one end is 'inside the group'
         and not gnGroup(grid, node_fail, group) // and the other end is 'outside the group'
         and [ p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_reserve')
@@ -2533,6 +2535,7 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
                   and sft_realized(s, f, t)]
         and p_groupPolicy(group, 'ROCOF')
         and p_groupPolicy(group, 'defaultFrequency')
+        and p_groupPolicy(group, 'staticInertia')
         } ..
 
     // Rotational energy in the system
@@ -2660,18 +2663,18 @@ $offtext
 
 q_constrainedOnlineMultiUnit(group, sft(s, f, t))
     ${  p_groupPolicy(group, 'constrainedOnlineTotalMax')
-        or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)))
+        or sum(unit$uGroup(unit, group), abs(p_groupPolicyUnit(group, 'constrainedOnlineMultiplier', unit)))
         } ..
 
     // Sum of multiplied online units
     + sum(unit$uGroup(unit, group),
-        + p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
+        + p_groupPolicyUnit(group, 'constrainedOnlineMultiplier', unit)
             * [
                 + v_online_LP(unit, s, f+df_central(f,t), t)
                     ${uft_onlineLP(unit, f, t)}
                 + v_online_MIP(unit, s, f+df_central(f,t), t)
                     ${uft_onlineMIP(unit, f, t)}
-                ] // END * p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
+                ] // END * p_groupPolicyUnit(group, 'constrainedOnlineMultiplier', unit)
         ) // END sum(unit)
 
     =L=
@@ -2775,16 +2778,16 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
 
 q_constrainedCapMultiUnit(group)
     ${  p_groupPolicy(group, 'constrainedCapTotalMax')
-        or sum(uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)))
+        or sum(uGroup(unit, group), abs(p_groupPolicyUnit(group, 'constrainedCapMultiplier', unit)))
         } ..
 
     // Sum of multiplied investments
     + sum(uGroup(unit, group),
-        + p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
+        + p_groupPolicyUnit(group, 'constrainedCapMultiplier', unit)
             * [
                 + v_invest_LP(unit)${unit_investLP(unit)}
                 + v_invest_MIP(unit)${unit_investMIP(unit)}
-                ] // END * p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
+                ] // END * p_groupPolicyUnit(group, 'constrainedCapMultiplier', unit)
         ) // END sum(unit)
 
     =L=
@@ -2799,7 +2802,7 @@ q_constrainedCapMultiUnit(group)
 // Is there any way to make it work?
 
 q_emissioncap(group, emission)
-    ${  p_groupPolicy3D(group, 'emissionCap', emission)
+    ${  p_groupPolicyEmission(group, 'emissionCap', emission)
         } ..
 
     + sum(msft(m, s, f, t)${sGroup(s, group)},
@@ -2833,7 +2836,41 @@ q_emissioncap(group, emission)
     =L=
 
     // Permitted nodal emission cap
-    + p_groupPolicy3D(group, 'emissionCap', emission)
+    + p_groupPolicyEmission(group, 'emissionCap', emission)
+;
+
+*--- Maximum Energy -----------------------------------------------------------
+
+q_energyMax(group)
+    ${  p_groupPolicy(group, 'energyMax')
+        } ..
+
+    + sum(msft(m, s, f, t)${sGroup(s, group)},
+        + p_msft_Probability(m,s,f,t)
+            * p_stepLength(m, f, t)
+            * [
+                + 1${not p_groupPolicy(group, 'energyMaxVgenSign')}
+                + p_groupPolicy(group, 'energyMaxVgenSign') // Multiply by -1 in order to convert to minimum energy constraint
+                ]
+            * [
+                // Production of units in the group
+                + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
+                                                        and gnuft(grid, node, unit, f, t)
+                                                        },
+                    + v_gen(grid, node, unit, s, f, t)
+                    ) // END sum(gnu)
+                // Consumption of units in the group
+                + sum(gnu_input(grid, node, unit)${    gnuGroup(grid, node, unit, group)
+                                                       and gnuft(grid, node, unit, f, t)
+                                                       },
+                    - v_gen(grid, node, unit, s, f, t)
+                    ) // END sum(gnu)
+                ] // END * p_stepLength
+        ) // END sum(msft)
+
+    =L=
+
+    + p_groupPolicy(group, 'energyMax') // Use negative energyMax value if you need a "minimum energy" equation
 ;
 
 *--- Maximum Energy Share -----------------------------------------------------

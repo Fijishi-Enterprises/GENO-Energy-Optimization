@@ -41,6 +41,19 @@ loop(m,
                 and ord(t) <= mSettings(m, 't_end') + mSettings(m, 't_horizon')
                 }
         = yes;
+    if(mSettings(m, 't_jump') > mSettings(m, 't_end'),
+        mSettings(m, 't_jump') = mSettings(m, 't_end');
+        put log "!!! t_jump was larger than t_end. t_jump was decreased to t_end."/
+    );
+    if(mod(mSettings(m, 't_end'), mSettings(m, 't_jump')) > 0,
+        abort "t_end is not divisible by t_jump";
+    );
+
+    // Calculate realized timesteps in the simulation
+    t_realized(t_full(t))${ ord(t) >= mSettings(m, 't_start') + 1
+                            and ord(t) <= mSettings(m, 't_end') + 1
+                          }
+        = yes;
 
 * --- Samples and Forecasts ---------------------------------------------------
 $ontext
@@ -177,7 +190,7 @@ loop(m,
 * --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units ---
 
     loop(effLevel$mSettingsEff(m, effLevel),
-        loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) < ord(effLevel)},
+        loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) <= ord(effLevel)},
             p_unit(unit_aggregated(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit_, unit, effLevel)) }
                 = mSettingsEff(m, effLevel_);
             p_unit(unit_aggregator(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit, unit_, effLevel)) }

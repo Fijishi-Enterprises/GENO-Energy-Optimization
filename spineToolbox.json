@@ -1,16 +1,16 @@
 {
     "name": "Backbone",
-    "description": "Backbone",
     "tooltype": "gams",
     "includes": [
         "Backbone.gms",
         "inc/*.gms",
-		"inc/rampSched/*.gms",
+        "inc/rampSched/*.gms",
         "defModels/*.gms",
         "defOutput/debugSymbols.inc",
         "defOutput/resultSymbols.inc",
         "cplex.opt"
     ],
+    "description": "Backbone",
     "inputfiles": [
         "input/inputData.gdx",
         "input/modelsInit.gms"
@@ -19,10 +19,10 @@
         "input/*.*"
     ],
     "outputfiles": [
-        "Backbone.lst",
-        "output/results.gdx"
+        "output/results.gdx",
+        "Backbone.lst"
     ],
-    "cmdline_args": "",
+    "cmdline_args": [],
     "execute_in_work": true,
-    "includes_main_path": "."
+    "includes_main_path": "C:/data/backbone"
 }
