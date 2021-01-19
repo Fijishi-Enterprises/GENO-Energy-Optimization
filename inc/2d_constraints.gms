@@ -2647,18 +2647,18 @@ $offtext
 
 q_constrainedOnlineMultiUnit(group, sft(s, f, t))
     ${  p_groupPolicy(group, 'constrainedOnlineTotalMax')
-        or sum(unit$uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)))
+        or sum(unit$uGroup(unit, group), abs(p_groupPolicyUnit(group, 'constrainedOnlineMultiplier', unit)))
         } ..
 
     // Sum of multiplied online units
     + sum(unit$uGroup(unit, group),
-        + p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
+        + p_groupPolicyUnit(group, 'constrainedOnlineMultiplier', unit)
             * [
                 + v_online_LP(unit, s, f+df_central(f,t), t)
                     ${uft_onlineLP(unit, f, t)}
                 + v_online_MIP(unit, s, f+df_central(f,t), t)
                     ${uft_onlineMIP(unit, f, t)}
-                ] // END * p_groupPolicy3D(group, 'constrainedOnlineMultiplier', unit)
+                ] // END * p_groupPolicyUnit(group, 'constrainedOnlineMultiplier', unit)
         ) // END sum(unit)
 
     =L=
@@ -2762,16 +2762,16 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
 
 q_constrainedCapMultiUnit(group)
     ${  p_groupPolicy(group, 'constrainedCapTotalMax')
-        or sum(uGroup(unit, group), abs(p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)))
+        or sum(uGroup(unit, group), abs(p_groupPolicyUnit(group, 'constrainedCapMultiplier', unit)))
         } ..
 
     // Sum of multiplied investments
     + sum(uGroup(unit, group),
-        + p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
+        + p_groupPolicyUnit(group, 'constrainedCapMultiplier', unit)
             * [
                 + v_invest_LP(unit)${unit_investLP(unit)}
                 + v_invest_MIP(unit)${unit_investMIP(unit)}
-                ] // END * p_groupPolicy3D(group, 'constrainedCapMultiplier', unit)
+                ] // END * p_groupPolicyUnit(group, 'constrainedCapMultiplier', unit)
         ) // END sum(unit)
 
     =L=
@@ -2786,7 +2786,7 @@ q_constrainedCapMultiUnit(group)
 // Is there any way to make it work?
 
 q_emissioncap(group, emission)
-    ${  p_groupPolicy3D(group, 'emissionCap', emission)
+    ${  p_groupPolicyEmission(group, 'emissionCap', emission)
         } ..
 
     + sum(msft(m, s, f, t)${sGroup(s, group)},
@@ -2820,7 +2820,7 @@ q_emissioncap(group, emission)
     =L=
 
     // Permitted nodal emission cap
-    + p_groupPolicy3D(group, 'emissionCap', emission)
+    + p_groupPolicyEmission(group, 'emissionCap', emission)
 ;
 
 *--- Maximum Energy -----------------------------------------------------------
