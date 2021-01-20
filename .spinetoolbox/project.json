@@ -8,7 +8,7 @@
                 {
                     "type": "path",
                     "relative": true,
-                    "path": "tools/spineToolbox.json"
+                    "path": "spineToolbox.json"
                 },
                 {
                     "type": "path",
