@@ -220,6 +220,7 @@ param_gn  "Possible parameters for grid, node" /
     boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
     boundAll      "A flag to bound the state to the reference in all time steps"
     boundStartToEnd  "Force the last states to equal the first state"
+    decay          "decay parameter for biomass USED IN THE WWTP MODEL"
 *    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."  // NOT IMPLEMENTED
     capacityMargin "Capacity margin used in invest mode (MW)"
     storageValueUseTimeSeries "A flag to determine whether to use time series form `storageValue`"
@@ -249,12 +250,14 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     transferCap   "Transfer capacity limits (MW)"
     transferCapBidirectional "Total bidirectional transfer capacity limit (MW)"
     transferLoss  "Transfer losses"
-    diffCoeff     "Coefficients for energy diffusion between nodes (MW/[v_state])"
+    diffCoeff_in     "Coefficient for energy diffusion into a node (MW/[v_state])"
+    diffCoeff_out    "Coefficient for energy diffusion out of a node (MW/[v_state])"
     boundStateMaxDiff "Maximum difference of node state pairs ([v_state])"
     transferCapInvLimit "Capacity limit for investments (MW)"
     investMIP     "A flag to make integer investment instead of continuous investment (MW versus number of links)"
     unitSize      "Size of one link for integer investments (MW)"
     invCost       "Investment cost (EUR/MW)"
+    transferCost  "Direct transfer cost (EUR/MW)"
     annuity       "Investment annuity"
     portion_of_transfer_to_reserve "Portion of the infeed from the unit that needs to be available as reserve if the unit fails"
     ICrampUp

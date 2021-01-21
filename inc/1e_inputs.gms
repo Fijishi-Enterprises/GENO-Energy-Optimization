@@ -19,6 +19,11 @@ $offtext
 * --- Load Input Data ---------------------------------------------------------
 * =============================================================================
 
+* Reads changes or additions to the inputdata through changes.inc file.
+$ifthen exist '%input_dir%/changes_SetsParam.inc'
+   $$include '%input_dir%/changes_SetsParam.inc'
+$endif
+
 $ifthen exist '%input_dir%/inputData.gdx'
     $$gdxin  '%input_dir%/inputData.gdx'
     $$loaddcm grid
@@ -40,6 +45,12 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc ts_unit
     $$loaddc p_unitConstraint
     $$loaddc p_unitConstraintNode
+    $$loaddc ww_range
+    $$loaddc ww_flowType
+    $$loaddc ww_flowRange
+    $$loaddc p_ww_threshold
+    $$loaddc p_ww_A
+    $$loaddc p_ww_dilution
     $$loaddc restype
     $$loaddc restypeDirection
     $$loaddc restypeReleasedForRealization
@@ -69,6 +80,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc uGroup
     $$loaddc gnuGroup
     $$loaddc gn2nGroup
+    $$loaddc gn2nFlowType
     $$loaddc gnGroup
     $$loaddc sGroup
     $$loaddc p_groupPolicy
@@ -81,12 +93,6 @@ $endif
 
 * Read changes to inputdata through gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx) - allows scenarios through Sceleton Titan Excel files.
 $include 'inc/1e_scenChanges.gms'
-
-* Reads changes or additions to the inputdata through changes.inc file.
-$ifthen exist '%input_dir%/changes.inc'
-   $$include '%input_dir%/changes.inc'
-$endif
-
 
 
 $ontext
@@ -320,7 +326,8 @@ gnn_boundState(grid, node, node_)${ p_gnn(grid, node, node_, 'boundStateMaxDiff'
     = yes;
 
 // Node pairs connected via energy diffusion
-gnn_state(grid, node, node_)${  p_gnn(grid, node, node_, 'diffCoeff')
+gnn_state(grid, node, node_)${  p_gnn(grid, node, node_, 'diffCoeff_in')
+                                or p_gnn(grid, node, node_, 'diffCoeff_out')
                                 or gnn_boundState(grid, node, node_)
                                 }
     = yes;
