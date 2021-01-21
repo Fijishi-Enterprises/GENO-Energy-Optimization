@@ -41,6 +41,19 @@ loop(m,
                 and ord(t) <= mSettings(m, 't_end') + mSettings(m, 't_horizon')
                 }
         = yes;
+    if(mSettings(m, 't_jump') > mSettings(m, 't_end'),
+        mSettings(m, 't_jump') = mSettings(m, 't_end');
+        put log "!!! t_jump was larger than t_end. t_jump was decreased to t_end."/
+    );
+    if(mod(mSettings(m, 't_end'), mSettings(m, 't_jump')) > 0,
+        abort "t_end is not divisible by t_jump";
+    );
+
+    // Calculate realized timesteps in the simulation
+    t_realized(t_full(t))${ ord(t) >= mSettings(m, 't_start') + 1
+                            and ord(t) <= mSettings(m, 't_end') + 1
+                          }
+        = yes;
 
 * --- Samples and Forecasts ---------------------------------------------------
 $ontext
@@ -168,21 +181,16 @@ loop(m,
     unit_noAggregate(unit)${ sum((unit_, effLevel), unitUnitEffLevel(unit, unit_, effLevel)) } = no;
 
     // Process data for unit aggregations
-    // Aggregate maxGen as the sum of aggregated maxGen
-    p_gnu(grid, node, unit_aggregator(unit), 'maxGen')
+    // Aggregate output as the sum of capacity
+    p_gnu(grid, node, unit_aggregator(unit), 'capacity')
         = sum(unit_$unitAggregator_unit(unit, unit_),
-            + p_gnu(grid, node, unit_, 'maxGen')
-            );
-    // Aggregate maxCons as the sum of aggregated maxCons
-    p_gnu(grid, node, unit_aggregator(unit), 'maxCons')
-        = sum(unit_$unitAggregator_unit(unit, unit_),
-            + p_gnu(grid, node, unit_, 'maxCons')
+            + p_gnu(grid, node, unit_, 'capacity')
             );
 
 * --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units ---
 
     loop(effLevel$mSettingsEff(m, effLevel),
-        loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) < ord(effLevel)},
+        loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) <= ord(effLevel)},
             p_unit(unit_aggregated(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit_, unit, effLevel)) }
                 = mSettingsEff(m, effLevel_);
             p_unit(unit_aggregator(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit, unit_, effLevel)) }
@@ -615,13 +623,13 @@ loop(m,
 
 * --- Calculating fuel price time series --------------------------------------
 
-loop(fuel${ p_fuelPrice(fuel, 'useTimeSeries') },
+loop(commodity${ p_price(commodity, 'useTimeSeries') },
     // Determine the time steps where the prices change
     Option clear = tt;
-    tt(t)${ ts_fuelPriceChange(fuel ,t) }
+    tt(t)${ ts_priceChange(commodity,t) }
         = yes;
-    ts_fuelPrice(fuel, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_fuelPriceChange(fuel, t_));
-); // END loop(fuel)
+    ts_price(commodity, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_priceChange(commodity, t_));
+); // END loop(commodity)
 
 * --- Slack Direction ---------------------------------------------------------
 
@@ -682,11 +690,13 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
             abort "The 'update_frequency' parameter should be divisible by 't_jump'!";
         ); // END if(mod('update_frequency'))
 
-        // Check if the first interval is long enough for proper commitment of reserves
-        if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_groupReserves(group, restype, 'update_frequency') + p_groupReserves(group, restype, 'gate_closure'),
-            put log '!!! Error occurred on p_groupReserves ' group.tl:0 ',' restype.tl:0 /;
-            put log '!!! Abort: The first interval block should not be shorter than update_frequency + gate_closure for proper commitment of reserves!' /;
-            abort "The first interval block should not be shorter than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
+        // Check if the first interval is long enough for proper commitment of reserves in the schedule model
+        if(sameas(m, 'schedule'),
+            if(mInterval(m, 'lastStepInIntervalBlock', 'c000') < p_groupReserves(group, restype, 'update_frequency') + p_groupReserves(group, restype, 'gate_closure'),
+                put log '!!! Error occurred on p_groupReserves ' group.tl:0 ',' restype.tl:0 /;
+                put log '!!! Abort: The first interval block should not be shorter than update_frequency + gate_closure for proper commitment of reserves!' /;
+                abort "The first interval block should not be shorter than 'update_frequency' + 'gate_closure' for proper commitment of reserves!";
+            ); // END if
         ); // END if
     ); // END loop(restypeDirectionGroup)
 
@@ -705,17 +715,47 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         put log '!!! Warning: Trajectories used on aggregated time steps! This could result in significant distortion of the trajectories.';
     ); // END if()
 
-* --- Check that the first interval block is compatible with t_jump' ----------
+* --- Check if 't_trajectoryHorizon' is long enough -----
 
-    if (mod(mSettings(m, 't_jump'), mInterval(m, 'stepsPerInterval', 'c000')) <> 0,
-        put log '!!! Abort: t_jump should be divisible by the first interval!' /;
-        abort "'t_jump' should be divisible by the first interval!";
+    if ((mSettings(m, 't_trajectoryHorizon') < mSettings(m, 't_jump') + smax(unit, p_u_runUpTimeIntervalsCeil(unit))
+      OR mSettings(m, 't_trajectoryHorizon') < mSettings(m, 't_jump') + smax(unit, p_u_shutdownTimeIntervalsCeil(unit)))
+      AND mSettings(m, 't_trajectoryHorizon') ne 0,
+        put log '!!! Abort: t_trajectoryHorizon should be at least as long as t+jump + max trajectory.';
+        abort "t_trajectoryHorizon should be at least as long as t+jump + max trajectory. This may lead to infeasibilities";
     ); // END if()
 
-    if (mInterval(m, 'lastStepInIntervalBlock', 'c000') < mSettings(m, 't_jump'),
-        put log '!!! Abort: The first interval block should not be shorter than t_jump!' /;
-        abort "The first interval block should not be shorter than 't_jump'!";
-    ); // END if()
+* --- Check that the first interval block is compatible with 't_jump' in the schedule model -----
+
+    if(sameas(m, 'schedule'),
+        if (mod(mSettings(m, 't_jump'), mInterval(m, 'stepsPerInterval', 'c000')) <> 0,
+            put log '!!! Abort: t_jump should be divisible by the first interval!' /;
+            abort "'t_jump' should be divisible by the first interval!";
+        ); // END if()
+
+        if (mInterval(m, 'lastStepInIntervalBlock', 'c000') < mSettings(m, 't_jump'),
+            put log '!!! Abort: The first interval block should not be shorter than t_jump!' /;
+            abort "The first interval block should not be shorter than 't_jump'!";
+        ); // END if()
+    ); // END if
+
+* --- Check investment related data -------------------------------------------
+
+    loop( unit_investLP(unit),
+        // Check that the investment decisions are not by accident fixed to zero in 3d_setVariableLimits.gms
+        if(p_unit(unit, 'becomeAvailable') <= mSettings(m, 't_start'),
+            put log '!!! Error occurred on unit ', unit.tl:0 /;
+            put log '!!! Abort: Unit with investment possibility should not become available before t_start!' /;
+            abort "The 'utAvailabilityLimits(unit, t, 'becomeAvailable')' should correspond to a timestep in the model without the initial timestep!"
+        ); // END if
+    ); // END loop(unit_investLP)
+    loop( unit_investMIP(unit),
+        // Check that the investment decisions are not by accident fixed to zero in 3d_setVariableLimits.gms
+        if(p_unit(unit, 'becomeAvailable') <= mSettings(m, 't_start'),
+            put log '!!! Error occurred on unit ', unit.tl:0 /;
+            put log '!!! Abort: Unit with investment possibility should not become available before t_start!' /;
+            abort "The 'utAvailabilityLimits(unit, t, 'becomeAvailable')' should correspond to a timestep in the model without the initial timestep!"
+        ); // END if
+    ); // END loop(unit_investMIP)
 
 ); // END loop(m)
 

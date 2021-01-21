@@ -59,13 +59,15 @@ if (mType('schedule'),
 
     // Define time span of samples
     msStart('schedule', 's000') = 1;
-    msEnd('schedule', 's000') = msStart('schedule', 's000') + mSettings('schedule', 't_horizon');
+    msEnd('schedule', 's000') = msStart('schedule', 's000') + mSettings('schedule', 't_end') + mSettings('schedule', 't_horizon'); // May not work if using scenarios
 
     // Define the probability (weight) of samples
     p_msProbability('schedule', s) = 0;
     p_msProbability('schedule', 's000') = 1;
     p_msWeight('schedule', s) = 0;
     p_msWeight('schedule', 's000') = 1;
+    p_msAnnuityWeight('schedule', s) = 0;
+    p_msAnnuityWeight('schedule', 's000') = 1;
 
     // If using long-term samples, uncomment
     //ms_central('schedule', 's001') = yes;
@@ -130,7 +132,7 @@ if (mType('schedule'),
     mTimeseries_loop_read('schedule', 'ts_cf') = no;
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
     mTimeseries_loop_read('schedule', 'ts_node') = no;
-    mTimeseries_loop_read('schedule', 'ts_fuelPriceChange') = no;
+    mTimeseries_loop_read('schedule', 'ts_priceChange') = no;
     mTimeseries_loop_read('schedule', 'ts_unavailability') = no;
 
     // Define Realized and Central forecasts
@@ -138,6 +140,9 @@ if (mType('schedule'),
     mf_realization('schedule', 'f00') = yes;
     mf_central('schedule', f) = no;
     mf_central('schedule', 'f02') = yes;
+    
+    // Define special forecast label that holds scenario data
+    //mf_scenario('schedule', 'scen') = yes;
 
     // Define forecast probabilities (weights)
     p_mfProbability('schedule', f) = 0;

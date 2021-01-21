@@ -59,7 +59,10 @@ GAMS command line arguments
 --output_dir=<path>
     Directory to write output to. Defaults to './output'.
 
+--output_file=<filename.gdx>
+    Filename of the results file. Defaults to 'results.gdx'
 
+    
 References
 ----------
 [1] N. Helistö et al., ‘Backbone---An Adaptable Energy Systems Modelling Framework’,
@@ -71,6 +74,9 @@ References
 
 ==========================================================================
 $offtext
+
+* Check current GAMS version
+$ife %system.gamsversion%<240 $abort GAMS distribution 24.0 or later required!
 
 * Set default debugging level
 $if not set debug $setglobal debug 0
@@ -165,7 +171,9 @@ $include 'inc/4c_outputQuickFile.gms'
 * Post-process results
 $if exist '%input_dir%/4d_postProcess.gms' $include '%input_dir%/4d_postProcess.gms'
 
-execute_unload '%output_dir%/results.gdx',
+$if not set output_file $setglobal output_file 'results.gdx'
+
+execute_unload '%output_dir%/%output_file%',
     $$include 'defOutput/resultSymbols.inc'
 ;
 

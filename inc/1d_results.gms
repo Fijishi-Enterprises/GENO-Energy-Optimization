@@ -29,8 +29,8 @@ Parameters
     // Unit Operational Cost Components
     r_gnuVOMCost(grid, node, unit, f, t) "Variable O&M costs for energy outputs (MEUR)"
     r_gnuTotalVOMCost(grid, node, unit) "Total gnu VOM costs over the simulation (MEUR)"
-    r_uFuelEmissionCost(fuel, unit, f, t) "Unit fuel & emission costs for normal operation (MEUR)"
-    r_uTotalFuelEmissionCost(fuel, unit) "Total unit fuel & emission costs over the simulation for normal operation (MEUR)"
+    r_uFuelEmissionCost(node, unit, f, t) "Unit fuel & emission costs for normal operation (MEUR)"
+    r_uTotalFuelEmissionCost(commodity, unit) "Total unit fuel & emission costs over the simulation for normal operation (MEUR)"
     r_uStartupCost(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
     r_uShutdownCost(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
     r_uTotalStartupCost(unit) "Total unit startup costs over the simulation (MEUR)"
@@ -54,6 +54,12 @@ Parameters
     r_gTotalRealizedNetOperatingCost(grid) "Total realized system operating costs in g over the simulation, minus the increase in storage values (MEUR)"
     r_totalRealizedOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
     r_totalRealizedNetOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
+
+    // Realized System Fixed Costs
+    r_gnTotalRealizedFixedCost(grid, node) "Total realized system fixed costs in gn over the simulation (MEUR)"
+    r_gnTotalRealizedFixedCostShare(grid, node) "Total realized system fixed cost gn/g shares over the simulation"
+    r_gTotalRealizedFixedCost(grid) "Total realized system fixed costs in g over the simulation (MEUR)"
+    r_totalRealizedFixedCost "Total realized system fixed costs over the simulation (MEUR)" / 0 /
 
     // Realized System Costs
     r_gnTotalRealizedCost(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
@@ -90,15 +96,16 @@ Parameters
 
     // Results required for model structure
     r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
+    r_gen_gnUnittype(grid, node, unittype) "Energy generation for each unittype in each node (MWh)"
 
     // Fuel use results
-    r_fuelUse(fuel, unit, f, t) "Fuel use of units"
-    r_genFuel(grid, node, fuel, f, t) "Energy generation/consumption based on fuels / flows (MW)"
+    r_fuelUse(node, unit, f, t) "Fuel use of units"
+    r_genFuel(grid, node, *, f, t) "Energy generation/consumption based on fuels / flows (MW)"
     r_genUnittype(grid, node, unittype, f, t) "Energy generation/consumption for each unittype (MW)"
-    r_gnTotalGenFuel(grid, node, fuel) "Total energy generation in gn per fuel over the simulation (MWh)"
-    r_gnTotalGenFuelShare(grid, node, fuel) "Total energy generation fuel consumption gn/g share"
-    r_gTotalGenFuel(grid, fuel) "Total energy generation in g per fuel over the simulation (MWh)"
-    r_totalGenFuel(fuel) "Total overall energy generation/consumption per fuel over the simulation (MWh)"
+    r_gnTotalGenFuel(grid, node, commodity) "Total energy generation in gn per fuel over the simulation (MWh)"
+    r_gnTotalGenFuelShare(grid, node, commodity) "Total energy generation fuel consumption gn/g share"
+    r_gTotalGenFuel(grid, commodity) "Total energy generation in g per fuel over the simulation (MWh)"
+    r_totalGenFuel(commodity) "Total overall energy generation/consumption per fuel over the simulation (MWh)"
 
     // Interesting energy generation results
     r_gnuTotalGen(grid, node, unit) "Total energy generation in gnu over the simulation (MWh)"
@@ -115,6 +122,19 @@ Parameters
     r_gnTotalConsumption(grid, node) "Total consumption of energy in gn over the simulation (MWh)"
     r_gnTotalConsumptionShare(grid, node) "Total consumption gn/g share"
     r_gTotalConsumption(grid) "Total consumption of energy in g over the simulation (MWh)"
+
+
+* --- Emissions Results -------------------------------------------------------
+
+    // Unit level emissions
+    r_emissions (node, emission, unit, f, t) "Emissions from units (tCO2)"
+
+    // Emission sums
+    r_nuTotalEmissions (node, unit, emission) "Total emissions from units (tCO2)"
+    r_nTotalEmissions(node, emission) "Emissions in gn (tCO2)"
+    r_uTotalEmissions(unit, emission) "Emissions in gn (tCO2)"
+    r_totalEmissions (emission) "Summed emissions (tCO2)"
+
 
 * --- Unit Online State Results -----------------------------------------------
 

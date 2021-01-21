@@ -18,17 +18,18 @@ $offtext
 Sets
 * --- Geography ---------------------------------------------------------------
     grid "Forms of energy endogenously presented in the model" / empty /
-    node "Nodes where different types of energy are converted"
+    node "Nodes maintain the energy balance or track exogenous commodities"
 
-* --- Fuels & resources -------------------------------------------------------
+* --- Commodities & resources -------------------------------------------------------
     emission "Emissions"
-    fuel "Fuels"
+    commodity(node) "Commodities that can be bought or sold exogenous to model"
     flow "Flow based energy resources (time series)"
 
 * --- Energy generation and consumption ---------------------------------------
     unit "Set of generators, storages and loads"
+    unittype "Unit technology types"
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
-    unit_fuel(unit) "Units using a commercial fuel"
+    unit_commodity(unit) "Units using an exogenous commodity with a price"
     unit_fail(unit) "Units that might fail"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
     unit_online(unit) "Units that have an online variable in the first active effLevel"
@@ -40,12 +41,13 @@ Sets
     unit_slope(unit) "Units with piecewise linear efficiency constraints"
     unit_noSlope(unit) "Units without piecewise linear efficiency constraints"
     unitAggregator_unit(unit, unit) "Aggregate unit linked to aggregated units"
-    unitUnitEffLevel(unit, unit, EffLevel) "Aggregator unit linke to aggreted units with a definition when to start the aggregation"
-    flowUnit(flow, *) "Units or storages linked to a certain energy flow time series"
-    unitUnittype(unit, *) "Link generation technologies to types"
+    unitUnitEffLevel(unit, unit, EffLevel) "Aggregator unit linked to aggreted units with a definition when to start the aggregation"
+    flowUnit(flow, unit) "Units linked to a certain energy flow time series"
+    unitUnittype(unit, unittype) "Link generation technologies to types"
     unitStarttype(unit, starttype) "Units with special startup properties"
-    uFuel(unit, param_fuel, fuel) "Units linked with fuels"
-    unittype "Unit technology types"
+    un_commodity(unit, node) "Units linked with commodities"
+    un_commodity_in(unit, node) "Units linked with input commodities"
+    un_commodity_out(unit, node) "Units linked with output commodities"
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
     unit_timeseries(unit) "Units with time series enabled"
@@ -72,8 +74,6 @@ Sets
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
     gnn_boundState(grid, node, node) "Nodes with state variables bound by other nodes"
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
-    gngnu_fixedOutputRatio(grid, node, grid, node, unit) "Units with a fixed ratio between two different grids of output (e.g. backpressure)"
-    gngnu_constrainedOutputRatio(grid, node, grid, node, unit) "Units with a constrained ratio between two different grids of output (e.g. extraction)"
 
 * --- Reserve types -----------------------------------------------------------
     restype "Reserve types"
@@ -87,6 +87,7 @@ Sets
     restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
     offlineRes (restype) "Reserve types where offline reserve provision possible"
     offlineResUnit (unit) "Units where offline reserve provision possible"
+    restype_inertia(restype) "Reserve types where the requirement can also be fulfilled with the inertia of synchronous machines"
 
 * --- Sets to define time, forecasts and samples ------------------------------
     $$include '%input_dir%/timeAndSamples.inc'
@@ -95,6 +96,7 @@ Sets
     t_current(t) "Set of time steps within the current solve horizon"
     t_active(t) "Set of active t:s within the current solve horizon, including necessary history"
     t_invest(t) "Time steps when investments can be made"
+    t_realized(t) "Set of realized time steps in the simulation"
     tt(t) "Temporary subset for time steps used for calculations"
     tt_(t) "Another temporary subset for time steps used for calculations"
     tt_block(counter, t) "Temporary time step subset for storing the time interval blocks"
@@ -136,7 +138,7 @@ $if defined scenario
     gn_forecasts(*, node, timeseries) "Which grid/flow, node and timeseries use short-term forecasts"
     gn_scenarios(*, node, timeseries) "Which grid/flow, node and timeseries have data for long-term scenarios"
 
-* --- Sets used for the changing unit aggregation and efficiency approximations
+* --- Sets used for the changing unit aggregation and efficiency approximations as well as unit lifetimes
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
     uft_online(unit, f, t) "Units with any online and startup variables on intervals"
     uft_onlineLP(unit, f, t) "Units with LP online and startup variables on intervals"
@@ -156,16 +158,18 @@ $if defined scenario
     effGroupSelector(effSelector, effSelector) "Efficiency selectors included in efficiency groups, e.g. Lambda02 contains Lambda01 and Lambda02."
     effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level"
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
-    mSettingsReservesInUse(mType, *, up_down) "Reserves that are used in each model type"
+    mSettingsReservesInUse(mType, restype, up_down) "Reserves that are used in each model type"
     unitCounter(unit, counter) "Counter used for restricting excessive looping over the counter set when defining unit startup/shutdown/online time restrictions"
     runUpCounter(unit, counter) "Counter used for unit run-up intervals"
     shutdownCounter(unit, counter) "Counter used for unit shutdown intervals"
+    utAvailabilityLimits(unit, t, availabilityLimits) "Time step when the unit becomes available/unavailable, e.g. because of technical lifetime"
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
     uGroup(unit, group) "Units in particular groups"
     gnuGroup(grid, node, unit, group) "Combination of grids, nodes and units in particular groups"
     gn2nGroup(grid, node, node, group) "Transfer links in particular groups"
     gnGroup(grid, node, group) "Combination of grids and nodes in particular groups"
+    sGroup(s, group) "Samples in particular groups"
 
 * --- Set of timeseries that will be read from files between solves -----------
     mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"
@@ -196,7 +200,7 @@ alias(op, op_, op__);
 alias(hrop, hrop_, hrop__);
 alias(eff, eff_, eff__);
 alias(hr, hr_, hr__);
-alias(fuel, fuel_);
+alias(commodity, commodity_);
 alias(effLevel, effLevel_);
 alias(restype, restype_);
 alias(group, group_);

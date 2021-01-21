@@ -32,36 +32,36 @@ Sets
     mSetting "setting categories for models" /
 
         // General Time Structure
-        t_start, // First time step for the start of simulation
-        t_jump, // Number of time steps realized with each solve
-        t_horizon, // Length of the simulation horizon in time steps (central forecast)
-        t_end, // Last time step of the simulation
-        loadPoint, // Load advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
-        savePoint, // Save advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
-        lastStepInIntervalBlock, // Last time step in the block of intervals with the same length
-        stepsPerInterval, // Number of time steps aggregated within interval
-        stepLengthInHours, // Length of one time step in hours
+        t_start "First time step for the start of simulation"
+        t_jump "Number of time steps realized with each solve"
+        t_horizon "Length of the simulation horizon in time steps (central forecast)"
+        t_end "Last time step of the simulation"
+        loadPoint "Load advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve"
+        savePoint "Save advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve"
+        lastStepInIntervalBlock "Last time step in the block of intervals with the same length"
+        stepsPerInterval "Number of time steps aggregated within interval"
+        stepLengthInHours "Length of a time step in hours"
 
         // Samples and Forecasts
-        samples, // Number of active samples
-        forecasts, // Number of active forecasts
-        t_forecastLengthUnchanging, // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
-        t_forecastLengthDecreasesFrom, // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
-        t_forecastStart, // Time step for first reading the forecasts (not necessarily t_start)
-        t_forecastJump, // Number of time steps between each update of the forecasts
+        samples "Number of active samples"
+        forecasts "Number of active forecasts"
+        t_forecastLengthUnchanging "Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)"
+        t_forecastLengthDecreasesFrom "Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)"
+        t_forecastStart "Time step for first reading the forecasts (not necessarily t_start)"
+        t_forecastJump "Number of time steps between each update of the forecasts"
         t_improveForecast "Number of time steps ahead of time on which the forecast is improved on each solve"
         t_perfectForesight "Number of time steps for which realized data is used instead of forecasts"
         onlyExistingForecasts "Use only existing forecast values when reading updated forecasts. Note: zero values need to be saved as Eps in the gdx file."
         scenarios        "Number of long-term scenarios used"
-        scenarioLength   "Length of scenario in time steps for creating stocahstic scenarios from time series data"
+        scenarioLength   "Length of scenario in time steps for creating stochastic scenarios from time series data"
 
         // Features
-        t_trajectoryHorizon, // Length of the horizon when start-up and shutdown trajectories are considered (in time steps)
-        t_initializationPeriod,  // Number of time steps in the beginning of the simulation which are solved but the results of which are not stored
-        dataLength, // The maximum number of time steps in any input data time series (recommended for correctly circulating data)
-        red_num_leaves "Desired number of preserved scenarios or leaves (SCENRED)"
+        t_trajectoryHorizon "Length of the horizon when start-up and shutdown trajectories are considered (in time steps)"
+        t_initializationPeriod "Number of time steps in the beginning of the simulation which are solved but the results of which are not stored"
+        dataLength "The maximum number of time steps in any input data time series (recommended for correctly circulating data)"
+        red_num_leaves "Desired number of preserved scenarios or leaves of scenario reduction (SCENRED)"
         red_percentage "Desired relative distance (accuracy) of scenario reduction (SCENRED)"
-        incHRAdditionalConstraints // Method to include the two additional constraints for incremental heat rates;
+        incHRAdditionalConstraints "Method to include the two additional constraints for incremental heat rates"
                                    // 0 = include for units with non-convex fuel use, 1 = include for all units
         /
 
@@ -125,12 +125,18 @@ Sets
     cc(counter) "Temporary subset of counter used for calculations"
 
     // Directional Sets
-    up_down "Direction set used by some variables, e.g. reserve provisions and generation ramps"
-        / up, down /
+    input_output "Designating nodes as either inputs or outputs"
+        / input, output /
     inc_dec "Increase or decrease in dummy, or slack variables"
         / increase, decrease /
     min_max "Minimum and maximum"
         / min, max /
+    constraint "Possible names for constraints"
+        / eq1*eq9, gt1*gt9 /
+    eq_constraint(constraint) "Equality constraints"
+        / eq1*eq9 /
+    gt_constraint(constraint) "Greater than constraints"
+        / gt1*gt9 /
 
 * --- Model Feature Sets ------------------------------------------------------
 
@@ -165,9 +171,10 @@ Sets
         ts_cf
         ts_reserveDemand
         ts_node
-        ts_fuelPriceChange
-        ts_fuelPrice
+        ts_priceChange
+        ts_price
         ts_unavailability
+        ts_storageValue
         /
 
 ; // END Sets
@@ -205,6 +212,7 @@ Sets
 * --- Parameter Data Related Sets ---------------------------------------------
 
 param_gn  "Possible parameters for grid, node" /
+    nodeBalance   "A flag to decide whether node balance constraint is to be used"
     selfDischargeLoss "Self discharge rate of the node (MW/[v_state])"
     energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh (MWh/[v_state])"
     boundStart    "A flag to bound the first t in the run using reference constant or time series"
@@ -212,19 +220,17 @@ param_gn  "Possible parameters for grid, node" /
     boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
     boundAll      "A flag to bound the state to the reference in all time steps"
     boundStartToEnd  "Force the last states to equal the first state"
-    decay          "decay parameter for biomass USED IN THE WWTP MODEL"
-    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."
+*    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."  // NOT IMPLEMENTED
     capacityMargin "Capacity margin used in invest mode (MW)"
-*    defaultFrequency "default frequency for each node"
-*    ROCOF         "Rate of change of frequency"
+    storageValueUseTimeSeries "A flag to determine whether to use time series form `storageValue`"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
-    upwardLimit   "Absolute maximum state of the node (unit depends on energyCapacity)"
-    downwardLimit "Absolute minimum energy in the node (unit depends on energyCapacity)"
-    upwardSlack01*upwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit depends on energyCapacity)"
-    downwardSlack01*downwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit depends on energyCapacity)"
-    reference     "Reference value for a state that can be used to bound a state (unit depends on energyCapacity)"
+    upwardLimit   "Absolute maximum state of the node (unit of measure depends on energyStoredPerUnitOfState)"
+    downwardLimit "Absolute minimum energy in the node (unit of measure depends on energyStoredPerUnitOfState)"
+    upwardSlack01*upwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit of measure depends on energyStoredPerUnitOfState)"
+    downwardSlack01*downwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit of measure depends on energyStoredPerUnitOfState)"
+    reference     "Reference value for a state that can be used to bound a state (unit of measure depends on energyStoredPerUnitOfState)"
     maxSpill      "Maximum spill rate from the node (MWh/h)"
     minSpill      "Minimum spill rate from the node (MWh/h)"
     balancePenalty "Penalty value for violating the energy balance of that particular node (EUR/MWh) (can be interpretated as the energy price in certain settings)"
@@ -233,7 +239,7 @@ param_gnBoundaryTypes "Types of boundaries that can be set for a node with a sta
 param_gnBoundaryProperties "Properties that can be set for the different boundaries" /
     useTimeSeries "A flag to use time series to set state bounds and limits"
     useConstant   "A flag to use constant to set state bounds and limits"
-    deltaFromReference "The constant or the time series indicate how much the boundary deviates from reference (instead of being an absolute number)"
+*    deltaFromReference "The constant or the time series indicate how much the boundary deviates from reference (instead of being an absolute number)"  // NOT IMPLEMENTED
     constant      "A constant value for the boundary or the reference"
     slackCost     "The cost of exceeding the slack boundary"
     multiplier    "A multiplier to change the value (either constant or time series), default 1"
@@ -243,33 +249,27 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     transferCap   "Transfer capacity limits (MW)"
     transferCapBidirectional "Total bidirectional transfer capacity limit (MW)"
     transferLoss  "Transfer losses"
-    diffCoeff_in     "Coefficient for energy diffusion into a node (MW/[v_state])"
-    diffCoeff_out    "Coefficient for energy diffusion out of a node (MW/[v_state])"
+    diffCoeff     "Coefficients for energy diffusion between nodes (MW/[v_state])"
     boundStateMaxDiff "Maximum difference of node state pairs ([v_state])"
     transferCapInvLimit "Capacity limit for investments (MW)"
-    investMIP     "A flag to make integer investment instead of continous investment (MW versus number of links)"
+    investMIP     "A flag to make integer investment instead of continuous investment (MW versus number of links)"
     unitSize      "Size of one link for integer investments (MW)"
     invCost       "Investment cost (EUR/MW)"
-    transferCost  "Direct transfer cost (EUR/MW)"
-    transferCoeff "Fixed coefficient for transfer of one node pair in relation to another node pair"
     annuity       "Investment annuity"
-    portion_of_transfer_to_reserve "Portion to cover incase fail"
+    portion_of_transfer_to_reserve "Portion of the infeed from the unit that needs to be available as reserve if the unit fails"
+    ICrampUp
+    ICrampDown
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /
-    maxGen        "Maximum output capacity (MW)"
-    maxCons       "Maximum loading capacity (MW)"
+    capacity      "Maximum capacity (MW)"
+    conversionCoeff "Coefficient for conversion equation (multiplies each input or output when summing v_gen from multiple inputs/outputs)"
     useInitialGeneration     "A flag to indicate whether to fix generation for the first time step (binary)"
     initialGeneration        "Initial generation/consumption of the unit in the first time step (MW)"
-    conversionFactor "Conversion factor for inputs or outputs (for changing the unit of measurement)"
-    doNotOutput   "Flag for inputs that are not included in the output commodities"
-    cV            "Reduction in primary output when increasing secondary output, e.g. reduction of electricity generation due to heat generation in extraction CHP (MWh_e/MWh_h)"
     maxRampUp     "Speed to ramp up (p.u./min)"
     maxRampDown   "Speed to ramp down (p.u./min)"
     upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment ([v_state]/MW)"
-    unitSizeGen   "Output capacity of one subunit for integer investments (MW)"
-    unitSizeCons  "Loading capacity of one subunit for integer investments (MW)"
-    unitSizeTot   "Sum of output and loading capacity of one subunit (MW)"
+    unitSize      "Input/Output capacity of one subunit for integer investments (MW)"
     invCosts      "Investment costs (EUR/MW)"
     annuity       "Investment annuity factor"
     fomCosts      "Fixed operation and maintenance costs (EUR/MW/a)"
@@ -285,6 +285,7 @@ param_gnuBoundaryProperties "Properties that can be set for the different bounda
 /
 
 param_unit "Set of possible data parameters for units" /
+    // Given in input data
     unitCount     "Number of subunits if aggregated"
     outputCapacityTotal "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"
     unitOutputCapacityTotal "Output capacity of the unit, calculated by summing all the subunit output sizes together by default"
@@ -305,10 +306,10 @@ param_unit "Set of possible data parameters for units" /
     rampSpeedFromMinLoad "Ramping speed from shutdown decision to zero load (p.u./min)"
     minOperationHours "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
     minShutdownHours "Minimum shut down time (h), prevents starting up again after the defined amount of time has passed"
-    SO2           "SO2 emissions (tonne per MWh_fuel)"
-    NOx           "NOx emissions (tonne per MWh_fuel)"
-    CH4           "CH4 emissions (tonne per MWh_fuel)"
-    resTimelim    "How long should a storage be able to provide reserve (h)"
+*    SO2           "SO2 emissions (tonne per MWh_fuel)"  // NOT IMPLEMENTED
+*    NOx           "NOx emissions (tonne per MWh_fuel)"  // NOT IMPLEMENTED
+*    CH4           "CH4 emissions (tonne per MWh_fuel)"  // NOT IMPLEMENTED
+*    resTimelim    "How long should a storage be able to provide reserve (h)"  // NOT IMPLEMENTED
     eff00 * eff12 "Efficiency of the unit to convert input to output/intermediate product"
     opFirstCross  "The operating point where the real efficiency curve and approximated efficiency curve cross"
     op00 * op12   "Right border of the efficiency point"
@@ -316,12 +317,14 @@ param_unit "Set of possible data parameters for units" /
     hrop00 * hrop12   "Right border of the incremental heat rates"
     section       "Possibility to define a no load fuel use for units with zero minimum output"
     hrsection     "no load fuel use to be defined when using incremental heat rates"
-    level1 * level9 "Level of simplification in the part-load efficiency representation"
     useTimeseries "A flag to use time series form input for unit parameters whenever possible"
     investMIP     "A flag to make integer investment instead of continous investment"
     maxUnitCount  "Maximum number of units when making integer investments"
     minUnitCount  "Minimum number of units when making integer investments"
+    // Calculated based on other input data
     lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
+    becomeAvailable       "The relative position of the time step when the unit becomes available (calculated from ut(unit, t, start_end))"
+    becomeUnavailable     "The relative position of the time step when the unit becomes unavailable (calculated from ut(unit, t, start_end))"
 /
 
 param_eff "Parameters used for unit efficiency approximations" /
@@ -331,49 +334,53 @@ param_eff "Parameters used for unit efficiency approximations" /
     slope   "Heat rate parameter representing no-load fuel consumption"
 /
 
-param_fuel "Parameters for fuels" /
-    main          "Main fuel of the unit - unless input fuels defined as grids"
-    startup       "Startup fuel of the unit, if exists. Can be the same as main fuel - consumption using startupFuelCons"
+param_constraint "Parameters for constraints" /
+    constant    "Constant when binding inputs/outputs"
+    coefficient "Coefficient when binding inputs/outputs"
 /
 
-param_fuelPrice "Paramters for fuel prices" /
-    fuelPrice     "Fuel price (EUR/MWh)"
-    useConstant   "Flag to use constant data for fuels"
-    useTimeSeries "Flag to use time series form data for fuels"
+param_price "Parameters for commodity prices" /
+    price         "Commodity price (EUR/MWh)"
+    useConstant   "Flag to use constant data for commodities"
+    useTimeSeries "Flag to use time series form data for commodities"
 /
 
-param_unitFuel "Parameters for fuel limits in units" /
-    maxFuelCons   "Maximum absolute fuel consumption in a unit - not used for start-up fuels"
-    maxFuelFraction "Maximum share of a fuel in the consumption mix"   //only for main fuels
+param_unitStartupfuel "Parameters for startup fuel limits in units" /
     fixedFuelFraction "Fixed share of a fuel in the consumption mix"   //only for start-up fuels
 /
 
-param_policy "Set of possible data parameters for grid, node, regulation" /
+param_policy "Set of possible data parameters for groups or grid, node, regulation" /
     emissionTax   "Emission tax (EUR/tonne)"
     emissionCap   "Emission limit (tonne)"
     instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
+    energyMax      "Maximum energy production or consumption from a particular group of units over samples"
+    energyMaxVgenSign "Sign for v_gen in the maximum energy constraint - use -1 when you need a minimum energy constraint (then also energyMax should be negative)"
     energyShareMax "Maximum energy share of generation from a particular group of units"
     energyShareMin "Minimum energy share of generation from a particular group of units"
-    kineticEnergyMin "Minimum system kinetic energy (MWs)"
     constrainedCapMultiplier "Multiplier a(i) for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedOnlineMultiplier "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
     constrainedOnlineTotalMax "Total maximum b for online units in equation Sum(i, a(i)*v_online(i)) <= b"
-    minCons "minimum consumption of storage unit when charging"
+*    minCons "minimum consumption of storage unit when charging" // NOT USED, PENDING REMOVAL
     ROCOF "Maximum rate of change of frequency (Hz/s)"
     defaultFrequency "Nominal frequency in the system (Hz)"
+    staticInertia "A flag to indicate static inertia constraint should be implemented - q_inertiaMin"
+    dynamicInertia "A flag to indicate dynamic inertia constraint should be implemented - q_rateOfChangeOfFrequencyUnit/Transfer"
     // Reserve related parameters, currently without a proper parameter set
     update_frequency "Frequency of updating reserve contributions"
     update_offset "Optional offset for delaying the reserve update frequency"
     gate_closure  "Number of timesteps ahead of dispatch that reserves are fixed"
-    use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
+*    use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
+    useTimeSeries "Flag for using time series data"
     reserve_length "Length of reserve horizon"
     reserveReliability "Reliability parameter of reserve provisions"
     reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
     portion_of_infeed_to_reserve "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
     offlineReserveCapability "Proportion of an offline unit which can contribute to a category of reserve"
     ReserveShareMax "Maximum reserve share of a group of units"
-    LossOfTrans
+    LossOfTrans "A flag to tell that N-1 reserve is needed due to a possibility that an interconnector to/from the node group fails"
+    up          "Upward direction, e.g. for reserve provisions"
+    down        "Downward direction, e.g. for reserve provisions"
 /
 
 * --- Efficiency Approximation Related Sets -----------------------------------
@@ -389,6 +396,7 @@ hrop(param_unit) "Operating points in the incremental heat rate curves, also fun
         /hrop00*hrop12/ // IMPORTANT! Has to equal the same param_unit!
 hr(param_unit) "Heat rate for the corresponding operating point ('hrop') in the heat rate curves, also used for data indexing"
         /hr00*hr12/ // IMPORTANT! Has to equal the same param_unit!
+
 * --- Counters and Directional Sets -------------------------------------------
 
 // Slack categories
@@ -406,4 +414,10 @@ spillLimits(param_gnBoundaryTypes) "set of upward and downward state limits"
        / maxSpill, minSpill /
 useConstantOrTimeSeries(param_gnBoundaryProperties) "useTimeSeries and useConstant property together"
        / useTimeSeries, useConstant /
+
+// Directional sets that are subsets of others
+up_down(param_policy) "Direction set used by some variables, e.g. reserve provisions and generation ramps"
+       / up, down /
+availabilityLimits(param_unit) "Start and end, e.g. of unit lifetime"
+       / becomeAvailable, becomeUnavailable /
 ; // END parameter set declarations

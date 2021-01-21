@@ -43,28 +43,33 @@ Scalars
     firstResultsOutputSolve /1/;
 ;
 
-* --- Power plant and fuel data -----------------------------------------------
+* --- Power plant and commodity data -----------------------------------------------
 Parameters
     p_gn(grid, node, param_gn) "Properties for energy nodes"
     p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, param_gnBoundaryProperties) "Properties of different state boundaries and limits"
+    p_storageValue(grid, node) "Constant value of stored something at the end of a time step (EUR/<v_state_unit>)"
     p_gnn(grid, node, node, param_gnn) "Data for interconnections between energy nodes"
     p_gnu(grid, node, unit, param_gnu) "Unit data where energy type matters"
+    p_gnu_io(grid, node, unit, input_output, param_gnu) "Unit data where energy type matters"
     p_gnuBoundaryProperties(grid, node, unit, slack, param_gnuBoundaryProperties) "Properties for unit boundaries where energy type matters"
     p_unit(unit, param_unit) "Unit data where energy type does not matter"
-    p_gnReserves(grid, node, restype, *) "Data defining the reserve rules in each node"
-    p_groupReserves(group, restype, *) "Data defining the reserve rules in each node group"
+    p_unitConstraint(unit, constraint) "Constant for constraints (eq1-9, gt1-9) between inputs and outputs"
+    p_unitConstraintNode(unit, constraint, node) "Coefficients for constraints (eq1-9, gt1-9) between inputs and outputs"
+    p_gnReserves(grid, node, restype, param_policy) "Data defining the reserve rules in each node"
+    p_groupReserves(group, restype, param_policy) "Data defining the reserve rules in each node group"
     p_groupReserves3D(group, restype, up_down, param_policy) "Reserve policy in each node group separately for each reserve type and direction"
     p_groupReserves4D(group, restype, up_down, group, param_policy) "Reserve policy in each node group separately for each reserve type and direction, also linking to another group"
-    p_gnuReserves(grid, node, unit, restype, *) "Reserve provision data for units"
+    p_gnuReserves(grid, node, unit, restype, param_policy) "Reserve provision data for units"
     p_gnnReserves(grid, node, node, restype, up_down) "Reserve provision data for node node connections"
     p_gnuRes2Res(grid, node, unit, restype, up_down, restype) "The first type of reserve can be used also in the second reserve category (with a possible multiplier)"
-    p_gnPolicy(grid, node, param_policy, *) "Policy data for grid, node"
     p_groupPolicy(group, param_policy) "Two-dimensional policy data for groups"
-    p_groupPolicy3D(group, param_policy, *) "Three-dimensional policy data for groups"
-    p_fuelPrice(fuel, param_fuelPrice) "Fuel price parameters"
-    p_fuelEmission(fuel, emission) "Fuel emission content"
-    p_uFuel(unit, param_fuel, fuel, param_unitFuel) "Parameters interacting between units and fuels"
-    p_unitFuelEmissionCost(unit, fuel, emission) "Emission costs for each unit, calculated from input data"
+    p_groupPolicyUnit(group, param_policy, unit) "Three-dimensional policy data for groups and units"
+    p_groupPolicyEmission(group, param_policy, emission) "Three-dimensional policy data for groups and emissions"
+    p_price(node, param_price) "Commodity price parameters"
+    p_nEmission(node, emission) "Emission content (kg/MWh)"
+    p_uStartupfuel(unit, node, param_unitStartupfuel) "Parameters for startup fuels"
+    p_unStartup(unit, node, starttype) "Consumption during the start-up (MWh/start-up)"
+    p_unitEmissionCost(unit, node, emission) "Emission costs for each {unit, node, emission}, calculated from input data (CUR/MWh)"
     p_effUnit(effSelector, unit, effSelector, param_eff)  "Data for piece-wise linear efficiency blocks"
     p_effGroupUnit(effSelector, unit, param_eff) "Unit data specific to a efficiency group (e.g. left border of the unit)"
     p_uNonoperational(unit, starttype, min_max) "Non-operational time after being shut down before start up"
@@ -83,7 +88,7 @@ Parameters
     p_uCounter_shutdownMax(unit, counter) "Maximum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
     p_u_minRampSpeedInLastRunUpInterval(unit) "Minimum ramp speed in the last interval for the run-up to min. load (p.u./min)"
     p_u_minRampSpeedInFirstShutdownInterval(unit) "Minimum ramp speed in the fist interval for the shutdown from min. load (p.u./min)"
-// Time dependent unit & fuel parameters
+// Time dependent unit & commodity parameters
     ts_unit(unit, param_unit, f, t) "Time dependent unit data, where energy type doesn't matter"
     ts_effUnit(effSelector, unit, effSelector, param_eff, f, t) "Time dependent data for piece-wise linear efficiency blocks"
     ts_effGroupUnit(effSelector, unit, param_eff, f, t) "Time dependent efficiency group unit data"
@@ -96,7 +101,8 @@ Parameters
 * --- Probability -------------------------------------------------------------
 Parameters
     p_msWeight(mType, s) "Temporal weight of sample: number of similar periods represented by sample s"
-    p_msProbability(mType, s) "Probability to reach sample conditioned on anchestor samples"
+    p_msAnnuityWeight(mType, s) "Temporal weight of sample: used when calculating annuities"
+    p_msProbability(mType, s) "Probability to reach sample conditioned on ancestor samples"
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"
     p_sProbability(s) "Probability of sample"
@@ -157,17 +163,19 @@ Parameters
     ts_cf(flow, node, f, t) "Available capacity factor time series (p.u.)"
     ts_reserveDemand(restype, up_down, group, f, t) "Reserve demand in region in the time step (MW)"
     ts_node(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input ([v_state])"
-    ts_fuelPriceChange(fuel, t) "Initial fuel price and consequent changes in fuel price (EUR/MWh)"
-    ts_fuelPrice(fuel, t) "Fuel price time series (EUR/MWh)"
+    ts_storageValue(grid, node, f, t) "Timeseries value of stored something at the end of a time step (EUR/<v_state_unit>)"
+    ts_priceChange(node, t) "Initial commodity price and consequent changes in commodity price (EUR/MWh)"
+    ts_price(node, t) "Commodity price time series (EUR/MWh)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time step (p.u.)"
 
     // Aliases used in the equations after interval aggregation
-    // NOTE: Sample dimension has to be last because of the scenario reduction algorithm
     ts_influx_(grid, node, s, f, t) "Mean external power inflow/outflow during a time step (MWh/h)"
     ts_cf_(flow, node, s, f, t) "Mean available capacity factor time series (p.u.)"
     ts_reserveDemand_(restype, up_down, group, f, t) "Mean reserve demand in region in the time step (MW)"
     ts_node_(grid, node, param_gnBoundaryTypes, s, f, t) "Mean value of ts_node"
-    ts_fuelPrice_(fuel, t) "Mean fuel price time during time step (EUR/MWh)"
+    ts_storageValue_(grid, node, s, f, t) "Mean value of ts_storageValue"
+    ts_vomCost_(grid, node, unit, t) "Calculated variable O&M cost that includes O&M cost, fuel cost and emission cost"
+    ts_startupCost_(unit, starttype, t) "Calculated variable startup cost that includes startup cost, fuel cost and emission cost"
 
     // Aliases used for updating data in inputsLoop.gms
     ts_unit_update(unit, param_unit, f, t)
@@ -177,7 +185,7 @@ Parameters
     ts_cf_update(flow, node, f, t)
     ts_reserveDemand_update(restype, up_down, group, f, t)
     ts_node_update(grid, node, param_gnBoundaryTypes, f, t)
-    ts_fuelPriceChange_update(fuel, t)
+    ts_priceChange_update(node, t)
     ts_unavailability_update(unit, t)
 
     // Help parameters for calculating smoothening of time series
@@ -196,7 +204,7 @@ Parameters
 
 * --- Other time dependent parameters -----------------------------------------
 Parameters
-    p_storageValue(grid, node, t) "Value of stored something at the end of a time step"
     p_stepLength(mType, f, t) "Length of an interval in hours"
     p_stepLengthNoReset(mType, f, t) "Length of an interval in hours - includes also lengths of previously realized intervals"
+    p_s_discountFactor(s) "Discount factor for samples when using a multi-year horizon"
 ;
