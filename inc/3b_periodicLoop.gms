@@ -26,6 +26,8 @@ Option clear = v_gen;
 Option clear = v_state;
 Option clear = v_genRamp;
 Option clear = v_transfer;
+Option clear = v_flagState; // part of the WWTP model
+Option clear = v_flagTransfer; // part of the WWTP model
 Option clear = v_ICramp;
 // Integer Variables
 Option clear = v_online_MIP;
@@ -33,6 +35,7 @@ Option clear = v_invest_MIP;
 Option clear = v_investTransfer_MIP;
 // Binary Variables
 Option clear = v_help_inc;
+Option clear = v_flowFlag;   //part of the WWTP model
 // SOS2 Variables
 Option clear = v_sos2;
 // Positive Variables
@@ -128,6 +131,26 @@ Option clear = q_energyMax;
 Option clear = q_energyShareMax;
 Option clear = q_energyShareMin;
 Option clear = q_ReserveShareMax;
+
+//Switching function of the WWTP model
+Option clear = q_ww_lowerLimit;
+Option clear = q_ww_upperLimit;
+Option clear = q_ww_flagTransfer1;
+Option clear = q_ww_flagTransfer2;
+Option clear = q_ww_flagTransfer3;
+Option clear = q_ww_flowSum;
+//Option clear = q_ww_transferShareInfluent;
+//Option clear = q_ww_transferShareEffluent;
+//Option clear = q_ww_spillstate;
+//Option clear = q_ww_transferstate;
+
+//Specific balance equation for the WWTP reaction nodes
+Option clear = q_ww_balance;
+
+//Helper constraints for the variables in the WWTP model
+Option clear = q_ww_flagState1;
+Option clear = q_ww_flagState2;
+Option clear = q_ww_flagState3;
 
 * --- Temporary Time Series ---------------------------------------------------
 

@@ -94,6 +94,11 @@ $endif
 * Read changes to inputdata through gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx) - allows scenarios through Sceleton Titan Excel files.
 $include 'inc/1e_scenChanges.gms'
 
+* Reads changes or additions to the inputdata through changes.inc file.
+$ifthen exist '%input_dir%/changes.inc'
+   $$include '%input_dir%/changes.inc'
+$endif
+
 
 $ontext
 * --- sets with 'empty' to enable GDX imports in Sceleton Titan - currently removed when forming gnu (below) and uft (periodicLoop.gms) sets
