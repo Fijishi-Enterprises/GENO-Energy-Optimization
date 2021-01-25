@@ -26,8 +26,9 @@ Option clear = v_gen;
 Option clear = v_state;
 Option clear = v_genRamp;
 Option clear = v_transfer;
-Option clear = v_flagState; // part of the WWTP model
+Option clear = v_flagState;     // part of the WWTP model
 Option clear = v_flagTransfer; // part of the WWTP model
+Option clear = v_flagGen;     // part of the WWTP model
 Option clear = v_ICramp;
 // Integer Variables
 Option clear = v_online_MIP;
