@@ -51,6 +51,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc p_ww_threshold
     $$loaddc p_ww_A
     $$loaddc p_ww_dilution
+    $$loaddc p_ww_dilutionUnit
     $$loaddc restype
     $$loaddc restypeDirection
     $$loaddc restypeReleasedForRealization
