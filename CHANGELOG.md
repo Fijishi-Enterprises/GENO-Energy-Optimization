@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
  
 ### Changed
 - Static inertia requirement can be fulfilled by both rotational inertia of machines and certain reserve products
+- Parameters p_gnPolicy and p_groupPolicy3D replaced with p_groupPolicyEmission and p_groupPolicyUnit
 
 ## [1.2.1] - 2019-11-26
 ### Fixed
