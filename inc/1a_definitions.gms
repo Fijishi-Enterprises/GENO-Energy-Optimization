@@ -32,36 +32,36 @@ Sets
     mSetting "setting categories for models" /
 
         // General Time Structure
-        t_start, // First time step for the start of simulation
-        t_jump, // Number of time steps realized with each solve
-        t_horizon, // Length of the simulation horizon in time steps (central forecast)
-        t_end, // Last time step of the simulation
-        loadPoint, // Load advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
-        savePoint, // Save advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
-        lastStepInIntervalBlock, // Last time step in the block of intervals with the same length
-        stepsPerInterval, // Number of time steps aggregated within interval
-        stepLengthInHours, // Length of one time step in hours
+        t_start "First time step for the start of simulation"
+        t_jump "Number of time steps realized with each solve"
+        t_horizon "Length of the simulation horizon in time steps (central forecast)"
+        t_end "Last time step of the simulation"
+        loadPoint "Load advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve"
+        savePoint "Save advanced basis; 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve"
+        lastStepInIntervalBlock "Last time step in the block of intervals with the same length"
+        stepsPerInterval "Number of time steps aggregated within interval"
+        stepLengthInHours "Length of a time step in hours"
 
         // Samples and Forecasts
-        samples, // Number of active samples
-        forecasts, // Number of active forecasts
-        t_forecastLengthUnchanging, // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
-        t_forecastLengthDecreasesFrom, // Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)
-        t_forecastStart, // Time step for first reading the forecasts (not necessarily t_start)
-        t_forecastJump, // Number of time steps between each update of the forecasts
+        samples "Number of active samples"
+        forecasts "Number of active forecasts"
+        t_forecastLengthUnchanging "Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)"
+        t_forecastLengthDecreasesFrom "Length of forecasts in time steps - this decreases when the solve moves forward until the new forecast data is read (then extends back to full length)"
+        t_forecastStart "Time step for first reading the forecasts (not necessarily t_start)"
+        t_forecastJump "Number of time steps between each update of the forecasts"
         t_improveForecast "Number of time steps ahead of time on which the forecast is improved on each solve"
         t_perfectForesight "Number of time steps for which realized data is used instead of forecasts"
         onlyExistingForecasts "Use only existing forecast values when reading updated forecasts. Note: zero values need to be saved as Eps in the gdx file."
         scenarios        "Number of long-term scenarios used"
-        scenarioLength   "Length of scenario in time steps for creating stocahstic scenarios from time series data"
+        scenarioLength   "Length of scenario in time steps for creating stochastic scenarios from time series data"
 
         // Features
-        t_trajectoryHorizon, // Length of the horizon when start-up and shutdown trajectories are considered (in time steps)
-        t_initializationPeriod,  // Number of time steps in the beginning of the simulation which are solved but the results of which are not stored
-        dataLength, // The maximum number of time steps in any input data time series (recommended for correctly circulating data)
-        red_num_leaves "Desired number of preserved scenarios or leaves (SCENRED)"
+        t_trajectoryHorizon "Length of the horizon when start-up and shutdown trajectories are considered (in time steps)"
+        t_initializationPeriod "Number of time steps in the beginning of the simulation which are solved but the results of which are not stored"
+        dataLength "The maximum number of time steps in any input data time series (recommended for correctly circulating data)"
+        red_num_leaves "Desired number of preserved scenarios or leaves of scenario reduction (SCENRED)"
         red_percentage "Desired relative distance (accuracy) of scenario reduction (SCENRED)"
-        incHRAdditionalConstraints // Method to include the two additional constraints for incremental heat rates;
+        incHRAdditionalConstraints "Method to include the two additional constraints for incremental heat rates"
                                    // 0 = include for units with non-convex fuel use, 1 = include for all units
         /
 
@@ -226,11 +226,11 @@ param_gn  "Possible parameters for grid, node" /
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
-    upwardLimit   "Absolute maximum state of the node (unit depends on energyCapacity)"
-    downwardLimit "Absolute minimum energy in the node (unit depends on energyCapacity)"
-    upwardSlack01*upwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit depends on energyCapacity)"
-    downwardSlack01*downwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit depends on energyCapacity)"
-    reference     "Reference value for a state that can be used to bound a state (unit depends on energyCapacity)"
+    upwardLimit   "Absolute maximum state of the node (unit of measure depends on energyStoredPerUnitOfState)"
+    downwardLimit "Absolute minimum energy in the node (unit of measure depends on energyStoredPerUnitOfState)"
+    upwardSlack01*upwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit of measure depends on energyStoredPerUnitOfState)"
+    downwardSlack01*downwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit of measure depends on energyStoredPerUnitOfState)"
+    reference     "Reference value for a state that can be used to bound a state (unit of measure depends on energyStoredPerUnitOfState)"
     maxSpill      "Maximum spill rate from the node (MWh/h)"
     minSpill      "Minimum spill rate from the node (MWh/h)"
     balancePenalty "Penalty value for violating the energy balance of that particular node (EUR/MWh) (can be interpretated as the energy price in certain settings)"
@@ -252,7 +252,7 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     diffCoeff     "Coefficients for energy diffusion between nodes (MW/[v_state])"
     boundStateMaxDiff "Maximum difference of node state pairs ([v_state])"
     transferCapInvLimit "Capacity limit for investments (MW)"
-    investMIP     "A flag to make integer investment instead of continous investment (MW versus number of links)"
+    investMIP     "A flag to make integer investment instead of continuous investment (MW versus number of links)"
     unitSize      "Size of one link for integer investments (MW)"
     invCost       "Investment cost (EUR/MW)"
     annuity       "Investment annuity"

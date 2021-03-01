@@ -124,6 +124,7 @@ Option clear = q_constrainedOnlineMultiUnit;
 Option clear = q_capacityMargin;
 Option clear = q_constrainedCapMultiUnit;
 Option clear = q_emissioncap;
+Option clear = q_energyMax;
 Option clear = q_energyShareMax;
 Option clear = q_energyShareMin;
 Option clear = q_ReserveShareMax;
@@ -466,7 +467,7 @@ loop(mf_realization(mSolve, f_),
 );
 // Central forecast for the long-term scenarios comes from a special forecast label
 Option clear = df_scenario;
-if(mSettings(mSolve, 'scenarios') > 1,
+if(mSettings(mSolve, 'scenarios') >= 1,
     loop((msft(ms_central(mSolve, s), f, t), mf_scenario(mSolve, f_)),
         df_scenario(ft(f, t)) = ord(f_) - ord(f);
     );

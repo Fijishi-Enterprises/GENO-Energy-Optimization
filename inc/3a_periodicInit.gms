@@ -49,6 +49,12 @@ loop(m,
         abort "t_end is not divisible by t_jump";
     );
 
+    // Calculate realized timesteps in the simulation
+    t_realized(t_full(t))${ ord(t) >= mSettings(m, 't_start') + 1
+                            and ord(t) <= mSettings(m, 't_end') + 1
+                          }
+        = yes;
+
 * --- Samples and Forecasts ---------------------------------------------------
 $ontext
     // Check that forecast length is feasible
