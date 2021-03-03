@@ -190,6 +190,7 @@ Parameter
 *    settings(mSetting)
     mSettings(mType, mSetting) "Model settings array"
     mSettingsEff(mtype, effLevel) "Model efficiency approximation array"
+    mSettingsEff_start(mtype, effLevel) "The first time step of the efficiency level - mSettingsEff is the last"
     mInterval(mType, mSetting, counter) "Model interval array"
     t_skip_counter "Numerical counter for solve time steps"
 ;

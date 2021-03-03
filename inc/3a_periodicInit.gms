@@ -190,7 +190,7 @@ loop(m,
 * --- Calculate 'lastStepNotAggregated' for aggregated units and aggregator units ---
 
     loop(effLevel$mSettingsEff(m, effLevel),
-        loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) <= ord(effLevel)},
+        loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) < ord(effLevel)},
             p_unit(unit_aggregated(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit_, unit, effLevel)) }
                 = mSettingsEff(m, effLevel_);
             p_unit(unit_aggregator(unit), 'lastStepNotAggregated')${ sum(unit_,unitUnitEffLevel(unit, unit_, effLevel)) }
@@ -235,6 +235,12 @@ loop(m,
                 mSettingsEff(m, effLevel) = no;
                 put log '!!! Removed mSettingsEff(', m.tl:0, ', ', effLevel.tl:0, ')' /;
             );
+        );
+    );
+    // Store the first time step of the effLevel
+    loop(effLevel$mSettingsEff(m, effLevel),
+        loop(effLevel_${mSettingsEff(m, effLevel_) and ord(effLevel_) < ord(effLevel)},
+            mSettingsEff_start(m, effLevel) = mSettingsEff(m, effLevel_) + 1;
         );
     );
 );
