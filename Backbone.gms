@@ -106,6 +106,9 @@ $libinclude scenred2
 $include 'inc/1a_definitions.gms'   // Definitions for possible model settings
 $include 'inc/1b_sets.gms'          // Set definitions used by the models
 $include 'inc/1c_parameters.gms'    // Parameter definitions used by the models
+$ifthen exist '%input_dir%/changes_SetsParam.inc'
+   $$include '%input_dir%/changes_SetsParam.inc'
+$endif
 $include 'inc/1d_results.gms'       // Parameter definitions for model results
 $include 'inc/1e_inputs.gms'        // Load input data
 
@@ -146,6 +149,7 @@ $iftheni.dummy not %dummy% == 'yes'
     $$include 'inc/3e_solve.gms'                // Solve model(s)
     $$include 'inc/3f_afterSolve.gms'           // Post-processing variables after the solve
     $$include 'inc/4a_outputVariant.gms'        // Store results from the loop
+    $$include '%input_dir%/4bb_additional_output.inc'      // Define additional results from the input data
 $endif.dummy
 $ifthene.debug %debug%>1
         putclose gdx;
@@ -163,9 +167,6 @@ $echon "'version' " > 'version'
 $call 'git describe --dirty=+ --always >> version'
 $ifi not %dummy% == 'yes'
 $include 'inc/4b_outputInvariant.gms'
-$ifthen exist '%input_dir%/4bb_additional_output.inc'
-   $$include '%input_dir%/4bb_additional_output.inc'      // Define additional results from the input data
-$endif
 $include 'inc/4c_outputQuickFile.gms'
 
 * Post-process results
