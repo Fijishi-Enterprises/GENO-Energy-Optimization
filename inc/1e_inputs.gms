@@ -20,9 +20,6 @@ $offtext
 * =============================================================================
 
 * Reads changes or additions to the inputdata through changes.inc file.
-$ifthen exist '%input_dir%/changes_SetsParam.inc'
-   $$include '%input_dir%/changes_SetsParam.inc'
-$endif
 
 $ifthen exist '%input_dir%/inputData.gdx'
     $$gdxin  '%input_dir%/inputData.gdx'
