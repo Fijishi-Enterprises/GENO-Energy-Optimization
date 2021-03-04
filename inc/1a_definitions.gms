@@ -220,7 +220,6 @@ param_gn  "Possible parameters for grid, node" /
     boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
     boundAll      "A flag to bound the state to the reference in all time steps"
     boundStartToEnd  "Force the last states to equal the first state"
-    decay          "decay parameter for biomass USED IN THE WWTP MODEL"
 *    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."  // NOT IMPLEMENTED
     capacityMargin "Capacity margin used in invest mode (MW)"
     storageValueUseTimeSeries "A flag to determine whether to use time series form `storageValue`"
@@ -260,6 +259,8 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     transferCost  "Direct transfer cost (EUR/MW)"
     annuity       "Investment annuity"
     portion_of_transfer_to_reserve "Portion of the infeed from the unit that needs to be available as reserve if the unit fails"
+    decay          "decay parameter for biomass USED IN THE WWTP MODEL"
+    recycle        "recycle parameter for biomass into substrate USED IN THE WWTP MODEL"
     ICrampUp
     ICrampDown
 /
