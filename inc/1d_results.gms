@@ -82,8 +82,9 @@ Parameters
     r_spill(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
 
     //Energy diffusion results - ADDITIONS OF THE WWTP MODEL
-    r_incomingDiffusion          "Incoming diffusion into a node in time interval (MW)"
-    r_outgoingDiffusion          "Outgoing diffusion from a node in time interval (MW)"
+    r_flagState(grid, node, ww_flowType, ww_range, f, t)
+    r_incomingDiffusion(grid, node_, node, f, t)          "Incoming diffusion into a node in time interval (MW)"
+    r_outgoingDiffusion(grid, node, node_, f, t)          "Outgoing diffusion from a node in time interval (MW)"
 
     // Interesting node related results
     r_balanceMarginal(grid, node, f, t) "Marginal values of the q_balance equation"
