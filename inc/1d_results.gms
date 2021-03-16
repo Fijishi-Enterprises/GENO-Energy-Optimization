@@ -82,7 +82,7 @@ Parameters
     r_spill(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
 
     //Energy diffusion results - ADDITIONS OF THE WWTP MODEL
-    r_flagState(grid, node, ww_flowType, ww_range, f, t)
+    r_flagState(grid, node, ww_flowType, ww_range, f, t)  "State of the node depending on the flow range"
     r_incomingDiffusion(grid, node_, node, f, t)          "Incoming diffusion into a node in time interval (MW)"
     r_outgoingDiffusion(grid, node, node_, f, t)          "Outgoing diffusion from a node in time interval (MW)"
 
@@ -193,6 +193,7 @@ Scalar r_realizedLast "Order of last realised time step";
 
 Option clear = r_totalObj;
 Option clear = r_state;
+Option clear = r_flagState; //addition of the WWTP model
 Option clear = r_online;
 Option clear = r_reserve;
 Option clear = r_resTransferRightward;
