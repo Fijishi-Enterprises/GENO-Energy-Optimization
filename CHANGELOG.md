@@ -4,9 +4,14 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 ### Added
 - Dynamic generation portfolios aka pathway modelling aka multi-year simulations with discounted costs enabled
+- Reserve activation duration and reactivation time included (in state constraints)
  
 ### Changed
 - Static inertia requirement can be fulfilled by both rotational inertia of machines and certain reserve products
+- Parameters p_gnPolicy and p_groupPolicy3D replaced with p_groupPolicyEmission and p_groupPolicyUnit
+
+### Fixed
+- Updated the selection of unit efficiency approximation levels
 
 ## [1.2.1] - 2019-11-26
 ### Fixed
