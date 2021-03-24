@@ -69,6 +69,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
 *    $$loaddc p_price // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
     $$loaddc ts_priceChange
     $$loaddc ts_influx
+    $$loaddc ts_unitConstraintNode
     $$loaddc ts_node
     $$loaddc p_s_discountFactor
     $$loaddc t_invest
@@ -575,11 +576,11 @@ loop( unit${sum(commodity$p_uStartupfuel(unit, commodity, 'fixedFuelFraction'), 
     );
 );
 
-loop( unit${sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1)},
-    if(sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1) < 2,
+loop( unit${sum((constraint, node)$p_unitConstraintNode(unit, constraint, node, 'coefficient'), 1)},
+    if(sum((constraint, node)$p_unitConstraintNode(unit, constraint, node, 'coefficient'), 1) < 2,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
         put log '!!! Abort: constraint requires at least two inputs or outputs!' /;
-        abort "a constraint has to have more tha one input or output!"
+        abort "a constraint has to have more than one input or output!"
     );
 );
 
