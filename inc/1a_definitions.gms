@@ -339,8 +339,10 @@ param_eff "Parameters used for unit efficiency approximations" /
 /
 
 param_constraint "Parameters for constraints" /
-    constant    "Constant when binding inputs/outputs"
-    coefficient "Coefficient when binding inputs/outputs"
+    useTimeSeries "Flag to indicate whether time series input for coefficient is used (input in ts_unitConstraintNode)"
+    useConstant   "Flag to indicate whether a constant coefficient is used"
+    constant      "Constant when binding inputs/outputs"
+    coefficient   "Coefficient when binding inputs/outputs"
 /
 
 param_price "Parameters for commodity prices" /
