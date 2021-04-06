@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+### Added
+- Raise execution error if solver did not finish normally
+
 ## 1.1.5
 ### Fixed
 - Long-term scenario data when using only one scenario
