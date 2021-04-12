@@ -133,6 +133,12 @@ $include '%input_dir%/modelsInit.gms'
 
 
 * === Simulation ==============================================================
+// Macro for checking solve status (1 = normal completion)
+$macro checkSolveStatus(mdl) \
+    if(mdl.solveStat > 1 and (mdl.modelStat <> 1 or mdl.modelStat <> 8), \
+        execError = execError + 1 \
+    )
+
 $include 'inc/3a_periodicInit.gms'  // Initialize modelling loop
 loop(modelSolves(mSolve, tSolve)$(execError = 0),
     solveCount = solveCount + 1;

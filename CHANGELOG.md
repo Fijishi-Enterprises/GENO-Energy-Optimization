@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Dynamic generation portfolios aka pathway modelling aka multi-year simulations with discounted costs enabled
 - Reserve activation duration and reactivation time included (in state constraints)
+- Raise execution error if solver did not finish normally
  
 ### Changed
 - Static inertia requirement can be fulfilled by both rotational inertia of machines and certain reserve products
