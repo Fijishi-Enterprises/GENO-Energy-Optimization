@@ -168,6 +168,11 @@ Parameters
     r_invest(unit) "Number/amount of invested sub-units"
     r_investTransfer(grid, node, node, t) "Amount of invested transfer link capacity"
 
+* --- Group results -----------------------------------------------------------
+
+    // gnTotalgen in units that belong to gnuGroups over the simulation
+    r_gnTotalGenGnuGroup(grid, node, group) "gnTotalGen in units that belong to gnuGroup (MWh)"
+
 * --- Dummy Variable Results --------------------------------------------------
 
     // Results regarding solution feasibility

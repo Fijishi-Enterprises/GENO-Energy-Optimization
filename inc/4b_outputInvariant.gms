@@ -573,6 +573,14 @@ r_uTotalShutdown(unit)
             * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
         ); // END sum(ft_realizedNoReset)
 
+* --- Sum results for groups --------------------------------------------------
+
+// gnTotalgen in units that belong to gnuGroups over the simulation
+r_gnTotalGenGnuGroup(grid, node, group)
+    = sum(unit $ {gnuGroup(grid, node, unit, group)},
+        + r_gnuTotalGen(grid, node, unit)
+         ); // END sum(unit)
+
 * --- Diagnostic Results ------------------------------------------------------
 
 // Only include these if '--diag=yes' given as a command line argument

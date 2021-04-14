@@ -159,6 +159,11 @@ r_resDemandLargestInfeedUnit
 r_invest
 r_investTransfer
 
+* --- Sum results for groups --------------------------------------------------
+
+// gnTotalgen in units that belong to gnuGroups over the simulation
+r_gnTotalGenGnuGroup
+
 * --- Dummy and Diagnostic Variable Result Symbols ----------------------------
 
 // Results regarding solution feasibility
