@@ -126,10 +126,10 @@ Parameters
     r_emissions (node, emission, unit, f, t) "Emissions from units (tCO2)"
 
     // Emission sums
-    r_nuTotalEmissions (node, unit, emission) "Total emissions from units (tCO2)"
-    r_nTotalEmissions(node, emission) "Emissions in gn (tCO2)"
-    r_uTotalEmissions(unit, emission) "Emissions in gn (tCO2)"
-    r_totalEmissions (emission) "Summed emissions (tCO2)"
+    r_nuTotalEmissions (node, unit, emission) "node unit total emissions (tCO2)"
+    r_nTotalEmissions(node, emission) "node total emissions (tCO2)"
+    r_uTotalEmissions(unit, emission) "unit total emissions (tCO2)"
+    r_totalEmissions (emission) "Total emissions (tCO2)"
 
 
 * --- Unit Online State Results -----------------------------------------------
