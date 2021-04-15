@@ -39,6 +39,8 @@ Parameters
     r_gnStateSlackCost(grid, node, f, t) "Costs for states requiring slack (MEUR)"
     r_gnTotalStateSlackCost(grid, node) "Total costs for state slacks over the simulation (MEUR)"
     r_gnStorageValueChange(grid, node) "Change in storage values over the simulation (MEUR)"
+    r_gnnVariableTransCost(grid, node_,node, f, t) "Variable Transfer costs (MEUR)"
+    r_gnnTotalVariableTransCost(grid, node_, node) "Total Variable Transfer costs over the simulation (MEUR)"
 
     // Investment and Fixed Operation and Maintenance Cost Components
     r_gnuFOMCost(grid, node, unit) "Total gnu fixed O&M costs over the simulation (MEUR)"
@@ -79,6 +81,8 @@ Parameters
 
     // Energy transfer and spill variable results
     r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
+    r_transferRightward(grid, from_node, to_node, f, t) "Energy transfer from first node to second node (MW)"
+    r_transferLeftward(grid, to_node, from_node, f, t) "Energy transfer from second node to first node (MW)"
     r_spill(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
 
     // Interesting node related results
