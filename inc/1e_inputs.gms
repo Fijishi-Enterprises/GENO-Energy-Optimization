@@ -94,8 +94,8 @@ $endif
 $include 'inc/1e_scenChanges.gms'
 
 * Reads changes or additions to the inputdata through changes.inc file.
-$ifthen exist '%input_dir%/changes.inc'
-   $$include '%input_dir%/changes.inc'
+$ifthen exist '%input_dir%/input_changes.inc'
+   $$include '%input_dir%/input_changes.inc'
 $endif
 
 
