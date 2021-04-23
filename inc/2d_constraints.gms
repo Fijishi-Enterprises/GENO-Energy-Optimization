@@ -38,7 +38,7 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
     =E=
 
     // The right side of the equation contains all the changes converted to energy terms
-    + p_stepLength(m, f, t) * [((1/p_stepLength(m, f, t))${gn_state('wastewater', node)}) + 1${not gn_state('wastewater', node)}]// Multiply with the length of the timestep to convert power into energy
+    + p_stepLength(m, f, t) * [((1/p_stepLength(m, f, t))${gnGroup(grid, node,'wastewaterBalance')}) + 1${not gnGroup(grid, node,'wastewaterBalance')}]// Multiply with the length of the timestep to convert power into energy
         * (
             // Self discharge out of the model boundaries
             - p_gn(grid, node, 'selfDischargeLoss')${ gn_state(grid, node) }
