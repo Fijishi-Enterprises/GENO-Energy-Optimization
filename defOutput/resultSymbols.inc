@@ -39,6 +39,8 @@ r_uTotalStartupCost
 r_gnStateSlackCost
 r_gnTotalStateSlackCost
 r_gnStorageValueChange
+r_gnnVariableTransCost
+r_gnnTotalVariableTransCost
 
 // Investment and Fixed Operation and Maintenance Cost Components
 r_gnuFOMCost
@@ -73,6 +75,8 @@ r_stateSlack
 
 // Energy transfer and spill variable results
 r_transfer
+r_transferRightward
+r_transferLeftward
 r_spill
 
 //Energy diffusion - ADDITIONS OF THE WWTP MODEL
@@ -162,6 +166,11 @@ r_resDemandLargestInfeedUnit
 // Interesting investment results
 r_invest
 r_investTransfer
+
+* --- Sum results for groups --------------------------------------------------
+
+// gnTotalgen in units that belong to gnuGroups over the simulation
+r_gnTotalGenGnuGroup
 
 * --- Dummy and Diagnostic Variable Result Symbols ----------------------------
 

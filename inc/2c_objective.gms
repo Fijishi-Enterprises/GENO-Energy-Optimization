@@ -111,6 +111,17 @@ q_obj ..
 
                 ]  // END * p_sft_probability(s,f,t)
 
+                // Variable Transfer
+                + sum(gn2n_directional(grid, node_, node),
+                    + p_gnn(grid, node, node_, 'variableTransCost')
+                    * v_transferLeftward(grid, node_, node, s, f, t)
+                  ) // END sum(gn2n_directional(grid, node_, node))
+
+                + sum(gn2n_directional(grid, node_, node),
+                    + p_gnn(grid, node_, node, 'variableTransCost')
+                    * v_transferRightward(grid, node_, node, s, f, t)
+                  ) // END sum(gn2n_directional(grid, node_, node))
+
         ) // END sum over msft(m, s, f, t)
 
     // Cost of energy storage change (note: not discounted)

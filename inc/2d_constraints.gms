@@ -2317,6 +2317,8 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
                 // Downward reserves from units that output energy to the node
                 + sum(gnuRescapable(restype, 'down', grid_, node_input, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid_, node_input, restype, 'reserve_length') },
                     + v_reserve(restype, 'down', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
+                        * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
+                        / p_gnReserves(grid_, node_input, restype, 'reserve_reactivation_time')
                         / sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -2329,6 +2331,8 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
                 // Downward reserves from units that use the node as energy input
                 + sum(gnuRescapable(restype, 'down', grid_, node_output, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid_, node_output, restype, 'reserve_length') },
                     + v_reserve(restype, 'down', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
+                        * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
+                        / p_gnReserves(grid_, node_output, restype, 'reserve_reactivation_time')
                         * sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -2381,6 +2385,8 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
                 // Upward reserves from units that output energy to the node
                 + sum(gnuRescapable(restype, 'up', grid_, node_input, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid_, node_input, restype, 'reserve_length') },
                     + v_reserve(restype, 'up', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
+                        * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
+                        / p_gnReserves(grid_, node_input, restype, 'reserve_reactivation_time')
                         / sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -2393,6 +2399,8 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
                 // Upward reserves from units that use the node as energy input
                 + sum(gnuRescapable(restype, 'up', grid_, node_output, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid_, node_output, restype, 'reserve_length') },
                     + v_reserve(restype, 'up', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
+                        * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
+                        / p_gnReserves(grid_, node_output, restype, 'reserve_reactivation_time')
                         * sum(suft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -2423,6 +2431,8 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
                                                                             and ord(t) < tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                             },
                 + v_reserve(restype, 'down', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
+                    * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
+                    / p_gnReserves(grid_, node_input, restype, 'reserve_reactivation_time')
                     / sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -2436,6 +2446,8 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
                                                                              and ord(t) < tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                              },
                 + v_reserve(restype, 'down', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
+                    * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
+                    / p_gnReserves(grid_, node_output, restype, 'reserve_reactivation_time')
                     * sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -2468,6 +2480,8 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
                                                                           and ord(t) < tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                           },
                 + v_reserve(restype, 'up', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
+                    * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
+                    / p_gnReserves(grid_, node_input, restype, 'reserve_reactivation_time')
                     / sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
@@ -2481,6 +2495,8 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
                                                                            and ord(t) < tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                            },
                 + v_reserve(restype, 'up', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
+                    * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
+                    / p_gnReserves(grid_, node_output, restype, 'reserve_reactivation_time')
                     * sum(suft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?

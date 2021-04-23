@@ -39,6 +39,8 @@ Parameters
     r_gnStateSlackCost(grid, node, f, t) "Costs for states requiring slack (MEUR)"
     r_gnTotalStateSlackCost(grid, node) "Total costs for state slacks over the simulation (MEUR)"
     r_gnStorageValueChange(grid, node) "Change in storage values over the simulation (MEUR)"
+    r_gnnVariableTransCost(grid, node_,node, f, t) "Variable Transfer costs (MEUR)"
+    r_gnnTotalVariableTransCost(grid, node_, node) "Total Variable Transfer costs over the simulation (MEUR)"
 
     // Investment and Fixed Operation and Maintenance Cost Components
     r_gnuFOMCost(grid, node, unit) "Total gnu fixed O&M costs over the simulation (MEUR)"
@@ -79,6 +81,8 @@ Parameters
 
     // Energy transfer and spill variable results
     r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
+    r_transferRightward(grid, from_node, to_node, f, t) "Energy transfer from first node to second node (MW)"
+    r_transferLeftward(grid, to_node, from_node, f, t) "Energy transfer from second node to first node (MW)"
     r_spill(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
 
     //Energy diffusion results - ADDITIONS OF THE WWTP MODEL
@@ -131,10 +135,10 @@ Parameters
     r_emissions (node, emission, unit, f, t) "Emissions from units (tCO2)"
 
     // Emission sums
-    r_nuTotalEmissions (node, unit, emission) "Total emissions from units (tCO2)"
-    r_nTotalEmissions(node, emission) "Emissions in gn (tCO2)"
-    r_uTotalEmissions(unit, emission) "Emissions in gn (tCO2)"
-    r_totalEmissions (emission) "Summed emissions (tCO2)"
+    r_nuTotalEmissions (node, unit, emission) "node unit total emissions (tCO2)"
+    r_nTotalEmissions(node, emission) "node total emissions (tCO2)"
+    r_uTotalEmissions(unit, emission) "unit total emissions (tCO2)"
+    r_totalEmissions (emission) "Total emissions (tCO2)"
 
 
 * --- Unit Online State Results -----------------------------------------------
@@ -172,6 +176,11 @@ Parameters
     // Interesting investment results
     r_invest(unit) "Number/amount of invested sub-units"
     r_investTransfer(grid, node, node, t) "Amount of invested transfer link capacity"
+
+* --- Group results -----------------------------------------------------------
+
+    // gnTotalgen in units that belong to gnuGroups over the simulation
+    r_gnTotalGenGnuGroup(grid, node, group) "gnTotalGen in units that belong to gnuGroup (MWh)"
 
 * --- Dummy Variable Results --------------------------------------------------
 

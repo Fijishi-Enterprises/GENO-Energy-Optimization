@@ -190,6 +190,7 @@ Parameter
 *    settings(mSetting)
     mSettings(mType, mSetting) "Model settings array"
     mSettingsEff(mtype, effLevel) "Model efficiency approximation array"
+    mSettingsEff_start(mtype, effLevel) "The first time step of the efficiency level - mSettingsEff is the last"
     mInterval(mType, mSetting, counter) "Model interval array"
     t_skip_counter "Numerical counter for solve time steps"
 ;
@@ -263,6 +264,7 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     recycle        "recycle parameter for biomass into substrate USED IN THE WWTP MODEL"
     ICrampUp
     ICrampDown
+    variableTransCost    "Variable cost applied to transfers (EUR/MW)"
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /
@@ -373,12 +375,14 @@ param_policy "Set of possible data parameters for groups or grid, node, regulati
     staticInertia "A flag to indicate static inertia constraint should be implemented - q_inertiaMin"
     dynamicInertia "A flag to indicate dynamic inertia constraint should be implemented - q_rateOfChangeOfFrequencyUnit/Transfer"
     // Reserve related parameters, currently without a proper parameter set
-    update_frequency "Frequency of updating reserve contributions"
-    update_offset "Optional offset for delaying the reserve update frequency"
+    update_frequency "Frequency of updating reserve contributions (number of timesteps)"
+    update_offset "Optional offset for delaying the reserve update frequency (number of timesteps)"
     gate_closure  "Number of timesteps ahead of dispatch that reserves are fixed"
 *    use_time_series "Flag for using time series data. !!! REDUNDANT WITH useTimeseries, PENDING REMOVAL !!!"
     useTimeSeries "Flag for using time series data"
-    reserve_length "Length of reserve horizon"
+    reserve_length "Length of reserve horizon (number of timesteps)"
+    reserve_activation_duration "How long the reserve should be provided once activated (h)"
+    reserve_reactivation_time "How soon the unit providing reserve needs to be able to reactivate after the start of the previous activation (h)"
     reserveReliability "Reliability parameter of reserve provisions"
     reserve_increase_ratio "Unit output is multiplied by this factor to get the increase in reserve demand"
     portion_of_infeed_to_reserve "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
