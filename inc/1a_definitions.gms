@@ -257,7 +257,6 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     investMIP     "A flag to make integer investment instead of continuous investment (MW versus number of links)"
     unitSize      "Size of one link for integer investments (MW)"
     invCost       "Investment cost (EUR/MW)"
-    transferCost  "Direct transfer cost (EUR/MW)"
     annuity       "Investment annuity"
     portion_of_transfer_to_reserve "Portion of the infeed from the unit that needs to be available as reserve if the unit fails"
     decay          "decay parameter for biomass USED IN THE WWTP MODEL"
