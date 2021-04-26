@@ -1,8 +1,8 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## Unreleased
-### Added
+## 1.1.6
+### Changed
 - Raise execution error if solver did not finish normally
 
 ## 1.1.5
