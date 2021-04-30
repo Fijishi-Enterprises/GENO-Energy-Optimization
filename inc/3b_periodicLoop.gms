@@ -137,10 +137,6 @@ Option clear = q_ReserveShareMax;
 Option clear = q_ww_lowerLimit;
 Option clear = q_ww_upperLimit;
 Option clear = q_ww_flowSum;
-//Option clear = q_ww_transferShareInfluent;
-//Option clear = q_ww_transferShareEffluent;
-//Option clear = q_ww_spillstate;
-//Option clear = q_ww_transferstate;
 
 //Specific balance equation for the WWTP reaction nodes
 Option clear = q_ww_balance;
@@ -152,9 +148,6 @@ Option clear = q_ww_flagState3;
 Option clear = q_ww_flagGen1;
 Option clear = q_ww_flagGen2;
 Option clear = q_ww_flagGen3;
-*Option clear = q_ww_flagTransfer1;
-*Option clear = q_ww_flagTransfer2;
-*Option clear = q_ww_flagTransfer3;
 
 * --- Temporary Time Series ---------------------------------------------------
 
@@ -166,6 +159,7 @@ Option clear = ts_influx_;
 Option clear = ts_cf_;
 Option clear = ts_unit_;
 Option clear = ts_reserveDemand_;
+Option clear = ts_unitConstraintNode_;
 Option clear = ts_node_;
 Option clear = ts_vomCost_;
 Option clear = ts_startupCost_;
