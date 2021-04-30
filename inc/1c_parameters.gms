@@ -173,7 +173,7 @@ Parameters
     ts_influx_(grid, node, s, f, t) "Mean external power inflow/outflow during a time step (MWh/h)"
     ts_cf_(flow, node, s, f, t) "Mean available capacity factor time series (p.u.)"
     ts_reserveDemand_(restype, up_down, group, f, t) "Mean reserve demand in region in the time step (MW)"
-    ts_unitConstraintNode_(unit, constraint, node, f, t) "Mean time series coefficients for constraints (eq1-9, gt1-9) between inputs and outputs" 
+    ts_unitConstraintNode_(unit, constraint, node, s, f, t) "Mean time series coefficients for constraints (eq1-9, gt1-9) between inputs and outputs"
     ts_node_(grid, node, param_gnBoundaryTypes, s, f, t) "Mean value of ts_node"
     ts_storageValue_(grid, node, s, f, t) "Mean value of ts_storageValue"
     ts_vomCost_(grid, node, unit, t) "Calculated variable O&M cost that includes O&M cost, fuel cost and emission cost"
@@ -186,6 +186,7 @@ Parameters
     ts_influx_update(grid, node, f, t)
     ts_cf_update(flow, node, f, t)
     ts_reserveDemand_update(restype, up_down, group, f, t)
+    ts_unitConstraintNode_update(unit, constraint, node, f, t)
     ts_node_update(grid, node, param_gnBoundaryTypes, f, t)
     ts_priceChange_update(node, t)
     ts_unavailability_update(unit, t)

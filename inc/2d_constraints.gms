@@ -1975,7 +1975,7 @@ q_unitEqualityConstraint(s_active(s), eq_constraint, uft(unit, f, t))
       )
 
     + sum(gnu(grid, node, unit)$p_unitConstraintNode(unit, eq_constraint, node, 'useTimeseries'),
-        + v_gen(grid, node, unit, s, f, t) * ts_unitConstraintNode(unit, eq_constraint, node, f, t)
+        + v_gen(grid, node, unit, s, f, t) * ts_unitConstraintNode_(unit, eq_constraint, node, s, f, t)
       )
 
     =E=
@@ -2005,7 +2005,7 @@ q_unitGreaterThanConstraint(s_active(s), gt_constraint, uft(unit, f, t))
       )
 
     + sum(gnu(grid, node, unit)$p_unitConstraintNode(unit, gt_constraint, node, 'useTimeseries'),
-        + v_gen(grid, node, unit, s, f, t) * ts_unitConstraintNode(unit, gt_constraint, node, f, t)
+        + v_gen(grid, node, unit, s, f, t) * ts_unitConstraintNode_(unit, gt_constraint, node, s, f, t)
       )
 
     =G=

@@ -110,6 +110,18 @@ $offtext
             = ts_reserveDemand_update(restype, up_down, group, f, t);
     ); // END if('ts_reserveDemand')
 
+    // Update ts_unitConstraintNode
+    if (mTimeseries_loop_read(mSolve, 'ts_unitConstraintNode'),
+        put_utility 'gdxin' / '%input_dir%/ts_unitConstraintNode/' tSolve.tl:0 '.gdx';
+        execute_load ts_unitConstraintNode_update=ts_unitConstraintNode;
+        ts_unitConstraintNode(unit, constraint, node, f_solve(f), tt_forecast(t))
+            ${  not mf_realization(mSolve, f) // Realization not updated
+                and (mSettings(mSolve, 'onlyExistingForecasts')
+                     -> ts_unitConstraintNode_update(unit, constraint, node, f ,t)) // Update only existing values (zeroes need to be EPS)
+                }
+            = ts_unitConstraintNode_update(unit, constraint, node, f ,t);
+    ); // END if('ts_unitConstraintNode')
+
     // Update ts_node
     if (mTimeseries_loop_read(mSolve, 'ts_node'),
         put_utility 'gdxin' / '%input_dir%/ts_node/' tSolve.tl:0 '.gdx';
@@ -198,6 +210,9 @@ $offtext
         // ts_reserveDemand
         ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
             = ts_reserveDemand(restype, up_down, group, f, t) - ts_reserveDemand(restype, up_down, group, f+ddf(f), t);
+        // ts_unitConstraintNode
+        ts_unitConstraintNode(unit, constraint, node, f, tt(t))
+            = ts_unitConstraintNode(unit, constraint, node, f, t) - ts_unitConstraintNode(unit, constraint, node, f+ddf(f), t);
         // ts_node
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) - ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
@@ -251,6 +266,13 @@ $offtext
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_reserveDemand(restype, up_down, group, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
+        // ts_unitConstraintNode
+        ts_unitConstraintNode(unit, constraint, node, f, tt(t))
+            = [ + (ord(t) - tSolveFirst)
+                    * ts_unitConstraintNode(unit, constraint, node, f, t)
+                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                    * ts_unitConstraintNode(unit, constraint, node, f+ddf_(f), t)
+                ] / mSettings(mSolve, 't_improveForecast');
         // ts_node
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
             = [ + (ord(t) - tSolveFirst)
@@ -284,7 +306,10 @@ $offtext
         // ts_reserveDemand
         ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
             = max(ts_reserveDemand(restype, up_down, group, f, t) + ts_reserveDemand(restype, up_down, group, f+ddf(f), t), 0); // Ensure that reserve demand forecasts remains positive
-        // ts_node
+        // ts_unitConstraintNode
+        ts_unitConstraintNode(unit, constraint, node, f, tt(t))
+            = ts_unitConstraintNode(unit, constraint, node, f, t) + ts_unitConstraintNode(unit, constraint, node, f+ddf(f), t);
+       // ts_node
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) + ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
     ); // END loop(f_solve)
@@ -306,6 +331,12 @@ loop(cc(counter),
     ts_unit_(unit_timeseries(unit), param_unit, ft(f, tt_interval(t)))
         = sum(tt_aggregate(t, t_),
             ts_unit(unit, param_unit, f, t_+dt_circular(t_))
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
+    ts_unitConstraintNode_(unit, constraint, node, sft(s, f, tt_interval(t)))
+      $p_unitConstraintNode(unit, constraint, node, 'useTimeseries')
+        = sum(tt_aggregate(t, t_),
+            ts_unitConstraintNode(unit, constraint, node, f, t_+dt_circular(t_))
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 $ontext
