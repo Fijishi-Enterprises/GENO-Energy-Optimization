@@ -31,6 +31,7 @@ Sets
     node_priceChangeData(node) "Nodes that have input data in ts_priceChange table"
     node_superpos(node) "Nodes whose state is monitored in the z dimension using superpositioning of state"
     flowNode(flow, node) "Nodes with flows"
+    node_tmp "temporary set for summing nodes"
 
 * --- Emission classifications ------------------------------------------------
     emission_priceData(emission) "Emissions that have input data in ts_emissionPrice table"
@@ -60,6 +61,9 @@ Sets
     unit_investMIP(unit) "Units with integer investments allowed"
     unit_timeseries(unit) "Units with time series enabled"
     unit_incHRAdditionalConstraints(unit) "Units that use the two additional incremental heat rate constraints"
+    unit_eqConstrained(unit) "Units that have eq constraints between inputs and/or outputs"
+    unit_gtConstrained(unit) "Units that have gt constraints between inputs and/or outputs"
+    unit_tmp(unit) "temporary set for summing units"
 
 * --- Sets bounding geography and units ---------------------------------------
     group "A group of units, transfer links, nodes, etc."
@@ -158,7 +162,8 @@ Sets
     uft_aggregator_first(unit, f, t) "The first intervals when aggregator units are active"
     gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"
     gnuft_rampCost(grid, node, unit, slack, f, t) "Units with ramp costs"
-    gnusft(grid, node, unit, s, f, t) "set of active units and aggreegated sft"
+    usft(unit, s, f, t) "set of active units and aggregated sft"
+    gnusft(grid, node, unit, s, f, t) "set of active gnu and aggregated sft"
     eff_uft(effSelector, unit, f, t) "Selecting conversion efficiency equations"
 *    eff_uft_eff(effSelector, unit, f, t, effSelector) "Selecting conversion efficiency equations"
     effGroup(effSelector) "Group name for efficiency selector set, e.g. DirectOff and Lambda02"

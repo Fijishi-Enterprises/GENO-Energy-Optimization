@@ -2063,14 +2063,15 @@ q_conversionSOS2IntermediateOutput(s_active(s), eff_uft(effLambda(effGroup), uni
 
 * --- Fixed ratio of inputs or outputs ----------------------------------------
 
-q_unitEqualityConstraint(s_active(s), eq_constraint, uft(unit, f, t))
-    ${  sft(s, f, t)
-        and sum(node$p_unitConstraintNode(unit, eq_constraint, node), 1)
-        } ..
+q_unitEqualityConstraint(eq_constraint, usft(unit_eqConstrained(unit), s, f, t)) ..
 
     // Inputs and/or outputs multiplied by their coefficient
     + sum(gnu(grid, node, unit)$p_unitConstraintNode(unit, eq_constraint, node),
         + v_gen(grid, node, unit, s, f, t) * p_unitConstraintNode(unit, eq_constraint, node)
+      )
+
+    + sum(gnu(grid, node, unit)$ts_unitConstraintNode_(unit, eq_constraint, node, s, f ,t),
+        + v_gen(grid, node, unit, s, f, t) * ts_unitConstraintNode_(unit, eq_constraint, node, s, f ,t)
       )
 
     =E=
@@ -2089,15 +2090,17 @@ q_unitEqualityConstraint(s_active(s), eq_constraint, uft(unit, f, t))
 
 * --- Constrained ratio of inputs or outputs ----------------------------------
 
-q_unitGreaterThanConstraint(s_active(s), gt_constraint, uft(unit, f, t))
-    ${  sft(s, f, t)
-        and sum(node$p_unitConstraintNode(unit, gt_constraint, node), 1)
-        } ..
+q_unitGreaterThanConstraint(gt_constraint, usft(unit_gtConstrained(unit), s, f, t)) ..
 
     // Inputs and/or outputs multiplied by their coefficient
     + sum(gnu(grid, node, unit)$p_unitConstraintNode(unit, gt_constraint, node),
         + v_gen(grid, node, unit, s, f, t) * p_unitConstraintNode(unit, gt_constraint, node)
       )
+
+    + sum(gnu(grid, node, unit)$ts_unitConstraintNode_(unit, gt_constraint, node, s, f ,t),
+        + v_gen(grid, node, unit, s, f, t) * ts_unitConstraintNode_(unit, gt_constraint, node, s, f ,t)
+      )
+
 
     =G=
 

@@ -142,6 +142,7 @@ Option clear = ts_unit_;
 Option clear = ts_influx_;
 Option clear = ts_cf_;
 Option clear = ts_unit_;
+Option clear = ts_unitConstraintNode_;
 Option clear = ts_reserveDemand_;
 Option clear = ts_node_;
 Option clear = ts_vomCost_;
@@ -503,6 +504,10 @@ loop(unit${unit_aggregator(unit)},
     );
     uft_aggregator_first(uft(unit, f, t))${ord(t) = tmp} = yes;
 );
+
+// Active units on each sft
+Option clear = usft;
+usft(unit, sft(s, f, t))${ uft(unit, f ,t)} = yes;
 
 // Active (grid, node, unit) on each sft
 Option clear = gnusft;

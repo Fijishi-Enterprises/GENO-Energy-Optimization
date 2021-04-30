@@ -191,6 +191,9 @@ if(mSettings(mSolve, 't_improveForecast'),
         // ts_unit
         ts_unit(unit_timeseries(unit), param_unit, f, tt(t))// Only update for units with time series enabled
             = ts_unit(unit, param_unit, f, t) - ts_unit(unit, param_unit, f+ddf(f), t);
+        // ts_unitConstraintNode
+        ts_unitConstraintNode(unit, constraint, node, f, tt(t))
+            = ts_unitConstraintNode(unit, constraint, node, f, t) - ts_unitConstraintNode(unit, constraint, node, f+ddf(f), t);
 $ontext
 * Should these be handled here at all? See above note
         // ts_effUnit
@@ -227,6 +230,13 @@ $offtext
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_unit(unit, param_unit, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
+        ts_unitConstraintNode(unit, constraint, node, f, tt(t))${p_unitConstraint(unit, constraint)}
+            = [ + (ord(t) - tSolveFirst)
+                    * ts_unitConstraintNode(unit, constraint, node, f, t)
+                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                    * ts_unitConstraintNode(unit, constraint, node, f+ddf_(f), t)
+                ] / mSettings(mSolve, 't_improveForecast');
+
 $ontext
 * Should these be handled here at all? See above note
         // ts_effUnit
@@ -305,7 +315,7 @@ $offtext
         // ts_reserveDemand
         ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
             = max(ts_reserveDemand(restype, up_down, group, f, t) + ts_reserveDemand(restype, up_down, group, f+ddf(f), t), 0); // Ensure that reserve demand forecasts remains positive
-        // ts_node
+       // ts_node
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) + ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
         // ts_gnn
@@ -330,6 +340,11 @@ loop(cc(counter),
     ts_unit_(unit_timeseries(unit), param_unit, ft(f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
             ts_unit(unit, param_unit, f, t_)
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
+    ts_unitConstraintNode_(unit, constraint, node, sft(s, f, tt_interval(t)))
+        = sum(tt_aggcircular(t, t_),
+            ts_unitConstraintNode(unit, constraint, node, f, t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 $ontext

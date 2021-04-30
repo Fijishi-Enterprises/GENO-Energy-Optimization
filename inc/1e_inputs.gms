@@ -123,6 +123,10 @@ $hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_emissionPriceChange > tmp.inc
 $hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
 $INCLUDE tmp2.inc
 
+$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_unitConstraintNode > tmp.inc
+$hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
+$INCLUDE tmp2.inc
+
 $gdxin
 
 * jumping to here if no input gdx. Reading data from alternative sources (1e_scenchanges.inc and changes.inc)
@@ -217,6 +221,12 @@ nu_startup(node, unit)$p_uStartupfuel(unit, node, 'fixedFuelFraction') = yes;
 // Units with time series data enabled
 unit_timeseries(unit)${ p_unit(unit, 'useTimeseries') or p_unit(unit, 'useTimeseriesAvailability') }
     = yes;
+
+*// Units that have eq constraints between inputs and/or outputs
+unit_eqConstrained(unit)${sum((eq_constraint(constraint))$p_unitConstraint(unit, constraint), 1)} = yes;
+
+// Units that have gt constraints between inputs and/or outputs
+unit_gtConstrained(unit)${sum((gt_constraint(constraint))$p_unitConstraint(unit, constraint), 1)} = yes;
 
 * --- Unit Related Parameters -------------------------------------------------
 
@@ -744,13 +754,26 @@ loop( unit${sum(starttype$p_uStartup(unit, starttype, 'consumption'), 1)},
     );
 );
 
-loop( unit${sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1)},
-    if(sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1) < 2,
+option tt < ts_unitConstraintNode;
+// checking that each constraint has at least two nodes defined
+loop( unit${sum((constraint)$p_unitConstraint(unit, constraint), 1)},
+     if({sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1)
+        +sum((constraint, node, f, tt(t))$ts_unitConstraintNode(unit, constraint, node, f, t), 1)} < 2,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
         put log '!!! Abort: constraint requires at least two inputs or outputs!' /;
-        abort "a constraint has to have more tha one input or output!"
-    );
-);
+        abort "a constraint has to have more than one input or output!"
+    ); // END if
+); // END loop(unit)
+
+// checking that none of the (node, unit) is defined both in p_unitConstraint and ts_unitConstraint
+loop(nu(node, unit)${sum(constraint$p_unitConstraintNode(unit, constraint, node), 1)},
+    if({sum((constraint)$p_unitConstraintNode(unit, constraint, node), 1) and
+        sum((constraint, f, tt(t))$ts_unitConstraintNode(unit, constraint, node, f, t), 1)},
+        put log '!!! Error occurred on (node, unit): (' node.tl:0 ',' unit.tl:0 ')'/;
+        put log '!!! Abort: Constraint node for one unit cannot be defined in p_unitConstraintNode and in ts_unitConstraintNode!' /;
+        abort "a constraint (unit, node) has been defined in p_unitConstraintNode and in ts_unitConstraintNode. Choose only one!"
+    ); // END if
+); // END loop(nu)
 
 * --- Check the shutdown time related data ------------------------------------
 

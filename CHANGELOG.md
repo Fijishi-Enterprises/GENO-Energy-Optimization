@@ -11,13 +11,15 @@ All notable changes to this project will be documented in this file.
 - result table for total emissions of emission groups
 - template to activate barrier algorithm in cplex.opt
 
-### Changed - requiring input data changes
+### Changed - requiring input data changes - see conversion guide from 2.x to 3.x 
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
 - converting input data emission factor from kg/MWh to t/MWh
 - adding option for gnu specific emission parameters
 - replaced emissionTax parameter with ts_emissionPriceChange 
 - changed parameter name annuity to annuityFactor for clarification
 - Adding transfer rampLimit equations, removing old unfinished ICramp equations
+- Improved if checks when using unit node constraints
+- scenarios removed
 
 ### Changed - not requiring input data changes
 - clearing Eps values from result table r_state
@@ -28,6 +30,7 @@ All notable changes to this project will be documented in this file.
 - added a warning that directOff deactivates startCosts
 - added option to use ts_price and/or ts_priceChange
 - added option to use ts_emissionPrice and/or ts_emissionPriceChange
+- added option to use timeseries based unit node constraints
 
 ### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves

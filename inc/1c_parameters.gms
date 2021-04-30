@@ -53,8 +53,8 @@ Parameters
     p_gnu_io(grid, node, unit, input_output, param_gnu) "Unit data where energy type matters"
     p_gnuBoundaryProperties(grid, node, unit, slack, param_gnuBoundaryProperties) "Properties for unit boundaries where energy type matters"
     p_unit(unit, param_unit) "Unit data where energy type does not matter"
-    p_unitConstraint(unit, constraint) "Constant for constraints (eq1-9, gt1-9) between inputs and outputs. Each unit have their own (eq1-9, gt1-9)."
-    p_unitConstraintNode(unit, constraint, node) "Coefficients for constraints (eq1-9, gt1-9) between inputs and outputs"
+    p_unitConstraint(unit, constraint) "Constant for constraints (eq1-9, gt1-9) between inputs and/or outputs. Each unit have their own (eq1-9, gt1-9)."
+    p_unitConstraintNode(unit, constraint, node) "Coefficients for constraints (eq1-9, gt1-9) between inputs and/or outputs"
     p_gnReserves(grid, node, restype, param_policy) "Data defining the reserve rules in each node"
     p_groupReserves(group, restype, param_policy) "Data defining the reserve rules in each node group"
     p_groupReserves3D(group, restype, up_down, param_policy) "Reserve policy in each node group separately for each reserve type and direction"
@@ -158,6 +158,7 @@ Parameters   // optional parameter tables initiated as empty tables
     ts_priceChange(node, t) "Initial commodity price and consequent changes in commodity price (EUR//MWh)" / /
     ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tCO2)" / /
     ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tCO2)" / /
+    ts_unitConstraintNode(unit, constraint, node, f, t) "Time series coefficients for constraints (eq1-9, gt1-9) between inputs and/or outputs" / /
 ;
 $offempty
 Parameters
@@ -175,6 +176,7 @@ Parameters
     ts_cf_(flow, node, s, f, t) "Mean available capacity factor time series (p.u.)"
     ts_reserveDemand_(restype, up_down, group, f, t) "Mean reserve demand in region in the time step (MW)"
     ts_node_(grid, node, param_gnBoundaryTypes, s, f, t) "Mean value of ts_node"
+    ts_unitConstraintNode_(unit, constraint, node, s, f, t) "Mean time series coefficients for constraints (eq1-9, gt1-9) between inputs and/or outputs"
     ts_gnn_(grid, node, node, param_gnn, f, t) "Mean value of ts_gnn"
     ts_storageValue_(grid, node, s, f, t) "Mean value of ts_storageValue"
     p_vomCost(grid, node, unit, param_price) "Calculated static O&M cost that includes O&M cost, fuel cost and emission cost"

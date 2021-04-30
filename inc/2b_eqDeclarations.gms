@@ -88,8 +88,8 @@ equations
     q_conversionIncHRBounds(grid, node, s, hr, effSelector, unit, f, t) "Heat rate bounds"
     q_conversionIncHR_help1(grid, node, s, hr, effSelector, unit, f, t) "Helper equation 1 to ensure that the first heat rate segments are used first"
     q_conversionIncHR_help2(grid, node, s, hr, effSelector, unit, f, t) "Helper equation 2 to ensure that the first heat rate segments are used first"
-    q_unitEqualityConstraint(s, eq_constraint, unit, f, t) "Fixing the ratio between inputs and/or outputs"
-    q_unitGreaterThanConstraint(s, gt_constraint, unit, f, t) "Lower limit for the ratio between inputs and/or outputs"
+    q_unitEqualityConstraint(eq_constraint, unit, s, f, t) "Fixing the ratio between inputs and/or outputs"
+    q_unitGreaterThanConstraint(gt_constraint, unit, s, f, t) "Lower limit for the ratio between inputs and/or outputs"
 
     // Energy Transfer
     q_transfer(grid, node, node, s, f, t) "Rightward and leftward transfer must match the total transfer"

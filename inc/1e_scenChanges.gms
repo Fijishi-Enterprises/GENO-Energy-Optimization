@@ -230,6 +230,18 @@ $ifthen exist '%input_dir%/p_unitConstraintNode3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/ts_unitConstraintNode2.gdx'
+    $$gdxin '%input_dir%/ts_unitConstraintNode2.gdx'
+    $$loaddcm ts_unitConstraintNode
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/ts_unitConstraintNode3.gdx'
+    $$gdxin '%input_dir%/ts_unitConstraintNode3.gdx'
+    $$loaddcm ts_unitConstraintNode
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/restype2.gdx'
     $$gdxin '%input_dir%/restype2.gdx'
     $$loaddcm restype
