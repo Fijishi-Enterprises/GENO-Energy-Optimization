@@ -26,6 +26,7 @@ Parameters
 
 p_ww_threshold(ww_flowType, ww_range, ww_lowerUpper)                          "Lower and upper thresholds for flow ranges"
 p_ww_A(ww_flowType, ww_range, node, node_, diff_direction)                    "Linearization parameters A for the wastewater treatment model"
-p_ww_dilution(ww_flowType, ww_range, node, node_)                             "Dilution factor D in the waste water treatment model for different inflow ranges"
+p_ww_dilution(ww_flowType, ww_range, node, node_)                             "Dilution factor D in the waste water treatment model for different inflow ranges and node pairs"
+p_ww_dilutionUnit(ww_flowType, ww_range, node, unit)                          "Dilution factor D in the waste water treatment model for different inflow ranges and node unit pairs"
 ;
 

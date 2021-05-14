@@ -163,4 +163,22 @@ $offtext
 
 *3b_periodicLoop
 *Option clear = v_flagState; // part of the WWTP model
-*Option clear = v_flagGen; // part of the WWTP model  
+*Option clear = v_flagGen; // part of the WWTP model
+
+$ontext
+                  sum(ww_flowType,
+                         sum(ww_range,
+                             + p_ww_dilution(ww_flowType, ww_range, node, node_)
+                             * v_flagTransfer(grid, node, node_, ww_flowType, ww_range, s, f, t)
+                         )
+                  )
+$offtext
+
+$ontext
+                  sum(ww_flowType,
+                         sum(ww_range,
+                             + p_ww_dilution(ww_flowType, ww_range, node_, node)
+                             * v_flagTransfer(grid, node_, node, ww_flowType, ww_range, s, f, t)
+                         )
+                  )
+$offtext
