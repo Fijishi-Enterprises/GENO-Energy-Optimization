@@ -13,7 +13,7 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
-$offtext
+
 
 
 * =============================================================================
@@ -37,3 +37,5 @@ $offtext
       ) // END sum over msft(m, s, f, t)
 
 ;
+*THIS IS OBSOLETE NOW WITH VARIABLE TRANSFER COSTS IN OBJECTIVE FUNCTION
+$offtext
