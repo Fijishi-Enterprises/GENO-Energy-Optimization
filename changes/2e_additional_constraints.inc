@@ -11,23 +11,15 @@ Equations
 //Switching function between locally valid linearisation parameters in order to obtain a globally valid wastewater treatment plant model
 //The linearisation parameters change according to the level of water inflow into the plant
 //Eq. 45 and 47
-q_ww_lowerLimit(grid, node, node_, ww_flowType, ww_range, s, f, t)  "Activates v_flagTransfer if flow is bigger than the lower limit of the flow range"
+q_ww_lowerLimit(grid, node, unit, ww_flowType, ww_range, s, f, t)  "Activates v_flagGen if flow is bigger than the lower limit of the flow range"
 //Eq. 46 and 48
-q_ww_upperLimit(grid, node, node_, ww_flowType, ww_range, s, f, t)  "Activates v_flagTransfer if flow is smaller than the upper limit of the flow range"
+q_ww_upperLimit(grid, node, unit, ww_flowType, ww_range, s, f, t)  "Activates v_flagGen if flow is smaller than the upper limit of the flow range"
 //Eq. 35,36
 q_ww_flowSum(ww_flowType, s , f, t)                                 "Exactly one of the binary variables for each flow range has to equal one"
 
 //Specific balance equation for the wastewater treatment reaction nodes
 //Eq. 25 (eq. 30)
 q_ww_balance(grid, node, mType, s, f, t)                          "Reaction within the nodes of the wastewater reaction tank"
-
-//Helper equations to limit the product of a binary and a continuous variable
-//Eq. 37
-q_ww_flagTransfer1(grid, node, node_, ww_flowType, ww_range, s, f, t)     "Helper equation to limit v_flagTransfer, the product of v_flowFlag and v_transfer"
-//Eq. 38
-q_ww_flagTransfer2(grid, node, node_, ww_flowType, ww_range, s, f, t)     "Helper equation to limit v_flagTransfer, the product of v_flowFlag and v_transfer"
-//Eq. 39
-q_ww_flagTransfer3(grid, node, node_, ww_flowType, ww_range, s, f, t)     "Helper equation to limit v_flagTransfer, the product of v_flowFlag and v_transfer"
 
 //Eq. 37
 q_ww_flagState1(grid, node, ww_flowType, ww_range, s, f, t)       "Helper equation to limit v_flagState, the product of v_flowFlag and v_state"
@@ -36,11 +28,18 @@ q_ww_flagState2(grid, node, ww_flowType, ww_range, s, f, t)       "Helper equati
 //Eq. 39
 q_ww_flagState3(grid, node, ww_flowType, ww_range, s, f, t)       "Helper equation to limit v_flagState, the product of v_flowFlag and v_state"
 
-//Potential additional constraint that bound the transfer shares, the transfer to waterbody and the decay of X to its state variable
-//q_ww_transferShareInfluent(grid, node_, node, s, f, t)            "The transfer of one node pair equals the transfer share depending on the transfer of another node pair"
-//q_ww_transferShareEffluent(grid, node, node_, s, f, t)            "The transfer of one node pair equals the transfer share depending on the transfer of another node pair"
-//q_ww_spillstate(grid, node, s, f , t)                             "Ensures that v_spill equals v_state for the node X_reaction"
-//q_ww_transferstate(grid, node, s, f, t)                           "Ensures that v_transfer equals v_state for the reaction nodes"
+q_ww_flagGen1(grid, node, unit, ww_flowType, ww_range, s, f, t)   "Helper equation to limit v_flagGen, the product of v_flowFlag and v_gen"
+q_ww_flagGen2(grid, node, unit, ww_flowType, ww_range, s, f, t)   "Helper equation to limit v_flagGen, the product of v_flowFlag and v_gen"
+q_ww_flagGen3(grid, node, unit, ww_flowType, ww_range, s, f, t)   "Helper equation to limit v_flagGen, the product of v_flowFlag and v_gen"
+
+//Helper equations to limit the product of a binary and a continuous variable
+//Eq. 37
+//q_ww_flagTransfer1(grid, node, node_, ww_flowType, ww_range, s, f, t)     "Helper equation to limit v_flagTransfer, the product of v_flowFlag and v_transfer"
+//Eq. 38
+//q_ww_flagTransfer2(grid, node, node_, ww_flowType, ww_range, s, f, t)     "Helper equation to limit v_flagTransfer, the product of v_flowFlag and v_transfer"
+//Eq. 39
+//q_ww_flagTransfer3(grid, node, node_, ww_flowType, ww_range, s, f, t)     "Helper equation to limit v_flagTransfer, the product of v_flowFlag and v_transfer"
+
 ;
 
 * ===============================================================================
@@ -51,11 +50,11 @@ q_ww_flagState3(grid, node, ww_flowType, ww_range, s, f, t)       "Helper equati
 
 *------ Limits for switching function ------------------------------------------
 //Equations 45-48 in the manuscript
-q_ww_lowerLimit(gn2nFlowType(grid, node, node_, ww_flowType), ww_range, sft(s, f, t))
-         ${gn2nGroup(grid, node, node_,'ww_inflowNodes')}
+q_ww_lowerLimit(gnu(grid, node, unit), ww_flowRange(ww_flowType, ww_range), sft(s, f, t))
+         ${gnuGroup(grid, node, unit,'ww_inflowNode')}
 ..
 
-         v_flagTransfer(grid, node, node_, ww_flowType, ww_range, s, f, t)
+         v_flagGen(grid, node, unit, ww_flowType, ww_range, s, f, t)
 
          =G=
 
@@ -63,11 +62,11 @@ q_ww_lowerLimit(gn2nFlowType(grid, node, node_, ww_flowType), ww_range, sft(s, f
 
 ;
 
-q_ww_upperLimit(gn2nFlowType(grid, node, node_, ww_flowType), ww_range, sft(s, f, t))
-         ${gn2nGroup(grid, node, node_,'ww_inflowNodes')}//should only hold for inflow node and DO reaction ..
+q_ww_upperLimit(gnu(grid, node, unit), ww_flowRange(ww_flowType, ww_range), sft(s, f, t))
+         ${gnuGroup(grid, node, unit,'ww_inflowNode')}//should only hold for inflow node and DO reaction ..
 ..
 
-         v_flagTransfer(grid, node, node_, ww_flowType, ww_range, s, f, t)
+         v_flagGen(grid, node, unit, ww_flowType, ww_range, s, f, t)
 
          =L=
 
@@ -84,7 +83,9 @@ q_ww_flowSum(ww_flowType, sft(s , f, t))    //Ensures that v_flowFlag is one ONL
 *------New balance equation for wastewater reaction nodes-----------------------
 //This corresponds to eq. 25 and eq. 30
 
-q_ww_balance(gn(grid, node), msft(m, s, f, t))${ gnGroup(grid, node, 'ww_reactionGroup')}
+q_ww_balance(gn(grid, node), msft(m, s, f, t))
+    ${  not p_gn(grid, node, 'boundAll')
+        and gnGroup(grid, node, 'ww_reactionGroup')}
 ..
 
     // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
@@ -96,6 +97,7 @@ q_ww_balance(gn(grid, node), msft(m, s, f, t))${ gnGroup(grid, node, 'ww_reactio
             - v_state(grid, node, s+ds_state(grid,node,s,t), f+df(f,t+dt(t)), t+dt(t))// ... and previous state of the node
          ]
     =E=
+//    + p_stepLength(m, f, t) * (
             // Self discharge out of the model boundaries
             - p_gn(grid, node, 'selfDischargeLoss')${ gn_state(grid, node) }
                 * v_state(grid, node, s, f+df_central(f,t), t) // The current state of the node
@@ -107,6 +109,7 @@ q_ww_balance(gn(grid, node), msft(m, s, f, t))${ gnGroup(grid, node, 'ww_reactio
                      * sum(ww_flowType,
                          sum(ww_range,
                              + p_ww_A(ww_flowType, ww_range, node, to_node, 'diff_out')
+                             * p_ww_dilution(ww_flowType, ww_range, node, to_node)
                              * v_flagState(grid, node, ww_flowType, ww_range, s, f+df_central(f,t), t)
                           )
                        )//END sum(ww_flowType)
@@ -120,6 +123,7 @@ q_ww_balance(gn(grid, node), msft(m, s, f, t))${ gnGroup(grid, node, 'ww_reactio
                      * sum(ww_flowType,
                          sum(ww_range,
                              + p_ww_A(ww_flowType, ww_range, from_node, node, 'diff_in')
+                             * p_ww_dilution(ww_flowType, ww_range, from_node, node)
                              * v_flagState(grid, from_node, ww_flowType, ww_range, s, f+df_central(f,t), t)
                           )
                        )//END sum(ww_flowType)
@@ -129,76 +133,58 @@ q_ww_balance(gn(grid, node), msft(m, s, f, t))${ gnGroup(grid, node, 'ww_reactio
 
             // Controlled energy transfer, applies when the current node is on the left side of the connection
             - sum(gn2n_directional(grid, node, node_),
-                  sum(ww_flowType,
-                         sum(ww_range,
-                             + p_ww_dilution(ww_flowType, ww_range, node, node_)
-                             * v_flagTransfer(grid, node, node_, ww_flowType, ww_range, s, f, t)
-                         )
-                  )
+                + (1 - p_gnn(grid, node, node_, 'transferLoss')) // Reduce transfer losses
+                    * v_transfer(grid, node, node_, s, f, t)
+                + p_gnn(grid, node, node_, 'transferLoss') // Add transfer losses back if transfer is from this node to another node
+                    * v_transferRightward(grid, node, node_, s, f, t)
+
               ) // END sum(node_)
 
             // Controlled energy transfer, applies when the current node is on the right side of the connection
             + sum(gn2n_directional(grid, node_, node),
-                  sum(ww_flowType,
-                         sum(ww_range,
-                             + p_ww_dilution(ww_flowType, ww_range, node_, node)
-                             * v_flagTransfer(grid, node_, node, ww_flowType, ww_range, s, f, t)
-                         )
-                  )
+                + v_transfer(grid, node_, node, s, f, t)
+                - p_gnn(grid, node_, node, 'transferLoss') // Reduce transfer losses if transfer is from another node to this node
+                    * v_transferRightward(grid, node_, node, s, f, t)
+
               ) // END sum(node_)
 
-            // Decay (if represented by spill - can also be represented as self discharge)
-            - ( p_gn(grid, node, 'decay')
-                * v_spill(grid, node, s, f, t)${node_spill(node)}
-                )
+            // Interactions between the node and its units
+            + sum(gnuft(grid, node, unit, f, t),
+                  sum(ww_flowType,
+                         sum(ww_range,
+                             + p_ww_dilutionUnit(ww_flowType, ww_range, node, unit)
+                             * v_flagGen(grid, node, unit, ww_flowType, ww_range, s, f, t) // Unit energy generation and consumption
+                         )
+                  )
+              ) // END sum(gnuft)
+
+            // Decay and recycle of X
+            - sum(gnn_state(grid, node, to_node),
+                + [p_gnn(grid, node, to_node, 'decay')
+                * v_state(grid, node, s, f, t)
+                ]
+              )
+
+            + sum(gnn_state(grid, from_node, node),
+                + [p_gnn(grid, from_node, node, 'recycle')
+                * v_state(grid, from_node, s, f, t)
+                ]
+              )
+
+            // Power inflow and outflow timeseries to/from the node
+            + ts_influx_(grid, node, s, f, t)   // Incoming (positive) and outgoing (negative) absolute value time series
 
             // Dummy generation variables, for feasibility purposes
-            + vq_gen('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-            - vq_gen('decrease', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+//            + vq_gen('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+//            - vq_gen('decrease', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+//    ) // END * p_stepLength
 ;
 *------- Helper Constraints for the products of continuous variables and the binary v_flowFlag ---------
-
-*------------- Constraints for binding the product of v_transfer and v_flowFlag ------------------------
-//Eq. 37
-q_ww_flagTransfer1(gn2nFlowType(grid, node, node_, ww_flowType), ww_range, sft(s, f, t))
-         ${gn2nGroup(grid, node, node_,'ww_flagTransfer')}
-..
-
-         BIG_M * v_flowFlag(ww_flowType, ww_range, s, f, t)
-
-         =G=
-
-         v_flagTransfer(grid, node, node_, ww_flowType, ww_range, s, f, t)
-
-;
-//Eq. 38
-q_ww_flagTransfer2(gn2nFlowType(grid, node, node_, ww_flowType), ww_range, sft(s, f, t))
-         ${gn2nGroup(grid, node, node_,'ww_flagTransfer')}
-..
-
-         v_transferRightward(grid, node, node_, s, f, t)
-
-         =G=
-
-         v_flagTransfer(grid, node, node_, ww_flowType, ww_range, s, f, t)
-;
-//Eq. 39
-//(Eq. 40 being implied by v_flagTransfer defined as a positive variable)
-q_ww_flagTransfer3(gn2nFlowType(grid, node, node_, ww_flowType), ww_range, sft(s, f, t))
-         ${gn2nGroup(grid, node, node_,'ww_flagTransfer')}
-..
-
-         v_flagTransfer(grid, node, node_, ww_flowType, ww_range, s, f, t)
-
-         =G=
-
-         v_transferRightward(grid, node, node_, s, f, t) - ((1- v_flowFlag(ww_flowType, ww_range, s, f, t))* BIG_M)
-;
 
 *------------ Constraints for binding the product of v_state and v_flowFlag ---------
 //Eq. 37
 q_ww_flagState1(gn(grid, node), ww_flowRange(ww_flowType, ww_range), sft(s, f, t))
-                 ${ gnGroup(grid, node, 'ww_reactionGroup')}
+                 ${ gnGroup(grid, node, 'ww_flagState')}
 ..
 
          v_flowFlag(ww_flowType, ww_range, s, f, t) * BIG_M
@@ -209,7 +195,7 @@ q_ww_flagState1(gn(grid, node), ww_flowRange(ww_flowType, ww_range), sft(s, f, t
 ;
 //Eq. 38
 q_ww_flagState2(gn(grid, node), ww_flowRange(ww_flowType, ww_range), sft(s, f, t))
-                 ${ gnGroup(grid, node, 'ww_reactionGroup')}
+                 ${ gnGroup(grid, node, 'ww_flagState')}
 ..
 
          v_state(grid, node, s, f+df_central(f,t), t)
@@ -222,7 +208,7 @@ q_ww_flagState2(gn(grid, node), ww_flowRange(ww_flowType, ww_range), sft(s, f, t
 //Eq. 39
 //(Eq. 40 being implied by v_flagState defined as a positive variable)
 q_ww_flagState3(gn(grid, node), ww_flowRange(ww_flowType, ww_range), sft(s, f, t))
-                 ${ gnGroup(grid, node, 'ww_reactionGroup')}
+                 ${ gnGroup(grid, node, 'ww_flagState')}
 ..
 
          v_flagState(grid, node, ww_flowType, ww_range, s, f+df_central(f,t), t)
@@ -231,49 +217,78 @@ q_ww_flagState3(gn(grid, node), ww_flowRange(ww_flowType, ww_range), sft(s, f, t
 
          v_state(grid, node, s, f+df_central(f,t), t) - [(1-v_flowFlag(ww_flowType, ww_range, s, f, t)) * BIG_M]
 ;
+*------------ Constraints for binding the product of v_gen and v_flowFlag ---------
+//Eq. 37
+q_ww_flagGen1(gnu(grid, node, unit), ww_flowRange(ww_flowType, ww_range), sft(s, f, t))
+                 ${ gnuGroup(grid, node, unit, 'ww_flagGen')}
+..
+
+         v_flowFlag(ww_flowType, ww_range, s, f, t) * BIG_M
+
+         =G=
+
+         v_flagGen(grid, node, unit, ww_flowType, ww_range, s, f, t)
+;
+//Eq. 38
+q_ww_flagGen2(gnu(grid, node, unit), ww_flowRange(ww_flowType, ww_range), sft(s, f, t))
+                 ${ gnuGroup(grid, node, unit, 'ww_flagGen')}
+..
+
+         v_gen(grid, node, unit, s, f, t)
+
+         =G=
+
+         v_flagGen(grid, node, unit, ww_flowType, ww_range, s, f, t)
+
+;
+//Eq. 39
+//(Eq. 40 being implied by v_flagState defined as a positive variable)
+q_ww_flagGen3(gnu(grid, node, unit), ww_flowRange(ww_flowType, ww_range), sft(s, f, t))
+                 ${ gnuGroup(grid, node, unit, 'ww_flagGen')}
+..
+
+         v_flagGen(grid, node, unit, ww_flowType, ww_range, s, f, t)
+
+         =G=
+
+         v_gen(grid, node, unit, s, f, t) - [(1-v_flowFlag(ww_flowType, ww_range, s, f, t)) * BIG_M]
+;
 
 $ontext
-*------------ Potential additional constraints to ensure proper behaviour of the wastewater treatment model ----------------
-q_ww_transferShareInfluent(gn2n_directional(grid, node, node_), sft(s, f, t))
-         ${ gn2nGroup(grid, node, node_,'ww_influent')}
+*------------- Constraints for binding the product of v_transfer and v_flowFlag ------------------------
+//Eq. 37
+q_ww_flagTransfer1(gn2n_directional(grid, node, node_), ww_flowRange(ww_flowType, ww_range), sft(s, f, t))
+         ${gn2nGroup(grid, node, node_,'ww_flagTransfer')}
 ..
+
+         BIG_M * v_flowFlag(ww_flowType, ww_range, s, f, t)
+
+         =G=
+
+         v_flagTransfer(grid, node, node_, ww_flowType, ww_range, s, f, t)
+
+;
+//Eq. 38
+q_ww_flagTransfer2(gn2n_directional(grid, node, node_), ww_flowRange(ww_flowType, ww_range), sft(s, f, t))
+         ${gn2nGroup(grid, node, node_,'ww_flagTransfer')}
+..
+
          v_transfer(grid, node, node_, s, f, t)
 
          =G=
 
-         p_gnn(grid, node, node_, 'transferCoeff') * v_transfer('wastewater', 'Inlet_Q', 'Q_reaction', s, f, t)
-//Can be used to ensure that concentration is not passed on from storage tank to the reaction tank without a wastewater flow.
-//Not required if storage tank has zero storage capabilities, but might be required later, if wastewater can be withhold from treatment.
+         v_flagTransfer(grid, node, node_, ww_flowType, ww_range, s, f, t)
 ;
-
-q_ww_transferShareEffluent(gn2n_directional(grid, node, node_), sft(s, f, t))
-         ${ gn2nGroup(grid, node, node_,'ww_effluent')}
+//Eq. 39
+//(Eq. 40 being implied by v_flagTransfer defined as a positive variable)
+q_ww_flagTransfer3(gn2n_directional(grid, node, node_), ww_flowRange(ww_flowType, ww_range), sft(s, f, t))
+         ${gn2nGroup(grid, node, node_,'ww_flagTransfer')}
 ..
-         v_transfer(grid, node, node_, s, f, t)
+
+         v_flagTransfer(grid, node, node_, ww_flowType, ww_range, s, f, t)
 
          =G=
 
-         p_gnn(grid, node, node_, 'transferCoeff') * v_transfer('wastewater', 'Q_reaction', 'waterbody', s, f, t)
-//Can be used to ensure that concentration is not passed on from the reaction tank to the waterbody without a wastewater flow.
-//Not sure whether this will be required, since the reaction tank does not have storage capabilities.
-;
-
-q_ww_spillstate(gn(grid, node), sft(s, f , t))
-..
-         v_spill(grid, node, s, f, t)${node_spill(node)}  =E= v_state(grid, node, s, f+df_central(f,t), t)${node_spill(node)}
-//A fixed share of microorganisms X decays in every time step. This could be represented in Backbone as self discharge or spill. If the decay is spilled,
-//v_spill should be bound to the state variable v_state, because the spilled concentration cannot vary from the concentration within the tank.
-;
-
-q_ww_transferstate(gn(grid, node), sft(s, f, t))
-                 ${ gnGroup(grid, node, 'ww_reactionGroup')}
-..
-         sum(gn2n_directional('wastewater', node, 'waterbody'), v_transfer('wastewater', node, 'waterbody', s, f, t))
-
-         =E=
-
-         v_state(grid, node, s, f+df_central(f,t), t)
-//In the biological model, the effluent concentration should equal the concentration in the tank. In Backbone, this would mean that transfer equals state
-//for the reaction nodes.
+         v_transfer(grid, node, node_, s, f, t) - ((1- v_flowFlag(ww_flowType, ww_range, s, f, t))* BIG_M)
 ;
 $offtext
