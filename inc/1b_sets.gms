@@ -56,6 +56,7 @@ Sets
 * --- Nodes -------------------------------------------------------------------
     node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
     flowNode(flow, node) "Nodes with flows"
+    node_superpos(node) "Nodes whose state is monitored in the z dimension using superpositioning of state"
 
 * --- Sets bounding geography and units ---------------------------------------
     group "A group of units, transfer links, nodes, etc."
@@ -137,6 +138,9 @@ $if defined scenario
     s_scenario(s, scenario) "Which samples belong to which scenarios"
     gn_forecasts(*, node, timeseries) "Which grid/flow, node and timeseries use short-term forecasts"
     gn_scenarios(*, node, timeseries) "Which grid/flow, node and timeseries have data for long-term scenarios"
+
+    mz(mType, z) "z periods in the models"
+    zs(z, s) "relationship between the z-periods and samples"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations as well as unit lifetimes
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"

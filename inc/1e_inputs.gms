@@ -61,7 +61,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc ts_priceChange
     $$loaddc ts_influx
     $$loaddc ts_node
-    $$loaddc p_s_discountFactor
+*    $$loaddc p_s_discountFactor
     $$loaddc t_invest
     $$loaddc utAvailabilityLimits
     $$loaddc p_storageValue

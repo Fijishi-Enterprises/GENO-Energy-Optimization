@@ -109,6 +109,14 @@ equations
     q_boundStateMaxDiff(grid, node, node, mType, s, f, t) "Node state variables bounded by other nodes (maximum state difference)"
     q_boundCyclic(grid, node, s, s, mType) "Cyclic node state bound for the first and the last states of samples"
 
+    // superpositioned state variables
+    q_superposBegin(grid, node, mType, s)
+    q_superposInter(grid, node,  mType,z)
+    q_superposStateMax(grid, node, mType, s, f, t)
+    q_superposStateMin(grid, node, mType, s, f, t)
+    q_superposStateUpwardLimit(grid, node, mType, z)
+    q_superposStateDownwardLimit(grid, node, mType, z)
+
     // Policy
     q_inertiaMin(restype, up_down, group, s, f, t) "Minimum inertia in a group of nodes"
     q_instantaneousShareMax(group, s, f, t) "Maximum instantaneous share of generation and controlled import from a group of units and links"

@@ -2010,7 +2010,7 @@ q_unitGreaterThanConstraint(s_active(s), gt_constraint, uft(unit, f, t))
                 ${uft_onlineLP(unit, f, t)}
             + v_online_MIP(unit, s, f+df_central(f,t), t)
                 ${uft_onlineMIP(unit, f, t)}
-            ]  
+            ]
 ;
 
 * --- Total Transfer Limits ---------------------------------------------------
@@ -2542,6 +2542,138 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
                 ) // END sum(mst_start)
             ] // END * p_msWeight(m, s_)
 ;
+
+*--- Intra-period state for superpositioned states ----------------------------
+
+q_superposBegin(gn_state(grid, node_superpos(node)), m, s)
+    ${  ms(m, s)
+        }..
+
+// Initial value of the state of the node at the start of the sample s
+    + sum(mst_start(m, s, t),
+        + sum(sft(s, f, t),
+            + v_state(grid, node, s, f+df(f,t+dt(t)), t+dt(t))
+            ) // END sum(ft)
+        ) // END sum(mst_start)
+
+  =E= 0
+;
+
+*--- Inter-period state dynamic equation for superpositioned states -----------
+
+q_superposInter(gn_state(grid, node_superpos(node)), mz(m,z))
+    ${  ord(z) > 1
+        }..
+
+      // State of the node at the beginning of period z
+      v_state_z(grid, node, z)
+         =E=
+      v_state_z(grid, node, z-1)
+      +
+      sum(zs(z-1, s_),
+        // State of the node at the end of the sample s_
+            + sum(mst_end(m, s_, t),
+                + sum(sft(s_, f, t),
+                    + v_state(grid, node, s_, f, t)
+                    ) // END sum(ft)
+                ) // END sum(mst_end)
+
+        // State of the node at the start of the sample s_
+              - sum(mst_start(m, s_, t),
+                 sum(sft(s_, f, t),
+                    + v_state(grid, node, s_, f+df(f,t+dt(t)), t+dt(t))
+                 ) // END sum(ft)
+                ) // END sum(mst_start)
+      ) // end sum(zs)
+;
+
+*--- Max state value during sample for superpositioned states -----------------
+q_superposStateMax(gn_state(grid, node_superpos(node)), msft(m, s, f, t))..
+
+    v_statemax(grid, node, s)
+
+    =G=
+
+    v_state(grid, node, s, f+df(f,t+dt(t)), t+dt(t))
+
+;
+
+*--- Min state value during sample for superpositioned states -----------------
+
+q_superposStateMin(gn_state(grid, node_superpos(node)), msft(m, s, f, t))..
+
+    v_statemin(grid, node, s)
+
+    =L=
+
+    v_state(grid, node, s, f+df(f,t+dt(t)), t+dt(t))
+
+;
+
+
+*--- Upward limit for superpositioned states -----------------
+
+q_superposStateUpwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
+
+    // Utilizable headroom in the state variable
+    + [
+        // Upper boundary of the variable
+        + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')}
+
+        // Investments
+        + sum(gnu(grid, node, unit),
+            + p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
+                * p_gnu(grid, node, unit, 'unitSize')
+                * [
+                    + v_invest_LP(unit)${unit_investLP(unit)}
+                    + v_invest_MIP(unit)${unit_investMIP(unit)}
+                    ]
+          ) // END sum(gnu)
+
+        // State of the node at the beginning of period z
+        - v_state_z(grid, node, z)
+
+        // Maximum state reached during the related sample
+        - sum(zs(z,s_),
+           v_statemax(grid, node, s_)
+        )
+
+      ] // END Headroom
+
+      *
+      // Conversion to energy
+      p_gn(grid, node, 'energyStoredPerUnitOfState')
+
+    =G= 0
+;
+
+*--- Upward limit for superpositioned states -----------------
+
+q_superposStateDownwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
+
+    // Utilizable headroom in the state variable
+    + [
+
+        // State of the node at the beginning of period z
+        + v_state_z(grid, node, z)
+
+        // Maximum state reached during the related sample
+        + sum(zs(z,s_),
+           v_statemin(grid, node, s_)
+        )
+
+        // Lower boundary of the variable
+        - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')}
+
+      ] // END Headroom
+
+      *
+      // Conversion to energy
+      p_gn(grid, node, 'energyStoredPerUnitOfState')
+
+    =G= 0
+;
+
 
 *--- Minimum Inertia ----------------------------------------------------------
 

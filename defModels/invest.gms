@@ -76,6 +76,14 @@ Model invest /
     q_boundStateMaxDiff
     q_boundCyclic
 
+    // superpositioned state variables
+    q_superposBegin
+    q_superposInter
+    q_superposStateMax
+    q_superposStateMin
+    q_superposStateUpwardLimit
+    q_superposStateDownwardLimit
+
     // Policy
     q_inertiaMin
     q_instantaneousShareMax

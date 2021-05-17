@@ -25,6 +25,7 @@ $offtext
 // Upper bound
 v_state.up(gn_state(grid, node), sft(s, f, t))${    p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
                                                 and not df_central(f,t)
+                                                and not node_superpos(node)
                                                 }
     = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant')
         * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier')
@@ -32,6 +33,7 @@ v_state.up(gn_state(grid, node), sft(s, f, t))${    p_gnBoundaryPropertiesForSta
 // Lower bound
 v_state.lo(gn_state(grid, node), sft(s, f, t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
                                                 and not df_central(f,t)
+                                                and not node_superpos(node)
                                                 }
     = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
         * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier')
@@ -40,6 +42,7 @@ v_state.lo(gn_state(grid, node), sft(s, f, t))${    p_gnBoundaryPropertiesForSta
 v_state.fx(gn_state(grid, node), sft(s, f, t))${    p_gn(grid, node, 'boundAll')
                                                 and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
                                                 and not df_central(f,t)
+                                                and not node_superpos(node)
                                                 }
     = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
@@ -48,6 +51,7 @@ v_state.fx(gn_state(grid, node), sft(s, f, t))${    p_gn(grid, node, 'boundAll')
 v_state.fx(gn_state(grid, node), sft(s, f,t))${   mft_lastSteps(mSolve, f, t)
                                               and p_gn(grid, node, 'boundEnd')
                                               and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                          and not node_superpos(node)
                                           }
     = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
@@ -56,6 +60,7 @@ v_state.fx(gn_state(grid, node), sft(s, f,t))${   mft_lastSteps(mSolve, f, t)
 // Upper Bound
 v_state.up(gn_state(grid, node), sft(s, f, t))${    p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
                                                 and not df_central(f,t)
+                                                and not node_superpos(node)
                                                 }
     = ts_node_(grid, node,   'upwardLimit', s, f, t)
         * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier')
@@ -63,6 +68,7 @@ v_state.up(gn_state(grid, node), sft(s, f, t))${    p_gnBoundaryPropertiesForSta
 // Lower bound
 v_state.lo(gn_state(grid, node), sft(s, f, t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
                                                 and not df_central(f,t)
+                                                and not node_superpos(node)
                                                 }
     = ts_node_(grid, node, 'downwardLimit', s, f, t)
         * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier')
@@ -71,7 +77,8 @@ v_state.lo(gn_state(grid, node), sft(s, f, t))${    p_gnBoundaryPropertiesForSta
 v_state.fx(gn_state(grid, node), sft(s, f, t))${    p_gn(grid, node, 'boundAll')
                                                 and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
                                                 and not df_central(f,t)
-                                                    }
+                                                and not node_superpos(node)
+                                                }
     = ts_node_(grid, node, 'reference', s, f, t)
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
 ;
@@ -79,14 +86,16 @@ v_state.fx(gn_state(grid, node), sft(s, f, t))${    p_gn(grid, node, 'boundAll')
 v_state.fx(gn_state(grid, node), sft(s, f,t))${   mft_lastSteps(mSolve, f, t)
                                               and p_gn(grid, node, 'boundEnd')
                                               and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
-                                          }
+                                              and not node_superpos(node)
+                                              }
     = ts_node_(grid, node, 'reference', s, f, t)
         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
 // BoundStartToEnd: bound the last interval in the horizon to the value just before the horizon
 v_state.fx(gn_state(grid, node), sft(s, f, t))${   mft_lastSteps(mSolve, f, t)
                                               and p_gn(grid, node, 'boundStartToEnd')
-                                          }
+                                              and not node_superpos(node)
+                                              }
     = sum(mf_realization(mSolve, f_),
         + r_state(grid, node, f_, tSolve)
       ); // END sum(mf_realization)
@@ -96,6 +105,7 @@ loop(mst_start(mSolve, s, t)$(tSolveFirst = mSettings(mSolve, 't_start')),
     // Upper bound
     v_state.up(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
                                                             and not df_central(f_solve,t)
+                                                            and not node_superpos(node)
                                                             }
         = p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
             * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier');
@@ -103,6 +113,7 @@ loop(mst_start(mSolve, s, t)$(tSolveFirst = mSettings(mSolve, 't_start')),
     // Lower bound
     v_state.lo(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
                                                             and not df_central(f_solve,t)
+                                                            and not node_superpos(node)
                                                             }
         = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
             * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
@@ -553,6 +564,9 @@ if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on
             }
         = r_online(unit, f, t);
 ); // END if
+
+
+*v_invest_LP.fx("U75FI_02Es_wind") = 50;
 
 * =============================================================================
 * --- Fix previously realized investment results ------------------------------
