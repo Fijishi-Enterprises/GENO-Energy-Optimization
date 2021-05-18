@@ -110,7 +110,8 @@ equations
     q_boundCyclic(grid, node, s, s, mType) "Cyclic node state bound for the first and the last states of samples"
 
     // superpositioned state variables
-    q_superposBegin(grid, node, mType, s)
+    q_superposSampleBegin(grid, node, mType, s)
+    q_superposBoundEnd(grid, node, mType)
     q_superposInter(grid, node,  mType,z)
     q_superposStateMax(grid, node, mType, s, f, t)
     q_superposStateMin(grid, node, mType, s, f, t)

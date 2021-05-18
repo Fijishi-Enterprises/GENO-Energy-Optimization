@@ -2261,10 +2261,23 @@ q_stateSlack(gn_stateSlack(grid, node), slack, sft(s, f, t))
 * --- Upwards Limit for State Variables ---------------------------------------
 
 q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
-    ${  sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, gnuRescapable(restype, 'down', grid_, node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
-        or sum(gn2gnu(grid_, node_input, grid, node, unit)$(sum(restype, gnuRescapable(restype, 'down', grid_, node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
-        or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))  // or nodes that have units whose invested capacity limits their state
-        } ..
+    ${  not node_superpos(node)
+        and
+        {
+            sum(gn2gnu(grid, node, grid_, node_output, unit)
+              $(sum(restype, gnuRescapable(restype, 'down', grid_, node_output, unit))),
+                 1
+              )  // nodes that have units with endogenous output with possible reserve provision
+        or
+        sum(gn2gnu(grid_, node_input, grid, node, unit)
+              $(sum(restype, gnuRescapable(restype, 'down', grid_, node_input , unit))),
+            1)  // or nodes that have units with endogenous input with possible reserve provision
+        or
+        sum(gnu(grid, node, unit),
+           p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
+         )  // or nodes that have units whose invested capacity limits their state
+        }
+    } ..
 
     // Utilizable headroom in the state variable
     + [
@@ -2340,9 +2353,17 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
 * --- Downwards Limit for State Variables -------------------------------------
 
 q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
-    ${  sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, gnuRescapable(restype, 'up', grid_, node_output, unit))), 1)  // nodes that have units with endogenous output with possible reserve provision
-        or sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, gnuRescapable(restype, 'up', grid_, node_input , unit))), 1)  // or nodes that have units with endogenous input with possible reserve provision
-        } ..
+    ${ //ordinary nodes with no superpositioning of state
+       not node_superpos(node)
+        and
+       {
+        // nodes that have units with endogenous output with possible reserve provision
+        sum(gn2gnu(grid, node, grid_, node_output, unit)$(sum(restype, gnuRescapable(restype, 'up', grid_, node_output, unit))), 1)
+          or
+        // or nodes that have units with endogenous input with possible reserve provision
+        sum(gn2gnu(grid_, node_input, grid, node, unit) $(sum(restype, gnuRescapable(restype, 'up', grid_, node_input , unit))), 1)
+       }
+     }..
 
     // Utilizable headroom in the state variable
     + [
@@ -2545,7 +2566,10 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
 
 *--- Intra-period state for superpositioned states ----------------------------
 
-q_superposBegin(gn_state(grid, node_superpos(node)), m, s)
+* v_state for superpositioned states represents the intra-period state. It
+* always starts from zero.
+
+q_superposSampleBegin(gn_state(grid, node_superpos(node)), m, s)
     ${  ms(m, s)
         }..
 
@@ -2559,18 +2583,62 @@ q_superposBegin(gn_state(grid, node_superpos(node)), m, s)
   =E= 0
 ;
 
+q_superposBoundEnd(gn_state(grid, node_superpos(node)), m)
+    $(p_gn(grid, node, 'boundEnd') )..
+
+    // Value of the superposed state of the node at the end of the last candidate
+    // period
+    sum(mz(m,z)$(ord(z) eq mSettings('invest', 'candidate_periods') ),
+        //the inter-period state at the beginning of the last candidate period
+        v_state_z(grid, node, z)
+        +
+        //change of the intra-period state during the representative period
+        sum(zs(z, s_),
+        // State of the node at the end of the sample s_
+            + sum(mst_end(m, s_, t),
+                + sum(sft(s_, f, t),
+                    + v_state(grid, node, s_, f, t)
+                    ) // END sum(ft)
+                ) // END sum(mst_end)
+
+        // State of the node at the start of the sample s_
+              - sum(mst_start(m, s_, t),
+                 sum(sft(s_, f, t),
+                    + v_state(grid, node, s_, f+df(f,t+dt(t)), t+dt(t))
+                 ) // END sum(ft)
+                ) // END sum(mst_start)
+        ) // end sum(zs)
+    )
+    
+    =E=
+
+    p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
+            * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+;
+
 *--- Inter-period state dynamic equation for superpositioned states -----------
 
 q_superposInter(gn_state(grid, node_superpos(node)), mz(m,z))
     ${  ord(z) > 1
         }..
 
-      // State of the node at the beginning of period z
-      v_state_z(grid, node, z)
-         =E=
-      v_state_z(grid, node, z-1)
-      +
-      sum(zs(z-1, s_),
+    // Inter-period state of the node at the beginning of period z
+    v_state_z(grid, node, z)
+       
+    =E=
+    
+    // State of the node at the beginning of previous period z-1
+    v_state_z(grid, node, z-1)
+    *
+    //multiplied by the self discharge loss over the period
+    sum(zs(z-1, s_),  
+        power(1 - mSettings(m, 'stepLengthInHours') 
+                * p_gn(grid, node, 'selfDischargeLoss'),
+             msEnd(m,s_) - msStart(m,s_) )
+    )
+    +
+    //change of the intra-period state during the representative period
+    sum(zs(z-1, s_),
         // State of the node at the end of the sample s_
             + sum(mst_end(m, s_, t),
                 + sum(sft(s_, f, t),

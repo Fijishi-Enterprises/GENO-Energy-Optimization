@@ -54,6 +54,7 @@ Sets
         onlyExistingForecasts "Use only existing forecast values when reading updated forecasts. Note: zero values need to be saved as Eps in the gdx file."
         scenarios        "Number of long-term scenarios used"
         scenarioLength   "Length of scenario in time steps for creating stochastic scenarios from time series data"
+        candidate_periods "Number of candidate periods which are mapped to typical periods"
 
         // Features
         t_trajectoryHorizon "Length of the horizon when start-up and shutdown trajectories are considered (in time steps)"
