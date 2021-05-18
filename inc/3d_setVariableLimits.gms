@@ -125,6 +125,7 @@ loop(node$(not node_superpos(node)),
 // Next deal with bounds for the superposed node states
 // note that boundstart is handled further below
 loop(node_superpos(node),
+
     //add here the desired bounds for v_state_z
 );
 
@@ -547,14 +548,18 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
 ) // END loop(mft_start)
 ;
 
+// If this is the very first solve, set various initial bounds for the superposed node states
 if(tSolveFirst = mSettings(mSolve, 't_start'),
     // state limits for normal (not superposed) nodes
     loop(node_superpos(node),
-        // First solve, state variables (only if boundStart flag is true)
-        v_state_z.fx(gn_state(grid, node), z)${ p_gn(grid, node, 'boundStart') }
-            = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
-                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
-
+        loop(mz(mSolve, z)$(ord(z) eq 1),
+            // First solve, fix start value of state variables (only if boundStart flag is true)
+            v_state_z.fx(gn_state(grid, node), z)${ p_gn(grid, node, 'boundStart')
+                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                                    }
+                = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
+                        * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+            ) //END loop mz
         ) //END loop node_superpos
 ); //END if(tSolveFirst)
 

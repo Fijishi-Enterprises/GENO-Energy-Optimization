@@ -2591,6 +2591,13 @@ q_superposBoundEnd(gn_state(grid, node_superpos(node)), m)
     sum(mz(m,z)$(ord(z) eq mSettings('invest', 'candidate_periods') ),
         //the inter-period state at the beginning of the last candidate period
         v_state_z(grid, node, z)
+        *
+        //multiplied by the self discharge loss over the period
+        sum(zs(z, s_),  
+            power(1 - mSettings(m, 'stepLengthInHours') 
+                    * p_gn(grid, node, 'selfDischargeLoss'),
+                 msEnd(m,s_) - msStart(m,s_) )
+        )
         +
         //change of the intra-period state during the representative period
         sum(zs(z, s_),
