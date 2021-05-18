@@ -99,13 +99,14 @@ loop(node$(not node_superpos(node)),
 
 
 
-    // Bound also the intervals just before the start of each sample - currently just 'upwardLimit'&'useConstant' and 'downwardLimit'&'useConstant'
+    // Bound also the intervals just before the start of each sample
+    // - currently just 'upwardLimit'&'useConstant' and 'downwardLimit'&'useConstant'
+    // this is performed only for the first solve!
     loop(mst_start(mSolve, s, t)$(tSolveFirst = mSettings(mSolve, 't_start')),
 
         // Upper bound
         v_state.up(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
                                                                 and not df_central(f_solve,t)
-                                                                and not node_superpos(node)
                                                                 }
             = p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
                 * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier');
@@ -113,7 +114,6 @@ loop(node$(not node_superpos(node)),
         // Lower bound
         v_state.lo(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
                                                                 and not df_central(f_solve,t)
-                                                                and not node_superpos(node)
                                                                 }
             = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
                 * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
@@ -123,10 +123,15 @@ loop(node$(not node_superpos(node)),
 ); //end loop node
 
 // Next deal with bounds for the superposed node states
-// note that boundstart is handled further below
+//
+// note that boundstart is handled further below; boundend, upwardLimit and downwardLimit are handled as equations
 loop(node_superpos(node),
+    // v_state for superpositioned states represents the intra-period state. It always starts from zero.
+    loop(mst_start(mSolve, s, t),
+        v_state.fx(gn_state(grid, node), s, f_solve, t+dt(t)) = 0;
+    );
 
-    //add here the desired bounds for v_state_z
+    //add here other desired bounds for v_state_z
 );
 
 
@@ -152,7 +157,11 @@ v_spill.up(gn(grid, node_spill), sft(s, f, t))${    p_gnBoundaryPropertiesForSta
         * p_gnBoundaryPropertiesForStates(grid, node_spill, 'maxSpill', 'multiplier')
 ;
 
+* =============================================================================
 * --- Unit Related Variable Boundaries ----------------------------------------
+* =============================================================================
+
+
 
 // Constant max. energy generation if investments disabled
 v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)

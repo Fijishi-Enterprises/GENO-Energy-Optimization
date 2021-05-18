@@ -2564,24 +2564,7 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
             ] // END * p_msWeight(m, s_)
 ;
 
-*--- Intra-period state for superpositioned states ----------------------------
-
-* v_state for superpositioned states represents the intra-period state. It
-* always starts from zero.
-
-q_superposSampleBegin(gn_state(grid, node_superpos(node)), m, s)
-    ${  ms(m, s)
-        }..
-
-// Initial value of the state of the node at the start of the sample s
-    + sum(mst_start(m, s, t),
-        + sum(sft(s, f, t),
-            + v_state(grid, node, s, f+df(f,t+dt(t)), t+dt(t))
-            ) // END sum(ft)
-        ) // END sum(mst_start)
-
-  =E= 0
-;
+*--- End value for superposed states  ----------------------------
 
 q_superposBoundEnd(gn_state(grid, node_superpos(node)), m)
     $(p_gn(grid, node, 'boundEnd') )..

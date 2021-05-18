@@ -77,7 +77,6 @@ Model invest /
     q_boundCyclic
 
     // superpositioned state variables
-    q_superposSampleBegin
     q_superposBoundEnd
     q_superposInter
     q_superposStateMax
