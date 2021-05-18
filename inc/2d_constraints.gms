@@ -2564,14 +2564,21 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
             ] // END * p_msWeight(m, s_)
 ;
 
+
+* =============================================================================
+* --- Equations for superposed states -------------------------------------
+* =============================================================================
+
+
 *--- End value for superposed states  ----------------------------
+* The end value here is the node state at the end of the last candidate period z
 
 q_superposBoundEnd(gn_state(grid, node_superpos(node)), m)
     $(p_gn(grid, node, 'boundEnd') )..
 
     // Value of the superposed state of the node at the end of the last candidate
     // period
-    sum(mz(m,z)$(ord(z) eq mSettings('invest', 'candidate_periods') ),
+    sum(mz(m,z)$(ord(z) eq mSettings(m, 'candidate_periods') ),
         //the inter-period state at the beginning of the last candidate period
         v_state_z(grid, node, z)
         *
@@ -2705,7 +2712,7 @@ q_superposStateUpwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
     =G= 0
 ;
 
-*--- Upward limit for superpositioned states -----------------
+*--- Downward limit for superpositioned states -----------------
 
 q_superposStateDownwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
 
@@ -2715,7 +2722,7 @@ q_superposStateDownwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
         // State of the node at the beginning of period z
         + v_state_z(grid, node, z)
 
-        // Maximum state reached during the related sample
+        // Minimum state reached during the related sample
         + sum(zs(z,s_),
            v_statemin(grid, node, s_)
         )

@@ -17,6 +17,7 @@ $offtext
 
 * =============================================================================
 * --- Variable limits ---------------------------------------------------------
+*
 * =============================================================================
 
 * =============================================================================
@@ -120,12 +121,13 @@ loop(node$(not node_superpos(node)),
     ); // END loop(mst_start)
 
 
-); //end loop node
+); //END loop node
 
 // Next deal with bounds for the superposed node states
 //
-// note that boundstart is handled further below; boundend, upwardLimit and downwardLimit are handled as equations
+// Note that boundstart is handled further below; boundend, upwardLimit and downwardLimit are handled as equations
 loop(node_superpos(node),
+
     // v_state for superpositioned states represents the intra-period state. It always starts from zero.
     loop(mst_start(mSolve, s, t),
         v_state.fx(gn_state(grid, node), s, f_solve, t+dt(t)) = 0;
@@ -543,7 +545,9 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
         v_shutdown_LP.fx(unit_online_LP, s, f, t) = 0;
         v_shutdown_MIP.fx(unit_online_LP, s, f, t) = 0;
 
-    else // For all other solves, fix the initial state values based on previous results.
+    else // For all other solves than first one, fix the initial state values based on previous results.
+
+        //TBC: should there be something here for superposed states?
 
         // State and online variable initial values for the subsequent solves
         v_state.fx(gn_state(grid, node), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
@@ -607,8 +611,6 @@ if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on
         = r_online(unit, f, t);
 ); // END if
 
-
-*v_invest_LP.fx("U75FI_02Es_wind") = 50;
 
 * =============================================================================
 * --- Fix previously realized investment results ------------------------------
