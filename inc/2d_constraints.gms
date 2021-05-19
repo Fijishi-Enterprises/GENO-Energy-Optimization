@@ -2625,6 +2625,7 @@ q_superposBoundEnd(gn_state(grid, node_superpos(node)), m)
 ;
 
 *--- Inter-period state dynamic equation for superpositioned states -----------
+* Note: diffusion from and to other nodes is not supported
 
 q_superposInter(gn_state(grid, node_superpos(node)), mz(m,z))
     ${  ord(z) > 1
@@ -2645,7 +2646,7 @@ q_superposInter(gn_state(grid, node_superpos(node)), mz(m,z))
              msEnd(m,s_) - msStart(m,s_) )
     )
     +
-    //change of the intra-period state during the representative period
+    //change of the intra-period state during the previous period z-1
     sum(zs(z-1, s_),
         // State of the node at the end of the sample s_
             + sum(mst_end(m, s_, t),
@@ -2663,7 +2664,7 @@ q_superposInter(gn_state(grid, node_superpos(node)), mz(m,z))
       ) // end sum(zs)
 ;
 
-*--- Max state value during sample for superpositioned states -----------------
+*--- Max intra-period state value during a sample for superpositioned states -----------------
 q_superposStateMax(gn_state(grid, node_superpos(node)), msft(m, s, f, t))..
 
     v_statemax(grid, node, s)
@@ -2674,7 +2675,7 @@ q_superposStateMax(gn_state(grid, node_superpos(node)), msft(m, s, f, t))..
 
 ;
 
-*--- Min state value during sample for superpositioned states -----------------
+*--- Min intra-period state value during a sample for superpositioned states -----------------
 
 q_superposStateMin(gn_state(grid, node_superpos(node)), msft(m, s, f, t))..
 
@@ -2688,6 +2689,7 @@ q_superposStateMin(gn_state(grid, node_superpos(node)), msft(m, s, f, t))..
 
 
 *--- Upward limit for superpositioned states -----------------
+* Note: this 
 
 q_superposStateUpwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
 
@@ -2732,7 +2734,16 @@ q_superposStateDownwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
 
         // State of the node at the beginning of period z
         + v_state_z(grid, node, z)
-
+        *
+        // multiplied by the self discharge loss over the whole period
+        // (note here we make a conservative assumption that the minimum
+        // intra-period state v_statemin is reached near the end of the period
+        // so that maximal effect of the self-discharge loss applies.)
+        sum(zs(z, s_),  
+            power(1 - mSettings(m, 'stepLengthInHours') 
+                    * p_gn(grid, node, 'selfDischargeLoss'),
+                 msEnd(m,s_) - msStart(m,s_) )
+        )
         // Minimum state reached during the related sample
         + sum(zs(z,s_),
            v_statemin(grid, node, s_)
