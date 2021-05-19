@@ -2237,6 +2237,11 @@ q_reserveProvisionLeftward(restypeDirectionGridNodeNode(restype, up_down, grid, 
             ]
 ;
 
+* =============================================================================
+* --- Node State Constraints -------------------------------------------------
+* =============================================================================
+
+
 * --- State Variable Slack ----------------------------------------------------
 
 q_stateSlack(gn_stateSlack(grid, node), slack, sft(s, f, t))
@@ -2428,8 +2433,11 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
 
 * --- State Variable Difference -----------------------------------------------
 
-q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
-
+q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
+    ${ //ordinary nodes with no superpositioning of state
+       not node_superpos(node)
+    }..
+    
     // State of the bound node
    + v_state(grid, node, s, f+df_central(f,t), t)
 
@@ -2526,10 +2534,13 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t)) ..
 
 * --- Cyclic Boundary Conditions ----------------------------------------------
 
+* Binding the node state values in the end of one sample to the value in the beginning of another sample
+
 q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
     ${  ms(m, s_)
         and ms(m, s)
-        }..
+        and not node_superpos(node) //do not write this constraint for superposed node states
+    }..
 
     // Initial value of the state of the node at the start of the sample s
     + sum(mst_start(m, s, t),
@@ -2738,6 +2749,10 @@ q_superposStateDownwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
 
     =G= 0
 ;
+
+* =============================================================================
+* --- Security related constraints  ------------------------------------------
+* =============================================================================
 
 
 *--- Minimum Inertia ----------------------------------------------------------

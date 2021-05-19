@@ -661,6 +661,10 @@ loop( unit_investMIP(unit),
     ); // END if
 ); // END loop(unit_investMIP)
 
+* --- Check consistency of inputs for superposed node states -------------------
+
+* no checking yet because node_superpos is not given in the gdx input
+        
 
 * =============================================================================
 * --- Default values  ---------------------------------------------------------
