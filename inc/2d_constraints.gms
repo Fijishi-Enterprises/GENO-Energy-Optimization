@@ -2437,7 +2437,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
     ${ //ordinary nodes with no superpositioning of state
        not node_superpos(node)
     }..
-    
+
     // State of the bound node
    + v_state(grid, node, s, f+df_central(f,t), t)
 
@@ -2594,8 +2594,8 @@ q_superposBoundEnd(gn_state(grid, node_superpos(node)), m)
         v_state_z(grid, node, z)
         *
         //multiplied by the self discharge loss over the period
-        sum(zs(z, s_),  
-            power(1 - mSettings(m, 'stepLengthInHours') 
+        sum(zs(z, s_),
+            power(1 - mSettings(m, 'stepLengthInHours')
                     * p_gn(grid, node, 'selfDischargeLoss'),
                  msEnd(m,s_) - msStart(m,s_) )
         )
@@ -2617,7 +2617,7 @@ q_superposBoundEnd(gn_state(grid, node_superpos(node)), m)
                 ) // END sum(mst_start)
         ) // end sum(zs)
     )
-    
+
     =E=
 
     p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
@@ -2633,15 +2633,15 @@ q_superposInter(gn_state(grid, node_superpos(node)), mz(m,z))
 
     // Inter-period state of the node at the beginning of period z
     v_state_z(grid, node, z)
-       
+
     =E=
-    
+
     // State of the node at the beginning of previous period z-1
     v_state_z(grid, node, z-1)
     *
     //multiplied by the self discharge loss over the period
-    sum(zs(z-1, s_),  
-        power(1 - mSettings(m, 'stepLengthInHours') 
+    sum(zs(z-1, s_),
+        power(1 - mSettings(m, 'stepLengthInHours')
                 * p_gn(grid, node, 'selfDischargeLoss'),
              msEnd(m,s_) - msStart(m,s_) )
     )
@@ -2689,7 +2689,7 @@ q_superposStateMin(gn_state(grid, node_superpos(node)), msft(m, s, f, t))..
 
 
 *--- Upward limit for superpositioned states -----------------
-* Note: this 
+* Note: this
 
 q_superposStateUpwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
 
@@ -2730,7 +2730,7 @@ q_superposStateUpwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
 q_superposStateDownwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
 
     // Utilizable headroom in the state variable
-    + [
+
 
         // State of the node at the beginning of period z
         + v_state_z(grid, node, z)
@@ -2739,8 +2739,8 @@ q_superposStateDownwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
         // (note here we make a conservative assumption that the minimum
         // intra-period state v_statemin is reached near the end of the period
         // so that maximal effect of the self-discharge loss applies.)
-        sum(zs(z, s_),  
-            power(1 - mSettings(m, 'stepLengthInHours') 
+        sum(zs(z, s_),
+            power(1 - mSettings(m, 'stepLengthInHours')
                     * p_gn(grid, node, 'selfDischargeLoss'),
                  msEnd(m,s_) - msStart(m,s_) )
         )
@@ -2752,11 +2752,7 @@ q_superposStateDownwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
         // Lower boundary of the variable
         - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')}
 
-      ] // END Headroom
-
-      *
-      // Conversion to energy
-      p_gn(grid, node, 'energyStoredPerUnitOfState')
+     
 
     =G= 0
 ;
