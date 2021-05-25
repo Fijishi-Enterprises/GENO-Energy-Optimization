@@ -2689,38 +2689,34 @@ q_superposStateMin(gn_state(grid, node_superpos(node)), msft(m, s, f, t))..
 
 
 *--- Upward limit for superpositioned states -----------------
-* Note: this
+* Note: 
 
 q_superposStateUpwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
 
     // Utilizable headroom in the state variable
-    + [
-        // Upper boundary of the variable
-        + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')}
+ 
+    // Upper boundary of the variable
+    + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')}
 
-        // Investments
-        + sum(gnu(grid, node, unit),
-            + p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
-                * p_gnu(grid, node, unit, 'unitSize')
-                * [
-                    + v_invest_LP(unit)${unit_investLP(unit)}
-                    + v_invest_MIP(unit)${unit_investMIP(unit)}
-                    ]
-          ) // END sum(gnu)
+    // Investments
+    + sum(gnu(grid, node, unit),
+        + p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
+            * p_gnu(grid, node, unit, 'unitSize')
+            * [
+                + v_invest_LP(unit)${unit_investLP(unit)}
+                + v_invest_MIP(unit)${unit_investMIP(unit)}
+                ]
+      ) // END sum(gnu)
 
-        // State of the node at the beginning of period z
-        - v_state_z(grid, node, z)
+    // State of the node at the beginning of period z
+    - v_state_z(grid, node, z)
 
-        // Maximum state reached during the related sample
-        - sum(zs(z,s_),
-           v_statemax(grid, node, s_)
-        )
+    // Maximum state reached during the related sample
+    - sum(zs(z,s_),
+       v_statemax(grid, node, s_)
+    )
 
-      ] // END Headroom
-
-      *
-      // Conversion to energy
-      p_gn(grid, node, 'energyStoredPerUnitOfState')
+  
 
     =G= 0
 ;
@@ -2732,25 +2728,25 @@ q_superposStateDownwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
     // Utilizable headroom in the state variable
 
 
-        // State of the node at the beginning of period z
-        + v_state_z(grid, node, z)
-        *
-        // multiplied by the self discharge loss over the whole period
-        // (note here we make a conservative assumption that the minimum
-        // intra-period state v_statemin is reached near the end of the period
-        // so that maximal effect of the self-discharge loss applies.)
-        sum(zs(z, s_),
-            power(1 - mSettings(m, 'stepLengthInHours')
-                    * p_gn(grid, node, 'selfDischargeLoss'),
-                 msEnd(m,s_) - msStart(m,s_) )
-        )
-        // Minimum state reached during the related sample
-        + sum(zs(z,s_),
-           v_statemin(grid, node, s_)
-        )
+    // State of the node at the beginning of period z
+    + v_state_z(grid, node, z)
+    *
+    // multiplied by the self discharge loss over the whole period
+    // (note here we make a conservative assumption that the minimum
+    // intra-period state v_statemin is reached near the end of the period
+    // so that maximal effect of the self-discharge loss applies.)
+    sum(zs(z, s_),
+        power(1 - mSettings(m, 'stepLengthInHours')
+                * p_gn(grid, node, 'selfDischargeLoss'),
+             msEnd(m,s_) - msStart(m,s_) )
+    )
+    // Minimum state reached during the related sample
+    + sum(zs(z,s_),
+       v_statemin(grid, node, s_)
+    )
 
-        // Lower boundary of the variable
-        - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')}
+    // Lower boundary of the variable
+    - p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')}
 
      
 
