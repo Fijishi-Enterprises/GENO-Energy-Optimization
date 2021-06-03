@@ -158,6 +158,18 @@ $ifthen exist '%input_dir%/p_gnn3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/ts_gnn2.gdx'
+    $$gdxin '%input_dir%/ts_gnn2.gdx'
+    $$loaddcm ts_gnn
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/ts_gnn3.gdx'
+    $$gdxin '%input_dir%/ts_gnn3.gdx'
+    $$loaddcm ts_gnn
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/p_gnu_io2.gdx'
     $$gdxin '%input_dir%/p_gnu_io2.gdx'
     $$loaddcm p_gnu_io

@@ -2010,7 +2010,7 @@ q_unitGreaterThanConstraint(s_active(s), gt_constraint, uft(unit, f, t))
                 ${uft_onlineLP(unit, f, t)}
             + v_online_MIP(unit, s, f+df_central(f,t), t)
                 ${uft_onlineMIP(unit, f, t)}
-            ]  
+            ]
 ;
 
 * --- Total Transfer Limits ---------------------------------------------------
@@ -2038,15 +2038,19 @@ q_transferRightwardLimit(gn2n_directional(grid, node, node_), sft(s, f, t))
 
     =L=
 
-    // Existing transfer capacity
-    + p_gnn(grid, node, node_, 'transferCap')
+    + ts_gnn_(grid, node, node_, 'availability', f, t)
+        * [
 
-    // Investments into additional transfer capacity
-    + sum(t_invest(t_)$(ord(t_)<=ord(t)),
-        + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
-        + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
-            * p_gnn(grid, node, node_, 'unitSize')
-        ) // END sum(t_invest)
+            // Existing transfer capacity
+            + p_gnn(grid, node, node_, 'transferCap')
+
+            // Investments into additional transfer capacity
+            + sum(t_invest(t_)$(ord(t_)<=ord(t)),
+                + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
+                + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
+                    * p_gnn(grid, node, node_, 'unitSize')
+                ) // END sum(t_invest)
+            ] // END * ts_gnn
 ;
 
 * --- Leftward Transfer Limits ------------------------------------------------
@@ -2060,15 +2064,18 @@ q_transferLeftwardLimit(gn2n_directional(grid, node, node_), sft(s, f, t))
 
     =L=
 
-    // Existing transfer capacity
-    + p_gnn(grid, node_, node, 'transferCap')
+    + ts_gnn_(grid, node_, node, 'availability', f, t)
+        * [
+            // Existing transfer capacity
+            + p_gnn(grid, node_, node, 'transferCap')
 
-    // Investments into additional transfer capacity
-    + sum(t_invest(t_)${ord(t_)<=ord(t)},
-        + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
-        + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
-            * p_gnn(grid, node, node_, 'unitSize')
-        ) // END sum(t_invest)
+            // Investments into additional transfer capacity
+            + sum(t_invest(t_)${ord(t_)<=ord(t)},
+                + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
+                + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
+                    * p_gnn(grid, node, node_, 'unitSize')
+                ) // END sum(t_invest)
+            ] // END * ts_gnn
 ;
 
 * --- Rightward Reserve Transfer Limits ---------------------------------------
@@ -2092,15 +2099,19 @@ q_resTransferLimitRightward(gn2n_directional(grid, node, node_), sft(s, f, t))
 
     =L=
 
-    // Existing transfer capacity
-    + p_gnn(grid, node, node_, 'transferCap')
+    + ts_gnn_(grid, node, node_, 'availability', f, t)
+        * [
 
-    // Investments into additional transfer capacity
-    + sum(t_invest(t_)${ord(t_)<=ord(t)},
-        + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
-        + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
-            * p_gnn(grid, node, node_, 'unitSize')
-        ) // END sum(t_invest)
+            // Existing transfer capacity
+            + p_gnn(grid, node, node_, 'transferCap')
+
+            // Investments into additional transfer capacity
+            + sum(t_invest(t_)$(ord(t_)<=ord(t)),
+                + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
+                + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
+                    * p_gnn(grid, node, node_, 'unitSize')
+                ) // END sum(t_invest)
+            ] // END * ts_gnn
 ;
 
 * --- Leftward Reserve Transfer Limits ----------------------------------------
@@ -2124,15 +2135,18 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), sft(s, f, t))
 
   =G=
 
-    // Existing transfer capacity
-    - p_gnn(grid, node_, node, 'transferCap')
+    - ts_gnn_(grid, node_, node, 'availability', f, t)
+        * [
+            // Existing transfer capacity
+            + p_gnn(grid, node_, node, 'transferCap')
 
-    // Investments into additional transfer capacity
-    - sum(t_invest(t_)${ord(t_)<=ord(t)},
-        + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
-        + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
-            * p_gnn(grid, node, node_, 'unitSize')
-        ) // END sum(t_invest)
+            // Investments into additional transfer capacity
+            + sum(t_invest(t_)${ord(t_)<=ord(t)},
+                + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
+                + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
+                    * p_gnn(grid, node, node_, 'unitSize')
+                ) // END sum(t_invest)
+            ] // END * ts_gnn
 ;
 
 *----------------------------------------------------------------------IC RAMP-------------------------------------------------------------------------------------------------------------------------------------

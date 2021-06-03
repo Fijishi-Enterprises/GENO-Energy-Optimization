@@ -318,17 +318,17 @@ v_ICramp.lo(gn2n_directional(grid, node, node_), sft(s, f, t))${ ord(t) > msStar
 // Restrictions on transferring energy between nodes without investments
 // Total transfer variable restricted from both above and below (free variable)
 v_transfer.up(gn2n_directional(grid, node, node_), sft(s, f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = p_gnn(grid, node, node_, 'transferCap')
+    = ts_gnn_(grid, node, node_, 'availability', f, t) * p_gnn(grid, node, node_, 'transferCap')
 ;
 v_transfer.lo(gn2n_directional(grid, node, node_), sft(s, f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = -p_gnn(grid, node_, node, 'transferCap')
+    = -ts_gnn_(grid, node_, node, 'availability', f, t) * p_gnn(grid, node_, node, 'transferCap')
 ;
 // Directional transfer variables only restricted from above (positive variables)
 v_transferRightward.up(gn2n_directional(grid, node, node_), sft(s, f, t))${ not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = p_gnn(grid, node, node_, 'transferCap')
+    = ts_gnn_(grid, node, node_, 'availability', f, t) * p_gnn(grid, node, node_, 'transferCap')
 ;
 v_transferLeftward.up(gn2n_directional(grid, node, node_), sft(s, f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = p_gnn(grid, node_, node, 'transferCap')
+    = ts_gnn_(grid, node_, node, 'availability', f, t) * p_gnn(grid, node_, node, 'transferCap')
 ;
 
 * --- Reserve Provision Boundaries --------------------------------------------

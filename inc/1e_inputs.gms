@@ -34,6 +34,7 @@ $ifthen exist '%input_dir%/inputData.gdx'
     $$loaddc group
     $$loaddc p_gn
     $$loaddc p_gnn
+    $$loaddc ts_gnn
     $$loaddc p_gnu_io
     $$loaddc p_gnuBoundaryProperties
     $$loaddc p_unit
@@ -392,6 +393,12 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
                         and sum(grid, gn(grid, node))
                         }
     = yes;
+
+* --- Timeseries parameters for node-node connections -------------------------
+
+// Nodes with flows
+ts_gnn(grid, node, node_, 'availability', f, t)${p_gnn(grid, node, node_, 'availability')}
+    = p_gnn(grid, node, node_, 'availability');
 
 * =============================================================================
 * --- Reserves Sets & Parameters ----------------------------------------------

@@ -122,6 +122,19 @@ $offtext
             = ts_node_update(grid, node, param_gnBoundaryTypes, f, t);
     ); // END if('ts_node')
 
+    // Update ts_gnn. NOTE! Only works for 'availability'.
+    if (mTimeseries_loop_read(mSolve, 'ts_gnn'),
+        put_utility 'gdxin' / '%input_dir%/ts_gnn/' tSolve.tl:0 '.gdx';
+        execute_load ts_gnn_update=ts_gnn;
+        ts_gnn(gn2n(grid, node, node_), param_gnn, f_solve(f), tt_forecast(t))
+            ${  not mf_realization(mSolve, f) // Realization not updated
+                and (mSettings(mSolve, 'onlyExistingForecasts')
+                     -> ts_gnn_update(grid, node, node_, param_gnn, f, t)) // Update only existing values (zeroes need to be EPS)
+                and not p_gnn(grid, node, node_, 'availability') // Only update if the interconnection does not have constant availability
+                }
+            = ts_gnn_update(grid, node, node_, param_gnn, f, t);
+    ); // END if('ts_gnn')
+
 * --- NO FORECAST DIMENSION, SHOULD THESE BE HANDLED SEPARATELY? --------------
 // Currently, only updated until the forecast horizon, but is this correct?
 
@@ -201,6 +214,9 @@ $offtext
         // ts_node
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) - ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
+        // ts_gnn
+        ts_gnn(gn2n(grid, node, node_), param_gnn, f, tt(t))${not p_gnn(grid, node, node_, 'availability')} // Only update if the interconnection does not have constant availability
+            = ts_gnn(grid, node, node_, param_gnn, f, t) - ts_gnn(grid, node, node_, param_gnn, f+ddf(f), t);
     ); // END loop(f_solve)
 
 * --- Linear improvement of the central forecast ------------------------------
@@ -258,6 +274,13 @@ $offtext
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_node(grid, node, param_gnBoundaryTypes, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
+        // ts_gnn
+        ts_gnn(gn2n(grid, node, node_), param_gnn, f, tt(t))${not p_gnn(grid, node, node_, 'availability')} // Only update if the interconnection does not have constant availability
+            = [ + (ord(t) - tSolveFirst)
+                    * ts_gnn(grid, node, node_, param_gnn, f, t)
+                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                    * ts_gnn(grid, node, node_, param_gnn, f+ddf_(f), t)
+                ] / mSettings(mSolve, 't_improveForecast');
     ); // END loop(mf_central)
 
 * --- Recalculate the other forecasts based on the improved central forecast --
@@ -287,6 +310,9 @@ $offtext
         // ts_node
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) + ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
+        // ts_gnn
+        ts_gnn(gn2n(grid, node, node_), param_gnn, f, tt(t))${not p_gnn(grid, node, node_, 'availability')} // Only update if the interconnection does not have constant availability
+            = ts_gnn(grid, node, node_, param_gnn, f, t) + ts_gnn(grid, node, node_, param_gnn, f+ddf(f), t);
     ); // END loop(f_solve)
 
 ); // END if(t_improveForecast)
@@ -379,6 +405,11 @@ $offtext
                             + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
+    ts_gnn_(gn2n(grid, node, node_), param_gnn, ft(f, tt_interval(t)))
+        = sum(tt_aggregate(t, t_),
+            ts_gnn(grid, node, node_, param_gnn, f, t_+dt_circular(t_))
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
 
     // Node price time series
     ts_vomCost_(gnu(grid, node, unit), tt_interval(t))

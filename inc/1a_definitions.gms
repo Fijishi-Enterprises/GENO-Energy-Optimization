@@ -175,6 +175,7 @@ Sets
         ts_price
         ts_unavailability
         ts_storageValue
+        ts_gnn
         /
 
 ; // END Sets
@@ -261,6 +262,7 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     ICrampUp
     ICrampDown
     variableTransCost    "Variable cost applied to transfers (EUR/MW)"
+    availability  "Availability of the interconnection (p.u.)"
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /
