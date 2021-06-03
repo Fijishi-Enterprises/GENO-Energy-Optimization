@@ -1091,13 +1091,14 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         } ..
 
     // Ramp speed of the unit?
-    + v_genRamp(grid, node, unit, s, f, t)
-    + sum(gnuRescapable(restype, 'up', grid, node, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
+    + (
+        + v_genRamp(grid, node, unit, s, f, t)
+        + sum(gnuRescapable(restype, 'up', grid, node, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
                                                            and not gnuOfflineRescapable(restype, grid, node, unit)
                                                            },
-        + v_reserve(restype, 'up', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
-        ) // END sum(nuRescapable)
-        / p_stepLength(m, f, t)
+          + v_reserve(restype, 'up', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+          ) // END sum(nuRescapable)
+    )/ p_stepLength(m, f, t)
 
     =L=
 
@@ -1225,13 +1226,14 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         } ..
 
     // Ramp speed of the unit?
-    + v_genRamp(grid, node, unit, s, f, t)
-    - sum(gnuRescapable(restype, 'down', grid, node, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
+    + (
+        + v_genRamp(grid, node, unit, s, f, t)
+        - sum(gnuRescapable(restype, 'down', grid, node, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
                                                              and not gnuOfflineRescapable(restype, grid, node, unit)
                                                              },
-        + v_reserve(restype, 'down', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
-        ) // END sum(nuRescapable)
-        / p_stepLength(m, f, t)
+          + v_reserve(restype, 'down', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
+          ) // END sum(nuRescapable)
+    )/ p_stepLength(m, f, t)
 
     =G=
 
