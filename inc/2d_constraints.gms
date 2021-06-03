@@ -2208,6 +2208,7 @@ q_reserveProvisionRightward(restypeDirectionGridNodeNode(restype, up_down, grid,
     =L=
 
     + p_gnnReserves(grid, node, node_, restype, up_down)
+        * ts_gnn_(grid, node, node_, 'availability', f, t)
         * [
             // Existing transfer capacity
             + p_gnn(grid, node, node_, 'transferCap')
@@ -2238,6 +2239,7 @@ q_reserveProvisionLeftward(restypeDirectionGridNodeNode(restype, up_down, grid, 
     =L=
 
     + p_gnnReserves(grid, node_, node, restype, up_down)
+        * ts_gnn_(grid, node_, node, 'availability', f, t)
         * [
             // Existing transfer capacity
             + p_gnn(grid, node_, node, 'transferCap')

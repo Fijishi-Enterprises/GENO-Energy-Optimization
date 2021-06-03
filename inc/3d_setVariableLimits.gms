@@ -363,7 +363,8 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
                            ) // Commit reserve transfer as long as either end commits.
                         ]
             }
-        =  p_gnn(grid, node, node_, 'transferCap')
+        =  ts_gnn_(grid, node, node_, 'availability', f, t)
+            * p_gnn(grid, node, node_, 'transferCap')
             * p_gnnReserves(grid, node, node_, restype, up_down);
 
     v_resTransferLeftward.up(restypeDirectionGridNodeNode(restype, up_down, grid, node, node_), s, f+df_reserves(grid, node, restype, f, t), t)
@@ -377,8 +378,9 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
                                ) // Commit reserve transfer as long as either end commits.
                         ]
             }
-        = p_gnn(grid, node, node_, 'transferCap')
-            * p_gnnReserves(grid, node, node_, restype, up_down);
+        = ts_gnn_(grid, node_, node, 'availability', f, t)
+            * p_gnn(grid, node_, node, 'transferCap')
+            * p_gnnReserves(grid, node_, node, restype, up_down);
 
     // Fix non-flow unit reserves at the gate closure of reserves
     v_reserve.fx(gnuRescapable(restype, up_down, grid, node, unit), s, f+df_reserves(grid, node, restype, f, t), t)
