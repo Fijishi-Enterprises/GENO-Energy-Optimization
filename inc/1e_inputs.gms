@@ -396,8 +396,10 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
 
 * --- Timeseries parameters for node-node connections -------------------------
 
-// Nodes with flows
+// Transfer links with time series enabled for certain parameters
 gn2n_timeseries(grid, node, node_, 'availability')${p_gnn(grid, node, node_, 'useTimeseriesAvailability')}
+    = yes;
+gn2n_timeseries(grid, node, node_, 'transferLoss')${p_gnn(grid, node, node_, 'useTimeseriesLoss')}
     = yes;
 
 * =============================================================================
