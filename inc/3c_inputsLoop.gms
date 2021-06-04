@@ -122,15 +122,14 @@ $offtext
             = ts_node_update(grid, node, param_gnBoundaryTypes, f, t);
     ); // END if('ts_node')
 
-    // Update ts_gnn. NOTE! Only works for 'availability'.
+    // Update ts_gnn
     if (mTimeseries_loop_read(mSolve, 'ts_gnn'),
         put_utility 'gdxin' / '%input_dir%/ts_gnn/' tSolve.tl:0 '.gdx';
         execute_load ts_gnn_update=ts_gnn;
-        ts_gnn(gn2n(grid, node, node_), param_gnn, f_solve(f), tt_forecast(t))
+        ts_gnn(gn2n_timeseries(grid, node, node_, param_gnn), f_solve(f), tt_forecast(t)) // Only update if time series enabled
             ${  not mf_realization(mSolve, f) // Realization not updated
                 and (mSettings(mSolve, 'onlyExistingForecasts')
                      -> ts_gnn_update(grid, node, node_, param_gnn, f, t)) // Update only existing values (zeroes need to be EPS)
-                and not p_gnn(grid, node, node_, 'availability') // Only update if the interconnection does not have constant availability
                 }
             = ts_gnn_update(grid, node, node_, param_gnn, f, t);
     ); // END if('ts_gnn')
@@ -215,7 +214,7 @@ $offtext
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) - ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
         // ts_gnn
-        ts_gnn(gn2n(grid, node, node_), param_gnn, f, tt(t))${not p_gnn(grid, node, node_, 'availability')} // Only update if the interconnection does not have constant availability
+        ts_gnn(gn2n_timeseries(grid, node, node_, param_gnn), f, tt(t)) // Only update if time series enabled
             = ts_gnn(grid, node, node_, param_gnn, f, t) - ts_gnn(grid, node, node_, param_gnn, f+ddf(f), t);
     ); // END loop(f_solve)
 
@@ -275,7 +274,7 @@ $offtext
                     * ts_node(grid, node, param_gnBoundaryTypes, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
         // ts_gnn
-        ts_gnn(gn2n(grid, node, node_), param_gnn, f, tt(t))${not p_gnn(grid, node, node_, 'availability')} // Only update if the interconnection does not have constant availability
+        ts_gnn(gn2n_timeseries(grid, node, node_, param_gnn), f, tt(t)) // Only update if time series enabled
             = [ + (ord(t) - tSolveFirst)
                     * ts_gnn(grid, node, node_, param_gnn, f, t)
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
@@ -311,7 +310,7 @@ $offtext
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) + ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
         // ts_gnn
-        ts_gnn(gn2n(grid, node, node_), param_gnn, f, tt(t))${not p_gnn(grid, node, node_, 'availability')} // Only update if the interconnection does not have constant availability
+        ts_gnn(gn2n_timeseries(grid, node, node_, param_gnn), f, tt(t)) // Only update if time series enabled
             = ts_gnn(grid, node, node_, param_gnn, f, t) + ts_gnn(grid, node, node_, param_gnn, f+ddf(f), t);
     ); // END loop(f_solve)
 
@@ -405,7 +404,7 @@ $offtext
                             + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
-    ts_gnn_(gn2n(grid, node, node_), param_gnn, ft(f, tt_interval(t)))
+    ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
         = sum(tt_aggregate(t, t_),
             ts_gnn(grid, node, node_, param_gnn, f, t_+dt_circular(t_))
             )

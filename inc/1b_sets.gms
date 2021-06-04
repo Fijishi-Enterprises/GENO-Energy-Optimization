@@ -65,6 +65,7 @@ Sets
     gn2n_directional(grid, node, node) "Transfer links with positive rightward transfer and negative leftward transfer"
     gn2n_directional_investLP(grid, node, node) "Transfer links with with continuous investments allowed"
     gn2n_directional_investMIP(grid, node, node) "Transfer links with with integer investments allowed"
+    gn2n_timeseries(grid, node, node, param_gnn) "Transfer links with time series enabled for certain parameters"
     gnu(grid, node, unit) "Units in specific nodes of particular energy grids"
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
     gnu_output(grid, node, unit) "Forms of energy the unit uses as endogenous outputs"
