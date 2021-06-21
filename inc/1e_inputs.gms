@@ -19,12 +19,12 @@ $offtext
 * --- Load Input Data ---------------------------------------------------------
 * =============================================================================
 
-* --input_file=nameOfInputFile.gdx for input_file in input_dir
-$ifthen exist '%input_dir%/%input_file%'
-    $$gdxin  '%input_dir%/%input_file%'
-* --input_file=ABSOLUTE/PATH/nameOfInputFile.gdx for input_file not in input_dir
-$elseif exist '%input_file%' 
-    $$gdxin  '%input_file%'
+* --input_file_gdx=nameOfInputFile.gdx for input_file_gdx in input_dir
+$ifthen exist '%input_dir%/%input_file_gdx%'
+    $$gdxin  '%input_dir%/%input_file_gdx%'
+* --input_file_gdx=ABSOLUTE/PATH/nameOfInputFile.gdx for input_file_gdx not in input_dir
+$elseif exist '%input_file_gdx%' 
+    $$gdxin  '%input_file_gdx%'
 * default, e.g. for using --input_file_excel and gdxxrw
 $elseif exist '%input_dir%/inputData.gdx'
     $$gdxin  '%input_dir%/inputData.gdx'
