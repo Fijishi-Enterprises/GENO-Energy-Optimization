@@ -56,6 +56,16 @@ GAMS command line arguments
 --input_dir=<path>
     Directory to read input from. Defaults to './input'.
 
+--input_file_gdx=<filename.gdx>
+    Filename of the GDX input file. Defaults to 'inputData.gdx'.
+    --input_file_gdx=<path> including the filename also works.
+
+--input_file_excel=<path>
+    Filename of the Excel input file including the path.
+    When using this, make sure you have created 1_input_preparation.gms in the
+    input directory and included the necessary lines there. See example from
+    1_input_preparation_temp.gms.
+
 --output_dir=<path>
     Directory to write output to. Defaults to './output'.
 
@@ -98,6 +108,11 @@ Files log /''/, gdx /''/, f_info /'%output_dir%/info.txt'/;
 
 * Include options file to control the solver
 $include '%input_dir%/1_options.gms';
+
+* Include an optional file for input data preparation
+$ifthen exist '%input_dir%/1_input_preparation.gms'      // Optional input data preparation
+    $$include '%input_dir%/1_input_preparation.gms';
+$endif
 
 * === Libraries ===============================================================
 $libinclude scenred2
