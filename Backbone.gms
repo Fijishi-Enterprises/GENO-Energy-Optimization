@@ -91,9 +91,14 @@ $ife %system.gamsversion%<240 $abort GAMS distribution 24.0 or later required!
 * Set default debugging level
 $if not set debug $setglobal debug 0
 
-* Default values for input and output dir
+* Default values for input and output dir as well as input data GDX file and index sheet when importing data from Excel file
+* When reading an Excel file, you can opt to read the file only if the Gdxxrw detects changes by using 'checkDate' for
+*   input_excel_checkdate. It is off by default, since there has been some problems with it.
 $if not set input_dir $setglobal input_dir 'input'
 $if not set output_dir $setglobal output_dir 'output'
+$if not set input_data_gdx $setglobal input_data_gdx 'inputData.gdx'
+$if not set input_excel_index $setglobal input_excel_index 'INDEX'
+$if not set input_excel_checkdate $setglobal input_excel_checkdate 'checkDate'
 
 * Make sure output dir exists
 $if not dexist %output_dir% $call 'mkdir %output_dir%'
@@ -106,13 +111,20 @@ $onempty   // Allow empty data definitions
 * Output file streams
 Files log /''/, gdx /''/, f_info /'%output_dir%/info.txt'/;
 
-* Include options file to control the solver
-$include '%input_dir%/1_options.gms';
+* Include options file to control the solver (if it does not exist, uses defaults)
+$ifthen exist '%input_dir%/1_options.gms'
+    $$include '%input_dir%/1_options.gms';
+$endif
+
+* If input_file excel has been set in the command line arguments, then Gdxxrw will be run to convert the Excel into a GDX file
+*   using the sheet defined by input_excel_index command line argument (default: 'INDEX').
+$if set input_file_excel $call 'gdxxrw Input="%input_dir%/%input_file_excel%" Output="%input_dir%/%input_data_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
+$ife %system.errorlevel%>0 $abort gdxxrw failed!
 
 * Include an optional file for input data preparation
-$ifthen exist '%input_dir%/1_input_preparation.gms'      // Optional input data preparation
-    $$include '%input_dir%/1_input_preparation.gms';
-$endif
+*$ifthen exist '%input_dir%/1_input_preparation.gms'      // Optional input data preparation
+*    $$include '%input_dir%/1_input_preparation.gms';
+*$endif
 
 * === Libraries ===============================================================
 $libinclude scenred2
