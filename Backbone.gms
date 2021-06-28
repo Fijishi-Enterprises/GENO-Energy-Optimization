@@ -98,7 +98,7 @@ $if not set input_dir $setglobal input_dir 'input'
 $if not set output_dir $setglobal output_dir 'output'
 $if not set input_data_gdx $setglobal input_data_gdx 'inputData.gdx'
 $if not set input_excel_index $setglobal input_excel_index 'INDEX'
-$if not set input_excel_checkdate $setglobal input_excel_checkdate 'checkDate'
+$if not set input_excel_checkdate $setglobal input_excel_checkdate ''
 
 * Make sure output dir exists
 $if not dexist %output_dir% $call 'mkdir %output_dir%'
@@ -115,16 +115,6 @@ Files log /''/, gdx /''/, f_info /'%output_dir%/info.txt'/;
 $ifthen exist '%input_dir%/1_options.gms'
     $$include '%input_dir%/1_options.gms';
 $endif
-
-* If input_file excel has been set in the command line arguments, then Gdxxrw will be run to convert the Excel into a GDX file
-*   using the sheet defined by input_excel_index command line argument (default: 'INDEX').
-$if set input_file_excel $call 'gdxxrw Input="%input_dir%/%input_file_excel%" Output="%input_dir%/%input_data_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
-$ife %system.errorlevel%>0 $abort gdxxrw failed!
-
-* Include an optional file for input data preparation
-*$ifthen exist '%input_dir%/1_input_preparation.gms'      // Optional input data preparation
-*    $$include '%input_dir%/1_input_preparation.gms';
-*$endif
 
 * === Libraries ===============================================================
 $libinclude scenred2
