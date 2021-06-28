@@ -58,13 +58,20 @@ GAMS command line arguments
 
 --input_file_gdx=<filename.gdx>
     Filename of the GDX input file. Defaults to 'inputData.gdx'.
-    --input_file_gdx=<path> including the filename also works.
+    --input_file_gdx=<path> including the filename also works (when used with
+    input_file_excel, the file is always stored in input_dir).
 
---input_file_excel=<path>
-    Filename of the Excel input file including the path.
-    When using this, make sure you have created 1_input_preparation.gms in the
-    input directory and included the necessary lines there. See example from
-    1_input_preparation_temp.gms.
+--input_file_excel=<filename>
+    Filename of the Excel input file. If this filename is given, the GDX input
+    file is generated from this file using Gdxxrw.
+
+--input_excel_index=<spreadsheet name>
+    Used with input_file_excel: the spreadsheet where the options and symbols
+    are read. Defaults to 'INDEX'.
+
+--input_excel_checkdate=checkDate
+    Used with input_file_excel: write GDX file only if the input file is more
+    recent than the GDX file. Disabled by default.
 
 --output_dir=<path>
     Directory to write output to. Defaults to './output'.
@@ -96,7 +103,7 @@ $if not set debug $setglobal debug 0
 *   input_excel_checkdate. It is off by default, since there has been some problems with it.
 $if not set input_dir $setglobal input_dir 'input'
 $if not set output_dir $setglobal output_dir 'output'
-$if not set input_data_gdx $setglobal input_data_gdx 'inputData.gdx'
+$if not set input_file_gdx $setglobal input_file_gdx 'inputData.gdx'
 $if not set input_excel_index $setglobal input_excel_index 'INDEX'
 $if not set input_excel_checkdate $setglobal input_excel_checkdate ''
 
