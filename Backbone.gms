@@ -56,6 +56,16 @@ GAMS command line arguments
 --input_dir=<path>
     Directory to read input from. Defaults to './input'.
 
+--input_file_gdx=<filename.gdx>
+    Filename of the GDX input file. Defaults to 'inputData.gdx'.
+    --input_file_gdx=<path> including the filename also works.
+
+--input_file_excel=<path>
+    Filename of the Excel input file including the path.
+    When using this, make sure you have created 1_input_preparation.gms in the
+    input directory and included the necessary lines there. See example from
+    1_input_preparation_temp.gms.
+
 --output_dir=<path>
     Directory to write output to. Defaults to './output'.
 
@@ -81,9 +91,14 @@ $ife %system.gamsversion%<240 $abort GAMS distribution 24.0 or later required!
 * Set default debugging level
 $if not set debug $setglobal debug 0
 
-* Default values for input and output dir
+* Default values for input and output dir as well as input data GDX file and index sheet when importing data from Excel file
+* When reading an Excel file, you can opt to read the file only if the Gdxxrw detects changes by using 'checkDate' for
+*   input_excel_checkdate. It is off by default, since there has been some problems with it.
 $if not set input_dir $setglobal input_dir 'input'
 $if not set output_dir $setglobal output_dir 'output'
+$if not set input_data_gdx $setglobal input_data_gdx 'inputData.gdx'
+$if not set input_excel_index $setglobal input_excel_index 'INDEX'
+$if not set input_excel_checkdate $setglobal input_excel_checkdate ''
 
 * Make sure output dir exists
 $if not dexist %output_dir% $call 'mkdir %output_dir%'
@@ -96,8 +111,10 @@ $onempty   // Allow empty data definitions
 * Output file streams
 Files log /''/, gdx /''/, f_info /'%output_dir%/info.txt'/;
 
-* Include options file to control the solver
-$include '%input_dir%/1_options.gms';
+* Include options file to control the solver (if it does not exist, uses defaults)
+$ifthen exist '%input_dir%/1_options.gms'
+    $$include '%input_dir%/1_options.gms';
+$endif
 
 * === Libraries ===============================================================
 $libinclude scenred2
