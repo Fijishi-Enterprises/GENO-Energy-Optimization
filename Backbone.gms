@@ -56,6 +56,23 @@ GAMS command line arguments
 --input_dir=<path>
     Directory to read input from. Defaults to './input'.
 
+--input_file_gdx=<filename.gdx>
+    Filename of the GDX input file. Defaults to 'inputData.gdx'.
+    --input_file_gdx=<path> including the filename also works (when used with
+    input_file_excel, the file is always stored in input_dir).
+
+--input_file_excel=<filename>
+    Filename of the Excel input file. If this filename is given, the GDX input
+    file is generated from this file using Gdxxrw.
+
+--input_excel_index=<spreadsheet name>
+    Used with input_file_excel: the spreadsheet where the options and symbols
+    are read. Defaults to 'INDEX'.
+
+--input_excel_checkdate=checkDate
+    Used with input_file_excel: write GDX file only if the input file is more
+    recent than the GDX file. Disabled by default.
+
 --output_dir=<path>
     Directory to write output to. Defaults to './output'.
 
@@ -81,9 +98,14 @@ $ife %system.gamsversion%<240 $abort GAMS distribution 24.0 or later required!
 * Set default debugging level
 $if not set debug $setglobal debug 0
 
-* Default values for input and output dir
+* Default values for input and output dir as well as input data GDX file and index sheet when importing data from Excel file
+* When reading an Excel file, you can opt to read the file only if the Gdxxrw detects changes by using 'checkDate' for
+*   input_excel_checkdate. It is off by default, since there has been some problems with it.
 $if not set input_dir $setglobal input_dir 'input'
 $if not set output_dir $setglobal output_dir 'output'
+$if not set input_file_gdx $setglobal input_file_gdx 'inputData.gdx'
+$if not set input_excel_index $setglobal input_excel_index 'INDEX'
+$if not set input_excel_checkdate $setglobal input_excel_checkdate ''
 
 * Make sure output dir exists
 $if not dexist %output_dir% $call 'mkdir %output_dir%'
@@ -96,8 +118,10 @@ $onempty   // Allow empty data definitions
 * Output file streams
 Files log /''/, gdx /''/, f_info /'%output_dir%/info.txt'/;
 
-* Include options file to control the solver
-$include '%input_dir%/1_options.gms';
+* Include options file to control the solver (if it does not exist, uses defaults)
+$ifthen exist '%input_dir%/1_options.gms'
+    $$include '%input_dir%/1_options.gms';
+$endif
 
 * === Libraries ===============================================================
 $libinclude scenred2
