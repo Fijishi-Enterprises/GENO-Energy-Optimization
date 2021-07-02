@@ -49,6 +49,9 @@ if (mType('invest'),
     ms_central('invest', s) = no;
 
     // Define time span of samples
+    // For selecting the samples, see, for example, https://doi.org/10.1016/j.energy.2020.118585.
+    // The duration of the samples can be, for example, 1 day or 1 week (24 h or 168 h).
+    // The samples can have different durations.
     msStart('invest', 's000') = 1;
     msEnd('invest', 's000') = msStart('invest', 's000') + 168;
     msStart('invest', 's001') = 1 + 18*168;
@@ -56,15 +59,31 @@ if (mType('invest'),
     msStart('invest', 's002') = 1 + 35*168;
     msEnd('invest', 's002') = msStart('invest', 's002') + 168;
 
-    // Define the probability (weight) of samples
+    // Define the probability of samples
+    // Probabilities are 1 in deterministic model runs.
+    // It is also possible to include, for example, 3 samples from a cold year with a probability of 1/10
+    // and 3 samples from a normal year year with a probability of 9/10.
     p_msProbability('invest', s) = 0;
     p_msProbability('invest', 's000') = 1;
     p_msProbability('invest', 's001') = 1;
     p_msProbability('invest', 's002') = 1;
+    // Define the weight of samples
+    // Weights describe how many times the samples are repeated in order to get the (typically) annual results.
+    // For example, 3 samples with equal weights and with a duration of 1 week should be repeated 17.38 times in order
+    // to cover the 52.14 weeks of the year.
+    // Weights are used for scaling energy production and consumption results and for estimating node state evolution.
     p_msWeight('invest', s) = 0;
-    p_msWeight('invest', 's000') = 8760/504;
-    p_msWeight('invest', 's001') = 8760/504;
-    p_msWeight('invest', 's002') = 8760/504;
+    p_msWeight('invest', 's000') = 8760/168/3;
+    p_msWeight('invest', 's001') = 8760/168/3;
+    p_msWeight('invest', 's002') = 8760/168/3;
+    // Define the weight of samples in the calculation of fixed costs
+    // The sum of p_msAnnuityWeight should be 1 over the samples belonging to the same year.
+    // The p_msAnnuityWeight parameter is used for describing which samples belong to the same year so that the model
+    // is able to calculate investment costs and fixed operation and maintenance costs once per year.
+    p_msAnnuityWeight('invest', s) = 0;
+    p_msAnnuityWeight('invest', 's000') = 1/3;
+    p_msAnnuityWeight('invest', 's001') = 1/3;
+    p_msAnnuityWeight('invest', 's002') = 1/3;
 
 * --- Define Time Step Intervals ----------------------------------------------
 
@@ -125,7 +144,7 @@ if (mType('invest'),
     mSettingsEff('invest', 'level1') = inf;
 
     // Define the horizon when start-up and shutdown trajectories are considered
-    mSettings('invest', 't_trajectoryHorizon') = 8760;
+    mSettings('invest', 't_trajectoryHorizon') = 0;
 
 * --- Define output settings for results --------------------------------------
 
@@ -142,8 +161,8 @@ if (mType('invest'),
 * --- Control the solver ------------------------------------------------------
 
     // Control the use of advanced basis
-    mSettings('invest', 'loadPoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
-    mSettings('invest', 'savePoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
+    mSettings('invest', 'loadPoint') = 0;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
+    mSettings('invest', 'savePoint') = 0;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
 
 ); // END if(mType)
 

@@ -1,28 +1,31 @@
 {
     "name": "Backbone",
-    "description": "Backbone",
     "tooltype": "gams",
     "includes": [
         "Backbone.gms",
         "inc/*.gms",
-		"inc/rampSched/*.gms",
+        "inc/rampSched/*.gms",
         "defModels/*.gms",
         "defOutput/debugSymbols.inc",
         "defOutput/resultSymbols.inc",
         "cplex.opt"
     ],
+    "description": "Backbone",
     "inputfiles": [
+        "input/modelsInit.gms",
         "input/inputData.gdx",
-        "input/modelsInit.gms"
+        "input/timeAndSamples.inc",
+        "input/1_options.gms",
+        "input/scheduleInit.gms"
     ],
     "inputfiles_opt": [
         "input/*.*"
     ],
     "outputfiles": [
-        "Backbone.lst",
-        "output/results.gdx"
+        "output/results.gdx",
+        "Backbone.lst"
     ],
-    "cmdline_args": "",
-    "execute_in_work": true,
+    "cmdline_args": [],
+    "execute_in_work": false,
     "includes_main_path": "."
 }

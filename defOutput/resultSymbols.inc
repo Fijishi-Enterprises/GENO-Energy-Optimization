@@ -19,6 +19,9 @@ $offtext
 * --- Results Symbols Included in Output --------------------------------------
 * =============================================================================
 
+* --- Symbols related to the simulation setup ---------------------------------
+t_realized = t
+
 * --- Cost Result Symbols -----------------------------------------------------
 
 // Total Objective Function
@@ -36,6 +39,8 @@ r_uTotalStartupCost
 r_gnStateSlackCost
 r_gnTotalStateSlackCost
 r_gnStorageValueChange
+r_gnnVariableTransCost
+r_gnnTotalVariableTransCost
 
 // Investment and Fixed Operation and Maintenance Cost Components
 r_gnuFOMCost
@@ -70,6 +75,8 @@ r_stateSlack
 
 // Energy transfer and spill variable results
 r_transfer
+r_transferRightward
+r_transferLeftward
 r_spill
 
 // Interesting node related results
@@ -124,6 +131,17 @@ r_uTotalOnlinePerUnit
 r_uTotalStartup
 r_uTotalShutdown
 
+* --- Emissions Results -----------------------------------------------
+
+// Unit level emissions
+r_emissions
+
+// Emission sums
+r_nuTotalEmissions
+r_nTotalEmissions
+r_uTotalEmissions
+r_totalEmissions
+
 * --- Reserve Provision Result Symbols ----------------------------------------
 
 // Reserve provision results required for model structure !!!!!!!!!!!!!!!!!!!!!
@@ -144,6 +162,11 @@ r_resDemandLargestInfeedUnit
 // Interesting investment results
 r_invest
 r_investTransfer
+
+* --- Sum results for groups --------------------------------------------------
+
+// gnTotalgen in units that belong to gnuGroups over the simulation
+r_gnTotalGenGnuGroup
 
 * --- Dummy and Diagnostic Variable Result Symbols ----------------------------
 

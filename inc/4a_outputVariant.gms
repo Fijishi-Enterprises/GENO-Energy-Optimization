@@ -117,12 +117,20 @@ loop(sft_realized(s, f, t),
         = v_gen.l(grid, node, unit, s, f, t)
     ;
     // Fuel use of units
-    r_fuelUse(fuel, uft(unit_fuel, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        = v_fuelUse.l(fuel, unit_fuel, s, f, t)
+    r_fuelUse(node, uft(unit_commodity, f, t))$[un_commodity(unit_commodity, node) and ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = - sum(grid$gnu(grid, node, unit_commodity), v_gen.l(grid, node, unit_commodity, s, f, t))
     ;
     // Transfer of energy between nodes
     r_transfer(gn2n(grid, from_node, to_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
         = v_transfer.l(grid, from_node, to_node, s, f, t)
+    ;
+    // Transfer of energy from first node to second node
+    r_transferRightward(gn2n_directional(grid, from_node, to_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_transferRightward.l(grid, from_node, to_node, s, f, t)
+    ;
+    // Transfer of energy from second node to first node
+    r_transferLeftward(gn2n_directional(grid, to_node, from_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+        = v_transferLeftward.l(grid, to_node, from_node, s, f, t)
     ;
     // Energy spilled from nodes
     r_spill(gn(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
@@ -150,8 +158,10 @@ loop(sft_realized(s, f, t),
     ;
 );
 // Unit investments
-r_invest(unit)${unit_investLP(unit) or unit_investMIP(unit)}
-    = sum(t_invest, v_invest_LP.l(unit, t_invest) + v_invest_MIP.l(unit, t_invest))
+r_invest(unit)${ (unit_investLP(unit) or unit_investMIP(unit))
+                  and p_unit(unit, 'becomeAvailable') <= tSolveFirst + mSettings(mSolve, 't_jump')
+                  }
+    = v_invest_LP.l(unit) + v_invest_MIP.l(unit)
 ;
 // Link investments
 r_investTransfer(grid, node, node_, t_invest(t))${ p_gnn(grid, node, node_, 'transferCapInvLimit')

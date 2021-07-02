@@ -1,0 +1,213 @@
+{
+    "name": "Import_Bacbkone_base_sets_to_SpineDB",
+    "item_type": "Importer",
+    "mapping": {
+        "table_mappings": {
+            "s": [
+                {
+                    "map_type": "ObjectClass",
+                    "skip_columns": [],
+                    "read_start_row": 0,
+                    "name": {
+                        "map_type": "constant",
+                        "reference": "s"
+                    },
+                    "parameters": {
+                        "map_type": "None"
+                    },
+                    "import_objects": true,
+                    "objects": {
+                        "map_type": "column",
+                        "reference": 0
+                    },
+                    "object_metadata": {
+                        "map_type": "None"
+                    },
+                    "mapping_name": "Mapping 0"
+                }
+            ],
+            "f": [
+                {
+                    "map_type": "ObjectClass",
+                    "skip_columns": [],
+                    "read_start_row": 0,
+                    "name": {
+                        "map_type": "constant",
+                        "reference": "f"
+                    },
+                    "parameters": {
+                        "map_type": "None"
+                    },
+                    "import_objects": true,
+                    "objects": {
+                        "map_type": "column",
+                        "reference": 0
+                    },
+                    "object_metadata": {
+                        "map_type": "None"
+                    },
+                    "mapping_name": "Mapping 0"
+                }
+            ],
+            "scenario": [
+                {
+                    "map_type": "ObjectClass",
+                    "skip_columns": [],
+                    "read_start_row": 0,
+                    "name": {
+                        "map_type": "constant",
+                        "reference": "scenario"
+                    },
+                    "parameters": {
+                        "map_type": "None"
+                    },
+                    "import_objects": true,
+                    "objects": {
+                        "map_type": "column",
+                        "reference": 0
+                    },
+                    "object_metadata": {
+                        "map_type": "None"
+                    },
+                    "mapping_name": "Mapping 0"
+                }
+            ],
+            "input_output": [
+                {
+                    "map_type": "ObjectClass",
+                    "skip_columns": [],
+                    "read_start_row": 0,
+                    "name": {
+                        "map_type": "constant",
+                        "reference": "input_output"
+                    },
+                    "parameters": {
+                        "map_type": "None"
+                    },
+                    "import_objects": true,
+                    "objects": {
+                        "map_type": "column",
+                        "reference": 0
+                    },
+                    "object_metadata": {
+                        "map_type": "None"
+                    },
+                    "mapping_name": "Mapping 0"
+                }
+            ],
+            "effLevel": [
+                {
+                    "map_type": "ObjectClass",
+                    "skip_columns": [],
+                    "read_start_row": 0,
+                    "name": {
+                        "map_type": "constant",
+                        "reference": "effLevel"
+                    },
+                    "parameters": {
+                        "map_type": "None"
+                    },
+                    "import_objects": true,
+                    "objects": {
+                        "map_type": "column",
+                        "reference": 0
+                    },
+                    "object_metadata": {
+                        "map_type": "None"
+                    },
+                    "mapping_name": "Mapping 0"
+                }
+            ],
+            "effSelector": [
+                {
+                    "map_type": "ObjectClass",
+                    "skip_columns": [],
+                    "read_start_row": 0,
+                    "name": {
+                        "map_type": "constant",
+                        "reference": "effSelector"
+                    },
+                    "parameters": {
+                        "map_type": "None"
+                    },
+                    "import_objects": true,
+                    "objects": {
+                        "map_type": "column",
+                        "reference": 0
+                    },
+                    "object_metadata": {
+                        "map_type": "None"
+                    },
+                    "mapping_name": "Mapping 0"
+                }
+            ],
+            "up_down": [
+                {
+                    "map_type": "ObjectClass",
+                    "skip_columns": [],
+                    "read_start_row": 0,
+                    "name": {
+                        "map_type": "constant",
+                        "reference": "up_down"
+                    },
+                    "parameters": {
+                        "map_type": "None"
+                    },
+                    "import_objects": true,
+                    "objects": {
+                        "map_type": "column",
+                        "reference": 0
+                    },
+                    "object_metadata": {
+                        "map_type": "None"
+                    },
+                    "mapping_name": "Mapping 0"
+                }
+            ]
+        },
+        "table_options": {
+            "s": {},
+            "f": {},
+            "scenario": {},
+            "up_down": {},
+            "input_output": {},
+            "effLevel": {},
+            "effSelector": {}
+        },
+        "table_types": {
+            "s": {
+                "0": "string"
+            },
+            "f": {
+                "0": "string"
+            },
+            "scenario": {
+                "0": "string"
+            },
+            "up_down": {
+                "0": "string"
+            },
+            "input_output": {
+                "0": "string"
+            },
+            "effLevel": {
+                "0": "string"
+            },
+            "effSelector": {
+                "0": "string"
+            }
+        },
+        "table_row_types": {},
+        "selected_tables": [
+            "s",
+            "f",
+            "scenario",
+            "up_down",
+            "input_output",
+            "effLevel",
+            "effSelector"
+        ],
+        "source_type": "GdxConnector"
+    },
+    "description": ""
+}

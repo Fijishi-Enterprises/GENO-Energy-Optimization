@@ -25,7 +25,7 @@ $offtext
         put_utility 'gdxin' / mSolve.tl:0 '_p.gdx';
         execute_loadpoint;
     elseif mSettings(mSolve, 'loadPoint') = 2,
-        put_utility 'gdxin' / 'schedule_p' solveCount:0:0 '.gdx';
+        put_utility 'gdxin' / mSolve.tl:0 '_p' solveCount:0:0 '.gdx';
         execute_loadpoint;
     elseif mSettings(mSolve, 'loadPoint') = 3 and solveCount = 1,
         put_utility 'gdxin' / mSolve.tl:0 '_p.gdx';
@@ -51,18 +51,21 @@ $offtext
         schedule.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
         schedule.OptFile = 1;
         solve schedule using mip minimizing v_obj;
+        checkSolveStatus(schedule);
     ); // END IF SCHEDULE
 
     if (mSolve('building'),
         building.holdfixed = 1;
         building.OptFile = 1;
         solve building using mip minimizing v_obj;
+        checkSolveStatus(building);
     ); // END IF BUILDING
 
     if (mSolve('invest'),
         invest.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
         invest.OptFile = 1;
         solve invest using mip minimizing v_obj;
+        checkSolveStatus(invest);
     ); // END IF INVEST
 
 

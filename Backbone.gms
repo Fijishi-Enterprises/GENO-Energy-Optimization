@@ -56,8 +56,28 @@ GAMS command line arguments
 --input_dir=<path>
     Directory to read input from. Defaults to './input'.
 
+--input_file_gdx=<filename.gdx>
+    Filename of the GDX input file. Defaults to 'inputData.gdx'.
+    --input_file_gdx=<path> including the filename also works (when used with
+    input_file_excel, the file is always stored in input_dir).
+
+--input_file_excel=<filename>
+    Filename of the Excel input file. If this filename is given, the GDX input
+    file is generated from this file using Gdxxrw.
+
+--input_excel_index=<spreadsheet name>
+    Used with input_file_excel: the spreadsheet where the options and symbols
+    are read. Defaults to 'INDEX'.
+
+--input_excel_checkdate=checkDate
+    Used with input_file_excel: write GDX file only if the input file is more
+    recent than the GDX file. Disabled by default.
+
 --output_dir=<path>
     Directory to write output to. Defaults to './output'.
+
+--output_file=<filename.gdx>
+    Filename of the results file. Defaults to 'results.gdx'
 
 
 References
@@ -72,12 +92,20 @@ References
 ==========================================================================
 $offtext
 
+* Check current GAMS version
+$ife %system.gamsversion%<240 $abort GAMS distribution 24.0 or later required!
+
 * Set default debugging level
 $if not set debug $setglobal debug 0
 
-* Default values for input and output dir
+* Default values for input and output dir as well as input data GDX file and index sheet when importing data from Excel file
+* When reading an Excel file, you can opt to read the file only if the Gdxxrw detects changes by using 'checkDate' for
+*   input_excel_checkdate. It is off by default, since there has been some problems with it.
 $if not set input_dir $setglobal input_dir 'input'
 $if not set output_dir $setglobal output_dir 'output'
+$if not set input_file_gdx $setglobal input_file_gdx 'inputData.gdx'
+$if not set input_excel_index $setglobal input_excel_index 'INDEX'
+$if not set input_excel_checkdate $setglobal input_excel_checkdate ''
 
 * Make sure output dir exists
 $if not dexist %output_dir% $call 'mkdir %output_dir%'
@@ -90,8 +118,10 @@ $onempty   // Allow empty data definitions
 * Output file streams
 Files log /''/, gdx /''/, f_info /'%output_dir%/info.txt'/;
 
-* Include options file to control the solver
-$include '%input_dir%/1_options.gms';
+* Include options file to control the solver (if it does not exist, uses defaults)
+$ifthen exist '%input_dir%/1_options.gms'
+    $$include '%input_dir%/1_options.gms';
+$endif
 
 * === Libraries ===============================================================
 $libinclude scenred2
@@ -127,6 +157,12 @@ $include '%input_dir%/modelsInit.gms'
 
 
 * === Simulation ==============================================================
+// Macro for checking solve status (1 = normal completion)
+$macro checkSolveStatus(mdl) \
+    if(mdl.solveStat > 1 and (mdl.modelStat <> 1 or mdl.modelStat <> 8), \
+        execError = execError + 1 \
+    )
+
 $include 'inc/3a_periodicInit.gms'  // Initialize modelling loop
 loop(modelSolves(mSolve, tSolve)$(execError = 0),
     solveCount = solveCount + 1;
@@ -159,7 +195,9 @@ $include 'inc/4c_outputQuickFile.gms'
 * Post-process results
 $if exist '%input_dir%/4d_postProcess.gms' $include '%input_dir%/4d_postProcess.gms'
 
-execute_unload '%output_dir%/results.gdx',
+$if not set output_file $setglobal output_file 'results.gdx'
+
+execute_unload '%output_dir%/%output_file%',
     $$include 'defOutput/resultSymbols.inc'
 ;
 

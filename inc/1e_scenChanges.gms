@@ -86,15 +86,15 @@ $ifthen exist '%input_dir%/unit_fail3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/fuel2.gdx'
-    $$gdxin '%input_dir%/fuel2.gdx'
-    $$loaddcm fuel
+$ifthen exist '%input_dir%/commodity2.gdx'
+    $$gdxin '%input_dir%/commodity2.gdx'
+    $$loaddcm commodity
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/fuel3.gdx'
-    $$gdxin '%input_dir%/fuel3.gdx'
-    $$loaddcm fuel
+$ifthen exist '%input_dir%/commodity3.gdx'
+    $$gdxin '%input_dir%/commodity3.gdx'
+    $$loaddcm commodity
     $$gdxin
 $endif
 
@@ -107,18 +107,6 @@ $endif
 $ifthen exist '%input_dir%/unitUnitEffLevel3.gdx'
     $$gdxin '%input_dir%/unitUnitEffLevel3.gdx'
     $$loaddcm unitUnitEffLevel
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/uFuel2.gdx'
-    $$gdxin '%input_dir%/uFuel2.gdx'
-    $$loaddcm uFuel
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/uFuel3.gdx'
-    $$gdxin '%input_dir%/uFuel3.gdx'
-    $$loaddcm uFuel
     $$gdxin
 $endif
 
@@ -170,15 +158,27 @@ $ifthen exist '%input_dir%/p_gnn3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_gnu2.gdx'
-    $$gdxin '%input_dir%/p_gnu2.gdx'
-    $$loaddcm p_gnu
+$ifthen exist '%input_dir%/ts_gnn2.gdx'
+    $$gdxin '%input_dir%/ts_gnn2.gdx'
+    $$loaddcm ts_gnn
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_gnu3.gdx'
-    $$gdxin '%input_dir%/p_gnu3.gdx'
-    $$loaddcm p_gnu
+$ifthen exist '%input_dir%/ts_gnn3.gdx'
+    $$gdxin '%input_dir%/ts_gnn3.gdx'
+    $$loaddcm ts_gnn
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_gnu_io2.gdx'
+    $$gdxin '%input_dir%/p_gnu_io2.gdx'
+    $$loaddcm p_gnu_io
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_gnu_io3.gdx'
+    $$gdxin '%input_dir%/p_gnu_io3.gdx'
+    $$loaddcm p_gnu_io
     $$gdxin
 $endif
 
@@ -218,6 +218,30 @@ $ifthen exist '%input_dir%/ts_unit3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/p_unitConstraint2.gdx'
+    $$gdxin '%input_dir%/p_unitConstraint2.gdx'
+    $$loaddcm p_unitConstraint
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_unitConstraint3.gdx'
+    $$gdxin '%input_dir%/p_unitConstraint3.gdx'
+    $$loaddcm p_unitConstraint
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_unitConstraintNode2.gdx'
+    $$gdxin '%input_dir%/p_unitConstraintNode2.gdx'
+    $$loaddcm p_unitConstraintNode
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_unitConstraintNode3.gdx'
+    $$gdxin '%input_dir%/p_unitConstraintNode3.gdx'
+    $$loaddcm p_unitConstraintNode
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/restype2.gdx'
     $$gdxin '%input_dir%/restype2.gdx'
     $$loaddcm restype
@@ -251,6 +275,18 @@ $endif
 $ifthen exist '%input_dir%/restypeReleasedForRealization3.gdx'
     $$gdxin '%input_dir%/restypeReleasedForRealization3.gdx'
     $$loaddcm restypeReleasedForRealization
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/restype_inertia2.gdx'
+    $$gdxin '%input_dir%/restype_inertia2.gdx'
+    $$loaddcm restype_inertia
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/restype_inertia3.gdx'
+    $$gdxin '%input_dir%/restype_inertia3.gdx'
+    $$loaddcm restype_inertia
     $$gdxin
 $endif
 
@@ -350,27 +386,15 @@ $ifthen exist '%input_dir%/p_gnBoundaryPropertiesForStates3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_gnPolicy2.gdx'
-    $$gdxin '%input_dir%/p_gnPolicy2.gdx'
-    $$loaddcm p_gnPolicy
+$ifthen exist '%input_dir%/p_uStartupFuel2.gdx'
+    $$gdxin '%input_dir%/p_uStartupFuel2.gdx'
+    $$loaddcm p_uStartupFuel
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_gnPolicy3.gdx'
-    $$gdxin '%input_dir%/p_gnPolicy3.gdx'
-    $$loaddcm p_gnPolicy
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/p_uFuel2.gdx'
-    $$gdxin '%input_dir%/p_uFuel2.gdx'
-    $$loaddcm p_uFuel
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/p_uFuel3.gdx'
-    $$gdxin '%input_dir%/p_uFuel3.gdx'
-    $$loaddcm p_uFuel
+$ifthen exist '%input_dir%/p_uStartupFuel3.gdx'
+    $$gdxin '%input_dir%/p_uStartupFuel3.gdx'
+    $$loaddcm p_uStartupFuel
     $$gdxin
 $endif
 
@@ -386,30 +410,6 @@ $ifthen exist '%input_dir%/flowUnit3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/gngnu_fixedOutputRatio2.gdx'
-    $$gdxin '%input_dir%/gngnu_fixedOutputRatio2.gdx'
-    $$loaddcm gngnu_fixedOutputRatio
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/gngnu_fixedOutputRatio3.gdx'
-    $$gdxin '%input_dir%/gngnu_fixedOutputRatio3.gdx'
-    $$loaddcm gngnu_fixedOutputRatio
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/gngnu_constrainedOutputRatio2.gdx'
-    $$gdxin '%input_dir%/gngnu_constrainedOutputRatio2.gdx'
-    $$loaddcm gngnu_constrainedOutputRatio
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/gngnu_constrainedOutputRatio3.gdx'
-    $$gdxin '%input_dir%/gngnu_constrainedOutputRatio3.gdx'
-    $$loaddcm gngnu_constrainedOutputRatio
-    $$gdxin
-$endif
-
 $ifthen exist '%input_dir%/emission2.gdx'
     $$gdxin '%input_dir%/emission2.gdx'
     $$loaddcm emission
@@ -422,15 +422,15 @@ $ifthen exist '%input_dir%/emission3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_fuelEmission2.gdx'
-    $$gdxin '%input_dir%/p_fuelEmission2.gdx'
-    $$loaddcm p_fuelEmission
+$ifthen exist '%input_dir%/p_nEmission2.gdx'
+    $$gdxin '%input_dir%/p_nEmission2.gdx'
+    $$loaddcm p_nEmission
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_fuelEmission3.gdx'
-    $$gdxin '%input_dir%/p_fuelEmission3.gdx'
-    $$loaddcm p_fuelEmission
+$ifthen exist '%input_dir%/p_nEmission3.gdx'
+    $$gdxin '%input_dir%/p_nEmission3.gdx'
+    $$loaddcm p_nEmission
     $$gdxin
 $endif
 
@@ -446,15 +446,15 @@ $ifthen exist '%input_dir%/ts_cf3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/ts_fuelPriceChange2.gdx'
-    $$gdxin '%input_dir%/ts_fuelPriceChange2.gdx'
-    $$loaddcm ts_fuelPriceChange
+$ifthen exist '%input_dir%/ts_priceChange2.gdx'
+    $$gdxin '%input_dir%/ts_priceChange2.gdx'
+    $$loaddcm ts_priceChange
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/ts_fuelPriceChange3.gdx'
-    $$gdxin '%input_dir%/ts_fuelPriceChange3.gdx'
-    $$loaddcm ts_fuelPriceChange
+$ifthen exist '%input_dir%/ts_priceChange3.gdx'
+    $$gdxin '%input_dir%/ts_priceChange3.gdx'
+    $$loaddcm ts_priceChange
     $$gdxin
 $endif
 
@@ -482,6 +482,18 @@ $ifthen exist '%input_dir%/ts_node3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/p_s_discountFactor2.gdx'
+    $$gdxin '%input_dir%/p_s_discountFactor2.gdx'
+    $$loaddcm p_discountFactor
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_s_discountFactor3.gdx'
+    $$gdxin '%input_dir%/p_s_discountFactor3.gdx'
+    $$loaddcm p_discountFactor
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/t_invest2.gdx'
     $$gdxin '%input_dir%/t_invest2.gdx'
     $$loaddcm t_invest
@@ -494,6 +506,18 @@ $ifthen exist '%input_dir%/t_invest3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/utAvailabilityLimits2.gdx'
+    $$gdxin '%input_dir%/utAvailabilityLimits2.gdx'
+    $$loaddcm ut
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/utAvailabilityLimits3.gdx'
+    $$gdxin '%input_dir%/utAvailabilityLimits3.gdx'
+    $$loaddcm ut
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/p_storageValue2.gdx'
     $$gdxin '%input_dir%/p_storageValue2.gdx'
     $$loaddcm p_storageValue
@@ -503,6 +527,18 @@ $endif
 $ifthen exist '%input_dir%/p_storageValue3.gdx'
     $$gdxin '%input_dir%/p_storageValue3.gdx'
     $$loaddcm p_storageValue
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/ts_storageValue2.gdx'
+    $$gdxin '%input_dir%/ts_storageValue2.gdx'
+    $$loaddcm ts_storageValue
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/ts_storageValue3.gdx'
+    $$gdxin '%input_dir%/ts_storageValue3.gdx'
+    $$loaddcm ts_storageValue
     $$gdxin
 $endif
 
@@ -554,6 +590,18 @@ $ifthen exist '%input_dir%/gnGroup3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/sGroup2.gdx'
+    $$gdxin '%input_dir%/sGroup2.gdx'
+    $$loaddcm sGroup
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/sGroup3.gdx'
+    $$gdxin '%input_dir%/sGroup3.gdx'
+    $$loaddcm sGroup
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/p_groupPolicy2.gdx'
     $$gdxin '%input_dir%/p_groupPolicy2.gdx'
     $$loaddcm p_groupPolicy
@@ -566,15 +614,27 @@ $ifthen exist '%input_dir%/p_groupPolicy3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_groupPolicy3D2.gdx'
-    $$gdxin '%input_dir%/p_groupPolicy3D2.gdx'
-    $$loaddcm p_groupPolicy3D
+$ifthen exist '%input_dir%/p_groupPolicyUnit2.gdx'
+    $$gdxin '%input_dir%/p_groupPolicyUnit2.gdx'
+    $$loaddcm p_groupPolicyUnit
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/p_groupPolicy3D3.gdx'
-    $$gdxin '%input_dir%/p_groupPolicy3D3.gdx'
-    $$loaddcm p_groupPolicy3D
+$ifthen exist '%input_dir%/p_groupPolicyUnit3.gdx'
+    $$gdxin '%input_dir%/p_groupPolicyUnit3.gdx'
+    $$loaddcm p_groupPolicyUnit
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_groupPolicyEmission2.gdx'
+    $$gdxin '%input_dir%/p_groupPolicyEmission2.gdx'
+    $$loaddcm p_groupPolicyEmission
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_groupPolicyEmission3.gdx'
+    $$gdxin '%input_dir%/p_groupPolicyEmission3.gdx'
+    $$loaddcm p_groupPolicyEmission
     $$gdxin
 $endif
 

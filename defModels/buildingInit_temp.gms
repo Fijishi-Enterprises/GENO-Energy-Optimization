@@ -49,13 +49,15 @@ if (mType('building'),
 
     // Define time span of samples
     msStart('building', 's000') = 1;
-    msEnd('building', 's000') = msStart('building', 's000') + mSettings('building', 't_horizon');
+    msEnd('building', 's000') = msStart('building', 's000') + mSettings('building', 't_end') + mSettings('building', 't_horizon');
 
     // Define the probability (weight) of samples
     p_msProbability('building', s) = 0;
     p_msProbability('building', 's000') = 1;
     p_msWeight('building', s) = 0;
     p_msWeight('building', 's000') = 1;
+    p_msAnnuityWeight('building', s) = 0;
+    p_msAnnuityWeight('building', 's000') = 1;
 
 * --- Define Time Step Intervals ----------------------------------------------
 

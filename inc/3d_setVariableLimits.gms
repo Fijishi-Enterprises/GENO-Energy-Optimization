@@ -133,8 +133,9 @@ v_spill.up(gn(grid, node_spill), sft(s, f, t))${    p_gnBoundaryPropertiesForSta
 v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
                                           and not unit_flow(unit)
                                           and not (unit_investLP(unit) or unit_investMIP(unit))
+                                          and p_gnu(grid, node, unit, 'capacity')
                                     }
-    = p_gnu(grid, node, unit, 'maxGen')
+    = p_gnu(grid, node, unit, 'capacity')
         * p_unit(unit, 'availability')
 ;
 // Time series capacity factor based max. energy generation if investments disabled
@@ -144,26 +145,30 @@ v_gen.up(gnu_output(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, uni
                     and nu(node, unit_flow)
                     },
         + ts_cf_(flow, node, s, f, t)
-            * p_gnu(grid, node, unit_flow, 'maxGen')
+            * p_gnu(grid, node, unit_flow, 'capacity')
             * p_unit(unit_flow, 'availability')
       ) // END sum(flow)
 ;
-// Maximum generation to zero to units without generation
-v_gen.up(grid, node, unit, sft(s, f, t))${gnuft(grid, node, unit, f, t)
-                                          and not gnu_output(grid, node, unit)}
-    = 0
-;
-// Min. generation to zero for units without consumption
-v_gen.lo(grid, node, unit, sft(s, f, t))${gnuft(grid, node, unit, f, t)
-                                          and not gnu_input(grid, node, unit) }
-    = 0
-;
+
+// Maximum generation to zero for input nodes
+v_gen.up(gnu_input(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)} = 0;
+
+// Min. generation to zero for output nodes
+v_gen.lo(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)} = 0;
+
 // Constant max. consumption capacity if investments disabled
 v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
                                           and not (unit_investLP(unit) or unit_investMIP(unit))}
-    = - p_gnu(grid, node, unit, 'maxCons')
+    = - p_gnu(grid, node, unit, 'capacity')
         * p_unit(unit, 'availability')
 ;
+
+v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
+                                          and not (unit_investLP(unit) or unit_investMIP(unit))
+                                          and not p_gnu(grid, node, unit, 'capacity')}
+    = - inf
+;
+
 // Time series capacity factor based max. consumption if investments disabled
 v_gen.lo(gnu_input(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, unit_flow, f, t)
                                           and not (unit_investLP(unit_flow) or unit_investMIP(unit_flow))}
@@ -171,17 +176,17 @@ v_gen.lo(gnu_input(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, unit
                     and nu(node, unit_flow)
                     },
           + ts_cf_(flow, node, s, f, t)
-            * p_gnu(grid, node, unit_flow, 'maxCons')
+            * p_gnu(grid, node, unit_flow, 'capacity')
             * p_unit(unit_flow, 'availability')
       ) // END sum(flow)
 ;
 // In the case of negative generation (currently only used for cooling equipment)
 v_gen.lo(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
-                                          and p_gnu(grid, node, unit, 'maxGen') < 0   }
-    = p_gnu(grid, node, unit, 'maxGen')
+                                          and p_gnu(grid, node, unit, 'conversionCoeff') < 0   }
+    = -p_gnu(grid, node, unit, 'capacity')
 ;
 v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
-                                          and p_gnu(grid, node, unit, 'maxGen') < 0}
+                                          and p_gnu(grid, node, unit, 'conversionCoeff') < 0}
     = 0
 ;
 // Ramping capability of units not part of investment set
@@ -195,7 +200,7 @@ v_genRamp.up(gnu(grid, node, unit), sft(s, f, t))${ ord(t) > msStart(mSolve, s) 
                                                     and not unit_investMIP(unit)
                                                     and not uft_startupTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedToMinLoad'
                                                     }
- = ( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') )
+ = p_gnu(grid, node, unit, 'capacity')
         * p_gnu(grid, node, unit, 'maxRampUp')
         * 60;  // Unit conversion from [p.u./min] to [p.u./h]
 v_genRamp.lo(gnu(grid, node, unit), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
@@ -206,7 +211,7 @@ v_genRamp.lo(gnu(grid, node, unit), sft(s, f, t))${ ord(t) > msStart(mSolve, s) 
                                                     and not unit_investMIP(unit)
                                                     and not uft_shutdownTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedFromMinLoad'
                                                     }
- = -( p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons'))
+ = -p_gnu(grid, node, unit, 'capacity')
         * p_gnu(grid, node, unit, 'maxRampDown')
         * 60;  // Unit conversion from [p.u./min] to [p.u./h]
 
@@ -289,28 +294,57 @@ $offtext
 *v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 *v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 
-// Fuel use limitations
-v_fuelUse.up(fuel, unit, sft(s, f, t))${uft(unit, f, t)
-                                        and p_uFuel(unit, 'main', fuel, 'maxFuelCons')}
-    = p_uFuel(unit, 'main', fuel, 'maxFuelCons')
-;
+*----------------------------------------------------------------------IC RAMP-------------------------------------------------------------------------------------------------------------------------------------
+v_ICramp.up(gn2n_directional(grid, node, node_), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
+                                                                 and p_gnn(grid, node, node_, 'ICrampUp')
+                                                                 and not p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                 }
+ = p_gnn(grid, node, node_, 'transferCap')
+       * p_gnn(grid, node, node_, 'ICrampUp')
+       * 60;    // Unit conversion from [p.u./min] to [p.u./h]
+v_ICramp.lo(gn2n_directional(grid, node, node_), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
+                                                                 and p_gnn(grid, node, node_, 'ICrampDown')
+                                                                 and not p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                 }
+ = -(p_gnn(grid, node, node_, 'transferCap'))
+       * p_gnn(grid, node, node_, 'ICrampDown')
+       * 60;    // Unit conversion from [p.u./min] to [p.u./h]
+
+*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 * --- Energy Transfer Boundaries ----------------------------------------------
 
 // Restrictions on transferring energy between nodes without investments
 // Total transfer variable restricted from both above and below (free variable)
 v_transfer.up(gn2n_directional(grid, node, node_), sft(s, f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = p_gnn(grid, node, node_, 'transferCap')
+    = [
+        + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+        + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+        ]
+        * p_gnn(grid, node, node_, 'transferCap')
 ;
 v_transfer.lo(gn2n_directional(grid, node, node_), sft(s, f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = -p_gnn(grid, node_, node, 'transferCap')
+    = [
+        - p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
+        - ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
+        ]
+        * p_gnn(grid, node_, node, 'transferCap')
 ;
 // Directional transfer variables only restricted from above (positive variables)
 v_transferRightward.up(gn2n_directional(grid, node, node_), sft(s, f, t))${ not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = p_gnn(grid, node, node_, 'transferCap')
+    = [
+        + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+        + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+        ]
+        * p_gnn(grid, node, node_, 'transferCap')
 ;
 v_transferLeftward.up(gn2n_directional(grid, node, node_), sft(s, f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
-    = p_gnn(grid, node_, node, 'transferCap')
+    = [
+        + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
+        + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
+        ]
+        * p_gnn(grid, node_, node, 'transferCap')
 ;
 
 * --- Reserve Provision Boundaries --------------------------------------------
@@ -326,11 +360,11 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
                         ft_reservesFixed(group, restype, f+df_reserves(grid, node, restype, f, t), t)
                         )
             }
-        = min ( p_gnuReserves(grid, node, unit, restype, up_down) * [ p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') ],  // Generator + consuming unit res_range limit
+        = min ( p_gnuReserves(grid, node, unit, restype, up_down) * p_gnu(grid, node, unit, 'capacity'),  // Res_range limit
                 v_gen.up(grid, node, unit, s, f, t) - v_gen.lo(grid, node, unit, s, f, t) // Generator + consuming unit available unit_elec. output delta
                 )${not gnuOfflineRescapable(restype, grid, node, unit)} // END min
             + p_gnuReserves(grid, node, unit, restype, up_down)${gnuOfflineRescapable(restype, grid, node, unit)}
-              * [ p_gnu(grid, node, unit, 'maxGen') + p_gnu(grid, node, unit, 'maxCons') ]
+              * p_gnu(grid, node, unit, 'capacity')
 ;
 
     // Reserve transfer upper bounds based on input p_nnReserves data, if investments are disabled
@@ -345,7 +379,11 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
                            ) // Commit reserve transfer as long as either end commits.
                         ]
             }
-        =  p_gnn(grid, node, node_, 'transferCap')
+        = [
+            + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+            + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+            ]
+            * p_gnn(grid, node, node_, 'transferCap')
             * p_gnnReserves(grid, node, node_, restype, up_down);
 
     v_resTransferLeftward.up(restypeDirectionGridNodeNode(restype, up_down, grid, node, node_), s, f+df_reserves(grid, node, restype, f, t), t)
@@ -359,8 +397,12 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
                                ) // Commit reserve transfer as long as either end commits.
                         ]
             }
-        = p_gnn(grid, node, node_, 'transferCap')
-            * p_gnnReserves(grid, node, node_, restype, up_down);
+        = [
+            + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
+            + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
+            ]
+            * p_gnn(grid, node_, node, 'transferCap')
+            * p_gnnReserves(grid, node_, node, restype, up_down);
 
     // Fix non-flow unit reserves at the gate closure of reserves
     v_reserve.fx(gnuRescapable(restype, up_down, grid, node, unit), s, f+df_reserves(grid, node, restype, f, t), t)
@@ -407,17 +449,17 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
 
 // Unit Investments
 // LP variant
-v_invest_LP.up(unit, t_invest)${    unit_investLP(unit) }
+v_invest_LP.up(unit)${    unit_investLP(unit) }
     = p_unit(unit, 'maxUnitCount')
 ;
-v_invest_LP.lo(unit, t_invest)${    unit_investLP(unit) }
+v_invest_LP.lo(unit)${    unit_investLP(unit) }
     = p_unit(unit, 'minUnitCount')
 ;
 // MIP variant
-v_invest_MIP.up(unit, t_invest)${   unit_investMIP(unit)    }
+v_invest_MIP.up(unit)${   unit_investMIP(unit)    }
     = p_unit(unit, 'maxUnitCount')
 ;
-v_invest_MIP.lo(unit, t_invest)${   unit_investMIP(unit)    }
+v_invest_MIP.lo(unit)${   unit_investMIP(unit)    }
     = p_unit(unit, 'minUnitCount')
 ;
 
@@ -535,3 +577,26 @@ if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on
             }
         = r_online(unit, f, t);
 ); // END if
+
+* =============================================================================
+* --- Fix previously realized investment results ------------------------------
+* =============================================================================
+
+v_invest_LP.fx(unit_investLP(unit))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
+    = r_invest(unit)
+;
+v_invest_MIP.fx(unit_investMIP(unit))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
+    = r_invest(unit)
+;
+v_investTransfer_LP.fx(gn2n_directional(grid, node, node_), t_invest(t))${    not p_gnn(grid, node, node_, 'investMIP')
+                                                                              and p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                              and ord(t) <= tSolveFirst
+                                                                              }
+    = r_investTransfer(grid, node, node_, t)
+;
+v_investTransfer_MIP.fx(gn2n_directional(grid, node, node_), t_invest(t))${   p_gnn(grid, node, node_, 'investMIP')
+                                                                              and p_gnn(grid, node, node_, 'transferCapInvLimit')
+                                                                              and ord(t) <= tSolveFirst
+                                                                              }
+    = r_investTransfer(grid, node, node_, t) / p_gnn(grid, node, node_, 'unitSize')
+;

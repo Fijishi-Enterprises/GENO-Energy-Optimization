@@ -26,6 +26,7 @@ Option clear = v_gen;
 Option clear = v_state;
 Option clear = v_genRamp;
 Option clear = v_transfer;
+Option clear = v_ICramp;
 // Integer Variables
 Option clear = v_online_MIP;
 Option clear = v_invest_MIP;
@@ -35,7 +36,6 @@ Option clear = v_help_inc;
 // SOS2 Variables
 Option clear = v_sos2;
 // Positive Variables
-Option clear = v_fuelUse;
 Option clear = v_startup_LP;
 Option clear = v_startup_MIP;
 Option clear = v_shutdown_LP;
@@ -88,18 +88,18 @@ Option clear = q_rampUpLimit;
 Option clear = q_rampDownLimit;
 Option clear = q_rampUpDown;
 Option clear = q_rampSlack;
-Option clear = q_outputRatioFixed;
-Option clear = q_outputRatioConstrained;
 Option clear = q_conversionDirectInputOutput;
 Option clear = q_conversionSOS2InputIntermediate;
 Option clear = q_conversionSOS2Constraint;
 Option clear = q_conversionSOS2IntermediateOutput;
 Option clear = q_conversionIncHR;
-Option clear = q_conversionIncHRMaxGen;
+Option clear = q_conversionIncHRMaxOutput;
 Option clear = q_conversionIncHRBounds;
 Option clear = q_conversionIncHR_help1;
 Option clear = q_conversionIncHR_help2;
-Option clear = q_fuelUseLimit;
+Option clear = q_unitEqualityConstraint;
+Option clear = q_unitGreaterThanConstraint;
+*Option clear = q_commodityUseLimit;
 
 // Energy Transfer
 Option clear = q_transfer;
@@ -124,6 +124,7 @@ Option clear = q_constrainedOnlineMultiUnit;
 Option clear = q_capacityMargin;
 Option clear = q_constrainedCapMultiUnit;
 Option clear = q_emissioncap;
+Option clear = q_energyMax;
 Option clear = q_energyShareMax;
 Option clear = q_energyShareMin;
 Option clear = q_ReserveShareMax;
@@ -139,6 +140,8 @@ Option clear = ts_cf_;
 Option clear = ts_unit_;
 Option clear = ts_reserveDemand_;
 Option clear = ts_node_;
+Option clear = ts_vomCost_;
+Option clear = ts_startupCost_;
 
 
 * =============================================================================
@@ -326,9 +329,15 @@ $endif
 
 // Loop over defined samples
 loop(msf(mSolve, s, f)$msStart(mSolve, s),
-                      // Move the samples along with the dispatch
+                      // Move the samples along with the dispatch if scenarios are used
     sft(s, ft(f, t))${ord(t) > msStart(mSolve, s) + tSolveFirst - 1
                       and ord(t) < msEnd(mSolve, s) + tSolveFirst
+                      and mSettings(mSolve, 'scenarios')
+                     } = yes;
+                      // Otherwise do not move the samples along with the rolling horizon
+    sft(s, ft(f, t))${ord(t) > msStart(mSolve, s)
+                      and ord(t) <= msEnd(mSolve, s)
+                      and not mSettings(mSolve, 'scenarios')
                      } = yes;
 );
 
@@ -458,7 +467,7 @@ loop(mf_realization(mSolve, f_),
 );
 // Central forecast for the long-term scenarios comes from a special forecast label
 Option clear = df_scenario;
-if(mSettings(mSolve, 'scenarios') > 1,
+if(mSettings(mSolve, 'scenarios') >= 1,
     loop((msft(ms_central(mSolve, s), f, t), mf_scenario(mSolve, f_)),
         df_scenario(ft(f, t)) = ord(f_) - ord(f);
     );
@@ -557,6 +566,12 @@ uft(unit, ft(f, t))${   (   [
 // only units with capacities or investment option
     = yes;
 
+// Units are not active before or after their lifetime
+uft(unit, ft(f, t))${   [ ord(t) < p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeAvailable') ]
+                        or [ ord(t) >= p_unit(unit, 'becomeUnavailable') and p_unit(unit, 'becomeUnavailable') ]
+                        }
+    = no;
+
 // First ft:s for each aggregator unit
 Option clear = uft_aggregator_first;
 loop(unit${unit_aggregator(unit)},
@@ -597,7 +612,7 @@ Option clear = sufts;
 // Loop over the defined efficiency groups for units
 loop(effLevelGroupUnit(effLevel, effGroup, unit)${ mSettingsEff(mSolve, effLevel) },
     // Determine the used effGroup for each uft
-    suft(effGroup, uft(unit, f, t))${   ord(t) >= tSolveFirst + mSettingsEff(mSolve, effLevel - 1) + 1
+    suft(effGroup, uft(unit, f, t))${   ord(t) >= tSolveFirst + mSettingsEff_start(mSolve, effLevel)
                                         and ord(t) <= tSolveFirst + mSettingsEff(mSolve, effLevel) }
         = yes;
 ); // END loop(effLevelGroupUnit)

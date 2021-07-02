@@ -7,7 +7,9 @@ All notable changes to this project will be documented in this file.
 
 ## [1.3.3] - 2021-04-14
 - Transfer can have additional 'variable' costs (costs per MWh transferred)
-- Storages consider the duration of the reserve activation 
+- Reserve activation duration and reactivation time included (in state constraints)
+- Raise execution error if solver did not finish normally
+- Updated the selection of unit efficiency approximation levels
 - Additional result outputs
 
 ## [1.3.2] - 2021-01-19
@@ -18,10 +20,12 @@ All notable changes to this project will be documented in this file.
 - Additional result outputs concerning emissions
 
 ## [1.3] - 2020-10-21
--
+- Static inertia requirement can be fulfilled by both rotational inertia of machines and certain reserve products
+- Dynamic generation portfolios aka pathway modelling aka multi-year simulations with discounted costs enabled
+- Parameters p_gnPolicy and p_groupPolicy3D replaced with p_groupPolicyEmission and p_groupPolicyUnit
 
 ## [1.2.2] - 2020-06-09
--
+- Clean up, minor bug fixes and more results outputs
 
 ## [1.2.1] - 2019-11-26
 ### Fixed
@@ -59,6 +63,28 @@ All notable changes to this project will be documented in this file.
 - Fix a number of compilation warnings
 - Limiting the provision of online reserve based on the online variable
 - Sample probability bug from scenario reduction (probability of single scenario above one)
+
+
+## 1.1.5 - 2020-11-28
+### Fixed
+- Long-term scenario data when using only one scenario
+- Bug with scenario smooting which caused wrong values on later than first solve
+
+
+## 1.1.4 - 2019-11-02
+### Fixed
+- Sample probability bug from scenario reduction
+
+
+## 1.1.3 - 2019-10-24
+### Changed 
+- Scenario reduction is done based on total available energy
+
+
+## 1.1.2 - 2019-10-23
+### Changed 
+- Maintain original scenario labels after reduction
+
 
 ## [1.1] - 2019-04-17
 ### Added

@@ -19,61 +19,82 @@ $offtext
 * --- Load Input Data ---------------------------------------------------------
 * =============================================================================
 
-$ifthen exist '%input_dir%/inputData.gdx'
-    $$gdxin  '%input_dir%/inputData.gdx'
-    $$loaddcm grid
-    $$loaddc node
-    $$loaddc flow
-    $$loaddc unittype
-    $$loaddc unit
-    $$loaddc unitUnittype
-    $$loaddc unit_fail
-    $$loaddc fuel
-    $$loaddc unitUnitEffLevel
-    $$loaddc uFuel
-    $$loaddc effLevelGroupUnit
-    $$loaddc group
-    $$loaddc p_gn
-    $$loaddc p_gnn
-    $$loaddc p_gnu
-    $$loaddc p_gnuBoundaryProperties
-    $$loaddc p_unit
-    $$loaddc ts_unit
-    $$loaddc restype
-    $$loaddc restypeDirection
-    $$loaddc restypeReleasedForRealization
-    $$loaddc p_groupReserves
-    $$loaddc p_groupReserves3D
-    $$loaddc p_groupReserves4D
-    $$loaddc p_gnuReserves
-    $$loaddc p_gnnReserves
-    $$loaddc p_gnuRes2Res
-    $$loaddc ts_reserveDemand
-    $$loaddc p_gnBoundaryPropertiesForStates
-    $$loaddc p_gnPolicy
-    $$loaddc p_uFuel
-    $$loaddc flowUnit
-    $$loaddc gngnu_fixedOutputRatio
-    $$loaddc gngnu_constrainedOutputRatio
-    $$loaddc emission
-    $$loaddc p_fuelEmission
-    $$loaddc ts_cf
-*    $$loaddc p_fuelPrice // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
-    $$loaddc ts_fuelPriceChange
-    $$loaddc ts_influx
-    $$loaddc ts_node
-    $$loaddc t_invest
-    $$loaddc p_storageValue
-    $$loaddc uGroup
-    $$loaddc gnuGroup
-    $$loaddc gn2nGroup
-    $$loaddc gnGroup
-    $$loaddc p_groupPolicy
-    $$loaddc p_groupPolicy3D
-    $$loaddc gnss_bound
-    $$loaddc uss_bound
-    $$gdxin
+* If input_file excel has been set in the command line arguments, then Gdxxrw will be run to convert the Excel into a GDX file
+*   using the sheet defined by input_excel_index command line argument (default: 'INDEX').
+$if set input_file_excel $call 'gdxxrw Input="%input_dir%/%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
+$ife %system.errorlevel%>0 $abort gdxxrw failed! Check that your input Excel is valid and that your file path and file name are correct.
+
+* --input_file_gdx=nameOfInputFile.gdx for input_file_gdx in input_dir
+$ifthen exist '%input_dir%/%input_file_gdx%'
+    $$gdxin  '%input_dir%/%input_file_gdx%'
+* --input_file_gdx=ABSOLUTE/PATH/nameOfInputFile.gdx for input_file_gdx not in input_dir
+$elseif exist '%input_file_gdx%'
+    $$gdxin  '%input_file_gdx%'
+$else
+    $$goto no_input_gdx
 $endif
+
+$loaddcm grid
+$loaddc node
+$loaddc flow
+$loaddc unittype
+$loaddc unit
+$loaddc unitUnittype
+$loaddc unit_fail
+$loaddc commodity
+$loaddc unitUnitEffLevel
+$loaddc effLevelGroupUnit
+$loaddc group
+$loaddc p_gn
+$loaddc p_gnn
+$loaddc ts_gnn
+$loaddc p_gnu_io
+$loaddc p_gnuBoundaryProperties
+$loaddc p_unit
+$loaddc ts_unit
+$loaddc p_unitConstraint
+$loaddc p_unitConstraintNode
+$loaddc restype
+$loaddc restypeDirection
+$loaddc restypeReleasedForRealization
+$loaddc restype_inertia
+$loaddc p_groupReserves
+$loaddc p_groupReserves3D
+$loaddc p_groupReserves4D
+$loaddc p_gnuReserves
+$loaddc p_gnnReserves
+$loaddc p_gnuRes2Res
+$loaddc ts_reserveDemand
+$loaddc p_gnBoundaryPropertiesForStates
+$loaddc p_uStartupfuel
+$loaddc flowUnit
+$loaddc emission
+$loaddc p_nEmission
+$loaddc ts_cf
+*$loaddc p_price // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
+$loaddc ts_priceChange
+$loaddc ts_influx
+$loaddc ts_node
+$loaddc p_s_discountFactor
+$loaddc t_invest
+$loaddc utAvailabilityLimits
+$loaddc p_storageValue
+$loaddc ts_storageValue
+$loaddc uGroup
+$loaddc gnuGroup
+$loaddc gn2nGroup
+$loaddc gnGroup
+$loaddc sGroup
+$loaddc p_groupPolicy
+$loaddc p_groupPolicyUnit
+$loaddc p_groupPolicyEmission
+$loaddc gnss_bound
+$loaddc uss_bound
+
+$gdxin
+
+$label no_input_gdx
+
 
 * Read changes to inputdata through gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx) - allows scenarios through Sceleton Titan Excel files.
 $include 'inc/1e_scenChanges.gms'
@@ -115,25 +136,29 @@ $offtext
 
 * --- Generate Unit Related Sets ----------------------------------------------
 
+p_gnu(grid, node, unit, param_gnu) = sum(input_output, p_gnu_io(grid, node, unit, input_output, param_gnu));
+
 // Set of all existing gnu
 gnu(grid, node, unit)${ not sameas(grid, 'empty')
-                        and (   p_gnu(grid, node, unit, 'maxGen')
-                                or p_gnu(grid, node, unit, 'maxCons')
-                                or p_gnu(grid, node, unit, 'unitSizeGen')
-                                or p_gnu(grid, node, unit, 'unitSizeCons')
+                        and (   p_gnu(grid, node, unit, 'capacity')
+                                or p_gnu(grid, node, unit, 'unitSize')
+                                or p_gnu(grid, node, unit, 'conversionCoeff')
                                 )
                       }
     = yes;
 // Reduce the grid dimension
 nu(node, unit) = sum(grid, gnu(grid, node, unit));
+//p_gnu(grid, node, unit, 'capacity')$(p_gnu(grid, node, unit, 'capacity') = 0) = inf;
 
 // Separation of gnu into inputs and outputs
-gnu_output(gnu(grid, node, unit))${ p_gnu(grid, node, unit, 'maxGen')
-                                    or p_gnu(grid, node, unit, 'unitSizeGen')
+gnu_output(gnu(grid, node, unit))${ p_gnu_io(grid, node, unit, 'output', 'capacity')
+                                    or p_gnu_io(grid, node, unit, 'output', 'unitSize')
+                                    or p_gnu_io(grid, node, unit, 'output', 'conversionCoeff')
                                     }
     = yes;
-gnu_input(gnu(grid, node, unit))${  p_gnu(grid, node, unit, 'maxCons')
-                                    or p_gnu(grid, node, unit, 'unitSizeCons')
+gnu_input(gnu(grid, node, unit))${  p_gnu_io(grid, node, unit, 'input', 'capacity')
+                                    or p_gnu_io(grid, node, unit, 'input', 'unitSize')
+                                    or p_gnu_io(grid, node, unit, 'input', 'conversionCoeff')
                                     }
     = yes;
 
@@ -149,10 +174,13 @@ unit_minload(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operati
                         }
     = yes;
 
-// Units with flows/fuels
+// Units with flows/commodities
 unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
-unit_fuel(unit)${ sum(fuel, uFuel(unit, 'main', fuel)) }
+un_commodity(unit, commodity)$sum(grid, gnu(grid, commodity, unit)) = yes;
+un_commodity_in(unit, commodity)$sum(grid, gnu_input(grid, commodity, unit)) = yes;
+un_commodity_out(unit, commodity)$sum(grid, gnu_output(grid, commodity, unit)) = yes;
+unit_commodity(unit)${ sum(node, un_commodity(unit, node)) }
     = yes;
 
 // Units with investment variables
@@ -198,25 +226,17 @@ p_unit(unit, 'unitCount')${ not p_unit(unit, 'unitCount')
 
 // By default add outputs in order to get the total capacity of the unit
 p_unit(unit, 'outputCapacityTotal')${ not p_unit(unit, 'outputCapacityTotal') }
-    = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'maxGen'));
+    = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'capacity'));
 p_unit(unit, 'unitOutputCapacityTotal')
-    = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+    = sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 
 // Assume unit sizes based on given maximum capacity parameters and unit counts if able
-p_gnu(gnu(grid, node, unit), 'unitSizeGen')
-    ${  not p_gnu(grid, node, unit, 'unitSizeGen')
-        and p_gnu(grid, node, unit, 'maxGen')
+p_gnu(gnu(grid, node, unit), 'unitSize')
+    ${  not p_gnu(grid, node, unit, 'unitSize')
+        and p_gnu(grid, node, unit, 'capacity')
         and p_unit(unit, 'unitCount')
         }
-    = p_gnu(grid, node, unit, 'maxGen') / p_unit(unit, 'unitCount'); // If maxGen and unitCount are given, calculate unitSizeGen based on them.
-p_gnu(gnu(grid, node, unit), 'unitSizeCons')
-    ${  not p_gnu(grid, node, unit, 'unitSizeCons')
-        and p_gnu(grid, node, unit, 'maxCons')
-        and p_unit(unit, 'unitCount')
-        }
-    = p_gnu(grid, node, unit, 'maxCons') / p_unit(unit, 'unitCount');  // If maxCons and unitCount are given, calculate unitSizeCons based on them.
-p_gnu(gnu(grid, node, unit), 'unitSizeTot')
-    = p_gnu(grid, node, unit, 'unitSizeGen') + p_gnu(grid, node, unit, 'unitSizeCons');
+    = p_gnu(grid, node, unit, 'capacity') / p_unit(unit, 'unitCount'); // If capacity and unitCount are given, calculate unitSize based on them.
 
 // Determine unit startup parameters based on data
 // Hot startup parameters
@@ -226,10 +246,10 @@ p_uNonoperational(unitStarttype(unit, 'hot'), 'max')
     = p_unit(unit, 'startWarmAfterXhours');
 p_uStartup(unitStarttype(unit, 'hot'), 'cost')
     = p_unit(unit, 'startCostHot')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 p_uStartup(unitStarttype(unit, 'hot'), 'consumption')
     = p_unit(unit, 'startFuelConsHot')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 
 // Warm startup parameters
 p_uNonoperational(unitStarttype(unit, 'warm'), 'min')
@@ -238,69 +258,63 @@ p_uNonoperational(unitStarttype(unit, 'warm'), 'max')
     = p_unit(unit, 'startColdAfterXhours');
 p_uStartup(unitStarttype(unit, 'warm'), 'cost')
     = p_unit(unit, 'startCostWarm')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 p_uStartup(unitStarttype(unit, 'warm'), 'consumption')
     = p_unit(unit, 'startFuelConsWarm')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 
 // Cold startup parameters
 p_uNonoperational(unitStarttype(unit, 'cold'), 'min')
     = p_unit(unit, 'startColdAfterXhours');
 p_uStartup(unit, 'cold', 'cost')
     = p_unit(unit, 'startCostCold')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 p_uStartup(unit, 'cold', 'consumption')
     = p_unit(unit, 'startFuelConsCold')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 
 
 //shutdown cost parameters
 p_uShutdown(unit, 'cost')
     = p_unit(unit, 'shutdownCost')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSizeGen'));
+        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 
 // Determine unit emission costs
-p_unitFuelEmissionCost(unit_fuel, fuel, emission)${ sum(param_fuel, uFuel(unit_fuel, param_fuel, fuel)) }
-    = p_fuelEmission(fuel, emission)
+p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, emission)}
+    = p_nEmission(node, emission)
         / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
-        * sum(gnu_output(grid, node, unit_fuel),
-            + p_gnPolicy(grid, node, 'emissionTax', emission)  // Weighted average of emission costs from different output energy types
-                * [ + p_gnu(grid, node, unit_fuel, 'maxGen')
-                    + p_gnu(grid, node, unit_fuel, 'unitSizeGen')${not p_gnu(grid, node, unit_fuel, 'maxGen')}
-                    ] // END * p_gnPolicy
-        ) // END sum(gnu_output)
-        / sum(gnu_output(grid, node, unit_fuel), // Weighted average of emission costs from different output energy types
-            + p_gnu(grid, node, unit_fuel, 'maxGen')
-            + p_gnu(grid, node, unit_fuel, 'unitSizeGen')$(not p_gnu(grid, node, unit_fuel, 'maxGen'))
-        ) // END sum(gnu_output)
+        * sum(gnGroup(grid, node, group)$gnu_input(grid, node, unit),
+            + p_groupPolicyEmission(group, 'emissionTax', emission)
+          )
 ;
 
-// If the start-up fuel fraction is not defined, it equals 1
-p_uFuel(uFuel(unit_fuel, 'startup', fuel), 'fixedFuelFraction')${ not p_uFuel(unit_fuel, 'startup', fuel, 'fixedFuelFraction') }
-    = 1;
+
+// Unit lifetime
+loop(utAvailabilityLimits(unit, t, availabilityLimits),
+    p_unit(unit, availabilityLimits) = ord(t)
+); // END loop(ut)
 
 * =============================================================================
-* --- Determine Fuel Price Representation -------------------------------------
+* --- Determine Commodity Price Representation -------------------------------------
 * =============================================================================
-// Use either constant or time series for fuel prices depending on 'ts_fuelPriceChange'
-// Should be handled separately by 'p_fuelPrice' also being included in the input data,
-// but this is more convenient for now as no changes to inputs are required
+// Use time series for commodity prices depending on 'ts_priceChange'
 
-// Determine if fuel prices require a time series representation or not
-loop(fuel,
+// Determine if commodity prices require a time series representation or not
+loop(commodity,
     // Find the steps with changing fuel prices
     option clear = tt;
-    tt(t)${ ts_fuelPriceChange(fuel, t) } = yes;
+    tt(t)${ ts_priceChange(commodity, t) } = yes;
 
     // If only up to a single value
     if(sum(tt, 1) <= 1,
-        p_fuelPrice(fuel, 'useConstant') = 1; // Use a constant for fuel prices
-        p_fuelPrice(fuel, 'fuelPrice') = sum(tt, ts_fuelpriceChange(fuel, tt)) // Determine the price as the only value in the time series
+        p_price(commodity, 'useConstant') = 1; // Use a constant for commodity prices
+        p_price(commodity, 'price') = sum(tt, ts_priceChange(commodity, tt)) // Determine the price as the only value in the time series
     // If multiple values found, use time series
     else
-        p_fuelPrice(fuel, 'useTimeSeries') = 1;
+        p_price(commodity, 'useTimeSeries') = 1;
         ); // END if(sum(tt))
 ); // END loop(fuel)
+
 
 * =============================================================================
 * --- Generate Node Related Sets Based on Input Data --------------------------
@@ -396,16 +410,40 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
                         }
     = yes;
 
+* --- Timeseries parameters for node-node connections -------------------------
+
+// Transfer links with time series enabled for certain parameters
+gn2n_timeseries(grid, node, node_, 'availability')${p_gnn(grid, node, node_, 'useTimeseriesAvailability')}
+    = yes;
+gn2n_timeseries(grid, node, node_, 'transferLoss')${p_gnn(grid, node, node_, 'useTimeseriesLoss')}
+    = yes;
+
 * =============================================================================
 * --- Reserves Sets & Parameters ----------------------------------------------
 * =============================================================================
 // NOTE! Reserves can be disabled through the model settings file.
 // The sets are disabled in "3a_periodicInit.gms" accordingly.
 
+* --- Correct values for critical reserve related parameters - Part 1 ---------
+
+// Reserve activation duration assumed to be 1 hour if not provided in data
+p_groupReserves(group, restype, 'reserve_activation_duration')
+    ${  not p_groupReserves(group, restype, 'reserve_activation_duration')
+        and p_groupReserves(group, restype, 'reserve_length')
+        }
+    = 1;
+// Reserve reactivation time assumed to be 1 hour if not provided in data
+p_groupReserves(group, restype, 'reserve_reactivation_time')
+    ${  not p_groupReserves(group, restype, 'reserve_reactivation_time')
+        and p_groupReserves(group, restype, 'reserve_length')
+        }
+    = 1;
+
+* --- Copy reserve data and create necessary sets -----------------------------
+
 // Copy data from p_groupReserves to p_gnReserves
 loop(gnGroup(grid, node, group)${sum(restype, p_groupReserves(group, restype, 'reserve_length'))},
     p_gnReserves(grid, node, restype, param_policy) = p_groupReserves(group, restype, param_policy);
-    p_gnReserves(grid, node, restype, up_down) = p_groupReserves(group, restype, up_down);
 );
 
 // Units with reserve provision capabilities
@@ -441,7 +479,7 @@ restypeDirectionGridNodeNode(restypeDirection(restype, up_down), gn2n(grid, node
 // Nodes with reserve requirements, units capable of providing reserves, or reserve capable connections
 restypeDirectionGridNode(restypeDirection(restype, up_down), gn(grid, node))
     $ { p_gnReserves(grid, node, restype, up_down)
-        or p_gnReserves(grid, node, restype, 'use_time_series')
+        or p_gnReserves(grid, node, restype, 'useTimeSeries')
         or sum(gnu(grid, node, unit), p_gnuReserves(grid, node, unit, restype, 'portion_of_infeed_to_reserve'))
         or sum(gnu(grid, node, unit), gnuRescapable(restype, up_down, grid, node, unit))
         or sum(gn2n(grid, node, to_node), restypeDirectionGridNodeNode(restype, up_down, grid, node, to_node))
@@ -458,7 +496,7 @@ restypeDirectionGridNodeGroup(restypeDirection(restype, up_down), gnGroup(grid, 
       }
   = yes;
 
-* --- Correct values for critical reserve related parameters ------------------
+* --- Correct values for critical reserve related parameters - Part 2 ---------
 
 // Reserve reliability assumed to be perfect if not provided in data
 p_gnuReserves(gnu(grid, node, unit), restype, 'reserveReliability')
@@ -559,21 +597,21 @@ loop( unit,
     ); // END loop(effLevelGroupUnit)
 );
 
-* --- Check fuel fraction related data ----------------------------------------
+* --- Check startupfuel fraction related data ----------------------------------------
 
-loop( unit_fuel(unit)${sum(fuel, uFuel(unit_fuel, 'startup', fuel))},
-    if(sum(fuel, p_uFuel(unit, 'startup', fuel, 'fixedFuelFraction')) <> 1,
+loop( unit${sum(commodity$p_uStartupfuel(unit, commodity, 'fixedFuelFraction'), 1)},
+    if(sum(commodity, p_uStartupfuel(unit, commodity, 'fixedFuelFraction')) <> 1,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
         put log '!!! Abort: The sum of fixedFuelFraction over start-up fuels needs to be one for all units using start-up fuels!' /;
         abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
     );
 );
 
-loop( unit_fuel(unit)${sum(fuel, p_uFuel(unit, 'main', fuel, 'maxFuelFraction'))},
-    if(sum(uFuel(unit, 'main', fuel), 1) < 2,
+loop( unit${sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1)},
+    if(sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1) < 2,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
-        put log '!!! Abort: maxFuelFraction cannot be applied to units with only a single main fuel!' /;
-        abort "'maxFuelFraction' cannot be applied to units with only a single main fuel!"
+        put log '!!! Abort: constraint requires at least two inputs or outputs!' /;
+        abort "a constraint has to have more tha one input or output!"
     );
 );
 
@@ -590,14 +628,22 @@ loop( unitStarttype(unit, starttypeConstrained),
 
 * --- Check reserve related data ----------------------------------------------
 
-// Check that reserve_length is long enough for properly commitment of reserves
-loop( restypeDirectionGridNode(restype, up_down, grid, node),
-    // Check that reserve_length is long enough for properly commitment of reserves
-    if(p_gnReserves(grid, node, restype, 'reserve_length') < p_gnReserves(grid, node, restype, 'update_frequency') + p_gnReserves(grid, node, restype, 'gate_closure'),
-        put log '!!! Error occurred on node ', node.tl:0 /;
+loop( restypeDirectionGroup(restype, up_down, group),
+    // Check that reserve_length is long enough for proper commitment of reserves
+    if(p_groupReserves(group, restype, 'reserve_length') < p_groupReserves(group, restype, 'update_frequency') + p_groupReserves(group, restype, 'gate_closure'),
+        put log '!!! Error occurred on group ', group.tl:0 /;
         put log '!!! Abort: The reserve_length parameter should be longer than update_frequency + gate_closure to fix the reserves properly!' /;
         abort "The 'reserve_length' parameter should be longer than 'update_frequency' + 'gate_closure' to fix the reserves properly!"
     ); // END if
+    // Check that the duration of reserve activation is less than the reserve reactivation time
+    if(p_groupReserves(group, restype, 'reserve_reactivation_time') < p_groupReserves(group, restype, 'reserve_activation_duration'),
+        put log '!!! Error occurred on group ', group.tl:0 /;
+        put log '!!! Abort: The reserve_reactivation_time should be greater than or equal to the reserve_activation_duration!' /;
+        abort "The reserve_reactivation_time should be greater than or equal to the reserve_activation_duration!"
+    ); // END if
+); // END loop(restypeDirectionGroup)
+
+loop( restypeDirectionGridNode(restype, up_down, grid, node),
     // Check for each restype that a node does not belong to multiple groups
     if(sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group), 1) > 1,
         put log '!!! Error occurred on node ', node.tl:0 /;
@@ -610,7 +656,7 @@ loop( restypeDirectionGridNode(restype, up_down, grid, node),
         put log '!!! Abort: A node with reserve provision/transfer capability has to belong to a reserve node group!' /;
         abort "A node with reserve provision/transfer capability has to belong to a reserve node group!"
     ); // END if
-); // END loop(restypeDirectionNode)
+); // END loop(restypeDirectionGridNode)
 
 // Check that reserve overlaps are possible
 loop( (gnu(grid, node, unit), restypeDirection(restype, up_down)),
@@ -620,6 +666,25 @@ loop( (gnu(grid, node, unit), restypeDirection(restype, up_down)),
         abort "Overlapping reserve capacities in p_gnuRes2Res can result in excess reserve production!"
     ); // END if(p_gnuReserves)
 ); // END loop((gnu,restypeDirection))
+
+* --- Check investment related data -------------------------------------------
+
+// Check that units with LP investment possibility have unitSize
+loop( unit_investLP(unit),
+    if(not sum(gnu(grid, node, unit), abs(p_gnu(grid, node, unit, 'unitSize'))),
+        put log '!!! Error occurred on unit ', unit.tl:0 /;
+        put log '!!! Abort: Unit is listed as an investment option but it has no unitSize!' /;
+        abort "All units with investment possibility should have 'unitSize' in p_gnu!"
+    ); // END if
+); // END loop(unit_investLP)
+// Check that units with MIP investment possibility have unitSize
+loop( unit_investMIP(unit),
+    if(not sum(gnu(grid, node, unit), abs(p_gnu(grid, node, unit, 'unitSize'))),
+        put log '!!! Error occurred on unit ', unit.tl:0 /;
+        put log '!!! Abort: Unit is listed as an investment option but it has no unitSize!' /;
+        abort "All units with investment possibility should have 'unitSize' in p_gnu!"
+    ); // END if
+); // END loop(unit_investMIP)
 
 
 * =============================================================================
