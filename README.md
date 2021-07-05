@@ -4,6 +4,15 @@ Backbone is a generic energy network optimization tool written in [GAMS](https:/
 
 If you use Backbone in a published work, please cite the [following publication](https://doi.org/10.3390/en12173388), which describes the Backbone energy systems modelling framework.
 
+*MDPI and ACS Style*  
+Helistö, N.; Kiviluoma, J.; Ikäheimo, J.; Rasku, T.; Rinne, E.; O’Dwyer, C.; Li, R.; Flynn, D. Backbone—An Adaptable Energy Systems Modelling Framework. Energies 2019, 12, 3388. https://doi.org/10.3390/en12173388
+
+*AMA Style*  
+Helistö N, Kiviluoma J, Ikäheimo J, Rasku T, Rinne E, O’Dwyer C, Li R, Flynn D. Backbone—An Adaptable Energy Systems Modelling Framework. Energies. 2019; 12(17):3388. https://doi.org/10.3390/en12173388
+
+*Chicago/Turabian Style*  
+Helistö, Niina, Juha Kiviluoma, Jussi Ikäheimo, Topi Rasku, Erkka Rinne, Ciara O’Dwyer, Ran Li, and Damian Flynn. 2019. "Backbone—An Adaptable Energy Systems Modelling Framework" Energies 12, no. 17: 3388. https://doi.org/10.3390/en12173388 
+
 ## Getting Started
 
 Check the Backbone wiki pages: [Backbone wiki](https://gitlab.vtt.fi/backbone/backbone/-/wikis/home) 
