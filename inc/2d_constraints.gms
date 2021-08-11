@@ -2659,6 +2659,7 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
             ] // END * p_groupPolicy
 ;
 
+
 *--- Maximum Share of Instantaneous Generation --------------------------------
 
 q_instantaneousShareMax(group, sft(s, f, t))
@@ -2666,36 +2667,36 @@ q_instantaneousShareMax(group, sft(s, f, t))
         } ..
 
     // Generation of units in the group
-    + sum(gnu_output(grid, node, unit)${   gnuGroup(grid, node, unit, group)
-                                           and p_gnu(grid, node, unit, 'unitSize')
-                                           and gnGroup(grid, node, group)
-                                           and gnuft(grid, node, unit, f, t)
-                                       },
+    + sum(gnuft(gnu_output(grid, node, unit), f, t)$(
+                                                      ( gnuGroup(grid, node, unit, group)
+                                                          $p_gnu(grid, node, unit, 'unitSize')
+                                                      ) $gnGroup(grid, node, group)
+                                                    ),
         + v_gen(grid, node, unit, s, f, t)
         ) // END sum(gnu)
 
     // Controlled transfer to this node group
     // Set gn2nGroup controls whether transfer is included in the equation
-    + sum(gn2n_directional(grid, node, node_)${ gn2nGroup(grid, node, node_, group)
-                                                and gnGroup(grid, node, group)
-                                                and not gnGroup(grid, node_, group)
-                                                },
+    + sum(gn2nGroup(gn2n_directional(grid, node, node_), group)$(
+                                                                  ( not gnGroup(grid, node_, group)
+                                                                  ) $gnGroup(grid, node, group)
+                                                                ),
         + v_transferLeftward(grid, node, node_, s, f, t)
-            * [1
+           * (1
                 - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
                 - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
-                ]
+             )
         ) // END sum(gn2n_directional)
 
-    + sum(gn2n_directional(grid, node_, node)${ gn2nGroup(grid, node_, node, group)
-                                                and gnGroup(grid, node, group)
-                                                and not gnGroup(grid, node_, group)
-                                                },
+    + sum(gn2nGroup(gn2n_directional(grid, node_, node),group)$(
+                                                                 ( not gnGroup(grid, node_, group)
+                                                                 ) $gnGroup(grid, node, group)
+                                                               ),
         + v_transferRightward(grid, node_, node, s, f, t)
-            * [1
+            * (1
                 - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
                 - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
-                ]
+              )
         ) // END sum(gn2n_directional)
 
     =L=
@@ -2708,23 +2709,24 @@ q_instantaneousShareMax(group, sft(s, f, t))
                 ) // END sum(gnGroup)
 
             // Consumption of units
-            - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSize')
-                                                and gnGroup(grid, node, group)
-                                                and gnuft(grid, node, unit, f, t)
-                                                },
+            - sum(gnuft(gnu_input(grid, node, unit), f, t)$( p_gnu(grid, node, unit, 'unitSize')
+                                                              $gnGroup(grid, node, group)
+                                                           ),
                 + v_gen(grid, node, unit, s, f, t)
                 ) // END sum(gnu)
 
             // Controlled transfer from this node group
-            + sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
-                                                        and not gnGroup(grid, node_, group)
-                                                        },
+            + sum(gn2n_directional(grid, node, node_)$(
+                                                        ( not gnGroup(grid, node_, group)
+                                                        ) $gnGroup(grid, node, group)
+                                                      ),
                 + v_transferRightward(grid, node, node_, s, f, t)
                 ) // END sum(gn2n_directional)
 
-            + sum(gn2n_directional(grid, node_, node)${ gnGroup(grid, node, group)
-                                                        and not gnGroup(grid, node_, group)
-                                                        },
+            + sum(gn2n_directional(grid, node_, node)$(
+                                                        ( not gnGroup(grid, node_, group)
+                                                        ) $gnGroup(grid, node, group)
+                                                      ),
                 + v_transferLeftward(grid, node_, node, s, f, t)
                 ) // END sum(gn2n_directional)
 $ontext
