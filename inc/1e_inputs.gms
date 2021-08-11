@@ -397,8 +397,8 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
 * --- Timeseries parameters for node-node connections -------------------------
 
 // Nodes with flows
-ts_gnn(grid, node, node_, 'availability', f, t)${p_gnn(grid, node, node_, 'availability')}
-    = p_gnn(grid, node, node_, 'availability');
+gn2n_timeseries(grid, node, node_, 'availability')${p_gnn(grid, node, node_, 'useTimeseriesAvailability')}
+    = yes;
 
 * =============================================================================
 * --- Reserves Sets & Parameters ----------------------------------------------

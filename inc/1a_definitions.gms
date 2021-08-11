@@ -264,6 +264,7 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     ICrampDown
     variableTransCost    "Variable cost applied to transfers (EUR/MW)"
     availability  "Availability of the interconnection (p.u.)"
+    useTimeseriesAvailability "A flag to use time series form input for availability"
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /

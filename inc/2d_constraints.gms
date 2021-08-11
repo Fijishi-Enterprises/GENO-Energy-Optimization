@@ -2038,7 +2038,10 @@ q_transferRightwardLimit(gn2n_directional(grid, node, node_), sft(s, f, t))
 
     =L=
 
-    + ts_gnn_(grid, node, node_, 'availability', f, t)
+    + [
+        + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+        + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+        ]
         * [
 
             // Existing transfer capacity
@@ -2050,7 +2053,7 @@ q_transferRightwardLimit(gn2n_directional(grid, node, node_), sft(s, f, t))
                 + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
                     * p_gnn(grid, node, node_, 'unitSize')
                 ) // END sum(t_invest)
-            ] // END * ts_gnn
+            ] // END * availability
 ;
 
 * --- Leftward Transfer Limits ------------------------------------------------
@@ -2064,7 +2067,10 @@ q_transferLeftwardLimit(gn2n_directional(grid, node, node_), sft(s, f, t))
 
     =L=
 
-    + ts_gnn_(grid, node_, node, 'availability', f, t)
+    + [
+        + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
+        + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
+        ]
         * [
             // Existing transfer capacity
             + p_gnn(grid, node_, node, 'transferCap')
@@ -2075,7 +2081,7 @@ q_transferLeftwardLimit(gn2n_directional(grid, node, node_), sft(s, f, t))
                 + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
                     * p_gnn(grid, node, node_, 'unitSize')
                 ) // END sum(t_invest)
-            ] // END * ts_gnn
+            ] // END * availability
 ;
 
 * --- Rightward Reserve Transfer Limits ---------------------------------------
@@ -2099,7 +2105,10 @@ q_resTransferLimitRightward(gn2n_directional(grid, node, node_), sft(s, f, t))
 
     =L=
 
-    + ts_gnn_(grid, node, node_, 'availability', f, t)
+    + [
+        + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+        + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+        ]
         * [
 
             // Existing transfer capacity
@@ -2111,7 +2120,7 @@ q_resTransferLimitRightward(gn2n_directional(grid, node, node_), sft(s, f, t))
                 + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
                     * p_gnn(grid, node, node_, 'unitSize')
                 ) // END sum(t_invest)
-            ] // END * ts_gnn
+            ] // END * availability
 ;
 
 * --- Leftward Reserve Transfer Limits ----------------------------------------
@@ -2135,7 +2144,10 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), sft(s, f, t))
 
   =G=
 
-    - ts_gnn_(grid, node_, node, 'availability', f, t)
+    - [
+        + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
+        + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
+        ]
         * [
             // Existing transfer capacity
             + p_gnn(grid, node_, node, 'transferCap')
@@ -2146,7 +2158,7 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), sft(s, f, t))
                 + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
                     * p_gnn(grid, node, node_, 'unitSize')
                 ) // END sum(t_invest)
-            ] // END * ts_gnn
+            ] // END * availability
 ;
 
 *----------------------------------------------------------------------IC RAMP-------------------------------------------------------------------------------------------------------------------------------------
@@ -2209,6 +2221,10 @@ q_reserveProvisionRightward(restypeDirectionGridNodeNode(restype, up_down, grid,
 
     + p_gnnReserves(grid, node, node_, restype, up_down)
         * [
+            + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+            + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+            ]
+        * [
             // Existing transfer capacity
             + p_gnn(grid, node, node_, 'transferCap')
 
@@ -2238,6 +2254,10 @@ q_reserveProvisionLeftward(restypeDirectionGridNodeNode(restype, up_down, grid, 
     =L=
 
     + p_gnnReserves(grid, node_, node, restype, up_down)
+        * [
+            + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
+            + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
+            ]
         * [
             // Existing transfer capacity
             + p_gnn(grid, node_, node, 'transferCap')
