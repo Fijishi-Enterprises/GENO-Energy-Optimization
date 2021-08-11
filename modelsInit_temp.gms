@@ -22,3 +22,10 @@ $offtext
 // Include desired model definition files here
 $include 'defModels/scheduleInit_temp.gms'
 
+* =============================================================================
+* --- Optional Data Manipulation ----------------------------------------------
+* =============================================================================
+
+// which nodes follow the superposed states scheme? Add the information here.
+// Probably should be included in the input data later.
+node_superpos(node) = no;
