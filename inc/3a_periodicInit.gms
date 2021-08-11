@@ -629,12 +629,18 @@ loop(m,
 
 * --- Calculating fuel price time series --------------------------------------
 
-loop(commodity${ p_price(commodity, 'useTimeSeries') },
+tmp_ = smin(t_full(t),ord(t));
+loop(commodity$p_price(commodity, 'useTimeSeries'),
     // Determine the time steps where the prices change
     Option clear = tt;
-    tt(t)${ ts_priceChange(commodity,t) }
-        = yes;
-    ts_price(commodity, t_full(t)) = sum(tt(t_)${ ord(t_) <= ord(t) }, ts_priceChange(commodity, t_));
+    tt(t)$ts_priceChange(commodity,t) = yes;
+    tmp = sum(tt(t)$(ord(t) < tmp_),
+              ts_priceChange(commodity, t)
+          );
+    loop(t_full(t),
+        tmp = tmp + ts_priceChange(commodity, t);
+        ts_price(commodity, t) = tmp;
+    );
 ); // END loop(commodity)
 
 * --- Slack Direction ---------------------------------------------------------
