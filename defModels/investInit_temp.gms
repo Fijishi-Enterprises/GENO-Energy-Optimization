@@ -94,6 +94,35 @@ if (mType('invest'),
     mInterval('invest', 'stepsPerInterval', 'c000') = 1;
     mInterval('invest', 'lastStepInIntervalBlock', 'c000') = 8760;
 
+* --- z-structure for superpositioned nodes ----------------------------------
+
+    // number of candidate periods in model
+    // please provide this data
+    mSettings('invest', 'candidate_periods') = 10;
+
+    // add the candidate periods to model
+    // no need to touch this part
+    mz('invest', z) = no;
+    loop(z$(ord(z) <= mSettings('invest', 'candidate_periods') ),
+       mz('invest', z) = yes;
+    );
+
+    // Mapping between typical periods (=samples) and the candidate periods (z).
+    // Assumption is that candidate periods start from z000 and form a continuous
+    // sequence.
+    // please provide this data
+    zs(z,s) = no;
+    zs('z000','s000') = yes;
+    zs('z001','s000') = yes;
+    zs('z002','s001') = yes;
+    zs('z003','s001') = yes;
+    zs('z004','s002') = yes;
+    zs('z005','s003') = yes;
+    zs('z006','s004') = yes;
+    zs('z007','s002') = yes;
+    zs('z008','s002') = yes;
+    zs('z009','s004') = yes;
+
 * =============================================================================
 * --- Model Forecast Structure ------------------------------------------------
 * =============================================================================
