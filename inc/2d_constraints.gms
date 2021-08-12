@@ -57,16 +57,21 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
 
             // Controlled energy transfer, applies when the current node is on the left side of the connection
             - sum(gn2n_directional(grid, node, node_),
-                + (1 - p_gnn(grid, node, node_, 'transferLoss')) // Reduce transfer losses
-                    * v_transfer(grid, node, node_, s, f, t)
-                + p_gnn(grid, node, node_, 'transferLoss') // Add transfer losses back if transfer is from this node to another node
-                    * v_transferRightward(grid, node, node_, s, f, t)
+                + v_transfer(grid, node, node_, s, f, t)
+                + [
+                    + p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                    + ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                    ] // Reduce transfer losses if transfer is from another node to this node
+                    * v_transferLeftward(grid, node, node_, s, f, t)
                 ) // END sum(node_)
 
             // Controlled energy transfer, applies when the current node is on the right side of the connection
             + sum(gn2n_directional(grid, node_, node),
                 + v_transfer(grid, node_, node, s, f, t)
-                - p_gnn(grid, node_, node, 'transferLoss') // Reduce transfer losses if transfer is from another node to this node
+                - [
+                    + p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                    + ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                    ] // Reduce transfer losses if transfer is from another node to this node
                     * v_transferRightward(grid, node_, node, s, f, t)
                 ) // END sum(node_)
 
@@ -127,14 +132,20 @@ q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
                                                 and not gnGroup(grid, node_, group)
                                                 and restypeDirectionGridNodeNode(restype, up_down, grid, node_, node)
                                                 },
-        + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+        + [1
+            - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            ]
             * v_resTransferRightward(restype, up_down, grid, node_, node, s, f+df_reserves(grid, node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
     + sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
                                                 and not gnGroup(grid, node_, group)
                                                 and restypeDirectionGridNodeNode(restype, up_down, grid, node_, node)
                                                 },
-        + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+        + [1
+            - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            ]
             * v_resTransferLeftward(restype, up_down, grid, node, node_, s, f+df_reserves(grid, node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
 
@@ -216,14 +227,20 @@ q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_f
                                                 and not gnGroup(grid, node_, group)
                                                 and restypeDirectionGridNodeNode(restype, 'up', grid, node_, node)
                                                 },
-        + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+        + [1
+            - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            ]
             * v_resTransferRightward(restype, 'up', grid, node_, node, s, f+df_reserves(grid, node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
     + sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
                                                 and not gnGroup(grid, node_, group)
                                                 and restypeDirectionGridNodeNode(restype, 'up', grid, node_, node)
                                                 },
-        + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+        + [1
+            - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            ]
             * v_resTransferLeftward(restype, 'up', grid, node, node_, s, f+df_reserves(grid, node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
         ) // END sum(gn2n_directional)
 
@@ -334,10 +351,16 @@ q_rateOfChangeOfFrequencyTransfer(group, gn2n(grid, node_, node_fail), sft(s, f,
             // Loss of import due to potential interconnector failures
             + p_gnn(grid, node_fail, node_, 'portion_of_transfer_to_reserve')
                 * v_transferRightward(grid, node_fail, node_, s, f, t)${gn2n_directional(grid, node_fail, node_)}
-                * (1 - p_gnn(grid, node_fail, node_, 'transferLoss') )
+                * [1
+                    - p_gnn(grid, node_fail, node_, 'transferLoss')${not gn2n_timeseries(grid, node_fail, node_, 'transferLoss')}
+                    - ts_gnn_(grid, node_fail, node_, 'transferLoss', f, t)${gn2n_timeseries(grid, node_fail, node_, 'transferLoss')}
+                    ]
             + p_gnn(grid, node_, node_fail, 'portion_of_transfer_to_reserve')
                 * v_transferLeftward(grid, node_, node_fail, s, f, t)${gn2n_directional(grid, node_, node_fail)}
-                * (1 - p_gnn(grid, node_, node_fail, 'transferLoss') )
+                * [1
+                    - p_gnn(grid, node_fail, node_, 'transferLoss')${not gn2n_timeseries(grid, node_fail, node_, 'transferLoss')}
+                    - ts_gnn_(grid, node_fail, node_, 'transferLoss', f, t)${gn2n_timeseries(grid, node_fail, node_, 'transferLoss')}
+                    ]
             // Loss of export due to potential interconnector failures
             + p_gnn(grid, node_fail, node_, 'portion_of_transfer_to_reserve')
                 * v_transferLeftward(grid, node_fail, node_, s, f, t)${gn2n_directional(grid, node_fail, node_)}
@@ -394,7 +417,10 @@ q_resDemandLargestInfeedTransfer(restypeDirectionGroup(restype, up_down, group),
                                                 and not (sameas(node_, node_left) and sameas(node, node_right)) // excluding the failing link
                                                 and restypeDirectionGridNodeNode(restype, up_down, grid, node_, node)
                                                 },
-        + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+        + [1
+            - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            ]
             * v_resTransferRightward(restype, up_down, grid, node_, node, s, f+df_reserves(grid, node_, restype, f, t), t)
         ) // END sum(gn2n_directional)
     + sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
@@ -402,7 +428,10 @@ q_resDemandLargestInfeedTransfer(restypeDirectionGroup(restype, up_down, group),
                                                 and not (sameas(node, node_left) and sameas(node_, node_right)) // excluding the failing link
                                                 and restypeDirectionGridNodeNode(restype, up_down, grid, node_, node)
                                                 },
-        + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+        + [1
+            - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+            ]
             * v_resTransferLeftward(restype, up_down, grid, node, node_, s, f+df_reserves(grid, node_, restype, f, t), t)
         ) // END sum(gn2n_directional)
 
@@ -2866,14 +2895,22 @@ q_instantaneousShareMax(group, sft(s, f, t))
                                                 and gnGroup(grid, node, group)
                                                 and not gnGroup(grid, node_, group)
                                                 },
-        + v_transferLeftward(grid, node, node_, s, f, t) * (1-p_gnn(grid, node, node_, 'transferLoss'))
+        + v_transferLeftward(grid, node, node_, s, f, t)
+            * [1
+                - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                ]
         ) // END sum(gn2n_directional)
 
     + sum(gn2n_directional(grid, node_, node)${ gn2nGroup(grid, node_, node, group)
                                                 and gnGroup(grid, node, group)
                                                 and not gnGroup(grid, node_, group)
                                                 },
-        + v_transferRightward(grid, node_, node, s, f, t) * (1-p_gnn(grid, node_, node, 'transferLoss'))
+        + v_transferRightward(grid, node_, node, s, f, t)
+            * [1
+                - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                ]
         ) // END sum(gn2n_directional)
 
     =L=
@@ -3000,14 +3037,20 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
     + sum(gn2n_directional(grid, node_, node),
         + v_transfer(grid, node_, node, s, f, t)
         - v_transferRightward(grid, node_, node, s, f, t)
-            * p_gnn(grid, node_, node, 'transferLoss')
+            * [
+                + p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                + ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                ]
         ) // END sum(gn2n_directional)
 
     // Transfer from node
     - sum(gn2n_directional(grid, node, node_),
         + v_transfer(grid, node, node_, s, f, t)
         + v_transferLeftward(grid, node, node_, s, f, t)
-            * p_gnn(grid, node, node_, 'transferLoss')
+            * [
+                + p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                + ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                ]
         ) // END sum(gn2n_directional)
 
     // Diffusion to node
@@ -3285,14 +3328,20 @@ q_ReserveShareMax(group, restypeDirectionGroup(restype, up_down, group_), sft(s,
                                                         and not gnGroup(grid, node_, group_)
                                                         and restypeDirectionGridNodeNode(restype, up_down, grid, node_, node)
                                                         },
-                + (1 - p_gnn(grid, node_, node, 'transferLoss') )
+                + [1
+                    - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                    - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                    ]
                     * v_resTransferRightward(restype, up_down, grid, node_, node, s, f+df_reserves(grid, node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
                 ) // END sum(gn2n_directional)
             + sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group_)
                                                         and not gnGroup(grid, node_, group_)
                                                         and restypeDirectionGridNodeNode(restype, up_down, grid, node_, node)
                                                         },
-                + (1 - p_gnn(grid, node, node_, 'transferLoss') )
+                + [1
+                    - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                    - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                    ]
                     * v_resTransferLeftward(restype, up_down, grid, node, node_, s, f+df_reserves(grid, node_, restype, f, t), t) // Reserves from another node - reduces the need for reserves in the node
                 ) // END sum(gn2n_directional)
 
