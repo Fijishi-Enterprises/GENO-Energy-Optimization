@@ -83,7 +83,7 @@ q_obj ..
 
                 // Start-up costs, initial startup free as units could have been online before model started
                 + sum(uft_online(unit, f, t),
-                    + sum(unitStarttype(unit, starttype),
+                    + sum(unitStarttype(unit, starttype)$ts_startupCost_(unit, starttype, t),
                         + [ // Unit startup variables
                             + v_startup_LP(unit, starttype, s, f, t)${ uft_onlineLP(unit, f, t) }
                             + v_startup_MIP(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
@@ -93,7 +93,7 @@ q_obj ..
                   ) // END sum(uft_online)
 
                 // Shut-down costs, initial shutdown free?
-                + sum(uft_online(unit, f, t),
+                + sum(uft_online(unit, f, t)$p_uShutdown(unit, 'cost'),
                     + p_uShutdown(unit, 'cost')
                       * [
                             + v_shutdown_LP(unit, s, f, t)
@@ -104,7 +104,7 @@ q_obj ..
                   ) // END sum(uft_online)
 
                 // Ramping costs
-                + sum(gnuft_rampCost(grid, node, unit, slack, f, t),
+                + sum(gnuft_rampCost(grid, node, unit, slack, f, t)$p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost'),
                     + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
                         * v_genRampUpDown(grid, node, unit, slack, s, f, t)
                   ) // END sum(gnuft_rampCost)
@@ -112,12 +112,12 @@ q_obj ..
                 ]  // END * p_sft_probability(s,f,t)
 
                 // Variable Transfer
-                + sum(gn2n_directional(grid, node_, node),
+                + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node, node_, 'variableTransCost'),
                     + p_gnn(grid, node, node_, 'variableTransCost')
                     * v_transferLeftward(grid, node_, node, s, f, t)
                   ) // END sum(gn2n_directional(grid, node_, node))
 
-                + sum(gn2n_directional(grid, node_, node),
+                + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node_, node, 'variableTransCost'),
                     + p_gnn(grid, node_, node, 'variableTransCost')
                     * v_transferRightward(grid, node_, node, s, f, t)
                   ) // END sum(gn2n_directional(grid, node_, node))

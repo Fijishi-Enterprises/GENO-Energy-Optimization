@@ -1,18 +1,31 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
-### Added
-- Dynamic generation portfolios aka pathway modelling aka multi-year simulations with discounted costs enabled
+## [1.4] - 2021-06-29
+- Time series for transmission availability and losses
+- More versatile reading of input files. Translating input Excel to input GDX supported inside Backbone 1e_inputs.gms
+
+## [1.3.3] - 2021-04-14
+- Transfer can have additional 'variable' costs (costs per MWh transferred)
 - Reserve activation duration and reactivation time included (in state constraints)
 - Raise execution error if solver did not finish normally
- 
-### Changed
+- Updated the selection of unit efficiency approximation levels
+- Additional result outputs
+
+## [1.3.2] - 2021-01-19
+- Moving from p_groupPolicy3D to separate p_groupPolicyUnit and p_groupPolicyEmission
+
+## [1.3.1] - 2021-01-19
+- Maximum (and minimum) limit to sum of energy inputs/outputs of selected group of units
+- Additional result outputs concerning emissions
+
+## [1.3] - 2020-10-21
 - Static inertia requirement can be fulfilled by both rotational inertia of machines and certain reserve products
+- Dynamic generation portfolios aka pathway modelling aka multi-year simulations with discounted costs enabled
 - Parameters p_gnPolicy and p_groupPolicy3D replaced with p_groupPolicyEmission and p_groupPolicyUnit
 
-### Fixed
-- Updated the selection of unit efficiency approximation levels
+## [1.2.2] - 2020-06-09
+- Clean up, minor bug fixes and more results outputs
 
 ## [1.2.1] - 2019-11-26
 ### Fixed

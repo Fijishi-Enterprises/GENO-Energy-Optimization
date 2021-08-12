@@ -1,15 +1,25 @@
 # Backbone
 
-Backbone is a generic energy network optimization tool written in [GAMS](https://www.gams.com/). It has been designed to be highly adaptable in different dimensions: temporal, spatial, technology representation and market design. The model can represent stochastics with a [model predictive control method](https://doi.org/10.1016/j.automatica.2008.03.002), with short-term forecasts and longer-term statistical uncertainties. Backbone can support multiple different models (e.g. investment or unit commitment) due to the modifiable temporal structure and varying lengths of the time steps.
+Backbone is a generic energy network optimization tool written in [GAMS](https://www.gams.com/). It has been designed to be highly adaptable in different dimensions: temporal, spatial, technology representation and market design. The model can represent stochastics with a [model predictive control method](https://doi.org/10.1016/j.automatica.2008.03.002), with short-term forecasts and longer-term statistical uncertainties. Backbone can support multiple different models due to the modifiable temporal structure and varying lengths of the time steps.
 
 If you use Backbone in a published work, please cite the [following publication](https://doi.org/10.3390/en12173388), which describes the Backbone energy systems modelling framework.
 
+*MDPI and ACS Style*  
+Helistö, N.; Kiviluoma, J.; Ikäheimo, J.; Rasku, T.; Rinne, E.; O’Dwyer, C.; Li, R.; Flynn, D. Backbone—An Adaptable Energy Systems Modelling Framework. Energies 2019, 12, 3388. https://doi.org/10.3390/en12173388
+
+*AMA Style*  
+Helistö N, Kiviluoma J, Ikäheimo J, Rasku T, Rinne E, O’Dwyer C, Li R, Flynn D. Backbone—An Adaptable Energy Systems Modelling Framework. Energies. 2019; 12(17):3388. https://doi.org/10.3390/en12173388
+
+*Chicago/Turabian Style*  
+Helistö, Niina, Juha Kiviluoma, Jussi Ikäheimo, Topi Rasku, Erkka Rinne, Ciara O’Dwyer, Ran Li, and Damian Flynn. 2019. "Backbone—An Adaptable Energy Systems Modelling Framework" Energies 12, no. 17: 3388. https://doi.org/10.3390/en12173388 
+
 ## Getting Started
 
-Make sure that you have [Git](https://git-scm.com/) version control system and a Git interface, such as [TortoiseGit](https://tortoisegit.org/) or [SourceTree](https://www.sourcetreeapp.com/), installed on your computer. 
-You also need to have [GAMS](https://www.gams.com/) version 24.0 or later installed.
+Check the Backbone wiki pages: [Backbone wiki](https://gitlab.vtt.fi/backbone/backbone/-/wikis/home) 
 
-In order to get a copy of the Backbone project, you need to clone it using Git. Copy and paste the URL of the original Backbone repository and select the directory where you want Backbone to be cloned. The URL of the original Backbone repository is https://gitlab.vtt.fi/backbone/backbone. 
+Backbone requires [GAMS](https://www.gams.com) to work. While you can just download the repository, it will be easier to get new updates and to contribute to the development with [Git](https://git-scm.com/) version control system and a Git interface, such as [TortoiseGit](https://tortoisegit.org/) or [SourceTree](https://www.sourcetreeapp.com/), installed on your computer. 
+
+Cloning the repository with Git: Copy and paste the URL of the original Backbone repository and select the directory where you want Backbone to be cloned. The URL of the original Backbone repository is https://gitlab.vtt.fi/backbone/backbone. 
 
 You should now have *Backbone.gms*, a few additional files and five subdirectories in the directory where you cloned Backbone.
 
@@ -68,6 +78,7 @@ When starting to use Backbone, there is no immediate need to understand every si
 * Dana Kirchem
 * Ran Li
 * Ciara O'Dwyer
+* Jussi Ikäheimo
 
 ## License
 
