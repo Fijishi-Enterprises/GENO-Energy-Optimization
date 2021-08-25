@@ -187,7 +187,7 @@ q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
 
 q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_fail(unit_), sft(s, f, t))
-    ${  ord(t) < tSolveFirst + p_groupReserves(group, restype, 'reserve_length')
+    ${  ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
             and ft_realized(f, t)
             ]
