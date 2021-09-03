@@ -68,6 +68,19 @@ if (mType('building'),
     mInterval('building', 'stepsPerInterval', 'c000') = 1;
     mInterval('building', 'lastStepInIntervalBlock', 'c000') = 336;
 
+* --- z-structure for superpositioned nodes ----------------------------------
+
+    // add the candidate periods to model
+    // no need to touch this part
+    // The set is mainly used in the 'invest' model
+    mz('building', z) = no;
+
+    // Mapping between typical periods (=samples) and the candidate periods (z).
+    // Assumption is that candidate periods start from z000 and form a continuous
+    // sequence.
+    // The set is mainly used in the 'invest' model
+    zs(z,s) = no;
+
 * =============================================================================
 * --- Model Forecast Structure ------------------------------------------------
 * =============================================================================
