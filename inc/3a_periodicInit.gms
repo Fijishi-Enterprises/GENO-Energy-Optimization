@@ -652,9 +652,11 @@ p_slackDirection(downwardSlack) = -1;
 * --- Using default value for reserves update frequency -----------------------
 
 loop(m,
-    p_groupReserves(group, restype, 'update_frequency')${  not p_groupReserves(group, restype, 'update_frequency')  }
+    p_groupReserves(group, restype, 'update_frequency')${  not p_groupReserves(group, restype, 'update_frequency')
+                                                           and sum(up_down, restypeDirectionGroup(restype, up_down, group))  }
         = mSettings(m, 't_jump');
-    p_gnReserves(grid, node, restype, 'update_frequency')${  not p_gnReserves(grid, node, restype, 'update_frequency')  }
+    p_gnReserves(grid, node, restype, 'update_frequency')${  not p_gnReserves(grid, node, restype, 'update_frequency')
+                                                             and sum(up_down, restypeDirectionGridNode(restype, up_down, grid, node))  }
         = mSettings(m, 't_jump');
 );
 
