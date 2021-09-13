@@ -101,6 +101,19 @@ if (mType('schedule'),
     mInterval('schedule', 'stepsPerInterval', 'c004') = 168;
     mInterval('schedule', 'lastStepInIntervalBlock', 'c004') = 8760;
 
+* --- z-structure for superpositioned nodes ----------------------------------
+
+    // add the candidate periods to model
+    // no need to touch this part
+    // The set is mainly used in the 'invest' model
+    mz('schedule', z) = no;
+
+    // Mapping between typical periods (=samples) and the candidate periods (z).
+    // Assumption is that candidate periods start from z000 and form a continuous
+    // sequence.
+    // The set is mainly used in the 'invest' model
+    zs(z,s) = no;
+
 * =============================================================================
 * --- Model Forecast Structure ------------------------------------------------
 * =============================================================================
@@ -140,7 +153,7 @@ if (mType('schedule'),
     mf_realization('schedule', 'f00') = yes;
     mf_central('schedule', f) = no;
     mf_central('schedule', 'f02') = yes;
-    
+
     // Define special forecast label that holds scenario data
     //mf_scenario('schedule', 'scen') = yes;
 
