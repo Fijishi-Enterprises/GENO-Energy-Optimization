@@ -545,6 +545,12 @@ option clear = tt_aggregate;
 tt_aggregate(t_current(t+dt_active(t)), tt(t))
     = yes;
 
+// Make alternative aggregation ordering
+option clear=tt_agg_circular; tt_agg_circular(t, t_+dt_circular(t_), t_) $= tt_aggregate(t, t_);
+$macro tt_aggcircular(t, t_)  tt_agg_circular(t, t_, t__)
+*$macro tt_aggcircular(t, t_) (tt_aggregate(t, t__), t_(t__+dt_circular(t__)))
+
+
 * =============================================================================
 * --- Defining unit aggregations and ramps ------------------------------------
 * =============================================================================
