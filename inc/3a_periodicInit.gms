@@ -599,6 +599,7 @@ loop(m,
         ${  not mSettingsReservesInUse(m, restype, up_down)
             }
         = no;
+    groupRestype(group, restype) = sum(up_down, restypeDirectionGroup(restype, up_down, group));
     restypeDirectionGridNodeGroup(restype, up_down, grid, node, group)
         ${  not mSettingsReservesInUse(m, restype, up_down)
             }
