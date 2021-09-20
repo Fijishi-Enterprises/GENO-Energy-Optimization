@@ -80,16 +80,17 @@ Sets
 * --- Reserve types -----------------------------------------------------------
     restype "Reserve types"
     restypeDirection(restype, up_down) "Different combinations of reserve types and directions"
-    restypeDirectionGridNode(restype, up_down, grid, node) "Nodes with reserve requirements"
-    resTypeDirectionGridNodeNode(restype, up_down, grid, node, node) "Node node connections that can transfer reserves"
-    restypeDirectionGroup(restype, up_down, group)
+    restypeDirectionGridNode(restype, up_down, grid, node) "Nodes with up/down reserve requirements"
+    resTypeDirectionGridNodeNode(restype, up_down, grid, node, node) "Node node connections that can transfer up/down reserves"
+    restypeDirectionGroup(restype, up_down, group) "Groups with up/down reserve requirements"
     restypeDirectionGridNodeGroup(restype, up_down, grid, node, group)
-    gnuRescapable(restype, up_down, grid, node, unit) "Units capable and available to provide particular reserves"
+    gnuRescapable(restype, up_down, grid, node, unit) "Units capable and available to provide particular up/down reserves"
     gnuOfflineRescapable(restype, grid, node, unit) "Units capable and available to provide offline reserves"
     restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
     offlineRes (restype) "Reserve types where offline reserve provision possible"
     offlineResUnit (unit) "Units where offline reserve provision possible"
     restype_inertia(restype) "Reserve types where the requirement can also be fulfilled with the inertia of synchronous machines"
+    groupRestype(group, restype) "Groups with reserve requirements"
 
 * --- Sets to define time, forecasts and samples ------------------------------
     $$include '%input_dir%/timeAndSamples.inc'

@@ -503,7 +503,7 @@ df_reserves(grid, node, restype, ft(f, t))
         }
     = sum(f_${ mf_realization(mSolve, f_) }, ord(f_) - ord(f)) + Eps; // The Eps ensures that checks to see if df_reserves exists return positive even if the displacement is zero.
 Option clear = df_reservesGroup;
-df_reservesGroup(group, restype, ft(f, t))
+df_reservesGroup(groupRestype(group, restype), ft(f, t))
     ${  p_groupReserves(group, restype, 'update_frequency')
         and p_groupReserves(group, restype, 'gate_closure')
         and ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'gate_closure')
@@ -517,7 +517,7 @@ df_reservesGroup(group, restype, ft(f, t))
 
 // Set of ft-steps where the reserves are locked due to previous commitment
 Option clear = ft_reservesFixed;
-ft_reservesFixed(group, restype, f_solve(f), t_active(t))
+ft_reservesFixed(groupRestype(group, restype), f_solve(f), t_active(t))
     ${  mf_realization(mSolve, f)
         and not tSolveFirst = mSettings(mSolve, 't_start') // No reserves are locked on the first solve!
         and p_groupReserves(group, restype, 'update_frequency')
