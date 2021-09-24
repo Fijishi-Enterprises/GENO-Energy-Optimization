@@ -12,18 +12,18 @@
     ],
     "description": "Backbone",
     "inputfiles": [
-        "input/scheduleInit.gms",
-        "input/inputData.gdx",
+        "input/1_options.gms",
         "input/timeAndSamples.inc",
         "input/modelsInit.gms",
-        "input/1_options.gms"
+        "input/scheduleInit.gms",
+        "input/inputData.gdx"
     ],
     "inputfiles_opt": [
         "input/*.*"
     ],
     "outputfiles": [
-        "output/results.gdx",
-        "Backbone.lst"
+        "Backbone.lst",
+        "output/results.gdx"
     ],
     "cmdline_args": [],
     "execute_in_work": false,

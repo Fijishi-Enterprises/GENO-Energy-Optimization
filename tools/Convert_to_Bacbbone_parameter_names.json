@@ -5,52 +5,38 @@
     "filter": {
         "type": "parameter_rename",
         "settings": {
-            "": {
-                "availability": "availability",
-                "boundStart": "boundStart",
-                "boundStartAndEnd": "boundStartAndEnd",
-                "boundaryValue": "ts_node",
-                "capacity": "capacity",
-                "capacityFactor": "ts_cf",
-                "coefficient": "p_unitConstraintNode",
-                "constant": "p_unitConstraint",
-                "conversionCoeff": "conversionCoeff",
-                "discountFactor": "p_s_discountFactor",
-                "down": "down",
-                "eff00": "eff00",
-                "eff01": "eff01",
-                "emission_content": "p_nEmission",
-                "energyStoredPerUnitOfState": "energyStoredPerUnitOfState",
-                "fixedFuelFraction": "fixedFuelFraction",
-                "forwardReserve": "p_gnuRes2Res",
-                "gate_closure": "gate_closure",
-                "influx": "ts_influx",
-                "minOperationHours": "minOperationHours",
-                "minShutdownHours": "minShutdownHours",
-                "multiplier": "multiplier",
-                "nodeBalance": "nodeBalance",
-                "op00": "op00",
-                "op01": "op01",
-                "opFirstCross": "opFirstCross",
-                "priceChange": "ts_priceChange",
-                "reserveDemand": "ts_reserveDemand",
-                "reserve_length": "reserve_length",
-                "selfDischargeLoss": "selfDischargeLoss",
-                "startCostCold": "startCostCold",
-                "startFuelConsCold": "startFuelConsCold",
-                "storageValue": "p_storageValue",
-                "transferCap": "transferCap",
-                "transferLoss": "transferLoss",
-                "ts_storageValue": "ts_storageValue",
-                "ts_unit": "ts_unit",
-                "unitCount": "unitCount",
-                "unitSize": "unitSize",
-                "up": "up",
-                "update_frequency": "update_frequency",
-                "useConstant": "useConstant",
-                "useTimeseries": "useTimeseries",
-                "value": "p_gnPolicy",
-                "vomCosts": "vomCosts"
+            "ts_grid__node__boundary__f": {
+                "boundaryValue": "ts_node"
+            },
+            "ts_flow__node__f": {
+                "capacityFactor": "ts_cf"
+            },
+            "unit__constraint__node": {
+                "coefficient": "p_unitConstraintNode"
+            },
+            "unit__constraint": {
+                "constant": "p_unitConstraint"
+            },
+            "s": {
+                "discountFactor": "p_s_discountFactor"
+            },
+            "node__emission": {
+                "emission_content": "p_nEmission"
+            },
+            "gnu__restype__up_down__restype": {
+                "forwardReserve": "p_gnuRes2Res"
+            },
+            "ts_grid__node__f": {
+                "influx": "ts_influx"
+            },
+            "ts_commodity": {
+                "priceChange": "ts_priceChange"
+            },
+            "ts_restype__up_down__group__f": {
+                "reserveDemand": "ts_reserveDemand"
+            },
+            "grid__node": {
+                "storageValue": "p_storageValue"
             }
         }
     }
