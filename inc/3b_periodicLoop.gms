@@ -571,6 +571,18 @@ uft(unit, ft(f, t))${   [ ord(t) < p_unit(unit, 'becomeAvailable') and p_unit(un
                         or [ ord(t) >= p_unit(unit, 'becomeUnavailable') and p_unit(unit, 'becomeUnavailable') ]
                         }
     = no;
+// Unless before becomeUnavailable if becomeUnavailable < becomeAvailable (maintenance break case)
+uft(unit, ft(f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
+                      and [ord(t) < p_unit(unit, 'becomeUnavailable')]
+                      and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
+                    }
+    = yes;
+// Unless after becomeAvailable if becomeUnavailable < becomeAvailable (maintenance break case)
+uft(unit, ft(f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
+                      and [ord(t) >= p_unit(unit, 'becomeAvailable')]
+                      and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
+                    }
+    = yes;
 
 // First ft:s for each aggregator unit
 Option clear = uft_aggregator_first;
