@@ -1,33 +1,33 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [1.4] - 2021-06-29
+## 1.4 - 2021-06-29
 - Time series for transmission availability and losses
 - More versatile reading of input files. Translating input Excel to input GDX supported inside Backbone 1e_inputs.gms
 
-## [1.3.3] - 2021-04-14
+## 1.3.3 - 2021-04-14
 - Transfer can have additional 'variable' costs (costs per MWh transferred)
 - Reserve activation duration and reactivation time included (in state constraints)
 - Raise execution error if solver did not finish normally
 - Updated the selection of unit efficiency approximation levels
 - Additional result outputs
 
-## [1.3.2] - 2021-01-19
+## 1.3.2 - 2021-01-19
 - Moving from p_groupPolicy3D to separate p_groupPolicyUnit and p_groupPolicyEmission
 
-## [1.3.1] - 2021-01-19
+## 1.3.1 - 2021-01-19
 - Maximum (and minimum) limit to sum of energy inputs/outputs of selected group of units
 - Additional result outputs concerning emissions
 
-## [1.3] - 2020-10-21
+## 1.3 - 2020-10-21
 - Static inertia requirement can be fulfilled by both rotational inertia of machines and certain reserve products
 - Dynamic generation portfolios aka pathway modelling aka multi-year simulations with discounted costs enabled
 - Parameters p_gnPolicy and p_groupPolicy3D replaced with p_groupPolicyEmission and p_groupPolicyUnit
 
-## [1.2.2] - 2020-06-09
+## 1.2.2 - 2020-06-09
 - Clean up, minor bug fixes and more results outputs
 
-## [1.2.1] - 2019-11-26
+## 1.2.1 - 2019-11-26
 ### Fixed
 - Fixed a possible division by zero in the calculation of r_gnuUtilizationRate
 - Updated debugSymbols.inc and 1e_scenChanges.gms to match with the current naming of sets and parameters
@@ -35,7 +35,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Changed variable O&M costs from p_unit(unit, 'omCosts') to p_gnu(grid, node, unit, 'vomCosts')
 
-## [1.2] - 2019-11-12
+## 1.2 - 2019-11-12
 
 ### Added
 - Dynamic inertia requirements based on loss of unit and loss of export/import (ROCOF constraints)
@@ -86,7 +86,7 @@ All notable changes to this project will be documented in this file.
 - Maintain original scenario labels after reduction
 
 
-## [1.1] - 2019-04-17
+## 1.1 - 2019-04-17
 ### Added
 - New model setting 't_perfectForesight' tells the number of time steps (from 
   the beginning of current solve) for which realized data is used instead of 
@@ -125,7 +125,7 @@ All notable changes to this project will be documented in this file.
 - `p_uNonoperational` not fully correct
 
 
-## [1.0.6] - 2019-03-27
+## 1.0.6 - 2019-03-27
 ### Fixed
 - Major bug in state variable reserve equations
 - Scenario smoothing alogirithm
@@ -143,7 +143,7 @@ All notable changes to this project will be documented in this file.
 - New diagnostic parameter for timeseries scenarios `d_ts_scenarios`
 
 
-## [1.0.5] - 2019-02-14
+## 1.0.5 - 2019-02-14
 ### Fixed
 - Probabilities were not updated after using scenario reduction
 
@@ -153,7 +153,7 @@ All notable changes to this project will be documented in this file.
   samples as last years need to be reserved for the planning horizon.
 
 
-## [1.0.4] - 2019-02-11
+## 1.0.4 - 2019-02-11
 ### Fixed
 - Severe bug in setting node state level limits
 
@@ -161,12 +161,12 @@ All notable changes to this project will be documented in this file.
 - Suppress ouput from SCENRED2
 
 
-## [1.0.3] - 2019-02-05
+## 1.0.3 - 2019-02-05
 ### Fixed
 - Only selects forecasts with positive probability for the solve
 
 
-## [1.0.2] - 2019-02-04
+## 1.0.2 - 2019-02-04
 ### Added
 - New model setting `dataLength` to set the length of time series data before it is
   recycled. Warn if this is not defined and automatically calculated from data.
@@ -194,13 +194,3 @@ All notable changes to this project will be documented in this file.
 - Major updates to data structures etc.
 
 
-
-[Unreleased]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.2.1...dev
-[1.2.1]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.2...v1.2.1
-[1.2]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.1...v1.2
-[1.1]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.6...v1.1
-[1.0.6]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.5...v1.0.6
-[1.0.5]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.4...v1.0.5
-[1.0.4]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.3...v1.0.4
-[1.0.3]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0.2...v1.0.3
-[1.0.2]: https://gitlab.vtt.fi/backbone/backbone/compare/v1.0...v1.0.2
