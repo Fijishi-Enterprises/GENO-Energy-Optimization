@@ -1,6 +1,21 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 1.5 - 2021-10-05
+### Added
+- Additional conditions in the objective function to avoid summing empty sets
+- Possibility to model maintenance break with `utAvailalability` limits
+
+### Changed
+- Speedups
+
+### Fixed 
+- Templates for time and sample sets as well as model definitions files
+- N-1 reserve equation did not include last hour of day/solve
+- Setting the default update_frequency for reserve types
+- Better control of reserve-related assignments
+
+
 ## 1.4 - 2021-06-29
 - Time series for transmission availability and losses
 - More versatile reading of input files. Translating input Excel to input GDX supported inside Backbone 1e_inputs.gms
