@@ -196,7 +196,8 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 1,
-                    "header": "*"
+                    "header": "*",
+                    "filter_re": "^((?!(eff|op)).)*$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -210,8 +211,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -255,8 +255,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -301,8 +300,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -342,7 +340,7 @@
                     "map_type": "ParameterDefinition",
                     "position": 2,
                     "header": "*",
-                    "filter_re": "^((?!p_storageValue).)*$"
+                    "filter_re": "^((?!(p_storageValue)).)*$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -369,7 +367,8 @@
                 },
                 {
                     "map_type": "ParameterValueType",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "single_value"
                 },
                 {
                     "map_type": "ParameterValue",
@@ -436,12 +435,12 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "single_value"
                 },
                 {
                     "map_type": "ParameterValue",
@@ -517,8 +516,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -598,8 +596,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -660,8 +657,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -731,8 +727,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -794,8 +789,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -866,8 +860,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -947,8 +940,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -1028,8 +1020,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -1109,8 +1100,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -1207,8 +1197,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -1234,11 +1223,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "hidden",
-                    "filter_re": "^grid__node__boundary$"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
+                    "filter_re": "^grid__node$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -1250,7 +1235,7 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": 3,
+                    "position": 2,
                     "header": "*"
                 },
                 {
@@ -1273,21 +1258,25 @@
                     "header": "*"
                 },
                 {
-                    "map_type": "RelationshipObject",
-                    "position": 2,
-                    "header": "*"
-                },
-                {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
-                },
-                {
-                    "map_type": "ParameterValueType",
                     "position": "hidden"
                 },
                 {
-                    "map_type": "ParameterValue",
+                    "map_type": "ParameterValueType",
+                    "position": "hidden",
+                    "filter_re": "1d_map"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 3,
+                    "header": "*"
+                },
+                {
+                    "map_type": "ExpandedValue",
                     "position": 4
                 }
             ],
@@ -1342,8 +1331,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -1405,8 +1393,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -1467,8 +1454,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -1507,7 +1493,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": "hidden",
-                    "filter_re": "^p_storageValue$"
+                    "filter_re": "^storageValue$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1530,12 +1516,12 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "single_value"
                 },
                 {
                     "map_type": "ParameterValue",
@@ -1593,8 +1579,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -1610,7 +1595,7 @@
             "use_fixed_table_name": true
         },
         "ts_unit": {
-            "type": "relationship_parameter_values",
+            "type": "object_parameter_values",
             "mapping": [
                 {
                     "map_type": "FixedValue",
@@ -1618,25 +1603,14 @@
                     "value": "ts_unit"
                 },
                 {
-                    "map_type": "RelationshipClass",
+                    "map_type": "ObjectClass",
                     "position": "hidden",
-                    "filter_re": "^ts_unit__param__f$"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
+                    "filter_re": "^unit$"
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "^efficiency$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1644,32 +1618,36 @@
                     "ignorable": true
                 },
                 {
-                    "map_type": "Relationship",
-                    "position": "hidden"
-                },
-                {
-                    "map_type": "RelationshipObject",
+                    "map_type": "Object",
                     "position": 0,
                     "header": "*"
                 },
                 {
-                    "map_type": "RelationshipObject",
+                    "map_type": "Alternative",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueType",
+                    "position": "hidden",
+                    "filter_re": "3d_map"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
                     "position": 1,
                     "header": "*"
                 },
                 {
-                    "map_type": "RelationshipObject",
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
                     "position": 2,
                     "header": "*"
-                },
-                {
-                    "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
-                },
-                {
-                    "map_type": "ParameterValueType",
-                    "position": "hidden"
                 },
                 {
                     "map_type": "IndexName",
@@ -1700,11 +1678,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "hidden",
-                    "filter_re": "^ts_restype__up_down__group__f$"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
+                    "filter_re": "^restype__up_down__group$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -1747,18 +1721,21 @@
                     "header": "*"
                 },
                 {
-                    "map_type": "RelationshipObject",
-                    "position": 3,
-                    "header": "*"
-                },
-                {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
                     "position": "hidden"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 3,
+                    "header": "*"
                 },
                 {
                     "map_type": "IndexName",
@@ -1789,11 +1766,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "hidden",
-                    "filter_re": "^ts_flow__node__f$"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
+                    "filter_re": "^flow__node$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -1827,18 +1800,21 @@
                     "header": "*"
                 },
                 {
-                    "map_type": "RelationshipObject",
-                    "position": 2,
-                    "header": "*"
-                },
-                {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
                     "position": "hidden"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 2,
+                    "header": "*"
                 },
                 {
                     "map_type": "IndexName",
@@ -1869,7 +1845,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "hidden",
-                    "filter_re": "^ts_commodity$"
+                    "filter_re": "^commodity$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -1895,8 +1871,7 @@
                 },
                 {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
@@ -1931,11 +1906,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "hidden",
-                    "filter_re": "^ts_grid__node__f$"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
+                    "filter_re": "^grid__node$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -1947,7 +1918,8 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "^influx$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1969,18 +1941,22 @@
                     "header": "*"
                 },
                 {
-                    "map_type": "RelationshipObject",
-                    "position": 2,
-                    "header": "*"
-                },
-                {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
+                    "position": "hidden",
+                    "filter_re": "2d_map"
+                },
+                {
+                    "map_type": "IndexName",
                     "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 2,
+                    "header": "*"
                 },
                 {
                     "map_type": "IndexName",
@@ -2011,15 +1987,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "hidden",
-                    "filter_re": "^ts_grid__node__boundary__f$"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
+                    "filter_re": "^grid__node$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -2031,7 +1999,9 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": "hidden"
+                    "position": 2,
+                    "header": "*",
+                    "filter_re": "^((?!(influx|storageValue)).)*$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2053,22 +2023,22 @@
                     "header": "*"
                 },
                 {
-                    "map_type": "RelationshipObject",
-                    "position": 2,
-                    "header": "*"
-                },
-                {
-                    "map_type": "RelationshipObject",
-                    "position": 3
-                },
-                {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
+                    "position": "hidden",
+                    "filter_re": "2d_map"
+                },
+                {
+                    "map_type": "IndexName",
                     "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 3,
+                    "header": "*"
                 },
                 {
                     "map_type": "IndexName",
@@ -2099,15 +2069,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "hidden",
-                    "filter_re": "^ts_grid__node__node__param__f$"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
+                    "filter_re": "^grid__node__node$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -2123,7 +2085,8 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": "hidden"
+                    "position": 3,
+                    "header": "*"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2150,23 +2113,22 @@
                     "header": "*"
                 },
                 {
-                    "map_type": "RelationshipObject",
-                    "position": 3,
-                    "header": "*"
-                },
-                {
-                    "map_type": "RelationshipObject",
-                    "position": 4,
-                    "header": "*"
-                },
-                {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
+                    "position": "hidden",
+                    "filter_re": "2d_map"
+                },
+                {
+                    "map_type": "IndexName",
                     "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 4,
+                    "header": "*"
                 },
                 {
                     "map_type": "IndexName",
@@ -2197,11 +2159,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "hidden",
-                    "filter_re": "^ts_grid__node__f_storageValue$"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
+                    "filter_re": "^grid__node$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -2213,7 +2171,8 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "^storageValue$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2235,18 +2194,22 @@
                     "header": "*"
                 },
                 {
-                    "map_type": "RelationshipObject",
-                    "position": 2,
-                    "header": "*"
-                },
-                {
                     "map_type": "Alternative",
-                    "position": "hidden",
-                    "filter_re": "Base"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
+                    "position": "hidden",
+                    "filter_re": "2d_map"
+                },
+                {
+                    "map_type": "IndexName",
                     "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 2,
+                    "header": "*"
                 },
                 {
                     "map_type": "IndexName",
@@ -2260,6 +2223,61 @@
                 {
                     "map_type": "ExpandedValue",
                     "position": 4
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "use_fixed_table_name": true
+        },
+        "p_unit2": {
+            "type": "object_parameter_values",
+            "mapping": [
+                {
+                    "map_type": "FixedValue",
+                    "position": "table_name",
+                    "value": "p_unit"
+                },
+                {
+                    "map_type": "ObjectClass",
+                    "position": "hidden",
+                    "filter_re": "unit"
+                },
+                {
+                    "map_type": "ParameterDefinition",
+                    "position": 1,
+                    "header": "*",
+                    "filter_re": "^(eff|op)"
+                },
+                {
+                    "map_type": "ParameterValueList",
+                    "position": "hidden",
+                    "ignorable": true
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "*"
+                },
+                {
+                    "map_type": "Alternative",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueType",
+                    "position": "hidden",
+                    "filter_re": "single_value"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ExpandedValue",
+                    "position": 2
                 }
             ],
             "enabled": true,

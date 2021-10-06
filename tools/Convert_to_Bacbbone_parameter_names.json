@@ -4,40 +4,6 @@
     "description": "",
     "filter": {
         "type": "parameter_rename",
-        "settings": {
-            "ts_grid__node__boundary__f": {
-                "boundaryValue": "ts_node"
-            },
-            "ts_flow__node__f": {
-                "capacityFactor": "ts_cf"
-            },
-            "unit__constraint__node": {
-                "coefficient": "p_unitConstraintNode"
-            },
-            "unit__constraint": {
-                "constant": "p_unitConstraint"
-            },
-            "s": {
-                "discountFactor": "p_s_discountFactor"
-            },
-            "node__emission": {
-                "emission_content": "p_nEmission"
-            },
-            "gnu__restype__up_down__restype": {
-                "forwardReserve": "p_gnuRes2Res"
-            },
-            "ts_grid__node__f": {
-                "influx": "ts_influx"
-            },
-            "ts_commodity": {
-                "priceChange": "ts_priceChange"
-            },
-            "ts_restype__up_down__group__f": {
-                "reserveDemand": "ts_reserveDemand"
-            },
-            "grid__node": {
-                "storageValue": "p_storageValue"
-            }
-        }
+        "settings": {}
     }
 }

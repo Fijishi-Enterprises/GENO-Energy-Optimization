@@ -112,7 +112,14 @@
                 "to": [
                     "BB_sets",
                     "left"
-                ]
+                ],
+                "resource_filters": {
+                    "db_url@BB_data": {
+                        "scenario_filter": [
+                            1
+                        ]
+                    }
+                }
             },
             {
                 "from": [
@@ -232,7 +239,7 @@
             "type": "Data Store",
             "description": "",
             "x": -106.38126700713067,
-            "y": -132.3081377176571,
+            "y": -132.69828018438696,
             "url": {
                 "dialect": "sqlite",
                 "username": "",
@@ -251,7 +258,7 @@
             "type": "Data Connection",
             "description": "",
             "x": -300.4477396385093,
-            "y": 90.30688516169224,
+            "y": 89.91674269496238,
             "references": [
                 {
                     "type": "path",
@@ -264,7 +271,7 @@
             "type": "Data Connection",
             "description": "",
             "x": 192.64471365960787,
-            "y": -36.74427665804626,
+            "y": -37.134419124776116,
             "references": [
                 {
                     "type": "path",
@@ -292,21 +299,21 @@
             "type": "Data Connection",
             "description": "",
             "x": -144.99988274364932,
-            "y": 164.25641901597137,
+            "y": 163.86627654924152,
             "references": []
         },
         "BB_config_files_vara": {
             "type": "Data Connection",
             "description": "",
             "x": 132.74637152587613,
-            "y": 48.86918838194053,
+            "y": 48.479045915210676,
             "references": []
         },
         "Backbone": {
             "type": "Tool",
             "description": "",
             "x": 442.86124348844345,
-            "y": -112.71241911148434,
+            "y": -113.10256157821419,
             "specification": "Backbone",
             "execute_in_work": false,
             "cmd_line_args": []
@@ -315,7 +322,7 @@
             "type": "Tool",
             "description": "",
             "x": 349.4121144699393,
-            "y": 41.430899898495525,
+            "y": 41.04075743176567,
             "specification": "Backbone",
             "execute_in_work": false,
             "cmd_line_args": [
@@ -333,7 +340,7 @@
             "type": "Tool",
             "description": "",
             "x": -445.3612434884435,
-            "y": -136.83042664578178,
+            "y": -137.22056911251164,
             "specification": "BB_base_sets",
             "execute_in_work": false,
             "cmd_line_args": []
@@ -341,8 +348,8 @@
         "Convert": {
             "type": "Importer",
             "description": "",
-            "x": -192.45378093519278,
-            "y": -22.086840259669486,
+            "x": -193.73406586865244,
+            "y": -22.476982726399342,
             "specification": "BB1.4_to_SpineDB",
             "cancel_on_error": true,
             "file_selection": [
@@ -356,17 +363,17 @@
             "type": "Importer",
             "description": "",
             "x": -287.8415342698604,
-            "y": -130.0835313652039,
+            "y": -130.47367383193375,
             "specification": "Import_Bacbkone_base_sets_to_SpineDB",
             "cancel_on_error": true,
             "file_selection": [
                 [
-                    "Backbone_base_sets_to_gdx.lst",
-                    false
-                ],
-                [
                     "Backbone_base_sets.gdx",
                     true
+                ],
+                [
+                    "Backbone_base_sets_to_gdx.lst",
+                    false
                 ]
             ]
         },
@@ -374,7 +381,7 @@
             "type": "Importer",
             "description": "",
             "x": -5.105629674072162,
-            "y": -28.736382663956306,
+            "y": -29.12652513068616,
             "specification": "BB_to_SpineDB_ts",
             "cancel_on_error": true,
             "file_selection": []
@@ -383,14 +390,14 @@
             "type": "Data Transformer",
             "description": "",
             "x": 36.21444168453502,
-            "y": -130.47971652364004,
+            "y": -130.8698589903699,
             "specification": "ToBackboneSets"
         },
         "Export_to_BB": {
             "type": "Exporter",
             "description": "",
             "x": 305.9880990968649,
-            "y": -157.69584914905198,
+            "y": -159.36627654924155,
             "databases": [
                 {
                     "output_file_name": "inputData.gdx",
@@ -409,8 +416,8 @@
         "BB_parameters": {
             "type": "Data Transformer",
             "description": "",
-            "x": 166.4370413497591,
-            "y": -160.25641901597137,
+            "x": 166.43704134975908,
+            "y": -159.36627654924155,
             "specification": "ToBackboneParameters"
         }
     }

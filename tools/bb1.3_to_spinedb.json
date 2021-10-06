@@ -682,58 +682,27 @@
                     "Mapping 1": {
                         "mapping": [
                             {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "ts_unit__param__f"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
+                                "map_type": "ObjectClass",
                                 "position": "hidden",
                                 "value": "unit"
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "param_unit_ts"
+                                "map_type": "Object",
+                                "position": 0
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "f"
-                            },
-                            {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 0,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 1,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 2,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipMetadata",
+                                "map_type": "ObjectMetadata",
                                 "position": "hidden"
                             },
                             {
                                 "map_type": "ParameterDefinition",
                                 "position": "hidden",
-                                "value": "ts_unit"
+                                "value": "efficiency"
                             },
                             {
                                 "map_type": "Alternative",
                                 "position": "hidden",
-                                "value": "Base"
+                                "value": "Base_ts"
                             },
                             {
                                 "map_type": "ParameterValueMetadata",
@@ -743,6 +712,22 @@
                                 "map_type": "ParameterValueType",
                                 "position": "hidden",
                                 "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 1
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 2
                             },
                             {
                                 "map_type": "IndexName",
@@ -1228,7 +1213,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "ts_restype__up_down__group__f",
+                                "value": "restype__up_down__group",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1253,11 +1238,6 @@
                                 "value": "group"
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "f"
-                            },
-                            {
                                 "map_type": "Relationship",
                                 "position": "hidden",
                                 "value": "relationship"
@@ -1273,10 +1253,6 @@
                             {
                                 "map_type": "RelationshipObject",
                                 "position": 2
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 3
                             },
                             {
                                 "map_type": "RelationshipMetadata",
@@ -1307,6 +1283,14 @@
                             },
                             {
                                 "map_type": "ParameterValueIndex",
+                                "position": 3
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
                                 "position": 4
                             },
                             {
@@ -1324,7 +1308,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node__boundary",
+                                "value": "grid__node",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1344,11 +1328,6 @@
                                 "value": "node"
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "boundarytypes"
-                            },
-                            {
                                 "map_type": "Relationship",
                                 "position": "hidden",
                                 "value": "relationship"
@@ -1364,17 +1343,12 @@
                                 "import_objects": true
                             },
                             {
-                                "map_type": "RelationshipObject",
-                                "position": 2,
-                                "import_objects": true
-                            },
-                            {
                                 "map_type": "RelationshipMetadata",
                                 "position": "hidden"
                             },
                             {
                                 "map_type": "ParameterDefinition",
-                                "position": 3
+                                "position": 2
                             },
                             {
                                 "map_type": "Alternative",
@@ -1386,7 +1360,20 @@
                                 "position": "hidden"
                             },
                             {
-                                "map_type": "ParameterValue",
+                                "map_type": "ParameterValueType",
+                                "position": "hidden",
+                                "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 3
+                            },
+                            {
+                                "map_type": "ExpandedValue",
                                 "position": 4
                             }
                         ]
@@ -1654,7 +1641,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "ts_flow__node__f",
+                                "value": "flow__node",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1674,11 +1661,6 @@
                                 "value": "node"
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "f"
-                            },
-                            {
                                 "map_type": "Relationship",
                                 "position": "hidden",
                                 "value": "relationship"
@@ -1691,11 +1673,6 @@
                             {
                                 "map_type": "RelationshipObject",
                                 "position": 1,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 2,
                                 "import_objects": true
                             },
                             {
@@ -1727,6 +1704,14 @@
                             },
                             {
                                 "map_type": "ParameterValueIndex",
+                                "position": 2
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
                                 "position": 3
                             },
                             {
@@ -1744,7 +1729,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "ts_grid__node__f",
+                                "value": "grid__node",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1764,11 +1749,6 @@
                                 "value": "node"
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "f"
-                            },
-                            {
                                 "map_type": "Relationship",
                                 "position": "hidden",
                                 "value": "relationship"
@@ -1781,11 +1761,6 @@
                             {
                                 "map_type": "RelationshipObject",
                                 "position": 1,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 2,
                                 "import_objects": true
                             },
                             {
@@ -1817,6 +1792,14 @@
                             },
                             {
                                 "map_type": "ParameterValueIndex",
+                                "position": 2
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
                                 "position": 3
                             },
                             {
@@ -1834,7 +1817,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "ts_grid__node__boundary__f",
+                                "value": "grid__node",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1854,16 +1837,6 @@
                                 "value": "node"
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "boundarytypes"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "f"
-                            },
-                            {
                                 "map_type": "Relationship",
                                 "position": "hidden",
                                 "value": "relationship"
@@ -1879,28 +1852,17 @@
                                 "import_objects": true
                             },
                             {
-                                "map_type": "RelationshipObject",
-                                "position": 2,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 3,
-                                "import_objects": true
-                            },
-                            {
                                 "map_type": "RelationshipMetadata",
                                 "position": "hidden"
                             },
                             {
                                 "map_type": "ParameterDefinition",
-                                "position": "hidden",
-                                "value": "boundaryValue"
+                                "position": 2
                             },
                             {
                                 "map_type": "Alternative",
                                 "position": "hidden",
-                                "value": "Base"
+                                "value": "Base_ts"
                             },
                             {
                                 "map_type": "ParameterValueMetadata",
@@ -1910,6 +1872,14 @@
                                 "map_type": "ParameterValueType",
                                 "position": "hidden",
                                 "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 3
                             },
                             {
                                 "map_type": "IndexName",
@@ -2370,7 +2340,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "ts_grid__node__f_storageValue"
+                                "value": "grid__node"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -2381,11 +2351,6 @@
                                 "map_type": "RelationshipClassObjectClass",
                                 "position": "hidden",
                                 "value": "node"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "f"
                             },
                             {
                                 "map_type": "Relationship",
@@ -2401,22 +2366,18 @@
                                 "position": 1
                             },
                             {
-                                "map_type": "RelationshipObject",
-                                "position": 2
-                            },
-                            {
                                 "map_type": "RelationshipMetadata",
                                 "position": "hidden"
                             },
                             {
                                 "map_type": "ParameterDefinition",
                                 "position": "hidden",
-                                "value": "ts_storageValue"
+                                "value": "storageValue"
                             },
                             {
                                 "map_type": "Alternative",
                                 "position": "hidden",
-                                "value": "Base"
+                                "value": "Base_ts"
                             },
                             {
                                 "map_type": "ParameterValueMetadata",
@@ -2426,6 +2387,14 @@
                                 "map_type": "ParameterValueType",
                                 "position": "hidden",
                                 "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 2
                             },
                             {
                                 "map_type": "IndexName",
@@ -2662,7 +2631,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "ts_commodity"
+                                "value": "commodity"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -2724,7 +2693,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "ts_grid__node__node__param__f"
+                                "value": "grid__node__node"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -2740,16 +2709,6 @@
                                 "map_type": "RelationshipClassObjectClass",
                                 "position": "hidden",
                                 "value": "node"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "param_gnn_ts"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "f"
                             },
                             {
                                 "map_type": "Relationship",
@@ -2772,23 +2731,12 @@
                                 "import_objects": true
                             },
                             {
-                                "map_type": "RelationshipObject",
-                                "position": 3,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 4,
-                                "import_objects": true
-                            },
-                            {
                                 "map_type": "RelationshipMetadata",
                                 "position": "hidden"
                             },
                             {
                                 "map_type": "ParameterDefinition",
-                                "position": "hidden",
-                                "value": "ts_gnn"
+                                "position": 3
                             },
                             {
                                 "map_type": "Alternative",
@@ -2803,6 +2751,14 @@
                                 "map_type": "ParameterValueType",
                                 "position": "hidden",
                                 "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 4
                             },
                             {
                                 "map_type": "IndexName",

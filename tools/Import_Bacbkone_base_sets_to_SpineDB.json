@@ -5,163 +5,149 @@
         "table_mappings": {
             "s": [
                 {
-                    "map_type": "ObjectClass",
-                    "skip_columns": [],
-                    "read_start_row": 0,
-                    "name": {
-                        "map_type": "constant",
-                        "reference": "s"
-                    },
-                    "parameters": {
-                        "map_type": "None"
-                    },
-                    "import_objects": true,
-                    "objects": {
-                        "map_type": "column",
-                        "reference": 0
-                    },
-                    "object_metadata": {
-                        "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    "Mapping 0": {
+                        "mapping": [
+                            {
+                                "map_type": "ObjectClass",
+                                "position": "hidden",
+                                "value": "s"
+                            },
+                            {
+                                "map_type": "Object",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ObjectMetadata",
+                                "position": "hidden"
+                            }
+                        ]
+                    }
                 }
             ],
             "f": [
                 {
-                    "map_type": "ObjectClass",
-                    "skip_columns": [],
-                    "read_start_row": 0,
-                    "name": {
-                        "map_type": "constant",
-                        "reference": "f"
-                    },
-                    "parameters": {
-                        "map_type": "None"
-                    },
-                    "import_objects": true,
-                    "objects": {
-                        "map_type": "column",
-                        "reference": 0
-                    },
-                    "object_metadata": {
-                        "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    "Mapping 0": {
+                        "mapping": [
+                            {
+                                "map_type": "ObjectClass",
+                                "position": "hidden",
+                                "value": "f"
+                            },
+                            {
+                                "map_type": "Object",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ObjectMetadata",
+                                "position": "hidden"
+                            }
+                        ]
+                    }
                 }
             ],
             "scenario": [
                 {
-                    "map_type": "ObjectClass",
-                    "skip_columns": [],
-                    "read_start_row": 0,
-                    "name": {
-                        "map_type": "constant",
-                        "reference": "scenario"
-                    },
-                    "parameters": {
-                        "map_type": "None"
-                    },
-                    "import_objects": true,
-                    "objects": {
-                        "map_type": "column",
-                        "reference": 0
-                    },
-                    "object_metadata": {
-                        "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    "Mapping 0": {
+                        "mapping": [
+                            {
+                                "map_type": "ObjectClass",
+                                "position": "hidden",
+                                "value": "scenario"
+                            },
+                            {
+                                "map_type": "Object",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ObjectMetadata",
+                                "position": "hidden"
+                            }
+                        ]
+                    }
                 }
             ],
             "input_output": [
                 {
-                    "map_type": "ObjectClass",
-                    "skip_columns": [],
-                    "read_start_row": 0,
-                    "name": {
-                        "map_type": "constant",
-                        "reference": "input_output"
-                    },
-                    "parameters": {
-                        "map_type": "None"
-                    },
-                    "import_objects": true,
-                    "objects": {
-                        "map_type": "column",
-                        "reference": 0
-                    },
-                    "object_metadata": {
-                        "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    "Mapping 0": {
+                        "mapping": [
+                            {
+                                "map_type": "ObjectClass",
+                                "position": "hidden",
+                                "value": "input_output"
+                            },
+                            {
+                                "map_type": "Object",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ObjectMetadata",
+                                "position": "hidden"
+                            }
+                        ]
+                    }
                 }
             ],
             "effLevel": [
                 {
-                    "map_type": "ObjectClass",
-                    "skip_columns": [],
-                    "read_start_row": 0,
-                    "name": {
-                        "map_type": "constant",
-                        "reference": "effLevel"
-                    },
-                    "parameters": {
-                        "map_type": "None"
-                    },
-                    "import_objects": true,
-                    "objects": {
-                        "map_type": "column",
-                        "reference": 0
-                    },
-                    "object_metadata": {
-                        "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    "Mapping 0": {
+                        "mapping": [
+                            {
+                                "map_type": "ObjectClass",
+                                "position": "hidden",
+                                "value": "effLevel"
+                            },
+                            {
+                                "map_type": "Object",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ObjectMetadata",
+                                "position": "hidden"
+                            }
+                        ]
+                    }
                 }
             ],
             "effSelector": [
                 {
-                    "map_type": "ObjectClass",
-                    "skip_columns": [],
-                    "read_start_row": 0,
-                    "name": {
-                        "map_type": "constant",
-                        "reference": "effSelector"
-                    },
-                    "parameters": {
-                        "map_type": "None"
-                    },
-                    "import_objects": true,
-                    "objects": {
-                        "map_type": "column",
-                        "reference": 0
-                    },
-                    "object_metadata": {
-                        "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    "Mapping 0": {
+                        "mapping": [
+                            {
+                                "map_type": "ObjectClass",
+                                "position": "hidden",
+                                "value": "effSelector"
+                            },
+                            {
+                                "map_type": "Object",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ObjectMetadata",
+                                "position": "hidden"
+                            }
+                        ]
+                    }
                 }
             ],
             "up_down": [
                 {
-                    "map_type": "ObjectClass",
-                    "skip_columns": [],
-                    "read_start_row": 0,
-                    "name": {
-                        "map_type": "constant",
-                        "reference": "up_down"
-                    },
-                    "parameters": {
-                        "map_type": "None"
-                    },
-                    "import_objects": true,
-                    "objects": {
-                        "map_type": "column",
-                        "reference": 0
-                    },
-                    "object_metadata": {
-                        "map_type": "None"
-                    },
-                    "mapping_name": "Mapping 0"
+                    "Mapping 0": {
+                        "mapping": [
+                            {
+                                "map_type": "ObjectClass",
+                                "position": "hidden",
+                                "value": "up_down"
+                            },
+                            {
+                                "map_type": "Object",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ObjectMetadata",
+                                "position": "hidden"
+                            }
+                        ]
+                    }
                 }
             ]
         },
@@ -200,7 +186,6 @@
         "table_row_types": {},
         "selected_tables": [
             "s",
-            "f",
             "scenario",
             "up_down",
             "input_output",
