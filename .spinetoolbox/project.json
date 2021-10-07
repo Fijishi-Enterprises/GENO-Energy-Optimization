@@ -1,7 +1,7 @@
 {
     "project": {
         "version": 6,
-        "name": "VabiSys_Backbone_model",
+        "name": "Backbone_model_example",
         "description": "",
         "specifications": {
             "Tool": [
@@ -259,41 +259,14 @@
             "description": "",
             "x": -300.4477396385093,
             "y": 89.91674269496238,
-            "references": [
-                {
-                    "type": "path",
-                    "relative": true,
-                    "path": "input/6unit_storage/inputData.gdx"
-                }
-            ]
+            "references": []
         },
         "BB_config_files": {
             "type": "Data Connection",
             "description": "",
             "x": 192.64471365960787,
             "y": -37.134419124776116,
-            "references": [
-                {
-                    "type": "path",
-                    "relative": true,
-                    "path": "input/6unit_storage/1_options.gms"
-                },
-                {
-                    "type": "path",
-                    "relative": true,
-                    "path": "input/6unit_storage/modelsInit.gms"
-                },
-                {
-                    "type": "path",
-                    "relative": true,
-                    "path": "input/6unit_storage/scheduleInit.gms"
-                },
-                {
-                    "type": "path",
-                    "relative": true,
-                    "path": "input/6unit_storage/timeAndSamples.inc"
-                }
-            ]
+            "references": []
         },
         "supplement_inputData_ts": {
             "type": "Data Connection",
@@ -352,12 +325,7 @@
             "y": -22.476982726399342,
             "specification": "BB1.4_to_SpineDB",
             "cancel_on_error": true,
-            "file_selection": [
-                [
-                    "inputData.gdx",
-                    true
-                ]
-            ]
+            "file_selection": []
         },
         "Convert_base_sets": {
             "type": "Importer",
@@ -368,12 +336,12 @@
             "cancel_on_error": true,
             "file_selection": [
                 [
-                    "Backbone_base_sets.gdx",
-                    true
-                ],
-                [
                     "Backbone_base_sets_to_gdx.lst",
                     false
+                ],
+                [
+                    "Backbone_base_sets.gdx",
+                    true
                 ]
             ]
         },

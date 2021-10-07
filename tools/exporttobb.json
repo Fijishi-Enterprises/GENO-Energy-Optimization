@@ -340,7 +340,7 @@
                     "map_type": "ParameterDefinition",
                     "position": 2,
                     "header": "*",
-                    "filter_re": "^((?!(p_storageValue)).)*$"
+                    "filter_re": "^((?!(storageValue)).)*$"
                 },
                 {
                     "map_type": "ParameterValueList",
