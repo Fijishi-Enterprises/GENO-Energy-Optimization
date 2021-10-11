@@ -185,7 +185,6 @@
         },
         "table_row_types": {},
         "selected_tables": [
-            "s",
             "scenario",
             "up_down",
             "input_output",

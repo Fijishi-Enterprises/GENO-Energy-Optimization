@@ -10,7 +10,7 @@
                 {
                     "map_type": "ObjectClass",
                     "position": "table_name",
-                    "filter_re": "^grid$|^node$|^flow$|^unittype$|^unit$|^group$|^restype$|^emission$|^t_invest$"
+                    "filter_re": "^grid$|^node$|^flow$|^unittype$|^unit$|^group$|^restype$|^emission$"
                 },
                 {
                     "map_type": "Object",
@@ -54,7 +54,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "table_name",
-                    "filter_re": "^unitUnittype$|^restypeDirection$|^flowUnit$|^uGroup$|^sGroup$"
+                    "filter_re": "^unitUnittype$|^restypeDirection$|^flowUnit$|^uGroup$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -89,7 +89,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "table_name",
-                    "filter_re": "^unitUnitEffLevel$|^effLevelGroupUnit$|^utAvailabilityLimits$|^gnGroup$|^uss_bound$"
+                    "filter_re": "^unitUnitEffLevel$|^effLevelGroupUnit$|^gnGroup$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -133,7 +133,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "table_name",
-                    "filter_re": "^gnuGroup$|^gn2nGroup$|^gnss_bound$"
+                    "filter_re": "^gnuGroup$|^gn2nGroup$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -197,7 +197,7 @@
                     "map_type": "ParameterDefinition",
                     "position": 1,
                     "header": "*",
-                    "filter_re": "^((?!(eff|op)).)*$"
+                    "filter_re": "^((?!(eff|op|becomeAvailable|becomeUnavailable|boundSamples)).)*$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -237,11 +237,12 @@
                 {
                     "map_type": "ObjectClass",
                     "position": "hidden",
-                    "filter_re": "s"
+                    "filter_re": "^model$"
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "^discountFactor$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -250,8 +251,7 @@
                 },
                 {
                     "map_type": "Object",
-                    "position": 0,
-                    "header": "*"
+                    "position": "hidden"
                 },
                 {
                     "map_type": "Alternative",
@@ -262,7 +262,16 @@
                     "position": "hidden"
                 },
                 {
-                    "map_type": "ParameterValue",
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 0,
+                    "header": "*"
+                },
+                {
+                    "map_type": "ExpandedValue",
                     "position": 1
                 }
             ],
@@ -304,7 +313,8 @@
                 },
                 {
                     "map_type": "ParameterValueType",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "single_value"
                 },
                 {
                     "map_type": "ParameterValue",
@@ -2001,7 +2011,7 @@
                     "map_type": "ParameterDefinition",
                     "position": 2,
                     "header": "*",
-                    "filter_re": "^((?!(influx|storageValue)).)*$"
+                    "filter_re": "^((?!(influx|storageValue|boundSamples)).)*$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2278,6 +2288,316 @@
                 {
                     "map_type": "ExpandedValue",
                     "position": 2
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "use_fixed_table_name": true
+        },
+        "t_invest": {
+            "type": "object_parameter_values",
+            "mapping": [
+                {
+                    "map_type": "FixedValue",
+                    "position": "table_name",
+                    "value": "t_invest"
+                },
+                {
+                    "map_type": "ObjectClass",
+                    "position": "hidden",
+                    "filter_re": "model"
+                },
+                {
+                    "map_type": "ParameterDefinition",
+                    "position": "hidden",
+                    "filter_re": "^t_invest$"
+                },
+                {
+                    "map_type": "ParameterValueList",
+                    "position": "hidden",
+                    "ignorable": true
+                },
+                {
+                    "map_type": "Object",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "Alternative",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueType",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 0,
+                    "header": "*"
+                },
+                {
+                    "map_type": "ExpandedValue",
+                    "position": "hidden",
+                    "filter_re": "true"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "use_fixed_table_name": true
+        },
+        "sGroup": {
+            "type": "object_parameter_values",
+            "mapping": [
+                {
+                    "map_type": "FixedValue",
+                    "position": "table_name",
+                    "value": "sGroup"
+                },
+                {
+                    "map_type": "ObjectClass",
+                    "position": "hidden",
+                    "filter_re": "^group$"
+                },
+                {
+                    "map_type": "ParameterDefinition",
+                    "position": "hidden",
+                    "filter_re": "^samples$"
+                },
+                {
+                    "map_type": "ParameterValueList",
+                    "position": "hidden",
+                    "ignorable": true
+                },
+                {
+                    "map_type": "Object",
+                    "position": 1,
+                    "header": "*"
+                },
+                {
+                    "map_type": "Alternative",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueType",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 0,
+                    "header": "*"
+                },
+                {
+                    "map_type": "ExpandedValue",
+                    "position": "hidden",
+                    "filter_re": "true"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "use_fixed_table_name": true
+        },
+        "uss_bound": {
+            "type": "object_parameter_values",
+            "mapping": [
+                {
+                    "map_type": "FixedValue",
+                    "position": "table_name",
+                    "value": "uss_bound"
+                },
+                {
+                    "map_type": "ObjectClass",
+                    "position": "hidden",
+                    "filter_re": "^unit$"
+                },
+                {
+                    "map_type": "ParameterDefinition",
+                    "position": "hidden",
+                    "filter_re": "^boundSamples$"
+                },
+                {
+                    "map_type": "ParameterValueList",
+                    "position": "hidden",
+                    "ignorable": true
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "*"
+                },
+                {
+                    "map_type": "Alternative",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueType",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 1,
+                    "header": "*"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 2,
+                    "header": "*"
+                },
+                {
+                    "map_type": "ExpandedValue",
+                    "position": "hidden",
+                    "filter_re": "true"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "use_fixed_table_name": true
+        },
+        "gnss_bound": {
+            "type": "relationship_parameter_values",
+            "mapping": [
+                {
+                    "map_type": "FixedValue",
+                    "position": "table_name",
+                    "value": "gnss_bound"
+                },
+                {
+                    "map_type": "RelationshipClass",
+                    "position": "hidden",
+                    "filter_re": "^grid__node$"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterDefinition",
+                    "position": "hidden",
+                    "filter_re": "^boundSamples$"
+                },
+                {
+                    "map_type": "ParameterValueList",
+                    "position": "hidden",
+                    "ignorable": true
+                },
+                {
+                    "map_type": "Relationship",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 0,
+                    "header": "*"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 1,
+                    "header": "*"
+                },
+                {
+                    "map_type": "Alternative",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueType",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 2,
+                    "header": "*"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 3,
+                    "header": "*"
+                },
+                {
+                    "map_type": "ExpandedValue",
+                    "position": "hidden",
+                    "filter_re": "true"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "use_fixed_table_name": true
+        },
+        "utAvailabilityLimits": {
+            "type": "object_parameter_values",
+            "mapping": [
+                {
+                    "map_type": "FixedValue",
+                    "position": "table_name",
+                    "value": "utAvailabilityLimits"
+                },
+                {
+                    "map_type": "ObjectClass",
+                    "position": "hidden",
+                    "filter_re": "^unit$"
+                },
+                {
+                    "map_type": "ParameterDefinition",
+                    "position": 2,
+                    "header": "*",
+                    "filter_re": "^becomeAvailable$|^becomeUnavailable$"
+                },
+                {
+                    "map_type": "ParameterValueList",
+                    "position": "hidden",
+                    "ignorable": true
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "*"
+                },
+                {
+                    "map_type": "Alternative",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueType",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 1,
+                    "header": "*"
+                },
+                {
+                    "map_type": "ExpandedValue",
+                    "position": "hidden",
+                    "filter_re": "true"
                 }
             ],
             "enabled": true,

@@ -1904,15 +1904,48 @@
                             {
                                 "map_type": "ObjectClass",
                                 "position": "hidden",
-                                "value": "t_invest"
+                                "value": "model"
                             },
                             {
                                 "map_type": "Object",
-                                "position": 0
+                                "position": "hidden",
+                                "value": "backbone"
                             },
                             {
                                 "map_type": "ObjectMetadata",
                                 "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterDefinition",
+                                "position": "hidden",
+                                "value": "t_invest"
+                            },
+                            {
+                                "map_type": "Alternative",
+                                "position": "hidden",
+                                "value": "Base"
+                            },
+                            {
+                                "map_type": "ParameterValueMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueType",
+                                "position": "hidden",
+                                "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ExpandedValue",
+                                "position": "hidden",
+                                "value": "true"
                             }
                         ]
                     }
@@ -2012,7 +2045,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node__sample__sample"
+                                "value": "grid__node"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -2023,16 +2056,6 @@
                                 "map_type": "RelationshipClassObjectClass",
                                 "position": "hidden",
                                 "value": "node"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "s"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "s"
                             },
                             {
                                 "map_type": "Relationship",
@@ -2050,18 +2073,48 @@
                                 "import_objects": true
                             },
                             {
-                                "map_type": "RelationshipObject",
-                                "position": 2,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 3,
-                                "import_objects": true
-                            },
-                            {
                                 "map_type": "RelationshipMetadata",
                                 "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterDefinition",
+                                "position": "hidden",
+                                "value": "boundSamples"
+                            },
+                            {
+                                "map_type": "Alternative",
+                                "position": "hidden",
+                                "value": "Base"
+                            },
+                            {
+                                "map_type": "ParameterValueMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueType",
+                                "position": "hidden",
+                                "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 2
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 3
+                            },
+                            {
+                                "map_type": "ExpandedValue",
+                                "position": "hidden",
+                                "value": "true"
                             }
                         ]
                     }
@@ -2072,45 +2125,57 @@
                     "Mapping 1": {
                         "mapping": [
                             {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "unit__sample__sample"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
+                                "map_type": "ObjectClass",
                                 "position": "hidden",
                                 "value": "unit"
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "s"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "s"
-                            },
-                            {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
-                            },
-                            {
-                                "map_type": "RelationshipObject",
+                                "map_type": "Object",
                                 "position": 0
                             },
                             {
-                                "map_type": "RelationshipObject",
+                                "map_type": "ObjectMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterDefinition",
+                                "position": "hidden",
+                                "value": "boundSamples"
+                            },
+                            {
+                                "map_type": "Alternative",
+                                "position": "hidden",
+                                "value": "Base"
+                            },
+                            {
+                                "map_type": "ParameterValueMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueType",
+                                "position": "hidden",
+                                "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
                                 "position": 1
                             },
                             {
-                                "map_type": "RelationshipObject",
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
                                 "position": 2
                             },
                             {
-                                "map_type": "RelationshipMetadata",
-                                "position": "hidden"
+                                "map_type": "ExpandedValue",
+                                "position": "hidden",
+                                "value": "true"
                             }
                         ]
                     }
@@ -2249,11 +2314,12 @@
                             {
                                 "map_type": "ObjectClass",
                                 "position": "hidden",
-                                "value": "s"
+                                "value": "model"
                             },
                             {
                                 "map_type": "Object",
-                                "position": 0
+                                "position": "hidden",
+                                "value": "backbone"
                             },
                             {
                                 "map_type": "ObjectMetadata",
@@ -2274,7 +2340,20 @@
                                 "position": "hidden"
                             },
                             {
-                                "map_type": "ParameterValue",
+                                "map_type": "ParameterValueType",
+                                "position": "hidden",
+                                "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ExpandedValue",
                                 "position": 1
                             }
                         ]
@@ -2286,48 +2365,48 @@
                     "Mapping 1": {
                         "mapping": [
                             {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "unit__t__availability"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
+                                "map_type": "ObjectClass",
                                 "position": "hidden",
                                 "value": "unit"
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "t_availability"
+                                "map_type": "Object",
+                                "position": 0
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "availability"
-                            },
-                            {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 0,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 1,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 2,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipMetadata",
+                                "map_type": "ObjectMetadata",
                                 "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterDefinition",
+                                "position": 2
+                            },
+                            {
+                                "map_type": "Alternative",
+                                "position": "hidden",
+                                "value": "Base"
+                            },
+                            {
+                                "map_type": "ParameterValueMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueType",
+                                "position": "hidden",
+                                "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 1
+                            },
+                            {
+                                "map_type": "ExpandedValue",
+                                "position": "hidden",
+                                "value": "true"
                             }
                         ]
                     }
@@ -2417,36 +2496,50 @@
                     "Mapping 1": {
                         "mapping": [
                             {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "sample__group"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "s"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
+                                "map_type": "ObjectClass",
                                 "position": "hidden",
                                 "value": "group"
                             },
                             {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 0
-                            },
-                            {
-                                "map_type": "RelationshipObject",
+                                "map_type": "Object",
                                 "position": 1
                             },
                             {
-                                "map_type": "RelationshipMetadata",
+                                "map_type": "ObjectMetadata",
                                 "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterDefinition",
+                                "position": "hidden",
+                                "value": "samples"
+                            },
+                            {
+                                "map_type": "Alternative",
+                                "position": "hidden",
+                                "value": "Base"
+                            },
+                            {
+                                "map_type": "ParameterValueMetadata",
+                                "position": "hidden",
+                                "value": ""
+                            },
+                            {
+                                "map_type": "ParameterValueType",
+                                "position": "hidden",
+                                "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ExpandedValue",
+                                "position": "hidden",
+                                "value": "true"
                             }
                         ]
                     }
