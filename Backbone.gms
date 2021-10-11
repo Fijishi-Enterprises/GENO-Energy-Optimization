@@ -108,7 +108,7 @@ $if not set input_excel_index $setglobal input_excel_index 'INDEX'
 $if not set input_excel_checkdate $setglobal input_excel_checkdate ''
 
 * Make sure output dir exists
-$if not dexist %output_dir% $call 'mkdir %output_dir%'
+$if not dexist '%output_dir%' $call 'mkdir %output_dir%'
 
 * Activate end of line comments and set comment character to '//'
 $oneolcom
@@ -116,7 +116,7 @@ $eolcom //
 $onempty   // Allow empty data definitions
 
 * Output file streams
-Files log /''/, gdx /''/, f_info /'%output_dir%/info.txt'/;
+Files log /''/, gdx /''/, f_info /'%output_dir%\info.txt'/;
 
 * Include options file to control the solver (if it does not exist, uses defaults)
 $ifthen exist '%input_dir%/1_options.gms'
