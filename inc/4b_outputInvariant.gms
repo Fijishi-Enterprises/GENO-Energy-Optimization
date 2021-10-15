@@ -78,6 +78,14 @@ loop(m,
                     + p_gnn(grid, node_, node, 'variableTransCost')
                     * r_transferRightward(grid, node_, node, f, t)];
 
+   // Transfer marginal value (Me) calculated from r_transfer * balanceMarginal
+   r_gnnTransferMarginalValue(gn2n_directional(grid, node_, node), ft_realizedNoReset(f,startp(t)))
+        = 1e-6 // Scaling to MEUR
+            * p_stepLengthNoReset(m, f, t)
+            * r_transfer(grid, node_, node, f, t)
+            * r_balanceMarginal(grid, node, f, t)
+    ;
+
     // Node state slack costs
     r_gnStateSlackCost(gn_stateSlack(grid, node), ft_realizedNoReset(f,startp(t)))
         = 1e-6 // Scaling to MEUR
@@ -122,6 +130,14 @@ loop(m,
             + r_gnnVariableTransCost(grid, node_, node, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
+
+    // Total transfer marginal value over the simulation
+    r_gnnTotalTransferMarginalValue(gn2n_directional(grid, node_, node))
+        = sum(ft_realizedNoReset(f,startp(t)),
+            + r_gnnTransferMarginalValue(grid, node_, node, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
+            )
+    ;
 
     // Total fuel & emission costs
     r_uTotalFuelEmissionCost(commodity, unit)$un_commodity(unit, commodity)
