@@ -31,110 +31,112 @@ if(tSolveFirst >= mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializa
               + v_online_MIP.l(unit, s, f_solve, t)$unit_online_MIP(unit);
     );
 );
+
+// Improve performance & readibility by using a few helper sets
+option clear=startp, clear=sft_resdgn, s_realized < sft_realized;
+startp(t)$(ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod'))=yes;
+
 // Realized state history
-loop(sft_realized(s, f, t),
-    r_state(gn_state(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+loop(ms(mSolve, s_realized(s)),
+    r_state(gn_state(grid, node), f, startp(t))$sft_realized(s, f, t)
         = v_state.l(grid, node, s, f, t);
 
     // Realized state history - initial state values in samples
-    r_state(gn_state(grid, node), f_solve(f), t+dt(t))${   ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
-                                                           and sum(ms(mSolve, s), mst_start(mSolve, s, t))
-                                                       }
-        = v_state.l(grid, node, s, f, t+dt(t))
+    r_state(gn_state(grid, node), f_solve(f), t_(t+dt(t)))$(mst_start(ms, t)$sft_realized(s, f, t)$startp(t))
+        = v_state.l(grid, node, s, f, t_)
     ;
     // Realized unit online history
-    r_online(uft_online(unit, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        = v_online_LP.l(unit, s, f, t)${ uft_onlineLP(unit, f, t)    }
-            + v_online_MIP.l(unit, s, f, t)${  uft_onlineMIP(unit, f, t)   }
+    r_online(uft_online(unit, f, startp(t)))$sft_realized(s, f, t)
+        = v_online_LP.l(unit, s, f, t)$uft_onlineLP(unit, f, t)
+            + v_online_MIP.l(unit, s, f, t)$uft_onlineMIP(unit, f, t)
     ;
     // Unit startup and shutdown history
-    r_startup(unit, starttype, f, t)${ uft_online(unit, f, t) and [ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')] }
-        = v_startup_LP.l(unit, starttype, s, f, t)${ uft_onlineLP(unit, f, t) }
-            + v_startup_MIP.l(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
+    r_startup(unit, starttype, f, startp(t))$(uft_online(unit, f, t)$sft_realized(s, f, t))
+        = v_startup_LP.l(unit, starttype, s, f, t)$uft_onlineLP(unit, f, t)
+            + v_startup_MIP.l(unit, starttype, s, f, t)$uft_onlineMIP(unit, f, t)
     ;
-    r_shutdown(uft_online(unit, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        = v_shutdown_LP.l(unit, s, f, t)${ uft_onlineLP(unit, f, t) }
-            + v_shutdown_MIP.l(unit, s, f, t)${ uft_onlineMIP(unit, f, t) }
+    r_shutdown(uft_online(unit, f, startp(t)))$sft_realized(s, f, t)
+        = v_shutdown_LP.l(unit, s, f, t)$uft_onlineLP(unit, f, t)
+            + v_shutdown_MIP.l(unit, s, f, t)$uft_onlineMIP(unit, f, t)
     ;
 );
 
 * --- Reserve results ---------------------------------------------------------
 
 // Loop over reserve horizon, as the reserve variables use a different ft-structure due to commitment
-loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))
-    ${  ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
-        and ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
-        },
 
+sft_resdgn(restypeDirectionGridNode(restype, up_down, gn), sft(s, f, startp(t)))
+  ${ord(t) <= tSolveFirst + p_gnReserves(gn, restype, 'reserve_length')} = yes;
+
+loop(s,
     // Reserve provisions of units
-    r_reserve(gnuRescapable(restype, up_down, grid, node, unit), f+df_reserves(grid, node, restype, f, t), t)
-        ${  not [   restypeReleasedForRealization(restype)
-                    and sft_realized(s, f+df_reserves(grid, node, restype, f, t), t)
-                    ]
-            }
-        = + v_reserve.l(restype, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t)
-          + sum(restype_$p_gnuRes2Res(grid, node, unit, restype_, up_down, restype),
-              + v_reserve.l(restype_, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype_, f, t), t)
-                  * p_gnuRes2Res(grid, node, unit, restype_, up_down, restype)
+    r_reserve(gnuRescapable(restype, up_down, gn, unit), f_(f+df_reserves(gn, restype, f, t)), t)
+        ${ (not sft_realized(s, f_, t)$restypeReleasedForRealization(restype))$sft_resdgn(restype,up_down,gn,s,f,t) }
+        = + v_reserve.l(restype, up_down, gn, unit, s, f_, t)
+          + sum(restype_$p_gnuRes2Res(gn, unit, restype_, up_down, restype),
+              + v_reserve.l(restype_, up_down, gn, unit, s, f+df_reserves(gn, restype_, f, t), t)
+                  * p_gnuRes2Res(gn, unit, restype_, up_down, restype)
             );
 
-    // Reserve requirement due to N-1 reserve constraint
-    r_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), f+df_reserves(grid, node, restype, f, t), t)
-        ${ sum((gnGroup(grid, node, group), unit_fail), p_gnuReserves(grid, node, unit_fail, restype, 'portion_of_infeed_to_reserve')) } // Calculate only for groups with units that can fail.
-        = smax(unit_fail(unit_)${ sum(gnGroup(grid, node, group), p_gnuReserves(grid, node, unit_, restype, 'portion_of_infeed_to_reserve')) },
-            + v_gen.l(grid, node, unit_, s, f, t)
-                * p_gnuReserves(grid, node, unit_, restype, 'portion_of_infeed_to_reserve')
-            ) // END smax(unit_fail)
-        ;
-
     // Reserve transfer capacity for links defined out from this node
-    r_resTransferRightward(restype, up_down, grid, node, to_node, f+df_reserves(grid, node, restype, f, t), t)
-        ${  gn2n_directional(grid, node, to_node)
-            and restypeDirectionGridNodeNode(restype, up_down, grid, node, to_node)
-            }
-        = v_resTransferRightward.l(restype, up_down, grid, node, to_node, s, f+df_reserves(grid, node, restype, f, t), t);
+    r_resTransferRightward(restype, up_down, gn2n_directional(gn, to_node), f_(f+df_reserves(gn, restype, f, t)), t)
+        ${ restypeDirectionGridNodeNode(restype, up_down, gn, to_node)$sft_resdgn(restype,up_down,gn,s,f,t) }
+        = v_resTransferRightward.l(restype, up_down, gn, to_node, s, f_, t);
 
-    r_resTransferLeftward(restype, up_down, grid, node, to_node, f+df_reserves(grid, to_node, restype, f, t), t)
-        ${  gn2n_directional(grid, node, to_node)
-            and restypeDirectionGridNodeNode(restype, up_down, grid, to_node, node)
-            }
-        = v_resTransferLeftward.l(restype, up_down, grid, node, to_node, s, f+df_reserves(grid, to_node, restype, f, t), t);
-
-    // Dummy reserve demand changes
-    r_qResDemand(restype, up_down, group, f+df_reservesGroup(group, restype, f, t), t)
-        = vq_resDemand.l(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t);
-
-    r_qResMissing(restype, up_down, group, f+df_reservesGroup(group, restype, f, t), t)
-        = vq_resMissing.l(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t);
+    r_resTransferLeftward(restype, up_down, gn2n_directional(gn(grid, node), to_node), f_(f+df_reserves(grid, to_node, restype, f, t)), t)
+        ${ restypeDirectionGridNodeNode(restype, up_down, grid, to_node, node)$sft_resdgn(restype,up_down,gn,s,f,t) }
+        = v_resTransferLeftward.l(restype, up_down, gn, to_node, s, f_, t);
 
 ); // END loop(restypeDirectionNode, sft)
 
+// Loop over group reserve horizon
+loop((restypeDirectionGroup(restype, up_down, group), sft(s, f, startp(t)))
+    ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')},
+
+    // Reserve requirement due to N-1 reserve constraint
+    r_resDemandLargestInfeedUnit(restype, 'up', group, f_(f+df_reservesGroup(group, restype, f, t)), t)
+        ${ sum((gnGroup(gn, group),unit_fail)$p_gnuReserves(gn, unit_fail, restype, 'portion_of_infeed_to_reserve'),1) } // Calculate only for groups with units that can fail.
+        = smax((gnGroup(gn, group),unit_fail)$p_gnuReserves(gn, unit_fail, restype, 'portion_of_infeed_to_reserve'),
+            + v_gen.l(gn, unit_fail, s, f, t)
+                * p_gnuReserves(gn, unit_fail, restype, 'portion_of_infeed_to_reserve')
+            ) // END smax(unit_fail)
+        ;
+    // Dummy reserve demand changes
+    r_qResDemand(restype, up_down, group, f_(f+df_reservesGroup(group, restype, f, t)), t)
+        = vq_resDemand.l(restype, up_down, group, s, f_, t);
+
+    r_qResMissing(restype, up_down, group, f_(f+df_reservesGroup(group, restype, f, t)), t)
+        = vq_resMissing.l(restype, up_down, group, s, f_, t);
+
+); // END loop(restypeDirectionGroup, sft)
+
 * --- Interesting results -----------------------------------------------------
 
-loop(sft_realized(s, f, t),
+loop(s_realized(s),
+
     // Unit generation and consumption
-    r_gen(gnuft(grid, node, unit, f, t))$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+    r_gen(gnuft(grid, node, unit, f, startp(t)))$sft_realized(s, f, t)
         = v_gen.l(grid, node, unit, s, f, t)
     ;
     // Fuel use of units
-    r_fuelUse(node, uft(unit_commodity, f, t))$[un_commodity(unit_commodity, node) and ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        = - sum(grid$gnu(grid, node, unit_commodity), v_gen.l(grid, node, unit_commodity, s, f, t))
+    r_fuelUse(node, uft(unit_commodity, f, startp(t)))$(un_commodity(unit_commodity, node)$sft_realized(s, f, t))
+        = - sum(gnu(grid, node, unit_commodity), v_gen.l(grid, node, unit_commodity, s, f, t))
     ;
     // Transfer of energy between nodes
-    r_transfer(gn2n(grid, from_node, to_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+    r_transfer(gn2n(grid, from_node, to_node), f, startp(t))$sft_realized(s, f, t)
         = v_transfer.l(grid, from_node, to_node, s, f, t)
     ;
     // Transfer of energy from first node to second node
-    r_transferRightward(gn2n_directional(grid, from_node, to_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+    r_transferRightward(gn2n_directional(grid, from_node, to_node), f, startp(t))$sft_realized(s, f, t)
         = v_transferRightward.l(grid, from_node, to_node, s, f, t)
     ;
     // Transfer of energy from second node to first node
-    r_transferLeftward(gn2n_directional(grid, to_node, from_node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+    r_transferLeftward(gn2n_directional(grid, to_node, from_node), f, startp(t))$sft_realized(s, f, t)
         = v_transferLeftward.l(grid, to_node, from_node, s, f, t)
     ;
     // Energy spilled from nodes
-    r_spill(gn(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        = v_spill.l(grid, node, s, f, t)
+    r_spill(gn, f, startp(t))$sft_realized(s, f, t)
+        = v_spill.l(gn, s, f, t)
     ;
 );
 
@@ -144,17 +146,17 @@ r_totalObj(tSolve)
 ;
 
 // q_balance marginal values
-loop(sft_realized(s, f, t),
-    r_balanceMarginal(gn(grid, node), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        = q_balance.m(grid, node, mSolve, s, f, t)
+loop(s_realized(s),
+    r_balanceMarginal(gn, f, startp(t))$sft_realized(s, f, t)
+        = q_balance.m(gn, mSolve, s, f, t)
     ;
     // q_resDemand marginal values
-    r_resDemandMarginal(restypeDirectionGroup(restype, up_down, group), f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
+    r_resDemandMarginal(restypeDirectionGroup(restype, up_down, group), f, startp(t))$sft_realized(s, f, t)
         = q_resDemand.m(restype, up_down, group, s, f, t)
     ;
     // v_stateSlack values for calculation of realized costs later on
-    r_stateSlack(gn_stateSlack(grid, node), slack, f, t)$[ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')]
-        = v_stateSlack.l(grid, node, slack, s, f, t)
+    r_stateSlack(gn_stateSlack(gn), slack, f, startp(t))$sft_realized(s, f, t)
+        = v_stateSlack.l(gn, slack, s, f, t)
     ;
 );
 // Unit investments
@@ -175,16 +177,12 @@ r_investTransfer(grid, node, node_, t_invest(t))${ p_gnn(grid, node, node_, 'tra
 * --- Feasibility results -----------------------------------------------------
 loop(sft_realized(s, f, t),
 // Dummy generation & consumption
-r_qGen(inc_dec, gn(grid, node), f, t)
-    ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
-        }
-    = vq_gen.l(inc_dec, grid, node, s, f, t)
+r_qGen(inc_dec, gn, f, startp(t))
+    = vq_gen.l(inc_dec, gn, s, f, t)
 ;
 // Dummy capacity
-r_qCapacity(gn(grid, node), f, t)
-    ${  ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod')
-        }
-    = vq_capacity.l(grid, node, s, f, t)
+r_qCapacity(gn, f, startp(t))
+    = vq_capacity.l(gn, s, f, t)
 ;
 );
 

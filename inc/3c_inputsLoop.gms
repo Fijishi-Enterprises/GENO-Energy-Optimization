@@ -329,32 +329,36 @@ loop(cc(counter),
 
     // Select and average time series data matching the intervals
     ts_unit_(unit_timeseries(unit), param_unit, ft(f, tt_interval(t)))
-        = sum(tt_aggregate(t, t_),
-            ts_unit(unit, param_unit, f, t_+dt_circular(t_))
+        = sum(tt_aggcircular(t, t_),
+            ts_unit(unit, param_unit, f, t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 $ontext
 * Should these be handled here at all? See above comment
     ts_effUnit_(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, ft(f, tt_interval(t)))
-        = sum(tt_aggregate(t, t_),
-            ts_effUnit(effSelector, unit, effSelector, param_eff, f, t_+dt_circular(t_))
+        = sum(tt_aggcircular(t, t_),
+            ts_effUnit(effSelector, unit, effSelector, param_eff, f, t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
     ts_effGroupUnit_(effSelector, unit_timeseries(unit), param_eff, ft(f, tt_interval(t)))
-        = sum(tt_aggregate(t, t_),
-            ts_effGroupUnit(effSelector, unit, param_eff, f, t_+dt_circular(t_))
+        = sum(tt_aggcircular(t, t_),
+            ts_effGroupUnit(effSelector, unit, param_eff, f, t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 $offtext
-    ts_influx_(gn(grid, node), sft(s, f, tt_interval(t)))
+    ts_influx_(gn, sft(s, f, tt_interval(t)))$gn_scenarios(gn, 'ts_influx')
         = sum(tt_aggregate(t, t_),
-            ts_influx(grid, node,
-                f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_influx'))
-                     + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_influx')),
-                t_+ (+ dt_scenarioOffset(grid, node, 'ts_influx', s)
-                     + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_influx'))))
-            )
-            / mInterval(mSolve, 'stepsPerInterval', counter);
+            ts_influx(gn,
+                f + (  df_realization(f, t)$(not gn_forecasts(gn, 'ts_influx'))
+                     + df_scenario(f, t)),
+                t_+ (+ dt_scenarioOffset(gn, 'ts_influx', s)))
+            ) / mInterval(mSolve, 'stepsPerInterval', counter);
+    ts_influx_(gn, sft(s, f, tt_interval(t)))$(not gn_scenarios(gn, 'ts_influx'))
+        = sum(tt_aggcircular(t, t_),
+            ts_influx(gn,
+                f + (  df_realization(f, t)$(not gn_forecasts(gn, 'ts_influx'))),
+                t_  )
+            ) / mInterval(mSolve, 'stepsPerInterval', counter);
     ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggregate(t, t_),
             ts_cf(flow, node,
@@ -367,10 +371,10 @@ $offtext
     // Reserves relevant only until reserve_length
     ts_reserveDemand_(restypeDirectionGroup(restype, up_down, group), ft(f, tt_interval(t)))
       ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')  }
-        = sum(tt_aggregate(t, t_),
+        = sum(tt_aggcircular(t, t_),
             ts_reserveDemand(restype, up_down, group,
                 f + (  df_realization(f, t)${not sum(gnGroup(grid, node, group), gn_forecasts(restype, node, 'ts_reserveDemand'))}
-                     + df_scenario(f, t)${sum(gnGroup(grid, node, group), gn_scenarios(restype, node, 'ts_reserveDemand'))} ),                t_+ dt_circular(t_))
+                     + df_scenario(f, t)${sum(gnGroup(grid, node, group), gn_scenarios(restype, node, 'ts_reserveDemand'))} ), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
     ts_node_(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f, tt_interval(t)))
@@ -404,6 +408,7 @@ $offtext
                             + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
+                
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
         = sum(tt_aggregate(t, t_),
             ts_gnn(grid, node, node_, param_gnn, f, t_+dt_circular(t_))
@@ -414,17 +419,17 @@ $offtext
     ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
         = + p_gnu(grid, node, unit, 'vomCosts')
           // input node cost
-          + p_price(node, 'price')${un_commodity_in(unit, node) and p_price(node, 'useConstant')}
-          + sum(tt_aggregate(t, t_)${un_commodity_in(unit, node) and p_price(node, 'useTimeSeries')},
-              + ts_price(node, t_+dt_circular(t_))
-              )
-              / mInterval(mSolve, 'stepsPerInterval', counter)
+          + (
+             + p_price(node, 'price')$p_price(node, 'useConstant')
+             + sum(tt_aggcircular(t, t_), ts_price(node, t_))$p_price(node, 'useTimeSeries')
+                 / mInterval(mSolve, 'stepsPerInterval', counter)
+            )$un_commodity_in(unit, node) 
           // output node cost (if price > 0 --> ts_vomCost_ < 0, i.e. considered as revenue)
-          - p_price(node, 'price')${un_commodity_out(unit, node) and p_price(node, 'useConstant')}
-          - sum(tt_aggregate(t, t_)${un_commodity_out(unit, node) and p_price(node, 'useTimeSeries')},
-              + ts_price(node, t_+dt_circular(t_))
-              )
-              / mInterval(mSolve, 'stepsPerInterval', counter)
+          - (
+             + p_price(node, 'price')$p_price(node, 'useConstant')
+             + sum(tt_aggcircular(t, t_), ts_price(node, t_))$p_price(node, 'useTimeSeries')
+                 / mInterval(mSolve, 'stepsPerInterval', counter)
+            )$un_commodity_out(unit, node)
           // emission cost
           + sum(emission$p_unitEmissionCost(unit, node, emission), // Emission taxes
               + p_unitEmissionCost(unit, node, emission)
@@ -444,9 +449,9 @@ $offtext
             + p_unStartup(unit, node, starttype) // MWh/start-up
               * [
                   + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
-                  + sum(tt_aggregate(t, t_)$p_price(node, 'useTimeseries'),
-                      + ts_price(node, t_+dt_circular(t_)) // CUR/MWh
-                    )
+                  + sum(tt_aggcircular(t, t_),
+                      + ts_price(node, t_) // CUR/MWh
+                    )$p_price(node, 'useTimeseries')
                     / mInterval(mSolve, 'stepsPerInterval', counter)
                 ] // END * p_uStartup
           ) // END sum(node)
