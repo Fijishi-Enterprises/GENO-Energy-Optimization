@@ -41,8 +41,8 @@ r_gnTotalStateSlackCost
 r_gnStorageValueChange
 r_gnnVariableTransCost
 r_gnnTotalVariableTransCost
-r_gnnTransferMarginalValue
-r_gnnTotalTransferMarginalValue
+r_gnnTransferValue
+r_gnnTotalTransferValue
 
 // Investment and Fixed Operation and Maintenance Cost Components
 r_gnuFOMCost

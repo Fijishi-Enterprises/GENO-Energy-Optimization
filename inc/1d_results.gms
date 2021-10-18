@@ -41,8 +41,8 @@ Parameters
     r_gnStorageValueChange(grid, node) "Change in storage values over the simulation (MEUR)"
     r_gnnVariableTransCost(grid, node_,node, f, t) "Variable Transfer costs (MEUR)"
     r_gnnTotalVariableTransCost(grid, node_, node) "Total Variable Transfer costs over the simulation (MEUR)"
-    r_gnnTransferMarginalValue(grid, from_node, to_node, f, t) "Transfer marginal value (Me) = r_transfer (MW) * r_balanceMarginal (e/MWh)"
-    r_gnnTotalTransferMarginalValue(grid, from_node, to_node) "Total ransfer marginal value summed over the simulation (Me)"
+    r_gnnTransferValue(grid, from_node, to_node, f, t) "Transfer marginal value (Me) = r_transfer (MW) * r_balanceMarginal (e/MWh)"
+    r_gnnTotalTransferValue(grid, from_node, to_node) "Total ransfer marginal value summed over the simulation (Me)"
 
     // Investment and Fixed Operation and Maintenance Cost Components
     r_gnuFOMCost(grid, node, unit) "Total gnu fixed O&M costs over the simulation (MEUR)"

@@ -79,7 +79,7 @@ loop(m,
                     * r_transferRightward(grid, node_, node, f, t)];
 
    // Transfer marginal value (Me) calculated from r_transfer * balanceMarginal * transferLosses
-   r_gnnTransferMarginalValue(gn2n_directional(grid, node_, node), ft_realizedNoReset(f,startp(t)))
+   r_gnnTransferValue(gn2n_directional(grid, node_, node), ft_realizedNoReset(f,startp(t)))
         = p_stepLengthNoReset(m, f, t)
             * [ r_transferRightward(grid, node_, node, f, t)
                 * r_balanceMarginal(grid, node, f, t)
@@ -137,9 +137,9 @@ loop(m,
             );
 
     // Total transfer marginal value over the simulation
-    r_gnnTotalTransferMarginalValue(gn2n_directional(grid, node_, node))
+    r_gnnTotalTransferValue(gn2n_directional(grid, node_, node))
         = sum(ft_realizedNoReset(f,startp(t)),
-            + r_gnnTransferMarginalValue(grid, node_, node, f, t)
+            + r_gnnTransferValue(grid, node_, node, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             )
     ;
