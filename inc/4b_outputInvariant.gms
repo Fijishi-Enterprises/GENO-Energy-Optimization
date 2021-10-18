@@ -78,12 +78,17 @@ loop(m,
                     + p_gnn(grid, node_, node, 'variableTransCost')
                     * r_transferRightward(grid, node_, node, f, t)];
 
-   // Transfer marginal value (Me) calculated from r_transfer * balanceMarginal
+   // Transfer marginal value (Me) calculated from r_transfer * balanceMarginal * transferLosses
    r_gnnTransferMarginalValue(gn2n_directional(grid, node_, node), ft_realizedNoReset(f,startp(t)))
-        = 1e-6 // Scaling to MEUR
-            * p_stepLengthNoReset(m, f, t)
-            * r_transfer(grid, node_, node, f, t)
-            * r_balanceMarginal(grid, node, f, t)
+        = p_stepLengthNoReset(m, f, t)
+            * [ r_transferRightward(grid, node_, node, f, t)
+                * r_balanceMarginal(grid, node, f, t)
+                - r_transferLeftward(grid, node_, node, f, t)
+                * r_balanceMarginal(grid, node_, f, t)
+              ]
+            * [ 1 - p_gnn(grid, node_, node, 'transferLoss')${not gn2n_timeseries(grid, node_, node, 'transferLoss')}
+                - ts_gnn_(grid, node_, node, 'transferLoss', f, t)${gn2n_timeseries(grid, node_, node, 'transferLoss')}
+              ]
     ;
 
     // Node state slack costs
