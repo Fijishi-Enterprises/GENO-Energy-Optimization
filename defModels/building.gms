@@ -68,6 +68,8 @@ Model building /
 *    q_resTransferLimitLeftward
 *    q_reserveProvisionRightward
 *    q_reserveProvisionLeftward
+    q_transferTwoWayLimit1
+*    q_transferTwoWayLimit2
 
     // State Variables
     q_stateSlack
@@ -83,7 +85,7 @@ Model building /
 *    q_capacityMargin
 *    q_constrainedCapMultiUnit
 *    q_emissioncap
-*    q_energyMax 
+*    q_energyMax
 *    q_energyShareMax
 *    q_energyShareMin
 *    q_ReserveShareMax

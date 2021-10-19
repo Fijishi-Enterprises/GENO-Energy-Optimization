@@ -68,6 +68,8 @@ Model invest /
     q_resTransferLimitLeftward
     q_reserveProvisionRightward
     q_reserveProvisionLeftward
+    q_transferTwoWayLimit1
+    q_transferTwoWayLimit2
 
     // State Variables
     q_stateSlack

@@ -109,6 +109,8 @@ Option clear = q_resTransferLimitRightward;
 Option clear = q_resTransferLimitLeftward;
 Option clear = q_reserveProvisionRightward;
 Option clear = q_reserveProvisionLeftward;
+Option clear = q_transferTwoWayLimit1;
+Option clear = q_transferTwoWayLimit2;
 
 // State Variables
 Option clear = q_stateSlack;
