@@ -120,6 +120,13 @@ loop(m,
                     ) // END sum(ft_realizedNoReset)
                 ]; // END * 1e-6
 
+    // Diffusion from node to node_
+    r_gnnDiffusion(gn_state(grid, node), node_, ft_realizedNoReset(f,startp(t)))
+        ${gnn_state(grid, node, node_) or gnn_state(grid, node_, node)}
+        = p_gnn(grid, node, node_, 'diffCoeff') * r_state(grid, node, f, t)
+            - p_gnn(grid, node_, node, 'diffCoeff') * r_state(grid, node_, f, t)
+            ;
+
 * --- Total Cost Components (discounted) --------------------------------------
 
     // Total VOM costs

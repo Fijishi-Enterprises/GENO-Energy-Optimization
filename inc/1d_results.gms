@@ -93,6 +93,7 @@ Parameters
     r_gnTotalSpill(grid, node) "Total spilled energy from gn over the simulation (MWh)"
     r_gnTotalSpillShare(grid, node) "Total spilled energy gn/g share"
     r_gTotalSpill(grid) "Total spilled energy from gn over the simulation (MWh)"
+    r_gnnDiffusion(grid, node, node, f, t) "Diffusion between nodes"
 
 * --- Energy Generation/Consumption Results -----------------------------------
 
