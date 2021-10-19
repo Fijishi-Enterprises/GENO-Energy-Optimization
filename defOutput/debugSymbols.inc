@@ -157,8 +157,8 @@ v_help_inc
     q_capacityMargin
     q_constrainedCapMultiUnit
     q_emissioncap
-    q_energyShareMax
-    q_energyShareMin
+    q_energyLimit
+    q_energyShareLimit
     q_ReserveShareMax
 
 * Dummy variables

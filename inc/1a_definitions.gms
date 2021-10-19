@@ -265,7 +265,7 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     variableTransCost    "Variable cost applied to transfers (EUR/MW)"
     availability  "Availability of the interconnection (p.u.)"
     useTimeseriesAvailability "A flag to use time series form input for availability"
-    useTimeseriesLoss "A flag to use time series form input for transferLoss"  
+    useTimeseriesLoss "A flag to use time series form input for transferLoss"
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /
@@ -360,10 +360,10 @@ param_policy "Set of possible data parameters for groups or grid, node, regulati
     emissionTax   "Emission tax (EUR/tonne)"
     emissionCap   "Emission limit (tonne)"
     instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
-    energyMax      "Maximum energy production or consumption from a particular group of units over samples"
-    energyMaxVgenSign "Sign for v_gen in the maximum energy constraint - use -1 when you need a minimum energy constraint (then also energyMax should be negative)"
-    energyShareMax "Maximum energy share of generation from a particular group of units"
-    energyShareMin "Minimum energy share of generation from a particular group of units"
+    energyMax      "Maximum energy production or consumption from particular grid-node-units over particular samples"
+    energyMin      "Minimum energy production or consumption from particular grid-node-units over particular samples"
+    energyShareMax "Maximum share of energy production from particular grid-node-units over particular samples"
+    energyShareMin "Minimum share of energy production from particular grid-node-units over particular samples"
     constrainedCapMultiplier "Multiplier a(i) for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedCapTotalMax "Total maximum b for unit investments in equation Sum(i, a(i)*v_invest(i)) <= b"
     constrainedOnlineMultiplier "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
