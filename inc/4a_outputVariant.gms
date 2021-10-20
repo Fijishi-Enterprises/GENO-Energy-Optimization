@@ -136,7 +136,7 @@ loop(s_realized(s),
     ;
     // Energy spilled from nodes
     r_spill(gn, f, startp(t))$sft_realized(s, f, t)
-        = v_spill.l(gn, s, f, t)
+        = v_spill.l(gn, s, f, t) * p_stepLength(mSolve, f, t)
     ;
 );
 

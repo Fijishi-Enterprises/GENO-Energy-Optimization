@@ -43,7 +43,7 @@ Positive variables
     v_startup_LP(unit, starttype, s, f, t) "Sub-units started up after/during an interval (p.u.), (LP variant)"
     v_shutdown_LP(unit, s, f, t) "Sub-units shut down after/during an interval (p.u.) (LP variant)"
     v_genRampUpDown(grid, node, unit, slack, s, f, t) "Change in energy generation or consumption over an interval, separated into different 'slacks' (MW/h)"
-    v_spill(grid, node, s, f, t) "Spill of energy from storage node during an interval (MWh)"
+    v_spill(grid, node, s, f, t) "Spill of energy from storage node during an interval (MWh/h)"
     v_transferRightward(grid, node, node, s, f, t) "Average electricity transmission level from the first node to the second node during an interval (MW)"
     v_transferLeftward(grid, node, node, s, f, t) "Average electricity transmission level from the second node to the first node during an interval (MW)"
     v_resTransferRightward(restype, up_down, grid, node, node, s, f, t) "Electricity transmission capacity from the first node to the second node reserved for providing reserves (MW)"
