@@ -101,6 +101,8 @@ equations
     q_resTransferLimitLeftward(grid, node, node, s, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the leftward direction"
     q_reserveProvisionRightward(restype, up_down, grid, node, node, s, f, t) "Rightward reserve provision limited - needed for links with investment possibility"
     q_reserveProvisionLeftward(restype, up_down, grid, node, node, s, f, t) "Leftward reserve provision limited - needed for links with investment possibility"
+    q_transferTwoWayLimit1(grid, node, node, s, f, t) "Limiting transfer in both directions, option 1"
+    q_transferTwoWayLimit2(grid, node, node, s, f, t) "Limiting transfer in both directions, option 2"
 
     // State Variables
     q_stateSlack(grid, node, slack, s, f, t) "Slack variable greater than the difference between v_state and the slack boundary"

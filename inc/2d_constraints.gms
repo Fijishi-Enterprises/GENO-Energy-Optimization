@@ -2300,6 +2300,81 @@ q_reserveProvisionLeftward(restypeDirectionGridNodeNode(restype, up_down, grid, 
             ]
 ;
 
+* --- Additional transfer constraints to make the constraints tight -----------
+* These two constraints are only needed for links that have availability to both
+* directions.
+
+* This first constraint is defined for links that do not have investment
+* possibility but have existing transfer capacity to both directions. If there
+* is no existing transfer capacity to both directions, a two-way constraint
+* like this is not needed.
+q_transferTwoWayLimit1(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${not p_gnn(grid, node, node_, 'transferCapInvLimit')
+      and ((p_gnn(grid, node, node_, 'availability') and not gn2n_timeseries(grid, node, node_, 'availability'))
+          or (ts_gnn_(grid, node, node_, 'availability', f, t) and gn2n_timeseries(grid, node, node_, 'availability')))
+      and ((p_gnn(grid, node_, node, 'availability') and not gn2n_timeseries(grid, node_, node, 'availability'))
+          or (ts_gnn_(grid, node_, node, 'availability', f, t) and gn2n_timeseries(grid, node_, node, 'availability')))
+      and p_gnn(grid, node, node_, 'transferCap')
+      and p_gnn(grid, node_, node, 'transferCap')} ..
+
+    // Rightward / (availability * capacity)
+    + v_transferRightward(grid, node, node_, s, f, t)
+        / [
+            + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+            + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+            ]
+        / p_gnn(grid, node, node_, 'transferCap')
+    // Leftward / (availability * capacity)
+    + v_transferLeftward(grid, node, node_, s, f, t)
+        / [
+            + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
+            + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
+            ]
+        / p_gnn(grid, node_, node, 'transferCap')
+
+    =L=
+
+    + 1
+;
+
+* This second constraint is defined for links that have investment possibility
+* and where the exististing capacity is the same in both directions. If the
+* exististing capacity is not the same in both directions, a tight and linear
+* constraint cannot be defined.
+q_transferTwoWayLimit2(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${p_gnn(grid, node, node_, 'transferCapInvLimit')
+      and p_gnn(grid, node, node_, 'transferCap') = p_gnn(grid, node_, node, 'transferCap')
+      and ((p_gnn(grid, node, node_, 'availability') and not gn2n_timeseries(grid, node, node_, 'availability'))
+          or (ts_gnn_(grid, node, node_, 'availability', f, t) and gn2n_timeseries(grid, node, node_, 'availability')))
+      and ((p_gnn(grid, node_, node, 'availability') and not gn2n_timeseries(grid, node_, node, 'availability'))
+          or (ts_gnn_(grid, node_, node, 'availability', f, t) and gn2n_timeseries(grid, node_, node, 'availability')))} ..
+
+    // Rightward / availability
+    + v_transferRightward(grid, node, node_, s, f, t)
+        / [
+            + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+            + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+            ]
+    // Leftward / availability
+    + v_transferLeftward(grid, node, node_, s, f, t)
+        / [
+            + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
+            + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
+            ]
+
+    =L=
+
+    // Existing transfer capacity
+    + p_gnn(grid, node, node_, 'transferCap')
+
+    // Investments into additional transfer capacity
+    + sum(t_invest(t_)${ord(t_)<=ord(t)},
+        + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
+        + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
+            * p_gnn(grid, node, node_, 'unitSize')
+        ) // END sum(t_invest)
+;
+
 * =============================================================================
 * --- Node State Constraints -------------------------------------------------
 * =============================================================================
