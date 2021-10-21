@@ -3209,7 +3209,7 @@ q_emissioncap(group, emission)
                     + v_startup_MIP(unit, starttype, s, f, t)
                         ${ uft_onlineMIP(unit, f, t) }
                   ]
-                * sum(nu(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
+                * sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
                     + p_unStartup(unit, node, starttype) // MWh/start-up
                         * p_nEmission(node, emission) // kg/MWh
                         / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data

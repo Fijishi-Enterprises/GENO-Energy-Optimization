@@ -205,6 +205,8 @@ unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
                                             or p_unit(unit, 'startColdAfterXhours')
                                             }
     = yes;
+// Units consuming energy from particular nodes in start-up
+nu_startup(node, unit)$p_uStartupfuel(unit, node, 'fixedFuelFraction') = yes;
 
 // Units with time series data enabled
 unit_timeseries(unit)${ p_unit(unit, 'useTimeseries') }
@@ -273,6 +275,10 @@ p_uStartup(unit, 'cold', 'consumption')
     = p_unit(unit, 'startFuelConsCold')
         * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
 
+// Start-up fuel consumption per fuel
+p_unStartup(unit, node, starttype)$p_uStartupfuel(unit, node, 'fixedFuelFraction')
+    = p_uStartup(unit, starttype, 'consumption')
+        * p_uStartupfuel(unit, node, 'fixedFuelFraction');
 
 //shutdown cost parameters
 p_uShutdown(unit, 'cost')
@@ -599,8 +605,8 @@ loop( unit,
 
 * --- Check startupfuel fraction related data ----------------------------------------
 
-loop( unit${sum(commodity$p_uStartupfuel(unit, commodity, 'fixedFuelFraction'), 1)},
-    if(sum(commodity, p_uStartupfuel(unit, commodity, 'fixedFuelFraction')) <> 1,
+loop( unit${sum(starttype$p_uStartup(unit, starttype, 'consumption'), 1)},
+    if(sum(node, p_uStartupfuel(unit, node, 'fixedFuelFraction')) <> 1,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
         put log '!!! Abort: The sum of fixedFuelFraction over start-up fuels needs to be one for all units using start-up fuels!' /;
         abort "The sum of 'fixedFuelFraction' over start-up fuels needs to be one for all units using start-up fuels!"
@@ -689,7 +695,7 @@ loop( unit_investMIP(unit),
 * --- Check consistency of inputs for superposed node states -------------------
 
 * no checking yet because node_superpos is not given in the gdx input
-        
+
 
 * =============================================================================
 * --- Default values  ---------------------------------------------------------

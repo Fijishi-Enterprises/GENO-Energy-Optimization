@@ -53,19 +53,24 @@ loop(m,
             * sum(unitStarttype(unit, starttype),
                 + r_startup(unit, starttype, f, t)
                     * [
+                        // Fuel costs
                         + p_uStartup(unit, starttype, 'cost') // CUR/start-up
                         // Start-up fuel and emission costs
-                        + sum(nu(node,unit)$p_unStartup(unit, node, starttype),
+                        + sum(nu_startup(node,unit),
                             + p_unStartup(unit, node, starttype) // MWh/start-up
                               * [
                                   + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
                                   + ts_price(node, t)$p_price(node, 'useTimeseries') // CUR/MWh
-                                ] // END * p_uStartup
-                          ) // END sum(node)
-                        + sum((nu(node, unit), emission)$p_unitEmissionCost(unit, node, emission),
-                            + p_unStartup(unit, node, starttype) // MWh/start-up
-                              * p_unitEmissionCost(unit, node, emission) // CUR/MWh
-                          ) // END sum(nu, emission)
+                                  // Emission costs
+                                  + sum(emission$p_nEmission(node, emission),
+                                       + p_nEmission(node, emission) // t/MWh
+                                          / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                                          * sum(gnGroup(grid, node, group),
+                                              + p_groupPolicyEmission(group, 'emissionTax', emission) // CUR/t
+                                              ) // END sum(gnGroup)
+                                      ) // END sum(emission)
+                                ] // END * p_unStartup
+                            ) // END sum(nu_startup)
                       ] // END * r_startup
               ); // END sum(starttype)
 
