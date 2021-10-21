@@ -68,7 +68,7 @@ loop(ms(mSolve, s_realized(s)),
 sft_resdgn(restypeDirectionGridNode(restype, up_down, gn), sft(s, f, startp(t)))
   ${ord(t) <= tSolveFirst + p_gnReserves(gn, restype, 'reserve_length')} = yes;
 
-loop(s,
+loop(s_realized(s),
     // Reserve provisions of units
     r_reserve(gnuRescapable(restype, up_down, gn, unit), f_(f+df_reserves(gn, restype, f, t)), t)
         ${ (not sft_realized(s, f_, t)$restypeReleasedForRealization(restype))$sft_resdgn(restype,up_down,gn,s,f,t) }
@@ -87,7 +87,7 @@ loop(s,
         ${ restypeDirectionGridNodeNode(restype, up_down, grid, to_node, node)$sft_resdgn(restype,up_down,gn,s,f,t) }
         = v_resTransferLeftward.l(restype, up_down, gn, to_node, s, f_, t);
 
-); // END loop(restypeDirectionNode, sft)
+); // END loop(s_realized(s)
 
 // Loop over group reserve horizon
 loop((restypeDirectionGroup(restype, up_down, group), sft(s, f, startp(t)))
