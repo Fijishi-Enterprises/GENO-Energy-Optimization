@@ -126,13 +126,19 @@ Parameters
     r_gnTotalConsumptionShare(grid, node) "Total consumption gn/g share"
     r_gTotalConsumption(grid) "Total consumption of energy in g over the simulation (MWh)"
 
+    // Start-up consumption results
+    r_nuStartupConsumption(node, unit, f, t) "Energy consumption during start-up (MWh)"
+
 
 * --- Emissions Results -------------------------------------------------------
 
-    // Unit level emissions
+    // Unit level emissions from normal operation
     r_emissions (node, emission, unit, f, t) "Emissions from units (tCO2)"
 
-    // Emission sums
+    // Unit level emissions from start-ups
+    r_emissionsStartup(node, emission, unit, f, t) "Emissions from units in start-ups (tCO2)"
+
+    // Emission sums from normal operation
     r_nuTotalEmissions (node, unit, emission) "node unit total emissions (tCO2)"
     r_nTotalEmissions(node, emission) "node total emissions (tCO2)"
     r_uTotalEmissions(unit, emission) "unit total emissions (tCO2)"

@@ -451,7 +451,7 @@ $offtext
                     / mInterval(mSolve, 'stepsPerInterval', counter)
                   // Emission costs
                   + sum(emission$p_nEmission(node, emission),
-                      + p_nEmission(node, emission) // t/MWh
+                      + p_nEmission(node, emission) // kg/MWh
                           / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
                           * sum(gnGroup(grid, node, group),
                               + p_groupPolicyEmission(group, 'emissionTax', emission) // CUR/t

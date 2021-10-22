@@ -119,6 +119,9 @@ r_gnTotalConsumption
 r_gnTotalConsumptionShare
 r_gTotalConsumption
 
+// Start-up consumption results
+r_nuStartupConsumption
+
 * --- Unit Online State Result Symbols ----------------------------------------
 
 // Online results required for model structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -136,10 +139,13 @@ r_uTotalShutdown
 
 * --- Emissions Results -----------------------------------------------
 
-// Unit level emissions
+// Unit level emissions from normal operation
 r_emissions
 
-// Emission sums
+// Unit level emissions from start-ups
+r_emissionsStartup
+
+// Emission sums from normal operation
 r_nuTotalEmissions
 r_nTotalEmissions
 r_uTotalEmissions

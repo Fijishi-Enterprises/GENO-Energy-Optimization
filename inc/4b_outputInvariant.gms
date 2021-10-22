@@ -63,7 +63,7 @@ loop(m,
                                   + ts_price(node, t)$p_price(node, 'useTimeseries') // CUR/MWh
                                   // Emission costs
                                   + sum(emission$p_nEmission(node, emission),
-                                       + p_nEmission(node, emission) // t/MWh
+                                       + p_nEmission(node, emission) // kg/MWh
                                           / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
                                           * sum(gnGroup(grid, node, group),
                                               + p_groupPolicyEmission(group, 'emissionTax', emission) // CUR/t
@@ -314,6 +314,14 @@ loop(m,
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
+    // Unit start-up consumption
+    r_nuStartupConsumption(nu_startup(node, unit), ft_realizedNoReset(f,startp(t)))
+        ${sum(starttype, unitStarttype(unit, starttype))}
+        = sum(unitStarttype(unit, starttype),
+            + r_startup(unit, starttype, f, t)
+                * p_unStartup(unit, node, starttype) // MWh/start-up
+            ); // END sum(unitStarttype)
+
 * --- Emission Results --------------------------------------------------------
 
     // Emissions of units (only for commodities, not including startup fuels)
@@ -324,8 +332,20 @@ loop(m,
             / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
     ;
 
+    // Emissions from unit start-ups
+    r_emissionsStartup(node, emission, unit, ft_realizedNoReset(f,startp(t)))
+        ${sum(starttype, unitStarttype(unit, starttype))
+          and sum(starttype, p_unStartup(unit, node, starttype))
+          and p_nEmission(node, emission)}
+        = sum(unitStarttype(unit, starttype),
+            + r_startup(unit, starttype, f, t)
+                * p_unStartup(unit, node, starttype) // MWh/start-up
+                * p_nEmission(node, emission) // kg/MWh
+                / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+            ); // END sum(starttype)
 
-    // Emission sums
+
+    // Emission sums (only for commodities, not including startup fuels)
     r_nuTotalEmissions (commodity, unit, emission)
         = sum(ft_realizedNoReset(f, startp(t)),
             + r_emissions(commodity, emission, unit, f, t)
