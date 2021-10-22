@@ -96,7 +96,7 @@ $endif.debug2
         sft(s, f, t)$sft(s, f, t) = yes$p_msProbability(mSolve, s);
 
         // Update the model specific sets and the reversed dimension set
-        Options clear mft, cear=ms, clear=msf, clear=ms_central, clear=msft;
+        Options clear=mft, clear=ms, clear=msf, clear=ms_central, clear=msft;
         msft(mSolve, sft(s, f, t)) = yes;
         Options mft < msft, ms < msft, msf < msft, mst < msft;
         Option ms_central < ms;
