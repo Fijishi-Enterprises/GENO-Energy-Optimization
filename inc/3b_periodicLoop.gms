@@ -161,6 +161,7 @@ Option clear = msft;
 Option clear = mft;
 Option clear = ft;
 Option clear = sft;
+Option clear = mst;
 Option clear = mst_start, clear = mst_end;
 $ifthen declared scenario
 if(mSettings(mSolve, 'scenarios'),  // Only clear these if using long-term scenarios
@@ -344,10 +345,8 @@ loop(msf(mSolve, s, f)$msStart(mSolve, s),
 );
 
 // Update the model specific sets and the reversed dimension set
-mft(mSolve, ft(f, t)) = yes;
-ms(mSolve, s)$ms(mSolve, s) = s_active(s);
-msf(mSolve, s, f)$msf(mSolve, s, f) = s_active(s);
 msft(mSolve, sft(s, f, t)) = yes;
+Options mft < msft, ms < msft, msf < msft, mst < msft;  // Projection
 
 * Build stochastic tree by definfing previous samples
 $ifthen defined scenario
@@ -431,24 +430,16 @@ mft_lastSteps(mSolve, ft(f,t))
 ;
 
 // Sample start and end intervals
+mst_start(mst(mSolve, s, t))$[ord(t) - tSolveFirst = msStart(mSolve, s)] = yes;
 loop(ms(mSolve, s),
-    tmp = 1;
-    tmp_ = 1;
-    loop(t_active(t),
-        if(tmp and ord(t) - tSolveFirst + 1 > msStart(mSolve, s),
-            mst_start(mSolve, s, t) = yes;
-            tmp = 0;
-        );
-        if(tmp_ and ord(t) - tSolveFirst + 1 > msEnd(mSolve, s),
-            mst_end(mSolve, s, t+dt(t)) = yes;
-            tmp_ = 0;
-        );
-    ); // END loop(t_active)
-    // If the last interval of a sample is in mft_lastSteps, the method above does not work
-    if(tmp_,
-        mst_end(mSolve, s, t)${sum(f_solve, mft_lastSteps(mSolve, f_solve, t))} = yes;
+    loop(t_active(t)$[ord(t) - tSolveFirst = msEnd(mSolve, s)],
+        mst_end(mSolve, s, t + dt(t)) = yes;
     );
-); // END loop(ms)
+);
+// If the last interval of a sample is in mft_lastSteps, the method above does not work
+mst_end(mst(mSolve, s, t))${sum(f_solve, mft_lastSteps(mSolve, f_solve, t))} = yes;
+
+
 // Displacement from the first interval of a sample to the previous interval is always -1,
 // except for stochastic samples
 dt(t_active(t))

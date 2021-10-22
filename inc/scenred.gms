@@ -93,11 +93,14 @@ $ifthene.debug2 %debug%>0
 $endif.debug2
 
         // Update sets
-        ms(mSolve, s)$ms(mSolve, s) = yes$p_msProbability(mSolve, s);
-        ms_central(mSolve, s)$ms_central(mSolve, s) = ms(mSolve, s);
-        msf(mSolve, s, f)$msf(mSolve, s, f) = ms(mSolve, s);
-        msft(mSolve, s, f, t)$msft(mSolve, s, f, t) = msf(mSolve, s, f);
         sft(s, f, t)$sft(s, f, t) = yes$p_msProbability(mSolve, s);
+
+        // Update the model specific sets and the reversed dimension set
+        Options clear mft, cear=ms, clear=msf, clear=ms_central, clear=msft;
+        msft(mSolve, sft(s, f, t)) = yes;
+        Options mft < msft, ms < msft, msf < msft, mst < msft;
+        Option ms_central < ms;
+
         mst_start(mSolve, s, t)$mst_start(mSolve, s, t) = ms(mSolve, s);
         mst_end(mSolve, s, t)$mst_end(mSolve, s, t) = ms(mSolve, s);
 
