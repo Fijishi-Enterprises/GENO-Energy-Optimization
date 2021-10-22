@@ -87,28 +87,27 @@ loop(s_realized(s),
         ${ restypeDirectionGridNodeNode(restype, up_down, grid, to_node, node)$sft_resdgn(restype,up_down,gn,s,f,t) }
         = v_resTransferLeftward.l(restype, up_down, gn, to_node, s, f_, t);
 
+    // Loop over group reserve horizon
+    loop((restypeDirectionGroup(restype, up_down, group), sft(s, f, startp(t)))
+        ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')},
+
+        // Reserve requirement due to N-1 reserve constraint
+        r_resDemandLargestInfeedUnit(restype, 'up', group, f_(f+df_reservesGroup(group, restype, f, t)), t)
+            ${ sum((gnGroup(gn, group),unit_fail)$p_gnuReserves(gn, unit_fail, restype, 'portion_of_infeed_to_reserve'),1) } // Calculate only for groups with units that can fail.
+            = smax((gnGroup(gn, group),unit_fail)$p_gnuReserves(gn, unit_fail, restype, 'portion_of_infeed_to_reserve'),
+                + v_gen.l(gn, unit_fail, s, f, t)
+                    * p_gnuReserves(gn, unit_fail, restype, 'portion_of_infeed_to_reserve')
+                ) // END smax(unit_fail)
+            ;
+        // Dummy reserve demand changes
+        r_qResDemand(restype, up_down, group, f_(f+df_reservesGroup(group, restype, f, t)), t)
+            = vq_resDemand.l(restype, up_down, group, s, f_, t);
+
+        r_qResMissing(restype, up_down, group, f_(f+df_reservesGroup(group, restype, f, t)), t)
+            = vq_resMissing.l(restype, up_down, group, s, f_, t);
+
+    ); // END loop(restypeDirectionGroup, sft)
 ); // END loop(s_realized(s)
-
-// Loop over group reserve horizon
-loop((restypeDirectionGroup(restype, up_down, group), sft(s, f, startp(t)))
-    ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')},
-
-    // Reserve requirement due to N-1 reserve constraint
-    r_resDemandLargestInfeedUnit(restype, 'up', group, f_(f+df_reservesGroup(group, restype, f, t)), t)
-        ${ sum((gnGroup(gn, group),unit_fail)$p_gnuReserves(gn, unit_fail, restype, 'portion_of_infeed_to_reserve'),1) } // Calculate only for groups with units that can fail.
-        = smax((gnGroup(gn, group),unit_fail)$p_gnuReserves(gn, unit_fail, restype, 'portion_of_infeed_to_reserve'),
-            + v_gen.l(gn, unit_fail, s, f, t)
-                * p_gnuReserves(gn, unit_fail, restype, 'portion_of_infeed_to_reserve')
-            ) // END smax(unit_fail)
-        ;
-    // Dummy reserve demand changes
-    r_qResDemand(restype, up_down, group, f_(f+df_reservesGroup(group, restype, f, t)), t)
-        = vq_resDemand.l(restype, up_down, group, s, f_, t);
-
-    r_qResMissing(restype, up_down, group, f_(f+df_reservesGroup(group, restype, f, t)), t)
-        = vq_resMissing.l(restype, up_down, group, s, f_, t);
-
-); // END loop(restypeDirectionGroup, sft)
 
 * --- Interesting results -----------------------------------------------------
 
