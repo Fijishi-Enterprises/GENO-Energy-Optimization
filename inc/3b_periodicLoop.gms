@@ -158,6 +158,7 @@ tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 u
 // Initializing forecast-time structure sets
 Option clear = p_stepLength;
 Option clear = msft;
+Option clear = msft_wPrevS;
 Option clear = mft;
 Option clear = ft;
 Option clear = sft;
@@ -357,6 +358,7 @@ loop(scenario $p_scenProbability(scenario),
         Option clear = s_prev; s_prev(s) = yes;
     );
 );
+msft_wPrevS(msft(mSolve, s, f, t), s_)$ss(s, s_) = yes;
 $endif
 
 
