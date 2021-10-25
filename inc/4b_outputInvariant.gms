@@ -121,6 +121,9 @@ loop(m,
                 ]; // END * 1e-6
 
     // Diffusion from node to node_
+    // Note that this result paramater does not necessarily consider the
+    // implicit node state variable dynamics properly if energyStoredPerUnitOfState
+    // is not equal to 0
     r_gnnDiffusion(gn_state(grid, node), node_, ft_realizedNoReset(f,startp(t)))
         ${gnn_state(grid, node, node_) or gnn_state(grid, node_, node)}
         = p_gnn(grid, node, node_, 'diffCoeff') * r_state(grid, node, f, t)
