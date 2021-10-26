@@ -85,9 +85,8 @@ Model schedule /
     q_capacityMargin
 *    q_constrainedCapMultiUnit
 *    q_emissioncap
-*    q_energyMax
-*    q_energyShareMax
-*    q_energyShareMin
+*    q_energyLimit
+*    q_energyShareLimit
     q_ReserveShareMax
 
 $ifthen exist '%input_dir%/schedule_additional_constraints.gms'

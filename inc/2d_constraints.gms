@@ -3224,19 +3224,20 @@ q_emissioncap(group, emission)
     + p_groupPolicyEmission(group, 'emissionCap', emission)
 ;
 
-*--- Maximum Energy -----------------------------------------------------------
+*--- Limited Energy -----------------------------------------------------------
+* Limited energy production or consumption from particular grid-node-units over
+* particular samples. Both production and consumption units to be considered in
+* the constraint are defined in gnuGroup. Samples are defined in sGroup.
 
-q_energyMax(group)
-    ${  p_groupPolicy(group, 'energyMax')
+q_energyLimit(group, min_max)
+    ${  (sameas(min_max, 'max') and p_groupPolicy(group, 'energyMax'))
+        or (sameas(min_max, 'min') and p_groupPolicy(group, 'energyMin'))
         } ..
 
+  [
     + sum(msft(m, s, f, t)${sGroup(s, group)},
         + p_msft_Probability(m,s,f,t)
             * p_stepLength(m, f, t)
-            * [
-                + 1${not p_groupPolicy(group, 'energyMaxVgenSign')}
-                + p_groupPolicy(group, 'energyMaxVgenSign') // Multiply by -1 in order to convert to minimum energy constraint
-                ]
             * [
                 // Production of units in the group
                 + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
@@ -3252,56 +3253,33 @@ q_energyMax(group)
                     ) // END sum(gnu)
                 ] // END * p_stepLength
         ) // END sum(msft)
-
-    =L=
-
-    + p_groupPolicy(group, 'energyMax') // Use negative energyMax value if you need a "minimum energy" equation
-;
-
-*--- Maximum Energy Share -----------------------------------------------------
-
-q_energyShareMax(group)
-    ${  p_groupPolicy(group, 'energyShareMax')
-        } ..
-
-    + sum(msft(m, s, f, t)${sGroup(s, group)},
-        + p_msft_Probability(m,s,f,t)
-            * p_stepLength(m, f, t)
-            * [
-                // Generation of units in the group
-                + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
-                                                        and p_gnu(grid, node, unit, 'unitSize')
-                                                        and gnGroup(grid, node, group)
-                                                        and gnuft(grid, node, unit, f, t)
-                                                        },
-                    + v_gen(grid, node, unit, s, f, t)
-                    ) // END sum(gnu)
-
-                // External power inflow/outflow and consumption of units times the maximum share
-                - p_groupPolicy(group, 'energyShareMax')
-                  * [
-                    - sum(gnGroup(grid, node, group),
-                        + ts_influx_(grid, node, s, f, t)
-                        ) // END sum(gnGroup)
-                    - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSize')
-                                                        and gnGroup(grid, node, group)
-                                                        and gnuft(grid, node, unit, f, t)
-                                                        },
-                        + v_gen(grid, node, unit, s, f, t)
-                        ) // END sum(gnu_input)
-                    ] // END * p_groupPolicy
-                ] // END * p_stepLength
-        ) // END sum(msft)
+        - [
+            + p_groupPolicy(group, 'energyMax')$sameas(min_max, 'max')
+            + p_groupPolicy(group, 'energyMin')$sameas(min_max, 'min')
+            ]
+    ] // END [sum(msft) - p_groupPolicy]
+    * [
+        // Convert to greater than constraint for 'min' case
+        + 1$sameas(min_max, 'max')
+        - 1$sameas(min_max, 'min')
+        ]  // END * [sum(msft) - p_groupPolicy]
 
     =L=
 
     0
 ;
 
-*--- Minimum Energy Share -----------------------------------------------------
+*--- Limited Energy Share -----------------------------------------------------
+* Limited share of energy production from particular grid-node-units over
+* particular samples and based on consumption calculated from influx in
+* particular grid-nodes plus consumption of particular grid-node-units. Both
+* production and consumption units to be considered in the constraint are
+* defined in gnuGroup. Samples are defined in sGroup and influx nodes in
+* gnGroup.
 
-q_energyShareMin(group)
-    ${  p_groupPolicy(group, 'energyShareMin')
+q_energyShareLimit(group, min_max)
+    ${  (sameas(min_max, 'max') and p_groupPolicy(group, 'energyShareMax'))
+        or (sameas(min_max, 'min') and p_groupPolicy(group, 'energyShareMin'))
         } ..
 
     + sum(msft(m, s, f, t)${sGroup(s, group)},
@@ -3310,30 +3288,35 @@ q_energyShareMin(group)
             * [
                 // Generation of units in the group
                 + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
-                                                        and p_gnu(grid, node, unit, 'unitSize')
-                                                        and gnGroup(grid, node, group)
                                                         and gnuft(grid, node, unit, f, t)
                                                         },
-                    + v_gen(grid, node, unit, s, f, t)
+                    + v_gen(grid, node, unit, s, f, t) // production is taken into account if the grid-node-unit is in gnuGroup
                     ) // END sum(gnu)
 
-                // External power inflow/outflow and consumption of units times the maximum share
-                - p_groupPolicy(group, 'energyShareMin')
+                // External power inflow/outflow and consumption of units times the share limit
+                - [
+                    + p_groupPolicy(group, 'energyShareMax')$sameas(min_max, 'max')
+                    + p_groupPolicy(group, 'energyShareMin')$sameas(min_max, 'min')
+                    ]
                   * [
                     - sum(gnGroup(grid, node, group),
-                        + ts_influx_(grid, node, s, f, t)
+                        + ts_influx_(grid, node, s, f, t) // influx is taken into account if the node is in gnGroup
                         ) // END sum(gnGroup)
-                    - sum(gnu_input(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSize')
-                                                        and gnGroup(grid, node, group)
+                    - sum(gnu_input(grid, node, unit)${ gnuGroup(grid, node, unit, group)
                                                         and gnuft(grid, node, unit, f, t)
                                                         },
-                        + v_gen(grid, node, unit, s, f, t)
+                        + v_gen(grid, node, unit, s, f, t) // consumption is taken into account if the grid-node-unit is in gnuGroup
                         ) // END sum(gnu_input)
                     ] // END * p_groupPolicy
                 ] // END * p_stepLength
         ) // END sum(msft)
+        * [
+            // Convert to greater than constraint for 'min' case
+            + 1$sameas(min_max, 'max')
+            - 1$sameas(min_max, 'min')
+            ]  // END * sum(msft)
 
-    =G=
+    =L=
 
     0
 ;
