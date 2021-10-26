@@ -41,7 +41,6 @@ $loaddc unittype
 $loaddc unit
 $loaddc unitUnittype
 $loaddc unit_fail
-$loaddc commodity
 $loaddc unitUnitEffLevel
 $loaddc effLevelGroupUnit
 $loaddc group
@@ -177,11 +176,6 @@ unit_minload(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operati
 // Units with flows/commodities
 unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
-un_commodity(unit, commodity)$sum(grid, gnu(grid, commodity, unit)) = yes;
-un_commodity_in(unit, commodity)$sum(grid, gnu_input(grid, commodity, unit)) = yes;
-un_commodity_out(unit, commodity)$sum(grid, gnu_output(grid, commodity, unit)) = yes;
-unit_commodity(unit)${ sum(node, un_commodity(unit, node)) }
-    = yes;
 
 // Units with investment variables
 unit_investLP(unit)${  not p_unit(unit, 'investMIP')
@@ -306,18 +300,18 @@ loop(utAvailabilityLimits(unit, t, availabilityLimits),
 // Use time series for commodity prices depending on 'ts_priceChange'
 
 // Determine if commodity prices require a time series representation or not
-loop(commodity,
+loop(node$sum(grid, p_gn(grid, node, 'useCommodityPrice')),
     // Find the steps with changing fuel prices
     option clear = tt;
-    tt(t)${ ts_priceChange(commodity, t) } = yes;
+    tt(t)${ ts_priceChange(node, t) } = yes;
 
     // If only up to a single value
     if(sum(tt, 1) <= 1,
-        p_price(commodity, 'useConstant') = 1; // Use a constant for commodity prices
-        p_price(commodity, 'price') = sum(tt, ts_priceChange(commodity, tt)) // Determine the price as the only value in the time series
+        p_price(node, 'useConstant') = 1; // Use a constant for commodity prices
+        p_price(node, 'price') = sum(tt, ts_priceChange(node, tt)) // Determine the price as the only value in the time series
     // If multiple values found, use time series
     else
-        p_price(commodity, 'useTimeSeries') = 1;
+        p_price(node, 'useTimeSeries') = 1;
         ); // END if(sum(tt))
 ); // END loop(fuel)
 

@@ -2002,7 +2002,7 @@ q_conversionSOS2IntermediateOutput(s_active(s), suft(effLambda(effGroup), unit, 
       ) // END sum(gnu_output)
 ;
 
-* --- Commodity Use Limitation -----------------------------------------------------
+* --- Fixed ratio of inputs or outputs ----------------------------------------
 
 q_unitEqualityConstraint(s_active(s), eq_constraint, uft(unit, f, t))
     ${  sft(s, f, t)
@@ -2028,7 +2028,7 @@ q_unitEqualityConstraint(s_active(s), eq_constraint, uft(unit, f, t))
             ]
 ;
 
-* --- Commodity Use Limitation -----------------------------------------------------
+* --- Constrained ratio of inputs or outputs ----------------------------------
 
 q_unitGreaterThanConstraint(s_active(s), gt_constraint, uft(unit, f, t))
     ${  sft(s, f, t)

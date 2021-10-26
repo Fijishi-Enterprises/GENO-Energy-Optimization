@@ -22,14 +22,12 @@ Sets
 
 * --- Commodities & resources -------------------------------------------------------
     emission "Emissions"
-    commodity(node) "Commodities that can be bought or sold exogenous to model"
     flow "Flow based energy resources (time series)"
 
 * --- Energy generation and consumption ---------------------------------------
     unit "Set of generators, storages and loads"
     unittype "Unit technology types"
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
-    unit_commodity(unit) "Units using an exogenous commodity with a price"
     unit_fail(unit) "Units that might fail"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
     unit_online(unit) "Units that have an online variable in the first active effLevel"
@@ -45,9 +43,6 @@ Sets
     flowUnit(flow, unit) "Units linked to a certain energy flow time series"
     unitUnittype(unit, unittype) "Link generation technologies to types"
     unitStarttype(unit, starttype) "Units with special startup properties"
-    un_commodity(unit, node) "Units linked with commodities"
-    un_commodity_in(unit, node) "Units linked with input commodities"
-    un_commodity_out(unit, node) "Units linked with output commodities"
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
     unit_timeseries(unit) "Units with time series enabled"
@@ -208,7 +203,6 @@ alias(op, op_, op__);
 alias(hrop, hrop_, hrop__);
 alias(eff, eff_, eff__);
 alias(hr, hr_, hr__);
-alias(commodity, commodity_);
 alias(effLevel, effLevel_);
 alias(restype, restype_);
 alias(group, group_);
