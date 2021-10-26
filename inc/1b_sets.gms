@@ -71,6 +71,7 @@ Sets
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
     gnu_output(grid, node, unit) "Forms of energy the unit uses as endogenous outputs"
     nu(node, unit) "Units attached to particular nodes"
+    nu_startup(node, unit) "Units consuming energy from particular nodes in start-up"
     gn_state(grid, node) "Nodes with a state variable"
     gn_stateSlack(grid, node) "Nodes with a state slack variable"
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
@@ -220,7 +221,7 @@ alias(group, group_);
 
 
 
-sets 
+sets
     tt_agg_circular(t, t, t) "Alternative aggregation ordering with embedded circulars"
     startp(t) "Temporary subset for time steps"
     s_realized(s) "All s among realized sft (redundant if always equivalent to s)"

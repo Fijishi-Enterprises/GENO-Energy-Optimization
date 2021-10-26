@@ -408,7 +408,7 @@ $offtext
                             + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
-                
+
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
         = sum(tt_aggregate(t, t_),
             ts_gnn(grid, node, node_, param_gnn, f, t_+dt_circular(t_))
@@ -423,7 +423,7 @@ $offtext
              + p_price(node, 'price')$p_price(node, 'useConstant')
              + sum(tt_aggcircular(t, t_), ts_price(node, t_))$p_price(node, 'useTimeSeries')
                  / mInterval(mSolve, 'stepsPerInterval', counter)
-            )$un_commodity_in(unit, node) 
+            )$un_commodity_in(unit, node)
           // output node cost (if price > 0 --> ts_vomCost_ < 0, i.e. considered as revenue)
           - (
              + p_price(node, 'price')$p_price(node, 'useConstant')
@@ -435,30 +435,30 @@ $offtext
               + p_unitEmissionCost(unit, node, emission)
             ); // END sum(emission)
 
-    p_unStartup(unit, node, starttype)$p_uStartupfuel(unit, node, 'fixedFuelFraction')
-      =
-        + p_uStartup(unit, starttype, 'consumption')
-            * p_uStartupfuel(unit, node, 'fixedFuelFraction');
-
     // Calculating startup cost time series
     ts_startupCost_(unit, starttype, tt_interval(t))
       =
         + p_uStartup(unit, starttype, 'cost') // CUR/start-up
         // Start-up fuel and emission costs
-        + sum(nu(node,unit)$p_unStartup(unit, node, starttype),
+        + sum(nu_startup(node, unit),
             + p_unStartup(unit, node, starttype) // MWh/start-up
               * [
+                  // Fuel costs
                   + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
                   + sum(tt_aggcircular(t, t_),
                       + ts_price(node, t_) // CUR/MWh
                     )$p_price(node, 'useTimeseries')
                     / mInterval(mSolve, 'stepsPerInterval', counter)
-                ] // END * p_uStartup
-          ) // END sum(node)
-        + sum((nu(node, unit), emission)$p_unitEmissionCost(unit, node, emission),
-            + p_unStartup(unit, node, starttype) // MWh/start-up
-              * p_unitEmissionCost(unit, node, emission) // CUR/MWh
-          ); // END sum(nu, emission)
+                  // Emission costs
+                  + sum(emission$p_nEmission(node, emission),
+                      + p_nEmission(node, emission) // kg/MWh
+                          / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                          * sum(gnGroup(grid, node, group),
+                              + p_groupPolicyEmission(group, 'emissionTax', emission) // CUR/t
+                              ) // END sum(gnGroup)
+                      ) // END sum(emission)
+                ] // END * p_unStartup
+            ); // END sum(nu_startup)
 
     // `storageValue`
     ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'storageValueUseTimeSeries') }

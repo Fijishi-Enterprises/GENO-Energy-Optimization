@@ -90,6 +90,18 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
             + vq_gen('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
             - vq_gen('decrease', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
     ) // END * p_stepLength
+
+    // Unit start-up consumption
+    - sum(uft(unit, f, t)$nu_startup(node, unit),
+        + sum(unitStarttype(unit, starttype),
+            + p_unStartup(unit, node, starttype) // MWh/start-up
+            * [ // Startup type
+                + v_startup_LP(unit, starttype, s, f, t)${ uft_onlineLP(unit, f, t) }
+                + v_startup_MIP(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
+                ]
+            ) // END sum(unitStarttype)
+        ) // END sum(uft)
+
 ;
 
 * --- Reserve Demand ----------------------------------------------------------
@@ -3209,7 +3221,7 @@ q_emissioncap(group, emission)
                     + v_startup_MIP(unit, starttype, s, f, t)
                         ${ uft_onlineMIP(unit, f, t) }
                   ]
-                * sum(nu(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
+                * sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
                     + p_unStartup(unit, node, starttype) // MWh/start-up
                         * p_nEmission(node, emission) // kg/MWh
                         / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
