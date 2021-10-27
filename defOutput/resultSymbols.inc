@@ -94,7 +94,7 @@ r_gnnDiffusion
 // Results required for model structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 r_gen
 
-// Fuel use results
+// Energy output results based on input types or unittypes
 r_genFuel
 r_genUnittype
 r_gnTotalGenFuel

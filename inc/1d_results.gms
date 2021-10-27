@@ -101,13 +101,13 @@ Parameters
     r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
     r_gen_gnUnittype(grid, node, unittype) "Energy generation for each unittype in each node (MWh)"
 
-    // Fuel use results
-    r_genFuel(grid, node, *, f, t) "Energy generation/consumption based on fuels / flows (MW)"
-    r_genUnittype(grid, node, unittype, f, t) "Energy generation/consumption for each unittype (MW)"
-    r_gnTotalGenFuel(grid, node, node) "Total energy generation in gn per input over the simulation (MWh)"
-    r_gnTotalGenFuelShare(grid, node, node) "Total energy generation input consumption gn/g share"
-    r_gTotalGenFuel(grid, node) "Total energy generation in g per input over the simulation (MWh)"
-    r_totalGenFuel(node) "Total overall energy generation/consumption per input over the simulation (MWh)"
+    // Energy output results based on input types or unittypes
+    r_genFuel(grid, node, *, f, t) "Energy output to a node based on inputs from another node or flows (MW)"
+    r_genUnittype(grid, node, unittype, f, t) "Energy generation for each unittype (MW)"
+    r_gnTotalGenFuel(grid, node, node) "Total energy generation in gn per input type over the simulation (MWh)"
+    r_gnTotalGenFuelShare(grid, node, node) "Total energy generation in gn per input type as a share of total energy generation in gn"
+    r_gTotalGenFuel(grid, node) "Total energy generation in g per input type over the simulation (MWh)"
+    r_totalGenFuel(node) "Total overall energy generation per input type over the simulation (MWh)"
 
     // Interesting energy generation results
     r_gnuTotalGen(grid, node, unit) "Total energy generation in gnu over the simulation (MWh)"

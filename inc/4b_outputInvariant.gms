@@ -286,7 +286,7 @@ loop(m,
             ) // END sum(ft_realizedNoReset)
         );
 
-    // Energy generation by fuels
+    // Energy output to a node based on inputs from another node or flows
     r_genFuel(gn(grid, node), node_, ft_realizedNoReset(f, startp(t)))$sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit),r_gen(grid_, node_, unit, f, t))
         = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, node_, unit), 1),
             + r_gen(grid, node, unit, f, t)
@@ -300,13 +300,13 @@ loop(m,
         = sum(gnu_output(grid, node, unit)$flowUnit(flow, unit),
             + r_gen(grid, node, unit, f, t));
 
-    // Energy generation by fuels
+    // Energy generation for each unittype
     r_genUnittype(gn(grid, node), unittype, ft_realizedNoReset(f,startp(t)))
         = sum(gnu_output(grid, node, unit)$unitUnittype(unit, unittype),
             + r_gen(grid, node, unit, f, t)
             ); // END sum(unit)
 
-    // Total generation on each node by fuels
+    // Total energy generation in gn per input type over the simulation
     r_gnTotalGenFuel(gn(grid, node), node_)
         = sum(ft_realizedNoReset(f, startp(t)),
             + r_genFuel(grid, node, node_, f, t)
@@ -354,8 +354,7 @@ loop(m,
 
     // Emissions from unit start-ups
     r_emissionsStartup(node, emission, unit, ft_realizedNoReset(f,startp(t)))
-        ${sum(starttype, unitStarttype(unit, starttype))
-          and sum(starttype, p_unStartup(unit, node, starttype))
+        ${sum(starttype, p_unStartup(unit, node, starttype))
           and p_nEmission(node, emission)}
         = sum(unitStarttype(unit, starttype),
             + r_startup(unit, starttype, f, t)
@@ -365,7 +364,7 @@ loop(m,
             ); // END sum(starttype)
 
     // Emission sums from normal operation input
-    r_nuTotalEmissionsOperation(node, unit, emission)$nu(node, unit)
+    r_nuTotalEmissionsOperation(nu(node, unit), emission)
         = sum(ft_realizedNoReset(f, startp(t)),
             + sum(gn(grid, node), r_emissions(grid, node, emission, unit, f, t))
                  * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -373,7 +372,7 @@ loop(m,
     ;
 
     // Emission sums from unit outputs
-    r_nuTotalEmissionsFromOutput(node, unit, emission)$nu(node, unit)
+    r_nuTotalEmissionsFromOutput(nu(node, unit), emission)
         = sum(ft_realizedNoReset(f, startp(t)),
             + sum(gn(grid, node), r_emissionsFromOutput(grid, node, emission, unit, f, t))
                  * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -381,7 +380,7 @@ loop(m,
     ;
 
     // Emission sums from start-ups
-    r_nuTotalEmissionsStartup(node, unit, emission)$nu_startup(node, unit)
+    r_nuTotalEmissionsStartup(nu_startup(node, unit), emission)
         = sum(ft_realizedNoReset(f, startp(t)),
             + r_emissionsStartup(node, emission, unit, f, t)
                  * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -523,17 +522,17 @@ r_gnTotalConsumptionShare(gn(grid, node))${ r_gTotalConsumption(grid) > 0 }
     = r_gnTotalConsumption(grid, node)
         / r_gTotalConsumption(grid);
 
-* --- Total Fuel Consumption Results ------------------------------------------
+* --- Total Energy Generation Results Per Input Type --------------------------
 
-// Total fuel consumption in grids over the simulation
+// Total energy generation in grids per input type over the simulation
 r_gTotalGenFuel(grid, node_)
     = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, node_));
 
-// Total fuel consumption over the simulation
+// Total overall energy generation per input type over the simulation
 r_totalGenFuel(node_)
     = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, node_));
 
-// Total fuel consumption gn/g shares
+// Total energy generation in gn per input type as a share of total energy generation in gn across all input types
 r_gnTotalGenFuelShare(gn(grid, node), node_)${ r_gnTotalGen(grid, node) }
     = r_gnTotalGenFuel(grid, node, node_)
         / r_gnTotalGen(grid, node);
