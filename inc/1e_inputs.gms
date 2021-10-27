@@ -300,7 +300,7 @@ loop(utAvailabilityLimits(unit, t, availabilityLimits),
 // Use time series for commodity prices depending on 'ts_priceChange'
 
 // Determine if commodity prices require a time series representation or not
-loop(node$sum(grid, p_gn(grid, node, 'useCommodityPrice')),
+loop(node$sum(grid, p_gn(grid, node, 'usePrice')),
     // Find the steps with changing fuel prices
     option clear = tt;
     tt(t)${ ts_priceChange(node, t) } = yes;
@@ -688,22 +688,22 @@ loop( unit_investMIP(unit),
 
 * --- Check node balance and price related data -------------------------------
 
-// Give a warning if both nodeBalance and useCommodityPrice are false
+// Give a warning if both nodeBalance and usePrice are false
 loop( node,
-    if(not sum(grid, p_gn(grid, node, 'nodeBalance') or p_gn(grid, node, 'useCommodityPrice')),
-        put log '!!! Warning: Node ', node.tl:0, ' does not have nodeBalance or useCommodityPrice activated in p_gn' /;
+    if(not sum(grid, p_gn(grid, node, 'nodeBalance') or p_gn(grid, node, 'usePrice')),
+        put log '!!! Warning: Node ', node.tl:0, ' does not have nodeBalance or usePrice activated in p_gn' /;
     ); // END if
 ); // END loop(node)
-// Give a warning if useCommodityPrice is true but ts_priceChange has no data
+// Give a warning if usePrice is true but ts_priceChange has no data
 loop( node,
     if(p_price(node, 'useConstant') and not p_price(node, 'price'),
-        put log '!!! Warning: Node ', node.tl:0, ' has useCommodityPrice activated in p_gn but there is no ts_priceChange data' /;
+        put log '!!! Warning: Node ', node.tl:0, ' has usePrice activated in p_gn but there is no ts_priceChange data' /;
     ); // END if
 ); // END loop(node)
-// Give a warning if both nodeBalance and useCommodityPrice are true
+// Give a warning if both nodeBalance and usePrice are true
 loop( node,
-    if(sum(grid, p_gn(grid, node, 'nodeBalance') and p_gn(grid, node, 'useCommodityPrice')),
-        put log '!!! Warning: Node ', node.tl:0, ' has both nodeBalance or useCommodityPrice activated in p_gn' /;
+    if(sum(grid, p_gn(grid, node, 'nodeBalance') and p_gn(grid, node, 'usePrice')),
+        put log '!!! Warning: Node ', node.tl:0, ' has both nodeBalance or usePrice activated in p_gn' /;
     ); // END if
 ); // END loop(node)
 
