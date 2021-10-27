@@ -686,6 +686,27 @@ loop( unit_investMIP(unit),
     ); // END if
 ); // END loop(unit_investMIP)
 
+* --- Check node balance and price related data -------------------------------
+
+// Give a warning if both nodeBalance and useCommodityPrice are false
+loop( node,
+    if(not sum(grid, p_gn(grid, node, 'nodeBalance') or p_gn(grid, node, 'useCommodityPrice')),
+        put log '!!! Warning: Node ', node.tl:0, ' does not have nodeBalance or useCommodityPrice activated in p_gn' /;
+    ); // END if
+); // END loop(node)
+// Give a warning if useCommodityPrice is true but ts_priceChange has no data
+loop( node,
+    if(p_price(node, 'useConstant') and not p_price(node, 'price'),
+        put log '!!! Warning: Node ', node.tl:0, ' has useCommodityPrice activated in p_gn but there is no ts_priceChange data' /;
+    ); // END if
+); // END loop(node)
+// Give a warning if both nodeBalance and useCommodityPrice are true
+loop( node,
+    if(sum(grid, p_gn(grid, node, 'nodeBalance') and p_gn(grid, node, 'useCommodityPrice')),
+        put log '!!! Warning: Node ', node.tl:0, ' has both nodeBalance or useCommodityPrice activated in p_gn' /;
+    ); // END if
+); // END loop(node)
+
 * --- Check consistency of inputs for superposed node states -------------------
 
 * no checking yet because node_superpos is not given in the gdx input
