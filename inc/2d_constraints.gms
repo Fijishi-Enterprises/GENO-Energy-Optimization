@@ -25,6 +25,7 @@ $offtext
 q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics solved using implicit Euler discretization
     ${  not p_gn(grid, node, 'boundAll')
         and p_gn(grid, node, 'nodeBalance')
+        and p_gn(grid, node, 'reactive') = 0
         } ..
 
     // The left side of the equation is the change in the state (will be zero if the node doesn't have a state)
@@ -102,6 +103,86 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
             ) // END sum(unitStarttype)
         ) // END sum(uft)
 
+;
+
+q_balance_reactive1(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics solved using implicit Euler discretization
+    ${  not p_gn(grid, node, 'boundAll')
+        and p_gn(grid, node, 'nodeBalance')
+        and p_gn(grid, node, 'reactive') = 1
+        } ..
+
+    // The right side of the equation contains all the changes converted to energy terms
+    + p_stepLength(m, f, t) // Multiply with the length of the timestep to convert power into energy
+        * (
+            // Controlled energy transfer, applies when the current node is on the left side of the connection
+            - sum(gn2n_directional(grid, node, node_),
+                + v_transfer(grid, node, node_, s, f, t)
+                ) // END sum(node_)
+
+            // Controlled energy transfer, applies when the current node is on the right side of the connection
+            + sum(gn2n_directional(grid, node_, node),
+                + v_transfer(grid, node_, node, s, f, t)
+                ) // END sum(node_)
+
+            // Interactions between the node and its units
+            + sum(gnuft(grid, node, unit, f, t),
+                + v_gen(grid, node, unit, s, f, t) // Unit energy generation and consumption
+                )
+
+            // Spilling energy out of the endogenous grids in the model
+            - v_spill(grid, node, s, f, t)${node_spill(node)}
+
+            // Power inflow and outflow timeseries to/from the node
+            + ts_influx_(grid, node, s, f, t)   // Incoming (positive) and outgoing (negative) absolute value time series
+
+            // Dummy generation variables, for feasibility purposes
+            + vq_gen('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+            - vq_gen('decrease', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+    ) // END * p_stepLength
+
+    =E=
+
+    0
+;
+
+q_balance_reactive2(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics solved using implicit Euler discretization
+    ${  not p_gn(grid, node, 'boundAll')
+        and p_gn(grid, node, 'nodeBalance')
+        and p_gn(grid, node, 'reactive') = 1
+        } ..
+
+    // The right side of the equation contains all the changes converted to energy terms
+    + p_stepLength(m, f, t) // Multiply with the length of the timestep to convert power into energy
+        * (
+            // Controlled energy transfer, applies when the current node is on the left side of the connection
+            - sum(gn2n_directional(grid, node, node_),
+                + v_transferReactive(grid, node, node_, s, f, t)
+                ) // END sum(node_)
+
+            // Controlled energy transfer, applies when the current node is on the right side of the connection
+            + sum(gn2n_directional(grid, node_, node),
+                + v_transferReactive(grid, node_, node, s, f, t)
+                ) // END sum(node_)
+
+            // Interactions between the node and its units
+            + sum(gnuft(grid, node, unit, f, t),
+                + v_genReactive(grid, node, unit, s, f, t) // Unit energy generation and consumption
+                )
+
+            // Spilling energy out of the endogenous grids in the model
+            - v_spill(grid, node, s, f, t)${node_spill(node)}
+
+            // Power inflow and outflow timeseries to/from the node
+            + ts_influx_reactive_(grid, node, s, f, t)   // Incoming (positive) and outgoing (negative) absolute value time series
+
+            // Dummy generation variables, for feasibility purposes
+            + vq_gen('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+            - vq_gen('decrease', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+    ) // END * p_stepLength
+
+    =E=
+
+    0
 ;
 
 * --- Reserve Demand ----------------------------------------------------------
@@ -2056,7 +2137,9 @@ q_unitGreaterThanConstraint(s_active(s), gt_constraint, uft(unit, f, t))
 
 * --- Total Transfer Limits ---------------------------------------------------
 
-q_transfer(gn2n_directional(grid, node, node_), sft(s, f, t)) ..
+q_transfer(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${  p_gnn(grid, node, node_, 'reactive') = 0
+         } ..
 
     // Rightward + Leftward
     + v_transferRightward(grid, node, node_, s, f, t)
@@ -2066,6 +2149,117 @@ q_transfer(gn2n_directional(grid, node, node_), sft(s, f, t)) ..
 
     // = Total Transfer
     + v_transfer(grid, node, node_, s, f, t)
+;
+
+q_transfer_reactive(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${ p_gnn(grid, node, node_, 'reactive') = 1
+         } ..
+
+    // first expression to calculate transfer
+    + 2 * p_gnn(grid, node, node_, 'resistance') * v_transfer(grid, node, node_, s, f, t)
+    + 2 * p_gnn(grid, node, node_, 'reactance') * v_transferReactive(grid, node, node_, s, f, t)
+    - v_state_squaredVoltage(grid, node, s, f, t)
+    + v_state_squaredVoltage(grid, node_, s, f, t)
+
+    =E=
+
+    0
+;
+
+q_transferLimit_reactive1(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${ p_gnn(grid, node, node_, 'reactive') = 1
+         } ..
+
+    // first expression to calculate transfer
+    + v_transfer(grid, node, node_, s, f, t)
+
+    =L=
+
+    + 0.9239 * p_gnn(grid, node, node_, 'transferCap')
+;
+
+q_transferLimit_reactive2(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${ p_gnn(grid, node, node_, 'reactive') = 1
+         } ..
+
+    // first expression to calculate transfer
+    + v_transfer(grid, node, node_, s, f, t)
+
+    =G=
+
+    - 0.9239 * p_gnn(grid, node, node_, 'transferCap')
+;
+
+q_transferLimit_reactive3(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${ p_gnn(grid, node, node_, 'reactive') = 1
+         } ..
+
+    // first expression to calculate transfer
+    + v_transferReactive(grid, node, node_, s, f, t)
+
+    =L=
+
+    + 0.9239 * p_gnn(grid, node, node_, 'transferCap')
+;
+
+q_transferLimit_reactive4(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${ p_gnn(grid, node, node_, 'reactive') = 1
+         } ..
+
+    // first expression to calculate transfer
+    + v_transferReactive(grid, node, node_, s, f, t)
+
+    =G=
+
+    - 0.9239 * p_gnn(grid, node, node_, 'transferCap')
+;
+
+q_transferLimit_reactive5(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${ p_gnn(grid, node, node_, 'reactive') = 1
+         } ..
+
+    // first expression to calculate transfer
+    + v_transfer(grid, node, node_, s, f, t) + v_transferReactive(grid, node, node_, s, f, t)
+
+    =L=
+
+    + 1.3066 * p_gnn(grid, node, node_, 'transferCap')
+;
+
+q_transferLimit_reactive6(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${ p_gnn(grid, node, node_, 'reactive') = 1
+         } ..
+
+    // first expression to calculate transfer
+    + v_transfer(grid, node, node_, s, f, t) + v_transferReactive(grid, node, node_, s, f, t)
+
+    =G=
+
+    - 1.3066 * p_gnn(grid, node, node_, 'transferCap')
+;
+
+q_transferLimit_reactive7(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${ p_gnn(grid, node, node_, 'reactive') = 1
+         } ..
+
+    // first expression to calculate transfer
+    - v_transfer(grid, node, node_, s, f, t) + v_transferReactive(grid, node, node_, s, f, t)
+
+    =L=
+
+    + 1.3066 * p_gnn(grid, node, node_, 'transferCap')
+;
+
+q_transferLimit_reactive8(gn2n_directional(grid, node, node_), sft(s, f, t))
+    ${ p_gnn(grid, node, node_, 'reactive') = 1
+         } ..
+
+    // first expression to calculate transfer
+    - v_transfer(grid, node, node_, s, f, t) + v_transferReactive(grid, node, node_, s, f, t)
+
+    =G=
+
+    - 1.3066 * p_gnn(grid, node, node_, 'transferCap')
 ;
 
 * --- Rightward Transfer Limits -----------------------------------------------
@@ -3418,6 +3612,27 @@ q_ReserveShareMax(group, restypeDirectionGroup(restype, up_down, group_), sft(s,
                 ) // END sum(gn2n_directional)
 
           ] // END * p_groupPolicy
+;
+
+*--- Minimum and maximum nodal voltage magnitudes ---------------------------------------
+    q_MaxVoltage(gn(grid, node), msft(m, s, f, t))
+        ${ p_gn(grid, node, 'reactive') = 1
+            }..
+    + v_state_squaredVoltage(grid, node, s, f, t)
+
+    =L=
+
+    p_gn(grid, node, 'volmax') * p_gn(grid, node, 'volmax')
+;
+
+    q_MinVoltage(gn(grid, node), msft(m, s, f, t))
+        ${ p_gn(grid, node, 'reactive') = 1
+            }..
+    + v_state_squaredVoltage(grid, node, s, f, t)
+
+    =G=
+
+    p_gn(grid, node, 'volmin') * p_gn(grid, node, 'volmin')
 ;
 
 $ifthen exist '%input_dir%/additional_constraints.inc'

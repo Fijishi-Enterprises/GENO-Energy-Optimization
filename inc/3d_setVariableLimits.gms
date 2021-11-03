@@ -367,6 +367,13 @@ v_transfer.lo(gn2n_directional(grid, node, node_), sft(s, f, t))${  not p_gnn(gr
         ]
         * p_gnn(grid, node_, node, 'transferCap')
 ;
+// Total transfer variable (for reactive power) restricted from both above and below (free variable)
+v_transferReactive.up(gn2n_directional(grid, node, node_), sft(s, f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
+    = p_gnn(grid, node, node_, 'transferCap')
+;
+v_transferReactive.lo(gn2n_directional(grid, node, node_), sft(s, f, t))${  not p_gnn(grid, node, node_, 'transferCapInvLimit') }
+    = -p_gnn(grid, node_, node, 'transferCap')
+;
 // Directional transfer variables only restricted from above (positive variables)
 v_transferRightward.up(gn2n_directional(grid, node, node_), sft(s, f, t))${ not p_gnn(grid, node, node_, 'transferCapInvLimit') }
     = [

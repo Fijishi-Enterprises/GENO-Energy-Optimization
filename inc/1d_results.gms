@@ -231,6 +231,7 @@ Parameters
     d_capacityFactor(flow, node, s, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
     d_nodeState(grid, node, param_gnBoundaryTypes, s, f, t) "Diagnostic temperature forecasts (accounting for GAMS plotting error)"
     d_influx(grid, node, s, f, t) "Diagnostic influx forecasts (accounting for GAMS plotting error)"
+    d_influx_reactive(grid, node, s, f, t) "Diagnostic influx forecasts (accounting for GAMS plotting error)"
     d_state(grid, node, scenario, f, t) "Diagnostic state results in each scenario"
     d_ts_scenarios(timeseries, *, node, scenario, f, t) "Diagnostic time series values in scenarios"
 ;

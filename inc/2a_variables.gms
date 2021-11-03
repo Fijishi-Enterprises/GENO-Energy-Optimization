@@ -18,9 +18,11 @@ $offtext
 Free variable v_obj "Total operating cost (monetary unit)";
 Free variables
     v_gen(grid, node, unit, s, f, t) "Energy generation or consumption in an interval (MW)"
+    v_genReactive(grid, node, unit, s, f, t) "Reactive energy generation or consumption in an interval (MVAr)"
     v_state(grid, node, s, f, t) "State variable for nodes that maintain a state (MWh, unless modified by energyStoredPerUnitOfState and diffCoeff parameters)"
     v_genRamp(grid, node, unit, s, f, t) "Change in energy generation or consumption over an interval (MW/h)"
     v_transfer(grid, node, node, s, f, t) "Average electricity transmission level from node to node during an interval (MW)"
+    v_transferReactive(grid, node, node, s, f, t) "Average electricity transmission (reactive) level from node to node during an interval (MVAr)"
     v_ICramp(grid, node, node, s, f, t) "Change in energy transfer over an interval (MW/h)"
     v_statemax(grid, node, s) "State variable maximum in sample s"
     v_statemin(grid, node, s) "State variable minimum in sample s"
@@ -53,6 +55,7 @@ Positive variables
     v_online_LP(unit, s, f, t) "Number of sub-units online for 'units' with unit commitment restrictions (LP variant)"
     v_invest_LP(unit) "Number of invested 'sub-units' (LP variant)"
     v_gen_inc(grid, node, unit, hr, s, f, t) "Energy generation in hr block in an interval (MW)"
+    v_state_squaredVoltage(grid, node, s, f, t) "State variable for nodes that maintain squared voltage magnitude (perunit) if reactive power is considered)"                    
 ;
 
 * --- Feasibility control -----------------------------------------------------

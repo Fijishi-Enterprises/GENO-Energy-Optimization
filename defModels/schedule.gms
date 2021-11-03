@@ -22,6 +22,8 @@ $offtext
 Model schedule /
     q_obj
     q_balance
+    q_balance_reactive1
+    q_balance_reactive2
     q_resDemand
     q_resDemandLargestInfeedUnit // Use with extra caution if there are several sub-units
     q_rateOfChangeOfFrequencyUnit // Use with extra caution if there are several sub-units
@@ -62,6 +64,15 @@ Model schedule /
 
     // Energy Transfer
     q_transfer
+    q_transfer_reactive
+    q_transferLimit_reactive1
+    q_transferLimit_reactive2
+    q_transferLimit_reactive3
+    q_transferLimit_reactive4
+    q_transferLimit_reactive5
+    q_transferLimit_reactive6
+    q_transferLimit_reactive7
+    q_transferLimit_reactive8
     q_transferRightwardLimit
     q_transferLeftwardLimit
     q_resTransferLimitRightward
@@ -88,6 +99,8 @@ Model schedule /
 *    q_energyLimit
 *    q_energyShareLimit
     q_ReserveShareMax
+    q_MaxVoltage
+    q_MinVoltage
 
 $ifthen exist '%input_dir%/schedule_additional_constraints.gms'
    $$include '%input_dir%/schedule_additional_constraints.gms'      // Declare additional constraints from the input data

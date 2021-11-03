@@ -19,7 +19,7 @@ $offtext
 Scalars
     solveCount /0/
     tSolveFirst "counter (ord) for the first t in the solve"
-    tSolveLast "counter for the last t in the solve"
+    tSolveLast "coçunter for the last t in the solve"
     tCounter "counter for t" /0/
     lastCounter "last member in use of the general counter"
     continueLoop "Helper to stop the looping early"
@@ -160,6 +160,7 @@ Parameters
 Parameters
     // Used mostly for raw data storage
     ts_influx(grid, node, f, t) "External power inflow/outflow during a time step (MWh/h)"
+    ts_influx_reactive(grid, node, f, t) "External power inflow/outflow during a time step (MVArh/h)"
     ts_cf(flow, node, f, t) "Available capacity factor time series (p.u.)"
     ts_reserveDemand(restype, up_down, group, f, t) "Reserve demand in region in the time step (MW)"
     ts_node(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input ([v_state])"
@@ -171,6 +172,7 @@ Parameters
 
     // Aliases used in the equations after interval aggregation
     ts_influx_(grid, node, s, f, t) "Mean external power inflow/outflow during a time step (MWh/h)"
+    ts_influx_reactive_(grid, node, s, f, t) "Mean external power inflow/outflow during a time step (MVArh/h)"
     ts_cf_(flow, node, s, f, t) "Mean available capacity factor time series (p.u.)"
     ts_reserveDemand_(restype, up_down, group, f, t) "Mean reserve demand in region in the time step (MW)"
     ts_node_(grid, node, param_gnBoundaryTypes, s, f, t) "Mean value of ts_node"
@@ -184,6 +186,7 @@ Parameters
     ts_effUnit_update(effSelector, unit, effSelector, param_eff, f, t)
     ts_effGroupUnit_update(effSelector, unit, param_eff, f, t)
     ts_influx_update(grid, node, f, t)
+    ts_influx_reactive_update(grid, node, f, t)
     ts_cf_update(flow, node, f, t)
     ts_reserveDemand_update(restype, up_down, group, f, t)
     ts_node_update(grid, node, param_gnBoundaryTypes, f, t)
@@ -193,6 +196,7 @@ Parameters
 
     // Help parameters for calculating smoothening of time series
     ts_influx_std(grid, node, t)  "Standard deviation of ts_influx over samples"
+    ts_influx_reactive_std(grid, node, t)  "Standard deviation of ts_influx over samples"
     ts_cf_std(flow, node, t) "Standard deviation of ts_cf over samples (p.u.)"
 
     p_autocorrelation(*, node, timeseries) "Autocorrelation of time series for the grid/flow, node and time series type (lag = 1 time step)"

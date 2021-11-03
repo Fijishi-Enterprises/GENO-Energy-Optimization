@@ -53,6 +53,8 @@ equations
     // Objective Function, Energy Balance, and Reserve demand
     q_obj "Objective function"
     q_balance(grid, node, mType, s, f, t) "Energy demand must be satisfied at each node"
+    q_balance_reactive1(grid, node, mType, s, f, t) "Active power demand must be satisfied at each node"
+    q_balance_reactive2(grid, node, mType, s, f, t) "Reactive power demand must be satisfied at each node"
     q_resDemand(restype, up_down, group, s, f, t) "Procurement for each reserve type is greater than demand"
     q_resDemandLargestInfeedUnit(restype, up_down, group, unit, s, f, t) "N-1 reserve for units"
     q_rateOfChangeOfFrequencyUnit(group, unit, s, f, t) "N-1 unit contingency with ROCOF"
@@ -95,6 +97,15 @@ equations
 
     // Energy Transfer
     q_transfer(grid, node, node, s, f, t) "Rightward and leftward transfer must match the total transfer"
+    q_transfer_reactive(grid, node, node, s, f, t) "transfer of active and reactive energy if reactive power is considered"
+    q_transferLimit_reactive1(grid, node, node, s, f, t) "capacity limit for transfer of active and reactive energy if reactive power is considered"
+    q_transferLimit_reactive2(grid, node, node, s, f, t) "capacity limit for transfer of active and reactive energy if reactive power is considered"
+    q_transferLimit_reactive3(grid, node, node, s, f, t) "capacity limit for transfer of active and reactive energy if reactive power is considered"
+    q_transferLimit_reactive4(grid, node, node, s, f, t) "capacity limit for transfer of active and reactive energy if reactive power is considered"
+    q_transferLimit_reactive5(grid, node, node, s, f, t) "capacity limit for transfer of active and reactive energy if reactive power is considered"
+    q_transferLimit_reactive6(grid, node, node, s, f, t) "capacity limit for transfer of active and reactive energy if reactive power is considered"
+    q_transferLimit_reactive7(grid, node, node, s, f, t) "capacity limit for transfer of active and reactive energy if reactive power is considered"
+    q_transferLimit_reactive8(grid, node, node, s, f, t) "capacity limit for transfer of active and reactive energy if reactive power is considered"
     q_transferRightwardLimit(grid, node, node, s, f, t) "Transfer of energy and capacity reservations to the rightward direction are less than the transfer capacity"
     q_transferLeftwardLimit(grid, node, node, s, f, t) "Transfer of energy and capacity reservations to the leftward direction are less than the transfer capacity"
     q_resTransferLimitRightward(grid, node, node, s, f, t) "Transfer of energy and capacity reservations are less than the transfer capacity to the rightward direction"
@@ -130,4 +141,7 @@ equations
     q_energyLimit(group, min_max) "Limited energy production or consumption from a group of units"
     q_energyShareLimit(group, min_max) "Limited share of energy production from a group of units"
     q_ReserveShareMax(group, restype, up_down, group, s, f, t) "Maximum reserve share of a group of units"
+
+    q_MaxVoltage(grid, node, mType, s, f, t) "maximum nodal voltage magnitude"
+    q_MinVoltage(grid, node, mType, s, f, t) "minimum nodal voltage magnitude"
 ;

@@ -169,6 +169,7 @@ Sets
         ts_effUnit
         ts_effGroupUnit
         ts_influx
+        ts_influx_reactive
         ts_cf
         ts_reserveDemand
         ts_node
@@ -226,6 +227,9 @@ param_gn  "Possible parameters for grid, node" /
 *    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."  // NOT IMPLEMENTED
     capacityMargin "Capacity margin used in invest mode (MW)"
     storageValueUseTimeSeries "A flag to determine whether to use time series form `storageValue`"
+    reactive
+    volmin
+    volmax
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
@@ -266,6 +270,9 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     availability  "Availability of the interconnection (p.u.)"
     useTimeseriesAvailability "A flag to use time series form input for availability"
     useTimeseriesLoss "A flag to use time series form input for transferLoss"
+    reactive
+    resistance
+    reactance
 /
 
 param_gnu "Set of possible data parameters for grid, node, unit" /
@@ -332,6 +339,7 @@ param_unit "Set of possible data parameters for units" /
     lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
     becomeAvailable       "The relative position of the time step when the unit becomes available (calculated from ut(unit, t, start_end))"
     becomeUnavailable     "The relative position of the time step when the unit becomes unavailable (calculated from ut(unit, t, start_end))"
+    reactive
 /
 
 param_eff "Parameters used for unit efficiency approximations" /

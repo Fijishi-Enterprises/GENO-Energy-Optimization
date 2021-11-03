@@ -78,13 +78,21 @@ $offtext
     if (mTimeseries_loop_read(mSolve, 'ts_influx'),
         put_utility 'gdxin' / '%input_dir%/ts_influx/' tSolve.tl:0 '.gdx';
         execute_load ts_influx_update=ts_influx;
+        execute_load ts_influx_reactive_update=ts_influx_reactive;
         ts_influx(gn(grid, node), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
                 and (mSettings(mSolve, 'onlyExistingForecasts')
                      -> ts_influx_update(grid, node, f, t)) // Update only existing values (zeroes need to be EPS)
                 }
             = ts_influx_update(grid, node, f, t);
+        ts_influx_reactive(gn(grid, node), f_solve(f), tt_forecast(t))
+            ${  not mf_realization(mSolve, f) // Realization not updated
+                and (mSettings(mSolve, 'onlyExistingForecasts')
+                     -> ts_influx_reactive_update(grid, node, f, t)) // Update only existing values (zeroes need to be EPS)
+                }
+            = ts_influx_reactive_update(grid, node, f, t);
     ); // END if('ts_influx')
+
 
     // Update ts_cf
     if (mTimeseries_loop_read(mSolve, 'ts_cf'),
@@ -359,6 +367,21 @@ $offtext
                 f + (  df_realization(f, t)$(not gn_forecasts(gn, 'ts_influx'))),
                 t_  )
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
+
+    ts_influx_reactive_(gn, sft(s, f, tt_interval(t)))$gn_scenarios(gn, 'ts_influx_reactive')
+        = sum(tt_aggregate(t, t_),
+            ts_influx_reactive(gn,
+                f + (  df_realization(f, t)$(not gn_forecasts(gn, 'ts_influx_reactive'))
+                     + df_scenario(f, t)),
+                t_+ (+ dt_scenarioOffset(gn, 'ts_influx_reactive', s)))
+            ) / mInterval(mSolve, 'stepsPerInterval', counter);
+    ts_influx_reactive_(gn, sft(s, f, tt_interval(t)))$(not gn_scenarios(gn, 'ts_influx_reactive'))
+        = sum(tt_aggcircular(t, t_),
+            ts_influx_reactive(gn,
+                f + (  df_realization(f, t)$(not gn_forecasts(gn, 'ts_influx_reactive'))),
+                t_  )
+            ) / mInterval(mSolve, 'stepsPerInterval', counter);
+
     ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggregate(t, t_),
             ts_cf(flow, node,

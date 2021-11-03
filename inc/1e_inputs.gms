@@ -74,6 +74,7 @@ $loaddc ts_cf
 *$loaddc p_price // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
 $loaddc ts_priceChange
 $loaddc ts_influx
+$loaddc ts_influx_reactive
 $loaddc ts_node
 $loaddc p_s_discountFactor
 $loaddc t_invest
@@ -391,6 +392,7 @@ gn_state(grid, node)${  gn_stateSlack(grid, node)
 gn(grid, node)${    sum(unit, gnu(grid, node, unit))
                     or gn_state(grid, node)
                     or sum((f, t), ts_influx(grid, node, f, t))
+                    or sum((f, t), ts_influx_reactive(grid, node, f, t))
                     or sum(node_, gn2n(grid, node, node_))
                     or sum(node_, gn2n(grid, node_, node))
                     or sum(node_, gnn_state(grid, node, node_))

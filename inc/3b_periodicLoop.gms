@@ -137,6 +137,7 @@ Option clear = ts_unit_;
 *Option clear = ts_effUnit_;
 *Option clear = ts_effGroupUnit_;
 Option clear = ts_influx_;
+Option clear = ts_influx_reactive_;
 Option clear = ts_cf_;
 Option clear = ts_unit_;
 Option clear = ts_reserveDemand_;
