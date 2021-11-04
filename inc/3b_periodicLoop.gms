@@ -54,6 +54,7 @@ Option clear = v_gen_inc;
 // Feasibility control
 Option clear = v_stateSlack;
 Option clear = vq_gen;
+Option clear = vq_genReactive;
 Option clear = vq_resDemand;
 Option clear = vq_resMissing;
 Option clear = vq_capacity;

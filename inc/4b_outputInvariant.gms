@@ -317,6 +317,14 @@ loop(m,
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
+    // Total dummy reactive generation/consumption
+    r_gnTotalqGenReactive(inc_dec, gn(grid, node))
+        = sum(ft_realizedNoReset(f,startp(t)),
+            + r_qGenReactive(inc_dec, grid, node, f, t)
+                * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+            ); // END sum(ft_realizedNoReset)
+
     // Unit start-up consumption
     r_nuStartupConsumption(nu_startup(node, unit), ft_realizedNoReset(f,startp(t)))
         ${sum(starttype, unitStarttype(unit, starttype))}
@@ -466,6 +474,12 @@ r_gnTotalGenShare(gn(grid, node))${ r_gTotalGen(grid) > 0 }
 // Total dummy generaion in g
 r_gTotalqGen(inc_dec, grid)
     = sum(gn(grid, node), r_gnTotalqGen(inc_dec, grid, node));
+
+* --- Total Dummy Reactive Generation Results ------------------------------------------
+
+// Total dummy reactive generaion in g
+r_gTotalqGenReactive(inc_dec, grid)
+    = sum(gn(grid, node), r_gnTotalqGenReactive(inc_dec, grid, node));
 
 * --- Total Energy Consumption Results ----------------------------------------
 

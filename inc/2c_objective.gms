@@ -66,6 +66,16 @@ q_obj ..
                                 ) // END sum(gn)
                             ) // END sum(inc_dec)
 
+                        // Reactive power balance feasibility dummy varible penalties
+                        + sum(inc_dec,
+                            + sum(gn(grid, node),
+                                + vq_genReactive(inc_dec, grid, node, s, f, t)
+                                    *( PENALTY_BALANCE(grid, node)${not p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
+                                    + ts_node_(grid, node, 'balancePenalty', s, f, t)${p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
+                                      )
+                                ) // END sum(gn)
+                            ) // END sum(inc_dec)
+
                         // Reserve provision feasibility dummy variable penalties
                         + sum(restypeDirectionGroup(restype, up_down, group),
                             + vq_resDemand(restype, up_down, group, s, f+df_reservesGroup(group, restype, f, t), t)

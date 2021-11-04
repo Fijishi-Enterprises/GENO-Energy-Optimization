@@ -55,13 +55,14 @@ Positive variables
     v_online_LP(unit, s, f, t) "Number of sub-units online for 'units' with unit commitment restrictions (LP variant)"
     v_invest_LP(unit) "Number of invested 'sub-units' (LP variant)"
     v_gen_inc(grid, node, unit, hr, s, f, t) "Energy generation in hr block in an interval (MW)"
-    v_state_squaredVoltage(grid, node, s, f, t) "State variable for nodes that maintain squared voltage magnitude (perunit) if reactive power is considered)"                    
+    v_state_squaredVoltage(grid, node, s, f, t) "State variable for nodes that maintain squared voltage magnitude (perunit) if reactive power is considered)"
 ;
 
 * --- Feasibility control -----------------------------------------------------
 Positive variables
     v_stateSlack(grid, node, slack, s, f, t) "Slack variable for different v_state slack categories, permits e.g. costs for exceeding acceptable v_states (MWh, unless modified by energyCapacity parameter)"
     vq_gen(inc_dec, grid, node, s, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
+    vq_genReactive(inc_dec, grid, node, s, f, t) "Dummy reactive power (or energy) generation (increase) or consumption (generation decrease) to ensure equation feasibility (MVAr)"
     vq_resDemand(restype, up_down, group, s, f, t) "Dummy to decrease demand for a reserve (MW) before the reserve has been locked"
     vq_resMissing(restype, up_down, group, s, f, t) "Dummy to decrease demand for a reserve (MW) after the reserve has been locked"
     vq_capacity(grid, node, s, f, t) "Dummy variable to ensure capacity margin equation feasibility (MW)"

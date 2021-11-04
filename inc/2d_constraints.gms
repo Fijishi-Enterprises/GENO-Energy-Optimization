@@ -176,8 +176,8 @@ q_balance_reactive2(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dy
             + ts_influx_reactive_(grid, node, s, f, t)   // Incoming (positive) and outgoing (negative) absolute value time series
 
             // Dummy generation variables, for feasibility purposes
-            + vq_gen('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-            - vq_gen('decrease', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+            + vq_genReactive('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+            - vq_genReactive('decrease', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
     ) // END * p_stepLength
 
     =E=

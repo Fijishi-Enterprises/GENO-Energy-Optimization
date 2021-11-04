@@ -190,8 +190,11 @@ Parameters
 
     // Results regarding solution feasibility
     r_qGen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
+    r_qGenReactive(inc_dec, grid, node, f, t) "Dummy reactive power (energy) generation (increase) or consumption (generation decrease) to ensure equation feasibility (MVAr)"
     r_gnTotalqGen(inc_dec, grid, node) "Total dummy energy generation/consumption in gn over the simulation (MWh)."
+    r_gnTotalqGenReactive(inc_dec, grid, node) "Total dummy reactive power (energy) generation/consumption in gn over the simulation (MVArh)."
     r_gTotalqGen(inc_dec, grid) "Total dummy energy generation/consumption in g over the simulation (MWh)."
+    r_gTotalqGenReactive(inc_dec, grid) "Total dummy reactive power (energy) generation/consumption in g over the simulation (MVArh)."
     r_qResDemand(restype, up_down, group, f, t) "Dummy to decrease demand for a reserve (MW) before reserve commitment"
     r_qResMissing(restype, up_down, group, f, t) "Dummy to decrease demand for a reserve (MW) after reserve commitment"
     r_groupTotalqResDemand(restype, up_down, group) "Total dummy reserve provisions in the group over the simulation"

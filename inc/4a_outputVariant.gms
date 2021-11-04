@@ -185,6 +185,17 @@ r_qCapacity(gn, f, startp(t))
 ;
 );
 
+loop(sft_realized(s, f, t),
+// Dummy reactive generation & consumption
+r_qGenReactive(inc_dec, gn, f, startp(t))
+    = vq_genReactive.l(inc_dec, gn, s, f, t)
+;
+//// Dummy capacity
+//r_qCapacity(gn, f, startp(t))
+//    = vq_capacity.l(gn, s, f, t)
+//;
+);
+
 * =============================================================================
 * --- Diagnostics Results -----------------------------------------------------
 * =============================================================================
