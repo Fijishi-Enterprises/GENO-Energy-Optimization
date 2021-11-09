@@ -196,8 +196,8 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 1,
-                    "header": "*",
-                    "filter_re": "^((?!(eff|op|becomeAvailable|becomeUnavailable|boundSamples)).)*$"
+                    "filter_re": "^((?!(efficiency|becomeAvailable|becomeUnavailable|boundSamples)).)*$",
+                    "header": "*"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -207,7 +207,7 @@
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "Alternative",
@@ -2254,9 +2254,9 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": 1,
-                    "header": "*",
-                    "filter_re": "^(eff|op)"
+                    "position": "hidden",
+                    "filter_re": "^(eff|op)",
+                    "header": "*"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2266,7 +2266,7 @@
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "Alternative",
@@ -2275,7 +2275,7 @@
                 {
                     "map_type": "ParameterValueType",
                     "position": "hidden",
-                    "filter_re": "single_value"
+                    "filter_re": "1d_map"
                 },
                 {
                     "map_type": "IndexName",
@@ -2283,7 +2283,8 @@
                 },
                 {
                     "map_type": "ParameterValueIndex",
-                    "position": "hidden"
+                    "position": 1,
+                    "header": "*"
                 },
                 {
                     "map_type": "ExpandedValue",

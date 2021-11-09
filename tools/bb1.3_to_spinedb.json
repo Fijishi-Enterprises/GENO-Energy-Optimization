@@ -636,7 +636,7 @@
             ],
             "p_unit": [
                 {
-                    "Mapping 1": {
+                    "other parameters": {
                         "mapping": [
                             {
                                 "map_type": "ObjectClass",
@@ -658,7 +658,8 @@
                             },
                             {
                                 "map_type": "ParameterDefinition",
-                                "position": 1
+                                "position": 1,
+                                "filter_re": "^(?!(eff|op))"
                             },
                             {
                                 "map_type": "Alternative",
@@ -671,6 +672,57 @@
                             },
                             {
                                 "map_type": "ParameterValue",
+                                "position": 2
+                            }
+                        ]
+                    }
+                },
+                {
+                    "efficiency": {
+                        "mapping": [
+                            {
+                                "map_type": "ObjectClass",
+                                "position": "hidden",
+                                "value": "unit"
+                            },
+                            {
+                                "map_type": "Object",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ObjectMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterDefinition",
+                                "position": "hidden",
+                                "value": "efficiency"
+                            },
+                            {
+                                "map_type": "Alternative",
+                                "position": "hidden",
+                                "value": "Base"
+                            },
+                            {
+                                "map_type": "ParameterValueMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueType",
+                                "position": "hidden",
+                                "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 1,
+                                "filter_re": "eff|op"
+                            },
+                            {
+                                "map_type": "ExpandedValue",
                                 "position": 2
                             }
                         ]
@@ -3083,368 +3135,6 @@
                 }
             ]
         },
-        "table_options": {
-            "grid": {},
-            "node": {},
-            "flow": {},
-            "unittype": {},
-            "unit": {},
-            "unitUnittype": {},
-            "unit_fail": {},
-            "commodity": {},
-            "unitUnitEffLevel": {},
-            "effLevelGroupUnit": {},
-            "group": {},
-            "p_gn": {},
-            "p_gnn": {},
-            "p_gnu_io": {},
-            "p_gnuBoundaryProperties": {},
-            "p_unit": {},
-            "ts_unit": {},
-            "p_unitConstraint": {},
-            "p_unitConstraintNode": {},
-            "restype": {},
-            "restypeDirection": {},
-            "restypeReleasedForRealization": {},
-            "restype_inertia": {},
-            "p_groupReserves": {},
-            "p_groupReserves3D": {},
-            "p_groupReserves4D": {},
-            "p_gnuReserves": {},
-            "p_gnnReserves": {},
-            "p_gnuRes2Res": {},
-            "ts_reserveDemand": {},
-            "p_gnBoundaryPropertiesForStates": {},
-            "flowUnit": {},
-            "emission": {},
-            "p_nEmission": {},
-            "ts_cf": {},
-            "ts_influx": {},
-            "ts_node": {},
-            "p_s_discountFactor": {},
-            "t_invest": {},
-            "utAvailabilityLimits": {},
-            "p_storageValue": {},
-            "ts_storageValue": {},
-            "gnGroup": {},
-            "sGroup": {},
-            "p_groupPolicy": {},
-            "gnss_bound": {},
-            "uss_bound": {},
-            "p_groupPolicyEmission": {},
-            "p_uStartupFuel": {},
-            "ts_PriceChange": {},
-            "ts_gnn": {},
-            "ugroup": {},
-            "gnugroup": {},
-            "gn2ngroup": {},
-            "p_groupPolicyUnit": {}
-        },
-        "table_types": {
-            "grid": {
-                "0": "string"
-            },
-            "node": {
-                "0": "string"
-            },
-            "flow": {
-                "0": "string"
-            },
-            "unittype": {
-                "0": "string"
-            },
-            "unit": {
-                "0": "string"
-            },
-            "unitUnittype": {
-                "0": "string",
-                "1": "string"
-            },
-            "unit_fail": {
-                "0": "string"
-            },
-            "commodity": {
-                "0": "string"
-            },
-            "unitUnitEffLevel": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "effLevelGroupUnit": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "group": {
-                "0": "string"
-            },
-            "p_gn": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "float"
-            },
-            "p_gnn": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "p_gnu_io": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "p_gnuBoundaryProperties": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "p_unit": {
-                "0": "string",
-                "1": "string",
-                "2": "float"
-            },
-            "ts_unit": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "p_unitConstraint": {
-                "0": "string",
-                "1": "string",
-                "2": "float"
-            },
-            "p_unitConstraintNode": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "float"
-            },
-            "restype": {
-                "0": "string"
-            },
-            "restypeDirection": {
-                "0": "string",
-                "1": "string"
-            },
-            "restypeReleasedForRealization": {
-                "0": "string"
-            },
-            "restype_inertia": {
-                "0": "string"
-            },
-            "p_groupReserves": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "float"
-            },
-            "p_groupReserves3D": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "p_groupReserves4D": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "p_gnuReserves": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "p_gnnReserves": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "p_gnuRes2Res": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string",
-                "6": "float"
-            },
-            "ts_reserveDemand": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "p_gnBoundaryPropertiesForStates": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "flowUnit": {
-                "0": "string",
-                "1": "string"
-            },
-            "emission": {
-                "0": "string"
-            },
-            "p_nEmission": {
-                "0": "string",
-                "1": "string",
-                "2": "float"
-            },
-            "ts_cf": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "ts_influx": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "ts_node": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "p_s_discountFactor": {
-                "0": "string",
-                "1": "float"
-            },
-            "t_invest": {
-                "0": "string"
-            },
-            "utAvailabilityLimits": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "p_storageValue": {
-                "0": "string",
-                "1": "string",
-                "2": "float"
-            },
-            "ts_storageValue": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "gnGroup": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "sGroup": {
-                "0": "string",
-                "1": "string"
-            },
-            "p_groupPolicy": {
-                "0": "string",
-                "1": "string",
-                "2": "float"
-            },
-            "gnss_bound": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "uss_bound": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "p_groupPolicyEmission": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "float"
-            },
-            "p_uStartupFuel": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "float"
-            },
-            "ts_PriceChange": {
-                "0": "string",
-                "1": "string",
-                "2": "float"
-            },
-            "ts_gnn": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string",
-                "6": "float"
-            },
-            "gnugroup": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "gn2ngroup": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "ugroup": {
-                "0": "string",
-                "1": "string"
-            },
-            "p_groupPolicyUnit": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "float"
-            }
-        },
-        "table_row_types": {
-            "p_groupReserves": {
-                "2": "string"
-            },
-            "p_gnBoundaryPropertiesForStates": {
-                "3": "string"
-            }
-        },
         "selected_tables": [
             "grid",
             "node",
@@ -3462,13 +3152,7 @@
             "p_gnu_io",
             "p_gnuBoundaryProperties",
             "p_unit",
-            "p_unitConstraint",
-            "p_unitConstraintNode",
             "ts_unit",
-            "restype",
-            "restypeDirection",
-            "restypeReleasedForRealization",
-            "restype_inertia",
             "p_groupReserves",
             "p_groupReserves3D",
             "p_groupReserves4D",
@@ -3477,31 +3161,108 @@
             "p_gnuRes2Res",
             "ts_reserveDemand",
             "p_gnBoundaryPropertiesForStates",
-            "p_groupPolicyEmission",
-            "p_uStartupFuel",
             "flowUnit",
+            "p_unitConstraint",
+            "p_unitConstraintNode",
             "emission",
             "p_nEmission",
             "ts_cf",
-            "ts_PriceChange",
             "ts_influx",
             "ts_node",
-            "ts_gnn",
-            "p_s_discountFactor",
             "t_invest",
+            "gnGroup",
+            "p_groupPolicy",
+            "gnss_bound",
+            "uss_bound",
+            "restype",
+            "restypeDirection",
+            "restypeReleasedForRealization",
+            "restype_inertia",
+            "p_s_discountFactor",
             "utAvailabilityLimits",
-            "p_storageValue",
             "ts_storageValue",
+            "sGroup",
+            "p_storageValue",
+            "p_groupPolicyEmission",
+            "p_uStartupFuel",
+            "ts_PriceChange",
+            "ts_gnn",
             "ugroup",
             "gnugroup",
             "gn2ngroup",
-            "gnGroup",
-            "sGroup",
-            "p_groupPolicy",
-            "p_groupPolicyUnit",
-            "gnss_bound",
-            "uss_bound"
+            "p_groupPolicyUnit"
         ],
+        "table_options": {
+            "grid": {},
+            "node": {},
+            "flow": {},
+            "unittype": {},
+            "unit": {},
+            "unitUnittype": {},
+            "unit_fail": {},
+            "commodity": {},
+            "unitUnitEffLevel": {},
+            "effLevelGroupUnit": {},
+            "group": {},
+            "p_gn": {},
+            "p_gnn": {},
+            "p_gnu_io": {},
+            "p_gnuBoundaryProperties": {},
+            "p_unit": {},
+            "p_unitConstraint": {},
+            "p_unitConstraintNode": {},
+            "ts_unit": {},
+            "restype": {},
+            "restypeDirection": {},
+            "restypeReleasedForRealization": {},
+            "restype_inertia": {},
+            "p_groupReserves": {},
+            "p_groupReserves3D": {},
+            "p_groupReserves4D": {},
+            "p_gnuReserves": {},
+            "p_gnnReserves": {},
+            "p_gnuRes2Res": {},
+            "ts_reserveDemand": {},
+            "p_gnBoundaryPropertiesForStates": {},
+            "p_groupPolicyEmission": {},
+            "p_uStartupFuel": {},
+            "flowUnit": {},
+            "emission": {},
+            "p_nEmission": {},
+            "ts_cf": {},
+            "ts_PriceChange": {},
+            "ts_influx": {},
+            "ts_node": {},
+            "ts_gnn": {},
+            "p_s_discountFactor": {},
+            "t_invest": {},
+            "utAvailabilityLimits": {},
+            "p_storageValue": {},
+            "ts_storageValue": {},
+            "ugroup": {},
+            "gnugroup": {},
+            "gn2ngroup": {},
+            "gnGroup": {},
+            "sGroup": {},
+            "p_groupPolicy": {},
+            "p_groupPolicyUnit": {},
+            "gnss_bound": {},
+            "uss_bound": {}
+        },
+        "table_types": {
+            "p_gn": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string"
+            },
+            "p_unit": {
+                "0": "string",
+                "1": "string",
+                "2": "float"
+            }
+        },
+        "table_row_types": {},
         "source_type": "GdxConnector"
     },
     "description": ""
