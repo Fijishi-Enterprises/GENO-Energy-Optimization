@@ -9,4 +9,4 @@ items/*/output
 # Other files created by execution
 .export-manifest.json
 filter_config.json
-
+.exported.json
