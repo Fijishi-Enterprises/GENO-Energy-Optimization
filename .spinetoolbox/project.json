@@ -25,7 +25,7 @@
                 {
                     "type": "path",
                     "relative": true,
-                    "path": "tools/bb1.3_to_spinedb.json"
+                    "path": "tools/bb_to_spinedb.json"
                 },
                 {
                     "type": "path",
@@ -323,7 +323,7 @@
             "description": "",
             "x": -193.73406586865244,
             "y": -22.476982726399342,
-            "specification": "BB1.4_to_SpineDB",
+            "specification": "BB_to_SpineDB",
             "cancel_on_error": true,
             "file_selection": []
         },

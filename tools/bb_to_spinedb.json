@@ -1,5 +1,5 @@
 {
-    "name": "BB1.4_to_SpineDB",
+    "name": "BB_to_SpineDB",
     "item_type": "Importer",
     "mapping": {
         "table_mappings": {
