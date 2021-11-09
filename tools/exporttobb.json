@@ -20,6 +20,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": false
         },
         "1D_subsets": {
@@ -46,6 +47,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": false
         },
         "2D_sets": {
@@ -81,6 +83,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": false
         },
         "3D_sets": {
@@ -125,6 +128,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": false
         },
         "4D_sets": {
@@ -178,6 +182,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": false
         },
         "p_unit": {
@@ -224,6 +229,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_s_discountFactor": {
@@ -277,6 +283,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_groupPolicy": {
@@ -323,6 +330,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_gn": {
@@ -349,8 +357,8 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 2,
-                    "header": "*",
-                    "filter_re": "^((?!(storageValue)).)*$"
+                    "filter_re": "^((?!(storageValue)).)*$",
+                    "header": "*"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -387,6 +395,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_gnn": {
@@ -459,6 +468,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_gnu_io": {
@@ -539,6 +549,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_gnuBoundaryProperties": {
@@ -619,6 +630,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_unitConstraint": {
@@ -680,6 +692,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_unitConstaintNode": {
@@ -750,6 +763,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_groupReserves": {
@@ -812,6 +826,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_groupReserves3D": {
@@ -883,6 +898,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_groupReserves4D": {
@@ -963,6 +979,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_gnuReserves": {
@@ -1043,6 +1060,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_gnnReserves": {
@@ -1123,6 +1141,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_gnuRes2Res": {
@@ -1220,6 +1239,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_gnBoundaryPropertiesForStates": {
@@ -1292,6 +1312,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_groupPolicyEmission": {
@@ -1354,6 +1375,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_uStartupFuel": {
@@ -1416,6 +1438,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_nEmission": {
@@ -1477,6 +1500,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_storageValue": {
@@ -1540,6 +1564,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_groupPolicyUnit": {
@@ -1602,6 +1627,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "ts_unit": {
@@ -1675,6 +1701,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "ts_reserveDemand": {
@@ -1763,6 +1790,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "ts_cf": {
@@ -1842,6 +1870,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "ts_priceChange": {
@@ -1903,6 +1932,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "ts_influx": {
@@ -1984,6 +2014,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "ts_node": {
@@ -2010,8 +2041,8 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 2,
-                    "header": "*",
-                    "filter_re": "^((?!(influx|storageValue|boundSamples)).)*$"
+                    "filter_re": "^((?!(influx|storageValue|boundSamples)).)*$",
+                    "header": "*"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2066,6 +2097,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "ts_gnn": {
@@ -2156,6 +2188,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "ts_storageValue": {
@@ -2237,6 +2270,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "p_unit2": {
@@ -2293,6 +2327,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "t_invest": {
@@ -2347,6 +2382,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "sGroup": {
@@ -2402,6 +2438,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "uss_bound": {
@@ -2466,6 +2503,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "gnss_bound": {
@@ -2547,6 +2585,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         },
         "utAvailabilityLimits": {
@@ -2565,8 +2604,8 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 2,
-                    "header": "*",
-                    "filter_re": "^becomeAvailable$|^becomeUnavailable$"
+                    "filter_re": "^becomeAvailable$|^becomeUnavailable$",
+                    "header": "*"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2603,6 +2642,7 @@
             ],
             "enabled": true,
             "always_export_header": true,
+            "group_fn": "no_group",
             "use_fixed_table_name": true
         }
     }
