@@ -401,147 +401,147 @@
             "t_invest",
             null,
             null,
-            null
+            "Time steps when investments can be made"
         ],
         [
             "unit",
             "availability",
             null,
             null,
-            null
+            "Availability of given energy conversion technology (p.u.)"
         ],
         [
             "unit",
             "becomeAvailable",
             null,
             null,
-            null
+            "The relative position of the time step when the unit becomes available (calculated from ut(unit, t, start_end))"
         ],
         [
             "unit",
             "becomeUnavailable",
             null,
             null,
-            null
+            "The relative position of the time step when the unit becomes unavailable (calculated from ut(unit, t, start_end))"
         ],
         [
             "unit",
             "boundSamples",
             null,
             null,
-            null
+            "TODO: Some form of a `Map`?"
         ],
         [
             "unit",
             "efficiency",
             null,
             null,
-            null
+            "TODO: Some form of a `Map`?"
         ],
         [
             "unit",
             "initialOnlineStatus",
             null,
             null,
-            null
+            "Initial online status of the unit in the first time step (0-1)"
         ],
         [
             "unit",
             "minOperationHours",
             null,
             null,
-            null
+            "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
         ],
         [
             "unit",
             "minShutDownHours",
             null,
             null,
-            null
+            "Minimum shut down time (h), prevents starting up again after the defined amount of time has passed"
         ],
         [
             "unit",
             "rampSpeedToMinLoad",
             null,
             null,
-            null
+            "Ramping speed from start-up to minimum load (p.u./min)"
         ],
         [
             "unit",
             "shutdownCost",
             null,
             null,
-            null
+            "Cost of shutting down the unit"
         ],
         [
             "unit",
             "startColdAfterXhours",
             null,
             null,
-            null
+            "Offline hours after which the start-up will be a cold start (h)"
         ],
         [
             "unit",
             "startCostCold",
             null,
             null,
-            null
+            "Variable start-up costs for cold starts excluding fuel costs (EUR/MW)"
         ],
         [
             "unit",
             "startCostHot",
             null,
             null,
-            null
+            "Variable start-up costs for hot starts excluding fuel costs (EUR/MW)"
         ],
         [
             "unit",
             "startCostWarm",
             null,
             null,
-            null
+            "Variable start-up costs for warm starts excluding fuel costs (EUR/MW)"
         ],
         [
             "unit",
             "startFuelConsCold",
             null,
             null,
-            null
+            "Consumption of start-up fuel per cold subunit started up (MWh_fuel/MW)"
         ],
         [
             "unit",
             "startFuelConsHot",
             null,
             null,
-            null
+            "Consumption of start-up fuel per hot subunit started up (MWh_fuel/MW)"
         ],
         [
             "unit",
             "startWarmAfterXHours",
             null,
             null,
-            null
+            "Offline hours after which the start-up will be a warm start (h)"
         ],
         [
             "unit",
             "startfuelConsWarm",
             null,
             null,
-            null
+            "Consumption of start-up fuel per warm subunit started up (MWh_fuel/MW)"
         ],
         [
             "unit",
             "unitCount",
             null,
             null,
-            null
+            "Number of subunits if aggregated"
         ],
         [
             "unit",
             "useInitialOnlineStatus",
             null,
             null,
-            null
+            "A flag to fix the online status of a unit for the first time step (binary)"
         ]
     ],
     "relationship_parameters": [
@@ -550,35 +550,35 @@
             "priceChange",
             null,
             null,
-            null
+            "TODO: Some sort of `Map`?"
         ],
         [
             "flowNode",
             "capacityFactor",
             null,
             null,
-            null
+            "TODO: Some sorf of `Map`?"
         ],
         [
             "p_gn",
             "boundSamples",
             null,
             null,
-            null
+            "TODO: Some sort of `Map`?"
         ],
         [
             "p_gn",
             "boundStart",
             null,
             null,
-            null
+            "A flag to bound the first t in the run using reference constant or time series"
         ],
         [
             "p_gn",
             "downwardLimit",
             null,
             null,
-            null
+            "Absolute minimum energy in the node (unit of measure depends on energyStoredPerUnitOfState)"
         ],
         [
             "p_gn",
