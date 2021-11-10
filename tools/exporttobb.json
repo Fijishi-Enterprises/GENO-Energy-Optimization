@@ -201,7 +201,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 1,
-                    "filter_re": "^((?!(efficiency|becomeAvailable|becomeUnavailable|boundSamples)).)*$",
+                    "filter_re": "^((?!(efficiency|becomeAvailable|becomeUnavailable|boundSamples|ts_unit)).)*$",
                     "header": "*"
                 },
                 {
@@ -1274,7 +1274,8 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": 2,
+                    "position": "hidden",
+                    "filter_re": "^BoundaryPropertiesForStates$",
                     "header": "*"
                 },
                 {
@@ -1303,7 +1304,7 @@
                 {
                     "map_type": "ParameterValueType",
                     "position": "hidden",
-                    "filter_re": "1d_map"
+                    "filter_re": "2d_map"
                 },
                 {
                     "map_type": "IndexName",
@@ -1311,8 +1312,16 @@
                 },
                 {
                     "map_type": "ParameterValueIndex",
-                    "position": 3,
+                    "position": 2,
                     "header": "*"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 3
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -1655,7 +1664,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": "hidden",
-                    "filter_re": "^efficiency$"
+                    "filter_re": "^ts_unit$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1740,7 +1749,8 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "^ts_reserveDemand$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1969,7 +1979,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": "hidden",
-                    "filter_re": "^influx$"
+                    "filter_re": "^ts_influx$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2050,8 +2060,8 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": 2,
-                    "filter_re": "^((?!(influx|storageValue|boundSamples)).)*$",
+                    "position": "hidden",
+                    "filter_re": "^ts_node$",
                     "header": "*"
                 },
                 {
@@ -2080,7 +2090,16 @@
                 {
                     "map_type": "ParameterValueType",
                     "position": "hidden",
-                    "filter_re": "2d_map"
+                    "filter_re": "3d_map"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 2,
+                    "header": "*"
                 },
                 {
                     "map_type": "IndexName",
@@ -2097,8 +2116,7 @@
                 },
                 {
                     "map_type": "ParameterValueIndex",
-                    "position": 4,
-                    "header": "*"
+                    "position": 4
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2137,7 +2155,8 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": 3,
+                    "position": "hidden",
+                    "filter_re": "^ts_gnn$",
                     "header": "*"
                 },
                 {
@@ -2171,7 +2190,16 @@
                 {
                     "map_type": "ParameterValueType",
                     "position": "hidden",
-                    "filter_re": "2d_map"
+                    "filter_re": "3d_map"
+                },
+                {
+                    "map_type": "IndexName",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueIndex",
+                    "position": 3,
+                    "header": "*"
                 },
                 {
                     "map_type": "IndexName",
@@ -2188,8 +2216,7 @@
                 },
                 {
                     "map_type": "ParameterValueIndex",
-                    "position": 5,
-                    "header": "*"
+                    "position": 5
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2225,7 +2252,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": "hidden",
-                    "filter_re": "^storageValue$"
+                    "filter_re": "^ts_storageValue$"
                 },
                 {
                     "map_type": "ParameterValueList",
