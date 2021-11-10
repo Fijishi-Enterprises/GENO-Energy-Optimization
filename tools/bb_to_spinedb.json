@@ -9,7 +9,7 @@
                         "mapping": [
                             {
                                 "map_type": "ObjectClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "grid"
                             },
                             {
@@ -30,7 +30,7 @@
                         "mapping": [
                             {
                                 "map_type": "ObjectClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "node"
                             },
                             {
@@ -51,7 +51,7 @@
                         "mapping": [
                             {
                                 "map_type": "ObjectClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "flow"
                             },
                             {
@@ -72,7 +72,7 @@
                         "mapping": [
                             {
                                 "map_type": "ObjectClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "unittype"
                             },
                             {
@@ -93,7 +93,7 @@
                         "mapping": [
                             {
                                 "map_type": "ObjectClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "unit"
                             },
                             {
@@ -114,8 +114,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "unit__unittype"
+                                "position": "table_name",
+                                "value": "unitUnittype"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -154,7 +154,7 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "unit_fail"
                             },
                             {
@@ -185,7 +185,7 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "commodity"
                             },
                             {
@@ -216,8 +216,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "unit_aggregate__unit__efflevel"
+                                "position": "table_name",
+                                "value": "unitUnitEffLevel"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -265,8 +265,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "effLevel__group__unit"
+                                "position": "table_name",
+                                "value": "effLevelGroupUnit"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -317,7 +317,7 @@
                         "mapping": [
                             {
                                 "map_type": "ObjectClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "group"
                             },
                             {
@@ -338,8 +338,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "grid__node",
+                                "position": "table_name",
+                                "value": "gn",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -401,8 +401,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "grid__node__node",
+                                "position": "table_name",
+                                "value": "gnn",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -474,8 +474,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "grid__node__unit__io"
+                                "position": "table_name",
+                                "value": "gnu_io"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -803,8 +803,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "group__restype",
+                                "position": "table_name",
+                                "value": "groupReserves",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -865,8 +865,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "group__restype__up_down"
+                                "position": "table_name",
+                                "value": "groupReserves3D"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -931,8 +931,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "group__restype__up_down__group"
+                                "position": "table_name",
+                                "value": "groupReserves4D"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -1006,8 +1006,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "grid__node__unit__restype",
+                                "position": "table_name",
+                                "value": "gnuReserves",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1088,8 +1088,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "grid__node__node__restype"
+                                "position": "table_name",
+                                "value": "gnnReserves"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -1163,8 +1163,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "gnu__restype__up_down__restype",
+                                "position": "table_name",
+                                "value": "gnuRes2Res",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1265,7 +1265,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "restype__up_down__group",
+                                "value": "p_groupReserves3D",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1273,6 +1273,11 @@
                                     3,
                                     4
                                 ]
+                            },
+                            {
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "group"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -1285,14 +1290,13 @@
                                 "value": "up_down"
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "group"
-                            },
-                            {
                                 "map_type": "Relationship",
                                 "position": "hidden",
                                 "value": "relationship"
+                            },
+                            {
+                                "map_type": "RelationshipObject",
+                                "position": 2
                             },
                             {
                                 "map_type": "RelationshipObject",
@@ -1301,10 +1305,6 @@
                             {
                                 "map_type": "RelationshipObject",
                                 "position": 1
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 2
                             },
                             {
                                 "map_type": "RelationshipMetadata",
@@ -1360,7 +1360,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node",
+                                "value": "p_gn",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1438,8 +1438,8 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "flow__unit"
+                                "position": "table_name",
+                                "value": "flowUnit"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -1478,7 +1478,7 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "unit__constraint"
                             },
                             {
@@ -1538,7 +1538,7 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "unit__constraint__node"
                             },
                             {
@@ -1608,7 +1608,7 @@
                         "mapping": [
                             {
                                 "map_type": "ObjectClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "emission"
                             },
                             {
@@ -1629,7 +1629,7 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "node__emission",
                                 "skip_columns": [
                                     0,
@@ -1693,7 +1693,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "flow__node",
+                                "value": "flowNode",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1781,7 +1781,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node",
+                                "value": "p_gn",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1869,7 +1869,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node",
+                                "value": "p_gn",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -2009,7 +2009,7 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "grid__node__group"
                             },
                             {
@@ -2097,7 +2097,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node"
+                                "value": "p_gn"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -2239,7 +2239,7 @@
                         "mapping": [
                             {
                                 "map_type": "ObjectClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "restype"
                             },
                             {
@@ -2260,7 +2260,7 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "restype__direction"
                             },
                             {
@@ -2302,7 +2302,7 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "restype_released_for_realization"
                             },
                             {
@@ -2333,7 +2333,7 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "restype_inertia"
                             },
                             {
@@ -2471,7 +2471,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node"
+                                "value": "p_gn"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -2604,7 +2604,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node"
+                                "value": "p_gn"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -2661,7 +2661,7 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "group__emission"
                             },
                             {
@@ -2718,7 +2718,7 @@
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
-                                "position": "hidden",
+                                "position": "table_name",
                                 "value": "unit__node"
                             },
                             {
@@ -2838,7 +2838,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node__node"
+                                "value": "p_gnn"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -2928,7 +2928,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "unit__group"
+                                "value": "uGroup"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -2968,7 +2968,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node__unit__group"
+                                "value": "gnuGroup"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -3026,7 +3026,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node__node__group"
+                                "value": "gn2nGroup"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -3084,17 +3084,17 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "group__unit"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "group"
+                                "value": "uGroup"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
                                 "position": "hidden",
                                 "value": "unit"
+                            },
+                            {
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "group"
                             },
                             {
                                 "map_type": "Relationship",
@@ -3103,11 +3103,11 @@
                             },
                             {
                                 "map_type": "RelationshipObject",
-                                "position": 0
+                                "position": 2
                             },
                             {
                                 "map_type": "RelationshipObject",
-                                "position": 2
+                                "position": 0
                             },
                             {
                                 "map_type": "RelationshipMetadata",
@@ -3250,16 +3250,300 @@
             "uss_bound": {}
         },
         "table_types": {
+            "grid": {
+                "0": "string"
+            },
+            "node": {
+                "0": "string"
+            },
+            "flow": {
+                "0": "string"
+            },
+            "unittype": {
+                "0": "string"
+            },
+            "unit": {
+                "0": "string"
+            },
+            "unitUnittype": {
+                "0": "string",
+                "1": "string"
+            },
+            "unit_fail": {
+                "0": "string"
+            },
+            "commodity": {
+                "0": "string"
+            },
+            "unitUnitEffLevel": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
+            },
+            "effLevelGroupUnit": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
+            },
+            "group": {
+                "0": "string"
+            },
             "p_gn": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "float"
+            },
+            "p_gnn": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "float"
+            },
+            "p_gnu_io": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "string",
+                "5": "float"
+            },
+            "p_gnuBoundaryProperties": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "string",
+                "5": "string"
+            },
+            "p_unit": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
+            },
+            "p_unitConstraint": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
+            },
+            "p_unitConstraintNode": {
                 "0": "string",
                 "1": "string",
                 "2": "string",
                 "3": "string"
             },
-            "p_unit": {
+            "ts_unit": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "string"
+            },
+            "restype": {
+                "0": "string"
+            },
+            "restypeDirection": {
+                "0": "string",
+                "1": "string"
+            },
+            "restypeReleasedForRealization": {
+                "0": "string"
+            },
+            "restype_inertia": {
+                "0": "string"
+            },
+            "p_groupReserves": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "float"
+            },
+            "p_groupReserves3D": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "float"
+            },
+            "p_groupReserves4D": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "string",
+                "5": "float"
+            },
+            "p_gnuReserves": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "string",
+                "5": "float"
+            },
+            "p_gnnReserves": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "string",
+                "5": "float"
+            },
+            "p_gnuRes2Res": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "string",
+                "5": "string",
+                "6": "float"
+            },
+            "ts_reserveDemand": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "string",
+                "5": "float"
+            },
+            "p_gnBoundaryPropertiesForStates": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "float"
+            },
+            "p_groupPolicyEmission": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string"
+            },
+            "p_uStartupFuel": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string"
+            },
+            "flowUnit": {
+                "0": "string",
+                "1": "string"
+            },
+            "emission": {
+                "0": "string"
+            },
+            "p_nEmission": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
+            },
+            "ts_cf": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "float"
+            },
+            "ts_PriceChange": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
+            },
+            "ts_influx": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "float"
+            },
+            "ts_node": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "string",
+                "5": "float"
+            },
+            "ts_gnn": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "string",
+                "5": "string",
+                "6": "float"
+            },
+            "p_s_discountFactor": {
+                "0": "string",
+                "1": "string"
+            },
+            "t_invest": {
+                "0": "string"
+            },
+            "utAvailabilityLimits": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
+            },
+            "p_storageValue": {
                 "0": "string",
                 "1": "string",
                 "2": "float"
+            },
+            "ts_storageValue": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "float"
+            },
+            "ugroup": {
+                "0": "string",
+                "1": "string"
+            },
+            "gnugroup": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string"
+            },
+            "gn2ngroup": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string"
+            },
+            "gnGroup": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
+            },
+            "sGroup": {
+                "0": "string",
+                "1": "string"
+            },
+            "p_groupPolicy": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
+            },
+            "p_groupPolicyUnit": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "float"
+            },
+            "gnss_bound": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string"
+            },
+            "uss_bound": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
             }
         },
         "table_row_types": {},
