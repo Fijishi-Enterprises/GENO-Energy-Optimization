@@ -554,7 +554,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node__unit__boundary",
+                                "value": "p_gnu",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -580,11 +580,6 @@
                                 "value": "unit"
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "slack"
-                            },
-                            {
                                 "map_type": "Relationship",
                                 "position": "hidden",
                                 "value": "relationship"
@@ -605,17 +600,13 @@
                                 "import_objects": true
                             },
                             {
-                                "map_type": "RelationshipObject",
-                                "position": 3,
-                                "import_objects": true
-                            },
-                            {
                                 "map_type": "RelationshipMetadata",
                                 "position": "hidden"
                             },
                             {
                                 "map_type": "ParameterDefinition",
-                                "position": 4
+                                "position": "hidden",
+                                "value": "BoundaryProperties"
                             },
                             {
                                 "map_type": "Alternative",
@@ -627,7 +618,30 @@
                                 "position": "hidden"
                             },
                             {
-                                "map_type": "ParameterValue",
+                                "map_type": "ParameterValueType",
+                                "position": "hidden",
+                                "value": "map"
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden",
+                                "value": "slack"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 3
+                            },
+                            {
+                                "map_type": "IndexName",
+                                "position": "hidden",
+                                "value": "param_gnuBoundaryProperties"
+                            },
+                            {
+                                "map_type": "ParameterValueIndex",
+                                "position": 4
+                            },
+                            {
+                                "map_type": "ExpandedValue",
                                 "position": 5
                             }
                         ]
@@ -3250,300 +3264,13 @@
             "uss_bound": {}
         },
         "table_types": {
-            "grid": {
-                "0": "string"
-            },
-            "node": {
-                "0": "string"
-            },
-            "flow": {
-                "0": "string"
-            },
-            "unittype": {
-                "0": "string"
-            },
-            "unit": {
-                "0": "string"
-            },
-            "unitUnittype": {
-                "0": "string",
-                "1": "string"
-            },
-            "unit_fail": {
-                "0": "string"
-            },
-            "commodity": {
-                "0": "string"
-            },
-            "unitUnitEffLevel": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "effLevelGroupUnit": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "group": {
-                "0": "string"
-            },
-            "p_gn": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "float"
-            },
-            "p_gnn": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "p_gnu_io": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
             "p_gnuBoundaryProperties": {
                 "0": "string",
                 "1": "string",
                 "2": "string",
                 "3": "string",
                 "4": "string",
-                "5": "string"
-            },
-            "p_unit": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "p_unitConstraint": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "p_unitConstraintNode": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "ts_unit": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string"
-            },
-            "restype": {
-                "0": "string"
-            },
-            "restypeDirection": {
-                "0": "string",
-                "1": "string"
-            },
-            "restypeReleasedForRealization": {
-                "0": "string"
-            },
-            "restype_inertia": {
-                "0": "string"
-            },
-            "p_groupReserves": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "float"
-            },
-            "p_groupReserves3D": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "p_groupReserves4D": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
                 "5": "float"
-            },
-            "p_gnuReserves": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "p_gnnReserves": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "p_gnuRes2Res": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string",
-                "6": "float"
-            },
-            "ts_reserveDemand": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "p_gnBoundaryPropertiesForStates": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "p_groupPolicyEmission": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "p_uStartupFuel": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "flowUnit": {
-                "0": "string",
-                "1": "string"
-            },
-            "emission": {
-                "0": "string"
-            },
-            "p_nEmission": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "ts_cf": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "ts_PriceChange": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "ts_influx": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "ts_node": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "ts_gnn": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string",
-                "6": "float"
-            },
-            "p_s_discountFactor": {
-                "0": "string",
-                "1": "string"
-            },
-            "t_invest": {
-                "0": "string"
-            },
-            "utAvailabilityLimits": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "p_storageValue": {
-                "0": "string",
-                "1": "string",
-                "2": "float"
-            },
-            "ts_storageValue": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "float"
-            },
-            "ugroup": {
-                "0": "string",
-                "1": "string"
-            },
-            "gnugroup": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "gn2ngroup": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "gnGroup": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "sGroup": {
-                "0": "string",
-                "1": "string"
-            },
-            "p_groupPolicy": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "p_groupPolicyUnit": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "float"
-            },
-            "gnss_bound": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "uss_bound": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
             }
         },
         "table_row_types": {},
