@@ -710,196 +710,196 @@
             "down",
             null,
             null,
-            null
+            "Downwards reserve provision data for units"
         ],
         [
             "p_gnuReserves",
             "portion_of_infeed_to_reserve",
             null,
             null,
-            null
+            "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
         ],
         [
             "p_gnuReserves",
             "up",
             null,
             null,
-            null
+            "Upwards reserve provision data for units"
         ],
         [
             "p_gnu_io",
             "annuity",
             null,
             null,
-            null
+            "Investment annuity factor"
         ],
         [
             "p_gnu_io",
             "capacity",
             null,
             null,
-            null
+            "Maximum capacity (MW)"
         ],
         [
             "p_gnu_io",
             "conversionCoeff",
             null,
             null,
-            null
+            "Coefficient for conversion equation (multiplies each input or output when summing v_gen from multiple inputs/outputs)"
         ],
         [
             "p_gnu_io",
             "initialGeneration",
             null,
             null,
-            null
+            "Initial generation/consumption of the unit in the first time step (MW)"
         ],
         [
             "p_gnu_io",
             "invCosts",
             null,
             null,
-            null
+            "Investment costs (EUR/MW)"
         ],
         [
             "p_gnu_io",
             "maxRampDown",
             null,
             null,
-            null
+            "Speed to ramp down (p.u./min)"
         ],
         [
             "p_gnu_io",
             "maxRampUp",
             null,
             null,
-            null
+            "Speed to ramp up (p.u./min)"
         ],
         [
             "p_gnu_io",
             "unitSize",
             null,
             null,
-            null
+            "Input/Output capacity of one subunit for integer investments (MW)"
         ],
         [
             "p_gnu_io",
             "useInitialGeneration",
             null,
             null,
-            null
+            "A flag to indicate whether to fix generation for the first time step (binary)"
         ],
         [
             "p_gnu_io",
             "vomCosts",
             null,
             null,
-            null
+            "Variable operation and maintenance costs (EUR/MWh)"
         ],
         [
             "p_groupPolicyEmission",
             "emissionTax",
             null,
             null,
-            null
+            "Emission tax (EUR/tonne)"
         ],
         [
             "p_groupReserves",
             "down",
             null,
             null,
-            null
+            "TODO: Add proper explanation."
         ],
         [
             "p_groupReserves",
             "reserve_activation_duration",
             null,
             null,
-            null
+            "How long the reserve should be provided once activated (h)"
         ],
         [
             "p_groupReserves",
             "reserve_length",
             null,
             null,
-            null
+            "Length of reserve horizon (number of timesteps)"
         ],
         [
             "p_groupReserves",
             "reserve_reactivation_time",
             null,
             null,
-            null
+            "How soon the unit providing reserve needs to be able to reactivate after the start of the previous activation (h)"
         ],
         [
             "p_groupReserves",
             "up",
             null,
             null,
-            null
+            "TODO: Add proper explanation."
         ],
         [
             "p_groupReserves",
             "update_frequency",
             null,
             null,
-            null
+            "Frequency of updating reserve contributions (number of timesteps)"
         ],
         [
             "p_groupReserves3D",
             "LossOfTrans",
             null,
             null,
-            null
+            "A flag to tell that N-1 reserve is needed due to a possibility that an interconnector to/from the node group fails"
         ],
         [
             "p_groupReserves3D",
             "ts_reserveDemand",
             null,
             null,
-            null
+            "Reserve demand in region in the time step (MW)"
         ],
         [
             "p_groupReserves4D",
             "ReserveShareMax",
             null,
             null,
-            null
+            "Maximum reserve share of a group of units"
         ],
         [
             "p_nEmission",
             "emission_content",
             null,
             null,
-            null
+            "Emission content (kg/MWh)"
         ],
         [
             "p_uStartupFuel",
             "fixedFuelFraction",
             null,
             null,
-            null
+            "Fixed share of a fuel in the consumption mix"
         ],
         [
             "p_unitConstraint",
             "constant",
             null,
             null,
-            null
+            "Constant when binding inputs/outputs"
         ],
         [
             "p_unitConstraintNode",
             "coefficient",
             null,
             null,
-            null
+            "Coefficient when binding inputs/outputs"
         ],
         [
             "uGroup",
             "constrainedOnlineMultiplier",
             null,
             null,
-            null
+            "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
         ]
     ]
 }
