@@ -380,7 +380,7 @@
             "samples",
             null,
             null,
-            "TODO: This is some form of a `Map`, I presume?"
+            "TODO: Some form of a `Map`?"
         ],
         [
             "group",
@@ -557,147 +557,147 @@
             "ts_priceChange",
             null,
             null,
-            null
+            "Initial commodity price and consequent changes in commodity price (EUR/MWh)"
         ],
         [
             "flowNode",
             "ts_cf",
             null,
             null,
-            null
+            "Mean available capacity factor time series (p.u.)"
         ],
         [
             "p_gn",
             "BoundaryPropertiesForStates",
             null,
             null,
-            null
+            "Properties of different state boundaries and limits"
         ],
         [
             "p_gn",
             "boundSamples",
             null,
             null,
-            null
+            "TODO: Some form of `Map`?"
         ],
         [
             "p_gn",
             "boundStart",
             null,
             null,
-            null
+            "A flag to bound the first t in the run using reference constant or time series"
         ],
         [
             "p_gn",
             "energyStoredPerUnitOfState",
             null,
             null,
-            null
+            "A possible unit conversion if v_state uses something else than MWh (MWh/[v_state])"
         ],
         [
             "p_gn",
             "nodeBalance",
             null,
             null,
-            null
+            "A flag to decide whether node balance constraint is to be used"
         ],
         [
             "p_gn",
             "selfDischargeLoss",
             null,
             null,
-            null
+            "Self discharge rate of the node (MW/[v_state])"
         ],
         [
             "p_gn",
             "storageValue",
             null,
             null,
-            null
+            "Constant value of stored something at the end of a time step (EUR/<v_state_unit>)"
         ],
         [
             "p_gn",
             "ts_influx",
             null,
             null,
-            null
+            "External power inflow/outflow during a time step (MWh/h)"
         ],
         [
             "p_gn",
             "ts_node",
             null,
             null,
-            null
+            "Fix the states of a node according to time-series form exogenous input ([v_state])"
         ],
         [
             "p_gn",
             "ts_storageValue",
             null,
             null,
-            null
+            "Timeseries value of stored something at the end of a time step (EUR/<v_state_unit>)"
         ],
         [
             "p_gnn",
             "availability",
             null,
             null,
-            null
+            "Availability of the interconnection (p.u.)"
         ],
         [
             "p_gnn",
             "transferCap",
             null,
             null,
-            null
+            "Transfer capacity limits (MW)"
         ],
         [
             "p_gnn",
             "transferLoss",
             null,
             null,
-            null
+            "Transfer losses"
         ],
         [
             "p_gnn",
             "ts_gnn",
             null,
             null,
-            null
+            "Time dependent interconnection data"
         ],
         [
             "p_gnn",
             "useTimeSeriesAvailability",
             null,
             null,
-            null
+            "A flag to use time series form input for availability"
         ],
         [
             "p_gnnReserves",
             "down",
             null,
             null,
-            null
+            "Downwards reserve provision data for node node connections"
         ],
         [
             "p_gnnReserves",
             "up",
             null,
             null,
-            null
+            "Upwards reserve provision data for node node connections"
         ],
         [
             "p_gnu",
             "BoundaryProperties",
             null,
             null,
-            null
+            "Properties for unit boundaries where energy type matters"
         ],
         [
             "p_gnuRes2Res",
             "forwardReserve",
             null,
             null,
-            null
+            "The first type of reserve can be used also in the second reserve category (with a possible multiplier)"
         ],
         [
             "p_gnuReserves",
