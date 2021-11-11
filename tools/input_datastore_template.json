@@ -531,6 +531,13 @@
         ],
         [
             "unit",
+            "ts_unit",
+            null,
+            null,
+            null
+        ],
+        [
+            "unit",
             "unitCount",
             null,
             null,
@@ -547,42 +554,35 @@
     "relationship_parameters": [
         [
             "commodity",
-            "priceChange",
+            "ts_priceChange",
             null,
             null,
-            "TODO: Some sort of `Map`?"
+            null
         ],
         [
             "flowNode",
-            "capacityFactor",
+            "ts_cf",
             null,
             null,
-            "TODO: Some sorf of `Map`?"
+            null
+        ],
+        [
+            "p_gn",
+            "BoundaryPropertiesForStates",
+            null,
+            null,
+            null
         ],
         [
             "p_gn",
             "boundSamples",
             null,
             null,
-            "TODO: Some sort of `Map`?"
+            null
         ],
         [
             "p_gn",
             "boundStart",
-            null,
-            null,
-            "A flag to bound the first t in the run using reference constant or time series"
-        ],
-        [
-            "p_gn",
-            "downwardLimit",
-            null,
-            null,
-            "Absolute minimum energy in the node (unit of measure depends on energyStoredPerUnitOfState)"
-        ],
-        [
-            "p_gn",
-            "downwardSlack01",
             null,
             null,
             null
@@ -596,21 +596,7 @@
         ],
         [
             "p_gn",
-            "influx",
-            null,
-            null,
-            null
-        ],
-        [
-            "p_gn",
             "nodeBalance",
-            null,
-            null,
-            null
-        ],
-        [
-            "p_gn",
-            "reference",
             null,
             null,
             null
@@ -631,7 +617,21 @@
         ],
         [
             "p_gn",
-            "upwardLimit",
+            "ts_influx",
+            null,
+            null,
+            null
+        ],
+        [
+            "p_gn",
+            "ts_node",
+            null,
+            null,
+            null
+        ],
+        [
+            "p_gn",
+            "ts_storageValue",
             null,
             null,
             null
@@ -653,6 +653,13 @@
         [
             "p_gnn",
             "transferLoss",
+            null,
+            null,
+            null
+        ],
+        [
+            "p_gnn",
+            "ts_gnn",
             null,
             null,
             null
@@ -841,7 +848,7 @@
         ],
         [
             "p_groupReserves3D",
-            "reserveDemand",
+            "ts_reserveDemand",
             null,
             null,
             null
