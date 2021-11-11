@@ -1210,11 +1210,6 @@
                             {
                                 "map_type": "RelationshipClassObjectClass",
                                 "position": "hidden",
-                                "value": "up_down"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
                                 "value": "restype"
                             },
                             {
@@ -1240,10 +1235,6 @@
                             },
                             {
                                 "map_type": "RelationshipObject",
-                                "position": 4
-                            },
-                            {
-                                "map_type": "RelationshipObject",
                                 "position": 5
                             },
                             {
@@ -1252,8 +1243,7 @@
                             },
                             {
                                 "map_type": "ParameterDefinition",
-                                "position": "hidden",
-                                "value": "forwardReserve"
+                                "position": 4
                             },
                             {
                                 "map_type": "Alternative",
@@ -3291,146 +3281,6 @@
             "uss_bound": {}
         },
         "table_types": {
-            "grid": {
-                "0": "string"
-            },
-            "node": {
-                "0": "string"
-            },
-            "flow": {
-                "0": "string"
-            },
-            "unittype": {
-                "0": "string"
-            },
-            "unit": {
-                "0": "string"
-            },
-            "unitUnittype": {
-                "0": "string",
-                "1": "string"
-            },
-            "unit_fail": {
-                "0": "string"
-            },
-            "commodity": {
-                "0": "string"
-            },
-            "unitUnitEffLevel": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "effLevelGroupUnit": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "group": {
-                "0": "string"
-            },
-            "p_gn": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "p_gnn": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string"
-            },
-            "p_gnu_io": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string"
-            },
-            "p_gnuBoundaryProperties": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string"
-            },
-            "p_unit": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "p_unitConstraint": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "p_unitConstraintNode": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "ts_unit": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string"
-            },
-            "restype": {
-                "0": "string"
-            },
-            "restypeDirection": {
-                "0": "string",
-                "1": "string"
-            },
-            "restypeReleasedForRealization": {
-                "0": "string"
-            },
-            "restype_inertia": {
-                "0": "string"
-            },
-            "p_groupReserves": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "p_groupReserves3D": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string"
-            },
-            "p_groupReserves4D": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string"
-            },
-            "p_gnuReserves": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string"
-            },
-            "p_gnnReserves": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string"
-            },
             "p_gnuRes2Res": {
                 "0": "string",
                 "1": "string",
@@ -3438,124 +3288,7 @@
                 "3": "string",
                 "4": "string",
                 "5": "string",
-                "6": "string"
-            },
-            "ts_reserveDemand": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "float"
-            },
-            "p_groupPolicyEmission": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "p_uStartupFuel": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "flowUnit": {
-                "0": "string",
-                "1": "string"
-            },
-            "emission": {
-                "0": "string"
-            },
-            "p_nEmission": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "ts_cf": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string"
-            },
-            "ts_PriceChange": {
-                "0": "string",
-                "1": "string",
-                "2": "float"
-            },
-            "ts_influx": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string"
-            },
-            "ts_node": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string"
-            },
-            "ts_gnn": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string",
                 "6": "float"
-            },
-            "p_s_discountFactor": {
-                "0": "string",
-                "1": "string"
-            },
-            "t_invest": {
-                "0": "string"
-            },
-            "utAvailabilityLimits": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "p_storageValue": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "ts_storageValue": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string"
-            },
-            "gnGroup": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "sGroup": {
-                "0": "string",
-                "1": "string"
-            },
-            "p_groupPolicy": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
-            },
-            "gnss_bound": {
-                "0": "string",
-                "1": "string",
-                "2": "string",
-                "3": "string"
-            },
-            "uss_bound": {
-                "0": "string",
-                "1": "string",
-                "2": "string"
             }
         },
         "table_row_types": {},

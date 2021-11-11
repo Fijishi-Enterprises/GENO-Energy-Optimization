@@ -1187,12 +1187,9 @@
                     "position": "hidden"
                 },
                 {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
-                },
-                {
                     "map_type": "ParameterDefinition",
-                    "position": "hidden"
+                    "position": 4,
+                    "header": "*"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1221,11 +1218,6 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 3,
-                    "header": "*"
-                },
-                {
-                    "map_type": "RelationshipObject",
-                    "position": 4,
                     "header": "*"
                 },
                 {
