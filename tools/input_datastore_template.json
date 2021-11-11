@@ -187,7 +187,6 @@
                 "node",
                 "unit",
                 "restype",
-                "up_down",
                 "restype"
             ],
             "The first type of reserve can be used also in the second reserve category (with a possible multiplier)",
@@ -694,10 +693,17 @@
         ],
         [
             "p_gnuRes2Res",
-            "forwardReserve",
+            "up",
             null,
             null,
-            "The first type of reserve can be used also in the second reserve category (with a possible multiplier)"
+            "The first type of reserve can be used also in the second upwards reserve category (with a possible multiplier)"
+        ],
+        [
+            "p_gnuRes2Res",
+            "down",
+            null,
+            null,
+            "The first type of reserve can be used also in the second downwards reserve category (with a possible multiplier)"
         ],
         [
             "p_gnuReserves",
