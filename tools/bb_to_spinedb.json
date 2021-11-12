@@ -673,7 +673,7 @@
                             {
                                 "map_type": "ParameterDefinition",
                                 "position": 1,
-                                "filter_re": "^(?!(eff|op))"
+                                "filter_re": "^(?!(eff|op|section|hr))"
                             },
                             {
                                 "map_type": "Alternative",
@@ -733,7 +733,7 @@
                             {
                                 "map_type": "ParameterValueIndex",
                                 "position": 1,
-                                "filter_re": "eff|op"
+                                "filter_re": "eff|op|section|hr"
                             },
                             {
                                 "map_type": "ExpandedValue",
@@ -3281,14 +3281,10 @@
             "uss_bound": {}
         },
         "table_types": {
-            "p_gnuRes2Res": {
+            "p_unit": {
                 "0": "string",
                 "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string",
-                "6": "float"
+                "2": "string"
             }
         },
         "table_row_types": {},
