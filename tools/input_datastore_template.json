@@ -3,72 +3,72 @@
         [
             "constraint",
             "Possible names for custom constraints.",
-            null
+            281473533932850
         ],
         [
             "effLevel",
             "Pre-defined levels for efficiency representation that can start from t_solve + x",
-            null
+            281224891724130
         ],
         [
             "effSelector",
             "Select equations and lambdas/slope for efficiency calculations",
-            null
+            281224891724128
         ],
         [
             "emission",
             "Emissions",
-            null
+            281470681806687
         ],
         [
             "flow",
             "Flow based energy resources (time series)",
-            null
+            281470681805291
         ],
         [
             "grid",
             "Forms of energy endogenously presented in the model",
-            null
+            281470681805032
         ],
         [
             "group",
             "A group of units, transfer links, nodes, etc.",
-            null
+            281470681804992
         ],
         [
             "input_output",
             "Designating nodes as either inputs or outputs",
-            null
+            281473533932386
         ],
         [
             "model",
             null,
-            null
+            281473533931932
         ],
         [
             "node",
             "Nodes maintain the energy balance or track exogenous commodities",
-            null
+            281470681805765
         ],
         [
             "restype",
             "Reserve types",
-            null
+            281470681805031
         ],
         [
             "unit",
             "Set of generators, storages and loads",
-            null
+            281470681805429
         ],
         [
             "unittype",
             "Unit technology types",
-            null
+            281470681804843
         ],
         [
             "up_down",
             "Direction set used by some variables, e.g. reserve provisions and generation ramps",
-            null
+            281473533932344
         ]
     ],
     "relationship_classes": [
