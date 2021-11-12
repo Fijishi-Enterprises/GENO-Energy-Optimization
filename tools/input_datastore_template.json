@@ -868,17 +868,17 @@
         ],
         [
             "p_gnuRes2Res",
-            "up",
-            null,
-            null,
-            "The first type of reserve can be used also in the second upwards reserve category (with a possible multiplier)"
-        ],
-        [
-            "p_gnuRes2Res",
             "down",
             null,
             null,
             "The first type of reserve can be used also in the second downwards reserve category (with a possible multiplier)"
+        ],
+        [
+            "p_gnuRes2Res",
+            "up",
+            null,
+            null,
+            "The first type of reserve can be used also in the second upwards reserve category (with a possible multiplier)"
         ],
         [
             "p_gnuReserves",
