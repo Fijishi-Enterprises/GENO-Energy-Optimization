@@ -446,6 +446,20 @@
         ],
         [
             "unit",
+            "investMIP",
+            null,
+            null,
+            "A flag to make integer investment instead of continous investment"
+        ],
+        [
+            "unit",
+            "maxUnitCount",
+            null,
+            null,
+            "Maximum number of units when making integer investments"
+        ],
+        [
+            "unit",
             "minOperationHours",
             null,
             null,
@@ -457,6 +471,27 @@
             null,
             null,
             "Minimum shut down time (h), prevents starting up again after the defined amount of time has passed"
+        ],
+        [
+            "unit",
+            "minUnitCount",
+            null,
+            null,
+            "Minimum number of units when making integer investments"
+        ],
+        [
+            "unit",
+            "outputCapacityTotal",
+            null,
+            null,
+            "Output capacity of the unit, calculated by summing all the outputs together by default, unless defined in data"
+        ],
+        [
+            "unit",
+            "rampSpeedFromMinLoad",
+            null,
+            null,
+            "Ramping speed from shutdown decision to zero load (p.u./min)"
         ],
         [
             "unit",
@@ -533,7 +568,7 @@
             "ts_unit",
             null,
             null,
-            null
+            "Time dependent unit data, where energy type doesn't matter"
         ],
         [
             "unit",
@@ -548,6 +583,13 @@
             null,
             null,
             "A flag to fix the online status of a unit for the first time step (binary)"
+        ],
+        [
+            "unit",
+            "useTimeseries",
+            null,
+            null,
+            "A flag to use time series form input for unit parameters whenever possible"
         ]
     ],
     "relationship_parameters": [
@@ -574,6 +616,20 @@
         ],
         [
             "p_gn",
+            "boundAll",
+            null,
+            null,
+            "A flag to bound the state to the reference in all time steps"
+        ],
+        [
+            "p_gn",
+            "boundEnd",
+            null,
+            null,
+            "A flag to bound last t in eachn solve based on the reference constant or time series"
+        ],
+        [
+            "p_gn",
             "boundSamples",
             null,
             null,
@@ -585,6 +641,27 @@
             null,
             null,
             "A flag to bound the first t in the run using reference constant or time series"
+        ],
+        [
+            "p_gn",
+            "boundStartAndEnd",
+            null,
+            null,
+            "A flag that both start and end are bound using reference constant or time series"
+        ],
+        [
+            "p_gn",
+            "boundStartToEnd",
+            null,
+            null,
+            "Force the last states to equal the first state"
+        ],
+        [
+            "p_gn",
+            "capacityMargin",
+            null,
+            null,
+            "Capacity margin used in invest mode (MW)"
         ],
         [
             "p_gn",
@@ -616,6 +693,13 @@
         ],
         [
             "p_gn",
+            "storageValueUseTimeSeries",
+            null,
+            null,
+            "A flag to determine whether to use time series form `storageValue`"
+        ],
+        [
+            "p_gn",
             "ts_influx",
             null,
             null,
@@ -637,6 +721,27 @@
         ],
         [
             "p_gnn",
+            "ICrampDown",
+            null,
+            null,
+            "TODO: Not documented in Backbone!"
+        ],
+        [
+            "p_gnn",
+            "ICrampUp",
+            null,
+            null,
+            "TODO: Not documented in Backbone!"
+        ],
+        [
+            "p_gnn",
+            "annuity",
+            null,
+            null,
+            "Investment annuity"
+        ],
+        [
+            "p_gnn",
             "availability",
             null,
             null,
@@ -644,10 +749,59 @@
         ],
         [
             "p_gnn",
+            "boundStateMaxDiff",
+            null,
+            null,
+            "Maximum difference of node state pairs ([v_state])"
+        ],
+        [
+            "p_gnn",
+            "diffCoeff",
+            null,
+            null,
+            "Coefficients for energy diffusion between nodes (MW/[v_state])"
+        ],
+        [
+            "p_gnn",
+            "invCost",
+            null,
+            null,
+            "Investment cost (EUR/MW)"
+        ],
+        [
+            "p_gnn",
+            "investMIP",
+            null,
+            null,
+            "A flag to make integer investment instead of continuous investment (MW versus number of links)"
+        ],
+        [
+            "p_gnn",
+            "portion_of_transfer_to_reserve",
+            null,
+            null,
+            "Portion of the infeed from the unit that needs to be available as reserve if the unit fails"
+        ],
+        [
+            "p_gnn",
             "transferCap",
             null,
             null,
             "Transfer capacity limits (MW)"
+        ],
+        [
+            "p_gnn",
+            "transferCapBidirectional",
+            null,
+            null,
+            "Total bidirectional transfer capacity limit (MW)"
+        ],
+        [
+            "p_gnn",
+            "transferCapInvLimit",
+            null,
+            null,
+            "Capacity limit for investments (MW)"
         ],
         [
             "p_gnn",
@@ -665,10 +819,31 @@
         ],
         [
             "p_gnn",
+            "unitSize",
+            null,
+            null,
+            "Size of one link for integer investments (MW)"
+        ],
+        [
+            "p_gnn",
             "useTimeSeriesAvailability",
             null,
             null,
             "A flag to use time series form input for availability"
+        ],
+        [
+            "p_gnn",
+            "useTimeSeriesLoss",
+            null,
+            null,
+            "A flag to use time series form input for transferLoss"
+        ],
+        [
+            "p_gnn",
+            "variableTransCost",
+            null,
+            null,
+            "Variable cost applied to transfers (EUR/MW)"
         ],
         [
             "p_gnnReserves",
@@ -714,10 +889,31 @@
         ],
         [
             "p_gnuReserves",
+            "offlineReserveCapability",
+            null,
+            null,
+            "Proportion of an offline unit which can contribute to a category of reserve"
+        ],
+        [
+            "p_gnuReserves",
             "portion_of_infeed_to_reserve",
             null,
             null,
             "Proportion of the generation of a tripping unit that needs to be covered by reserves from other units"
+        ],
+        [
+            "p_gnuReserves",
+            "reserveReliability",
+            null,
+            null,
+            "Reliability parameter of reserve provisions"
+        ],
+        [
+            "p_gnuReserves",
+            "reserve_increase_ratio",
+            null,
+            null,
+            "Unit output is multiplied by this factor to get the increase in reserve demand"
         ],
         [
             "p_gnuReserves",
@@ -735,6 +931,13 @@
         ],
         [
             "p_gnu_io",
+            "availabilityCapacityMargin",
+            null,
+            null,
+            "Availability of the unit in the capacity margin equation (p.u.). If zero, v_gen is used. Currently used only for output capacity."
+        ],
+        [
+            "p_gnu_io",
             "capacity",
             null,
             null,
@@ -746,6 +949,13 @@
             null,
             null,
             "Coefficient for conversion equation (multiplies each input or output when summing v_gen from multiple inputs/outputs)"
+        ],
+        [
+            "p_gnu_io",
+            "inertia",
+            null,
+            null,
+            "Inertia of the unit (s)"
         ],
         [
             "p_gnu_io",
@@ -781,6 +991,13 @@
             null,
             null,
             "Input/Output capacity of one subunit for integer investments (MW)"
+        ],
+        [
+            "p_gnu_io",
+            "unitSizeMVA",
+            null,
+            null,
+            "Generator MVA rating of one subunit (MVA)"
         ],
         [
             "p_gnu_io",
@@ -844,6 +1061,13 @@
             null,
             null,
             "Frequency of updating reserve contributions (number of timesteps)"
+        ],
+        [
+            "p_groupReserves",
+            "useTimeseries",
+            null,
+            null,
+            "Flag for using time series data"
         ],
         [
             "p_groupReserves3D",
