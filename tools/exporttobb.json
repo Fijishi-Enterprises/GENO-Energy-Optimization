@@ -621,7 +621,8 @@
                 },
                 {
                     "map_type": "ParameterValueIndex",
-                    "position": 3
+                    "position": 3,
+                    "header": "*"
                 },
                 {
                     "map_type": "IndexName",
@@ -629,7 +630,8 @@
                 },
                 {
                     "map_type": "ParameterValueIndex",
-                    "position": 4
+                    "position": 4,
+                    "header": "*"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -1313,7 +1315,8 @@
                 },
                 {
                     "map_type": "ParameterValueIndex",
-                    "position": 3
+                    "position": 3,
+                    "header": "*"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2108,7 +2111,8 @@
                 },
                 {
                     "map_type": "ParameterValueIndex",
-                    "position": 4
+                    "position": 4,
+                    "header": "*"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2208,7 +2212,8 @@
                 },
                 {
                     "map_type": "ParameterValueIndex",
-                    "position": 5
+                    "position": 5,
+                    "header": "*"
                 },
                 {
                     "map_type": "ExpandedValue",
