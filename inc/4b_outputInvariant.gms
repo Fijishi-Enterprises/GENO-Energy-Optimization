@@ -235,18 +235,16 @@ loop(m,
         = + sum(gnu(grid, node, unit),
               // VOM costs
               + r_gnuVOMCost(grid, node, unit, f, t)
+              + r_uFuelEmissionCost(grid, node, unit, f, t)
             )
-          // Allocate fuel and startup costs on energy basis, but for output nodes only
+
+          // Allocate startup costs on energy basis, but for output nodes only
           + sum(unit$(r_gen(grid, node, unit, f, t)$gnu_output(grid, node, unit)),
               + abs{r_gen(grid, node, unit, f, t)}  // abs is due to potential negative outputs like energy from a cooling unit. It's the energy contribution that matters, not direction.
                    / sum(gnu_output(grid_output, node_output, unit),
                        + abs{r_gen(grid_output, node_output, unit, f, t)}
                      ) // END sum(gnu_output)
-                *
-                {
-                  + sum(gnu_input(grid_, node_, unit), r_uFuelEmissionCost(grid_, node_, unit, f, t))
-                  + r_uStartupCost(unit, f, t)
-                }
+                * r_uStartupCost(unit, f, t)
             )
           + sum(gn2n_directional(grid, node_, node),
               // Variable Transfer costs
