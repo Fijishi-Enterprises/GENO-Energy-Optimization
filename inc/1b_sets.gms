@@ -190,6 +190,7 @@ mf_realization(mType, 'f00') = yes;
 Option clear = mf_scenario;
 Option clear = gn_scenarios;
 Option clear = mTimeseries_loop_read;
+Option clear = mSettingsReservesInUse;
 
 alias(m, mSolve);
 alias(t, t_, t__, tSolve, tFuel);
