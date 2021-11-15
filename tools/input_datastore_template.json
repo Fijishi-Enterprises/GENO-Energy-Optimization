@@ -1125,5 +1125,247 @@
             null,
             "Multiplier a(i) for online units in equation Sum(i, a(i)*v_online(i)) <= b"
         ]
+    ],
+    "objects": [
+        [
+            "constraint",
+            "eq1",
+            null
+        ],
+        [
+            "constraint",
+            "eq2",
+            "Custom equality constraint."
+        ],
+        [
+            "constraint",
+            "eq3",
+            "Custom equality constraint."
+        ],
+        [
+            "constraint",
+            "eq4",
+            "Custom equality constraint."
+        ],
+        [
+            "constraint",
+            "eq5",
+            "Custom equality constraint."
+        ],
+        [
+            "constraint",
+            "eq6",
+            "Custom equality constraint."
+        ],
+        [
+            "constraint",
+            "eq7",
+            "Custom equality constraint."
+        ],
+        [
+            "constraint",
+            "eq8",
+            "Custom equality constraint."
+        ],
+        [
+            "constraint",
+            "eq9",
+            "Custom equality constraint."
+        ],
+        [
+            "constraint",
+            "gt1",
+            "Custom inequality constraint."
+        ],
+        [
+            "constraint",
+            "gt2",
+            "Custom inequality constraint."
+        ],
+        [
+            "constraint",
+            "gt3",
+            "Custom inequality constraint."
+        ],
+        [
+            "constraint",
+            "gt4",
+            "Custom inequality constraint."
+        ],
+        [
+            "constraint",
+            "gt5",
+            "Custom inequality constraint."
+        ],
+        [
+            "constraint",
+            "gt6",
+            "Custom inequality constraint."
+        ],
+        [
+            "constraint",
+            "gt7",
+            "Custom inequality constraint."
+        ],
+        [
+            "constraint",
+            "gt8",
+            "Custom inequality constraint."
+        ],
+        [
+            "constraint",
+            "gt9",
+            "Custom inequality constraint."
+        ],
+        [
+            "effLevel",
+            "level1",
+            "Efficiency representation settings to be used in an ascending order."
+        ],
+        [
+            "effLevel",
+            "level10",
+            "Efficiency representation settings to be used in an ascending order."
+        ],
+        [
+            "effLevel",
+            "level2",
+            "Efficiency representation settings to be used in an ascending order."
+        ],
+        [
+            "effLevel",
+            "level3",
+            "Efficiency representation settings to be used in an ascending order."
+        ],
+        [
+            "effLevel",
+            "level4",
+            "Efficiency representation settings to be used in an ascending order."
+        ],
+        [
+            "effLevel",
+            "level5",
+            "Efficiency representation settings to be used in an ascending order."
+        ],
+        [
+            "effLevel",
+            "level6",
+            "Efficiency representation settings to be used in an ascending order."
+        ],
+        [
+            "effLevel",
+            "level7",
+            "Efficiency representation settings to be used in an ascending order."
+        ],
+        [
+            "effLevel",
+            "level8",
+            "Efficiency representation settings to be used in an ascending order."
+        ],
+        [
+            "effLevel",
+            "level9",
+            "Efficiency representation settings to be used in an ascending order."
+        ],
+        [
+            "effSelector",
+            "directOff",
+            "Direct input-output conversion without online variables."
+        ],
+        [
+            "effSelector",
+            "directOnLP",
+            "Direct input-output conversion with continuous online variables."
+        ],
+        [
+            "effSelector",
+            "directOnMIP",
+            "Direct input-output conversion with integer online variables."
+        ],
+        [
+            "effSelector",
+            "incHR",
+            "Incremental heat rate."
+        ],
+        [
+            "effSelector",
+            "lambda01",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "effSelector",
+            "lambda02",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "effSelector",
+            "lambda03",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "effSelector",
+            "lambda04",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "effSelector",
+            "lambda05",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "effSelector",
+            "lambda06",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "effSelector",
+            "lambda07",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "effSelector",
+            "lambda08",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "effSelector",
+            "lambda09",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "effSelector",
+            "lambda10",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "effSelector",
+            "lambda11",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "effSelector",
+            "lambda12",
+            "Piecewise-linear efficiency approximation using the indicated number of sections."
+        ],
+        [
+            "input_output",
+            "input",
+            "Input into the unit."
+        ],
+        [
+            "input_output",
+            "output",
+            "Output from the unit."
+        ],
+        [
+            "up_down",
+            "down",
+            "Downwards direction for reserves and ramps."
+        ],
+        [
+            "up_down",
+            "up",
+            "Upwards direction for reserves and ramps."
+        ]
     ]
 }
