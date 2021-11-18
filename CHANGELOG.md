@@ -1,6 +1,21 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+### Added
+- Result parameters for start-up energy consumption and start-up emissions
+- Result parameter for realized diffusions
+- Two additional constraints to make transfer constraints tighter
+
+### Changed
+- Replaced commodity set with a parameter usePrice and updated results calculation related to it
+- Replaced q_energyMax, q_energyShareMax and q_energyShareMin with q_energyLimit and q_energyShareLimit
+
+### Fixed
+- Including start-up fuel consumption in q_balance
+- Updated start-up cost and start-up emission calculation
+
+
 ## 1.5 - 2021-10-05
 ### Added
 - Additional conditions in the objective function to avoid summing empty sets
