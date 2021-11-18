@@ -226,6 +226,7 @@ param_gn  "Possible parameters for grid, node" /
 *    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."  // NOT IMPLEMENTED
     capacityMargin "Capacity margin used in invest mode (MW)"
     storageValueUseTimeSeries "A flag to determine whether to use time series form `storageValue`"
+    usePrice       "A flag to decide whether ts_priceChange is to be used"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /

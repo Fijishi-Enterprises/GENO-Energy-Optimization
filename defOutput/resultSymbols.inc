@@ -94,8 +94,7 @@ r_gnnDiffusion
 // Results required for model structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 r_gen
 
-// Fuel use results
-r_fuelUse
+// Energy output results based on input types or unittypes
 r_genFuel
 r_genUnittype
 r_gnTotalGenFuel
@@ -142,10 +141,16 @@ r_uTotalShutdown
 // Unit level emissions from normal operation
 r_emissions
 
+// Unit level emissions from outputs, not considered in the equations
+r_emissionsFromOutput
+
 // Unit level emissions from start-ups
 r_emissionsStartup
 
-// Emission sums from normal operation
+// Emission sums
+r_nuTotalEmissionsOperation
+r_nuTotalEmissionsFromOutput
+r_nuTotalEmissionsStartup
 r_nuTotalEmissions
 r_nTotalEmissions
 r_uTotalEmissions

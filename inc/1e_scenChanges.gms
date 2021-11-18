@@ -86,18 +86,6 @@ $ifthen exist '%input_dir%/unit_fail3.gdx'
     $$gdxin
 $endif
 
-$ifthen exist '%input_dir%/commodity2.gdx'
-    $$gdxin '%input_dir%/commodity2.gdx'
-    $$loaddcm commodity
-    $$gdxin
-$endif
-
-$ifthen exist '%input_dir%/commodity3.gdx'
-    $$gdxin '%input_dir%/commodity3.gdx'
-    $$loaddcm commodity
-    $$gdxin
-$endif
-
 $ifthen exist '%input_dir%/unitUnitEffLevel2.gdx'
     $$gdxin '%input_dir%/unitUnitEffLevel2.gdx'
     $$loaddcm unitUnitEffLevel

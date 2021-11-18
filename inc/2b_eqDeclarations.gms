@@ -91,7 +91,6 @@ equations
     q_conversionIncHR_help2(grid, node, s, hr, effSelector, unit, f, t) "Helper equation 2 to ensure that the first heat rate segments are used first"
     q_unitEqualityConstraint(s, eq_constraint, unit, f, t) "Fixing the ratio between inputs and/or outputs"
     q_unitGreaterThanConstraint(s, gt_constraint, unit, f, t) "Lower limit for the ratio between inputs and/or outputs"
-*    q_commodityUseLimit(s, commodity, unit, f, t) "Commodity use cannot exceed limits"
 
     // Energy Transfer
     q_transfer(grid, node, node, s, f, t) "Rightward and leftward transfer must match the total transfer"

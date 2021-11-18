@@ -37,14 +37,19 @@ loop(m,
             * p_gnu(grid, node, unit, 'vomCosts');
 
     // Fuel and emission costs during normal operation
-    r_uFuelEmissionCost(commodity, unit_commodity(unit), ft_realizedNoReset(f,startp(t)))$un_commodity(unit, commodity)
+    // Note that this result calculation uses ts_price directly while the
+    // objective function uses ts_price average over the interval. There can
+    // be differences if realized intervals contain several time steps.
+    r_uFuelEmissionCost(gnu(grid, node, unit), ft_realizedNoReset(f,startp(t)))
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
-            * r_fuelUse(commodity, unit, f, t)
-            * [ + p_price(commodity, 'price')$p_price(commodity, 'useConstant')
-                + ts_price(commodity, t)$p_price(commodity, 'useTimeSeries')
+            * abs(r_gen(grid, node, unit, f, t))
+            * [ + p_price(node, 'price')${p_price(node, 'useConstant') and gnu_input(grid, node, unit)}
+                + ts_price(node, t)${p_price(node, 'useTimeSeries') and gnu_input(grid, node, unit)}
+                - p_price(node, 'price')${p_price(node, 'useConstant') and gnu_output(grid, node, unit)}
+                - ts_price(node, t)${p_price(node, 'useTimeSeries') and gnu_output(grid, node, unit)}
                 // Emission costs
-                + sum(emission, p_unitEmissionCost(unit, commodity, emission))
+                + sum(emission, p_unitEmissionCost(unit, node, emission))
               ];
 
     // Unit startup costs
@@ -160,9 +165,9 @@ loop(m,
     ;
 
     // Total fuel & emission costs
-    r_uTotalFuelEmissionCost(commodity, unit)$un_commodity(unit, commodity)
+    r_uTotalFuelEmissionCost(gnu(grid, node, unit))
         = sum(ft_realizedNoReset(f,startp(t)),
-            + r_uFuelEmissionCost(commodity, unit, f, t)
+            + r_uFuelEmissionCost(grid, node, unit, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
 
@@ -230,18 +235,16 @@ loop(m,
         = + sum(gnu(grid, node, unit),
               // VOM costs
               + r_gnuVOMCost(grid, node, unit, f, t)
+              + r_uFuelEmissionCost(grid, node, unit, f, t)
             )
-          // Allocate fuel and startup costs on energy basis, but for output nodes only
+
+          // Allocate startup costs on energy basis, but for output nodes only
           + sum(unit$(r_gen(grid, node, unit, f, t)$gnu_output(grid, node, unit)),
               + abs{r_gen(grid, node, unit, f, t)}  // abs is due to potential negative outputs like energy from a cooling unit. It's the energy contribution that matters, not direction.
                    / sum(gnu_output(grid_output, node_output, unit),
                        + abs{r_gen(grid_output, node_output, unit, f, t)}
                      ) // END sum(gnu_output)
-                *
-                {
-                  + sum(un_commodity(unit, commodity), r_uFuelEmissionCost(commodity, unit, f, t))
-                  + r_uStartupCost(unit, f, t)
-                }
+                * r_uStartupCost(unit, f, t)
             )
           + sum(gn2n_directional(grid, node_, node),
               // Variable Transfer costs
@@ -281,9 +284,9 @@ loop(m,
             ) // END sum(ft_realizedNoReset)
         );
 
-    // Energy generation by fuels
-    r_genFuel(gn(grid, node), commodity, ft_realizedNoReset(f, startp(t)))$sum(gnu_input(grid_, commodity, unit)$gnu_output(grid, node, unit),r_gen(grid_, commodity, unit, f, t))
-        = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, commodity, unit), 1),
+    // Energy output to a node based on inputs from another node or flows
+    r_genFuel(gn(grid, node), node_, ft_realizedNoReset(f, startp(t)))$sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit),r_gen(grid_, node_, unit, f, t))
+        = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, node_, unit), 1),
             + r_gen(grid, node, unit, f, t)
           );
 // The calculation with multiple inputs needs to be fixed below (right share for different commodities - now units with multiple input commodities will get the same amount allocated which will then be too big
@@ -295,16 +298,16 @@ loop(m,
         = sum(gnu_output(grid, node, unit)$flowUnit(flow, unit),
             + r_gen(grid, node, unit, f, t));
 
-    // Energy generation by fuels
+    // Energy generation for each unittype
     r_genUnittype(gn(grid, node), unittype, ft_realizedNoReset(f,startp(t)))
         = sum(gnu_output(grid, node, unit)$unitUnittype(unit, unittype),
             + r_gen(grid, node, unit, f, t)
             ); // END sum(unit)
 
-    // Total generation on each node by fuels
-    r_gnTotalGenFuel(gn(grid, node), commodity)
+    // Total energy generation in gn per input type over the simulation
+    r_gnTotalGenFuel(gn(grid, node), node_)
         = sum(ft_realizedNoReset(f, startp(t)),
-            + r_genFuel(grid, node, commodity, f, t)
+            + r_genFuel(grid, node, node_, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
@@ -327,18 +330,29 @@ loop(m,
 
 * --- Emission Results --------------------------------------------------------
 
-    // Emissions of units (only for commodities, not including startup fuels)
-    r_emissions(commodity, emission, unit, ft_realizedNoReset(f,startp(t)))$un_commodity(unit, commodity)
+    // Emissions of units (not including start-up fuels)
+    // Only taking into account emissions from input because emissions from output
+    // do not cause costs and are not considered in emission cap
+    r_emissions(grid, node, emission, unit, ft_realizedNoReset(f,startp(t)))
+       $gnu_input(grid, node, unit)
         =   + p_stepLengthNoReset(m, f, t)
-            * r_fuelUse(commodity, unit, f, t)
-            * p_nEmission(commodity, emission)
+            * abs(r_gen(grid, node, unit, f, t))
+            * p_nEmission(node, emission)
+            / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+    ;
+
+    // Emissions from unit outputs
+    r_emissionsFromOutput(grid, node, emission, unit, ft_realizedNoReset(f,startp(t)))
+        $gnu_output(grid, node, unit)
+        =   + p_stepLengthNoReset(m, f, t)
+            * r_gen(grid, node, unit, f, t)
+            * p_nEmission(node, emission)
             / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
     ;
 
     // Emissions from unit start-ups
     r_emissionsStartup(node, emission, unit, ft_realizedNoReset(f,startp(t)))
-        ${sum(starttype, unitStarttype(unit, starttype))
-          and sum(starttype, p_unStartup(unit, node, starttype))
+        ${sum(starttype, p_unStartup(unit, node, starttype))
           and p_nEmission(node, emission)}
         = sum(unitStarttype(unit, starttype),
             + r_startup(unit, starttype, f, t)
@@ -347,25 +361,46 @@ loop(m,
                 / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
             ); // END sum(starttype)
 
-
-    // Emission sums (only for commodities, not including startup fuels)
-    r_nuTotalEmissions (commodity, unit, emission)
+    // Emission sums from normal operation input
+    r_nuTotalEmissionsOperation(nu(node, unit), emission)
         = sum(ft_realizedNoReset(f, startp(t)),
-            + r_emissions(commodity, emission, unit, f, t)
+            + sum(gn(grid, node), r_emissions(grid, node, emission, unit, f, t))
                  * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             )
     ;
 
-    r_nTotalEmissions(commodity, emission)
-        = sum(unit, r_nuTotalEmissions (commodity, unit, emission))
+    // Emission sums from unit outputs
+    r_nuTotalEmissionsFromOutput(nu(node, unit), emission)
+        = sum(ft_realizedNoReset(f, startp(t)),
+            + sum(gn(grid, node), r_emissionsFromOutput(grid, node, emission, unit, f, t))
+                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+            )
+    ;
+
+    // Emission sums from start-ups
+    r_nuTotalEmissionsStartup(nu_startup(node, unit), emission)
+        = sum(ft_realizedNoReset(f, startp(t)),
+            + r_emissionsStartup(node, emission, unit, f, t)
+                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+            )
+    ;
+
+    // Emission sums (normal operation input and start-ups)
+    r_nuTotalEmissions(node, unit, emission)
+        = r_nuTotalEmissionsOperation(node, unit, emission)
+            + r_nuTotalEmissionsStartup(node, unit, emission)
+    ;
+
+    r_nTotalEmissions(node, emission)
+        = sum(unit, r_nuTotalEmissions (node, unit, emission))
     ;
 
     r_uTotalEmissions(unit, emission)
-        = sum(commodity, r_nuTotalEmissions (commodity, unit, emission))
+        = sum(node, r_nuTotalEmissions (node, unit, emission))
     ;
 
     r_totalEmissions (emission)
-        = sum(commodity, r_nTotalEmissions(commodity, emission))
+        = sum(node, r_nTotalEmissions(node, emission))
     ;
 
 * --- Total Unit Online Results -----------------------------------------------
@@ -485,19 +520,19 @@ r_gnTotalConsumptionShare(gn(grid, node))${ r_gTotalConsumption(grid) > 0 }
     = r_gnTotalConsumption(grid, node)
         / r_gTotalConsumption(grid);
 
-* --- Total Fuel Consumption Results ------------------------------------------
+* --- Total Energy Generation Results Per Input Type --------------------------
 
-// Total fuel consumption in grids over the simulation
-r_gTotalGenFuel(grid, commodity)
-    = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, commodity));
+// Total energy generation in grids per input type over the simulation
+r_gTotalGenFuel(grid, node_)
+    = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, node_));
 
-// Total fuel consumption over the simulation
-r_totalGenFuel(commodity)
-    = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, commodity));
+// Total overall energy generation per input type over the simulation
+r_totalGenFuel(node_)
+    = sum(gn(grid, node), r_gnTotalGenFuel(grid, node, node_));
 
-// Total fuel consumption gn/g shares
-r_gnTotalGenFuelShare(gn(grid, node), commodity)${ r_gnTotalGen(grid, node) }
-    = r_gnTotalGenFuel(grid, node, commodity)
+// Total energy generation in gn per input type as a share of total energy generation in gn across all input types
+r_gnTotalGenFuelShare(gn(grid, node), node_)${ r_gnTotalGen(grid, node) }
+    = r_gnTotalGenFuel(grid, node, node_)
         / r_gnTotalGen(grid, node);
 
 * --- Total Spilled Energy Results --------------------------------------------
@@ -672,15 +707,15 @@ d_cop(unit, ft_realizedNoReset(f, startp(t)))$sum(gnu_input(grid, node, unit), 1
             ]
         + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 
-// Estimated efficiency, calculated from commodity based inputs
-d_eff(unit_commodity(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
+// Estimated efficiency, calculated from inputs
+d_eff(unit(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod')]
     = sum(gnu_output(grid, node, unit),
         + r_gen(grid, node, unit, f, t)
         ) // END sum(gnu_output)
-        / [ sum(gnu_input(grid, node, unit)$un_commodity(unit, node),
-                + r_fuelUse(node, unit, f, t)
+        / [ sum(gnu_input(grid, node, unit),
+                + abs(r_gen(grid, node, unit, f, t))
                 ) // END sum(gnu_input)
-            + 1${not sum(gnu_input(grid, node, unit)$un_commodity(unit, node), r_fuelUse(node, unit, f, t))}
+            + 1${not sum(gnu_input(grid, node, unit), abs(r_gen(node, unit, f, t)))}
             ]
         + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 $endif.diag

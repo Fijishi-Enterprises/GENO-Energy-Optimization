@@ -423,13 +423,13 @@ $offtext
              + p_price(node, 'price')$p_price(node, 'useConstant')
              + sum(tt_aggcircular(t, t_), ts_price(node, t_))$p_price(node, 'useTimeSeries')
                  / mInterval(mSolve, 'stepsPerInterval', counter)
-            )$un_commodity_in(unit, node)
+            )$gnu_input(grid, node, unit)
           // output node cost (if price > 0 --> ts_vomCost_ < 0, i.e. considered as revenue)
           - (
              + p_price(node, 'price')$p_price(node, 'useConstant')
              + sum(tt_aggcircular(t, t_), ts_price(node, t_))$p_price(node, 'useTimeSeries')
                  / mInterval(mSolve, 'stepsPerInterval', counter)
-            )$un_commodity_out(unit, node)
+            )$gnu_output(grid, node, unit)
           // emission cost
           + sum(emission$p_unitEmissionCost(unit, node, emission), // Emission taxes
               + p_unitEmissionCost(unit, node, emission)

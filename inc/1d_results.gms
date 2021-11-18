@@ -29,8 +29,8 @@ Parameters
     // Unit Operational Cost Components
     r_gnuVOMCost(grid, node, unit, f, t) "Variable O&M costs for energy outputs (MEUR)"
     r_gnuTotalVOMCost(grid, node, unit) "Total gnu VOM costs over the simulation (MEUR)"
-    r_uFuelEmissionCost(node, unit, f, t) "Unit fuel & emission costs for normal operation (MEUR)"
-    r_uTotalFuelEmissionCost(commodity, unit) "Total unit fuel & emission costs over the simulation for normal operation (MEUR)"
+    r_uFuelEmissionCost(grid, node, unit, f, t) "Unit fuel & emission costs for normal operation (MEUR)"
+    r_uTotalFuelEmissionCost(grid, node, unit) "Total unit fuel & emission costs over the simulation for normal operation (MEUR)"
     r_uStartupCost(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
     r_uShutdownCost(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
     r_uTotalStartupCost(unit) "Total unit startup costs over the simulation (MEUR)"
@@ -101,14 +101,13 @@ Parameters
     r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
     r_gen_gnUnittype(grid, node, unittype) "Energy generation for each unittype in each node (MWh)"
 
-    // Fuel use results
-    r_fuelUse(node, unit, f, t) "Fuel use of units"
-    r_genFuel(grid, node, *, f, t) "Energy generation/consumption based on fuels / flows (MW)"
-    r_genUnittype(grid, node, unittype, f, t) "Energy generation/consumption for each unittype (MW)"
-    r_gnTotalGenFuel(grid, node, commodity) "Total energy generation in gn per fuel over the simulation (MWh)"
-    r_gnTotalGenFuelShare(grid, node, commodity) "Total energy generation fuel consumption gn/g share"
-    r_gTotalGenFuel(grid, commodity) "Total energy generation in g per fuel over the simulation (MWh)"
-    r_totalGenFuel(commodity) "Total overall energy generation/consumption per fuel over the simulation (MWh)"
+    // Energy output results based on input types or unittypes
+    r_genFuel(grid, node, *, f, t) "Energy output to a node based on inputs from another node or flows (MW)"
+    r_genUnittype(grid, node, unittype, f, t) "Energy generation for each unittype (MW)"
+    r_gnTotalGenFuel(grid, node, node) "Total energy generation in gn per input type over the simulation (MWh)"
+    r_gnTotalGenFuelShare(grid, node, node) "Total energy generation in gn per input type as a share of total energy generation in gn"
+    r_gTotalGenFuel(grid, node) "Total energy generation in g per input type over the simulation (MWh)"
+    r_totalGenFuel(node) "Total overall energy generation per input type over the simulation (MWh)"
 
     // Interesting energy generation results
     r_gnuTotalGen(grid, node, unit) "Total energy generation in gnu over the simulation (MWh)"
@@ -133,13 +132,19 @@ Parameters
 * --- Emissions Results -------------------------------------------------------
 
     // Unit level emissions from normal operation
-    r_emissions (node, emission, unit, f, t) "Emissions from units (tCO2)"
+    r_emissions(grid, node, emission, unit, f, t) "Emissions from units (tCO2)"
+
+    // Unit level emissions from outputs, not considered in the equations
+    r_emissionsFromOutput(grid, node, emission, unit, f, t) "Emissions from outputs (tCO2)"
 
     // Unit level emissions from start-ups
     r_emissionsStartup(node, emission, unit, f, t) "Emissions from units in start-ups (tCO2)"
 
-    // Emission sums from normal operation
-    r_nuTotalEmissions (node, unit, emission) "node unit total emissions (tCO2)"
+    // Emission sums
+    r_nuTotalEmissionsOperation(node, unit, emission) "node unit total emissions in normal operation (tCO2)"
+    r_nuTotalEmissionsFromOutput(node, unit, emission) "node unit total emissions from output (tCO2)"
+    r_nuTotalEmissionsStartup(node, unit, emission) "node unit total emissions in start-ups (tCO2)"
+    r_nuTotalEmissions(node, unit, emission) "node unit total emissions (tCO2)"
     r_nTotalEmissions(node, emission) "node total emissions (tCO2)"
     r_uTotalEmissions(unit, emission) "unit total emissions (tCO2)"
     r_totalEmissions (emission) "Total emissions (tCO2)"

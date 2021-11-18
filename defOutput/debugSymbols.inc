@@ -132,7 +132,6 @@ v_help_inc
     q_conversionIncHR_help2
     q_unitEqualityConstraint
     q_unitGreaterThanConstraint
-*    q_commodityUseLimit
 
     // Energy Transfer
     q_transfer
