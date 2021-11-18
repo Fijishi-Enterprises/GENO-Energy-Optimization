@@ -143,6 +143,12 @@ Option clear = ts_node_;
 Option clear = ts_vomCost_;
 Option clear = ts_startupCost_;
 
+* =============================================================================
+* --- Read changes or additions to the inputdata through loop_changes.inc file.
+* =============================================================================
+$ifthen exist '%input_dir%/loop_changes.inc'
+   $$include '%input_dir%/loop_changes.inc'
+$endif
 
 * =============================================================================
 * --- Determine the forecast-intervals included in the current solve ----------
