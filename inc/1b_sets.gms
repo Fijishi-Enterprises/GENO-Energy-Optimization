@@ -113,6 +113,7 @@ Sets
     mft(mType, f, t) "Combination of forecasts and t:s in the current model solve"
     msf(mType, s, f) "Combination of samples and forecasts in the models"
     msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
+    msft_wPrevS(mType, s, f, t, s) "Combination of models, samples, forecasts and t's with previous sample"
     mst(mType, s, t) "Combination of models samples and t's"
     sft(s, f, t) "Combination of samples, forecasts and t's in the current model solve"
     sft_realized(s, f, t) "Realized sft"

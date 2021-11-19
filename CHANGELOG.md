@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 - Result parameters for start-up energy consumption and start-up emissions
 - Result parameter for realized diffusions
 - Two additional constraints to make transfer constraints tighter
+- New set for the m, s, f, t combinations including the previous sample
 
 ### Changed
 - Replaced commodity set with a parameter usePrice and updated results calculation related to it

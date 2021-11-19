@@ -97,9 +97,11 @@ $endif.debug2
 
         // Update the model specific sets and the reversed dimension set
         Options clear=mft, clear=ms, clear=msf, clear=ms_central, clear=msft;
+        Option clear=msft_wPrevS;
         msft(mSolve, sft(s, f, t)) = yes;
         Options mft < msft, ms < msft, msf < msft, mst < msft;
         Option ms_central < ms;
+        msft_wPrevS(msft(mSolve, s, f, t), s_)$ss(s, s_) = yes;
 
         mst_start(mSolve, s, t)$mst_start(mSolve, s, t) = ms(mSolve, s);
         mst_end(mSolve, s, t)$mst_end(mSolve, s, t) = ms(mSolve, s);
