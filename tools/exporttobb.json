@@ -330,7 +330,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 2,
-                    "filter_re": "^((?!(storageValue)).)*$",
+                    "filter_re": "^((?!(^storageValue$)).)*$",
                     "header": "*"
                 },
                 {
