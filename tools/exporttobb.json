@@ -23,33 +23,6 @@
             "group_fn": "no_group",
             "use_fixed_table_name": false
         },
-        "1D_subsets": {
-            "type": "relationships",
-            "mapping": [
-                {
-                    "map_type": "RelationshipClass",
-                    "position": "table_name",
-                    "filter_re": "restype_inertia|restypeReleasedForRealization|^unit_fail$"
-                },
-                {
-                    "map_type": "RelationshipClassObjectClass",
-                    "position": "hidden"
-                },
-                {
-                    "map_type": "Relationship",
-                    "position": "hidden"
-                },
-                {
-                    "map_type": "RelationshipObject",
-                    "position": 0,
-                    "header": "*"
-                }
-            ],
-            "enabled": true,
-            "always_export_header": true,
-            "group_fn": "no_group",
-            "use_fixed_table_name": false
-        },
         "2D_sets": {
             "type": "relationships",
             "mapping": [
@@ -201,7 +174,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 1,
-                    "filter_re": "^((?!(efficiency|becomeAvailable|becomeUnavailable|boundSamples)).)*$",
+                    "filter_re": "^((?!(efficiency|becomeAvailable|becomeUnavailable|boundSamples|unit_fail)).)*$",
                     "header": "*"
                 },
                 {
@@ -2638,6 +2611,147 @@
                     "map_type": "ExpandedValue",
                     "position": "hidden",
                     "filter_re": "true"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": true
+        },
+        "unit_fail": {
+            "type": "object_parameter_values",
+            "mapping": [
+                {
+                    "map_type": "FixedValue",
+                    "position": "table_name",
+                    "value": "unit_fail"
+                },
+                {
+                    "map_type": "ObjectClass",
+                    "position": "hidden",
+                    "filter_re": "^unit$"
+                },
+                {
+                    "map_type": "ParameterDefinition",
+                    "position": "hidden",
+                    "filter_re": "unit_fail"
+                },
+                {
+                    "map_type": "ParameterValueList",
+                    "position": "hidden",
+                    "ignorable": true
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "*"
+                },
+                {
+                    "map_type": "Alternative",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueType",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValue",
+                    "position": "hidden",
+                    "filter_re": "1"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": true
+        },
+        "restypeReleasedForRealization": {
+            "type": "object_parameter_values",
+            "mapping": [
+                {
+                    "map_type": "FixedValue",
+                    "position": "table_name",
+                    "value": "restypeReleasedForRealization"
+                },
+                {
+                    "map_type": "ObjectClass",
+                    "position": "hidden",
+                    "filter_re": "^restype$"
+                },
+                {
+                    "map_type": "ParameterDefinition",
+                    "position": "hidden",
+                    "filter_re": "restypeReleasedForRealization"
+                },
+                {
+                    "map_type": "ParameterValueList",
+                    "position": "hidden",
+                    "ignorable": true
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "*"
+                },
+                {
+                    "map_type": "Alternative",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueType",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValue",
+                    "position": "hidden",
+                    "filter_re": "1"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": true
+        },
+        "restype_inertia": {
+            "type": "object_parameter_values",
+            "mapping": [
+                {
+                    "map_type": "FixedValue",
+                    "position": "table_name",
+                    "value": "restype_inertia"
+                },
+                {
+                    "map_type": "ObjectClass",
+                    "position": "hidden",
+                    "filter_re": "^restype$"
+                },
+                {
+                    "map_type": "ParameterDefinition",
+                    "position": "hidden",
+                    "filter_re": "restype_inertia"
+                },
+                {
+                    "map_type": "ParameterValueList",
+                    "position": "hidden",
+                    "ignorable": true
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "*"
+                },
+                {
+                    "map_type": "Alternative",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueType",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValue",
+                    "position": "hidden",
+                    "filter_re": "1"
                 }
             ],
             "enabled": true,

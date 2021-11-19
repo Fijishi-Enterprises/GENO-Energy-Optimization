@@ -153,27 +153,36 @@
                     "Mapping 1": {
                         "mapping": [
                             {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "unit_fail"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
+                                "map_type": "ObjectClass",
                                 "position": "hidden",
                                 "value": "unit"
                             },
                             {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
-                            },
-                            {
-                                "map_type": "RelationshipObject",
+                                "map_type": "Object",
                                 "position": 0
                             },
                             {
-                                "map_type": "RelationshipMetadata",
+                                "map_type": "ObjectMetadata",
                                 "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterDefinition",
+                                "position": "hidden",
+                                "value": "unit_fail"
+                            },
+                            {
+                                "map_type": "Alternative",
+                                "position": "hidden",
+                                "value": "Base"
+                            },
+                            {
+                                "map_type": "ParameterValueMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValue",
+                                "position": "hidden",
+                                "value": "1"
                             }
                         ]
                     }
@@ -2278,27 +2287,36 @@
                     "Mapping 1": {
                         "mapping": [
                             {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "restype_released_for_realization"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
+                                "map_type": "ObjectClass",
                                 "position": "hidden",
                                 "value": "restype"
                             },
                             {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
-                            },
-                            {
-                                "map_type": "RelationshipObject",
+                                "map_type": "Object",
                                 "position": 0
                             },
                             {
-                                "map_type": "RelationshipMetadata",
+                                "map_type": "ObjectMetadata",
                                 "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterDefinition",
+                                "position": "hidden",
+                                "value": "restypeReleasedForRealization"
+                            },
+                            {
+                                "map_type": "Alternative",
+                                "position": "hidden",
+                                "value": "Base"
+                            },
+                            {
+                                "map_type": "ParameterValueMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValue",
+                                "position": "hidden",
+                                "value": "1"
                             }
                         ]
                     }
@@ -2309,28 +2327,36 @@
                     "Mapping 1": {
                         "mapping": [
                             {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "restype_inertia"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
+                                "map_type": "ObjectClass",
                                 "position": "hidden",
                                 "value": "restype"
                             },
                             {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
+                                "map_type": "Object",
+                                "position": 0
                             },
                             {
-                                "map_type": "RelationshipObject",
-                                "position": 0,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipMetadata",
+                                "map_type": "ObjectMetadata",
                                 "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterDefinition",
+                                "position": "hidden",
+                                "value": "restype_inertia"
+                            },
+                            {
+                                "map_type": "Alternative",
+                                "position": "hidden",
+                                "value": "Base"
+                            },
+                            {
+                                "map_type": "ParameterValueMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValue",
+                                "position": "hidden",
+                                "value": "1"
                             }
                         ]
                     }
@@ -3215,13 +3241,19 @@
             "uss_bound": {}
         },
         "table_types": {
-            "ts_node": {
+            "unit_fail": {
+                "0": "string"
+            },
+            "p_unit": {
                 "0": "string",
                 "1": "string",
-                "2": "string",
-                "3": "string",
-                "4": "string",
-                "5": "string"
+                "2": "string"
+            },
+            "restypeReleasedForRealization": {
+                "0": "string"
+            },
+            "restype_inertia": {
+                "0": "string"
             }
         },
         "table_row_types": {},
