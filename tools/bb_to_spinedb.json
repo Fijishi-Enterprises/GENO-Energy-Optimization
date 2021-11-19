@@ -179,37 +179,6 @@
                     }
                 }
             ],
-            "commodity": [
-                {
-                    "Mapping 1": {
-                        "mapping": [
-                            {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "commodity"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "node"
-                            },
-                            {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 0
-                            },
-                            {
-                                "map_type": "RelationshipMetadata",
-                                "position": "hidden"
-                            }
-                        ]
-                    }
-                }
-            ],
             "unitUnitEffLevel": [
                 {
                     "Mapping 1": {
@@ -266,7 +235,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "effLevel__group__unit"
+                                "value": "effLevel__effSelector__unit"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -495,7 +464,7 @@
                             {
                                 "map_type": "RelationshipClassObjectClass",
                                 "position": "hidden",
-                                "value": "input_output"
+                                "value": "io"
                             },
                             {
                                 "map_type": "Relationship",
@@ -582,7 +551,7 @@
                             {
                                 "map_type": "RelationshipClassObjectClass",
                                 "position": "hidden",
-                                "value": "slack"
+                                "value": "boundary"
                             },
                             {
                                 "map_type": "Relationship",
@@ -659,7 +628,7 @@
                             {
                                 "map_type": "ParameterDefinition",
                                 "position": 1,
-                                "filter_re": "^(?!(eff|op))"
+                                "filter_re": "^(?!(eff|op|section|hr))"
                             },
                             {
                                 "map_type": "Alternative",
@@ -719,7 +688,7 @@
                             {
                                 "map_type": "ParameterValueIndex",
                                 "position": 1,
-                                "filter_re": "eff|op"
+                                "filter_re": "eff|op|section|hr"
                             },
                             {
                                 "map_type": "ExpandedValue",
@@ -1360,7 +1329,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node",
+                                "value": "grid__node__boundary",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1380,82 +1349,9 @@
                                 "value": "node"
                             },
                             {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 0,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 1,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipMetadata",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterDefinition",
-                                "position": 2,
-                                "filter_re": "^((?!(Slack)).)*$"
-                            },
-                            {
-                                "map_type": "Alternative",
-                                "position": "hidden",
-                                "value": "Base"
-                            },
-                            {
-                                "map_type": "ParameterValueMetadata",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueType",
-                                "position": "hidden",
-                                "value": "map"
-                            },
-                            {
-                                "map_type": "IndexName",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueIndex",
-                                "position": 3
-                            },
-                            {
-                                "map_type": "ExpandedValue",
-                                "position": 4
-                            }
-                        ]
-                    }
-                },
-                {
-                    "Mapping 2": {
-                        "mapping": [
-                            {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "grid__node",
-                                "skip_columns": [
-                                    0,
-                                    1,
-                                    2,
-                                    3,
-                                    4
-                                ]
-                            },
-                            {
                                 "map_type": "RelationshipClassObjectClass",
                                 "position": "hidden",
-                                "value": "grid"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "node"
+                                "value": "boundary"
                             },
                             {
                                 "map_type": "Relationship",
@@ -1473,13 +1369,17 @@
                                 "import_objects": true
                             },
                             {
+                                "map_type": "RelationshipObject",
+                                "position": 2,
+                                "import_objects": true
+                            },
+                            {
                                 "map_type": "RelationshipMetadata",
                                 "position": "hidden"
                             },
                             {
                                 "map_type": "ParameterDefinition",
-                                "position": "hidden",
-                                "value": "slack"
+                                "position": 3
                             },
                             {
                                 "map_type": "Alternative",
@@ -1491,29 +1391,7 @@
                                 "position": "hidden"
                             },
                             {
-                                "map_type": "ParameterValueType",
-                                "position": "hidden",
-                                "value": "map"
-                            },
-                            {
-                                "map_type": "IndexName",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueIndex",
-                                "position": 2,
-                                "filter_re": "Slack"
-                            },
-                            {
-                                "map_type": "IndexName",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueIndex",
-                                "position": 3
-                            },
-                            {
-                                "map_type": "ExpandedValue",
+                                "map_type": "ParameterValue",
                                 "position": 4
                             }
                         ]
@@ -1957,7 +1835,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "grid__node",
+                                "value": "grid__node__boundary",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1977,99 +1855,9 @@
                                 "value": "node"
                             },
                             {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 0,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 1,
-                                "import_objects": true
-                            },
-                            {
-                                "map_type": "RelationshipMetadata",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterDefinition",
-                                "position": 2,
-                                "filter_re": "^((?!(Slack)).)*$"
-                            },
-                            {
-                                "map_type": "Alternative",
-                                "position": "hidden",
-                                "value": "Base_ts"
-                            },
-                            {
-                                "map_type": "ParameterValueMetadata",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueType",
-                                "position": "hidden",
-                                "value": "map"
-                            },
-                            {
-                                "map_type": "IndexName",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueIndex",
-                                "position": "hidden",
-                                "value": "timeseries"
-                            },
-                            {
-                                "map_type": "IndexName",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueIndex",
-                                "position": 3
-                            },
-                            {
-                                "map_type": "IndexName",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueIndex",
-                                "position": 4
-                            },
-                            {
-                                "map_type": "ExpandedValue",
-                                "position": 5
-                            }
-                        ]
-                    }
-                },
-                {
-                    "Mapping 2": {
-                        "mapping": [
-                            {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "grid__node",
-                                "skip_columns": [
-                                    0,
-                                    1,
-                                    2,
-                                    3,
-                                    4
-                                ]
-                            },
-                            {
                                 "map_type": "RelationshipClassObjectClass",
                                 "position": "hidden",
-                                "value": "grid"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "node"
+                                "value": "boundary"
                             },
                             {
                                 "map_type": "Relationship",
@@ -2087,13 +1875,18 @@
                                 "import_objects": true
                             },
                             {
+                                "map_type": "RelationshipObject",
+                                "position": 2,
+                                "import_objects": true
+                            },
+                            {
                                 "map_type": "RelationshipMetadata",
                                 "position": "hidden"
                             },
                             {
                                 "map_type": "ParameterDefinition",
                                 "position": "hidden",
-                                "value": "slack"
+                                "value": "timeseries"
                             },
                             {
                                 "map_type": "Alternative",
@@ -2108,24 +1901,6 @@
                                 "map_type": "ParameterValueType",
                                 "position": "hidden",
                                 "value": "map"
-                            },
-                            {
-                                "map_type": "IndexName",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueIndex",
-                                "position": "hidden",
-                                "value": "timeseries"
-                            },
-                            {
-                                "map_type": "IndexName",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueIndex",
-                                "position": 2,
-                                "filter_re": "Slack"
                             },
                             {
                                 "map_type": "IndexName",
@@ -2463,7 +2238,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "restype__direction"
+                                "value": "restype__up_down"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -2976,26 +2751,16 @@
                     "Mapping 1": {
                         "mapping": [
                             {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "commodity"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
+                                "map_type": "ObjectClass",
                                 "position": "hidden",
                                 "value": "node"
                             },
                             {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
-                            },
-                            {
-                                "map_type": "RelationshipObject",
+                                "map_type": "Object",
                                 "position": 0
                             },
                             {
-                                "map_type": "RelationshipMetadata",
+                                "map_type": "ObjectMetadata",
                                 "position": "hidden"
                             },
                             {
@@ -3286,17 +3051,17 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "group__unit"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "group"
+                                "value": "unit__group"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
                                 "position": "hidden",
                                 "value": "unit"
+                            },
+                            {
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "group"
                             },
                             {
                                 "map_type": "Relationship",
@@ -3305,11 +3070,11 @@
                             },
                             {
                                 "map_type": "RelationshipObject",
-                                "position": 0
+                                "position": 2
                             },
                             {
                                 "map_type": "RelationshipObject",
-                                "position": 2
+                                "position": 0
                             },
                             {
                                 "map_type": "RelationshipMetadata",
@@ -3345,7 +3110,6 @@
             "unit",
             "unitUnittype",
             "unit_fail",
-            "commodity",
             "unitUnitEffLevel",
             "effLevelGroupUnit",
             "group",
@@ -3402,7 +3166,6 @@
             "unit": {},
             "unitUnittype": {},
             "unit_fail": {},
-            "commodity": {},
             "unitUnitEffLevel": {},
             "effLevelGroupUnit": {},
             "group": {},
@@ -3452,9 +3215,6 @@
             "uss_bound": {}
         },
         "table_types": {
-            "restype": {
-                "0": "string"
-            },
             "ts_node": {
                 "0": "string",
                 "1": "string",

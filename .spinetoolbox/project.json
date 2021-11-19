@@ -288,7 +288,7 @@
             "x": 442.86124348844345,
             "y": -113.10256157821419,
             "specification": "Backbone",
-            "execute_in_work": false,
+            "execute_in_work": true,
             "cmd_line_args": []
         },
         "Backbone vara": {
