@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Including start-up fuel consumption in q_balance
 - Updated start-up cost and start-up emission calculation
-
+- output_dir command line argument was missing quotes in the code and directories with space did not work 
 
 ## 1.5 - 2021-10-05
 ### Added
