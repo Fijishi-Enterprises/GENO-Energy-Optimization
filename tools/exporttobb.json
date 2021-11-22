@@ -830,6 +830,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 3,
+                    "filter_re": "^((?!(reserveDemand)).)*$",
                     "header": "*"
                 },
                 {
@@ -1688,7 +1689,7 @@
                 {
                     "map_type": "RelationshipClass",
                     "position": "hidden",
-                    "filter_re": "^restype__up_down__group$"
+                    "filter_re": "^group__restype__up_down$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -1704,7 +1705,8 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "^reserveDemand$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1717,6 +1719,11 @@
                 },
                 {
                     "map_type": "RelationshipObject",
+                    "position": 2,
+                    "header": "*"
+                },
+                {
+                    "map_type": "RelationshipObject",
                     "position": 0,
                     "header": "*"
                 },
@@ -1726,17 +1733,13 @@
                     "header": "*"
                 },
                 {
-                    "map_type": "RelationshipObject",
-                    "position": 2,
-                    "header": "*"
-                },
-                {
                     "map_type": "Alternative",
                     "position": "hidden"
                 },
                 {
                     "map_type": "ParameterValueType",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "2d_map"
                 },
                 {
                     "map_type": "IndexName",
@@ -2752,6 +2755,79 @@
                     "map_type": "ParameterValue",
                     "position": "hidden",
                     "filter_re": "1"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": true
+        },
+        "p_groupReserves2": {
+            "type": "relationship_parameter_values",
+            "mapping": [
+                {
+                    "map_type": "FixedValue",
+                    "position": "table_name",
+                    "value": "p_groupReserves"
+                },
+                {
+                    "map_type": "RelationshipClass",
+                    "position": "hidden",
+                    "filter_re": "^group__restype__up_down$"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterDefinition",
+                    "position": "hidden",
+                    "filter_re": "^reserveDemand$"
+                },
+                {
+                    "map_type": "ParameterValueList",
+                    "position": "hidden",
+                    "ignorable": true
+                },
+                {
+                    "map_type": "Relationship",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 0,
+                    "header": "*"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 1,
+                    "header": "*"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 2,
+                    "header": "*"
+                },
+                {
+                    "map_type": "Alternative",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "ParameterValueType",
+                    "position": "hidden",
+                    "filter_re": "single_value"
+                },
+                {
+                    "map_type": "ParameterValue",
+                    "position": 3
                 }
             ],
             "enabled": true,

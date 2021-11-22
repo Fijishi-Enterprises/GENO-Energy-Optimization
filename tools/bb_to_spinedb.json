@@ -769,7 +769,7 @@
             ],
             "p_groupReserves": [
                 {
-                    "Mapping 1": {
+                    "other parameters": {
                         "mapping": [
                             {
                                 "map_type": "RelationshipClass",
@@ -810,7 +810,73 @@
                             },
                             {
                                 "map_type": "ParameterDefinition",
-                                "position": 2
+                                "position": 2,
+                                "filter_re": "^((?!(^up$|^down$)).)*$"
+                            },
+                            {
+                                "map_type": "Alternative",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValueMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterValue",
+                                "position": 3
+                            }
+                        ]
+                    }
+                },
+                {
+                    "reserve demand": {
+                        "mapping": [
+                            {
+                                "map_type": "RelationshipClass",
+                                "position": "hidden",
+                                "value": "group__restype__up_down"
+                            },
+                            {
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "group"
+                            },
+                            {
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "restype"
+                            },
+                            {
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "up_down"
+                            },
+                            {
+                                "map_type": "Relationship",
+                                "position": "hidden",
+                                "value": "relationship"
+                            },
+                            {
+                                "map_type": "RelationshipObject",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "RelationshipObject",
+                                "position": 1
+                            },
+                            {
+                                "map_type": "RelationshipObject",
+                                "position": 2,
+                                "filter_re": "^up$|^down$"
+                            },
+                            {
+                                "map_type": "RelationshipMetadata",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ParameterDefinition",
+                                "position": "hidden",
+                                "value": "reserveDemand"
                             },
                             {
                                 "map_type": "Alternative",
@@ -1229,7 +1295,7 @@
                             {
                                 "map_type": "RelationshipClass",
                                 "position": "hidden",
-                                "value": "restype__up_down__group",
+                                "value": "group__restype__up_down",
                                 "skip_columns": [
                                     0,
                                     1,
@@ -1237,6 +1303,11 @@
                                     3,
                                     4
                                 ]
+                            },
+                            {
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "group"
                             },
                             {
                                 "map_type": "RelationshipClassObjectClass",
@@ -1249,14 +1320,13 @@
                                 "value": "up_down"
                             },
                             {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "group"
-                            },
-                            {
                                 "map_type": "Relationship",
                                 "position": "hidden",
                                 "value": "relationship"
+                            },
+                            {
+                                "map_type": "RelationshipObject",
+                                "position": 2
                             },
                             {
                                 "map_type": "RelationshipObject",
@@ -1265,10 +1335,6 @@
                             {
                                 "map_type": "RelationshipObject",
                                 "position": 1
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 2
                             },
                             {
                                 "map_type": "RelationshipMetadata",
@@ -3203,8 +3269,11 @@
             "uss_bound": {}
         },
         "table_types": {
-            "unit_fail": {
-                "0": "string"
+            "p_groupReserves": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string"
             }
         },
         "table_row_types": {},
