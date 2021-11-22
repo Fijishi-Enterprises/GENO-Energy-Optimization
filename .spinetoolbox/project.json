@@ -203,11 +203,11 @@
             },
             {
                 "from": [
-                    "BB_parameters",
+                    "Export_to_BB",
                     "right"
                 ],
                 "to": [
-                    "Export_to_BB",
+                    "Backbone",
                     "left"
                 ]
             },
@@ -217,17 +217,7 @@
                     "right"
                 ],
                 "to": [
-                    "BB_parameters",
-                    "left"
-                ]
-            },
-            {
-                "from": [
                     "Export_to_BB",
-                    "right"
-                ],
-                "to": [
-                    "Backbone",
                     "left"
                 ]
             }
@@ -380,13 +370,6 @@
             "output_time_stamps": false,
             "cancel_on_error": true,
             "specification": "ExportToBB"
-        },
-        "BB_parameters": {
-            "type": "Data Transformer",
-            "description": "",
-            "x": 166.43704134975908,
-            "y": -159.36627654924155,
-            "specification": "ToBackboneParameters"
         }
     }
 }
