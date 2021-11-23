@@ -56,56 +56,6 @@
         "connections": [
             {
                 "from": [
-                    "BB_base_sets",
-                    "right"
-                ],
-                "to": [
-                    "Convert_base_sets",
-                    "left"
-                ]
-            },
-            {
-                "from": [
-                    "supplement_inputData_ts",
-                    "right"
-                ],
-                "to": [
-                    "Convert_ts",
-                    "bottom"
-                ]
-            },
-            {
-                "from": [
-                    "inputData",
-                    "right"
-                ],
-                "to": [
-                    "Backbone vara",
-                    "bottom"
-                ]
-            },
-            {
-                "from": [
-                    "inputData",
-                    "right"
-                ],
-                "to": [
-                    "Convert",
-                    "bottom"
-                ]
-            },
-            {
-                "from": [
-                    "Convert_base_sets",
-                    "right"
-                ],
-                "to": [
-                    "BB_data",
-                    "left"
-                ]
-            },
-            {
-                "from": [
                     "BB_data",
                     "right"
                 ],
@@ -133,62 +83,12 @@
             },
             {
                 "from": [
-                    "Convert_base_sets",
-                    "bottom"
-                ],
-                "to": [
-                    "inputData",
-                    "left"
-                ]
-            },
-            {
-                "from": [
-                    "supplement_inputData_ts",
-                    "right"
-                ],
-                "to": [
-                    "Backbone vara",
-                    "bottom"
-                ]
-            },
-            {
-                "from": [
                     "Convert",
                     "right"
                 ],
                 "to": [
                     "BB_data",
                     "bottom"
-                ]
-            },
-            {
-                "from": [
-                    "Convert_ts",
-                    "left"
-                ],
-                "to": [
-                    "BB_data",
-                    "bottom"
-                ]
-            },
-            {
-                "from": [
-                    "BB_config_files_vara",
-                    "right"
-                ],
-                "to": [
-                    "Backbone vara",
-                    "left"
-                ]
-            },
-            {
-                "from": [
-                    "inputData",
-                    "bottom"
-                ],
-                "to": [
-                    "supplement_inputData_ts",
-                    "left"
                 ]
             },
             {
@@ -218,6 +118,46 @@
                 ],
                 "to": [
                     "Export_to_BB",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "BB_data_template",
+                    "right"
+                ],
+                "to": [
+                    "BB_data",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "inputData",
+                    "right"
+                ],
+                "to": [
+                    "Backbone vara",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "BB_config_files_vara",
+                    "right"
+                ],
+                "to": [
+                    "Backbone vara",
+                    "bottom"
+                ]
+            },
+            {
+                "from": [
+                    "inputData",
+                    "right"
+                ],
+                "to": [
+                    "Convert",
                     "left"
                 ]
             }
@@ -247,36 +187,29 @@
         "inputData": {
             "type": "Data Connection",
             "description": "",
-            "x": -300.4477396385093,
-            "y": 89.91674269496238,
+            "x": -347.8182821765176,
+            "y": 1.577082286244062,
             "references": []
         },
         "BB_config_files": {
             "type": "Data Connection",
             "description": "",
-            "x": 192.64471365960787,
-            "y": -37.134419124776116,
-            "references": []
-        },
-        "supplement_inputData_ts": {
-            "type": "Data Connection",
-            "description": "",
-            "x": -144.99988274364932,
-            "y": 163.86627654924152,
+            "x": 225.93212192955966,
+            "y": -19.210430056340506,
             "references": []
         },
         "BB_config_files_vara": {
             "type": "Data Connection",
             "description": "",
-            "x": 132.74637152587613,
-            "y": 48.479045915210676,
+            "x": 230.04802646881222,
+            "y": 189.3103885957761,
             "references": []
         },
         "Backbone": {
             "type": "Tool",
             "description": "",
-            "x": 442.86124348844345,
-            "y": -113.10256157821419,
+            "x": 371.16528721470104,
+            "y": -124.62512597935135,
             "specification": "Backbone",
             "execute_in_work": true,
             "cmd_line_args": []
@@ -284,8 +217,8 @@
         "Backbone vara": {
             "type": "Tool",
             "description": "",
-            "x": 349.4121144699393,
-            "y": 41.04075743176567,
+            "x": 363.49524873799595,
+            "y": 111.45642877204835,
             "specification": "Backbone",
             "execute_in_work": false,
             "cmd_line_args": [
@@ -299,63 +232,27 @@
                 }
             ]
         },
-        "BB_base_sets": {
-            "type": "Tool",
-            "description": "",
-            "x": -445.3612434884435,
-            "y": -137.22056911251164,
-            "specification": "BB_base_sets",
-            "execute_in_work": false,
-            "cmd_line_args": []
-        },
         "Convert": {
             "type": "Importer",
             "description": "",
-            "x": -193.73406586865244,
-            "y": -22.476982726399342,
+            "x": -188.61292613481368,
+            "y": -42.96154166175431,
             "specification": "BB_to_SpineDB",
-            "cancel_on_error": true,
-            "file_selection": []
-        },
-        "Convert_base_sets": {
-            "type": "Importer",
-            "description": "",
-            "x": -287.8415342698604,
-            "y": -130.47367383193375,
-            "specification": "Import_Bacbkone_base_sets_to_SpineDB",
-            "cancel_on_error": true,
-            "file_selection": [
-                [
-                    "Backbone_base_sets_to_gdx.lst",
-                    false
-                ],
-                [
-                    "Backbone_base_sets.gdx",
-                    true
-                ]
-            ]
-        },
-        "Convert_ts": {
-            "type": "Importer",
-            "description": "",
-            "x": -5.105629674072162,
-            "y": -29.12652513068616,
-            "specification": "BB_to_SpineDB_ts",
             "cancel_on_error": true,
             "file_selection": []
         },
         "BB_sets": {
             "type": "Data Transformer",
             "description": "",
-            "x": 36.21444168453502,
-            "y": -130.8698589903699,
+            "x": 75.90327462178527,
+            "y": -132.1501439238296,
             "specification": "ToBackboneSets"
         },
         "Export_to_BB": {
             "type": "Exporter",
             "description": "",
-            "x": 305.9880990968649,
-            "y": -159.36627654924155,
+            "x": 224.04986335544504,
+            "y": -129.9197230796688,
             "databases": [
                 {
                     "output_file_name": "inputData.gdx",
@@ -370,6 +267,25 @@
             "output_time_stamps": false,
             "cancel_on_error": true,
             "specification": "ExportToBB"
+        },
+        "BB_data_template": {
+            "type": "Data Store",
+            "description": "",
+            "x": -282.9429702945906,
+            "y": -143.39191254748494,
+            "url": {
+                "dialect": "sqlite",
+                "username": "",
+                "password": "",
+                "host": "",
+                "port": "",
+                "database": {
+                    "type": "path",
+                    "relative": true,
+                    "path": ".spinetoolbox/items/bb_data_template/BB_data_template.sqlite"
+                }
+            },
+            "cancel_on_error": false
         }
     }
 }
