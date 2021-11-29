@@ -157,9 +157,9 @@ $include '%input_dir%/modelsInit.gms'
 
 
 * === Simulation ==============================================================
-// Macro for checking solve status (1 = normal completion)
+// Macro for checking solve and model status
 $macro checkSolveStatus(mdl) \
-    if(mdl.solveStat > 1 and (mdl.modelStat <> 1 or mdl.modelStat <> 8), \
+    if(mdl.solveStat > 1 or not (mdl.modelStat = 1 or mdl.modelStat = 8), \
         execError = execError + 1 \
     )
 
