@@ -329,6 +329,7 @@ param_unit "Set of possible data parameters for units" /
     investMIP     "A flag to make integer investment instead of continous investment"
     maxUnitCount  "Maximum number of units when making integer investments"
     minUnitCount  "Minimum number of units when making integer investments"
+    fixedFlow     "A flag to fix the production or consumption of the unit based on availability, flow, and capacity"
     // Calculated based on other input data
     lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
     becomeAvailable       "The relative position of the time step when the unit becomes available (calculated from ut(unit, t, start_end))"
