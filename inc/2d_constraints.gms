@@ -789,6 +789,41 @@ q_maxUpwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
             ] // END * p_unit(availability)
 ;
 
+* --- Fixed Flow Production/Consumption ---------------------------------------
+
+q_fixedFlow(gnu(grid, node, unit_flow(unit)), msft(m, s, f, t))
+    ${  gnuft(grid, node, unit, f, t)
+        and (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
+        and p_unit(unit, 'fixedFlow')
+}..
+
+    // Energy generation/consumption
+    + v_gen(grid, node, unit, s, f, t)
+
+    =E= // must be equal to available capacity
+
+    + [
+        // Available capacity restrictions
+        + p_unit(unit, 'availability')$gnu_output(grid, node, unit)
+        - p_unit(unit, 'availability')$gnu_input(grid, node, unit)
+        ]
+        * sum(flowUnit(flow, unit), // Capacity factor for flow units
+            + ts_cf_(flow, node, s, f, t)
+            ) // END sum(flow)
+        * [
+            // Capacity restriction
+            + p_gnu(grid, node, unit, 'unitSize')
+                * [
+                    // Existing capacity
+                    + p_unit(unit, 'unitCount')
+
+                    // Investments to new capacity
+                    + v_invest_LP(unit)${unit_investLP(unit)}
+                    + v_invest_MIP(unit)${unit_investMIP(unit)}
+                    ] // END * p_gnu(unitSize)
+            ] // END * p_unit(availability)
+;
+
 * --- Reserve Provision of Units with Investments -----------------------------
 
 q_reserveProvision(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid, node), unit), sft(s, f, t))

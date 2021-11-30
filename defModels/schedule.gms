@@ -33,6 +33,7 @@ Model schedule /
     q_maxDownwardOfflineReserve
     q_maxUpward
     q_maxUpwardOfflineReserve
+    q_fixedFlow
 *    q_reserveProvision
     q_reserveProvisionOnline
     q_startshut
