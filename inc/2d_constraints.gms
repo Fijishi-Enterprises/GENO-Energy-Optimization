@@ -38,7 +38,7 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
     =E=
 
     // The right side of the equation contains all the changes converted to energy terms
-    + p_stepLength(m, f, t) * [((1/p_stepLength(m, f, t))${gnGroup(grid, node,'wastewaterBalance')}) + 1${not gnGroup(grid, node,'wastewaterBalance')}]// Multiply with the length of the timestep to convert power into energy
+    + p_stepLength(m, f, t) // Multiply with the length of the timestep to convert power into energy
         * (
             // Self discharge out of the model boundaries
             - p_gn(grid, node, 'selfDischargeLoss')${ gn_state(grid, node) }
@@ -83,8 +83,8 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
             + ts_influx_(grid, node, s, f, t)   // Incoming (positive) and outgoing (negative) absolute value time series
 
             // Dummy generation variables, for feasibility purposes
-            + vq_gen('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
-            - vq_gen('decrease', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+//            + vq_gen('increase', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
+//            - vq_gen('decrease', grid, node, s, f, t) // Note! When stateSlack is permitted, have to take caution with the penalties so that it will be used first
     ) // END * p_stepLength
 ;
 
@@ -1091,14 +1091,13 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         } ..
 
     // Ramp speed of the unit?
-    + (
-        + v_genRamp(grid, node, unit, s, f, t)
-        + sum(gnuRescapable(restype, 'up', grid, node, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
+    v_genRamp(grid, node, unit, s, f, t)
+    + (sum(gnuRescapable(restype, 'up', grid, node, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
                                                            and not gnuOfflineRescapable(restype, grid, node, unit)
                                                            },
           + v_reserve(restype, 'up', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
           ) // END sum(nuRescapable)
-    )/ p_stepLength(m, f, t)
+       )/ p_stepLength(m, f, t)
 
     =L=
 
@@ -1226,14 +1225,13 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         } ..
 
     // Ramp speed of the unit?
-    + (
-        + v_genRamp(grid, node, unit, s, f, t)
-        - sum(gnuRescapable(restype, 'down', grid, node, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
+    v_genRamp(grid, node, unit, s, f, t)
+        - (sum(gnuRescapable(restype, 'down', grid, node, unit)${ ord(t) < tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
                                                              and not gnuOfflineRescapable(restype, grid, node, unit)
                                                              },
           + v_reserve(restype, 'down', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
           ) // END sum(nuRescapable)
-    )/ p_stepLength(m, f, t)
+        )/ p_stepLength(m, f, t)
 
     =G=
 

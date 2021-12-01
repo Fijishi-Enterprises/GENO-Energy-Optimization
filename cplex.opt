@@ -1,1 +1,3 @@
-relaxfixedinfeas = 1
+ relaxfixedinfeas 1
+* feasopt 1
+ iis 1
