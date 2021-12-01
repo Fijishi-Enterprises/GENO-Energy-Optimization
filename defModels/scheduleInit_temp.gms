@@ -25,12 +25,12 @@ if (mType('schedule'),
 * --- Define Key Execution Parameters in Time Indeces -------------------------
 
     // Define simulation start and end time indeces
-    mSettings('schedule', 't_start') = 1;  // First time step to be solved, 1 corresponds to t000001 (t000000 will then be used for initial status of dynamic variables)
-    mSettings('schedule', 't_end') = 6; // Last time step to be included in the solve (may solve and output more time steps in case t_jump does not match)
+    mSettings('schedule', 't_start') = %t_start%;  // First time step to be solved, 1 corresponds to t000001 (t000000 will then be used for initial status of dynamic variables)
+    mSettings('schedule', 't_end') = %t_end%; // Last time step to be included in the solve (may solve and output more time steps in case t_jump does not match)
 
     // Define simulation horizon and moving horizon optimization "speed"
-    mSettings('schedule', 't_horizon') = 24;    // How many active time steps the solve contains (aggregation of time steps does not impact this, unless the aggregation does not match)
-    mSettings('schedule', 't_jump') = 3;          // How many time steps the model rolls forward between each solve
+    mSettings('schedule', 't_horizon') = 1;    // How many active time steps the solve contains (aggregation of time steps does not impact this, unless the aggregation does not match)
+    mSettings('schedule', 't_jump') = 1;          // How many time steps the model rolls forward between each solve
 
     // Define length of data for proper circulation
     mSettings('schedule', 'dataLength') = 1344;
@@ -45,12 +45,12 @@ if (mType('schedule'),
     mSettings('schedule', 'scenarios') = 0;
 
     // Length of single scenario (in time steps)
-    mSettings('schedule', 'scenarioLength') = 8760;
+    mSettings('schedule', 'scenarioLength') = 1344;
 
 * --- Define Samples ----------------------------------------------------------
 
     // Number of samples used by the model
-    mSettings('schedule', 'samples') = 0;
+    mSettings('schedule', 'samples') = 1;
 
     // Define Initial and Central samples
     ms_initial('schedule', s) = no;
@@ -91,15 +91,18 @@ if (mType('schedule'),
 
     // Define the time step intervals in time-steps
     mInterval('schedule', 'stepsPerInterval', 'c000') = 1;
-    mInterval('schedule', 'lastStepInIntervalBlock', 'c000') = 48;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c000') = 1344;
+$ontext
     mInterval('schedule', 'stepsPerInterval', 'c001') = 24;
     mInterval('schedule', 'lastStepInIntervalBlock', 'c001') = 168;
     mInterval('schedule', 'stepsPerInterval', 'c002') = 168;
-    mInterval('schedule', 'lastStepInIntervalBlock', 'c002') = 840;
-    mInterval('schedule', 'stepsPerInterval', 'c003') = 720;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c002') = 8736;
+    mInterval('schedule', 'stepsPerInterval', 'c003') = 24;
     mInterval('schedule', 'lastStepInIntervalBlock', 'c003') = 8760;
+
     mInterval('schedule', 'stepsPerInterval', 'c004') = 168;
     mInterval('schedule', 'lastStepInIntervalBlock', 'c004') = 8760;
+$offtext
 
 * =============================================================================
 * --- Model Forecast Structure ------------------------------------------------
@@ -121,7 +124,7 @@ if (mType('schedule'),
     mSettings('schedule', 't_improveForecast') = 0;                // Number of time steps ahead of time that the forecast is improved on each solve.
 
     // Define how forecast data is read
-    mSettings(mSolve, 'onlyExistingForecasts') = no; // yes = Read only existing data; zeroes need to be EPS to be recognized as data.
+    mSettings(mSolve, 'onlyExistingForecasts') = yes; // yes = Read only existing data; zeroes need to be EPS to be recognized as data.
 
     // Define what forecast data is read
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
@@ -140,7 +143,7 @@ if (mType('schedule'),
     mf_realization('schedule', 'f00') = yes;
     mf_central('schedule', f) = no;
     mf_central('schedule', 'f02') = yes;
-    
+
     // Define special forecast label that holds scenario data
     //mf_scenario('schedule', 'scen') = yes;
 
@@ -157,31 +160,31 @@ if (mType('schedule'),
 * =============================================================================
 
     // Define active model features
-    active('schedule', 'storageValue') = yes;
+    active('schedule', 'storageValue') = no;
     active('schedule', 'scenRed') = no;
 
-    mSettings('schedule', 'red_num_leaves') = 10;  // Desired number of long-term scenarios
+    mSettings('schedule', 'red_num_leaves') = 0;  // Desired number of long-term scenarios
     mSettings('schedule', 'red_percentage') = 0;   // Scenario reduction percentage
 
 * --- Define Reserve Properties -----------------------------------------------
 
     // Define whether reserves are used in the model
-    mSettingsReservesInUse('schedule', 'primary', 'up') = yes;
-    mSettingsReservesInUse('schedule', 'primary', 'down') = yes;
-    mSettingsReservesInUse('schedule', 'secondary', 'up') = yes;
-    mSettingsReservesInUse('schedule', 'secondary', 'down') = yes;
-    mSettingsReservesInUse('schedule', 'tertiary', 'up') = yes;
-    mSettingsReservesInUse('schedule', 'tertiary', 'down') = yes;
+    mSettingsReservesInUse('schedule', 'primary', 'up') = no;
+    mSettingsReservesInUse('schedule', 'primary', 'down') = no;
+    mSettingsReservesInUse('schedule', 'secondary', 'up') = no;
+    mSettingsReservesInUse('schedule', 'secondary', 'down') = no;
+    mSettingsReservesInUse('schedule', 'tertiary', 'up') = no;
+    mSettingsReservesInUse('schedule', 'tertiary', 'down') = no;
 
 * --- Define Unit Approximations ----------------------------------------------
 
     // Define the last time step for each unit aggregation and efficiency level (3a_periodicInit.gms ensures that there is a effLevel until t_horizon)
-    mSettingsEff('schedule', 'level1') = 8760;
+    mSettingsEff('schedule', 'level1') = 1344;
 *    mSettingsEff('schedule', 'level2') = 24;
 *    mSettingsEff('schedule', 'level3') = 8760;
 
     // Define the horizon when start-up and shutdown trajectories are considered
-    mSettings('schedule', 't_trajectoryHorizon') = 8760;
+    mSettings('schedule', 't_trajectoryHorizon') = 96;
 
 * --- Define output settings for results --------------------------------------
 

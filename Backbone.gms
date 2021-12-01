@@ -188,7 +188,7 @@ execute_unload '%output_dir%/%output_file%',
 ;
 
 $ife %debug%>0
-execute_unload '%output_dir%/debug.gdx';
+execute_unload '%output_dir%/debug_%run%.gdx';
 if(execError,
    putclose log "!!! Errors encountered: " execError:0:0/;
    abort "FAILED";
