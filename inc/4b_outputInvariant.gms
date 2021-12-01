@@ -16,8 +16,9 @@ along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
 
-// for performance, get rid of any zeros in r_gen (r_gen was already missing many zero values anyway)
+// for performance, get rid of any zeros in r_gen and r_reserve. Many zero values missing anyway.
 r_gen(gnu, f, t)$((r_gen(gnu, f, t)=0)$r_gen(gnu, f, t))=0;
+r_reserve(restype, up_down, gnu, f, t)$((r_reserve(restype, up_down, gnu, f, t)=0)$r_reserve(restype, up_down, gnu, f, t))=0;
 
 * =============================================================================
 * --- Time Step Dependent Results ---------------------------------------------
