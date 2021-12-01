@@ -21,8 +21,8 @@ $offtext
 
 * Reads changes or additions to the inputdata through changes.inc file.
 
-$ifthen exist '%input_dir%/inputData.gdx'
-    $$gdxin  '%input_dir%/inputData.gdx'
+$ifthen exist '%input_dir%/inputData_%run%.gdx'
+    $$gdxin  '%input_dir%/inputData_%run%.gdx'
     $$loaddcm grid
     $$loaddc node
     $$loaddc flow
