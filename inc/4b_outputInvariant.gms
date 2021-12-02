@@ -445,6 +445,29 @@ loop(m,
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
+    // Total reserve provisions over the simulation
+    r_gnTotalReserve(restype, up_down, grid, node)
+        =  sum(unit, r_gnuTotalReserve(restype, up_down, grid, node, unit))
+    ;
+
+* --- Total Reserve Transfers -------------------------------------------------
+
+    // Total reserve transfer leftward over the simulation
+    r_gnnTotalResTransferLeftward(restype, up_down, grid, node, to_node)
+        = sum(ft_realizedNoReset(f, startp(t)),
+            + r_resTransferLeftward(restype, up_down, grid, node, to_node, f, t)
+                * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+            ); // END sum(ft_realizedNoReset)
+
+    // Total reserve transfer rightward over the simulation
+    r_gnnTotalResTransferRightward(restype, up_down, grid, node, to_node)
+        = sum(ft_realizedNoReset(f, startp(t)),
+            + r_resTransferRightward(restype, up_down, grid, node, to_node, f, t)
+                * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+            ); // END sum(ft_realizedNoReset)
+
 * --- Total Transfer and Spill ------------------------------------------------
 
     // Total transfer of energy between nodes
@@ -476,6 +499,26 @@ r_balanceMarginal(gn(grid, node), ft_realizedNoReset(f, startp(t)))
 // Reserve balance
 r_resDemandMarginal(restypeDirectionGroup(restype, up_down, group), ft_realizedNoReset(f, startp(t)))
     = 1e6 * r_resDemandMarginal(restype, up_down, group, f, t);
+
+* --- Annual averages of marginal values --------------------------------------
+
+r_balanceMarginalAverage(grid, node)
+    = sum(ft_realizedNoReset(f, startp(t)),
+         + r_balanceMarginal(grid, node, f, t)
+            // * p_stepLengthNoReset(m, f, t)   // not including steplength due to division by number of timesteps
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+        ) // END sum(ft_realizedNoReset)
+        / sum(t, t_realized(t)*1) // divided by number of realized time steps
+        ;
+
+r_resDemandMarginalAverage(restype, up_down, group)
+    = sum(ft_realizedNoReset(f, startp(t)),
+         + r_resDemandMarginal(restype, up_down, group, f, t)
+            // * p_stepLengthNoReset(m, f, t)   // not including steplength due to division by number of timesteps
+            * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+        ) // END sum(ft_realizedNoReset)
+        / sum(t, t_realized(t)*1) // divided by number of realized time steps
+        ;
 
 * --- Total Generation Results ------------------------------------------------
 

@@ -89,6 +89,7 @@ Parameters
 
     // Interesting node related results
     r_balanceMarginal(grid, node, f, t) "Marginal values of the q_balance equation"
+    r_balanceMarginalAverage(grid, node) "Annual average of marginal values of the q_balance equation"
     r_gnnTotalTransfer(grid, node, node) "Total amount of energy transferred between gnn over the simulation (MWh)"
     r_gnTotalSpill(grid, node) "Total spilled energy from gn over the simulation (MWh)"
     r_gnTotalSpillShare(grid, node) "Total spilled energy gn/g share"
@@ -175,9 +176,13 @@ Parameters
 
     // Interesting reserve results
     r_resDemandMarginal(restype, up_down, group, f, t) "Marginal values of the q_resDemand equation"
+    r_resDemandMarginalAverage(restype, up_down, group) "Annual average of marginal values of the q_resDemand equation"
     r_gnuTotalReserve(restype, up_down, grid, node, unit) "Total gnu reserve provision over the simulation (MW*h)"
     r_gnuTotalReserveShare(restype, up_down, grid, node, unit) "Total gnu/group reserve provision share over the simulation"
+    r_gnTotalReserve(restype, up_down, grid, node) "Total gn reserve provision over the simulation (MW*h)"
     r_groupTotalReserve(restype, up_down, group) "Total reserve provisions in groups over the simulation (MW*h)"
+    r_gnnTotalResTransferRightward(restype, up_down, grid, node, node) "Total electricity transmission capacity from the first node to the second node reserved for providing reserves (MW*h)"
+    r_gnnTotalResTransferLeftward(restype, up_down, grid, node, node) "Total electricity transmission capacity from the second node to the first node reserved for providing reserves (MW*h)"
     r_resDemandLargestInfeedUnit(restype, up_down, group, f, t) "Reserve Demand from the loss of largest infeed unit"
 
 * --- Investment Results ------------------------------------------------------

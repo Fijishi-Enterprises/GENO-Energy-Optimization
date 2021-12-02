@@ -83,6 +83,7 @@ r_spill
 
 // Interesting node related results
 r_balanceMarginal
+r_balanceMarginalAverage
 r_gnnTotalTransfer
 r_gnTotalSpill
 r_gnTotalSpillShare
@@ -166,8 +167,12 @@ r_resTransferLeftward
 
 // Interesting reserve results
 r_resDemandMarginal
+r_resDemandMarginalAverage
 r_gnuTotalReserve
 r_gnuTotalReserveShare
+r_gnTotalReserve
+r_gnnTotalResTransferRightward
+r_gnnTotalResTransferLeftward
 r_groupTotalReserve
 r_resDemandLargestInfeedUnit
 
