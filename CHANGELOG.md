@@ -5,12 +5,15 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Result parameters for start-up energy consumption and start-up emissions
 - Result parameter for realized diffusions
+- Result tables for average marginal values (generation, reserves)
+- Result tables for annual reserve results (gn, resTransfer)
 - Two additional constraints to make transfer constraints tighter
 - New set for the m, s, f, t combinations including the previous sample
 
 ### Changed
 - Replaced commodity set with a parameter usePrice and updated results calculation related to it
 - Replaced q_energyMax, q_energyShareMax and q_energyShareMin with q_energyLimit and q_energyShareLimit
+- Removing Eps values from r_reserve results table
 
 ### Fixed
 - Including start-up fuel consumption in q_balance
