@@ -14,12 +14,12 @@ All notable changes to this project will be documented in this file.
 - Replaced commodity set with a parameter usePrice and updated results calculation related to it
 - Replaced q_energyMax, q_energyShareMax and q_energyShareMin with q_energyLimit and q_energyShareLimit
 - Removing Eps values from r_reserve results table
+- Allow solver resource or iteration limit interrupt if the solution is feasible
 
 ### Fixed
 - Including start-up fuel consumption in q_balance
 - Updated start-up cost and start-up emission calculation
 - output_dir command line argument was missing quotes in the code and directories with space did not work 
-- Checking solve and model status
 
 ## 1.5 - 2021-10-05
 ### Added
