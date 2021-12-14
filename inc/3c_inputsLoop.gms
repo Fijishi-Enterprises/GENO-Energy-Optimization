@@ -544,7 +544,7 @@ $offtext
 $ifthen.autocorr defined p_autocorrelation
 
 // Do smoothing
-if(mSettings(mSolve, 'scenarios'),  // Only do smooting if using long-term scenarios
+if(mSettings(mSolve, 'scenarios') > 0,  // Only do smooting if using long-term scenarios
     // Select the initial sample, the last time in it (t_)
     // and the forecast (f_) of the last simulated time step (t__) in it
     loop((ms_initial(mSolve, s_), t_, ft(f_, t__))
