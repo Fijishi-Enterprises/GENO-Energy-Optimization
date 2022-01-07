@@ -105,6 +105,7 @@ r_totalGenFuel
 
 // Interesting energy generation results
 r_gnuTotalGen
+r_gnuTotalGen_unittype   
 r_gnuTotalGenShare
 r_gnTotalGen
 r_gnTotalGenShare

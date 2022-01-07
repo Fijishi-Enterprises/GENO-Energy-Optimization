@@ -100,7 +100,7 @@ Parameters
 
     // Results required for model structure
     r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
-    r_gen_gnUnittype(grid, node, unittype) "Energy generation for each unittype in each node (MWh)"
+    r_gnuTotalGen_unittype(grid, node, unittype) "Energy generation for each unittype in each node (MWh)"
 
     // Energy output results based on input types or unittypes
     r_genFuel(grid, node, *, f, t) "Energy output to a node based on inputs from another node or flows (MW)"

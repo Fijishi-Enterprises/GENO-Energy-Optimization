@@ -15,11 +15,14 @@ All notable changes to this project will be documented in this file.
 - Replaced q_energyMax, q_energyShareMax and q_energyShareMin with q_energyLimit and q_energyShareLimit
 - Removing Eps values from r_reserve results table
 - Allow solver resource or iteration limit interrupt if the solution is feasible
+- result table r_gen_gnUnittype renamed to r_gnuTotalGen_unittype. Original was not actively used in master branch.
+- updated the order of generation result tables in 4b_outputInvariants
 
 ### Fixed
 - Including start-up fuel consumption in q_balance
 - Updated start-up cost and start-up emission calculation
 - output_dir command line argument was missing quotes in the code and directories with space did not work 
+- changing sum over gnu_output to gnu in totalVOMcost, genUnittype, and gnuUtilizationRate
 
 ## 1.5 - 2021-10-05
 ### Added
