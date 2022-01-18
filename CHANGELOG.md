@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - updated the order of generation result tables in 4b_outputInvariants
 
 ### Fixed
+- p_gnReserves for one node with more than one independend reserves 
 - Including start-up fuel consumption in q_balance
 - Updated start-up cost and start-up emission calculation
 - output_dir command line argument was missing quotes in the code and directories with space did not work 

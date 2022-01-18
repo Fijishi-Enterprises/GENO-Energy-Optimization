@@ -442,9 +442,10 @@ p_groupReserves(group, restype, 'reserve_reactivation_time')
 * --- Copy reserve data and create necessary sets -----------------------------
 
 // Copy data from p_groupReserves to p_gnReserves
-loop(gnGroup(grid, node, group)${sum(restype, p_groupReserves(group, restype, 'reserve_length'))},
-    p_gnReserves(grid, node, restype, param_policy) = p_groupReserves(group, restype, param_policy);
-);
+p_gnReserves(grid, node, restype, param_policy) =
+    sum(gnGroup(grid, node, group)${sum(restype_, p_groupReserves(group, restype_, 'reserve_length'))},
+        p_groupReserves(group, restype, param_policy)
+    );
 
 // Units with reserve provision capabilities
 gnuRescapable(restypeDirection(restype, up_down), gnu(grid, node, unit))
