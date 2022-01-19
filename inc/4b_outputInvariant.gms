@@ -697,8 +697,8 @@ r_reserve2Reserve(gnuRescapable(restype, up_down, grid, node, unit), restype_, f
 * --- Total Reserve Provision Results -----------------------------------------
 
 // Group sum of reserves of specific types (MW)
-r_groupReserve(restype, up_down, group, f, t)
-    = sum(gnuft(grid, node, unit, f, t)${ gnGroup(grid, node, group)
+r_groupReserve(restypeDirectionGroup(restype, up_down, group), f, t)
+    = sum(gnu(grid, node, unit)${ gnGroup(grid, node, group)
                                           and groupRestype(group, restype)
                                           },
         + r_reserve(restype, up_down, grid, node, unit, f, t)
