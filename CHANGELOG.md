@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Result tables for annual reserve results (gn, resTransfer)
 - Two additional constraints to make transfer constraints tighter
 - New set for the m, s, f, t combinations including the previous sample
+- two new result tables (gnGen, groupReserves) for easier graph drawing and debugging
 
 ### Changed
 - Replaced commodity set with a parameter usePrice and updated results calculation related to it

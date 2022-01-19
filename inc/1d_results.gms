@@ -100,7 +100,6 @@ Parameters
 
     // Results required for model structure
     r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
-    r_gnuTotalGen_unittype(grid, node, unittype) "Energy generation for each unittype in each node (MWh)"
 
     // Energy output results based on input types or unittypes
     r_genFuel(grid, node, *, f, t) "Energy output to a node based on inputs from another node or flows (MW)"
@@ -112,7 +111,9 @@ Parameters
 
     // Interesting energy generation results
     r_gnuTotalGen(grid, node, unit) "Total energy generation in gnu over the simulation (MWh)"
+    r_gnuTotalGen_unittype(grid, node, unittype) "Energy generation for each unittype in each node (MWh)"
     r_gnuTotalGenShare(grid, node, unit) "Total energy generation gnu/gn share"
+    r_gnGen(grid, node, f, t) "energy generation for each gridnode (MW)"    
     r_gnTotalGen(grid, node) "Total energy generation in gn over the simulation (MWh)"
     r_gnTotalGenShare(grid, node) "Total energy generation gn/g share"
     r_gTotalGen(grid) "Total energy generation in g over the simulation (MWh)"
@@ -180,10 +181,12 @@ Parameters
     r_gnuTotalReserve(restype, up_down, grid, node, unit) "Total gnu reserve provision over the simulation (MW*h)"
     r_gnuTotalReserveShare(restype, up_down, grid, node, unit) "Total gnu/group reserve provision share over the simulation"
     r_gnTotalReserve(restype, up_down, grid, node) "Total gn reserve provision over the simulation (MW*h)"
-    r_groupTotalReserve(restype, up_down, group) "Total reserve provisions in groups over the simulation (MW*h)"
     r_gnnTotalResTransferRightward(restype, up_down, grid, node, node) "Total electricity transmission capacity from the first node to the second node reserved for providing reserves (MW*h)"
     r_gnnTotalResTransferLeftward(restype, up_down, grid, node, node) "Total electricity transmission capacity from the second node to the first node reserved for providing reserves (MW*h)"
     r_resDemandLargestInfeedUnit(restype, up_down, group, f, t) "Reserve Demand from the loss of largest infeed unit"
+    r_groupReserve(restype, up_down, group, f, t) "Group sum of reserves of specific types (MW)"
+    r_groupTotalReserve(restype, up_down, group) "Total reserve provisions in groups over the simulation (MW*h)"
+
 
 * --- Investment Results ------------------------------------------------------
 

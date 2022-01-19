@@ -312,6 +312,10 @@ loop(m,
              + r_gnuTotalGen(grid, node, unit)
             );
 
+    // energy generation for each gridnode (MW)
+    r_gnGen(grid, node, f, t)
+        = sum(unit, r_gen(grid, node, unit, f, t));
+
     // Total generation in gn
     r_gnTotalGen(gn(grid, node))
         = sum(unit, r_gnuTotalGen(grid, node, unit));
@@ -691,6 +695,14 @@ r_reserve2Reserve(gnuRescapable(restype, up_down, grid, node, unit), restype_, f
         * p_gnuRes2Res(grid, node, unit, restype, up_down, restype_);
 
 * --- Total Reserve Provision Results -----------------------------------------
+
+// Group sum of reserves of specific types (MW)
+r_groupReserve(restype, up_down, group, f, t)
+    = sum(gnuft(grid, node, unit, f, t)${ gnGroup(grid, node, group)
+                                          and groupRestype(group, restype)
+                                          },
+        + r_reserve(restype, up_down, grid, node, unit, f, t)
+      ); // END sum(gnuft)
 
 // Total reserve provision in groups over the simulation
 r_groupTotalReserve(restypeDirectionGroup(restype, up_down, group))

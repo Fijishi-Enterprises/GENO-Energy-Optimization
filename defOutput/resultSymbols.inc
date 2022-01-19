@@ -105,8 +105,9 @@ r_totalGenFuel
 
 // Interesting energy generation results
 r_gnuTotalGen
-r_gnuTotalGen_unittype   
+r_gnuTotalGen_unittype
 r_gnuTotalGenShare
+r_gnGen
 r_gnTotalGen
 r_gnTotalGenShare
 r_gTotalGen
@@ -174,8 +175,9 @@ r_gnuTotalReserveShare
 r_gnTotalReserve
 r_gnnTotalResTransferRightward
 r_gnnTotalResTransferLeftward
-r_groupTotalReserve
 r_resDemandLargestInfeedUnit
+r_groupReserve
+r_groupTotalReserve
 
 * --- Investment Result Symbols -----------------------------------------------
 

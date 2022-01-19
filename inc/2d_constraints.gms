@@ -173,7 +173,7 @@ q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
                                           },
         + v_gen(grid, node, unit, s, f, t)
             * p_gnuReserves(grid, node, unit, restype, 'reserve_increase_ratio')
-        ) // END sum(nuft)
+        ) // END sum(gnuft)
 
     // Reserve provisions to other groups via transfer links
     + sum(gn2n_directional(grid, node, node_)${ gnGroup(grid, node, group)
