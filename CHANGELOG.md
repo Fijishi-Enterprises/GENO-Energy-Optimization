@@ -1,7 +1,22 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 2.1 - 2022-01-24
+### Added
+- two new result tables (gnGen, groupReserves) for easier graph drawing and debugging
+
+### Changed
+- result table r_gen_gnUnittype renamed to r_gnuTotalGen_unittype. Original was not actively used in master branch.
+- updated the order of generation result tables in 4b_outputInvariants
+
+### Fixed
+- changing sum over gnu_output to gnu in totalVOMcost, genUnittype, and gnuUtilizationRate
+- p_gnReserves for one node with more than one independend reserves 
+- Aggregated units not working with maintenance breaks
+- Summing of reserve results
+
+
+## 2.0 - 2022-01-05
 ### Added
 - Result parameters for start-up energy consumption and start-up emissions
 - Result parameter for realized diffusions
@@ -9,22 +24,19 @@ All notable changes to this project will be documented in this file.
 - Result tables for annual reserve results (gn, resTransfer)
 - Two additional constraints to make transfer constraints tighter
 - New set for the m, s, f, t combinations including the previous sample
-- two new result tables (gnGen, groupReserves) for easier graph drawing and debugging
 
 ### Changed
 - Replaced commodity set with a parameter usePrice and updated results calculation related to it
 - Replaced q_energyMax, q_energyShareMax and q_energyShareMin with q_energyLimit and q_energyShareLimit
 - Removing Eps values from r_reserve results table
 - Allow solver resource or iteration limit interrupt if the solution is feasible
-- result table r_gen_gnUnittype renamed to r_gnuTotalGen_unittype. Original was not actively used in master branch.
-- updated the order of generation result tables in 4b_outputInvariants
 
 ### Fixed
-- p_gnReserves for one node with more than one independend reserves 
 - Including start-up fuel consumption in q_balance
 - Updated start-up cost and start-up emission calculation
 - output_dir command line argument was missing quotes in the code and directories with space did not work 
-- changing sum over gnu_output to gnu in totalVOMcost, genUnittype, and gnuUtilizationRate
+- Sceanario smoothing in certain special cases
+
 
 ## 1.5 - 2021-10-05
 ### Added
