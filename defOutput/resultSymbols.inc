@@ -141,7 +141,7 @@ r_uTotalShutdown
 
 * --- Emissions Results -----------------------------------------------
 
-// Unit level emissions from normal operation
+// Unit level emissions from normal operation inputs
 r_emissions
 
 // Unit level emissions from outputs, not considered in the equations
