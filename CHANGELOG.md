@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - result table r_gen_gnUnittype renamed to r_gnuTotalGen_unittype. Original was not actively used in master branch.
 - updated the order of generation result tables in 4b_outputInvariants
+- changed emissions from output result table to print negative numbers signifying emissions bound to manufactured product
 
 ### Fixed
 - changing sum over gnu_output to gnu in totalVOMcost, genUnittype, and gnuUtilizationRate

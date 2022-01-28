@@ -113,7 +113,7 @@ Parameters
     r_gnuTotalGen(grid, node, unit) "Total energy generation in gnu over the simulation (MWh)"
     r_gnuTotalGen_unittype(grid, node, unittype) "Energy generation for each unittype in each node (MWh)"
     r_gnuTotalGenShare(grid, node, unit) "Total energy generation gnu/gn share"
-    r_gnGen(grid, node, f, t) "energy generation for each gridnode (MW)"    
+    r_gnGen(grid, node, f, t) "energy generation for each gridnode (MW)"
     r_gnTotalGen(grid, node) "Total energy generation in gn over the simulation (MWh)"
     r_gnTotalGenShare(grid, node) "Total energy generation gn/g share"
     r_gTotalGen(grid) "Total energy generation in g over the simulation (MWh)"
@@ -133,7 +133,7 @@ Parameters
 
 * --- Emissions Results -------------------------------------------------------
 
-    // Unit level emissions from normal operation
+    // Unit level emissions from normal operation inputs
     r_emissions(grid, node, emission, unit, f, t) "Emissions from units (tCO2)"
 
     // Unit level emissions from outputs, not considered in the equations

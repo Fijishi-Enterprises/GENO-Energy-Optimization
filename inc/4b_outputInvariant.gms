@@ -352,7 +352,7 @@ loop(m,
 
 * --- Emission Results --------------------------------------------------------
 
-    // Emissions of units (not including start-up fuels)
+    // Emissions of unit inputs (not including start-up fuels).
     // Only taking into account emissions from input because emissions from output
     // do not cause costs and are not considered in emission cap
     r_emissions(grid, node, emission, unit, ft_realizedNoReset(f,startp(t)))
@@ -363,10 +363,10 @@ loop(m,
             / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
     ;
 
-    // Emissions from unit outputs
+    // Emissions from unit outputs. Negative value signifying emissions bound to product
     r_emissionsFromOutput(grid, node, emission, unit, ft_realizedNoReset(f,startp(t)))
         $gnu_output(grid, node, unit)
-        =   + p_stepLengthNoReset(m, f, t)
+        =   - p_stepLengthNoReset(m, f, t)
             * r_gen(grid, node, unit, f, t)
             * p_nEmission(node, emission)
             / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
