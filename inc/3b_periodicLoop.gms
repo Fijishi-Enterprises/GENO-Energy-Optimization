@@ -74,6 +74,7 @@ Option clear = q_maxDownward;
 Option clear = q_maxDownwardOfflineReserve;
 Option clear = q_maxUpward;
 Option clear = q_maxUpwardOfflineReserve;
+Option clear = q_fixedFlow;
 Option clear = q_reserveProvision;
 Option clear = q_reserveProvisionOnline;
 Option clear = q_startshut;
