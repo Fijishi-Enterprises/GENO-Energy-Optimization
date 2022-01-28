@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## 2.1 - 2022-01-24
 ### Added
 - two new result tables (gnGen, groupReserves) for easier graph drawing and debugging
+- fixed flow units to model must-run production or consumption units
 
 ### Changed
 - result table r_gen_gnUnittype renamed to r_gnuTotalGen_unittype. Original was not actively used in master branch.
