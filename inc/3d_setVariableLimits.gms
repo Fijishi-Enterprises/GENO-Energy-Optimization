@@ -90,13 +90,34 @@ loop(node$(not node_superpos(node)),
             = ts_node_(grid, node, 'reference', s, f, t)
                     * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
-    // BoundStartToEnd: bound the last interval in the horizon to the value just before the horizon
+    // BoundStartToEnd: bound the last interval in the horizon to the value just before the horizon if not the first solve
     v_state.fx(gn_state(grid, node), sft(s, f, t))${mft_lastSteps(mSolve, f, t)
                                                     and p_gn(grid, node, 'boundStartToEnd')
+                                                    and (solveCount > 1)
                                                     }
             = sum(mf_realization(mSolve, f_),
                     + r_state(grid, node, f_, tSolve)
               ); // END sum(mf_realization)
+
+    // BoundStartToEnd: bound the last interval in the horizon to the reference value if first solve and constant reference
+    v_state.fx(gn_state(grid, node), sft(s, f, t))${mft_lastSteps(mSolve, f, t)
+                                                    and p_gn(grid, node, 'boundStartToEnd')
+                                                    and (solveCount = 1)
+                                                    and p_gn(grid, node, 'boundStart')
+                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                                    }
+            = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+
+    // BoundStartToEnd: bound the last interval in the horizon to the reference value if first solve and timeseries reference
+    v_state.fx(gn_state(grid, node), sft(s, f, t))${mft_lastSteps(mSolve, f, t)
+                                                    and p_gn(grid, node, 'boundStartToEnd')
+                                                    and (solveCount = 1)
+                                                    and p_gn(grid, node, 'boundStart')   
+                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') // !!! NOTE !!! The check fails if value is zero
+                                                        }
+                = ts_node(grid, node, 'reference', f, t) // NOTE!!! ts_node_ doesn't contain initial values so using raw data instead.
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
 
 
