@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - decreased default penalty value from 10e9 to 10e4 to improve solver default behavior
 
 ### Fixed
+- during the first solve, boundStartToEnd now fixes the end value to boundstart if available, otherwise unbound
 
 
 ## 2.1 - 2022-01-24
