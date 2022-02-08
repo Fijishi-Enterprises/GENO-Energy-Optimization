@@ -50,7 +50,7 @@ GAMS command line arguments
     For testing purposes.
 
 --penalty=<value>
-    Changes the value of the penalty cost. Default penalty value is 1e9
+    Changes the value of the penalty cost. Default penalty value is 1e4
     if not provided.
 
 --input_dir=<path>
