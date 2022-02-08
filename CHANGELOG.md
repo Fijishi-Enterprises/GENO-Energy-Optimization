@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## unversioned
+### Added
+
+### Changed
+- decreased default penalty value from 10e9 to 10e4 to improve solver default behavior
+
+### Fixed
+
+
 ## 2.1 - 2022-01-24
 ### Added
 - two new result tables (gnGen, groupReserves) for easier graph drawing and debugging
