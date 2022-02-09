@@ -234,7 +234,8 @@ $endif.diag
 if (mSolve('schedule'),
     r_solveStatus(tSolve,'modelStat')=schedule.modelStat;
     r_solveStatus(tSolve,'solveStat')=schedule.solveStat;
-    r_solveStatus(tSolve,'totalTime')=schedule.etSolve;
+    r_solveStatus(tSolve,'totalTime')=round(schedule.etSolve,4);
+    r_solveStatus(tSolve,'solverTime')=round(schedule.etSolver,4);
     r_solveStatus(tSolve,'iterations')=schedule.iterUsd;
     r_solveStatus(tSolve,'nodes')=schedule.nodUsd;
     r_solveStatus(tSolve,'numEqu')=schedule.numEqu;
@@ -248,7 +249,8 @@ if (mSolve('schedule'),
 if (mSolve('invest'),
     r_solveStatus(tSolve,'modelStat')=invest.modelStat;
     r_solveStatus(tSolve,'solveStat')=invest.solveStat;
-    r_solveStatus(tSolve,'totalTime')=invest.etSolve;
+    r_solveStatus(tSolve,'totalTime')=round(invest.etSolve,4);
+    r_solveStatus(tSolve,'solverTime')=round(invest.etSolver,4);
     r_solveStatus(tSolve,'iterations')=invest.iterUsd;
     r_solveStatus(tSolve,'nodes')=invest.nodUsd;
     r_solveStatus(tSolve,'numEqu')=invest.numEqu;

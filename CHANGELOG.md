@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## unversioned
 ### Added
+- solver time and total time separately to r_solveStatus
 
 ### Changed
 - decreased default penalty value from 10e9 to 10e4 to improve solver default behavior
