@@ -197,9 +197,16 @@ $if exist '%input_dir%/4d_postProcess.gms' $include '%input_dir%/4d_postProcess.
 
 $if not set output_file $setglobal output_file 'results.gdx'
 
-execute_unload '%output_dir%/%output_file%',
-    $$include 'defOutput/resultSymbols.inc'
-;
+$ifthen exist '%input_dir%/additionalResultSymbols.inc'
+   execute_unload '%output_dir%/%output_file%',
+     $$include 'defOutput/resultSymbols.inc'//,
+     $$include '%input_dir%/additionalResultSymbols.inc'
+   ;
+$else
+   execute_unload '%output_dir%/%output_file%',
+     $$include 'defOutput/resultSymbols.inc'//,
+   ;
+$endif
 
 $ife %debug%>0
 execute_unload '%output_dir%/debug.gdx';
