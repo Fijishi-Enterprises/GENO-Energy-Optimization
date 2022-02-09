@@ -71,6 +71,7 @@ Sets
         modelStat
         solveStat
         totalTime
+        solverTime
         iterations
         nodes
         numEqu
@@ -86,16 +87,17 @@ Sets
     solve_info "Containers for solve information" /
         modelStat "Status of the model after solve"
         solveStat "Status of the solve"
-        totalTime "Total solve time"
+        totalTime "Total time of solve"
+        solverTime "Solver time of solve"
         iterations "Number of iteration"
         nodes "Number of nodes in the solve"
-        numEqu "Number of equations in the problem"
-        numDVar "Number of D variables in the problem"
-        numVar "Number of variables in the problem"
-        numNZ "Number of non-zeros in the problem"
+        numEqu "Number of equations in the solve"
+        numDVar "Number of discrete variables in the solve"
+        numVar "Number of variables in the solve"
+        numNZ "Number of non-zero entries in the solve matrix"
         sumInfes "Sum of infeasibilities"
         objEst "Estimate for the best possible objective value"
-        objVal "Objectiv value"
+        objVal "Objective value"
         /
 
 * --- Efficiency Approximation Related Sets -----------------------------------
