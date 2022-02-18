@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - during the first solve, boundStartToEnd now fixes the end value to boundstart if available, otherwise unbound
+- resetting also minUnitCount in postProcess template
 
 
 ## 2.1 - 2022-01-24
