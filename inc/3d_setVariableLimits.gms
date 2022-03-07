@@ -194,7 +194,7 @@ v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f,
                                     }
     = p_gnu(grid, node, unit, 'capacity')
         * [
-            + p_unit(unit, 'availability')${not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+            + p_unit(unit, 'availability')${not ts_unit(unit, 'availability', f, t)}
             + ts_unit_(unit, 'availability', f, t)${ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
             ]
 ;
@@ -207,7 +207,7 @@ v_gen.up(gnu_output(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, uni
         + ts_cf_(flow, node, s, f, t)
             * p_gnu(grid, node, unit_flow, 'capacity')
             * [
-                + p_unit(unit_flow, 'availability')${not ts_unit(unit_flow, 'availability', f, t) and not unit_timeseries(unit_flow)}
+                + p_unit(unit_flow, 'availability')${not ts_unit(unit_flow, 'availability', f, t)}
                 + ts_unit_(unit_flow, 'availability', f, t)${ts_unit(unit_flow, 'availability', f, t) and unit_timeseries(unit_flow)}
                 ]
       ) // END sum(flow)
@@ -224,7 +224,7 @@ v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, 
                                           and not (unit_investLP(unit) or unit_investMIP(unit))}
     = - p_gnu(grid, node, unit, 'capacity')
         * [
-            + p_unit(unit, 'availability')${not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+            + p_unit(unit, 'availability')${not ts_unit(unit, 'availability', f, t)}
             + ts_unit_(unit, 'availability', f, t)${ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
             ]
 ;
@@ -244,7 +244,7 @@ v_gen.lo(gnu_input(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, unit
           + ts_cf_(flow, node, s, f, t)
             * p_gnu(grid, node, unit_flow, 'capacity')
             * [
-                + p_unit(unit_flow, 'availability')${not ts_unit(unit_flow, 'availability', f, t) and not unit_timeseries(unit_flow)}
+                + p_unit(unit_flow, 'availability')${not ts_unit(unit_flow, 'availability', f, t)}
                 + ts_unit_(unit_flow, 'availability', f, t)${ts_unit(unit_flow, 'availability', f, t) and unit_timeseries(unit_flow)}
                 ]
       ) // END sum(flow)
