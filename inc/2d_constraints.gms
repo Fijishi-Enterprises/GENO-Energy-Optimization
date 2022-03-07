@@ -561,14 +561,17 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
 
     // Consuming units, greater than maxCons
     // Available capacity restrictions
-    - p_unit(unit, 'availability')$gnu_input(grid, node, unit)
+    - [
+        + p_unit(unit, 'availability')${gnu_input(grid, node, unit) and not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+        + ts_unit_(unit, 'availability', f, t)${gnu_input(grid, node, unit) and ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
+        ]
         * [
             // Capacity factors for flow units
             + sum(flowUnit(flow, unit),
                 + ts_cf_(flow, node, s, f, t)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
-            ] // END * p_unit(availability)
+            ] // END * unit availability
         * [
             // Online capacity restriction
             + p_gnu(grid, node, unit, 'capacity')${not uft_online(unit, f, t)} // Use initial maximum if no online variables
@@ -588,7 +591,7 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
                     + v_invest_LP(unit)${unit_investLP(unit) and not uft_online(unit, f, t)} // NOTE! v_invest_LP also for consuming units is positive
                     + v_invest_MIP(unit)${unit_investMIP(unit) and not uft_online(unit, f, t)} // NOTE! v_invest_MIP also for consuming units is positive
                     ] // END * p_gnu(unitSize)
-            ] // END * p_unit(availability)
+            ] // END * unit availability
 ;
 
 * --- Maximum Downward Capacity for Production/Consumption, Online Reserves and Offline Reserves ---
@@ -618,14 +621,18 @@ q_maxDownwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
 
     // Consuming units
     // Available capacity restrictions
-    - p_unit(unit, 'availability')$gnu_input(grid, node, unit) // Consumption units are also restricted by their (available) capacity
+    // Consumption units are also restricted by their (available) capacity
+    - [
+        + p_unit(unit, 'availability')${gnu_input(grid, node, unit) and not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+        + ts_unit_(unit, 'availability', f, t)${gnu_input(grid, node, unit) and ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
+        ]
         * [
             // Capacity factors for flow units
             + sum(flowUnit(flow, unit),
                 + ts_cf_(flow, node, s, f, t)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
-            ] // END * p_unit(availability)
+            ] // END * unit availability
         * [
             // Existing capacity
             + p_gnu(grid, node, unit, 'capacity')
@@ -637,7 +644,7 @@ q_maxDownwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
                     + v_invest_LP(unit)${unit_investLP(unit)}
                     + v_invest_MIP(unit)${unit_investMIP(unit)}
                     ] // END * p_gnu(unitSize)
-            ] // END * p_unit(availability)
+            ] // END * unit availability
 
 ;
 
@@ -690,14 +697,18 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
 
     // Generation units
     // Available capacity restrictions
-    + p_unit(unit, 'availability')$gnu_output(grid, node, unit) // Generation units are restricted by their (available) capacity
+    // Generation units are restricted by their (available) capacity
+    + [
+        + p_unit(unit, 'availability')${gnu_output(grid, node, unit) and not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+        + ts_unit_(unit, 'availability', f, t)${gnu_output(grid, node, unit) and ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
+        ]
         * [
             // Capacity factor for flow units
             + sum(flowUnit(flow, unit),
                 + ts_cf_(flow, node, s, f, t)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
-            ] // END * p_unit(availability)
+            ] // END * unit availability
         * [
             // Online capacity restriction
             + p_gnu(grid, node, unit, 'capacity')${not uft_online(unit, f, t)} // Use initial capacity if no online variables
@@ -711,7 +722,7 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
                     + v_invest_LP(unit)${unit_investLP(unit) and not uft_online(unit, f ,t)}
                     + v_invest_MIP(unit)${unit_investMIP(unit) and not uft_online(unit, f ,t)}
                     ] // END * p_gnu(unitSize)
-            ] // END * p_unit(availability)
+            ] // END * unit availability
 
     // Units in run-up phase neet to keep up with the run-up rate
     + p_gnu(grid, node, unit, 'unitSize')$gnu_output(grid, node, unit)
@@ -767,14 +778,19 @@ q_maxUpwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
 
     // Generation units
     // Available capacity restrictions
-    + p_unit(unit, 'availability')$gnu_output(grid, node, unit) // Generation units are restricted by their (available) capacity
+
+    // Generation units are restricted by their (available) capacity
+    + [
+        + p_unit(unit, 'availability')${gnu_output(grid, node, unit) and not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+        + ts_unit_(unit, 'availability', f, t)${gnu_output(grid, node, unit) and ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
+        ]
         * [
             // Capacity factor for flow units
             + sum(flowUnit(flow, unit),
                 + ts_cf_(flow, node, s, f, t)
                 ) // END sum(flow)
             + 1${not unit_flow(unit)}
-            ] // END * p_unit(availability)
+            ] // END * unit availability
         * [
             // Capacity restriction
             + p_gnu(grid, node, unit, 'unitSize')
@@ -786,7 +802,7 @@ q_maxUpwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
                     + v_invest_LP(unit)${unit_investLP(unit)}
                     + v_invest_MIP(unit)${unit_investMIP(unit)}
                     ] // END * p_gnu(unitSize)
-            ] // END * p_unit(availability)
+            ] // END * unit availability
 ;
 
 * --- Fixed Flow Production/Consumption ---------------------------------------
@@ -804,8 +820,10 @@ q_fixedFlow(gnu(grid, node, unit_flow(unit)), msft(m, s, f, t))
 
     + [
         // Available capacity restrictions
-        + p_unit(unit, 'availability')$gnu_output(grid, node, unit)
-        - p_unit(unit, 'availability')$gnu_input(grid, node, unit)
+        + p_unit(unit, 'availability')${gnu_output(grid, node, unit) and not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+        + ts_unit_(unit, 'availability', f, t)${gnu_output(grid, node, unit) and ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
+        - p_unit(unit, 'availability')${gnu_input(grid, node, unit) and not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+        - ts_unit_(unit, 'availability', f, t)${gnu_input(grid, node, unit) and ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
         ]
         * sum(flowUnit(flow, unit), // Capacity factor for flow units
             + ts_cf_(flow, node, s, f, t)
@@ -821,7 +839,7 @@ q_fixedFlow(gnu(grid, node, unit_flow(unit)), msft(m, s, f, t))
                     + v_invest_LP(unit)${unit_investLP(unit)}
                     + v_invest_MIP(unit)${unit_investMIP(unit)}
                     ] // END * p_gnu(unitSize)
-            ] // END * p_unit(availability)
+            ] // END * unit availability
 ;
 
 * --- Reserve Provision of Units with Investments -----------------------------
@@ -846,7 +864,11 @@ q_reserveProvision(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid
             + v_invest_MIP(unit)${unit_investMIP(unit)}
                 * p_gnu(grid, node, unit, 'unitSize')
             ]
-        * p_unit(unit, 'availability') // Taking into account availability...
+        // Taking into account availability...
+        * [
+            + p_unit(unit, 'availability')${not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+            + ts_unit_(unit, 'availability', f, t)${ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
+            ]
         * [
             // ... and capacity factor for flow units
             + sum(flowUnit(flow, unit),
@@ -877,7 +899,11 @@ q_reserveProvisionOnline(gnuRescapable(restypeDirectionGridNode(restype, up_down
             + v_online_LP(unit, s, f+df_central(f,t), t)${uft_onlineLP(unit, f ,t)}
             + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
             ]
-        * p_unit(unit, 'availability') // Taking into account availability...
+        // Taking into account availability...
+        * [
+            + p_unit(unit, 'availability')${not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+            + ts_unit_(unit, 'availability', f, t)${ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
+            ]
         * [
             // ... and capacity factor for flow units
             + sum(flowUnit(flow, unit),
@@ -2184,7 +2210,7 @@ q_resTransferLimitRightward(gn2n_directional(grid, node, node_), sft(s, f, t))
     + [
         + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
         + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
-        ]
+       ]
         * [
 
             // Existing transfer capacity
@@ -3119,7 +3145,10 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
     + sum(gnu_output(grid, node, unit)${ gnuft(grid, node, unit, f, t)
                                          and p_gnu(grid, node, unit, 'availabilityCapacityMargin')
                                          },
-        + p_unit(unit, 'availability')
+        + [
+            + p_unit(unit, 'availability')${not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+            + ts_unit_(unit, 'availability', f, t)${ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
+            ]
             * p_gnu(grid, node, unit, 'availabilityCapacityMargin')
             * [
                 // Output capacity before investments
@@ -3131,7 +3160,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
                         + v_invest_LP(unit)${unit_investLP(unit)}
                         + v_invest_MIP(unit)${unit_investMIP(unit)}
                         ] // END * p_gnu(unitSize)
-                ] // END * p_unit(availability)
+                ] // END * unit availability
         ) // END sum(gnu_output)
 
     // Availability of units, including capacity factors for flow units and v_gen for other units
@@ -3142,7 +3171,11 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
         + sum(flowUnit(flow, unit)${ unit_flow(unit) },
             + ts_cf_(flow, node, s, f, t)
             ) // END sum(flow)
-            * p_unit(unit, 'availability')
+            // Taking into account availability.
+            * [
+                + p_unit(unit, 'availability')${not ts_unit(unit, 'availability', f, t) and not unit_timeseries(unit)}
+                + ts_unit_(unit, 'availability', f, t)${ts_unit(unit, 'availability', f, t) and unit_timeseries(unit)}
+                ]
             * [
                 // Output capacity before investments
                 + p_gnu(grid, node, unit, 'capacity')
@@ -3153,7 +3186,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
                         + v_invest_LP(unit)${unit_investLP(unit)}
                         + v_invest_MIP(unit)${unit_investMIP(unit)}
                         ] // END * p_gnu(unitSize)
-                ] // END * p_unit(availability)
+                ] // END * unit availability
         + v_gen(grid, node, unit, s, f, t)${not unit_flow(unit)}
         ) // END sum(gnu_output)
 
