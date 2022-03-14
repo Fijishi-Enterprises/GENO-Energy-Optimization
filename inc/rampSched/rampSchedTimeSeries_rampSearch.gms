@@ -42,8 +42,8 @@ loop(gn(grid,node),
                           ts_cf(flow, node, f, t) *
                           p_data2d(grid, unit_flow, 'capacity')
                           *[
-                            + p_unit(unit_flow, 'availability')${not ts_unit(unit_flow, 'availability', f, t)}
-                            + ts_unit_(unit_flow, 'availability', f, t)${ts_unit(unit_flow, 'availability', f, t) and unit_timeseries(unit_flow)}
+                            + p_unit(unit_flow, 'availability')${not p_unit(unit_flow, 'useTimeseriesAvailability')}
+                            + ts_unit_(unit_flow, 'availability', f, t)${p_unit(unit_flow, 'useTimeseriesAvailability')} 
                             ]
                         )
                     ) * (13 - abs(ord(t) - ord(t_)))  // Weighting
