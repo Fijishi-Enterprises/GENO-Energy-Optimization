@@ -113,7 +113,7 @@ loop(node$(not node_superpos(node)),
     v_state.fx(gn_state(grid, node), sft(s, f, t))${mft_lastSteps(mSolve, f, t)
                                                     and p_gn(grid, node, 'boundStartToEnd')
                                                     and (solveCount = 1)
-                                                    and p_gn(grid, node, 'boundStart')   
+                                                    and p_gn(grid, node, 'boundStart')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') // !!! NOTE !!! The check fails if value is zero
                                                         }
                 = ts_node(grid, node, 'reference', f, t) // NOTE!!! ts_node_ doesn't contain initial values so using raw data instead.
@@ -186,14 +186,17 @@ v_spill.up(gn(grid, node_spill), sft(s, f, t))${    p_gnBoundaryPropertiesForSta
 
 
 
-// Constant max. energy generation if investments disabled
+// Max. energy generation if investments disabled
 v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
                                           and not unit_flow(unit)
                                           and not (unit_investLP(unit) or unit_investMIP(unit))
                                           and p_gnu(grid, node, unit, 'capacity')
                                     }
     = p_gnu(grid, node, unit, 'capacity')
-        * p_unit(unit, 'availability')
+        * [
+            + p_unit(unit, 'availability')${not p_unit(unit, 'useTimeseriesAvailability')}
+            + ts_unit_(unit, 'availability', f, t)${p_unit(unit, 'useTimeseriesAvailability')}
+            ]
 ;
 // Time series capacity factor based max. energy generation if investments disabled
 v_gen.up(gnu_output(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, unit_flow, f, t)
@@ -203,7 +206,10 @@ v_gen.up(gnu_output(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, uni
                     },
         + ts_cf_(flow, node, s, f, t)
             * p_gnu(grid, node, unit_flow, 'capacity')
-            * p_unit(unit_flow, 'availability')
+            * [
+                + p_unit(unit_flow, 'availability')${not p_unit(unit_flow, 'useTimeseriesAvailability')}
+                + ts_unit_(unit_flow, 'availability', f, t)${p_unit(unit_flow, 'useTimeseriesAvailability')}
+                ]
       ) // END sum(flow)
 ;
 
@@ -217,7 +223,10 @@ v_gen.lo(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f,
 v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
                                           and not (unit_investLP(unit) or unit_investMIP(unit))}
     = - p_gnu(grid, node, unit, 'capacity')
-        * p_unit(unit, 'availability')
+        * [
+            + p_unit(unit, 'availability')${not p_unit(unit, 'useTimeseriesAvailability')}
+            + ts_unit_(unit, 'availability', f, t)${p_unit(unit, 'useTimeseriesAvailability')}
+            ]
 ;
 
 v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
@@ -234,7 +243,10 @@ v_gen.lo(gnu_input(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, unit
                     },
           + ts_cf_(flow, node, s, f, t)
             * p_gnu(grid, node, unit_flow, 'capacity')
-            * p_unit(unit_flow, 'availability')
+            * [
+                + p_unit(unit_flow, 'availability')${not p_unit(unit_flow, 'useTimeseriesAvailability')}
+                + ts_unit_(unit_flow, 'availability', f, t)${p_unit(unit_flow, 'useTimeseriesAvailability')}
+                ]
       ) // END sum(flow)
 ;
 // In the case of negative generation (currently only used for cooling equipment)
