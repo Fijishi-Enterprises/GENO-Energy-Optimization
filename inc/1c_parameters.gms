@@ -150,6 +150,7 @@ Parameters
     // Other
     p_slackDirection(param_gnBoundaryTypes) "+1 for upward slacks and -1 for downward slacks"
     tForecastNext(mType) "When the next forecast will be available (ord time)"
+* obsolete code: aaSolveInfo
     aaSolveInfo(mType, t, solveInfoAttributes) "Stores information about the solve status"
     msStart(mType, s) "Start point of samples: first time step in the sample"
     msEnd(mType, s) "End point of samples: first time step not in the sample"

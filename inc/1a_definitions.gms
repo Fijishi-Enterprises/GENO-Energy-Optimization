@@ -66,6 +66,7 @@ Sets
                                    // 0 = include for units with non-convex fuel use, 1 = include for all units
         /
 
+* obsolete code: solveInfoAttributes
     // Solve info
     solveInfoAttributes "Information about model solves" /
         modelStat
