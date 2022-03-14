@@ -203,7 +203,7 @@ unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
 nu_startup(node, unit)$p_uStartupfuel(unit, node, 'fixedFuelFraction') = yes;
 
 // Units with time series data enabled
-unit_timeseries(unit)${ p_unit(unit, 'useTimeseries') }
+unit_timeseries(unit)${ p_unit(unit, 'useTimeseries') or p_unit(unit, 'useTimeseriesAvailability') }
     = yes;
 
 * --- Unit Related Parameters -------------------------------------------------
