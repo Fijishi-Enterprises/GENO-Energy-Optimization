@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - solver time and total time separately to r_solveStatus
 - option for user to add additional result symbols as input data
+- unit availability time series
 
 ### Changed
 - decreased default penalty value from 10e9 to 10e4 to improve solver default behavior
