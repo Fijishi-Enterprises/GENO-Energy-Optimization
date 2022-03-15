@@ -643,9 +643,6 @@ q_maxDownwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
                 * [
                     + v_invest_LP(unit)${unit_investLP(unit)}
                     + v_invest_MIP(unit)${unit_investMIP(unit)}
-                    ]
-                * [ p_gnu(grid, node, unit, 'unitSize')
-                    / sum((grid_, node_), p_gnu(grid_, node_, unit, 'unitSize')${gnu_input(grid_, node_, unit) } )
                     ] // END * p_gnu(unitSize)
             ] // END * unit availability
 
@@ -722,7 +719,6 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
                     + v_online_MIP(unit, s, f+df_central(f,t), t)${uft_onlineMIP(unit, f, t)}
 
                     // Investments to non-online capacity
-                    // fix unitSize for units with multiple inputs and/or outputs?
                     + v_invest_LP(unit)${unit_investLP(unit) and not uft_online(unit, f ,t)}
                     + v_invest_MIP(unit)${unit_investMIP(unit) and not uft_online(unit, f ,t)}
                     ] // END * p_gnu(unitSize)
@@ -805,9 +801,6 @@ q_maxUpwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
                     // Investments to new capacity
                     + v_invest_LP(unit)${unit_investLP(unit)}
                     + v_invest_MIP(unit)${unit_investMIP(unit)}
-                    ]
-                * [ p_gnu(grid, node, unit, 'unitSize')
-                    / sum((grid_, node_), p_gnu(grid_, node_, unit, 'unitSize')${gnu_output(grid_, node_, unit) } )
                     ] // END * p_gnu(unitSize)
             ] // END * unit availability
 ;
@@ -842,7 +835,7 @@ q_fixedFlow(gnu(grid, node, unit_flow(unit)), msft(m, s, f, t))
                     // Existing capacity
                     + p_unit(unit, 'unitCount')
 
-                    // Investments to new capacity assuming only 1 output from flow units
+                    // Investments to new capacity
                     + v_invest_LP(unit)${unit_investLP(unit)}
                     + v_invest_MIP(unit)${unit_investMIP(unit)}
                     ] // END * p_gnu(unitSize)
@@ -863,7 +856,6 @@ q_reserveProvision(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid
 
     =L=
 
-    // fix unitSize for units with multiple inputs and/or outputs?
     + p_gnuReserves(grid, node, unit, restype, up_down)
         * [
             + p_gnu(grid, node, unit, 'capacity')
@@ -1345,7 +1337,6 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
     =G=
 
     // Ramping capability of units without online variable
-    // fix unitSize for units with multiple inputs and/or outputs?
     - (
         + p_gnu(grid, node, unit, 'capacity')${not uft_online(unit, f, t)}
         + v_invest_LP(unit)${(not uft_online(unit, f, t)) and unit_investLP(unit)}
@@ -2511,7 +2502,6 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
         + ts_node_(grid, node, 'upwardLimit', s, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeseries') }
 
         // Investments
-        // fix unitSize for multiple input output units?
         + sum(gnu(grid, node, unit)${gnuft(grid, node, unit, f, t)},
             + p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
                 * p_gnu(grid, node, unit, 'unitSize')
@@ -2920,7 +2910,6 @@ q_superposStateUpwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
     + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')}
 
     // Investments
-    // fix unitSize for multiple input output units?
     + sum(gnu(grid, node, unit),
         + p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
             * p_gnu(grid, node, unit, 'unitSize')
@@ -3170,9 +3159,6 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
                     * [
                         + v_invest_LP(unit)${unit_investLP(unit)}
                         + v_invest_MIP(unit)${unit_investMIP(unit)}
-                        ]
-                    * [ p_gnu(grid, node, unit, 'unitSize')
-                        / sum((grid_, node_), p_gnu(grid_, node_, unit, 'unitSize')${gnu_output(grid_, node_, unit) } )
                         ] // END * p_gnu(unitSize)
                 ] // END * unit availability
         ) // END sum(gnu_output)
@@ -3194,7 +3180,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
                 // Output capacity before investments
                 + p_gnu(grid, node, unit, 'capacity')
 
-                // Output capacity investments assuming only 1 output for flow units
+                // Output capacity investments
                 + p_gnu(grid, node, unit, 'unitSize')
                     * [
                         + v_invest_LP(unit)${unit_investLP(unit)}
