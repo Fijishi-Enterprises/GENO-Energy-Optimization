@@ -192,10 +192,10 @@ unit_investMIP(unit)${  p_unit(unit, 'investMIP')
 unitStarttype(unit, 'cold') = yes;
 // Units with parameters regarding hot/warm starts
 unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
-                                            or p_unit(unit, 'startCostHot')
-                                            or p_unit(unit, 'startFuelConsHot')
-                                            or p_unit(unit, 'startCostWarm')
-                                            or p_unit(unit, 'startFuelConsWarm')
+                                            or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'startCostHot'))
+                                            or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'startFuelConsHot'))
+                                            or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'startCostWarm'))
+                                            or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'startFuelConsWarm'))
                                             or p_unit(unit, 'startColdAfterXhours')
                                             }
     = yes;
@@ -241,11 +241,11 @@ p_uNonoperational(unitStarttype(unit, 'hot'), 'min')
 p_uNonoperational(unitStarttype(unit, 'hot'), 'max')
     = p_unit(unit, 'startWarmAfterXhours');
 p_uStartup(unitStarttype(unit, 'hot'), 'cost')
-    = p_unit(unit, 'startCostHot')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startCostHot'));
 p_uStartup(unitStarttype(unit, 'hot'), 'consumption')
-    = p_unit(unit, 'startFuelConsHot')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startFuelConsHot'));
 
 // Warm startup parameters
 p_uNonoperational(unitStarttype(unit, 'warm'), 'min')
@@ -253,21 +253,21 @@ p_uNonoperational(unitStarttype(unit, 'warm'), 'min')
 p_uNonoperational(unitStarttype(unit, 'warm'), 'max')
     = p_unit(unit, 'startColdAfterXhours');
 p_uStartup(unitStarttype(unit, 'warm'), 'cost')
-    = p_unit(unit, 'startCostWarm')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startCostWarm'));
 p_uStartup(unitStarttype(unit, 'warm'), 'consumption')
-    = p_unit(unit, 'startFuelConsWarm')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startFuelConsWarm'));
 
 // Cold startup parameters
 p_uNonoperational(unitStarttype(unit, 'cold'), 'min')
     = p_unit(unit, 'startColdAfterXhours');
 p_uStartup(unit, 'cold', 'cost')
-    = p_unit(unit, 'startCostCold')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startCostCold'));
 p_uStartup(unit, 'cold', 'consumption')
-    = p_unit(unit, 'startFuelConsCold')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startFuelConsCold'));
 
 // Start-up fuel consumption per fuel
 p_unStartup(unit, node, starttype)$p_uStartupfuel(unit, node, 'fixedFuelFraction')
@@ -276,8 +276,8 @@ p_unStartup(unit, node, starttype)$p_uStartupfuel(unit, node, 'fixedFuelFraction
 
 //shutdown cost parameters
 p_uShutdown(unit, 'cost')
-    = p_unit(unit, 'shutdownCost')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'shutdownCost'));
 
 // Determine unit emission costs
 p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, emission)}
