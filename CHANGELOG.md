@@ -3,17 +3,27 @@ All notable changes to this project will be documented in this file.
 
 ## unversioned
 ### Added
-- solver time and total time separately to r_solveStatus
+
+### Changed
+- Shutdown costs, start costs and start fuel consumptions to p_gnu_io
+
+### Fixed
+
+
+## 2.2 - 2022-03-24
+### Added
 - option for user to add additional result symbols as input data
 - unit availability time series
 
 ### Changed
 - decreased default penalty value from 10e9 to 10e4 to improve solver default behavior
-- Shutdown costs, start costs and start fuel consumptions to p_gnu_io
+- changed emissions from output result table to print negative numbers signifying emissions bound to manufactured product
+- solver time and total time separately to r_solveStatus
 
 ### Fixed
 - during the first solve, boundStartToEnd now fixes the end value to boundstart if available, otherwise unbound
 - resetting also minUnitCount in postProcess template
+- efficiency timeseries looping corrected
 
 
 ## 2.1 - 2022-01-24
@@ -24,7 +34,6 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - result table r_gen_gnUnittype renamed to r_gnuTotalGen_unittype. Original was not actively used in master branch.
 - updated the order of generation result tables in 4b_outputInvariants
-- changed emissions from output result table to print negative numbers signifying emissions bound to manufactured product
 
 ### Fixed
 - changing sum over gnu_output to gnu in totalVOMcost, genUnittype, and gnuUtilizationRate
