@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - decreased default penalty value from 10e9 to 10e4 to improve solver default behavior
+- Shutdown costs, start costs and start fuel consumptions to p_gnu_io
 
 ### Fixed
 - during the first solve, boundStartToEnd now fixes the end value to boundstart if available, otherwise unbound
