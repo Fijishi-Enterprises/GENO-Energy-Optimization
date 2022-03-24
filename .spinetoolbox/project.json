@@ -1,6 +1,6 @@
 {
     "project": {
-        "version": 6,
+        "version": 7,
         "name": "Backbone_model_example",
         "description": "",
         "specifications": {
@@ -123,16 +123,6 @@
             },
             {
                 "from": [
-                    "BB_data_template",
-                    "right"
-                ],
-                "to": [
-                    "BB_data",
-                    "left"
-                ]
-            },
-            {
-                "from": [
                     "inputData",
                     "right"
                 ],
@@ -160,6 +150,26 @@
                     "Convert",
                     "left"
                 ]
+            },
+            {
+                "from": [
+                    "BB_data_template",
+                    "right"
+                ],
+                "to": [
+                    "BB_data merger",
+                    "left"
+                ]
+            },
+            {
+                "from": [
+                    "BB_data merger",
+                    "right"
+                ],
+                "to": [
+                    "BB_data",
+                    "left"
+                ]
             }
         ],
         "jumps": []
@@ -181,8 +191,7 @@
                     "relative": true,
                     "path": ".spinetoolbox/items/bb_data/BB_data.sqlite"
                 }
-            },
-            "cancel_on_error": true
+            }
         },
         "inputData": {
             "type": "Data Connection",
@@ -286,6 +295,13 @@
                 }
             },
             "cancel_on_error": false
+        },
+        "BB_data merger": {
+            "type": "Merger",
+            "description": "Merges data into BB_data",
+            "x": -194.66211865086063,
+            "y": -138.04509636593593,
+            "cancel_on_error": true
         }
     }
 }
