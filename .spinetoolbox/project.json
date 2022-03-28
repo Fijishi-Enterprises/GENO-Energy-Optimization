@@ -55,6 +55,7 @@
         },
         "connections": [
             {
+                "name": "from BB_data to BB_sets",
                 "from": [
                     "BB_data",
                     "right"
@@ -62,16 +63,10 @@
                 "to": [
                     "BB_sets",
                     "left"
-                ],
-                "resource_filters": {
-                    "db_url@BB_data": {
-                        "scenario_filter": [
-                            1
-                        ]
-                    }
-                }
+                ]
             },
             {
+                "name": "from BB_config_files to Backbone vara",
                 "from": [
                     "BB_config_files",
                     "right"
@@ -82,6 +77,7 @@
                 ]
             },
             {
+                "name": "from Convert to BB_data",
                 "from": [
                     "Convert",
                     "right"
@@ -92,6 +88,7 @@
                 ]
             },
             {
+                "name": "from BB_config_files to Backbone",
                 "from": [
                     "BB_config_files",
                     "right"
@@ -102,6 +99,7 @@
                 ]
             },
             {
+                "name": "from Export_to_BB to Backbone",
                 "from": [
                     "Export_to_BB",
                     "right"
@@ -112,6 +110,7 @@
                 ]
             },
             {
+                "name": "from BB_sets to Export_to_BB",
                 "from": [
                     "BB_sets",
                     "right"
@@ -122,6 +121,7 @@
                 ]
             },
             {
+                "name": "from inputData to Backbone vara",
                 "from": [
                     "inputData",
                     "right"
@@ -132,6 +132,7 @@
                 ]
             },
             {
+                "name": "from BB_config_files_vara to Backbone vara",
                 "from": [
                     "BB_config_files_vara",
                     "right"
@@ -142,6 +143,7 @@
                 ]
             },
             {
+                "name": "from inputData to Convert",
                 "from": [
                     "inputData",
                     "right"
@@ -152,6 +154,7 @@
                 ]
             },
             {
+                "name": "from BB_data_template to BB_data merger",
                 "from": [
                     "BB_data_template",
                     "right"
@@ -162,6 +165,7 @@
                 ]
             },
             {
+                "name": "from BB_data merger to BB_data",
                 "from": [
                     "BB_data merger",
                     "right"
@@ -182,8 +186,6 @@
             "y": -132.69828018438696,
             "url": {
                 "dialect": "sqlite",
-                "username": "",
-                "password": "",
                 "host": "",
                 "port": "",
                 "database": {
@@ -198,27 +200,30 @@
             "description": "",
             "x": -347.8182821765176,
             "y": 1.577082286244062,
-            "references": []
+            "file_references": [],
+            "db_references": []
         },
         "BB_config_files": {
             "type": "Data Connection",
             "description": "",
-            "x": 225.93212192955966,
-            "y": -19.210430056340506,
-            "references": []
+            "x": 224.79620087181706,
+            "y": -18.074508998597892,
+            "file_references": [],
+            "db_references": []
         },
         "BB_config_files_vara": {
             "type": "Data Connection",
             "description": "",
             "x": 230.04802646881222,
             "y": 189.3103885957761,
-            "references": []
+            "file_references": [],
+            "db_references": []
         },
         "Backbone": {
             "type": "Tool",
             "description": "",
-            "x": 371.16528721470104,
-            "y": -124.62512597935135,
+            "x": 370.0293661569585,
+            "y": -122.35328386386612,
             "specification": "Backbone",
             "execute_in_work": true,
             "cmd_line_args": []
@@ -248,33 +253,30 @@
             "y": -42.96154166175431,
             "specification": "BB_to_SpineDB",
             "cancel_on_error": true,
+            "purge_before_writing": false,
+            "on_conflict": "merge",
             "file_selection": []
         },
         "BB_sets": {
             "type": "Data Transformer",
             "description": "",
-            "x": 75.90327462178527,
-            "y": -132.1501439238296,
+            "x": 74.76735356404271,
+            "y": -131.01422286608698,
             "specification": "ToBackboneSets"
         },
         "Export_to_BB": {
             "type": "Exporter",
             "description": "",
-            "x": 224.04986335544504,
-            "y": -129.9197230796688,
-            "databases": [
-                {
-                    "output_file_name": "inputData.gdx",
-                    "database_url": {
-                        "type": "file_url",
-                        "relative": true,
-                        "path": ".spinetoolbox/items/bb_data/BB_data.sqlite",
-                        "scheme": "sqlite"
-                    }
-                }
-            ],
+            "x": 222.91394229770248,
+            "y": -128.7838020219262,
             "output_time_stamps": false,
             "cancel_on_error": true,
+            "output_labels": [
+                {
+                    "in_label": "db_url@BB_sets",
+                    "out_label": "inputData.gdx"
+                }
+            ],
             "specification": "ExportToBB"
         },
         "BB_data_template": {
@@ -284,8 +286,6 @@
             "y": -143.39191254748494,
             "url": {
                 "dialect": "sqlite",
-                "username": "",
-                "password": "",
                 "host": "",
                 "port": "",
                 "database": {
@@ -293,15 +293,15 @@
                     "relative": true,
                     "path": ".spinetoolbox/items/bb_data_template/BB_data_template.sqlite"
                 }
-            },
-            "cancel_on_error": false
+            }
         },
         "BB_data merger": {
             "type": "Merger",
             "description": "Merges data into BB_data",
-            "x": -194.66211865086063,
-            "y": -138.04509636593593,
-            "cancel_on_error": true
+            "x": -195.79803970860326,
+            "y": -136.9091753081933,
+            "cancel_on_error": true,
+            "purge_before_writing": false
         }
     }
 }
