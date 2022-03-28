@@ -1,7 +1,7 @@
 $title Backbone
 $ontext
 Backbone - chronological energy systems model
-Copyright (C) 2016 - 2019  VTT Technical Research Centre of Finland
+Copyright (C) 2016 - 2022  VTT Technical Research Centre of Finland
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -21,10 +21,12 @@ Created by:
     Juha Kiviluoma
     Erkka Rinne
     Topi Rasku
-    Niina Helistö
+    Niina HelistÃ¶
     Dana Kirchem
     Ran Li
     Ciara O'Dwyer
+    Jussi IkÃ¤heimo
+    Tomi J. Lindroos
 
 This is a GAMS implementation of the Backbone energy system modelling framework
 [1]. Features include:
@@ -34,7 +36,7 @@ This is a GAMS implementation of the Backbone energy system modelling framework
 
 
 GAMS command line arguments
-¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
+
 --debug=[0|1|2]
     Set level of debugging information. Default is 0 when no extra information is
     saved or displayded. At level 1, file 'debug.gdx' containing all GAMS symbols
@@ -82,12 +84,12 @@ GAMS command line arguments
 
 References
 ----------
-[1] N. Helistö et al., ‘Backbone---An Adaptable Energy Systems Modelling Framework’,
+[1] N. Helist et al., Backbone---An Adaptable Energy Systems Modelling Framework,
     Energies, vol. 12, no. 17, p. 3388, Sep. 2019. Available at:
     https://dx.doi.org/10.3390/en12173388.
-[2] K. Nolde, M. Uhr, and M. Morari, ‘Medium term scheduling of a hydro-thermal
-    system using stochastic model predictive control, ’ Automatica, vol. 44,
-    no. 6, pp. 1585–1594, Jun. 2008.
+[2] K. Nolde, M. Uhr, and M. Morari, Medium term scheduling of a hydro-thermal
+    system using stochastic model predictive control,  Automatica, vol. 44,
+    no. 6, pp. 15851594, Jun. 2008.
 
 ==========================================================================
 $offtext
