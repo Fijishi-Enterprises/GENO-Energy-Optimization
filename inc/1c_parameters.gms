@@ -160,7 +160,9 @@ Parameters
 Parameters
     // Used mostly for raw data storage
     ts_influx(grid, node, f, t) "External power inflow/outflow during a time step (MWh/h)"
+    ts_influx_io(grid, f, t, node) "External power inflow/outflow during a time step (MWh/h) (reordered)"
     ts_cf(flow, node, f, t) "Available capacity factor time series (p.u.)"
+    ts_cf_io(flow, f, t, node) "Available capacity factor time series (p.u. reordered)"
     ts_reserveDemand(restype, up_down, group, f, t) "Reserve demand in region in the time step (MW)"
     ts_node(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input ([v_state])"
     ts_gnn(grid, node, node, param_gnn, f, t) "Time dependent interconnection data"
