@@ -48,3 +48,4 @@ all constraint equations are formulated as equalities, not inequalities, and con
 - sums up generation from inputs or outputs of units in a uGroup
 - sums up all uGroups for which the new parameter objectiveWeight is defined
 - the generation of each uGroup is mulitplied with the objectiveWeight
+- using these equations requires adding a new parameter objectiveWeight to param_groupPolicy (to be specified in p_groupPolicy sheet) 
