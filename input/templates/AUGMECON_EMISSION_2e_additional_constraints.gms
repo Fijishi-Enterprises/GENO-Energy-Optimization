@@ -27,8 +27,14 @@ $offtext
 
 equations
           q_epsEmissionCap "Emission Cap for AUGMECON (tCO2)"
+          q_totalEmissionCap "Total emission cap for all emissions together (tCO2)"
 ;
 
+scalars
+          maxTotalEmission "Upper limit on total emissions (tCO2)"
+;
+
+$If set maxTotalEmission maxTotalEmission=%maxTotalEmission%;
 
 * --- Constraints -------------------------------------------------------------
 
@@ -72,4 +78,44 @@ q_epsEmissionCap(group, emission)
     + p_groupPolicyEmission(group, 'emissionCap', emission)
 ;
 
+q_totalEmissionCap()
+    ${  %maxTotalEmission%
+        } ..
+
+    + sum(msft(m, s, f, t),
+        + p_msft_Probability(m,s,f,t)
+        * [
+            // Time step length dependent emissions - calculated from consumption
+            + p_stepLength(m, f, t)
+                * sum(gnu_input(grid, node, unit),
+                    - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative
+                        * sum(emission,
+                                p_nEmission(node, emission)       // emission content (kg/MWh)
+                                / 1e3                         // Conversion to t/MWh from kg/MWh in data
+                                ) // END sum(emission)
+                        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                  ) // END sum(gnu_input)
+
+            // Start-up emissions
+            + sum((uft_online(unit, f, t), starttype)$[unitStarttype(unit, starttype) and p_uStartup(unit, starttype, 'consumption')],
+                + [
+                    + v_startup_LP(unit, starttype, s, f, t)
+                        ${ uft_onlineLP(unit, f, t) }
+                    + v_startup_MIP(unit, starttype, s, f, t)
+                        ${ uft_onlineMIP(unit, f, t) }
+                  ]
+                * sum(nu(node, unit)${p_nEmission(node, emission)},
+                    + p_unStartup(unit, node, starttype) // MWh/start-up
+                        * p_nEmission(node, emission) // kg/MWh
+                        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                    ) // END sum(nu, emission)
+              ) // sum(uft_online)
+          ] // END * p_sft_Probability
+      ) // END sum(msft)
+ 
+    =L=
+
+    // Permitted nodal emission cap
+    + maxTotalEmission
+;
 
