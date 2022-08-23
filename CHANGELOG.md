@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## unversioned
 ### Added
+- option to use availabilityCapacityMargin for input units
 
 ### Changed
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io

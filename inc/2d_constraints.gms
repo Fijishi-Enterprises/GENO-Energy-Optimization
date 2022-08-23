@@ -3141,7 +3141,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
     ${  p_gn(grid, node, 'capacityMargin')
         } ..
 
-    // Availability of units, based on 'availabilityCapacityMargin'
+    // Availability of output units, based on 'availabilityCapacityMargin'
     + sum(gnu_output(grid, node, unit)${ gnuft(grid, node, unit, f, t)
                                          and p_gnu(grid, node, unit, 'availabilityCapacityMargin')
                                          },
@@ -3163,8 +3163,30 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
                 ] // END * unit availability
         ) // END sum(gnu_output)
 
+    // Availability of input units, based on 'availabilityCapacityMargin'
+    - sum(gnu_input(grid, node, unit)${ gnuft(grid, node, unit, f, t)
+                                         and p_gnu(grid, node, unit, 'availabilityCapacityMargin')
+                                         },
+        + [
+            + p_unit(unit, 'availability')${not p_unit(unit, 'useTimeseriesAvailability')}
+            + ts_unit_(unit, 'availability', f, t)${p_unit(unit, 'useTimeseriesAvailability')}
+            ]
+            * p_gnu(grid, node, unit, 'availabilityCapacityMargin')
+            * [
+                // Output capacity before investments
+                + p_gnu(grid, node, unit, 'capacity')
+
+                // Output capacity investments
+                + p_gnu(grid, node, unit, 'unitSize')
+                    * [
+                        + v_invest_LP(unit)${unit_investLP(unit)}
+                        + v_invest_MIP(unit)${unit_investMIP(unit)}
+                        ] // END * p_gnu(unitSize)
+                ] // END * unit availability
+        ) // END sum(gnu_output)
+
     // Availability of units, including capacity factors for flow units and v_gen for other units
-    + sum(gnu_output(grid, node, unit)${ gnuft(grid, node, unit, f, t)
+    + sum(gnu(grid, node, unit)${ gnuft(grid, node, unit, f, t)
                                          and not p_gnu(grid, node, unit, 'availabilityCapacityMargin')
                                          },
         // Capacity factors for flow units
@@ -3221,11 +3243,6 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
         + p_gnn(grid, node, to_node, 'diffCoeff')
             * v_state(grid, node, s, f+df_central(f,t), t)
         ) // END sum(gnn_state)
-
-    // Conversion unit inputs might require additional capacity
-    + sum(gnu_input(grid, node, unit),
-        + v_gen(grid, node, unit, s, f, t)
-        ) // END sum(gnu_input)
 
     // Energy influx
     + ts_influx_(grid, node, s, f, t)
