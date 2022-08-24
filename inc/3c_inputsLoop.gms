@@ -359,15 +359,19 @@ $offtext
                 f + (  df_realization(f, t)$(not gn_forecasts(gn, 'ts_influx'))),
                 t_  )
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
-    ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))
+    ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))$gn_scenarios(flow, node, 'ts_cf')
         = sum(tt_aggregate(t, t_),
             ts_cf(flow, node,
                 f + (  df_realization(f, t)$(not gn_forecasts(flow, node, 'ts_cf'))
-                     + df_scenario(f, t)$gn_scenarios(flow, node, 'ts_cf')),
-                t_+ (  dt_scenarioOffset(flow, node, 'ts_cf', s)
-                     + dt_circular(t_)$(not gn_scenarios(flow, node, 'ts_cf'))))
-            )
-            / mInterval(mSolve, 'stepsPerInterval', counter);
+                     + df_scenario(f, t)),
+                t_+ (  dt_scenarioOffset(flow, node, 'ts_cf', s)))
+            ) / mInterval(mSolve, 'stepsPerInterval', counter);
+    ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))$(not gn_scenarios(flow, node, 'ts_cf'))
+        = sum(tt_aggcircular(t, t_),
+            ts_cf(flow, node,
+                f + (  df_realization(f, t)$(not gn_forecasts(flow, node, 'ts_cf'))),
+                t_ )
+            ) / mInterval(mSolve, 'stepsPerInterval', counter);
     // Reserves relevant only until reserve_length
     ts_reserveDemand_(restypeDirectionGroup(restype, up_down, group), ft(f, tt_interval(t)))
       ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')  }
@@ -410,9 +414,7 @@ $offtext
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
 
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
-        = sum(tt_aggregate(t, t_),
-            ts_gnn(grid, node, node_, param_gnn, f, t_+dt_circular(t_))
-            )
+        = sum(tt_aggcircular(t, t_), ts_gnn(grid, node, node_, param_gnn, f, t_))
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
     // Node price time series

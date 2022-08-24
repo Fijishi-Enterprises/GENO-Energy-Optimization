@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
 
 ### Fixed
-
+- improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
 
 ## 2.2 - 2022-03-24
 ### Added
