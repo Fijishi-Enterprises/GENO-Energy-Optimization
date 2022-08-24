@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
+- improved memory size and speed of timeseries looping (ts_vomCost_, ts_startupCost_)
 
 ## 2.2 - 2022-03-24
 ### Added

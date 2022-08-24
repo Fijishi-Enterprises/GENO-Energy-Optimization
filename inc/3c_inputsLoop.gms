@@ -419,27 +419,27 @@ $offtext
 
     // Node price time series
     ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
-        = + p_gnu(grid, node, unit, 'vomCosts')
-          // input node cost
-          + (
-             + p_price(node, 'price')$p_price(node, 'useConstant')
-             + sum(tt_aggcircular(t, t_), ts_price(node, t_))$p_price(node, 'useTimeSeries')
-                 / mInterval(mSolve, 'stepsPerInterval', counter)
-            )$gnu_input(grid, node, unit)
-          // output node cost (if price > 0 --> ts_vomCost_ < 0, i.e. considered as revenue)
-          - (
-             + p_price(node, 'price')$p_price(node, 'useConstant')
-             + sum(tt_aggcircular(t, t_), ts_price(node, t_))$p_price(node, 'useTimeSeries')
-                 / mInterval(mSolve, 'stepsPerInterval', counter)
-            )$gnu_output(grid, node, unit)
-          // emission cost
-          + sum(emission$p_unitEmissionCost(unit, node, emission), // Emission taxes
-              + p_unitEmissionCost(unit, node, emission)
-            ); // END sum(emission)
+        = sum(tt_aggcircular(t, t_),
+            + p_gnu(grid, node, unit, 'vomCosts')
+            // input node cost
+            + (
+               + p_price(node, 'price')$p_price(node, 'useConstant')
+               + ts_price(node, t_)$p_price(node, 'useTimeSeries')
+              )$gnu_input(grid, node, unit)
+            // output node cost (if price > 0 --> ts_vomCost_ < 0, i.e. considered as revenue)
+            - (
+               + p_price(node, 'price')$p_price(node, 'useConstant')
+               + ts_price(node, t_)$p_price(node, 'useTimeSeries')
+              )$gnu_output(grid, node, unit)
+            // emission cost
+            + sum(emission$p_unitEmissionCost(unit, node, emission), // Emission taxes
+                + p_unitEmissionCost(unit, node, emission)
+              ) // END sum(emission)
+            ) / mInterval(mSolve, 'stepsPerInterval', counter) ; // END sum(tt_aggcircular)
 
     // Calculating startup cost time series
     ts_startupCost_(unit, starttype, tt_interval(t))
-      =
+      = sum(tt_aggcircular(t, t_),
         + p_uStartup(unit, starttype, 'cost') // CUR/start-up
         // Start-up fuel and emission costs
         + sum(nu_startup(node, unit),
@@ -447,10 +447,7 @@ $offtext
               * [
                   // Fuel costs
                   + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
-                  + sum(tt_aggcircular(t, t_),
-                      + ts_price(node, t_) // CUR/MWh
-                    )$p_price(node, 'useTimeseries')
-                    / mInterval(mSolve, 'stepsPerInterval', counter)
+                  + ts_price(node, t_)$p_price(node, 'useTimeseries')// CUR/MWh
                   // Emission costs
                   + sum(emission$p_nEmission(node, emission),
                       + p_nEmission(node, emission) // kg/MWh
@@ -460,7 +457,9 @@ $offtext
                               ) // END sum(gnGroup)
                       ) // END sum(emission)
                 ] // END * p_unStartup
-            ); // END sum(nu_startup)
+            ) // END sum(nu_startup)
+         ) // END sum(aggcircular)
+         / mInterval(mSolve, 'stepsPerInterval', counter)  ;
 
     // `storageValue`
     ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'storageValueUseTimeSeries') }
