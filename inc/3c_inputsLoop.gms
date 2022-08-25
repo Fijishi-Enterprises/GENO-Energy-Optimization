@@ -413,7 +413,6 @@ $offtext
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
 
-    option clear = ts_gnn_;
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_), ts_gnn(grid, node, node_, param_gnn, f, t_))
             / mInterval(mSolve, 'stepsPerInterval', counter);
