@@ -49,6 +49,12 @@ loop(m,
         abort "t_end is not divisible by t_jump";
     );
 
+    // Determine the full set of timesteps withing datalength
+    t_datalength(t_full(t))${ ord(t) >= mSettings(m, 't_start')+1
+                and ord(t) <= mSettings(m, 'datalength')+1
+                }
+        = yes;
+
     // Calculate realized timesteps in the simulation
     t_realized(t_full(t))${ ord(t) >= mSettings(m, 't_start') + 1
                             and ord(t) <= mSettings(m, 't_end') + 1
@@ -630,7 +636,7 @@ loop(m,
 
 * --- Calculating fuel price time series --------------------------------------
 
-tmp_ = smin(t_full(t),ord(t));
+tmp_ = smin(t_datalength(t),ord(t));
 loop(node$p_price(node, 'useTimeSeries'),
     // Determine the time steps where the prices change
     Option clear = tt;
@@ -638,7 +644,7 @@ loop(node$p_price(node, 'useTimeSeries'),
     tmp = sum(tt(t)$(ord(t) < tmp_),
               ts_priceChange(node, t)
           );
-    loop(t_full(t),
+    loop(t_datalength(t),
         tmp = tmp + ts_priceChange(node, t);
         ts_price(node, t) = tmp;
     );

@@ -92,6 +92,7 @@ Sets
     $$include '%input_dir%/timeAndSamples.inc'
     m(mType) "model(s) in use"
     t_full(t) "Full set of time steps in the current model"
+    t_datalength(t) "Full set of time steps withing the datalength"
     t_current(t) "Set of time steps within the current solve horizon"
     t_active(t) "Set of active t:s within the current solve horizon, including necessary history"
     t_invest(t) "Time steps when investments can be made"
