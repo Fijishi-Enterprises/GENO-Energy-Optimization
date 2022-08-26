@@ -2447,8 +2447,7 @@
                             },
                             {
                                 "map_type": "ExpandedValue",
-                                "position": "hidden",
-                                "value": "true"
+                                "position": 3
                             }
                         ]
                     }
@@ -3059,11 +3058,12 @@
                         "mapping": [
                             {
                                 "map_type": "ObjectClass",
-                                "position": "hidden"
+                                "position": "hidden",
+                                "value": "commodity"
                             },
                             {
                                 "map_type": "Object",
-                                "position": "hidden"
+                                "position": 0
                             },
                             {
                                 "map_type": "ObjectMetadata",
@@ -3078,15 +3078,44 @@
                     "Mapping 1": {
                         "mapping": [
                             {
-                                "map_type": "ObjectClass",
-                                "position": "hidden"
+                                "map_type": "RelationshipClass",
+                                "position": "hidden",
+                                "value": "grid__node__group"
                             },
                             {
-                                "map_type": "Object",
-                                "position": "hidden"
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "grid"
                             },
                             {
-                                "map_type": "ObjectMetadata",
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "node"
+                            },
+                            {
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "group"
+                            },
+                            {
+                                "map_type": "Relationship",
+                                "position": "hidden",
+                                "value": "relationship"
+                            },
+                            {
+                                "map_type": "RelationshipObject",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "RelationshipObject",
+                                "position": 1
+                            },
+                            {
+                                "map_type": "RelationshipObject",
+                                "position": 2
+                            },
+                            {
+                                "map_type": "RelationshipMetadata",
                                 "position": "hidden"
                             }
                         ]
@@ -3167,9 +3196,7 @@
             "gnugroup",
             "gn2ngroup",
             "p_groupPolicyUnit",
-            "commodity",
-            "gngroup",
-            "sgroup"
+            "gngroup"
         ],
         "table_options": {
             "grid": {},
@@ -3372,7 +3399,7 @@
                 "0": "string",
                 "1": "string",
                 "2": "string",
-                "3": "string"
+                "3": "float"
             },
             "p_storageValue": {
                 "3": "float"
