@@ -70,8 +70,7 @@ loop(m,
                                   + ts_price(node, t)$p_price(node, 'useTimeseries') // CUR/MWh
                                   // Emission costs
                                   + sum(emission$p_nEmission(node, emission),
-                                       + p_nEmission(node, emission) // kg/MWh
-                                          / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                                       + p_nEmission(node, emission) // t/MWh
                                           * sum(gnGroup(grid, node, group),
                                               + p_groupPolicyEmission(group, 'emissionTax', emission) // CUR/t
                                               ) // END sum(gnGroup)
@@ -361,7 +360,6 @@ loop(m,
         =   + p_stepLengthNoReset(m, f, t)
             * abs(r_gen(grid, node, unit, f, t))
             * p_nEmission(node, emission)
-            / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
     ;
 
     // Emissions from unit outputs. Negative value signifying emissions bound to product
@@ -370,7 +368,6 @@ loop(m,
         =   - p_stepLengthNoReset(m, f, t)
             * r_gen(grid, node, unit, f, t)
             * p_nEmission(node, emission)
-            / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
     ;
 
     // Emissions from unit start-ups
@@ -380,8 +377,7 @@ loop(m,
         = sum(unitStarttype(unit, starttype),
             + r_startup(unit, starttype, f, t)
                 * p_unStartup(unit, node, starttype) // MWh/start-up
-                * p_nEmission(node, emission) // kg/MWh
-                / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                * p_nEmission(node, emission) // t/MWh
             ); // END sum(starttype)
 
     // Emission sums from normal operation input

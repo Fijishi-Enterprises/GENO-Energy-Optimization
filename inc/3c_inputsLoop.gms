@@ -450,8 +450,7 @@ $offtext
                   + ts_price(node, t_)$p_price(node, 'useTimeseries')// CUR/MWh
                   // Emission costs
                   + sum(emission$p_nEmission(node, emission),
-                      + p_nEmission(node, emission) // kg/MWh
-                          / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                      + p_nEmission(node, emission) // t/MWh
                           * sum(gnGroup(grid, node, group),
                               + p_groupPolicyEmission(group, 'emissionTax', emission) // CUR/t
                               ) // END sum(gnGroup)

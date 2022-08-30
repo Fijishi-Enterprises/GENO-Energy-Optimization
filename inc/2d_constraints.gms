@@ -3295,8 +3295,7 @@ q_emissioncap(group, emission)
             + p_stepLength(m, f, t)
                 * sum(gnu_input(grid, node, unit)${gnGroup(grid, node, group) and p_nEmission(node, emission)},
                     - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative
-                        * p_nEmission(node, emission) // kg/MWh
-                        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                        * p_nEmission(node, emission) // t/MWh
                   ) // END sum(gnu_input)
 
             // Start-up emissions
@@ -3309,8 +3308,7 @@ q_emissioncap(group, emission)
                   ]
                 * sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
                     + p_unStartup(unit, node, starttype) // MWh/start-up
-                        * p_nEmission(node, emission) // kg/MWh
-                        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                        * p_nEmission(node, emission) // t/MWh
                     ) // END sum(nu, emission)
               ) // sum(uft_online)
           ] // END * p_sft_Probability

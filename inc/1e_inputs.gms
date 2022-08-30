@@ -282,7 +282,6 @@ p_uShutdown(unit, 'cost')
 // Determine unit emission costs
 p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, emission)}
     = p_nEmission(node, emission)
-        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
         * sum(gnGroup(grid, node, group)$gnu_input(grid, node, unit),
             + p_groupPolicyEmission(group, 'emissionTax', emission)
           )
