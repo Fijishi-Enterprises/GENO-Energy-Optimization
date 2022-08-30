@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
 - q_boundCyclic now requires a flag to be activated (boundCyclic at p_gn)
+- clearing Eps values from result table r_state
 
 ### Fixed
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves

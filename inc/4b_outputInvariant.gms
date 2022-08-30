@@ -16,8 +16,9 @@ along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
 
-// for performance, get rid of any zeros in r_gen and r_reserve. Many zero values missing anyway.
+// for performance, get rid of any zeros in selected tables. Many zero values missing anyway.
 r_gen(gnu, f, t)$((r_gen(gnu, f, t)=0)$r_gen(gnu, f, t))=0;
+r_state(grid, node, f, t)$((r_state(grid, node, f, t)=0)$r_state(grid, node, f, t))=0;
 r_reserve(restype, up_down, gnu, f, t)$((r_reserve(restype, up_down, gnu, f, t)=0)$r_reserve(restype, up_down, gnu, f, t))=0;
 
 * =============================================================================
