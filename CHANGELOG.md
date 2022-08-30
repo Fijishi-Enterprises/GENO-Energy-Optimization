@@ -7,11 +7,13 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
+- q_boundCyclic now requires a flag to be activated (boundCyclic at p_gn)
 
 ### Fixed
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
 - improved memory size and speed of timeseries looping (ts_vomCost_, ts_startupCost_)
 - improved the speed of ts_price calculation
+
 
 ## 2.2 - 2022-03-24
 ### Added
