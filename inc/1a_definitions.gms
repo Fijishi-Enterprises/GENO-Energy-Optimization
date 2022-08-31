@@ -135,11 +135,11 @@ Sets
     min_max "Minimum and maximum"
         / min, max /
     constraint "Possible names for constraints"
-        / eq1*eq9, gt1*gt9 /
+        / eq1*eq39, gt1*gt39 /
     eq_constraint(constraint) "Equality constraints"
-        / eq1*eq9 /
+        / eq1*eq39 /
     gt_constraint(constraint) "Greater than constraints"
-        / gt1*gt9 /
+        / gt1*gt39 /
 
 * --- Model Feature Sets ------------------------------------------------------
 
