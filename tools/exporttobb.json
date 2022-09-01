@@ -174,7 +174,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 1,
-                    "filter_re": "^((?!(efficiency|becomeAvailable|becomeUnavailable|boundSamples|unit_fail)).)*$",
+                    "filter_re": "^((?!(is_active|efficiency|becomeAvailable|becomeUnavailable|boundSamples|unit_fail)).)*$",
                     "header": "*"
                 },
                 {
@@ -1864,7 +1864,8 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "^((?!(is_active)).)*$"
                 },
                 {
                     "map_type": "ParameterValueList",
