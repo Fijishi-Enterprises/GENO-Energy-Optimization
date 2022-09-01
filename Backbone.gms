@@ -187,7 +187,7 @@ $if exist '%input_dir%/3z_modelsClose.gms' $include '%input_dir%/3z_modelsClose.
 
 * === Output ==================================================================
 $echon "'version' " > 'version'
-$call 'git describe --dirty=+ --always >> version'
+*$call 'git describe --dirty=+ --always >> version'
 $ifi not %dummy% == 'yes'
 $include 'inc/4b_outputInvariant.gms'
 $include 'inc/4c_outputQuickFile.gms'
