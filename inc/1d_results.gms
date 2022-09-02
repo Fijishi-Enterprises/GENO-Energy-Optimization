@@ -136,9 +136,6 @@ Parameters
     // Unit level emissions from normal operation inputs
     r_emissions(grid, node, emission, unit, f, t) "Emissions from units (tCO2)"
 
-    // Unit level emissions from outputs, not considered in the equations
-    r_emissionsFromOutput(grid, node, emission, unit, f, t) "Emissions from outputs (tCO2)"
-
     // Unit level emissions from start-ups
     r_emissionsStartup(node, emission, unit, f, t) "Emissions from units in start-ups (tCO2)"
 
@@ -150,6 +147,7 @@ Parameters
     r_nTotalEmissions(node, emission) "node total emissions (tCO2)"
     r_uTotalEmissions(unit, emission) "unit total emissions (tCO2)"
     r_totalEmissions (emission) "Total emissions (tCO2)"
+    r_groupTotalEmissions (group, emission) "Group total emissions (tCO2)"
 
 
 * --- Unit Online State Results -----------------------------------------------

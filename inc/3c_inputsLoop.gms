@@ -432,12 +432,13 @@ $offtext
                + ts_price(node, t_)$p_price(node, 'useTimeSeries')
               )$gnu_output(grid, node, unit)
             // emission cost
-            + sum(emission$p_unitEmissionCost(unit, node, emission), // Emission taxes
-                + p_unitEmissionCost(unit, node, emission)
+            + sum(emission$p_unitEmissionCost(grid, node, unit, emission), // Emission taxes
+                + p_unitEmissionCost(grid, node, unit, emission)
               ) // END sum(emission)
             ) / mInterval(mSolve, 'stepsPerInterval', counter) ; // END sum(tt_aggcircular)
 
     // Calculating startup cost time series
+    // NOTE: does not include unit specific gnu emissions p_gnuEmission
     ts_startupCost_(unit, starttype, tt_interval(t))
       = sum(tt_aggcircular(t, t_),
         + p_uStartup(unit, starttype, 'cost') // CUR/start-up
@@ -449,12 +450,22 @@ $offtext
                   + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
                   + ts_price(node, t_)$p_price(node, 'useTimeseries')// CUR/MWh
                   // Emission costs
+                  // node specific emissions
                   + sum(emission$p_nEmission(node, emission),
                       + p_nEmission(node, emission) // t/MWh
                           * sum(gnGroup(grid, node, group),
                               + p_groupPolicyEmission(group, 'emissionTax', emission) // CUR/t
-                              ) // END sum(gnGroup)
-                      ) // END sum(emission)
+                            ) // END sum(gnGroup)
+                    ) // END sum(emission)
+                  // gnu specific emissions
+                  // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit 
+                  + sum(emission$sum(grid, p_gnuEmission(grid, node, unit, emission)),
+                      + sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
+                          * sum(gnuGroup(grid, node, unit, group),
+                              + p_groupPolicyEmission(group, 'emissionTax', emission) // CUR/t
+                            ) // END sum(gnGroup)
+                    ) // END sum(emission)
+
                 ] // END * p_unStartup
             ) // END sum(nu_startup)
          ) // END sum(aggcircular)

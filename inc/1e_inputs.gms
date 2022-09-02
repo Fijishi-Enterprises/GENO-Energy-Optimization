@@ -69,6 +69,7 @@ $loaddc p_uStartupfuel
 $loaddc flowUnit
 $loaddc emission
 $loaddc p_nEmission
+$loaddc p_gnuEmission
 $loaddc ts_cf
 *$loaddc p_price // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
 $loaddc ts_priceChange
@@ -279,14 +280,30 @@ p_uShutdown(unit, 'cost')
     = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
         * p_gnu(grid, node, unit, 'shutdownCost'));
 
-// Determine unit emission costs
-p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, emission)}
-    = p_nEmission(node, emission)
-        * sum(gnGroup(grid, node, group)$gnu_input(grid, node, unit),
+// Determine unit emission costs as a sum of node specific (+input, -output) and
+// gnu specific emissions (+input, +output)
+p_unitEmissionCost(gnu_input(grid, node, unit), emission) $ {p_nEmission(node, emission)
+                                                       or p_gnuEmission(grid, node, unit, emission)}
+    = + p_nEmission(node, emission)
+        * sum(gnGroup(grid, node, group),
             + p_groupPolicyEmission(group, 'emissionTax', emission)
-          )
+             )
+      + p_gnuEmission(grid, node, unit, emission)
+        * sum(gnuGroup(grid, node, unit, group),
+            + p_groupPolicyEmission(group, 'emissionTax', emission)
+             )
 ;
-
+p_unitEmissionCost(gnu_output(grid, node, unit), emission) $ {p_nEmission(node, emission)
+                                                       or p_gnuEmission(grid, node, unit, emission)}
+    = - p_nEmission(node, emission)
+        * sum(gnGroup(grid, node, group),
+            + p_groupPolicyEmission(group, 'emissionTax', emission)
+             )
+      + p_gnuEmission(grid, node, unit, emission)
+        * sum(gnuGroup(grid, node, unit, group),
+            + p_groupPolicyEmission(group, 'emissionTax', emission)
+             )
+;
 
 // Unit lifetime
 loop(utAvailabilityLimits(unit, t, availabilityLimits),
