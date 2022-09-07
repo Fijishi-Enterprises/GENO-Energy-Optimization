@@ -73,6 +73,7 @@ $loaddc p_gnuEmission
 $loaddc ts_cf
 *$loaddc p_price // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
 $loaddc ts_priceChange
+$loaddc ts_emissionPriceChange
 $loaddc ts_influx
 $loaddc ts_node
 $loaddc p_s_discountFactor
@@ -127,6 +128,52 @@ gnGroup
 gn2nGroup
 gnss_bound
 $offtext
+
+
+* =============================================================================
+* --- Initialize Price Related Sets & Parameters Based on Input Data -------
+* =============================================================================
+
+
+emissionGroup(emission, group)${ sum(t, abs(ts_emissionPriceChange(emission, group, t)))
+                                 or p_groupPolicyEmission(group, 'emissionCap', emission)
+                                   }
+    = yes;
+
+
+// Use time series for node prices depending on 'ts_priceChange'
+// Determine if node prices require a time series representation or not
+loop(node$sum(grid, p_gn(grid, node, 'usePrice')),
+    // Find the steps with changing node prices
+    option clear = tt;
+    tt(t)${ ts_priceChange(node, t) } = yes;
+
+    // If only up to a single value
+    if(sum(tt, 1) <= 1,
+        p_price(node, 'useConstant') = 1; // Use a constant for node prices
+        p_price(node, 'price') = sum(tt, ts_priceChange(node, tt)) // Determine the price as the only value in the time series
+    // If multiple values found, use time series
+    else
+        p_price(node, 'useTimeSeries') = 1;
+        ); // END if(sum(tt))
+); // END loop(node)
+
+// Use time series for emission group prices depending on 'ts_emissionPriceChange'
+// Determine if emission group prices require a time series representation or not
+loop(emissionGroup(emission, group)$sum(t, abs(ts_emissionPriceChange(emission, group, t))),
+    // Find the steps with changing node prices
+    option clear = tt;
+    tt(t)${ ts_emissionPriceChange(emission, group, t) } = yes;
+
+    // If only up to a single value
+    if(sum(tt, 1) <= 1,
+        p_emissionPrice(emission, group, 'useConstant') = 1; // Use a constant for node prices
+        p_emissionPrice(emission, group, 'price') = sum(tt, ts_emissionPriceChange(emission, group, tt)) // Determine the price as the only value in the time series
+    // If multiple values found, use time series
+    else
+        p_emissionPrice(emission, group, 'useTimeSeries') = 1;
+        ); // END if(sum(tt))
+); // END loop(group)
 
 
 * =============================================================================
@@ -280,56 +327,10 @@ p_uShutdown(unit, 'cost')
     = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
         * p_gnu(grid, node, unit, 'shutdownCost'));
 
-// Determine unit emission costs as a sum of node specific (+input, -output) and
-// gnu specific emissions (+input, +output)
-p_unitEmissionCost(gnu_input(grid, node, unit), emission) $ {p_nEmission(node, emission)
-                                                       or p_gnuEmission(grid, node, unit, emission)}
-    = + p_nEmission(node, emission)
-        * sum(gnGroup(grid, node, group),
-            + p_groupPolicyEmission(group, 'emissionTax', emission)
-             )
-      + p_gnuEmission(grid, node, unit, emission)
-        * sum(gnuGroup(grid, node, unit, group),
-            + p_groupPolicyEmission(group, 'emissionTax', emission)
-             )
-;
-p_unitEmissionCost(gnu_output(grid, node, unit), emission) $ {p_nEmission(node, emission)
-                                                       or p_gnuEmission(grid, node, unit, emission)}
-    = - p_nEmission(node, emission)
-        * sum(gnGroup(grid, node, group),
-            + p_groupPolicyEmission(group, 'emissionTax', emission)
-             )
-      + p_gnuEmission(grid, node, unit, emission)
-        * sum(gnuGroup(grid, node, unit, group),
-            + p_groupPolicyEmission(group, 'emissionTax', emission)
-             )
-;
-
 // Unit lifetime
 loop(utAvailabilityLimits(unit, t, availabilityLimits),
     p_unit(unit, availabilityLimits) = ord(t)
 ); // END loop(ut)
-
-* =============================================================================
-* --- Determine Commodity Price Representation -------------------------------------
-* =============================================================================
-// Use time series for commodity prices depending on 'ts_priceChange'
-
-// Determine if commodity prices require a time series representation or not
-loop(node$sum(grid, p_gn(grid, node, 'usePrice')),
-    // Find the steps with changing fuel prices
-    option clear = tt;
-    tt(t)${ ts_priceChange(node, t) } = yes;
-
-    // If only up to a single value
-    if(sum(tt, 1) <= 1,
-        p_price(node, 'useConstant') = 1; // Use a constant for commodity prices
-        p_price(node, 'price') = sum(tt, ts_priceChange(node, tt)) // Determine the price as the only value in the time series
-    // If multiple values found, use time series
-    else
-        p_price(node, 'useTimeSeries') = 1;
-        ); // END if(sum(tt))
-); // END loop(fuel)
 
 
 * =============================================================================
@@ -723,6 +724,11 @@ loop( node,
         put log '!!! Warning: Node ', node.tl:0, ' has both nodeBalance or usePrice activated in p_gn' /;
     ); // END if
 ); // END loop(node)
+loop(emissionGroup(emission, group),
+    if(p_emissionPrice(emission, group, 'useConstant') and not p_emissionPrice(emission, group, 'price'),
+        put log '!!! Warning: Emission group (', group.tl:0, ', ', emission.tl:0, ') has emission tax activated but no price data' /;
+    ); // END if
+); // END loop(emissionGroup)
 
 * --- Check consistency of inputs for superposed node states -------------------
 

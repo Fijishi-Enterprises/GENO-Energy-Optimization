@@ -45,14 +45,29 @@ loop(m,
     r_uFuelEmissionCost(gnu(grid, node, unit), ft_realizedNoReset(f,startp(t)))
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
-            * abs(r_gen(grid, node, unit, f, t))
-            * [ + p_price(node, 'price')${p_price(node, 'useConstant') and gnu_input(grid, node, unit)}
-                + ts_price(node, t)${p_price(node, 'useTimeSeries') and gnu_input(grid, node, unit)}
-                - p_price(node, 'price')${p_price(node, 'useConstant') and gnu_output(grid, node, unit)}
-                - ts_price(node, t)${p_price(node, 'useTimeSeries') and gnu_output(grid, node, unit)}
+            * r_gen(grid, node, unit, f, t)
+            * [ // negative as r_gen is negative for input, positive for output
+                // node costs
+                - p_price(node, 'price')$p_price(node, 'useConstant')
+                - ts_price(node, t)$p_price(node, 'useTimeSeries')
                 // Emission costs
-                + sum(emission, p_unitEmissionCost(grid, node, unit, emission))
-              ];
+                - sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                   + p_nEmission(node, emission)  // t/MWh
+                   * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                       + ts_emissionPrice(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+                     )
+                  ) // end sum(emissiongroup)
+              ]
+             // always positive as all gnu specific emissions are positive by default, compare to vomcost and fuelcost
+            + p_stepLengthNoReset(m, f, t)
+            * abs(r_gen(grid, node, unit, f, t))
+            * sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission),
+                   + p_gnuEmission(grid, node, unit, emission) // t/MWh
+                   * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                       + ts_emissionPrice(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+                     )
+              ) // end sum(emissiongroup)
+    ;
 
     // Unit startup costs
     // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
@@ -70,12 +85,23 @@ loop(m,
                                   + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
                                   + ts_price(node, t)$p_price(node, 'useTimeseries') // CUR/MWh
                                   // Emission costs
-                                  + sum(emission$p_nEmission(node, emission),
-                                       + p_nEmission(node, emission) // t/MWh
-                                          * sum(gnGroup(grid, node, group),
-                                              + p_groupPolicyEmission(group, 'emissionTax', emission) // CUR/t
-                                              ) // END sum(gnGroup)
-                                      ) // END sum(emission)
+                                  // node specific emission prices
+                                  + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                                     + p_nEmission(node, emission) // t/MWh
+                                     * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                                         + ts_emissionPrice(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+                                       )
+                                    ) // end sum(emissionGroup)
+
+                                   // gnu specific emission prices
+                                   // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
+                                  + sum(emissionGroup(emission, group)$sum(grid, p_gnuEmission(grid, node, unit, emission)),
+                                     + sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
+                                     * (
+                                         + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                                         + ts_emissionPrice(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+                                       )
+                                    ) // end sum(emissionGroup)
                                 ] // END * p_unStartup
                             ) // END sum(nu_startup)
                       ] // END * r_startup
