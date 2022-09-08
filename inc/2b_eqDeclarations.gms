@@ -109,6 +109,7 @@ equations
     q_stateUpwardLimit(grid, node, mType, s, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_stateDownwardLimit(grid, node, mType, s, f, t) "Limit the commitments of a node with a state variable to the available headrooms"
     q_boundStateMaxDiff(grid, node, node, mType, s, f, t) "Node state variables bounded by other nodes (maximum state difference)"
+    q_boundCyclic(grid, node, s, s, mType) "Cyclic node state bound for the first and the last states of samples"
 
     // superpositioned state variables
     q_superposSampleBegin(grid, node, mType, s)
