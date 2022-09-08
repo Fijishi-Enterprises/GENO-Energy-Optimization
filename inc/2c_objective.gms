@@ -38,13 +38,18 @@ q_obj ..
                         // Variable O&M costs for inputs
                         - sum(gnuft(grid, node, unit, f, t)$gnu_input(grid, node, unit),
                             + v_gen(grid, node, unit, s, f, t)
-                                * ts_vomCost_(grid, node, unit, t)
+                                * (+p_vomCost_(grid, node, unit, 'price')$p_vomCost_(grid, node, unit, 'useConstant')
+                                   +ts_vomCost_(grid, node, unit, t)$p_vomCost_(grid, node, unit, 'useTimeSeries')
+                                  )
                             ) // END sum(gnuft)
+
 
                         // Variable O&M costs
                         + sum(gnuft(grid, node, unit, f, t)$gnu_output(grid, node, unit),
                             + v_gen(grid, node, unit, s, f, t)
-                                * ts_vomCost_(grid, node, unit, t)
+                                * (+p_vomCost_(grid, node, unit, 'price')$p_vomCost_(grid, node, unit, 'useConstant')
+                                   +ts_vomCost_(grid, node, unit, t)$p_vomCost_(grid, node, unit, 'useTimeSeries')
+                                  )
                             ) // END sum(gnuft)
 
                         // Node state slack variable costs
