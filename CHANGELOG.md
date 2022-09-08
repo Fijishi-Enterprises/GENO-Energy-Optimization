@@ -10,7 +10,6 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
-- q_boundCyclic now requires a flag to be activated (boundCyclic at p_gn)
 - clearing Eps values from result table r_state
 - converting input data emission factor from kg/MWh to t/MWh
 - emissions from outputs are included in equations as negative emissions

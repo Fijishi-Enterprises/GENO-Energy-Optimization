@@ -2750,7 +2750,6 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
 q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
     ${  ms(m, s_)
         and ms(m, s)
-        and p_gn(grid, node, 'boundCyclic')
         and not node_superpos(node) //do not write this constraint for superposed node states
     }..
 
