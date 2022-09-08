@@ -3291,14 +3291,29 @@ q_emissioncap(group, emission)
     + sum(msft(m, s, f, t)${sGroup(s, group)},
         + p_msft_Probability(m,s,f,t)
         * [
-            // Time step length dependent emissions - calculated from consumption
+            // Time step length dependent emissions - calculated from node specific emissions
+            // includes both consumption (+emission) and production (-emission)
             + p_stepLength(m, f, t)
                 * sum(gnu_input(grid, node, unit)${gnGroup(grid, node, group) and p_nEmission(node, emission)},
-                    - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative
+                    - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative and production positive
                         * p_nEmission(node, emission) // t/MWh
                   ) // END sum(gnu_input)
 
+            // Time step length dependent emissions - calculated from gnu specific emissions
+            // includes both consumption (+emission) and production (+emission)
+            + p_stepLength(m, f, t)
+                * sum(gnu_input(grid, node, unit)${gnuGroup(grid, node, unit, group) and p_gnuEmission(grid, node, unit, emission)},
+                    - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative
+                        * p_gnuEmission(grid, node, unit, emission) // t/MWh
+                  ) // END sum(gnu_input)
+            + p_stepLength(m, f, t)
+                * sum(gnu_output(grid, node, unit)${gnuGroup(grid, node, unit, group) and p_gnuEmission(grid, node, unit, emission)},
+                    + v_gen(grid, node, unit, s, f, t) // absolute values as all unit specific emission factors are considered as emissions by default
+                        * p_gnuEmission(grid, node, unit, emission) // t/MWh
+                  ) // END sum(gnu_input)
+
             // Start-up emissions
+            // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
             + sum((uft_online(unit, f, t), starttype)$[unitStarttype(unit, starttype) and p_uStartup(unit, starttype, 'consumption')],
                 + [
                     + v_startup_LP(unit, starttype, s, f, t)
@@ -3306,10 +3321,18 @@ q_emissioncap(group, emission)
                     + v_startup_MIP(unit, starttype, s, f, t)
                         ${ uft_onlineMIP(unit, f, t) }
                   ]
-                * sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
-                    + p_unStartup(unit, node, starttype) // MWh/start-up
-                        * p_nEmission(node, emission) // t/MWh
+                * [
+                   // node specific emissions
+                   +sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
+                      + p_unStartup(unit, node, starttype) // MWh/start-up
+                          * p_nEmission(node, emission) // t/MWh
                     ) // END sum(nu, emission)
+                   // gnu specific emissions
+                   +sum(nu_startup(node, unit)${sum(grid, gnuGroup(grid, node, unit, group)) and sum(grid, p_gnuEmission(grid, node, unit, emission))},
+                      + p_unStartup(unit, node, starttype) // MWh/start-up
+                          * sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
+                    ) // END sum(nu, emission)
+                  ]
               ) // sum(uft_online)
           ] // END * p_sft_Probability
       ) // END sum(msft)

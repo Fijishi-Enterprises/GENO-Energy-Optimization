@@ -634,9 +634,11 @@ loop(m,
 * --- Various Initial Values and Calculations ---------------------------------
 * =============================================================================
 
-* --- Calculating fuel price time series --------------------------------------
+* --- Calculating price time series -------------------------------------------
 
 tmp_ = smin(t_datalength(t),ord(t));
+
+// node prices
 loop(node$p_price(node, 'useTimeSeries'),
     // Determine the time steps where the prices change
     Option clear = tt;
@@ -649,6 +651,22 @@ loop(node$p_price(node, 'useTimeSeries'),
         ts_price(node, t) = tmp;
     );
 ); // END loop(node)
+
+// emission prices
+loop(emissionGroup(emission, group)$p_emissionPrice(emission, group, 'useTimeSeries'),
+    // Determine the time steps where the prices change
+    Option clear = tt;
+    tt(t)$ts_emissionPriceChange(emission, group,t) = yes;
+    tmp = sum(tt(t)$(ord(t) < tmp_),
+              ts_emissionPriceChange(emission, group, t)
+          );
+    loop(t_datalength(t),
+        tmp = tmp + ts_emissionPriceChange(emission, group, t);
+        ts_emissionPrice(emission, group, t) = tmp;
+    );
+); // END loop(groupEmission)
+
+
 
 * --- Slack Direction ---------------------------------------------------------
 

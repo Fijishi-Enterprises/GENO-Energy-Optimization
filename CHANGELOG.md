@@ -4,12 +4,19 @@ All notable changes to this project will be documented in this file.
 ## unversioned
 ### Added
 - option to use availabilityCapacityMargin for input units
+- Adding possibility for gnu specific emission factors.
+- result parameter for total emissions of emission groups
+- time series for emission costs
 
 ### Changed
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
 - q_boundCyclic now requires a flag to be activated (boundCyclic at p_gn)
 - clearing Eps values from result table r_state
 - converting input data emission factor from kg/MWh to t/MWh
+- emissions from outputs are included in equations as negative emissions
+- combined result tables for emissions from input and emissions from outputs
+- added grid to p_unitEmissionCost dimensions
+- replaced emissionTax parameter with ts_emissionPriceChange 
 
 ### Fixed
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves

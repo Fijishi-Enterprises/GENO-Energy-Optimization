@@ -364,7 +364,6 @@ param_unitStartupfuel "Parameters for startup fuel limits in units" /
 /
 
 param_policy "Set of possible data parameters for groups or grid, node, regulation" /
-    emissionTax   "Emission tax (EUR/tonne)"
     emissionCap   "Emission limit (tonne)"
     instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
     energyMax      "Maximum energy production or consumption from particular grid-node-units over particular samples"

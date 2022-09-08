@@ -20,7 +20,7 @@ Sets
     grid "Forms of energy endogenously presented in the model" / empty /
     node "Nodes maintain the energy balance or track exogenous commodities"
 
-* --- Commodities & resources -------------------------------------------------------
+* --- Emissions & resources -------------------------------------------------------
     emission "Emissions"
     flow "Flow based energy resources (time series)"
 
@@ -175,6 +175,7 @@ $if defined scenario
     gn2nGroup(grid, node, node, group) "Transfer links in particular groups"
     gnGroup(grid, node, group) "Combination of grids and nodes in particular groups"
     sGroup(s, group) "Samples in particular groups"
+    emissionGroup(emission, group) "combinations of emissions and groups"
 
 * --- Set of timeseries that will be read from files between solves -----------
     mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"

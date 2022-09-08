@@ -66,10 +66,11 @@ Parameters
     p_groupPolicyUnit(group, param_policy, unit) "Three-dimensional policy data for groups and units"
     p_groupPolicyEmission(group, param_policy, emission) "Three-dimensional policy data for groups and emissions"
     p_price(node, param_price) "Commodity price parameters"
+    p_emissionPrice(emission, group, param_price) "emission price parameters"
     p_nEmission(node, emission) "Emission content (kg/MWh)"
+    p_gnuEmission(grid, node, unit, emission) "unit data of energy specific emission factors"
     p_uStartupfuel(unit, node, param_unitStartupfuel) "Parameters for startup fuels"
     p_unStartup(unit, node, starttype) "Consumption during the start-up (MWh/start-up)"
-    p_unitEmissionCost(unit, node, emission) "Emission costs for each {unit, node, emission}, calculated from input data (CUR/MWh)"
     p_effUnit(effSelector, unit, effSelector, param_eff)  "Data for piece-wise linear efficiency blocks"
     p_effGroupUnit(effSelector, unit, param_eff) "Unit data specific to a efficiency group (e.g. left border of the unit)"
     p_uNonoperational(unit, starttype, min_max) "Non-operational time after being shut down before start up"
@@ -167,7 +168,9 @@ Parameters
     ts_gnn(grid, node, node, param_gnn, f, t) "Time dependent interconnection data"
     ts_storageValue(grid, node, f, t) "Timeseries value of stored something at the end of a time step (EUR/<v_state_unit>)"
     ts_priceChange(node, t) "Initial commodity price and consequent changes in commodity price (EUR/MWh)"
+    ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tCO2)"
     ts_price(node, t) "Commodity price time series (EUR/MWh)"
+    ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tCO2)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time step (p.u.)"
 
     // Aliases used in the equations after interval aggregation
