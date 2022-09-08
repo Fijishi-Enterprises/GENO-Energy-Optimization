@@ -524,7 +524,7 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
 
     // Generation units, greater than minload
     + p_gnu(grid, node, unit, 'unitSize')$gnu_output(grid, node, unit)
-        * sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+        * sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
             + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
             ) // END sum(effGroup)
@@ -686,7 +686,7 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
 
     // Consuming units
     - p_gnu(grid, node, unit, 'unitSize')$gnu_input(grid, node, unit)
-        * sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+        * sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
             + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
             + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
             ) // END sum(effGroup)
@@ -1228,7 +1228,7 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
     + sum(unitStarttype(unit, starttype)${   uft_online(unit, f, t)
                                              and gnu_output(grid, node, unit)
                                              and not uft_startupTrajectory(unit, f, t)
-                                             and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                                             and ( + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                                                        + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                                                        + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
                                                      ) // END sum(effGroup)
@@ -1244,7 +1244,7 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
       ) // END sum(starttype)
         * p_gnu(grid, node, unit, 'unitSize')
         * (
-            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+            + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                 + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                 + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
               ) // END sum(effGroup)
@@ -1290,7 +1290,7 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
             ${ uft_onlineMIP(unit, f, t) }
         ]
         ${  gnu_input(grid, node, unit)
-            and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+            and ( + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                       + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                       + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
                       ) // END sum(effGroup)
@@ -1301,7 +1301,7 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
             }
         * p_gnu(grid, node, unit, 'unitSize')
         * (
-            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+            + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                 + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                 + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
                 ) // END sum(effGroup)
@@ -1380,7 +1380,7 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         ]
         ${  gnu_output(grid, node, unit)
             and not uft_shutdownTrajectory(unit, f, t)
-            and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+            and ( + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                       + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                       + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
                     ) // END sum(effGroup)
@@ -1391,7 +1391,7 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         }
         * p_gnu(grid, node, unit, 'unitSize')
         * (
-            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+            + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                 + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                 + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
                 ) // END sum(effGroup)
@@ -1436,7 +1436,7 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
     // Consumption units not be able to ramp from zero to min. load within one time interval according to their maxRampDown
     - sum(unitStarttype(unit, starttype)${   uft_online(unit, f, t)
                                              and gnu_input(grid, node, unit)
-                                             and ( + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+                                             and ( + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                                                        + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                                                        + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
                                                      ) // END sum(effGroup)
@@ -1452,7 +1452,7 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
       ) // END sum(starttype)
         * p_gnu(grid, node, unit, 'unitSize')
         * (
-            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+            + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                 + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                 + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
               ) // END sum(effGroup)
@@ -1493,7 +1493,7 @@ q_rampUpDown(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
       ) // END sum(starttype)
         * p_gnu(grid, node, unit, 'unitSize')
         * (
-            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+            + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                 + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                 + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
               ) // END sum(effGroup)
@@ -1530,7 +1530,7 @@ q_rampUpDown(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         ]
         * p_gnu(grid, node, unit, 'unitSize')
         * (
-            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+            + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                 + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                 + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
                 ) // END sum(effGroup)
@@ -1546,7 +1546,7 @@ q_rampUpDown(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         ]
         * p_gnu(grid, node, unit, 'unitSize')
         * (
-            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+            + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                 + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                 + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
                 ) // END sum(effGroup)
@@ -1593,7 +1593,7 @@ q_rampUpDown(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
       ) // END sum(starttype)
         * p_gnu(grid, node, unit, 'unitSize')
         * (
-            + sum(suft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
+            + sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
                 + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
                 + ts_effGroupUnit(effGroup, unit, 'lb', f, t)
               ) // END sum(effGroup)
@@ -1696,7 +1696,7 @@ q_rampSlack(ms(m, s), gnuft_rampCost(grid, node, unit, slack, f, t))
 
 * --- Direct Input-Output Conversion ------------------------------------------
 
-q_conversionDirectInputOutput(s_active(s), suft(effDirect(effGroup), unit, f, t))
+q_conversionDirectInputOutput(s_active(s), eff_uft(effDirect(effGroup), unit, f, t))
     ${  sft(s, f, t)
         }..
 
@@ -1760,7 +1760,7 @@ q_conversionDirectInputOutput(s_active(s), suft(effDirect(effGroup), unit, f, t)
 ;
 * --- Incremental Heat Rate Conversion ------------------------------------------
 
-q_conversionIncHR(s_active(s), suft(effIncHR(effGroup), unit, f, t))
+q_conversionIncHR(s_active(s), eff_uft(effIncHR(effGroup), unit, f, t))
     ${  sft(s, f, t)
         }..
 
@@ -1826,7 +1826,7 @@ q_conversionIncHR(s_active(s), suft(effIncHR(effGroup), unit, f, t))
 
 * --- Incremental Heat Rate Conversion ------------------------------------------
 
-q_conversionIncHRMaxOutput(gn(grid, node), s_active(s), suft(effIncHR(effGroup), unit, f, t))
+q_conversionIncHRMaxOutput(gn(grid, node), s_active(s), eff_uft(effIncHR(effGroup), unit, f, t))
     ${  sft(s, f, t)
         and gnu_output(grid, node, unit)
         } ..
@@ -1843,7 +1843,7 @@ q_conversionIncHRMaxOutput(gn(grid, node), s_active(s), suft(effIncHR(effGroup),
 
 * --- Incremental Heat Rate Conversion ------------------------------------------
 
-q_conversionIncHRBounds(gn(grid, node), s_active(s), hr, suft(effIncHR(effGroup), unit, f, t))
+q_conversionIncHRBounds(gn(grid, node), s_active(s), hr, eff_uft(effIncHR(effGroup), unit, f, t))
     ${  sft(s, f, t)
         and gnu_output(grid, node, unit)
         and p_unit(unit, hr)
@@ -1893,7 +1893,7 @@ q_conversionIncHRBounds(gn(grid, node), s_active(s), hr, suft(effIncHR(effGroup)
 
 * --- Incremental Heat Rate Conversion (First Segments First) -----------------
 
-q_conversionIncHR_help1(gn(grid, node), s_active(s), hr, suft(effIncHR(effGroup), unit_incHRAdditionalConstraints(unit), f, t))
+q_conversionIncHR_help1(gn(grid, node), s_active(s), hr, eff_uft(effIncHR(effGroup), unit_incHRAdditionalConstraints(unit), f, t))
     ${  sft(s, f, t)
         and gnu_output(grid, node, unit)
         and p_unit(unit, hr)
@@ -1944,7 +1944,7 @@ q_conversionIncHR_help1(gn(grid, node), s_active(s), hr, suft(effIncHR(effGroup)
         * (1 - v_help_inc(grid, node, unit, hr, s, f, t))
 ;
 
-q_conversionIncHR_help2(gn(grid, node), s_active(s), hr, suft(effIncHR(effGroup), unit_incHRAdditionalConstraints(unit), f, t))
+q_conversionIncHR_help2(gn(grid, node), s_active(s), hr, eff_uft(effIncHR(effGroup), unit_incHRAdditionalConstraints(unit), f, t))
     ${  sft(s, f, t)
         and gnu_output(grid, node, unit)
         and p_unit(unit, hr)
@@ -1961,7 +1961,7 @@ q_conversionIncHR_help2(gn(grid, node), s_active(s), hr, suft(effIncHR(effGroup)
 
 * --- SOS2 Efficiency Approximation -------------------------------------------
 
-q_conversionSOS2InputIntermediate(s_active(s), suft(effLambda(effGroup), unit, f, t))
+q_conversionSOS2InputIntermediate(s_active(s), eff_uft(effLambda(effGroup), unit, f, t))
     ${  sft(s, f, t)
         }..
 
@@ -1995,7 +1995,7 @@ q_conversionSOS2InputIntermediate(s_active(s), suft(effLambda(effGroup), unit, f
 
 * --- SOS 2 Efficiency Approximation Online Variables -------------------------
 
-q_conversionSOS2Constraint(s_active(s), suft(effLambda(effGroup), unit, f, t))
+q_conversionSOS2Constraint(s_active(s), eff_uft(effLambda(effGroup), unit, f, t))
     ${  sft(s, f, t)
         }..
 
@@ -2038,7 +2038,7 @@ q_conversionSOS2Constraint(s_active(s), suft(effLambda(effGroup), unit, f, t))
 
 * --- SOS 2 Efficiency Approximation Output Generation ------------------------
 
-q_conversionSOS2IntermediateOutput(s_active(s), suft(effLambda(effGroup), unit, f, t))
+q_conversionSOS2IntermediateOutput(s_active(s), eff_uft(effLambda(effGroup), unit, f, t))
     ${  sft(s, f, t)
         }..
 
@@ -2539,7 +2539,7 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
                     + v_reserve(restype, 'down', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
                         * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
                         / p_gnReserves(grid_, node_input, restype, 'reserve_reactivation_time')
-                        / sum(suft(effGroup, unit, f, t),
+                        / sum(eff_uft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
@@ -2553,7 +2553,7 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
                     + v_reserve(restype, 'down', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
                         * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
                         / p_gnReserves(grid_, node_output, restype, 'reserve_reactivation_time')
-                        * sum(suft(effGroup, unit, f, t),
+                        * sum(eff_uft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
@@ -2615,7 +2615,7 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
                     + v_reserve(restype, 'up', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
                         * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
                         / p_gnReserves(grid_, node_input, restype, 'reserve_reactivation_time')
-                        / sum(suft(effGroup, unit, f, t),
+                        / sum(eff_uft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
@@ -2629,7 +2629,7 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
                     + v_reserve(restype, 'up', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
                         * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
                         / p_gnReserves(grid_, node_output, restype, 'reserve_reactivation_time')
-                        * sum(suft(effGroup, unit, f, t),
+                        * sum(eff_uft(effGroup, unit, f, t),
                             + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                             + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                             ) // END sum(effGroup)
@@ -2664,7 +2664,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
                 + v_reserve(restype, 'down', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
                     * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
                     / p_gnReserves(grid_, node_input, restype, 'reserve_reactivation_time')
-                    / sum(suft(effGroup, unit, f, t),
+                    / sum(eff_uft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
@@ -2679,7 +2679,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
                 + v_reserve(restype, 'down', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
                     * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
                     / p_gnReserves(grid_, node_output, restype, 'reserve_reactivation_time')
-                    * sum(suft(effGroup, unit, f, t),
+                    * sum(eff_uft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
@@ -2713,7 +2713,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
                 + v_reserve(restype, 'up', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
                     * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
                     / p_gnReserves(grid_, node_input, restype, 'reserve_reactivation_time')
-                    / sum(suft(effGroup, unit, f, t),
+                    / sum(eff_uft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)
@@ -2728,7 +2728,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
                 + v_reserve(restype, 'up', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
                     * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
                     / p_gnReserves(grid_, node_output, restype, 'reserve_reactivation_time')
-                    * sum(suft(effGroup, unit, f, t),
+                    * sum(eff_uft(effGroup, unit, f, t),
                         + p_effGroupUnit(effGroup, unit, 'slope')${not ts_effGroupUnit(effGroup, unit, 'slope', f, t)}
                         + ts_effGroupUnit(effGroup, unit, 'slope', f, t) // Efficiency approximated using maximum slope of effGroup?
                         ) // END sum(effGroup)

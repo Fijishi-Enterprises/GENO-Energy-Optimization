@@ -627,21 +627,21 @@ gnuft_ramp(gnuft(grid, node, unit, f, t))${ p_gnu(grid, node, unit, 'maxRampUp')
 * --- Defining unit efficiency groups etc. ------------------------------------
 
 // Initializing
-Option clear = suft;
-Option clear = sufts;
+Option clear = eff_uft;
+*Option clear = eff_uft_eff;
 
 // Loop over the defined efficiency groups for units
 loop(effLevelGroupUnit(effLevel, effGroup, unit)${ mSettingsEff(mSolve, effLevel) },
     // Determine the used effGroup for each uft
-    suft(effGroup, uft(unit, f, t))${   ord(t) >= tSolveFirst + mSettingsEff_start(mSolve, effLevel)
+    eff_uft(effGroup, uft(unit, f, t))${   ord(t) >= tSolveFirst + mSettingsEff_start(mSolve, effLevel)
                                         and ord(t) <= tSolveFirst + mSettingsEff(mSolve, effLevel) }
         = yes;
 ); // END loop(effLevelGroupUnit)
 
-// Determine the efficiency selectors for suft
-sufts(suft(effGroup, unit, f, t), effSelector)${    effGroupSelector(effGroup, effSelector) }
-    = yes
-;
+*// Determine the efficiency selectors for eff_uft
+*eff_uft_eff(eff_uft(effGroup, unit, f, t), effSelector)${    effGroupSelector(effGroup, effSelector) }
+*    = yes
+*;
 
 // Units with online variables on each ft
 Option clear = uft_online;
@@ -652,10 +652,10 @@ Option clear = uft_onlineMIP_withPrevious;
 
 // Determine the intervals when units need to have online variables.
 loop(effOnline(effSelector),
-    uft_online(uft(unit, f, t))${ suft(effOnline, unit, f, t) }
+    uft_online(uft(unit, f, t))${ eff_uft(effOnline, unit, f, t) }
         = yes;
 ); // END loop(effOnline)
-uft_onlineLP(uft(unit, f, t))${ suft('directOnLP', unit, f, t) }
+uft_onlineLP(uft(unit, f, t))${ eff_uft('directOnLP', unit, f, t) }
     = yes;
 uft_onlineMIP(uft_online(unit, f, t)) = uft_online(unit, f, t) - uft_onlineLP(unit, f, t);
 
