@@ -2383,10 +2383,10 @@ q_reserveProvisionLeftward(restypeDirectionGridNodeNode(restype, up_down, grid, 
 * like this is not needed.
 q_transferTwoWayLimit1(gn2n_directional(grid, node, node_), sft(s, f, t))
     ${not p_gnn(grid, node, node_, 'transferCapInvLimit')
-      and ((p_gnn(grid, node, node_, 'availability') and not gn2n_timeseries(grid, node, node_, 'availability'))
-          or (ts_gnn_(grid, node, node_, 'availability', f, t) and gn2n_timeseries(grid, node, node_, 'availability')))
-      and ((p_gnn(grid, node_, node, 'availability') and not gn2n_timeseries(grid, node_, node, 'availability'))
-          or (ts_gnn_(grid, node_, node, 'availability', f, t) and gn2n_timeseries(grid, node_, node, 'availability')))
+      and (((p_gnn(grid, node, node_, 'availability')>0) and not gn2n_timeseries(grid, node, node_, 'availability'))
+          or ((ts_gnn_(grid, node, node_, 'availability', f, t)>0) and gn2n_timeseries(grid, node, node_, 'availability')))
+      and (((p_gnn(grid, node_, node, 'availability')>0) and not gn2n_timeseries(grid, node_, node, 'availability'))
+          or ((ts_gnn_(grid, node_, node, 'availability', f, t)>0) and gn2n_timeseries(grid, node_, node, 'availability')))
       and p_gnn(grid, node, node_, 'transferCap')
       and p_gnn(grid, node_, node, 'transferCap')} ..
 
@@ -2417,10 +2417,10 @@ q_transferTwoWayLimit1(gn2n_directional(grid, node, node_), sft(s, f, t))
 q_transferTwoWayLimit2(gn2n_directional(grid, node, node_), sft(s, f, t))
     ${p_gnn(grid, node, node_, 'transferCapInvLimit')
       and p_gnn(grid, node, node_, 'transferCap') = p_gnn(grid, node_, node, 'transferCap')
-      and ((p_gnn(grid, node, node_, 'availability') and not gn2n_timeseries(grid, node, node_, 'availability'))
-          or (ts_gnn_(grid, node, node_, 'availability', f, t) and gn2n_timeseries(grid, node, node_, 'availability')))
-      and ((p_gnn(grid, node_, node, 'availability') and not gn2n_timeseries(grid, node_, node, 'availability'))
-          or (ts_gnn_(grid, node_, node, 'availability', f, t) and gn2n_timeseries(grid, node_, node, 'availability')))} ..
+      and (((p_gnn(grid, node, node_, 'availability')>0) and not gn2n_timeseries(grid, node, node_, 'availability'))
+          or ((ts_gnn_(grid, node, node_, 'availability', f, t)>0) and gn2n_timeseries(grid, node, node_, 'availability')))
+      and (((p_gnn(grid, node_, node, 'availability')>0) and not gn2n_timeseries(grid, node_, node, 'availability'))
+          or ((ts_gnn_(grid, node_, node, 'availability', f, t)>0) and gn2n_timeseries(grid, node_, node, 'availability')))} ..
 
     // Rightward / availability
     + v_transferRightward(grid, node, node_, s, f, t)
