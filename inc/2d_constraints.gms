@@ -76,7 +76,7 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
                 ) // END sum(node_)
 
             // Interactions between the node and its units
-            + sum(gnuft(grid, node, unit, f, t),
+            + sum(gnusft(grid, node, unit, s, f, t),
                 + v_gen(grid, node, unit, s, f, t) // Unit energy generation and consumption
                 )
 
@@ -116,7 +116,7 @@ q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
         } ..
 
     // Reserve provision by capable units on this group
-    + sum(gnuft(grid, node, unit, f, t)${ gnGroup(grid, node, group)
+    + sum(gnusft(grid, node, unit, s, f, t)${ gnGroup(grid, node, group)
                                           and gnuRescapable(restype, up_down, grid, node, unit)
                                           },
         + v_reserve(restype, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t)
@@ -127,7 +127,7 @@ q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
         ) // END sum(gnuft)
 
     // Reserve provision from other reserve categories when they can be shared
-    + sum((gnuft(grid, node, unit, f, t), restype_)${ gnGroup(grid, node, group)
+    + sum((gnusft(grid, node, unit, s, f, t), restype_)${ gnGroup(grid, node, group)
                                                       and p_gnuRes2Res(grid, node, unit, restype_, up_down, restype)
                                                       },
         + v_reserve(restype_, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype_, f, t), t)
@@ -168,7 +168,7 @@ q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
     + p_groupReserves(group, restype, up_down)${not p_groupReserves(group, restype, 'useTimeSeries')}
 
     // Reserve demand increase because of units
-    + sum(gnuft(grid, node, unit, f, t)${ gnGroup(grid, node, group)
+    + sum(gnusft(grid, node, unit, s, f, t)${ gnGroup(grid, node, group)
                                           and p_gnuReserves(grid, node, unit, restype, 'reserve_increase_ratio') // Could be better to have 'reserve_increase_ratio' separately for up and down directions
                                           },
         + v_gen(grid, node, unit, s, f, t)
@@ -209,7 +209,7 @@ q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_f
         } ..
 
     // Reserve provision by capable units on this group excluding the failing one
-    + sum(gnuft(grid, node, unit, f, t)${ gnGroup(grid, node, group)
+    + sum(gnusft(grid, node, unit, s, f, t)${ gnGroup(grid, node, group)
                                           and gnuRescapable(restype, 'up', grid, node, unit)
                                           and (ord(unit_) ne ord(unit))
                                           },
@@ -221,7 +221,7 @@ q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_f
         ) // END sum(nuft)
 
     // Reserve provision from other reserve categories when they can be shared
-    + sum((gnuft(grid, node, unit, f, t), restype_)${ gnGroup(grid, node, group)
+    + sum((gnusft(grid, node, unit, s, f, t), restype_)${ gnGroup(grid, node, group)
                                                       and p_gnuRes2Res(grid, node, unit, restype_, 'up', restype)
                                                       and (ord(unit_) ne ord(unit))
                                                       },
@@ -298,7 +298,7 @@ q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
         * [
             + sum(gnu_output(grid, node, unit)${   ord(unit) ne ord(unit_)
                                                    and gnGroup(grid, node, group)
-                                                   and gnuft(grid, node, unit, f, t)
+                                                   and gnusft(grid, node, unit, s, f, t)
                                                    },
                 + p_gnu(grid, node, unit, 'inertia')
                     * p_gnu(grid ,node, unit, 'unitSizeMVA')
@@ -340,7 +340,7 @@ q_rateOfChangeOfFrequencyTransfer(group, gn2n(grid, node_, node_fail), sft(s, f,
     + p_groupPolicy(group, 'ROCOF')*2
         * [
             + sum(gnu_output(grid, node, unit)${   gnGroup(grid, node, group)
-                                                   and gnuft(grid, node, unit, f, t)
+                                                   and gnusft(grid, node, unit, s, f, t)
                                                    },
                 + p_gnu(grid, node, unit, 'inertia')
                     * p_gnu(grid ,node, unit, 'unitSizeMVA')
@@ -400,7 +400,7 @@ q_resDemandLargestInfeedTransfer(restypeDirectionGroup(restype, up_down, group),
         } ..
 
     // Reserve provision by capable units on this group
-    + sum(gnuft(grid, node, unit, f, t)${ gnGroup(grid, node, group)
+    + sum(gnusft(grid, node, unit, s, f, t)${ gnGroup(grid, node, group)
                                           and gnuRescapable(restype, up_down, grid, node, unit)
                                           },
         + v_reserve(restype, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t)
@@ -411,7 +411,7 @@ q_resDemandLargestInfeedTransfer(restypeDirectionGroup(restype, up_down, group),
         ) // END sum(gnuft)
 
     // Reserve provision from other reserve categories when they can be shared
-    + sum((gnuft(grid, node, unit, f, t), restype_)${ gnGroup(grid, node, group)
+    + sum((gnusft(grid, node, unit, s, f, t), restype_)${ gnGroup(grid, node, group)
                                                       and p_gnuRes2Res(grid, node, unit, restype_, up_down, restype)
                                                       },
         + v_reserve(restype_, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype_, f, t), t)
@@ -490,7 +490,7 @@ q_resDemandLargestInfeedTransfer(restypeDirectionGroup(restype, up_down, group),
 * --- Maximum Downward Capacity -----------------------------------------------
 
 q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
-    ${  gnuft(grid, node, unit, f, t)
+    ${  gnusft(grid, node, unit, s, f, t)
         and (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
             [   ord(t) <= tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is either providing
@@ -597,7 +597,7 @@ q_maxDownward(gnu(grid, node, unit), msft(m, s, f, t))
 * --- Maximum Downward Capacity for Production/Consumption, Online Reserves and Offline Reserves ---
 
 q_maxDownwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
-    ${  gnuft(grid, node, unit, f, t)
+    ${  gnusft(grid, node, unit, s, f, t)
         and (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
             [   ord(t) <= tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is providing
@@ -651,7 +651,7 @@ q_maxDownwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
 * --- Maximum Upwards Capacity for Production/Consumption and Online Reserves ---
 
 q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
-    ${  gnuft(grid, node, unit, f, t)
+    ${  gnusft(grid, node, unit, s, f, t)
         and (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
             [   ord(t) <= tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is either providing
@@ -754,7 +754,7 @@ q_maxUpward(gnu(grid, node, unit), msft(m, s, f, t))
 * --- Maximum Upwards Capacity for Production/Consumption, Online Reserves and Offline Reserves ---
 
 q_maxUpwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
-    ${  gnuft(grid, node, unit, f, t)
+    ${  gnusft(grid, node, unit, s, f, t)
         and (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
             [   ord(t) <= tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is providing
@@ -808,7 +808,7 @@ q_maxUpwardOfflineReserve(gnu(grid, node, unit), msft(m, s, f, t))
 * --- Fixed Flow Production/Consumption ---------------------------------------
 
 q_fixedFlow(gnu(grid, node, unit_flow(unit)), msft(m, s, f, t))
-    ${  gnuft(grid, node, unit, f, t)
+    ${  gnusft(grid, node, unit, s, f, t)
         and (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and p_unit(unit, 'fixedFlow')
 }..
@@ -846,7 +846,7 @@ q_fixedFlow(gnu(grid, node, unit_flow(unit)), msft(m, s, f, t))
 
 q_reserveProvision(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid, node), unit), sft(s, f, t))
     ${  ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
-        and gnuft(grid, node, unit, f, t)
+        and gnusft(grid, node, unit, s, f, t)
         and (unit_investLP(unit) or unit_investMIP(unit))
         and not sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group),
                     ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t))
@@ -882,7 +882,7 @@ q_reserveProvision(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid
 
 q_reserveProvisionOnline(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid, node), unit), sft(s, f, t))
     ${  ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
-        and gnuft(grid, node, unit, f, t)
+        and gnusft(grid, node, unit, s, f, t)
         and not sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group),
                     ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t))
         and uft_online(unit, f ,t)
@@ -2502,7 +2502,7 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
         + ts_node_(grid, node, 'upwardLimit', s, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeseries') }
 
         // Investments
-        + sum(gnu(grid, node, unit)${gnuft(grid, node, unit, f, t)},
+        + sum(gnu(grid, node, unit)${gnusft(grid, node, unit, s, f, t)},
             + p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
                 * p_gnu(grid, node, unit, 'unitSize')
                 * [
@@ -2984,7 +2984,7 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
     + p_groupPolicy(group, 'ROCOF')*2
         * [
             + sum(gnu(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSize')
-                                            and gnuft(grid, node, unit, f, t)
+                                            and gnusft(grid, node, unit, s, f, t)
                                         },
                 + p_gnu(grid, node, unit, 'inertia')
                     * p_gnu(grid ,node, unit, 'unitSizeMVA')
@@ -3005,7 +3005,7 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
     + p_groupPolicy(group, 'defaultFrequency')
         * [
             + p_groupReserves(group, restype_inertia, up_down)
-            - sum(gnuft(grid, node, unit, f, t)${   gnGroup(grid, node, group)
+            - sum(gnusft(grid, node, unit, s, f, t)${   gnGroup(grid, node, group)
                                                     and gnuRescapable(restype_inertia, up_down, grid, node, unit)
                                                     },
                 + v_reserve(restype_inertia, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype_inertia, f, t), t)
@@ -3030,7 +3030,7 @@ q_instantaneousShareMax(group, sft(s, f, t))
         } ..
 
     // Generation of units in the group
-    + sum(gnuft(gnu_output(grid, node, unit), f, t)$(
+    + sum(gnusft(gnu_output(grid, node, unit), s, f, t)$(
                                                       ( gnuGroup(grid, node, unit, group)
                                                           $p_gnu(grid, node, unit, 'unitSize')
                                                       ) $gnGroup(grid, node, group)
@@ -3072,7 +3072,7 @@ q_instantaneousShareMax(group, sft(s, f, t))
                 ) // END sum(gnGroup)
 
             // Consumption of units
-            - sum(gnuft(gnu_input(grid, node, unit), f, t)$( p_gnu(grid, node, unit, 'unitSize')
+            - sum(gnusft(gnu_input(grid, node, unit), s, f, t)$( p_gnu(grid, node, unit, 'unitSize')
                                                               $gnGroup(grid, node, group)
                                                            ),
                 + v_gen(grid, node, unit, s, f, t)
@@ -3142,7 +3142,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
         } ..
 
     // Availability of output units, based on 'availabilityCapacityMargin'
-    + sum(gnu_output(grid, node, unit)${ gnuft(grid, node, unit, f, t)
+    + sum(gnu_output(grid, node, unit)${ gnusft(grid, node, unit, s, f, t)
                                          and p_gnu(grid, node, unit, 'availabilityCapacityMargin')
                                          },
         + [
@@ -3164,7 +3164,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
         ) // END sum(gnu_output)
 
     // Availability of input units, based on 'availabilityCapacityMargin'
-    - sum(gnu_input(grid, node, unit)${ gnuft(grid, node, unit, f, t)
+    - sum(gnu_input(grid, node, unit)${ gnusft(grid, node, unit, s, f, t)
                                          and p_gnu(grid, node, unit, 'availabilityCapacityMargin')
                                          },
         + [
@@ -3186,7 +3186,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
         ) // END sum(gnu_output)
 
     // Availability of units, including capacity factors for flow units and v_gen for other units
-    + sum(gnu(grid, node, unit)${ gnuft(grid, node, unit, f, t)
+    + sum(gnu(grid, node, unit)${ gnusft(grid, node, unit, s, f, t)
                                          and not p_gnu(grid, node, unit, 'availabilityCapacityMargin')
                                          },
         // Capacity factors for flow units
@@ -3359,13 +3359,13 @@ q_energyLimit(group, min_max)
             * [
                 // Production of units in the group
                 + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
-                                                        and gnuft(grid, node, unit, f, t)
+                                                        and gnusft(grid, node, unit, s, f, t)
                                                         },
                     + v_gen(grid, node, unit, s, f, t)
                     ) // END sum(gnu)
                 // Consumption of units in the group
                 + sum(gnu_input(grid, node, unit)${    gnuGroup(grid, node, unit, group)
-                                                       and gnuft(grid, node, unit, f, t)
+                                                       and gnusft(grid, node, unit, s, f, t)
                                                        },
                     - v_gen(grid, node, unit, s, f, t)
                     ) // END sum(gnu)
@@ -3406,7 +3406,7 @@ q_energyShareLimit(group, min_max)
             * [
                 // Generation of units in the group
                 + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
-                                                        and gnuft(grid, node, unit, f, t)
+                                                        and gnusft(grid, node, unit, s, f, t)
                                                         },
                     + v_gen(grid, node, unit, s, f, t) // production is taken into account if the grid-node-unit is in gnuGroup
                     ) // END sum(gnu)
@@ -3421,7 +3421,7 @@ q_energyShareLimit(group, min_max)
                         + ts_influx_(grid, node, s, f, t) // influx is taken into account if the node is in gnGroup
                         ) // END sum(gnGroup)
                     - sum(gnu_input(grid, node, unit)${ gnuGroup(grid, node, unit, group)
-                                                        and gnuft(grid, node, unit, f, t)
+                                                        and gnusft(grid, node, unit, s, f, t)
                                                         },
                         + v_gen(grid, node, unit, s, f, t) // consumption is taken into account if the grid-node-unit is in gnuGroup
                         ) // END sum(gnu_input)
@@ -3449,7 +3449,7 @@ q_ReserveShareMax(group, restypeDirectionGroup(restype, up_down, group_), sft(s,
         }..
 
     // Reserve provision from units in 'group'
-    + sum(gnuft(grid, node, unit, f, t)${ gnuRescapable(restype, up_down, grid, node, unit)
+    + sum(gnusft(grid, node, unit, s, f, t)${ gnuRescapable(restype, up_down, grid, node, unit)
                                           and gnuGroup(grid, node, unit, group)
                                           },
         + v_reserve(restype, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t)
@@ -3461,7 +3461,7 @@ q_ReserveShareMax(group, restypeDirectionGroup(restype, up_down, group_), sft(s,
 
 
     // Reserve provision from other reserve categories when they can be shared
-    + sum((gnuft(grid, node, unit, f, t), restype_)${ p_gnuRes2Res(grid, node, unit, restype_, up_down, restype)
+    + sum((gnusft(grid, node, unit, s, f, t), restype_)${ p_gnuRes2Res(grid, node, unit, restype_, up_down, restype)
                                                       and gnuGroup(grid, node, unit, group)
                                                       },
         + v_reserve(restype_, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype_, f, t), t)
@@ -3478,7 +3478,7 @@ q_ReserveShareMax(group, restypeDirectionGroup(restype, up_down, group_), sft(s,
     + p_groupReserves4D(group, restype, up_down, group_, 'ReserveShareMax')
         * [
     // Reserve provision by units to the nodes in 'group_'
-            + sum(gnuft(grid, node, unit, f, t)${ gnuRescapable(restype, up_down, grid, node, unit)
+            + sum(gnusft(grid, node, unit, s, f, t)${ gnuRescapable(restype, up_down, grid, node, unit)
                                                   and gnGroup(grid, node, group_)
                                                   },
                 + v_reserve(restype, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t)
@@ -3489,7 +3489,7 @@ q_ReserveShareMax(group, restypeDirectionGroup(restype, up_down, group_), sft(s,
                   ) // END sum(nuft)
 
     // Reserve provision from other reserve categories when they can be shared
-            + sum((gnuft(grid, node, unit, f, t), restype_)${ p_gnuRes2Res(grid, node, unit, restype_, up_down, restype)
+            + sum((gnusft(grid, node, unit, s, f, t), restype_)${ p_gnuRes2Res(grid, node, unit, restype_, up_down, restype)
                                                               and gnGroup(grid, node, group_)
                                                               },
                 + v_reserve(restype_, up_down, grid, node, unit, s, f+df_reserves(grid, node, restype_, f, t), t)

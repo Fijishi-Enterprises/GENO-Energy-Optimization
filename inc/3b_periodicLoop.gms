@@ -606,20 +606,64 @@ loop(unit${unit_aggregator(unit)},
     uft_aggregator_first(uft(unit, f, t))${ord(t) = tmp} = yes;
 );
 
-// Active (grid, node, unit) on each ft
-Option clear = gnuft;
-gnuft(gn(grid, node), uft(unit, f, t))${    gnu(grid, node, unit)  }
+*// Active (grid, node, unit) on each ft. Commented out as not used in the model.
+*Option clear = gnuft;
+*gnuft(gn(grid, node), uft(unit, f, t))${    gnu(grid, node, unit)  }
+*    = yes
+*;
+
+Option clear = usft;
+usft(unit, sft(s, f, t))${  not sameas(unit, 'empty')  }
+    = yes;
+
+// Units are not active before or after their lifetime
+usft(unit, sft(s, f, t))${   [ ord(t) < p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeAvailable') ]
+                        or [ ord(t) >= p_unit(unit, 'becomeUnavailable') and p_unit(unit, 'becomeUnavailable') ]
+                        }
+    = no;
+// Unless before becomeUnavailable if becomeUnavailable < becomeAvailable (maintenance break case)
+usft(unit, sft(s, f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
+                      and [ord(t) < p_unit(unit, 'becomeUnavailable')]
+                      and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
+                    }
+    = yes;
+// Unless after becomeAvailable if becomeUnavailable < becomeAvailable (maintenance break case)
+usft(unit, sft(s, f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
+                      and [ord(t) >= p_unit(unit, 'becomeAvailable')]
+                      and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
+                    }
+    = yes;
+
+
+// Deactivating aggregated after lastStepNotAggregated and aggregators before
+usft(unit, sft(s, f, t))${  (   [
+                                ord(t) > tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
+                                and unit_aggregated(unit) // Aggregated units
+                           ]
+                            or
+                           [
+                                ord(t) <= tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
+                                and unit_aggregator(unit) // Aggregator units
+                           ]
+                        )
+                    }
+    = no;
+
+// Active (grid, node, unit) on each sft
+Option clear = gnusft;
+gnusft(gn(grid, node), usft(unit, s, f, t))${gnu(grid, node, unit)}
     = yes
 ;
+
 // Active (grid, node, unit, slack, up_down) on each ft step with ramp restrictions
 Option clear = gnuft_rampCost;
-gnuft_rampCost(gnu(grid, node, unit), slack, ft(f, t))${ gnuft(grid, node, unit, f, t)
+gnuft_rampCost(gnu(grid, node, unit), slack, ft(f, t))${ sum(s, gnusft(grid, node, unit, s, f, t))
                                                          and p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
                                                          }
     = yes;
 // Active (grid, node, unit) on each ft step with ramp restrictions
 Option clear = gnuft_ramp;
-gnuft_ramp(gnuft(grid, node, unit, f, t))${ p_gnu(grid, node, unit, 'maxRampUp')
+gnuft_ramp(gnu(grid, node, unit), ft(f, t))${ p_gnu(grid, node, unit, 'maxRampUp')
                                             OR p_gnu(grid, node, unit, 'maxRampDown')
                                             OR sum(slack, gnuft_rampCost(grid, node, unit, slack, f, t))
                                             }
@@ -639,7 +683,7 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${ mSettingsEff(mSolve, effLevel
         = yes;
 ); // END loop(effLevelGroupUnit)
 
-*// Determine the efficiency selectors for eff_uft
+*// Determine the efficiency selectors for eff_uft. Commented out as not used in the model.
 *eff_uft_eff(eff_uft(effGroup, unit, f, t), effSelector)${    effGroupSelector(effGroup, effSelector) }
 *    = yes
 *;

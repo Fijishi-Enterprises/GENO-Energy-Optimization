@@ -36,7 +36,7 @@ q_obj ..
                 + p_stepLength(m, f, t)
                     * [
                         // Variable O&M costs for inputs
-                        - sum(gnuft(grid, node, unit, f, t)$gnu_input(grid, node, unit),
+                        - sum(gnusft(grid, node, unit, s, f, t)$gnu_input(grid, node, unit),
                             + v_gen(grid, node, unit, s, f, t)
                                 * (+p_vomCost_(grid, node, unit, 'price')$p_vomCost_(grid, node, unit, 'useConstant')
                                    +ts_vomCost_(grid, node, unit, t)$p_vomCost_(grid, node, unit, 'useTimeSeries')
@@ -45,7 +45,7 @@ q_obj ..
 
 
                         // Variable O&M costs
-                        + sum(gnuft(grid, node, unit, f, t)$gnu_output(grid, node, unit),
+                        + sum(gnusft(grid, node, unit, s, f, t)$gnu_output(grid, node, unit),
                             + v_gen(grid, node, unit, s, f, t)
                                 * (+p_vomCost_(grid, node, unit, 'price')$p_vomCost_(grid, node, unit, 'useConstant')
                                    +ts_vomCost_(grid, node, unit, t)$p_vomCost_(grid, node, unit, 'useTimeSeries')

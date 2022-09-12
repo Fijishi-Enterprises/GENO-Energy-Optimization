@@ -114,7 +114,7 @@ loop(s_realized(s),
 loop(s_realized(s),
 
     // Unit generation and consumption
-    r_gen(gnuft(grid, node, unit, f, startp(t)))$sft_realized(s, f, t)
+    r_gen(gnu(grid, node, unit), f, startp(t))$sft_realized(s, f, t)
         = v_gen.l(grid, node, unit, s, f, t)
     ;
     // Transfer of energy between nodes

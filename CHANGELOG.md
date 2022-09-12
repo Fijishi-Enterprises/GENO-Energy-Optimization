@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - replaced emissionTax parameter with ts_emissionPriceChange 
 - renamed suft(effSelector, unit, f, t)  to eff_uft to avoid confusions with samples 
 - separated gnu with constant and variable vomCost to improve efficiency
+- replacing gnuft with gnusft to reduce model size in investment runs
 
 ### Fixed
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
