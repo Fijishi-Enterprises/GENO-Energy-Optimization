@@ -23,7 +23,7 @@ Cloning the repository with Git: Copy and paste the URL of the original Backbone
 
 You should now have *Backbone.gms*, a few additional files and five subdirectories in the directory where you cloned Backbone.
 
-Small example input datasets are provided online in the [wiki](https://gitlab.vtt.fi/backbone/backbone/wikis/Example-data-sets).
+Small example input datasets are provided online in the [wiki](https://gitlab.vtt.fi/backbone/backbone/-/wikis/Getting-started/Example%20models).
 
 ## Model File Structure
 
