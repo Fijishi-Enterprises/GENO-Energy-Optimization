@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - separated gnu with constant and variable vomCost to improve efficiency
 - replacing gnuft with gnusft to reduce model size in investment runs
 - separated units with constant and variable startupCost to improve efficiency
+- improved efficiency of ts_node looping
 
 ### Fixed
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves

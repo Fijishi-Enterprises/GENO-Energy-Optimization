@@ -381,8 +381,12 @@ $offtext
                      + df_scenario(f, t)${sum(gnGroup(grid, node, group), gn_scenarios(restype, node, 'ts_reserveDemand'))} ), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
+
+
+    // ts_node_ in case scenarios for nodes
     ts_node_(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f, tt_interval(t)))
-      $p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+      ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+        and  gn_scenarios(grid, node, 'ts_node') }
            // Take average if not a limit type
         = (sum(tt_aggregate(t, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
@@ -412,6 +416,36 @@ $offtext
                             + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
+
+    // ts_node_ in case no scenarios for nodes
+    ts_node_(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f, tt_interval(t)))
+      ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+        and not gn_scenarios(grid, node, 'ts_node')}
+           // Take average if not a limit type
+        = (sum(tt_aggcircular(t, t_),
+                ts_node(grid, node, param_gnBoundaryTypes,
+                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))),
+                    t_ )
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter))$( not (sameas(param_gnBoundaryTypes, 'upwardLimit')
+                                                                or sameas(param_gnBoundaryTypes, 'downwardLimit')
+                                                                or slack(param_gnBoundaryTypes)))
+          // Maximum lower limit
+          + smax(tt_aggcircular(t, t_),
+                ts_node(grid, node, param_gnBoundaryTypes,
+                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))),
+                    t_ )
+                )
+                $(sameas(param_gnBoundaryTypes, 'downwardLimit') or downwardSlack(param_gnBoundaryTypes))
+          // Minimum upper limit
+          + smin(tt_aggcircular(t, t_),
+                ts_node(grid, node, param_gnBoundaryTypes,
+                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))),
+                    t_ )
+                )
+                $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
+
+
 
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_), ts_gnn(grid, node, node_, param_gnn, f, t_))
