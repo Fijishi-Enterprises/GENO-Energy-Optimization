@@ -418,6 +418,8 @@ $offtext
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
 
+    // vomCost calculations
+    // looping gnu to decide if using static or time series pricing
     loop(gnu(grid, node, unit),
         p_vomCost_(grid, node, unit, 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
         p_vomCost_(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
@@ -426,8 +428,7 @@ $offtext
     ); // end loop(gnu)
 
     // Node price constants for inputs
-    p_vomCost_(gnu_input(grid, node, unit), 'price')
-        $p_vomCost_(grid, node, unit, 'useConstant')
+    p_vomCost_(gnu_input(grid, node, unit), 'price')$p_vomCost_(grid, node, unit, 'useConstant')
             // static vomcost
           = + p_gnu(grid, node, unit, 'vomCosts')
 
@@ -445,10 +446,8 @@ $offtext
                * p_emissionPrice(emission, group, 'price')
               ) // end sum(emissiongroup)
             ;
-
     // Node price constants for outputs
-    p_vomCost_(gnu_output(grid, node, unit), 'price')
-        $p_vomCost_(grid, node, unit, 'useConstant')
+    p_vomCost_(gnu_output(grid, node, unit), 'price')$p_vomCost_(grid, node, unit, 'useConstant')
             // static vomcost
           = + p_gnu(grid, node, unit, 'vomCosts')
 
@@ -466,11 +465,8 @@ $offtext
                * p_emissionPrice(emission, group, 'price')
               ) // end sum(emissiongroup)
             ;
-
-
     // Node price time series for inputs
-    ts_vomCost_(gnu_input(grid, node, unit), tt_interval(t))
-        $p_vomCost_(grid, node, unit, 'useTimeseries')
+    ts_vomCost_(gnu_input(grid, node, unit), tt_interval(t))$p_vomCost_(grid, node, unit, 'useTimeseries')
         = sum(tt_aggcircular(t, t_),
             // static vomcost
             + p_gnu(grid, node, unit, 'vomCosts')
@@ -495,10 +491,8 @@ $offtext
               ) // end sum(emissiongroup)
 
             ) / mInterval(mSolve, 'stepsPerInterval', counter) ; // END sum(tt_aggcircular)
-
     // Node price time series for outputs
-    ts_vomCost_(gnu_output(grid, node, unit), tt_interval(t))
-        $p_vomCost_(grid, node, unit, 'useTimeseries')
+    ts_vomCost_(gnu_output(grid, node, unit), tt_interval(t))$p_vomCost_(grid, node, unit, 'useTimeseries')
         = sum(tt_aggcircular(t, t_),
             // static vomcost
             + p_gnu(grid, node, unit, 'vomCosts')
@@ -526,9 +520,45 @@ $offtext
 
             ) / mInterval(mSolve, 'stepsPerInterval', counter) ; // END sum(tt_aggcircular)
 
-    // Calculating startup cost time series
+
+    // Startup cost calculations
+    // looping gnu to decide if using static or time series pricing
+    loop(nu_startup(node, unit),
+       p_startupCost_(unit, starttype, 'useTimeSeries')${p_price(node, 'useTimeSeries') and unitStarttype(unit, starttype)} = -1;
+       p_startupCost_(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
+       p_startupCost_(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$sum(grid,p_gnuEmission(grid, node, unit, emission)), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
+       p_startupCost_(unit, starttype, 'useConstant')${not p_startupCost_(unit, starttype, 'useTimeSeries')} = -1;
+    ); // end loop(nu_startup)
+
     // NOTE: does not include unit specific gnu emissions p_gnuEmission
-    ts_startupCost_(unit, starttype, tt_interval(t))
+    p_startupCost_(unit, starttype, 'price')$p_startupCost_(unit, starttype, 'useConstant')
+        = p_uStartup(unit, starttype, 'cost') // CUR/start-up
+        // Start-up fuel and emission costs
+        + sum(nu_startup(node, unit),
+            + p_unStartup(unit, node, starttype) // MWh/start-up
+              * [
+                  // Fuel costs
+                  + p_price(node, 'price') // CUR/MWh
+                  // Emission costs
+                  // node specific emission prices
+                  + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                     + p_nEmission(node, emission) // t/MWh
+                     * p_emissionPrice(emission, group, 'price')
+                    ) // end sum(emissionGroup)
+
+                   // gnu specific emission prices
+                   // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
+                  + sum(emissionGroup(emission, group)$sum(grid, p_gnuEmission(grid, node, unit, emission)),
+               + sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
+                     * p_emissionPrice(emission, group, 'price')
+                    ) // end sum(emissionGroup)
+
+                ] // END * p_unStartup
+            ) // END sum(nu_startup)
+         / mInterval(mSolve, 'stepsPerInterval', counter)  ;
+
+    // NOTE: does not include unit specific gnu emissions p_gnuEmission
+    ts_startupCost_(unit, starttype, tt_interval(t))$p_startupCost_(unit, starttype, 'useTimeSeries')
       = sum(tt_aggcircular(t, t_),
         + p_uStartup(unit, starttype, 'cost') // CUR/start-up
         // Start-up fuel and emission costs

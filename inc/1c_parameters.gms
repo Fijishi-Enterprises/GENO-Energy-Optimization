@@ -182,6 +182,7 @@ Parameters
     ts_storageValue_(grid, node, s, f, t) "Mean value of ts_storageValue"
     p_vomCost_(grid, node, unit, param_price) "Calculated static variable O&M cost that includes O&M cost, fuel cost and emission cost"
     ts_vomCost_(grid, node, unit, t) "Calculated time dependent variable O&M cost that includes O&M cost, fuel cost and emission cost"
+    p_startupCost_(unit, starttype, param_price) "Calculated static startup cost that includes startup cost, fuel cost and emission cost"
     ts_startupCost_(unit, starttype, t) "Calculated variable startup cost that includes startup cost, fuel cost and emission cost"
 
     // Aliases used for updating data in inputsLoop.gms

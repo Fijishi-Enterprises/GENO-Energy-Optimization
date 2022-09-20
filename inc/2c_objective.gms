@@ -44,7 +44,7 @@ q_obj ..
                             ) // END sum(gnuft)
 
 
-                        // Variable O&M costs
+                        // Variable O&M costs for outputs
                         + sum(gnusft(grid, node, unit, s, f, t)$gnu_output(grid, node, unit),
                             + v_gen(grid, node, unit, s, f, t)
                                 * (+p_vomCost_(grid, node, unit, 'price')$p_vomCost_(grid, node, unit, 'useConstant')
@@ -93,7 +93,9 @@ q_obj ..
                             + v_startup_LP(unit, starttype, s, f, t)${ uft_onlineLP(unit, f, t) }
                             + v_startup_MIP(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
                           ]
-                          * ts_startupCost_(unit, starttype, t)
+                          * (+p_startupCost_(unit, starttype, 'price')$p_startupCost_(unit, starttype, 'useConstant')
+                             +ts_startupCost_(unit, starttype, t)$p_startupCost_(unit, starttype, 'useTimeSeries')
+                            )
                       ) // END sum(starttype)
                   ) // END sum(uft_online)
 
