@@ -12,11 +12,10 @@
     ],
     "description": "Backbone",
     "inputfiles": [
-        "input/timeAndSamples.inc",
         "input/1_options.gms",
-        "input/scheduleInit.gms",
-        "input/inputData.gdx",
-        "input/modelsInit.gms"
+        "input/modelsInit.gms",
+        "input/timeAndSamples.inc",
+        "input/inputData.gdx"
     ],
     "inputfiles_opt": [
         "input/*.*"
