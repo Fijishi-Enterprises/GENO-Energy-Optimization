@@ -14,7 +14,6 @@
     "inputfiles": [
         "input/1_options.gms",
         "input/timeAndSamples.inc",
-        "input/scheduleInit.gms",
         "input/modelsInit.gms",
         "input/inputData.gdx"
     ],
