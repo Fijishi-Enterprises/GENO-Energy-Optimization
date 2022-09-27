@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - improved memory size and speed of timeseries looping (ts_vomCost_, ts_startupCost_)
 - improved the speed of ts_price calculation
 - fixing div by zero in twoWayTransfer limits with 0 availability
+- `scheduleInit.gms` is no longer required by `spineToolbox.json`.
 
 
 ## 2.2 - 2022-03-24
