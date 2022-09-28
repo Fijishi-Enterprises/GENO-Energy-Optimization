@@ -278,7 +278,7 @@
                 "node",
                 "emission"
             ],
-            "Emission content (kg/MWh)",
+            "Emission content (t/MWh)",
             null
         ],
         [
@@ -1202,7 +1202,7 @@
             "emission_content",
             null,
             null,
-            "Emission content (kg/MWh)"
+            "Emission content (t/MWh)"
         ],
         [
             "unit__constraint",
