@@ -1128,6 +1128,13 @@
             "Emission tax (EUR/tonne)"
         ],
         [
+            "group__emission",
+            "emissionPriceChange",
+            null,
+            null,
+            "Initial emission group price and consequent changes in price (EUR/tCO2)"
+        ],
+        [
             "group__restype",
             "gate_closure",
             null,
