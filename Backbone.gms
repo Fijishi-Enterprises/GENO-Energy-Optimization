@@ -21,11 +21,11 @@ Created by:
     Juha Kiviluoma
     Erkka Rinne
     Topi Rasku
-    Niina Helistö
+    Niina Helisto
     Dana Kirchem
     Ran Li
     Ciara O'Dwyer
-    Jussi Ikäheimo
+    Jussi Ikaheimo
     Tomi J. Lindroos
 
 This is a GAMS implementation of the Backbone energy system modelling framework
