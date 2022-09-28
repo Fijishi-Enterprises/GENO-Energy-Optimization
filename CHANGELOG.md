@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - improved the speed of ts_price calculation
 - fixing div by zero in twoWayTransfer limits with 0 availability
 - `scheduleInit.gms` is no longer required by `spineToolbox.json`.
+- `tools/bb_data_template.json` and `tools/exporttobb.json` updated to match new input data requirements.
 
 
 ## 2.2 - 2022-03-24
