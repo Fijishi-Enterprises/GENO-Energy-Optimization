@@ -191,6 +191,16 @@
             null
         ],
         [
+            "grid__node__unit__emission",
+            [
+                "grid",
+                "node",
+                "unit",
+                "emission"
+            ],
+            "Unit data of energy specific emission factors (t/MWh)"
+        ],
+        [
             "grid__node__unit__group",
             [
                 "grid",
@@ -948,6 +958,13 @@
             null,
             null,
             "Maximum ramp speed (p.u./min)"
+        ],
+        [
+            "grid__node__unit__emission",
+            "emissionFactor",
+            null,
+            null,
+            "Emission factors (t/MWh)"
         ],
         [
             "grid__node__unit__io",
