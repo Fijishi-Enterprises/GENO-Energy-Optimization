@@ -116,8 +116,6 @@ q_obj ..
                         * v_genRampUpDown(grid, node, unit, slack, s, f, t)
                   ) // END sum(gnuft_rampCost)
 
-                ]  // END * p_sft_probability(s,f,t)
-
                 // Variable Transfer
                 + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node, node_, 'variableTransCost'),
                     + p_gnn(grid, node, node_, 'variableTransCost')
@@ -129,6 +127,7 @@ q_obj ..
                     * v_transferRightward(grid, node_, node, s, f, t)
                   ) // END sum(gn2n_directional(grid, node_, node))
 
+              ]  // END * p_msft_probability(m, s, f, t)
         ) // END sum over msft(m, s, f, t)
 
     // Cost of energy storage change (note: not discounted)
