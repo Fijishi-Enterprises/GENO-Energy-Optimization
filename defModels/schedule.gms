@@ -64,6 +64,9 @@ Model schedule /
     q_transfer
     q_transferRightwardLimit
     q_transferLeftwardLimit
+    q_transferRamp
+*    q_transferRampLimit1
+*    q_transferRampLimit2
     q_resTransferLimitRightward
     q_resTransferLimitLeftward
 *    q_reserveProvisionRightward

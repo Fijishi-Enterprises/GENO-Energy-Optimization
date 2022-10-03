@@ -364,19 +364,47 @@ $offtext
 *v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 
 *----------------------------------------------------------------------IC RAMP-------------------------------------------------------------------------------------------------------------------------------------
-v_ICramp.up(gn2n_directional(grid, node, node_), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
-                                                                 and p_gnn(grid, node, node_, 'ICrampUp')
-                                                                 and not p_gnn(grid, node, node_, 'transferCapInvLimit')
-                                                                 }
- = p_gnn(grid, node, node_, 'transferCap')
-       * p_gnn(grid, node, node_, 'ICrampUp')
+v_transferRamp.up(gn2n_directional_rampConstrained(grid, node, node_), sft(s, f, t))
+  $ {not p_gnn(grid, node, node_, 'transferCapInvLimit')
+     and not p_gnn(grid, node_, node, 'transferCapInvLimit')
+     and ord(t) > msStart(mSolve, s) + 1 }
+
+ = +p_gnn(grid, node, node_, 'transferCap')
+       * p_gnn(grid, node, node_, 'rampLimit')
+       * [
+           + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+           + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+         ]
+       * 60    // Unit conversion from [p.u./min] to [p.u./h]
+
+   +p_gnn(grid, node_, node, 'transferCap')
+       * p_gnn(grid, node_, node, 'rampLimit')
+       * [
+           + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
+           + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
+         ]
        * 60;    // Unit conversion from [p.u./min] to [p.u./h]
-v_ICramp.lo(gn2n_directional(grid, node, node_), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
-                                                                 and p_gnn(grid, node, node_, 'ICrampDown')
-                                                                 and not p_gnn(grid, node, node_, 'transferCapInvLimit')
-                                                                 }
- = -(p_gnn(grid, node, node_, 'transferCap'))
-       * p_gnn(grid, node, node_, 'ICrampDown')
+
+
+v_transferRamp.lo(gn2n_directional_rampConstrained(grid, node, node_), sft(s, f, t))
+  $ {not p_gnn(grid, node, node_, 'transferCapInvLimit')
+     and not p_gnn(grid, node_, node, 'transferCapInvLimit')
+     and ord(t) > msStart(mSolve, s) + 1  }
+
+ = -p_gnn(grid, node, node_, 'transferCap')
+       * p_gnn(grid, node, node_, 'rampLimit')
+       * [
+           + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+           + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+         ]
+       * 60    // Unit conversion from [p.u./min] to [p.u./h]
+
+   -p_gnn(grid, node_, node, 'transferCap')
+       * p_gnn(grid, node_, node, 'rampLimit')
+       * [
+           + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
+           + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
+         ]
        * 60;    // Unit conversion from [p.u./min] to [p.u./h]
 
 *------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -613,6 +641,11 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
         // Generation initial value (needed at least for ramp constraints)
         v_gen.fx(gnu(grid, node, unit), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
             = r_gen(grid, node, unit, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
+
+        // Transfer initial value (needed at least for ramp constraints)
+        v_transfer.fx(gn2n_directional(grid, node, node_), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
+            = r_transfer(grid, node, node_, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
+
 
     ); // END if(tSolveFirst)
 ) // END loop(mft_start)

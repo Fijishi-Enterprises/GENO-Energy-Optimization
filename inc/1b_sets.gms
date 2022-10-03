@@ -59,6 +59,7 @@ Sets
 * NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
     gn2n(grid, node, node) "All (directional) transfer links between nodes in specific energy grids"
     gn2n_directional(grid, node, node) "Transfer links with positive rightward transfer and negative leftward transfer"
+    gn2n_directional_rampConstrained(grid, node, node) "Transfer links with ramp constrained enabled" 
     gn2n_directional_investLP(grid, node, node) "Transfer links with with continuous investments allowed"
     gn2n_directional_investMIP(grid, node, node) "Transfer links with with integer investments allowed"
     gn2n_timeseries(grid, node, node, param_gnn) "Transfer links with time series enabled for certain parameters"

@@ -264,8 +264,7 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     invCost       "Investment cost (EUR/MW)"
     annuity       "Investment annuity"
     portion_of_transfer_to_reserve "Portion of the infeed from the unit that needs to be available as reserve if the unit fails"
-    ICrampUp
-    ICrampDown
+    rampLimit     "Maximum ramp speed (p.u./min). NOTE: does not apply to reserve tranfer at the moment."
     variableTransCost    "Variable cost applied to transfers (EUR/MW)"
     availability  "Availability of the interconnection (p.u.)"
     useTimeseriesAvailability "A flag to use time series form input for availability"

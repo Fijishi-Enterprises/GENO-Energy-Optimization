@@ -225,6 +225,7 @@ Option clear = r_gen;
 Option clear = r_realizedLast;
 Option clear = r_startup;
 Option clear = r_shutdown;
+Option clear = r_transfer;
 Option clear = r_invest;
 Option clear = r_investTransfer;
 Option clear = r_qResDemand;

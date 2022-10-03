@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - separated units with constant and variable startupCost to improve efficiency
 - improved efficiency of ts_node looping
 - Automatic formatting and of `tools/bb_data_template.json` data structure.
+- Adding transfer rampLimit equations, removing old unfinished ICramp equations
 
 ### Fixed
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves

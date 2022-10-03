@@ -368,6 +368,12 @@ gn2n_directional(gn2n(grid, node, node_))${ ord(node) > ord(node_)
                                             }
     = yes;
 
+// set for ramp constrained transfer links
+gn2n_directional_rampConstrained(gn2n_directional(grid, node, node_)) $  {p_gnn(grid, node, node_, 'rampLimit')
+                                                                          or p_gnn(grid, node_, node, 'rampLimit')
+                                                                         }
+    = yes;
+
 // Set for transfer links with investment possibility
 Option clear = gn2n_directional_investLP;
 Option clear = gn2n_directional_investMIP;
