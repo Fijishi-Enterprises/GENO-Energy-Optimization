@@ -549,6 +549,9 @@ p_gnuReserves(gnu(grid, node, unit), restype, up_down)
 loop(node,
     if(sum(gn(grid, node), 1) > 1,
         put log '!!! Error occurred on node ' node.tl:0 /;
+        loop(gn(grid, node),
+               put log '!!! Error occurred on grid ' grid.tl:0 /;
+        );
         put log '!!! Abort: Nodes cannot be assigned to multiple grids!' /;
         abort "Nodes cannot be assigned to multiple grids!"
     ); // END if(sum(gn))
