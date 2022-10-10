@@ -577,6 +577,13 @@ loop(gn2n(grid, node, node_),
             abort "Parameter 'transferCapBidirectional' must be greater than or equal to defined one-directional transfer capacities!"
         );
     );
+    // Check if transfer ramprate limit exists for this link.
+    if(p_gnn(grid, node, node_, 'rampLimit'),
+        // Check for conflicting ramp limits
+        if(p_gnn(grid, node, node_, 'rampLimit')*p_gnn(grid, node, node_, 'transferCap') <> p_gnn(grid, node_, node, 'rampLimit')*p_gnn(grid, node_, node, 'transferCap'),
+            put log '!!! Warning: ' node.tl:0 '-' node_.tl:0 ' rampLimit * transfCapacity is not equal to different directions'  /;
+        );
+    );
 );
 
 * --- Check the integrity of efficiency approximation related data ------------

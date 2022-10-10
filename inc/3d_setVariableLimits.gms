@@ -375,14 +375,6 @@ v_transferRamp.up(gn2n_directional_rampConstrained(grid, node, node_), sft(s, f,
            + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
            + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
          ]
-       * 60    // Unit conversion from [p.u./min] to [p.u./h]
-
-   +p_gnn(grid, node_, node, 'transferCap')
-       * p_gnn(grid, node_, node, 'rampLimit')
-       * [
-           + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
-           + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
-         ]
        * 60;    // Unit conversion from [p.u./min] to [p.u./h]
 
 
@@ -396,14 +388,6 @@ v_transferRamp.lo(gn2n_directional_rampConstrained(grid, node, node_), sft(s, f,
        * [
            + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
            + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
-         ]
-       * 60    // Unit conversion from [p.u./min] to [p.u./h]
-
-   -p_gnn(grid, node_, node, 'transferCap')
-       * p_gnn(grid, node_, node, 'rampLimit')
-       * [
-           + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
-           + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
          ]
        * 60;    // Unit conversion from [p.u./min] to [p.u./h]
 

@@ -2330,28 +2330,21 @@ q_transferRampLimit2(gn2n_directional(grid, node, node_), sft(s, f, t))
 
     - [ // Existing transfer capacity
         p_gnn(grid, node, node_, 'transferCap')
-        + p_gnn(grid, node_, node, 'transferCap')
 
         // Investments into additional transfer capacity
         + sum(t_invest(t_)${ord(t_)<=ord(t)},
            + v_investTransfer_LP(grid, node, node_, t_)${gn2n_directional_investLP(grid, node, node_)}
-           + v_investTransfer_LP(grid, node_, node, t_)${gn2n_directional_investLP(grid, node_, node)}
            + v_investTransfer_MIP(grid, node, node_, t_)${gn2n_directional_investMIP(grid, node, node_)}
                * p_gnn(grid, node, node_, 'unitSize')
-           + v_investTransfer_MIP(grid, node_, node, t_)${gn2n_directional_investMIP(grid, node_, node)}
-               * p_gnn(grid, node_, node, 'unitSize')
           ) // END sum(t_invest)
       ]
       // availability of tranfer connections
       * [
           + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
-          + p_gnn(grid, node_, node, 'availability')${not gn2n_timeseries(grid, node_, node, 'availability')}
           + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
-          + ts_gnn_(grid, node_, node, 'availability', f, t)${gn2n_timeseries(grid, node_, node, 'availability')}
         ]
 
       * [p_gnn(grid, node, node_, 'rampLimit') // ramp limit of transfer connections
-         + p_gnn(grid, node_, node, 'rampLimit') // ramp limit of transfer connections
         ]
       * 60    // Unit conversion from [p.u./min] to [p.u./h]
 ;
