@@ -183,6 +183,7 @@ r_groupTotalReserve
 
 // Interesting investment results
 r_invest
+r_investCapacity
 r_investTransfer
 
 * --- Sum results for groups --------------------------------------------------

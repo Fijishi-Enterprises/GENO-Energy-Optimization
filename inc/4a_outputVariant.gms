@@ -160,6 +160,14 @@ r_invest(unit)${ (unit_investLP(unit) or unit_investMIP(unit))
                   }
     = v_invest_LP.l(unit) + v_invest_MIP.l(unit)
 ;
+
+// Capacity of unit investments
+r_investCapacity(grid, node, unit)${ (unit_investLP(unit) or unit_investMIP(unit))
+                  and p_unit(unit, 'becomeAvailable') <= tSolveFirst + mSettings(mSolve, 't_jump')
+                  }
+    = (v_invest_LP.l(unit) + v_invest_MIP.l(unit))*p_gnu(grid, node, unit, 'unitSize')
+;
+
 // Link investments
 r_investTransfer(grid, node, node_, t_invest(t))${ p_gnn(grid, node, node_, 'transferCapInvLimit')
 *                                                   and t_current(t)
