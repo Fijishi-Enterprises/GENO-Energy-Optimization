@@ -489,7 +489,7 @@ loop(m,
     // Approximate utilization rates for gnus over the simulation
     r_gnuUtilizationRate(gnu(grid, node, unit))${ r_gnuTotalGen(grid, node, unit)
                                                          and ( p_gnu(grid, node, unit, 'capacity')
-                                                               or r_invest(unit)
+                                                               or (r_invest(unit) and p_gnu(grid, node, unit, 'unitSize'))
                                                                )
                                                          }
         = r_gnuTotalGen(grid, node, unit)
