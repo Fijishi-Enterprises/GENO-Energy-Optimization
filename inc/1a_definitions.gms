@@ -261,7 +261,7 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     investMIP     "A flag to make integer investment instead of continuous investment (MW versus number of links)"
     unitSize      "Size of one link for integer investments (MW)"
     invCost       "Investment cost (EUR/MW)"
-    annuity       "Investment annuity"
+    annuityFactor       "Investment annuity"
     portion_of_transfer_to_reserve "Portion of the infeed from the unit that needs to be available as reserve if the unit fails"
     ICrampUp
     ICrampDown
@@ -281,7 +281,7 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment ([v_state]/MW)"
     unitSize      "Input/Output capacity of one subunit for integer investments (MW)"
     invCosts      "Investment costs (EUR/MW)"
-    annuity       "Investment annuity factor"
+    annuityFactor       "Investment annuity factor"
     fomCosts      "Fixed operation and maintenance costs (EUR/MW/a)"
     vomCosts       "Variable operation and maintenance costs (EUR/MWh)"
     inertia       "Inertia of the unit (s)"

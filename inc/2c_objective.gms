@@ -158,13 +158,13 @@ q_obj ..
                     + v_invest_LP(unit)${ unit_investLP(unit) and sum(msft(m, s, f, t_), uft(unit, f, t_))} // consider unit only if it is active in the sample
                         * p_gnu(grid, node, unit, 'unitSize')
                         * [
-                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
+                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuityFactor')
                             + p_gnu(grid, node, unit, 'fomCosts')
                           ]
                     + v_invest_MIP(unit)${ unit_investMIP(unit) and sum(msft(m, s, f, t_), uft(unit, f, t_))} // consider unit only if it is active in the sample
                         * p_gnu(grid, node, unit, 'unitSize')
                         * [
-                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
+                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuityFactor')
                             + p_gnu(grid, node, unit, 'fomCosts')
                           ]
                     ) // END sum(gnu)
@@ -175,18 +175,18 @@ q_obj ..
                         + v_investTransfer_LP(grid, from_node, to_node, t)${ gn2n_directional_investLP(grid, from_node, to_node) }
                             * [
                                 + p_gnn(grid, from_node, to_node, 'invCost')
-                                    * p_gnn(grid, from_node, to_node, 'annuity')
+                                    * p_gnn(grid, from_node, to_node, 'annuityFactor')
                                 + p_gnn(grid, to_node, from_node, 'invCost')
-                                    * p_gnn(grid, to_node, from_node, 'annuity')
+                                    * p_gnn(grid, to_node, from_node, 'annuityFactor')
                                 ] // END * v_investTransfer_LP
                         + v_investTransfer_MIP(grid, from_node, to_node, t)${ gn2n_directional_investMIP(grid, from_node, to_node) }
                             * [
                                 + p_gnn(grid, from_node, to_node, 'unitSize')
                                     * p_gnn(grid, from_node, to_node, 'invCost')
-                                    * p_gnn(grid, from_node, to_node, 'annuity')
+                                    * p_gnn(grid, from_node, to_node, 'annuityFactor')
                                 + p_gnn(grid, to_node, from_node, 'unitSize')
                                     * p_gnn(grid, to_node, from_node, 'invCost')
-                                    * p_gnn(grid, to_node, from_node, 'annuity')
+                                    * p_gnn(grid, to_node, from_node, 'annuityFactor')
                                 ] // END * v_investTransfer_MIP
                         ) // END sum(gn2n_directional)
                     ) // END sum(t_invest)
