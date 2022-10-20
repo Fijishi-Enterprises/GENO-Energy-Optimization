@@ -619,9 +619,11 @@ gnuft_rampCost(gnu(grid, node, unit), slack, ft(f, t))${ uft(unit, f, t)
     = yes;
 // Active (grid, node, unit) on each ft step with ramp restrictions
 Option clear = gnuft_ramp;
-gnuft_ramp(gnu(grid, node, unit), ft(f, t))${ p_gnu(grid, node, unit, 'maxRampUp')
-                                            OR p_gnu(grid, node, unit, 'maxRampDown')
-                                            OR sum(slack, gnuft_rampCost(grid, node, unit, slack, f, t))
+gnuft_ramp(gnu(grid, node, unit), ft(f, t))${ [p_gnu(grid, node, unit, 'maxRampUp') and
+                                               p_gnu(grid, node, unit, 'maxRampUp') * 60 * sum(m, p_stepLength(m, f, t)) < 1]
+                                               OR [p_gnu(grid, node, unit, 'maxRampDown') and
+                                                   p_gnu(grid, node, unit, 'maxRampDown') * 60 * sum(m, p_stepLength(m, f, t)) < 1]
+                                               OR sum(slack, gnuft_rampCost(grid, node, unit, slack, f, t))
                                             }
     = yes;
 
