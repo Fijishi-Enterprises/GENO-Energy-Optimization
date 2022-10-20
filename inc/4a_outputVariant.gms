@@ -197,7 +197,7 @@ d_capacityFactor(flowNode(flow, node), sft(s, f_solve(f), t_current(t)))
         + ts_cf(flow, node, f, t + dt_scenarioOffset(flow, node, 'ts_cf', s))${ not ts_cf_(flow, node, s, f, t) }
         + Eps
 ;
-// Temperature forecast for examining the error
+// Node state forecast for examining the error
 d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f_solve(f), t_current(t)))
     ${  p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
         and t_active(t)

@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file.
 - `scheduleInit.gms` is no longer required by `spineToolbox.json`.
 - `tools/bb_data_template.json` and `tools/exporttobb.json` updated to match new input data requirements.
 - correcting sample weights in objective function for transfer vomCosts
+- fixing crash with diag option
 
 
 ## 2.2 - 2022-03-24
