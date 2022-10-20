@@ -41,7 +41,7 @@ q_obj ..
                                 * (+p_vomCost_(grid, node, unit, 'price')$p_vomCost_(grid, node, unit, 'useConstant')
                                    +ts_vomCost_(grid, node, unit, t)$p_vomCost_(grid, node, unit, 'useTimeSeries')
                                   )
-                            ) // END sum(gnuft)
+                            ) // END sum(gnusft)
 
 
                         // Variable O&M costs for outputs
@@ -50,7 +50,7 @@ q_obj ..
                                 * (+p_vomCost_(grid, node, unit, 'price')$p_vomCost_(grid, node, unit, 'useConstant')
                                    +ts_vomCost_(grid, node, unit, t)$p_vomCost_(grid, node, unit, 'useTimeSeries')
                                   )
-                            ) // END sum(gnuft)
+                            ) // END sum(gnusft)
 
                         // Node state slack variable costs
                         + sum(gn_stateSlack(grid, node),

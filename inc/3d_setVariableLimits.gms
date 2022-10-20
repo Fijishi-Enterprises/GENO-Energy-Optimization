@@ -187,11 +187,10 @@ v_spill.up(gn(grid, node_spill), sft(s, f, t))${    p_gnBoundaryPropertiesForSta
 
 
 // Max. energy generation if investments disabled
-v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnusft(grid, node, unit, s, f, t)
-                                          and not unit_flow(unit)
-                                          and not (unit_investLP(unit) or unit_investMIP(unit))
-                                          and p_gnu(grid, node, unit, 'capacity')
-                                    }
+v_gen.up(gnusft(gnu_output(grid, node, unit), s, f, t))${not unit_flow(unit)
+                                                       and not (unit_investLP(unit) or unit_investMIP(unit))
+                                                       and p_gnu(grid, node, unit, 'capacity')
+                                                     }
     = p_gnu(grid, node, unit, 'capacity')
         * [
             + p_unit(unit, 'availability')${not p_unit(unit, 'useTimeseriesAvailability')}
@@ -199,8 +198,7 @@ v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnusft(grid, node, unit, s
             ]
 ;
 // Time series capacity factor based max. energy generation if investments disabled
-v_gen.up(gnu_output(grid, node, unit_flow), sft(s, f, t))${gnusft(grid, node, unit_flow, s, f, t)
-                                                           and not (unit_investLP(unit_flow) or unit_investMIP(unit_flow)) }
+v_gen.up(gnusft(gnu_output(grid, node, unit_flow), s, f, t))${ not (unit_investLP(unit_flow) or unit_investMIP(unit_flow)) }
     = sum(flow${    flowUnit(flow, unit_flow)
                     and nu(node, unit_flow)
                     },
@@ -214,14 +212,13 @@ v_gen.up(gnu_output(grid, node, unit_flow), sft(s, f, t))${gnusft(grid, node, un
 ;
 
 // Maximum generation to zero for input nodes
-v_gen.up(gnu_input(grid, node, unit), sft(s, f, t))${gnusft(grid, node, unit, s, f, t)} = 0;
+v_gen.up(gnusft(gnu_input(grid, node, unit), s, f, t)) = 0;
 
 // Min. generation to zero for output nodes
-v_gen.lo(gnu_output(grid, node, unit), sft(s, f, t))${gnusft(grid, node, unit, s, f, t)} = 0;
+v_gen.lo(gnusft(gnu_output(grid, node, unit), s, f, t)) = 0;
 
 // Constant max. consumption capacity if investments disabled
-v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnusft(grid, node, unit, s, f, t)
-                                          and not (unit_investLP(unit) or unit_investMIP(unit))}
+v_gen.lo(gnusft(gnu_input(grid, node, unit), s, f, t))${ not (unit_investLP(unit) or unit_investMIP(unit))}
     = - p_gnu(grid, node, unit, 'capacity')
         * [
             + p_unit(unit, 'availability')${not p_unit(unit, 'useTimeseriesAvailability')}
@@ -229,15 +226,13 @@ v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnusft(grid, node, unit, s,
             ]
 ;
 
-v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnusft(grid, node, unit, s, f, t)
-                                          and not (unit_investLP(unit) or unit_investMIP(unit))
-                                          and not p_gnu(grid, node, unit, 'capacity')}
+v_gen.lo(gnusft(gnu_input(grid, node, unit), s, f, t))${ not (unit_investLP(unit) or unit_investMIP(unit))
+                                                         and not p_gnu(grid, node, unit, 'capacity')}
     = - inf
 ;
 
 // Time series capacity factor based max. consumption if investments disabled
-v_gen.lo(gnu_input(grid, node, unit_flow), sft(s, f, t))${gnusft(grid, node, unit_flow, s, f, t)
-                                          and not (unit_investLP(unit_flow) or unit_investMIP(unit_flow))}
+v_gen.lo(gnusft(gnu_input(grid, node, unit_flow), s, f, t))${not (unit_investLP(unit_flow) or unit_investMIP(unit_flow))}
     = - sum(flow${  flowUnit(flow, unit_flow)
                     and nu(node, unit_flow)
                     },
@@ -250,18 +245,16 @@ v_gen.lo(gnu_input(grid, node, unit_flow), sft(s, f, t))${gnusft(grid, node, uni
       ) // END sum(flow)
 ;
 // In the case of negative generation (currently only used for cooling equipment)
-v_gen.lo(gnu_output(grid, node, unit), sft(s, f, t))${gnusft(grid, node, unit, s, f, t)
-                                          and p_gnu(grid, node, unit, 'conversionCoeff') < 0   }
+v_gen.lo(gnusft(gnu_output(grid, node, unit), s, f, t))${p_gnu(grid, node, unit, 'conversionCoeff') < 0   }
     = -p_gnu(grid, node, unit, 'capacity')
 ;
-v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnusft(grid, node, unit, s, f, t)
-                                          and p_gnu(grid, node, unit, 'conversionCoeff') < 0}
+v_gen.up(gnusft(gnu_output(grid, node, unit), s, f, t))${p_gnu(grid, node, unit, 'conversionCoeff') < 0}
     = 0
 ;
 // Ramping capability of units not part of investment set
 // NOTE: Apply the corresponding equations only to units with investment possibility,
 // online variable, or reserve provision
-v_genRamp.up(gnu(grid, node, unit), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
+v_genRamp.up(gnusft(grid, node, unit, s, f, t))${   ord(t) > msStart(mSolve, s) + 1
                                                     and gnuft_ramp(grid, node, unit, f, t)
                                                     and p_gnu(grid, node, unit, 'maxRampUp')
                                                     and not uft_online(unit, f, t)
@@ -272,7 +265,7 @@ v_genRamp.up(gnu(grid, node, unit), sft(s, f, t))${ ord(t) > msStart(mSolve, s) 
  = p_gnu(grid, node, unit, 'capacity')
         * p_gnu(grid, node, unit, 'maxRampUp')
         * 60;  // Unit conversion from [p.u./min] to [p.u./h]
-v_genRamp.lo(gnu(grid, node, unit), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
+v_genRamp.lo(gnusft(grid, node, unit, s, f, t))${   ord(t) > msStart(mSolve, s) + 1
                                                     and gnuft_ramp(grid, node, unit, f, t)
                                                     and p_gnu(grid, node, unit, 'maxRampDown')
                                                     and not uft_online(unit, f, t)
@@ -435,7 +428,7 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
     // Reserve provision limits without investments
     // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
     v_reserve.up(gnuRescapable(restype, up_down, grid, node, unit), s, f+df_reserves(grid, node, restype, f, t), t)
-        ${  gnusft(grid, node, unit, s, f, t) // gnuft is not displaced by df_reserves, as the unit exists on normal ft.
+        ${  gnusft(grid, node, unit, s, f, t) // gnusft is not displaced by df_reserves, as the unit exists on normal ft.
             and not (unit_investLP(unit) or unit_investMIP(unit))
             and not sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group),
                         ft_reservesFixed(group, restype, f+df_reserves(grid, node, restype, f, t), t)

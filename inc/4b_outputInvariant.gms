@@ -752,7 +752,7 @@ r_groupReserve(restypeDirectionGroup(restype, up_down, group), f, t)
                                           and groupRestype(group, restype)
                                           },
         + r_reserve(restype, up_down, grid, node, unit, f, t)
-      ); // END sum(gnuft)
+      ); // END sum(gnu)
 
 // Total reserve provision in groups over the simulation
 r_groupTotalReserve(restypeDirectionGroup(restype, up_down, group))
