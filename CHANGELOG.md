@@ -1,7 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 2.0.1 - 2022-11-20     
+### Fixed
+- fixing crash with diag option
+
+## 2.0 - 2022-01-05
 ### Added
 - Result parameters for start-up energy consumption and start-up emissions
 - Result parameter for realized diffusions
@@ -19,7 +23,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Including start-up fuel consumption in q_balance
 - Updated start-up cost and start-up emission calculation
-- output_dir command line argument was missing quotes in the code and directories with space did not work 
+- output_dir command line argument was missing quotes in the code and directories with space did not work
 
 ## 1.5 - 2021-10-05
 ### Added
@@ -29,7 +33,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Speedups
 
-### Fixed 
+### Fixed
 - Templates for time and sample sets as well as model definitions files
 - N-1 reserve equation did not include last hour of day/solve
 - Setting the default update_frequency for reserve types
@@ -82,7 +86,7 @@ All notable changes to this project will be documented in this file.
 - Separate availability parameter for output units in the capacity margin constraint
 - Parameter `gn_forecasts(*, node, timeseries)` to tell which nodes and timeseries use forecasts
 
-### Changed 
+### Changed
 - Reserve requirements are now based on groups (previously node based)
 - Changed the v_startup (and v_shutdown) variables into integers to improve the performance online approximations
 - Updated tool definitions for Sceleton Titan and Spine Toolbox
@@ -112,22 +116,22 @@ All notable changes to this project will be documented in this file.
 
 
 ## 1.1.3 - 2019-10-24
-### Changed 
+### Changed
 - Scenario reduction is done based on total available energy
 
 
 ## 1.1.2 - 2019-10-23
-### Changed 
+### Changed
 - Maintain original scenario labels after reduction
 
 
 ## 1.1 - 2019-04-17
 ### Added
-- New model setting 't_perfectForesight' tells the number of time steps (from 
-  the beginning of current solve) for which realized data is used instead of 
-  forecasts. This value cannot exceed current forecast length, however. Setting 
+- New model setting 't_perfectForesight' tells the number of time steps (from
+  the beginning of current solve) for which realized data is used instead of
+  forecasts. This value cannot exceed current forecast length, however. Setting
   the value lower than 't_jump' has no effect.
-- Automated the calculation of sample start and end times if using long-term 
+- Automated the calculation of sample start and end times if using long-term
   scenarios. Also setting number of scenarios to one, instructs the model to use
   central forecast for the long-term.
 - Speedup for model dimension calculation (set `msft` etc.)
@@ -151,7 +155,7 @@ All notable changes to this project will be documented in this file.
 - `mst_end` not found for the last sample
 - Start-up not working for units without start costs or start fuel consumption
 - *periodicInit* will fail with multiple model definitions
-- Reserves should not be allowed to be locked when the interval is greater than 
+- Reserves should not be allowed to be locked when the interval is greater than
   smallest interval in use
 - Start-up phase and aggregated time steps do not work together
 - In SOS2 unit cannot exceed the generation of `p_ut_runUp`
@@ -168,9 +172,9 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Speedup for timeseries calculations
 
-### Added 
-- New model setting `mSettings(mType, 'onlyExistingForecasts') = 0|1` to control 
-  the reading of forecasts. Set to 1 to only read forecast data that exists in 
+### Added
+- New model setting `mSettings(mType, 'onlyExistingForecasts') = 0|1` to control
+  the reading of forecasts. Set to 1 to only read forecast data that exists in
   the file. Note that zeros need to be saved as Eps when using this.
 - Proper stochastic programming for the long-term scenarios period. Possible also
   to create a stochastic tree from the original data.
@@ -183,8 +187,8 @@ All notable changes to this project will be documented in this file.
 - Probabilities were not updated after using scenario reduction
 
 ### Added
-- Enable long-term samples that extend several years by using planning horizon 
-  which is longer than one scenario (e.g. 3 years). Note: Cannot use all data for 
+- Enable long-term samples that extend several years by using planning horizon
+  which is longer than one scenario (e.g. 3 years). Note: Cannot use all data for
   samples as last years need to be reserved for the planning horizon.
 
 
@@ -207,13 +211,13 @@ All notable changes to this project will be documented in this file.
   recycled. Warn if this is not defined and automatically calculated from data.
 - Command line arguments '--input_dir=<path>' and '--ouput_dir=<path' to set
   input and output directories, respectively.
-- Added sample dimension to most variables and equations (excl. investments). 
+- Added sample dimension to most variables and equations (excl. investments).
   Samples can now be used as long-term scenario alternatives (for e.g. hydro scehduling)
 - Number of parallel samples can be reduced using SCENRED2. Activate with active('scenRed')
   and set parameters in modelsInit.
 
 ### Changed
-- Automatic calculation of parameter `dt_circular` takes into account time steps 
+- Automatic calculation of parameter `dt_circular` takes into account time steps
   only from `t000001` onwards.
 - Debug mode yes/no changed to debug levels 0, 1 or 2. With higher level produces
   more information. Default is 0, when no extra files are written (not even *debug.gdx*).
@@ -221,7 +225,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Calculation of parameter `df_central`
-- Readability of some displayed messages 
+- Readability of some displayed messages
 
 
 ## 1.0 - 2018-09-12

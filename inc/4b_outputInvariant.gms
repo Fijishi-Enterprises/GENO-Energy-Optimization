@@ -759,7 +759,7 @@ d_eff(unit(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + 
         / [ sum(gnu_input(grid, node, unit),
                 + abs(r_gen(grid, node, unit, f, t))
                 ) // END sum(gnu_input)
-            + 1${not sum(gnu_input(grid, node, unit), abs(r_gen(node, unit, f, t)))}
+            + 1${not sum(gnu_input(grid, node, unit), abs(r_gen(grid, node, unit, f, t)))}
             ]
         + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 $endif.diag
