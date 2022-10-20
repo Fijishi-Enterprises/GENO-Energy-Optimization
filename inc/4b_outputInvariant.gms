@@ -46,11 +46,12 @@ loop(m,
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * r_gen(grid, node, unit, f, t)
-            * [ // negative as r_gen is negative for input, positive for output
-                // node costs
+            * [ // gn specific costs are positive for input (cost) and negative for output (income).
+                // negative sign in equations as r_gen is negative for input, positive for output
+                // gn specific costs from node
                 - p_price(node, 'price')$p_price(node, 'useConstant')
                 - ts_price(node, t)$p_price(node, 'useTimeSeries')
-                // Emission costs
+                // gn specific costs from node emissions
                 - sum(emissionGroup(emission, group)$p_nEmission(node, emission),
                    + p_nEmission(node, emission)  // t/MWh
                    * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
@@ -58,7 +59,7 @@ loop(m,
                      )
                   ) // end sum(emissiongroup)
               ]
-             // always positive as all gnu specific emissions are positive by default, compare to vomcost and fuelcost
+             // gnu specific costs from node emissions are positive (cost) for both input and output
             + p_stepLengthNoReset(m, f, t)
             * abs(r_gen(grid, node, unit, f, t))
             * sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission),
