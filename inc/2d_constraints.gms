@@ -2529,8 +2529,13 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
     // Utilizable headroom in the state variable
     + [
         // Upper boundary of the variable
-        + p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')}
-        + ts_node_(grid, node, 'upwardLimit', s, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeseries') }
+        + (p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
+           * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier')
+           ) ${p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')}
+
+        + (ts_node_(grid, node, 'upwardLimit', s, f, t)
+           * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier')
+          ) ${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeseries') }
 
         // Investments
         + sum(gnu(grid, node, unit)${uft(unit, f, t)},

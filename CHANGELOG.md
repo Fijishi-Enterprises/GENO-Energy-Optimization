@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - correcting sample weights in objective function for transfer vomCosts
 - fixing crash with diag option
 - deactivating minimum online and offline equations when timestep is longer than required minimum time 
+- investments to existing storage units is now possible
 
 
 ## 2.2 - 2022-03-24

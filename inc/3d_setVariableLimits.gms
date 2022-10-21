@@ -31,6 +31,7 @@ loop(node$(not node_superpos(node)),
     // When using constant values and to supplement time series with constant values (time series will override when data available)
     // Upper bound
     v_state.up(gn_state(grid, node), sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
+                                                    and not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))
                                                     and not df_central(f,t)
                                                     }
             = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant')
@@ -62,6 +63,7 @@ loop(node$(not node_superpos(node)),
     // When using time series
     // Upper Bound
     v_state.up(gn_state(grid, node), sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
+                                                    and not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))
                                                     and not df_central(f,t)
                                                     }
             = ts_node_(grid, node,   'upwardLimit', s, f, t)
@@ -127,14 +129,15 @@ loop(node$(not node_superpos(node)),
     loop(mst_start(mSolve, s, t)$(tSolveFirst = mSettings(mSolve, 't_start')),
 
         // Upper bound
-        v_state.up(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
+        v_state.up(gn_state(grid, node), s, f_solve, t+dt(t))${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
+                                                                and not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))
                                                                 and not df_central(f_solve,t)
                                                                 }
             = p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
                 * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier');
 
         // Lower bound
-        v_state.lo(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+        v_state.lo(gn_state(grid, node), s, f_solve, t+dt(t))${ p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
                                                                 and not df_central(f_solve,t)
                                                                 }
             = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
@@ -563,8 +566,9 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
         loop(node$(not node_superpos(node)),
 
             // Upper bound
-            v_state.up(gn_state(grid, node), s, f, t)${    p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
+            v_state.up(gn_state(grid, node), s, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
                                                         and not df_central(f,t)
+                                                        and not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))
                                                         }
                 = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant')
                     * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
