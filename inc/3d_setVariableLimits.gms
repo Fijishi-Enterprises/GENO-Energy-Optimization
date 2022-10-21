@@ -265,9 +265,10 @@ v_genRamp.up(gnusft(grid, node, unit, s, f, t))${   ord(t) > msStart(mSolve, s) 
                                                     and not unit_investMIP(unit)
                                                     and not uft_startupTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedToMinLoad'
                                                     }
+ // Unit conversion from [p.u./min] to [MW/h]
  = p_gnu(grid, node, unit, 'capacity')
         * p_gnu(grid, node, unit, 'maxRampUp')
-        * 60;  // Unit conversion from [p.u./min] to [p.u./h]
+        * 60;
 v_genRamp.lo(gnusft(grid, node, unit, s, f, t))${   ord(t) > msStart(mSolve, s) + 1
                                                     and gnuft_ramp(grid, node, unit, f, t)
                                                     and p_gnu(grid, node, unit, 'maxRampDown')
@@ -276,9 +277,10 @@ v_genRamp.lo(gnusft(grid, node, unit, s, f, t))${   ord(t) > msStart(mSolve, s) 
                                                     and not unit_investMIP(unit)
                                                     and not uft_shutdownTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedFromMinLoad'
                                                     }
+ // Unit conversion from [p.u./min] to [MW/h]
  = -p_gnu(grid, node, unit, 'capacity')
         * p_gnu(grid, node, unit, 'maxRampDown')
-        * 60;  // Unit conversion from [p.u./min] to [p.u./h]
+        * 60;
 
 // v_online cannot exceed unit count if investments disabled
 // LP variant
@@ -365,13 +367,14 @@ v_transferRamp.up(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t
      and not p_gnn(grid, node_, node, 'transferCapInvLimit')
      and ord(t) > msStart(mSolve, s) + 1 }
 
+// Unit conversion from [p.u./min] to [MW/h]
  = +p_gnn(grid, node, node_, 'transferCap')
        * p_gnn(grid, node, node_, 'rampLimit')
        * [
            + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
            + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
          ]
-       * 60;    // Unit conversion from [p.u./min] to [p.u./h]
+       * 60;
 
 
 v_transferRamp.lo(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
@@ -379,13 +382,14 @@ v_transferRamp.lo(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t
      and not p_gnn(grid, node_, node, 'transferCapInvLimit')
      and ord(t) > msStart(mSolve, s) + 1  }
 
+// Unit conversion from [p.u./min] to [MW/h]
  = -p_gnn(grid, node, node_, 'transferCap')
        * p_gnn(grid, node, node_, 'rampLimit')
        * [
            + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
            + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
          ]
-       * 60;    // Unit conversion from [p.u./min] to [p.u./h]
+       * 60;
 
 *------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

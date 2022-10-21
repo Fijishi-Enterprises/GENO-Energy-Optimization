@@ -1158,7 +1158,9 @@ q_genRamp(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         and msft(m, s, f, t)
         } ..
 
+    // ramp rate MW/h
     + v_genRamp(grid, node, unit, s, f, t)
+    // multiplied by step length to divide by stepLength to convert to single hour values
         * p_stepLength(m, f, t)
 
     =E=
@@ -1188,7 +1190,7 @@ q_rampUpLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         } ..
 
     // Ramp speed of the unit?
-    + v_genRamp(grid, node, unit, s, f, t)
+    + v_genRamp(grid, node, unit, s, f, t)    // MW/h
     + sum(gnuRescapable(restype, 'up', grid, node, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
                                                            and not gnuOfflineRescapable(restype, grid, node, unit)
                                                            },
@@ -1322,7 +1324,7 @@ q_rampDownLimit(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         } ..
 
     // Ramp speed of the unit?
-    + v_genRamp(grid, node, unit, s, f, t)
+    + v_genRamp(grid, node, unit, s, f, t)   // MW/h
     - sum(gnuRescapable(restype, 'down', grid, node, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
                                                              and not gnuOfflineRescapable(restype, grid, node, unit)
                                                              },
@@ -1467,14 +1469,14 @@ q_rampUpDown(ms(m, s), gnuft_ramp(grid, node, unit, f, t))
         } ..
 
     // Ramp speed of the unit?
-    + v_genRamp(grid, node, unit, s, f, t)
+    + v_genRamp(grid, node, unit, s, f, t)   // MW/h
 
     =E=
 
     // Upward and downward ramp categories
     + sum(slack${ gnuft_rampCost(grid, node, unit, slack, f, t) },
-        + v_genRampUpDown(grid, node, unit, slack, s, f, t)$upwardSlack(slack)
-        - v_genRampUpDown(grid, node, unit, slack, s, f, t)$downwardSlack(slack)
+        + v_genRampUpDown(grid, node, unit, slack, s, f, t)$upwardSlack(slack)      // MW/h
+        - v_genRampUpDown(grid, node, unit, slack, s, f, t)$downwardSlack(slack)    // MW/h
       ) // END sum(slack)
 
     // Start-up of generation units to min. load (not counted in the ramping costs)
@@ -1605,7 +1607,7 @@ q_rampSlack(ms(m, s), gnuft_rampCost(grid, node, unit, slack, f, t))
         } ..
 
     // Directional ramp speed of the unit?
-    + v_genRampUpDown(grid, node, unit, slack, s, f, t)
+    + v_genRampUpDown(grid, node, unit, slack, s, f, t)       // MW/h
 
     =L=
 
@@ -2263,7 +2265,9 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), sft(s, f, t))
 q_transferRamp(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
      ..
 
+    // ramp rate MW/h
     + v_transferRamp(grid, node, node_, s, f, t)
+    // multiplied by step length to divide by stepLength and convert to single hour values
         * sum(m, p_stepLength(m, f, t))
 
     =E=
@@ -2280,7 +2284,7 @@ q_transferRampLimit1(gn2nsft_directional_rampConstrained(grid, node, node_, s, f
        or p_gnn(grid, node_, node, 'transferCapInvLimit')
        } ..
 
-    + v_transferRamp(grid, node, node_, s, f, t)
+    + v_transferRamp(grid, node, node_, s, f, t)   // MW/h
 
     =L=
 
@@ -2308,7 +2312,7 @@ q_transferRampLimit2(gn2nsft_directional_rampConstrained(grid, node, node_, s, f
        or p_gnn(grid, node_, node, 'transferCapInvLimit')
        } ..
 
-    + v_transferRamp(grid, node, node_, s, f, t)
+    + v_transferRamp(grid, node, node_, s, f, t)   // MW/h 
 
     =G=
 
