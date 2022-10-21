@@ -2261,7 +2261,6 @@ q_resTransferLimitLeftward(gn2n_directional(grid, node, node_), sft(s, f, t))
 
 *--- transfer ramp for transfer links with ramp limit -------------------------------------------------------
 q_transferRamp(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
-   $ {ord(t) > sum(m, msStart(m, s)) + 1}
      ..
 
     + v_transferRamp(grid, node, node_, s, f, t)
@@ -2279,7 +2278,6 @@ q_transferRamp(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
 q_transferRampLimit1(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
      ${p_gnn(grid, node, node_, 'transferCapInvLimit')
        or p_gnn(grid, node_, node, 'transferCapInvLimit')
-       and ord(t) > sum(m, msStart(m, s)) + 1
        } ..
 
     + v_transferRamp(grid, node, node_, s, f, t)
@@ -2308,7 +2306,6 @@ q_transferRampLimit1(gn2nsft_directional_rampConstrained(grid, node, node_, s, f
 q_transferRampLimit2(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
      ${p_gnn(grid, node, node_, 'transferCapInvLimit')
        or p_gnn(grid, node_, node, 'transferCapInvLimit')
-       and ord(t) > sum(m, msStart(m, s)) + 1
        } ..
 
     + v_transferRamp(grid, node, node_, s, f, t)

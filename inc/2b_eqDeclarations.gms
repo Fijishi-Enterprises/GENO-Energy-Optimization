@@ -58,6 +58,7 @@ equations
     q_rateOfChangeOfFrequencyUnit(group, unit, s, f, t) "N-1 unit contingency with ROCOF"
     q_rateOfChangeOfFrequencyTransfer(group, grid, node, node, s, f, t) "N-1 transmission line contingency with ROCOF"
     q_resDemandLargestInfeedTransfer(restype, up_down, group, grid, node, node, s, f, t) "N-1 up/down reserve for transmission lines"
+
     // Unit Operation
     q_maxDownward(grid, node, unit, s, f, t) "Downward commitments (v_gen and online v_reserve) will not undercut minimum (online) production capacity (+) or maximum (online) consumption capacity (-)"
     q_maxDownwardOfflineReserve(grid, node, unit, s, f, t) "Downward commitments (v_gen and all v_reserve) will not undercut zero production (+) or maximum consumption capacity (-)"

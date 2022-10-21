@@ -107,6 +107,9 @@ Option clear = q_transferRightwardLimit;
 Option clear = q_transferLeftwardLimit;
 Option clear = q_resTransferLimitRightward;
 Option clear = q_resTransferLimitLeftward;
+Option clear = q_transferRamp;
+Option clear = q_transferRampLimit1;
+Option clear = q_transferRampLimit2;
 Option clear = q_reserveProvisionRightward;
 Option clear = q_reserveProvisionLeftward;
 Option clear = q_transferTwoWayLimit1;
@@ -636,7 +639,8 @@ gnuft_ramp(gnu(grid, node, unit), ft(f, t))${ [p_gnu(grid, node, unit, 'maxRampU
 Option clear = gn2nsft_directional_rampConstrained;
 gn2nsft_directional_rampConstrained(gn2n_directional_rampConstrained(grid, node, node_), sft(s, f, t))
                   // deactivating ramp constraints if ramp speed in hour * stepLength allows ramping from -cap to +cap
-                  $ {p_gnn(grid, node, node_, 'rampLimit') * 60 * sum(m, p_stepLength(m, f, t)) < 2 }
+                  $ {p_gnn(grid, node, node_, 'rampLimit') * 60 * sum(m, p_stepLength(m, f, t)) < 2
+                     and (ord(t) > sum(m, msStart(m, s)) + 1) }
     = yes;
 
 * --- Defining unit efficiency groups etc. ------------------------------------

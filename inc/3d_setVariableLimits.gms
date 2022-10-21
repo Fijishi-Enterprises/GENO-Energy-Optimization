@@ -620,8 +620,8 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
             = r_gen(grid, node, unit, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
 
         // Transfer initial value (needed at least for ramp constraints)
-        v_transfer.fx(gn2n_directional(grid, node, node_), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
-            = r_transfer(grid, node, node_, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
+        v_transfer.fx(gn2n(grid, from_node, to_node), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
+            = r_transfer(grid, from_node, to_node, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
 
 
     ); // END if(tSolveFirst)

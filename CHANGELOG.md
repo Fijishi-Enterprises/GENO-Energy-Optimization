@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - Automatic formatting and of `tools/bb_data_template.json` data structure.
 - Adding transfer rampLimit equations, removing old unfinished ICramp equations
 - not applying unit ramp rates if allowed ramp up/down is more than 1 in time step.
+- not applying transfer ramp rates if allowed ramp is more than 2 in time step.
 
 ### Fixed
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
