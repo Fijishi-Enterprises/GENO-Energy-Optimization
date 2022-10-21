@@ -357,7 +357,7 @@ $offtext
 *v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
 
 *----------------------------------------------------------------------IC RAMP-------------------------------------------------------------------------------------------------------------------------------------
-v_transferRamp.up(gn2n_directional_rampConstrained(grid, node, node_), sft(s, f, t))
+v_transferRamp.up(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
   $ {not p_gnn(grid, node, node_, 'transferCapInvLimit')
      and not p_gnn(grid, node_, node, 'transferCapInvLimit')
      and ord(t) > msStart(mSolve, s) + 1 }
@@ -371,7 +371,7 @@ v_transferRamp.up(gn2n_directional_rampConstrained(grid, node, node_), sft(s, f,
        * 60;    // Unit conversion from [p.u./min] to [p.u./h]
 
 
-v_transferRamp.lo(gn2n_directional_rampConstrained(grid, node, node_), sft(s, f, t))
+v_transferRamp.lo(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
   $ {not p_gnn(grid, node, node_, 'transferCapInvLimit')
      and not p_gnn(grid, node_, node, 'transferCapInvLimit')
      and ord(t) > msStart(mSolve, s) + 1  }

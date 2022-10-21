@@ -620,11 +620,23 @@ gnuft_rampCost(gnu(grid, node, unit), slack, ft(f, t))${ uft(unit, f, t)
 // Active (grid, node, unit) on each ft step with ramp restrictions
 Option clear = gnuft_ramp;
 gnuft_ramp(gnu(grid, node, unit), ft(f, t))${ [p_gnu(grid, node, unit, 'maxRampUp') and
+                                               // deactivating ramp constraints if ramp speed in hour * stepLength allows ramping from 0% to 100%
                                                p_gnu(grid, node, unit, 'maxRampUp') * 60 * sum(m, p_stepLength(m, f, t)) < 1]
                                                OR [p_gnu(grid, node, unit, 'maxRampDown') and
+                                               // deactivating ramp constraints if ramp speed in hour * stepLength allows ramping from 100% to 0%
                                                    p_gnu(grid, node, unit, 'maxRampDown') * 60 * sum(m, p_stepLength(m, f, t)) < 1]
                                                OR sum(slack, gnuft_rampCost(grid, node, unit, slack, f, t))
                                             }
+    = yes;
+
+
+* --- Defining transfer link aggregations and ramps ---------------------------
+
+// set for ramp constrained transfer links
+Option clear = gn2nsft_directional_rampConstrained;
+gn2nsft_directional_rampConstrained(gn2n_directional_rampConstrained(grid, node, node_), sft(s, f, t))
+                  // deactivating ramp constraints if ramp speed in hour * stepLength allows ramping from -cap to +cap
+                  $ {p_gnn(grid, node, node_, 'rampLimit') * 60 * sum(m, p_stepLength(m, f, t)) < 2 }
     = yes;
 
 * --- Defining unit efficiency groups etc. ------------------------------------

@@ -59,10 +59,10 @@ Sets
 * NOTE! Should it be possible to permit time-series form upper or lower bounds on states? If so, then gn() needs rethinking.
     gn2n(grid, node, node) "All (directional) transfer links between nodes in specific energy grids"
     gn2n_directional(grid, node, node) "Transfer links with positive rightward transfer and negative leftward transfer"
-    gn2n_directional_rampConstrained(grid, node, node) "Transfer links with ramp constrained enabled"
     gn2n_directional_investLP(grid, node, node) "Transfer links with with continuous investments allowed"
     gn2n_directional_investMIP(grid, node, node) "Transfer links with with integer investments allowed"
     gn2n_timeseries(grid, node, node, param_gnn) "Transfer links with time series enabled for certain parameters"
+    gn2n_directional_rampConstrained(grid, node, node) "Transfer links with ramp constraints enabled"
     gnu(grid, node, unit) "Units in specific nodes of particular energy grids"
     gnu_input(grid, node, unit) "Forms of energy the unit uses as endogenous inputs"
     gnu_output(grid, node, unit) "Forms of energy the unit uses as endogenous outputs"
@@ -168,6 +168,9 @@ $if defined scenario
     runUpCounter(unit, counter) "Counter used for unit run-up intervals"
     shutdownCounter(unit, counter) "Counter used for unit shutdown intervals"
     utAvailabilityLimits(unit, t, availabilityLimits) "Time step when the unit becomes available/unavailable, e.g. because of technical lifetime"
+
+* --- Sets used for the changing transfer link aggregation and efficiency approximations as well as lifetimes
+    gn2nsft_directional_rampConstrained(grid, node, node, s, f, t) "Transfer links with ramp constraints enabled, aggregating time steps"
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
     uGroup(unit, group) "Units in particular groups"

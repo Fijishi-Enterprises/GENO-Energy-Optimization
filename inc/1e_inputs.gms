@@ -368,12 +368,6 @@ gn2n_directional(gn2n(grid, node, node_))${ ord(node) > ord(node_)
                                             }
     = yes;
 
-// set for ramp constrained transfer links
-gn2n_directional_rampConstrained(gn2n_directional(grid, node, node_)) $  {p_gnn(grid, node, node_, 'rampLimit')
-                                                                          or p_gnn(grid, node_, node, 'rampLimit')
-                                                                         }
-    = yes;
-
 // Set for transfer links with investment possibility
 Option clear = gn2n_directional_investLP;
 Option clear = gn2n_directional_investMIP;
@@ -388,6 +382,11 @@ gn2n_directional_investMIP(gn2n_directional(grid, node, node_))${ [p_gnn(grid, n
                                                                  and [p_gnn(grid, node, node_, 'investMIP')
                                                                      or p_gnn(grid, node_, node, 'investMIP')]
                                                                  }
+    = yes;
+
+// set for ramp constrained transfer links
+gn2n_directional_rampConstrained(gn2n_directional(grid, node, node_))
+             $  p_gnn(grid, node, node_, 'rampLimit')
     = yes;
 
 * --- Node States -------------------------------------------------------------
@@ -580,8 +579,20 @@ loop(gn2n(grid, node, node_),
     // Check if transfer ramprate limit exists for this link.
     if(p_gnn(grid, node, node_, 'rampLimit'),
         // Check for conflicting ramp limits
+        if(   [p_gnn(grid, node, node_, 'rampLimit')>0] and [p_gnn(grid, node_, node, 'rampLimit')=0],
+            put log '!!! Warning: ' node.tl:0 '->' node_.tl:0 ' has rampLimit, but ' node_.tl:0 '->' node.tl:0 ' does not' /;
+            abort "Conflicting transfer 'rampLimit' definitions!"
+        );
+        if(   [p_gnn(grid, node_, node, 'rampLimit')>0] and [p_gnn(grid, node, node_, 'rampLimit')=0],
+            put log '!!! Warning: ' node_.tl:0 '->' node.tl:0 ' has rampLimit, but ' node.tl:0 '->' node_.tl:0 ' does not' /;
+            abort "Conflicting transfer 'rampLimit' definitions!"
+        );
+    );
+
+    if(p_gnn(grid, node, node_, 'rampLimit'),
+        // Check for conflicting ramp limits
         if(p_gnn(grid, node, node_, 'rampLimit')*p_gnn(grid, node, node_, 'transferCap') <> p_gnn(grid, node_, node, 'rampLimit')*p_gnn(grid, node_, node, 'transferCap'),
-            put log '!!! Warning: ' node.tl:0 '-' node_.tl:0 ' rampLimit * transfCapacity is not equal to different directions'  /;
+            put log '!!! Warning: ' node.tl:0 '-' node_.tl:0 ' rampLimit * transfCapacity is not equal to different directions. Will use values from ' node.tl:0 /;
         );
     );
 );
