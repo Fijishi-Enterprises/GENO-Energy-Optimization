@@ -993,7 +993,7 @@ q_startuptype(ms(m, s), starttypeConstrained(starttype), uft_online(unit, f, t))
 q_onlineLimit(ms(m, s), uft_online(unit, f, t))
     ${  msft(m, s, f, t)
         and {
-            p_unit(unit, 'minShutdownHours')
+            [p_unit(unit, 'minShutdownHours') and (p_unit(unit, 'minShutdownHours') > p_stepLength(m, f, t))]
             or p_u_runUpTimeIntervals(unit)
             or unit_investLP(unit)
             or unit_investMIP(unit)
@@ -1087,6 +1087,7 @@ q_offlineAfterShutdown(s_active(s), uft_online(unit, f, t))
 q_onlineMinUptime(ms(m, s), uft_online(unit, f, t))
     ${  msft(m, s, f, t)
         and  p_unit(unit, 'minOperationHours')
+        and  (p_unit(unit, 'minOperationHours') > p_stepLength(m, f, t))
         } ..
 
     // Units currently online
