@@ -141,7 +141,7 @@ r_uTotalShutdown
 
 * --- Emissions Results -----------------------------------------------
 
-// Unit level emissions from normal operation inputs
+// Unit level emissions from normal operation
 r_emissions
 
 // Unit level emissions from start-ups
@@ -180,7 +180,6 @@ r_groupTotalReserve
 
 // Interesting investment results
 r_invest
-r_investCapacity
 r_investTransfer
 
 * --- Sum results for groups --------------------------------------------------

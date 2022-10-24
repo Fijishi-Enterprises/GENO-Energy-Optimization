@@ -238,7 +238,7 @@ loop(m,
                 ) // END * sum(ms)
             * p_gnu(grid, node, unit, 'unitSize')
             * p_gnu(grid, node, unit, 'invCosts')
-            * p_gnu(grid, node, unit, 'annuityFactor');
+            * p_gnu(grid, node, unit, 'annuity');
 
     // Transfer link investment costs
     r_gnnLinkInvestmentCost(gn2n_directional(grid, from_node, to_node)) // gn2n_directional only, as in q_obj
@@ -252,9 +252,9 @@ loop(m,
                 ) // END * sum(ms)
             * [
                 + p_gnn(grid, from_node, to_node, 'invCost')
-                    * p_gnn(grid, from_node, to_node, 'annuityFactor')
+                    * p_gnn(grid, from_node, to_node, 'annuity')
                 + p_gnn(grid, to_node, from_node, 'invCost')
-                    * p_gnn(grid, to_node, from_node, 'annuityFactor')
+                    * p_gnn(grid, to_node, from_node, 'annuity')
                 ]; // END * r_investTransfer;
 
 * --- Realized Nodal System Costs ---------------------------------------------
@@ -489,7 +489,7 @@ loop(m,
     // Approximate utilization rates for gnus over the simulation
     r_gnuUtilizationRate(gnu(grid, node, unit))${ r_gnuTotalGen(grid, node, unit)
                                                          and ( p_gnu(grid, node, unit, 'capacity')
-                                                               or (r_invest(unit) and p_gnu(grid, node, unit, 'unitSize'))
+                                                               or r_invest(unit)
                                                                )
                                                          }
         = r_gnuTotalGen(grid, node, unit)
