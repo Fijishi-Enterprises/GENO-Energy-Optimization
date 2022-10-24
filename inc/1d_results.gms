@@ -190,6 +190,7 @@ Parameters
 
     // Interesting investment results
     r_invest(unit) "Number/amount of invested sub-units"
+    r_investCapacity(grid, node, unit) "Total amount of invested capacity in units (MW)"
     r_investTransfer(grid, node, node, t) "Amount of invested transfer link capacity"
 
 * --- Group results -----------------------------------------------------------
