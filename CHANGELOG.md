@@ -5,40 +5,44 @@ All notable changes to this project will be documented in this file.
 ### Added
 - option to use availabilityCapacityMargin for input units
 - Adding possibility for gnu specific emission factors.
-- result parameter for total emissions of emission groups
 - time series for emission costs
 - option to bound storage states at the beginning or end of samples
 - results table invested capacity
+- result table for total emissions of emission groups
 
-### Changed
+### Changed - requiring input data changes
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
-- clearing Eps values from result table r_state
 - converting input data emission factor from kg/MWh to t/MWh
+- adding option for gnu specific emission parameters
+- replaced emissionTax parameter with ts_emissionPriceChange 
+- changed parameter name annuity to annuityFactor for clarification
+- Adding transfer rampLimit equations, removing old unfinished ICramp equations
+
+### Changed - not requiring input data changes
+- clearing Eps values from result table r_state
 - emissions from outputs are included in equations as negative emissions
 - combined result tables for emissions from input and emissions from outputs
-- added grid to p_unitEmissionCost dimensions
-- replaced emissionTax parameter with ts_emissionPriceChange 
 - renamed suft(effSelector, unit, f, t)  to eff_uft to avoid confusions with samples 
-- separated gnu with constant and variable vomCost to improve efficiency
-- replacing gnuft with gnusft to reduce model size in investment runs
-- separated units with constant and variable startupCost to improve efficiency
-- improved efficiency of ts_node looping
 - Automatic formatting and of `tools/bb_data_template.json` data structure.
-- Adding transfer rampLimit equations, removing old unfinished ICramp equations
-- not applying unit ramp rates if allowed ramp up/down is more than 1 in time step.
-- not applying transfer ramp rates if allowed ramp is more than 2 in time step.
-- changed parameter name annuity to annuityFactor for clarification
 
-### Fixed
+### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
 - improved memory size and speed of timeseries looping (ts_vomCost_, ts_startupCost_)
 - improved the speed of ts_price calculation
+- separated units with constant and variable startupCost to improve efficiency
+- improved efficiency of ts_node looping
+- deactivating minimum online and offline equations when timestep is longer than required minimum time 
+- not applying unit ramp rates if allowed ramp up/down is more than 1 in time step.
+- not applying transfer ramp rates if allowed ramp is more than 2 in time step.
+- separated gnu with constant and variable vomCost to improve efficiency
+- replacing gnuft with gnusft to reduce model size
+
+### Fixed
 - fixing div by zero in twoWayTransfer limits with 0 availability
 - `scheduleInit.gms` is no longer required by `spineToolbox.json`.
 - `tools/bb_data_template.json` and `tools/exporttobb.json` updated to match new input data requirements.
 - correcting sample weights in objective function for transfer vomCosts
 - fixing crash with diag option
-- deactivating minimum online and offline equations when timestep is longer than required minimum time 
 - investments to existing storage units is now possible
 - adding if checks and absolute path option for input data excel
 - fixing div by 0 error in r_gnuUtilizationRate if unit has no unit size
