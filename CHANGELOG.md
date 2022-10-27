@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - result parameter for total emissions of emission groups
 - time series for emission costs
 - option to bound storage states at the beginning or end of samples
+- results table invested capacity
 
 ### Changed
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
@@ -26,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - Adding transfer rampLimit equations, removing old unfinished ICramp equations
 - not applying unit ramp rates if allowed ramp up/down is more than 1 in time step.
 - not applying transfer ramp rates if allowed ramp is more than 2 in time step.
+- changed parameter name annuity to annuityFactor for clarification
 
 ### Fixed
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
@@ -38,6 +40,8 @@ All notable changes to this project will be documented in this file.
 - fixing crash with diag option
 - deactivating minimum online and offline equations when timestep is longer than required minimum time 
 - investments to existing storage units is now possible
+- adding if checks and absolute path option for input data excel
+- fixing div by 0 error in r_gnuUtilizationRate if unit has no unit size
 
 
 ## 2.2 - 2022-03-24

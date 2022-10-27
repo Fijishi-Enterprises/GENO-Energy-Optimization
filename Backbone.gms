@@ -106,6 +106,7 @@ $if not set debug $setglobal debug 0
 $if not set input_dir $setglobal input_dir 'input'
 $if not set output_dir $setglobal output_dir 'output'
 $if not set input_file_gdx $setglobal input_file_gdx 'inputData.gdx'
+$if not set input_file_excel $setglobal input_file_excel ''
 $if not set input_excel_index $setglobal input_excel_index 'INDEX'
 $if not set input_excel_checkdate $setglobal input_excel_checkdate ''
 

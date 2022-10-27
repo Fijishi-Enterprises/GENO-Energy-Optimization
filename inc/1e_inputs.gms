@@ -21,12 +21,11 @@ $offtext
 
 * If input_file excel has been set in the command line arguments, then Gdxxrw will be run to convert the Excel into a GDX file
 *   using the sheet defined by input_excel_index command line argument (default: 'INDEX').
-$if set input_file_excel 
-    $$ifthen exist '%input_dir%/%input_file_excel%'
-        $$call 'gdxxrw Input="%input_dir%/%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
-    $$else
-        $$call 'gdxxrw Input="%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
-    $$endif
+$ifthen exist '%input_dir%/%input_file_excel%'
+    $$call 'gdxxrw Input="%input_dir%/%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
+$elseif exist '%input_file_excel%'
+    $$call 'gdxxrw Input="%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
+$endif
 $ife %system.errorlevel%>0 $abort gdxxrw failed! Check that your input Excel is valid and that your file path and file name are correct.
 
 * --input_file_gdx=nameOfInputFile.gdx for input_file_gdx in input_dir
