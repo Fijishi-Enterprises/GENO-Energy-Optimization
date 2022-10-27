@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - Adding possibility for gnu specific emission factors.
 - result parameter for total emissions of emission groups
 - time series for emission costs
+- option to bound storage states at the beginning or end of samples
 
 ### Changed
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io

@@ -222,8 +222,10 @@ param_gn  "Possible parameters for grid, node" /
     selfDischargeLoss "Self discharge rate of the node (MW/[v_state])"
     energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh (MWh/[v_state])"
     boundStart    "A flag to bound the first t in the run using reference constant or time series"
+    boundStartOfSamples  "A flag to bound the first t of each sample using reference constant or time series"
     boundStartAndEnd "A flag that both start and end are bound using reference constant or time series"
     boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
+    boundEndOfSamples  "A flag to bound the last t of each sample using reference constant or time series"
     boundAll      "A flag to bound the state to the reference in all time steps"
     boundStartToEnd  "Force the last states to equal the first state"
 *    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."  // NOT IMPLEMENTED
