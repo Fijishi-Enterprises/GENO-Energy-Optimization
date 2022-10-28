@@ -36,7 +36,7 @@ q_obj ..
                 + p_stepLength(m, f, t)
                     * [
                         // O&M costs (gnu), fuel prices (gn), LCA emission costs (gnuEmission), fuel emission costs (gnEmission)
-                        // see 3c_inputsloop for details 
+                        // see 3c_inputsloop for details
                         + sum(gnusft(grid, node, unit, s, f, t),
                             + v_gen(grid, node, unit, s, f, t)
                                 * (+p_vomCost_(grid, node, unit, 'price')$p_vomCost_(grid, node, unit, 'useConstant')
@@ -84,7 +84,7 @@ q_obj ..
 
                 // Start-up costs, initial startup free as units could have been online before model started
                 + sum(uft_online(unit, f, t),
-                    + sum(unitStarttype(unit, starttype)$ts_startupCost_(unit, starttype, t),
+                    + sum(unitStarttype(unit, starttype)${ts_startupCost_(unit, starttype, t) or p_startupCost_(unit, starttype, 'useConstant')},
                         + [ // Unit startup variables
                             + v_startup_LP(unit, starttype, s, f, t)${ uft_onlineLP(unit, f, t) }
                             + v_startup_MIP(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }

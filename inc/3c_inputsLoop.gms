@@ -473,7 +473,7 @@ $offtext
                  ) // end sum(emissiongroup)
 
             // gn specific cost (fuel price). Cost when input but income when output.
-            + ( p_price(node, 'price')
+            + (p_price(node, 'price')
 
                 // gn specific emission cost (e.g. CO2 allowance price from fuel emissions). Cost when input but income when output.
                 + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
@@ -528,8 +528,10 @@ $offtext
        p_startupCost_(unit, starttype, 'useTimeSeries')${p_price(node, 'useTimeSeries') and unitStarttype(unit, starttype)} = -1;
        p_startupCost_(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
        p_startupCost_(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$sum(grid,p_gnuEmission(grid, node, unit, emission)), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
-       p_startupCost_(unit, starttype, 'useConstant')${not p_startupCost_(unit, starttype, 'useTimeSeries')} = -1;
     ); // end loop(nu_startup)
+
+    p_startupCost_(unitStarttype(unit, starttype), 'useConstant')${not p_startupCost_(unit, starttype, 'useTimeSeries')} = -1;
+
 
     // NOTE: does not include unit specific gnu emissions p_gnuEmission
     p_startupCost_(unit, starttype, 'price')$p_startupCost_(unit, starttype, 'useConstant')
