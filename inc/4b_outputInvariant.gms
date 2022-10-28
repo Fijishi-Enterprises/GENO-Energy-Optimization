@@ -285,7 +285,7 @@ loop(m,
 * --- Realized Nodal Energy Consumption ---------------------------------------
 // !!! NOTE !!! This is a bit of an approximation at the moment !!!!!!!!!!!!!!!
 
-    r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, startp(t)))
+    r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, startp(t)))$sum(s, sft_realizedNoReset(s,f,t))
         = p_stepLengthNoReset(m, f, t)
             * [
                 + min(ts_influx(grid, node, f, t), 0) // Not necessarily a good idea, as ts_influx contains energy gains as well...
