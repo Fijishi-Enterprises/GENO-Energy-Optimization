@@ -35,7 +35,8 @@ q_obj ..
                 // Time step length dependent costs
                 + p_stepLength(m, f, t)
                     * [
-                        // Variable O&M costs for inputs
+                        // O&M costs (gnu), fuel prices (gn), LCA emission costs (gnuEmission), fuel emission costs (gnEmission)
+                        // see 3c_inputsloop for details 
                         + sum(gnusft(grid, node, unit, s, f, t),
                             + v_gen(grid, node, unit, s, f, t)
                                 * (+p_vomCost_(grid, node, unit, 'price')$p_vomCost_(grid, node, unit, 'useConstant')

@@ -73,7 +73,7 @@ GAMS command line arguments
 
 --input_excel_checkdate=checkDate
     Used with input_file_excel: write GDX file only if the input file is more
-    recent than the GDX file. Disabled by default.
+    recent than the GDX file (value = checkDate). Disabled by default (value = '').
 
 --output_dir=<path>
     Directory to write output to. Defaults to './output'.
