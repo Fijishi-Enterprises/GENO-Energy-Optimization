@@ -521,7 +521,7 @@ q_maxDownward(gnusft(grid, node, unit, s, f, t))
 
     =G= // Must be greater than minimum load or maximum consumption  (units with min-load and both generation and consumption are not allowed)
 
-    // Generation units, greater than minload
+    // Generation units, greater than minLoad
     + p_gnu(grid, node, unit, 'unitSize')$gnu_output(grid, node, unit)
         * sum(eff_uft(effGroup, unit, f, t), // Uses the minimum 'lb' for the current efficiency approximation
             + p_effGroupUnit(effGroup, unit, 'lb')${not ts_effGroupUnit(effGroup, unit, 'lb', f, t)}
@@ -1736,7 +1736,7 @@ q_conversionDirectInputOutput(s_active(s), eff_uft(effDirect(effGroup), unit, f,
                             ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                       ]
                         * p_uCounter_runUpMin(unit, counter)
-                        / p_unit(unit, 'op00') // Scaling the p_uCounter_runUp using minload
+                        / p_unit(unit, 'op00') // Scaling the p_uCounter_runUp using minLoad
                   ) // END sum(runUpCounter)
               ) // END sum(unitStarttype)
             // Shutdown 'online state'
@@ -1748,7 +1748,7 @@ q_conversionDirectInputOutput(s_active(s), eff_uft(effDirect(effGroup), unit, f,
                         ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                   ]
                     * p_uCounter_shutdownMin(unit, counter)
-                        / p_unit(unit, 'op00') // Scaling the p_uCounter_shutdown using minload
+                        / p_unit(unit, 'op00') // Scaling the p_uCounter_shutdown using minLoad
               ) // END sum(shutdownCounter)
           ] // END * sum(gnu_output)
         * [
@@ -1799,7 +1799,7 @@ q_conversionIncHR(s_active(s), eff_uft(effIncHR(effGroup), unit, f, t))
                             ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                       ]
                         * p_uCounter_runUpMin(unit, counter)
-                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_runUp using minload
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_runUp using minLoad
                   ) // END sum(runUpCounter)
               ) // END sum(unitStarttype)
             // Shutdown 'online state'
@@ -1813,7 +1813,7 @@ q_conversionIncHR(s_active(s), eff_uft(effIncHR(effGroup), unit, f, t))
                         ${  uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                   ]
                     * p_uCounter_shutdownMin(unit, counter)
-                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_shutdown using minload
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_shutdown using minLoad
               ) // END sum(shutdownCounter)
           ] // END * sum(gnu_output)
         * [
@@ -1870,7 +1870,7 @@ q_conversionIncHRBounds(gn(grid, node), s_active(s), hr, eff_uft(effIncHR(effGro
                             ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                         ]
                         * p_uCounter_runUpMin(unit, counter)
-                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_runUp using minload
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_runUp using minLoad
                     ) // END sum(runUpCounter)
                 ) // END sum(unitStarttype)
             // Shutdown 'online state'
@@ -1884,7 +1884,7 @@ q_conversionIncHRBounds(gn(grid, node), s_active(s), hr, eff_uft(effIncHR(effGro
                         ${  uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                     ]
                     * p_uCounter_shutdownMin(unit, counter)
-                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_shutdown using minload
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_shutdown using minLoad
                 ) // END sum(shutdownCounter)
             ] // END * p_gnu('unitSize')
 ;
@@ -1918,7 +1918,7 @@ q_conversionIncHR_help1(gn(grid, node), s_active(s), hr, eff_uft(effIncHR(effGro
                             ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                         ]
                         * p_uCounter_runUpMin(unit, counter)
-                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_runUp using minload
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_runUp using minLoad
                     ) // END sum(runUpCounter)
                 ) // END sum(unitStarttype)
             // Shutdown 'online state'
@@ -1932,7 +1932,7 @@ q_conversionIncHR_help1(gn(grid, node), s_active(s), hr, eff_uft(effIncHR(effGro
                         ${  uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                     ]
                     * p_uCounter_shutdownMin(unit, counter)
-                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_shutdown using minload
+                        / p_unit(unit, 'hrop00') // Scaling the p_uCounter_shutdown using minLoad
                 ) // END sum(shutdownCounter)
             ] // END * p_gnu('unitSize')
 
@@ -2018,7 +2018,7 @@ q_conversionSOS2Constraint(s_active(s), eff_uft(effLambda(effGroup), unit, f, t)
                     ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
                 ]
                 * p_uCounter_runUpMin(unit, counter)
-                / p_unit(unit, 'op00') // Scaling the p_uCounter_runUp using minload
+                / p_unit(unit, 'op00') // Scaling the p_uCounter_runUp using minLoad
             ) // END sum(runUpCounter)
         ) // END sum(unitStarttype)
     // Shutdown 'online state'
@@ -2030,7 +2030,7 @@ q_conversionSOS2Constraint(s_active(s), eff_uft(effLambda(effGroup), unit, f, t)
                 ${ uft_onlineMIP_withPrevious(unit, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
             ]
             * p_uCounter_shutdownMin(unit, counter)
-            / p_unit(unit, 'op00') // Scaling the p_uCounter_shutdown using minload
+            / p_unit(unit, 'op00') // Scaling the p_uCounter_shutdown using minLoad
         ) // END sum(shutdownCounter)
 ;
 
@@ -2312,7 +2312,7 @@ q_transferRampLimit2(gn2nsft_directional_rampConstrained(grid, node, node_, s, f
        or p_gnn(grid, node_, node, 'transferCapInvLimit')
        } ..
 
-    + v_transferRamp(grid, node, node_, s, f, t)   // MW/h 
+    + v_transferRamp(grid, node, node_, s, f, t)   // MW/h
 
     =G=
 

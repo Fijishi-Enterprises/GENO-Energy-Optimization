@@ -220,8 +220,10 @@ gn2gnu(grid, node_input, grid_, node_output, unit)${    gnu_input(grid, node_inp
     = yes;
 
 // Units with minimum load requirements
-unit_minload(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operating point is between 0 and 1, then the unit is considered to have a min load limit
+unit_minLoad(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operating point is between 0 and 1
                         and p_unit(unit, 'op00') < 1
+                        // and if unit has online variable, then unit is considered to have minload
+                        and sum(effLevel, sum(effOnline, effLevelGroupUnit(effLevel, effOnline, unit)))
                         }
     = yes;
 

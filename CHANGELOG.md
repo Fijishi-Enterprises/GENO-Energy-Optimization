@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - separated gnu with constant and variable vomCost to improve efficiency
 - replacing gnuft with gnusft to reduce model size
 - not applying energy balance dummy if node does not have energy balance
+- excluding directOff units from a set of units with minimum load
 
 ### Fixed
 - fixing div by zero in twoWayTransfer limits with 0 availability
