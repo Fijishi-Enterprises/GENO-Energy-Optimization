@@ -98,6 +98,8 @@ r_gen
 // Energy output results based on input types or unittypes
 r_genFuel
 r_genUnittype
+r_genGridUnittype
+r_genGridUnittypeTotal
 r_gnTotalGenFuel
 r_gnTotalGenFuelShare
 r_gTotalGenFuel

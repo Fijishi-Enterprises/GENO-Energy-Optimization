@@ -287,6 +287,14 @@ loop(m,
         = sum(gnu(grid, node, unit)$unitUnittype(unit, unittype),
             + r_gen(grid, node, unit, f, t)
             ); // END sum(unit)
+    r_genGridUnittype(grid, unittype, ft_realizedNoReset(f,startp(t)))
+        = sum(gnu(grid, node, unit)$unitUnittype(unit, unittype),
+            + r_gen(grid, node, unit, f, t)
+            ); // END sum(unit)
+    r_genGridUnittypeTotal(grid, unittype)
+        = sum((gnu(grid, node, unit), ft_realizedNoReset(f,startp(t)))$unitUnittype(unit, unittype),
+            + r_gen(grid, node, unit, f, t)
+            ); // END sum(unit)
 
     // Unit start-up consumption
     r_nuStartupConsumption(nu_startup(node, unit), ft_realizedNoReset(f,startp(t)))

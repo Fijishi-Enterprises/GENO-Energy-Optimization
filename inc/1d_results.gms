@@ -99,11 +99,13 @@ Parameters
 * --- Energy Generation/Consumption Results -----------------------------------
 
     // Results required for model structure
-    r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
+    r_gen(grid, node, unit, f, t) "Energy generation for a unit (MWh)"
 
     // Energy output results based on input types or unittypes
-    r_genFuel(grid, node, *, f, t) "Energy output to a node based on inputs from another node or flows (MW)"
-    r_genUnittype(grid, node, unittype, f, t) "Energy generation for each unittype (MW)"
+    r_genFuel(grid, node, *, f, t) "Energy output to a node based on inputs from another node or flows (MWh)"
+    r_genUnittype(grid, node, unittype, f, t) "Energy generation for each unittype and node (MWh)"
+    r_genGridUnittype(grid, unittype, f, t) "Energy generation for each unittype (MWh)"
+    r_genGridUnittypeTotal(grid, unittype) "Energy generation for each unittype (MWh)"
     r_gnTotalGenFuel(grid, node, node) "Total energy generation in gn per input type over the simulation (MWh)"
     r_gnTotalGenFuelShare(grid, node, node) "Total energy generation in gn per input type as a share of total energy generation in gn"
     r_gTotalGenFuel(grid, node) "Total energy generation in g per input type over the simulation (MWh)"

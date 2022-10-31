@@ -608,13 +608,13 @@ loop( unit${sum(starttype$p_uStartup(unit, starttype, 'consumption'), 1)},
     );
 );
 
-loop( unit${sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1)},
-    if(sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1) < 2,
-        put log '!!! Error occurred on unit ' unit.tl:0 /;
-        put log '!!! Abort: constraint requires at least two inputs or outputs!' /;
-        abort "a constraint has to have more tha one input or output!"
-    );
-);
+//loop( unit${sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1)},
+//    if(sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1) < 2,
+//        put log '!!! Error occurred on unit ' unit.tl:0 /;
+//        put log '!!! Abort: constraint requires at least two inputs or outputs!' /;
+//        abort "a constraint has to have more tha one input or output!"
+//    );
+//);
 
 * --- Check the shutdown time related data ------------------------------------
 

@@ -51,7 +51,7 @@ $offtext
         schedule.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
         schedule.OptFile = 1;
         solve schedule using mip minimizing v_obj;
-        checkSolveStatus(schedule);
+        //checkSolveStatus(schedule);
     ); // END IF SCHEDULE
 
     if (mSolve('building'),
@@ -65,7 +65,7 @@ $offtext
         invest.holdfixed = 1; // Enable holdfixed, which makes the GAMS compiler convert fixed variables into parameters for the solver.
         invest.OptFile = 1;
         solve invest using mip minimizing v_obj;
-        checkSolveStatus(invest);
+        //checkSolveStatus(invest);
     ); // END IF INVEST
 
 
