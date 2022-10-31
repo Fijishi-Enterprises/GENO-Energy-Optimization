@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - not applying transfer ramp rates if allowed ramp is more than 2 in time step.
 - separated gnu with constant and variable vomCost to improve efficiency
 - replacing gnuft with gnusft to reduce model size
+- not applying energy balance dummy if node does not have energy balance
 
 ### Fixed
 - fixing div by zero in twoWayTransfer limits with 0 availability

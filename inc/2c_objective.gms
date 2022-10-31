@@ -59,7 +59,7 @@ q_obj ..
                         // Dummy variable penalties
                         // Energy balance feasibility dummy varible penalties
                         + sum(inc_dec,
-                            + sum(gn(grid, node),
+                            + sum(gn(grid, node)${p_gn(grid, node, 'nodeBalance')},
                                 + vq_gen(inc_dec, grid, node, s, f, t)
                                     *( PENALTY_BALANCE(grid, node)${not p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
                                     + ts_node_(grid, node, 'balancePenalty', s, f, t)${p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
