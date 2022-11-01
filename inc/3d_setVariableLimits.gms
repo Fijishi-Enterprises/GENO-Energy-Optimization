@@ -648,7 +648,7 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
         v_startup_LP.fx(unitStarttype(unit_online_LP, starttype), s, f, t) = 0;
         v_startup_MIP.fx(unitStarttype(unit_online_MIP, starttype), s, f, t) = 0;
         v_shutdown_LP.fx(unit_online_LP, s, f, t) = 0;
-        v_shutdown_MIP.fx(unit_online_LP, s, f, t) = 0;
+        v_shutdown_MIP.fx(unit_online_MIP, s, f, t) = 0;
 
     else // For all other solves than first one, fix the initial state values based on previous results.
 

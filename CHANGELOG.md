@@ -48,6 +48,7 @@ All notable changes to this project will be documented in this file.
 - investments to existing storage units is now possible
 - adding if checks and absolute path option for input data excel
 - fixing div by 0 error in r_gnuUtilizationRate if unit has no unit size
+- fixed shutdown variable at the beginning of solve for MIP units
 
 
 ## 2.2 - 2022-03-24
