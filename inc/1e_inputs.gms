@@ -646,6 +646,12 @@ loop( unit,
             ); // END loop(op_)
         ); // END loop(op__)
     ); // END loop(effLevelGroupUnit)
+
+    if( {effLevelGroupUnit('level1', 'directOff', unit)
+         and sum(gnu(grid, node, unit), sum(input_output, p_gnu_io(grid, node, unit, input_output, 'startCostCold'))) },
+             put log '!!! Warning: unit (', unit.tl:0, ' has start costs, but is a directOff unit that disables the start cost calculations' /;
+    );
+
 );
 
 * --- Check startupfuel fraction related data ----------------------------------------
