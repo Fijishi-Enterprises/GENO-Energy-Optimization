@@ -30,7 +30,7 @@ Sets
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
     unit_fail(unit) "Units that might fail"
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
-    unit_online(unit) "Units that have an online variable in the first active effLevel"
+    unit_online(unit) "Units that have an online variable in the first active effLevel. Excludes units with investment options."
     unit_online_LP(unit) "Units that have an LP online variable in the first active effLevel"
     unit_online_MIP(unit) "Units that have an MIP online variable in the first active effLevel"
     unit_aggregator(unit) "Aggregator units aggragating several units"
@@ -43,6 +43,7 @@ Sets
     flowUnit(flow, unit) "Units linked to a certain energy flow time series"
     unitUnittype(unit, unittype) "Link generation technologies to types"
     unitStarttype(unit, starttype) "Units with special startup properties"
+    unit_invest(unit) "Units with investments allowed"
     unit_investLP(unit) "Units with continuous investments allowed"
     unit_investMIP(unit) "Units with integer investments allowed"
     unit_timeseries(unit) "Units with time series enabled"
@@ -146,7 +147,7 @@ $if defined scenario
 
 * --- Sets used for the changing unit aggregation and efficiency approximations as well as unit lifetimes
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
-    uft_online(unit, f, t) "Units with any online and startup variables on intervals"
+    uft_online(unit, f, t) "Units with any online and startup variables on intervals. Excludes units with investment options."
     uft_onlineLP(unit, f, t) "Units with LP online and startup variables on intervals"
     uft_onlineMIP(unit, f, t) "Units with MIP online and startup variables on intervals"
     uft_onlineLP_withPrevious(unit,f,t) "Units with LP online and startup variables on intervals, including t0"

@@ -232,6 +232,8 @@ unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
 
 // Units with investment variables
+unit_invest(unit)$p_unit(unit, 'maxUnitCount') = yes;
+
 unit_investLP(unit)${  not p_unit(unit, 'investMIP')
                        and p_unit(unit, 'maxUnitCount')
                         }
