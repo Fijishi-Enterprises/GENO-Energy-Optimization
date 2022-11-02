@@ -39,8 +39,8 @@ q_obj ..
                         // see 3c_inputsloop for details
                         + sum(gnusft(grid, node, unit, s, f, t),
                             + v_gen(grid, node, unit, s, f, t)
-                                * (+p_vomCost_(grid, node, unit, 'price')$p_vomCost_(grid, node, unit, 'useConstant')
-                                   +ts_vomCost_(grid, node, unit, t)$p_vomCost_(grid, node, unit, 'useTimeSeries')
+                                * (+p_vomCost(grid, node, unit, 'price')$p_vomCost(grid, node, unit, 'useConstant')
+                                   +ts_vomCost_(grid, node, unit, t)$p_vomCost(grid, node, unit, 'useTimeSeries')
                                   )
                                 // negative sign for input, because v_gen is negative for input
                                 * (-1$gnu_input(grid, node, unit)
@@ -84,13 +84,13 @@ q_obj ..
 
                 // Start-up costs, initial startup free as units could have been online before model started
                 + sum(uft_online(unit, f, t),
-                    + sum(unitStarttype(unit, starttype)${ts_startupCost_(unit, starttype, t) or p_startupCost_(unit, starttype, 'useConstant')},
+                    + sum(unitStarttype(unit, starttype)${ts_startupCost_(unit, starttype, t) or p_startupCost(unit, starttype, 'useConstant')},
                         + [ // Unit startup variables
                             + v_startup_LP(unit, starttype, s, f, t)${ uft_onlineLP(unit, f, t) }
                             + v_startup_MIP(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
                           ]
-                          * (+p_startupCost_(unit, starttype, 'price')$p_startupCost_(unit, starttype, 'useConstant')
-                             +ts_startupCost_(unit, starttype, t)$p_startupCost_(unit, starttype, 'useTimeSeries')
+                          * (+p_startupCost(unit, starttype, 'price')$p_startupCost(unit, starttype, 'useConstant')
+                             +ts_startupCost_(unit, starttype, t)$p_startupCost(unit, starttype, 'useTimeSeries')
                             )
                       ) // END sum(starttype)
                   ) // END sum(uft_online)

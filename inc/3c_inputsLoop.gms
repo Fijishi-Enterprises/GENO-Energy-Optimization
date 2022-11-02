@@ -141,11 +141,10 @@ $offtext
     if (mTimeseries_loop_read(mSolve, 'ts_priceChange'),
         put log '!!! Abort: mTimeseries_loop_read(mSolve, ts_priceChange) currently not working!' /;
         abort "mTimeseries_loop_read(mSolve, ts_priceChange) currently not working!";
-        put_utility 'gdxin' / '%input_dir%/ts_priceChange/' tSolve.tl:0 '.gdx';
-        execute_load ts_priceChange_update=ts_priceChange;
-        ts_priceChange(node, tt_forecast(t))
-*            ${ ts_priceChange_update(fuel, t) } // Update only existing values (zeroes need to be EPS)
-            = ts_priceChange_update(node, t);
+//        put_utility 'gdxin' / '%input_dir%/ts_priceChange/' tSolve.tl:0 '.gdx';
+//        execute_load ts_priceChange_update=ts_priceChange;
+//        ts_priceChange(node, tt_forecast(t))
+//            = ts_priceChange_update(node, t);
     ); // END if('ts_priceChange')
 
     // Update ts_unavailability
@@ -403,43 +402,8 @@ $offtext
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
 
-    // vomCost calculations
-    // looping gnu to decide if using static or time series pricing
-    loop(gnu(grid, node, unit),
-        p_vomCost_(grid, node, unit, 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
-        p_vomCost_(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
-        p_vomCost_(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
-        p_vomCost_(grid, node, unit, 'useConstant')${not p_vomCost_(grid, node, unit, 'useTimeSeries')} = -1;
-    ); // end loop(gnu)
-
-    // vomcosts when constant prices
-    p_vomCost_(gnu(grid, node, unit), 'price')$p_vomCost_(grid, node, unit, 'useConstant')
-            // gnu specific cost (vomCost). Always a cost (positive) if input or output.
-          = + p_gnu(grid, node, unit, 'vomCosts')
-
-            // gnu specific emission cost (e.g. process related LCA emission). Always a cost if input or output.
-            + sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission),
-                 + p_gnuEmission(grid, node, unit, emission) // t/MWh
-                 * p_emissionPrice(emission, group, 'price')
-                 ) // end sum(emissiongroup)
-
-            // gn specific cost (fuel price). Cost when input but income when output.
-            + (p_price(node, 'price')
-
-                // gn specific emission cost (e.g. CO2 allowance price from fuel emissions). Cost when input but income when output.
-                + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
-                     + p_nEmission(node, emission)  // t/MWh
-                     * p_emissionPrice(emission, group, 'price')
-                     ) // end sum(emissiongroup)
-            )
-            // converting gn specific costs negative if output
-            * (+1$gnu_input(grid, node, unit)
-               -1$gnu_output(grid, node, unit)
-              )
-    ;
-
-    // vomcosts when one or more price time series
-    ts_vomCost_(gnu(grid, node, unit), tt_interval(t))$p_vomCost_(grid, node, unit, 'useTimeseries')
+    // vomCost calculations when one or more price time series
+    ts_vomCost_(gnu(grid, node, unit), tt_interval(t))$p_vomCost(grid, node, unit, 'useTimeseries')
         = sum(tt_aggcircular(t, t_),
             // gnu specific cost (vomCost). Always a cost (positive) if input or output.
             + p_gnu(grid, node, unit, 'vomCosts')
@@ -474,45 +438,8 @@ $offtext
 
 
     // Startup cost calculations
-    // looping gnu to decide if using static or time series pricing
-    loop(nu_startup(node, unit),
-       p_startupCost_(unit, starttype, 'useTimeSeries')${p_price(node, 'useTimeSeries') and unitStarttype(unit, starttype)} = -1;
-       p_startupCost_(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
-       p_startupCost_(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$sum(grid,p_gnuEmission(grid, node, unit, emission)), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
-    ); // end loop(nu_startup)
-
-    p_startupCost_(unitStarttype(unit, starttype), 'useConstant')${not p_startupCost_(unit, starttype, 'useTimeSeries')} = -1;
-
-
     // NOTE: does not include unit specific gnu emissions p_gnuEmission
-    p_startupCost_(unit, starttype, 'price')$p_startupCost_(unit, starttype, 'useConstant')
-        = p_uStartup(unit, starttype, 'cost') // CUR/start-up
-        // Start-up fuel and emission costs
-        + sum(nu_startup(node, unit),
-            + p_unStartup(unit, node, starttype) // MWh/start-up
-              * [
-                  // Fuel costs
-                  + p_price(node, 'price') // CUR/MWh
-                  // Emission costs
-                  // node specific emission prices
-                  + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
-                     + p_nEmission(node, emission) // t/MWh
-                     * p_emissionPrice(emission, group, 'price')
-                    ) // end sum(emissionGroup)
-
-                   // gnu specific emission prices
-                   // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
-                  + sum(emissionGroup(emission, group)$sum(grid, p_gnuEmission(grid, node, unit, emission)),
-               + sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
-                     * p_emissionPrice(emission, group, 'price')
-                    ) // end sum(emissionGroup)
-
-                ] // END * p_unStartup
-            ) // END sum(nu_startup)
-         / mInterval(mSolve, 'stepsPerInterval', counter)  ;
-
-    // NOTE: does not include unit specific gnu emissions p_gnuEmission
-    ts_startupCost_(unit, starttype, tt_interval(t))$p_startupCost_(unit, starttype, 'useTimeSeries')
+    ts_startupCost_(unit, starttype, tt_interval(t))$p_startupCost(unit, starttype, 'useTimeSeries')
       = sum(tt_aggcircular(t, t_),
         + p_uStartup(unit, starttype, 'cost') // CUR/start-up
         // Start-up fuel and emission costs
@@ -541,9 +468,9 @@ $offtext
                     ) // end sum(emissionGroup)
 
                 ] // END * p_unStartup
-            ) // END sum(nu_startup)
-         ) // END sum(aggcircular)
-         / mInterval(mSolve, 'stepsPerInterval', counter)  ;
+          ) // END sum(nu_startup)
+        ) / mInterval(mSolve, 'stepsPerInterval', counter) // END sum(tt_aggcircular)
+    ;
 
     // `storageValue`
     ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'storageValueUseTimeSeries') }

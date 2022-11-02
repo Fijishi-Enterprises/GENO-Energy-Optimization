@@ -646,6 +646,7 @@ loop(node$p_price(node, 'useTimeSeries'),
     );
 ); // END loop(node)
 
+
 // emission prices
 loop(emissionGroup(emission, group)$p_emissionPrice(emission, group, 'useTimeSeries'),
     // Determine the time steps where the prices change
@@ -660,6 +661,81 @@ loop(emissionGroup(emission, group)$p_emissionPrice(emission, group, 'useTimeSer
     );
 ); // END loop(groupEmission)
 
+* --- checking when to use static prices and calculating those ----------------
+
+// vomCost calculations
+// looping gnu to decide if using static or time series pricing
+loop(gnu(grid, node, unit),
+    p_vomCost(grid, node, unit, 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
+    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+    p_vomCost(grid, node, unit, 'useConstant')${not p_vomCost(grid, node, unit, 'useTimeSeries') and p_gn(grid, node, 'usePrice')} = -1;
+); // end loop(gnu)
+
+// vomcosts when constant prices.
+p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConstant')
+        // gnu specific cost (vomCost). Always a cost (positive) if input or output.
+      = + p_gnu(grid, node, unit, 'vomCosts')
+
+        // gnu specific emission cost (e.g. process related LCA emission). Always a cost if input or output.
+        + sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission),
+             + p_gnuEmission(grid, node, unit, emission) // t/MWh
+             * p_emissionPrice(emission, group, 'price')
+             ) // end sum(emissiongroup)
+
+        // gn specific cost (fuel price). Cost when input but income when output.
+        + (p_price(node, 'price')
+
+            // gn specific emission cost (e.g. CO2 allowance price from fuel emissions). Cost when input but income when output.
+            + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                 + p_nEmission(node, emission)  // t/MWh
+                 * p_emissionPrice(emission, group, 'price')
+                 ) // end sum(emissiongroup)
+        )
+        // converting gn specific costs negative if output
+        * (+1$gnu_input(grid, node, unit)
+           -1$gnu_output(grid, node, unit)
+          )
+;
+
+
+// Startup cost calculations
+// looping gnu to decide if using static or time series pricing
+loop(nu_startup(node, unit),
+    p_startupCost(unit, starttype, 'useTimeSeries')${p_price(node, 'useTimeSeries') and unitStarttype(unit, starttype)} = -1;
+    p_startupCost(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
+    p_startupCost(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$sum(grid,p_gnuEmission(grid, node, unit, emission)), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
+); // end loop(nu_startup)
+
+p_startupCost(unitStarttype(unit, starttype), 'useConstant')${not p_startupCost(unit, starttype, 'useTimeSeries')} = -1;
+
+
+// NOTE: does not include unit specific gnu emissions p_gnuEmission
+p_startupCost(unit, starttype, 'price')$p_startupCost(unit, starttype, 'useConstant')
+    = p_uStartup(unit, starttype, 'cost') // CUR/start-up
+    // Start-up fuel and emission costs
+    + sum(nu_startup(node, unit),
+         + p_unStartup(unit, node, starttype) // MWh/start-up
+         * [
+              // Fuel costs
+              + p_price(node, 'price') // CUR/MWh
+              // Emission costs
+              // node specific emission prices
+              + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                   + p_nEmission(node, emission) // t/MWh
+                   * p_emissionPrice(emission, group, 'price')
+                ) // end sum(emissionGroup)
+
+                // gnu specific emission prices
+                // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
+                + sum(emissionGroup(emission, group)$sum(grid, p_gnuEmission(grid, node, unit, emission)),
+                     + sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
+                     * p_emissionPrice(emission, group, 'price')
+                  ) // end sum(emissionGroup)
+
+           ] // END * p_unStartup
+         ) // END sum(nu_startup)
+;
 
 
 * --- Slack Direction ---------------------------------------------------------

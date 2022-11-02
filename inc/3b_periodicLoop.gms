@@ -144,9 +144,7 @@ Option clear = ts_cf_;
 Option clear = ts_unit_;
 Option clear = ts_reserveDemand_;
 Option clear = ts_node_;
-Option clear = p_vomCost_;
 Option clear = ts_vomCost_;
-Option clear = p_startupCost_;
 Option clear = ts_startupCost_;
 
 * =============================================================================

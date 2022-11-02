@@ -75,7 +75,7 @@ $loaddc emission
 $loaddc p_nEmission
 $loaddc p_gnuEmission
 $loaddc ts_cf
-*$loaddc p_price // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
+*$loaddc p_price // Disabled for convenience. Read from ts_priceChange if it contains only one value for a node.
 $loaddc ts_priceChange
 $loaddc ts_emissionPriceChange
 $loaddc ts_influx
@@ -152,8 +152,8 @@ loop(node$sum(grid, p_gn(grid, node, 'usePrice')),
     option clear = tt;
     tt(t)${ ts_priceChange(node, t) } = yes;
 
-    // If only up to a single value
-    if(sum(tt, 1) <= 1,
+    // If only up to a single value and usePrice flag activated
+    if({sum(tt, 1) <= 1 and sum(grid, p_gn(grid, node, 'usePrice')) },
         p_price(node, 'useConstant') = 1; // Use a constant for node prices
         p_price(node, 'price') = sum(tt, ts_priceChange(node, tt)) // Determine the price as the only value in the time series
     // If multiple values found, use time series
