@@ -107,12 +107,7 @@ Parameters
     p_mfProbability(mType, f) "Probability of forecast"
     p_msft_probability(mType, s, f, t) "Probability of forecast"
     p_sProbability(s) "Probability of sample"
-$if defined scenario
-    p_scenProbability(scenario) "Original probability of scenario"
 ;
-
-$if declared p_scenProbability
-Option clear = p_scenProbability;  // Initialize with empty data
 
 Scalar p_sWeightSum "Sum of sample weights";
 
@@ -129,14 +124,12 @@ Parameters
     dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints (in time steps)"
     dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints (in time steps)"
     dt_trajectory(counter) "Run-up/shutdown trajectory time index displacement"
-    dt_scenarioOffset(*, node, *, s) "Time offset to make periodic time series data (for grid/flow, unit, label) to go into different scenarios"
 
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
     df_central(f, t) "Displacement needed to reach the central forecast - this is needed when the forecast tree gets reduced in dynamic equations"
     df_reserves(grid, node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
     df_reservesGroup(group, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
-    df_scenario(f, t) "Forecast index displacement needed to get central forecast data for long-term scenarios"
     df_realization(f, t) "Displacement needed to reach the realized forecast on the current time step when no forecast is available"
 
     // Sample displacement arrays
@@ -201,14 +194,6 @@ Parameters
     ts_influx_std(grid, node, t)  "Standard deviation of ts_influx over samples"
     ts_cf_std(flow, node, t) "Standard deviation of ts_cf over samples (p.u.)"
 
-    p_autocorrelation(*, node, timeseries) "Autocorrelation of time series for the grid/flow, node and time series type (lag = 1 time step)"
-
-    // Bounds for scenario smoothening
-    p_tsMinValue(*, node, timeseries) "Minimum allowed value of timeseries for grid/flow and node"
-    p_tsMaxValue(*, node, timeseries) "Maximum allowed value of timeseries in grid/flow and node"
-
-    // Help parameters for scenario reduction
-    ts_energy_(s) "Total energy available from inflow and other flows (MWh)"
 ;
 
 * --- Other time dependent parameters -----------------------------------------

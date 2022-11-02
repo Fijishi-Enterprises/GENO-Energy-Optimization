@@ -125,9 +125,6 @@ $ifthen exist '%input_dir%/1_options.gms'
     $$include '%input_dir%/1_options.gms';
 $endif
 
-* === Libraries ===============================================================
-$libinclude scenred2
-
 * === Definitions, sets, parameters and input data=============================
 $include 'inc/1a_definitions.gms'   // Definitions for possible model settings
 $include 'inc/1b_sets.gms'          // Set definitions used by the models

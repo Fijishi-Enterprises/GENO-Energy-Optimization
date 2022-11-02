@@ -168,19 +168,11 @@ tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 u
 // Initializing forecast-time structure sets
 Option clear = p_stepLength;
 Option clear = msft;
-Option clear = msft_wPrevS;
 Option clear = mft;
 Option clear = ft;
 Option clear = sft;
 Option clear = mst;
 Option clear = mst_start, clear = mst_end;
-$ifthen declared scenario
-if(mSettings(mSolve, 'scenarios'),  // Only clear these if using long-term scenarios
-    Options clear = s_active, clear = s_scenario, clear = ss,
-            clear = p_msProbability, clear = ms_central;
-);
-$endif
-
 
 // Initialize the set of active t:s, counters and interval time steps
 Option clear = t_active;
@@ -296,99 +288,17 @@ loop(cc(counter),
 
 ); // END loop(counter)
 
-// Reset initial sample start and end times if using scenarios
-if(mSettings(mSolve, 'scenarios'),
-    Option clear = msStart, clear = msEnd;
-    msStart(ms_initial) = 1;
-    msEnd(ms_initial) = currentForecastLength + 1;
-);
-
-$ifthen defined scenario
-// Create stochastic programming scenarios
-// Select root sample and central forecast
-loop((ms_initial(mSolve, s_), mf_central(mSolve, f)),
-    s_active(s_) = yes;
-    p_msProbability(mSolve, s_)$mSettings(mSolve, 'scenarios') = 1;
-    loop(scenario $p_scenProbability(scenario),
-        s_scenario(s_, scenario) = yes;
-        if(mSettings(mSolve, 'scenarios') > 1,
-            loop(ft(f, t)$(ord(t) >= msEnd(mSolve, s_) + tSolveFirst),
-                loop(s$(ord(s) = mSettings(mSolve, 'samples') + count_sample),
-                    s_active(s) = yes;
-                    ms_central(mSolve, s) = yes;
-                    s_scenario(s, scenario) = yes;
-                    p_msProbability(mSolve, s) = p_scenProbability(scenario);
-                    msStart(mSolve, s) = ord(t) - tSolveFirst;
-                    msEnd(mSolve, s) = ord(t) - tSolveFirst
-                                              + p_stepLength(mSolve, f, t);
-                );
-                count_sample = count_sample + 1;
-            );
-        elseif mSettings(mSolve, 'scenarios') = 1,
-            loop(ms(mSolve, s)$(not sameas(s, s_)),
-                s_active(s) = yes;
-                ms_central(mSolve, s) = yes;
-                p_msProbability(mSolve, s) = 1;
-                s_scenario(s, scenario) = yes;
-                msStart(mSolve, s) = msEnd(mSolve, s_);
-                msEnd(mSolve, s) = msStart(mSolve, s_)
-                                   + mSettings(mSolve, 't_horizon');
-            );
-        );
-    );
-    ms(ms_central(mSolve, s)) = yes;
-    msf(ms_central(mSolve, s), f) = yes;
-);
-$endif
 
 // Loop over defined samples
 loop(msf(mSolve, s, f)$msStart(mSolve, s),
-                      // Move the samples along with the dispatch if scenarios are used
-    sft(s, ft(f, t))${ord(t) > msStart(mSolve, s) + tSolveFirst - 1
-                      and ord(t) < msEnd(mSolve, s) + tSolveFirst
-                      and mSettings(mSolve, 'scenarios')
-                     } = yes;
-                      // Otherwise do not move the samples along with the rolling horizon
     sft(s, ft(f, t))${ord(t) > msStart(mSolve, s)
                       and ord(t) <= msEnd(mSolve, s)
-                      and not mSettings(mSolve, 'scenarios')
                      } = yes;
 );
 
 // Update the model specific sets and the reversed dimension set
 msft(mSolve, sft(s, f, t)) = yes;
 Options mft < msft, ms < msft, msf < msft, mst < msft;  // Projection
-
-* Build stochastic tree by definfing previous samples
-$ifthen defined scenario
-Option clear = s_prev;
-loop(scenario $p_scenProbability(scenario),
-    loop(s_scenario(s, scenario),
-        if(not ms_initial(mSolve, s), ss(s, s_prev) = yes);
-        Option clear = s_prev; s_prev(s) = yes;
-    );
-);
-msft_wPrevS(msft(mSolve, s, f, t), s_)$ss(s, s_) = yes;
-$endif
-
-
-* --- Define sample offsets for creating stochastic scenarios -----------------
-
-Option clear = dt_scenarioOffset;
-
-$ifthen defined scenario
-loop(s_scenario(s, scenario)$(ord(s) > 1 and ord(scenario) > 1),
-    loop(gn_scenarios(grid, node, timeseries),
-         dt_scenarioOffset(grid, node, timeseries, s)
-             = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
-    );
-
-    loop(gn_scenarios(flow, node, timeseries),
-        dt_scenarioOffset(flow, node, timeseries, s)
-            = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
-    );
-);
-$endif
 
 
 * --- Determine various other forecast-time sets required for the model -------
@@ -470,21 +380,7 @@ loop(mf_realization(mSolve, f_),
     df_realization(ft(f, t))$[ord(t) <= tSolveFirst + currentForecastLength]
       = ord(f_) - ord(f);
 );
-// Central forecast for the long-term scenarios comes from a special forecast label
-Option clear = df_scenario;
-if(mSettings(mSolve, 'scenarios') >= 1,
-    loop((msft(ms_central(mSolve, s), f, t), mf_scenario(mSolve, f_)),
-        df_scenario(ft(f, t)) = ord(f_) - ord(f);
-    );
-);
-// Check that df_forecast and df_scenario do not overlap
-loop(ft(f, t),
-  if(df_realization(f, t) <> 0 and df_scenario(f, t) <> 0,
-      put log "!!! Overlapping period of using realization and scenarios"/;
-      put log "!!! Check forecast lengths, `gn_scenarios` and `gn_forecasts`"/;
-      execError = execError + 1;
-  );
-);
+
 
 // Forecast displacement between central and forecasted intervals at the end of forecast horizon
 Option clear = df_central; // This can be reset.

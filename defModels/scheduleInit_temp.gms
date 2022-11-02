@@ -39,14 +39,6 @@ if (mType('schedule'),
 * --- Model Time Structure ----------------------------------------------------
 * =============================================================================
 
-* --- Long-term scenarios -----------------------------------------------------
-
-    // Number of long-term scenarios to use (zero if none)
-    mSettings('schedule', 'scenarios') = 0;
-
-    // Length of single scenario (in time steps)
-    mSettings('schedule', 'scenarioLength') = 8760;
-
 * --- Define Samples ----------------------------------------------------------
 
     // Number of samples used by the model
@@ -59,7 +51,7 @@ if (mType('schedule'),
 
     // Define time span of samples
     msStart('schedule', 's000') = 1;
-    msEnd('schedule', 's000') = msStart('schedule', 's000') + mSettings('schedule', 't_end') + mSettings('schedule', 't_horizon'); // May not work if using scenarios
+    msEnd('schedule', 's000') = msStart('schedule', 's000') + mSettings('schedule', 't_end') + mSettings('schedule', 't_horizon');
 
     // Define the probability (weight) of samples
     p_msProbability('schedule', s) = 0;
@@ -69,20 +61,6 @@ if (mType('schedule'),
     p_msAnnuityWeight('schedule', s) = 0;
     p_msAnnuityWeight('schedule', 's000') = 1;
 
-    // If using long-term samples, uncomment
-    //ms_central('schedule', 's001') = yes;
-    //
-    //msEnd('schedule', 's000') = msStart('schedule', 's000') + 168;
-
-    //msStart('schedule', 's001') = msEnd('schedule', 's000');
-    //msEnd('schedule', 's001') = msStart('schedule', 's000')
-    //                       + mSettings('schedule', 't_horizon');
-    //
-    //p_msProbability('schedule', 's001') = 1;
-    //);
-
-    // Define which nodes use long-term samples
-    //gn_scenarios('hydro', 'XXX', 'ts_influx') = yes;
 
 * --- Define Time Step Intervals ----------------------------------------------
 
@@ -121,10 +99,6 @@ if (mType('schedule'),
     // Define the number of forecasts used by the model
     mSettings('schedule', 'forecasts') = 3;
 
-    // Define which nodes and timeseries use forecasts
-    //Option clear = gn_forecasts;  // By default includes everything, so clear first
-    //gn_forecasts('wind', 'XXX', 'ts_cf') = yes;
-
     // Define forecast properties and features
     mSettings('schedule', 't_forecastStart') = 1;                  // At which time step the first forecast is available ( 1 = t000001 )
     mSettings('schedule', 't_forecastLengthUnchanging') = 36;      // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
@@ -154,9 +128,6 @@ if (mType('schedule'),
     mf_central('schedule', f) = no;
     mf_central('schedule', 'f02') = yes;
 
-    // Define special forecast label that holds scenario data
-    //mf_scenario('schedule', 'scen') = yes;
-
     // Define forecast probabilities (weights)
     p_mfProbability('schedule', f) = 0;
     p_mfProbability(mf_realization('schedule', f)) = 1;
@@ -171,10 +142,7 @@ if (mType('schedule'),
 
     // Define active model features
     active('schedule', 'storageValue') = yes;
-    active('schedule', 'scenRed') = no;
 
-    mSettings('schedule', 'red_num_leaves') = 10;  // Desired number of long-term scenarios
-    mSettings('schedule', 'red_percentage') = 0;   // Scenario reduction percentage
 
 * --- Define Reserve Properties -----------------------------------------------
 
