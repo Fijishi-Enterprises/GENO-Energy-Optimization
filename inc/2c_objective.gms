@@ -48,6 +48,23 @@ q_obj ..
                                   )
                             ) // END sum(gnusft)
 
+                        // Ramping costs (eur/MW) * ramp (MW/h) * stepLength (h) = ramp cost (eur)
+                        + sum(gnuft_rampCost(grid, node, unit, slack, f, t)$p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost'),
+                            + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
+                                * v_genRampUpDown(grid, node, unit, slack, s, f, t)
+                          ) // END sum(gnuft_rampCost)
+
+                        // Variable Transfer cost
+                        + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node, node_, 'variableTransCost'),
+                              + p_gnn(grid, node, node_, 'variableTransCost')
+                              * v_transferLeftward(grid, node_, node, s, f, t)
+                          ) // END sum(gn2n_directional(grid, node_, node))
+
+                        + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node_, node, 'variableTransCost'),
+                              + p_gnn(grid, node_, node, 'variableTransCost')
+                              * v_transferRightward(grid, node_, node, s, f, t)
+                          ) // END sum(gn2n_directional(grid, node_, node))
+
                         // Node state slack variable costs
                         + sum(gn_stateSlack(grid, node),
                             + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
@@ -105,23 +122,6 @@ q_obj ..
                                 ${ uft_onlineMIP(unit, f, t) }
                         ]
                   ) // END sum(uft_online)
-
-                // Ramping costs
-                + sum(gnuft_rampCost(grid, node, unit, slack, f, t)$p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost'),
-                    + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
-                        * v_genRampUpDown(grid, node, unit, slack, s, f, t)
-                  ) // END sum(gnuft_rampCost)
-
-                // Variable Transfer
-                + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node, node_, 'variableTransCost'),
-                    + p_gnn(grid, node, node_, 'variableTransCost')
-                    * v_transferLeftward(grid, node_, node, s, f, t)
-                  ) // END sum(gn2n_directional(grid, node_, node))
-
-                + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node_, node, 'variableTransCost'),
-                    + p_gnn(grid, node_, node, 'variableTransCost')
-                    * v_transferRightward(grid, node_, node, s, f, t)
-                  ) // END sum(gn2n_directional(grid, node_, node))
 
               ]  // END * p_msft_probability(m, s, f, t)
         ) // END sum over msft(m, s, f, t)
