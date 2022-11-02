@@ -52,16 +52,12 @@ Sets
         t_improveForecast "Number of time steps ahead of time on which the forecast is improved on each solve"
         t_perfectForesight "Number of time steps for which realized data is used instead of forecasts"
         onlyExistingForecasts "Use only existing forecast values when reading updated forecasts. Note: zero values need to be saved as Eps in the gdx file."
-        scenarios        "Number of long-term scenarios used"
-        scenarioLength   "Length of scenario in time steps for creating stochastic scenarios from time series data"
         candidate_periods "Number of candidate periods which are mapped to typical periods"
 
         // Features
         t_trajectoryHorizon "Length of the horizon when start-up and shutdown trajectories are considered (in time steps)"
         t_initializationPeriod "Number of time steps in the beginning of the simulation which are solved but the results of which are not stored"
         dataLength "The maximum number of time steps in any input data time series (recommended for correctly circulating data)"
-        red_num_leaves "Desired number of preserved scenarios or leaves of scenario reduction (SCENRED)"
-        red_percentage "Desired relative distance (accuracy) of scenario reduction (SCENRED)"
         incHRAdditionalConstraints "Method to include the two additional constraints for incremental heat rates"
                                    // 0 = include for units with non-convex fuel use, 1 = include for all units
         /
@@ -163,7 +159,6 @@ Sets
 *        addOn            "Use StoSSch as a storage add-on to a larger model" // NOT IMPLEMENTED
 *        extraRes         "Use extra tertiary reserves for error in elec. load during time step" // NOT IMPLEMENTED
 *        rampSched        "Use power based scheduling" // PARTIALLY IMPLEMENTED
-        scenRed          "Reduce number of long-tem scenarios using GAMS SCENRED2"
         checkUnavailability "Take into account ts_unit unavailability data"
          /
 * --- Set to declare time series that will be read between solves ------------------------------------------------------

@@ -346,30 +346,18 @@ $ontext
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 $offtext
-    ts_influx_(gn, sft(s, f, tt_interval(t)))$gn_scenarios(gn, 'ts_influx')
-        = sum(tt_aggregate(t, t_),
-            ts_influx(gn,
-                f + (  df_realization(f, t)$(not gn_forecasts(gn, 'ts_influx'))
-                     + df_scenario(f, t)),
-                t_+ (+ dt_scenarioOffset(gn, 'ts_influx', s)))
-            ) / mInterval(mSolve, 'stepsPerInterval', counter);
-    ts_influx_(gn, sft(s, f, tt_interval(t)))$(not gn_scenarios(gn, 'ts_influx'))
+    // ts_influx_ for active t in solve including aggregated time steps
+    ts_influx_(gn, sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
             ts_influx(gn,
-                f + (  df_realization(f, t)$(not gn_forecasts(gn, 'ts_influx'))),
+                f + (  df_realization(f, t)),
                 t_  )
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
-    ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))$gn_scenarios(flow, node, 'ts_cf')
-        = sum(tt_aggregate(t, t_),
-            ts_cf(flow, node,
-                f + (  df_realization(f, t)$(not gn_forecasts(flow, node, 'ts_cf'))
-                     + df_scenario(f, t)),
-                t_+ (  dt_scenarioOffset(flow, node, 'ts_cf', s)))
-            ) / mInterval(mSolve, 'stepsPerInterval', counter);
-    ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))$(not gn_scenarios(flow, node, 'ts_cf'))
+    // ts_cf_ for active t in solve including aggregated time steps
+    ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
             ts_cf(flow, node,
-                f + (  df_realization(f, t)$(not gn_forecasts(flow, node, 'ts_cf'))),
+                f + (  df_realization(f, t)),
                 t_ )
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
     // Reserves relevant only until reserve_length
@@ -377,54 +365,17 @@ $offtext
       ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')  }
         = sum(tt_aggcircular(t, t_),
             ts_reserveDemand(restype, up_down, group,
-                f + (  df_realization(f, t)${not sum(gnGroup(grid, node, group), gn_forecasts(restype, node, 'ts_reserveDemand'))}
-                     + df_scenario(f, t)${sum(gnGroup(grid, node, group), gn_scenarios(restype, node, 'ts_reserveDemand'))} ), t_)
+                f + (  df_realization(f, t) ), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
-
-    // ts_node_ in case scenarios for nodes
+    // ts_node_ for active t in solve including aggregated time steps
     ts_node_(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f, tt_interval(t)))
-      ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
-        and  gn_scenarios(grid, node, 'ts_node') }
-           // Take average if not a limit type
-        = (sum(tt_aggregate(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))
-                         + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
-                    t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                            + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
-            )
-            / mInterval(mSolve, 'stepsPerInterval', counter))$( not (sameas(param_gnBoundaryTypes, 'upwardLimit')
-                                                                or sameas(param_gnBoundaryTypes, 'downwardLimit')
-                                                                or slack(param_gnBoundaryTypes)))
-          // Maximum lower limit
-          + smax(tt_aggregate(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))
-                         + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
-                    t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                            + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
-                )
-                $(sameas(param_gnBoundaryTypes, 'downwardLimit') or downwardSlack(param_gnBoundaryTypes))
-          // Minimum upper limit
-          + smin(tt_aggregate(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))
-                         + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
-                    t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                            + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
-                )
-                $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
-
-    // ts_node_ in case no scenarios for nodes
-    ts_node_(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f, tt_interval(t)))
-      ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
-        and not gn_scenarios(grid, node, 'ts_node')}
+      ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
            // Take average if not a limit type
         = (sum(tt_aggcircular(t, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))),
+                    f + (  df_realization(f, t) ),
                     t_ )
             )
             / mInterval(mSolve, 'stepsPerInterval', counter))$( not (sameas(param_gnBoundaryTypes, 'upwardLimit')
@@ -433,14 +384,14 @@ $offtext
           // Maximum lower limit
           + smax(tt_aggcircular(t, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))),
+                    f + (  df_realization(f, t)),
                     t_ )
                 )
                 $(sameas(param_gnBoundaryTypes, 'downwardLimit') or downwardSlack(param_gnBoundaryTypes))
           // Minimum upper limit
           + smin(tt_aggcircular(t, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))),
+                    f + (  df_realization(f, t)),
                     t_ )
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
@@ -597,11 +548,7 @@ $offtext
     // `storageValue`
     ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'storageValueUseTimeSeries') }
         = sum(tt_aggregate(t, t_),
-            ts_storageValue(grid, node,
-                f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_storageValue'))
-                     + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_storageValue')),
-                t_+ (+ dt_scenarioOffset(grid, node, 'ts_storageValue', s)
-                     + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_storageValue'))))
+            ts_storageValue(grid, node, f + df_realization(f, t), t_+ dt_circular(t_) )
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
@@ -637,13 +584,6 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
 * --- Input data processing ---------------------------------------------------
 * =============================================================================
 
-$ifthen.scenarios defined scenario
-* --- Scenario reduction ------------------------------------------------------
-if(active(mSolve, 'scenred') and mSettings('schedule', 'scenarios') > 1,
-    $$include 'inc/scenred.gms'
-);
-$endif.scenarios
-
 * --- Update probabilities ----------------------------------------------------
 Option clear = p_msft_probability;
 p_msft_probability(msft(mSolve, s, f, t))
@@ -664,30 +604,4 @@ loop((mst_start(mSolve, s, t), ss(s, s_)),
 );
 
 
-* --- Smooting of stochastic scenarios ----------------------------------------
-$ontext
-Smoothen the scenarios following the methodology presented in [1, p. 443].
-This avoids a discontinuity `jump' after the initial sample.
 
-[1] A. Helseth, B. Mo, A. Lote Henden, and G. Warland, "Detailed long-term hydro-
-    thermal scheduling for expansion planning in the Nordic power system," IET Gener.
-    Transm. Distrib., vol. 12, no. 2, pp. 441 - 447, 2018.
-$offtext
-
-* Check that we have values for the autocorrelations
-$ifthen.autocorr defined p_autocorrelation
-
-// Do smoothing
-if(mSettings(mSolve, 'scenarios') > 0,  // Only do smooting if using long-term scenarios
-    // Select the initial sample, the last time in it (t_)
-    // and the forecast (f_) of the last simulated time step (t__) in it
-    loop((ms_initial(mSolve, s_), t_, ft(f_, t__))
-        $[ord(t_) = msEnd(mSolve, s_) + tSolveFirst - 1
-          and mst_end(mSolve, s_, t__)
-          and (mf_realization(mSolve, f_) xor mf_central(mSolve, f_))
-         ],
-        $$batinclude 'inc/smoothing.gms' ts_influx
-        $$batinclude 'inc/smoothing.gms' ts_cf
-    );
-); // END if('scenarios')
-$endif.autocorr

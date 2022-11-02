@@ -72,9 +72,6 @@ $offtext
     // Set the time for the next available forecast.
     tForecastNext(m) = mSettings(m, 't_forecastStart');
 
-    // Update number of samples
-    if(mSettings(m, 'scenarios') = 1, mSettings(m, 'samples') = 2);
-
     // Select samples for the model
     if (not sum(s, ms(m, s)),  // unless they have been provided as input
         ms(m, s)$(ord(s) <= mSettings(m, 'samples')) = yes;
@@ -100,9 +97,6 @@ $offtext
 
     // Select combinations of models, samples and forecasts to be solved
     msf(m, s, f_solve(f))$(ms(m, s) and mf(m, f)) = yes;
-    if(mSettings(m, 'scenarios'),
-        msf(ms_central(m, s), f_solve(f))$mf_realization(m, f) = no;
-    );
 
     // Check the modelSolves for preset patterns for model solve timings
     // If not found, then use mSettings to set the model solve timings

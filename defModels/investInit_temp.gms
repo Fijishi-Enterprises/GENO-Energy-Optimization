@@ -130,10 +130,6 @@ if (mType('invest'),
     // Define the number of forecasts used by the model
     mSettings('invest', 'forecasts') = 0;
 
-    // Define which nodes and timeseries use forecasts
-    //Option clear = gn_forecasts;  // By default includes everything, so clear first
-    //gn_forecasts('wind', 'XXX', 'ts_cf') = yes;
-
     // Define forecast properties and features
     mSettings('invest', 't_forecastStart') = 0;                // At which time step the first forecast is available ( 1 = t000001 )
     mSettings('invest', 't_forecastLengthUnchanging') = 0;     // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)

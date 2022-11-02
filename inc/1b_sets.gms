@@ -116,7 +116,6 @@ Sets
     mft(mType, f, t) "Combination of forecasts and t:s in the current model solve"
     msf(mType, s, f) "Combination of samples and forecasts in the models"
     msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
-    msft_wPrevS(mType, s, f, t, s) "Combination of models, samples, forecasts and t's with previous sample"
     mst(mType, s, t) "Combination of models samples and t's"
     sft(s, f, t) "Combination of samples, forecasts and t's in the current model solve"
     sft_realized(s, f, t) "Realized sft"
@@ -125,7 +124,6 @@ Sets
     mft_start(mType, f, t) "Start point of the current model solve"
     mf_realization(mType, f) "Realization of the forecasts"
     mf_central(mType, f) "Forecast that continues as sample(s) after the forecast horizon ends"
-    mf_scenario(mType, f) "Forecast label that is used for long-term scenario data"
     ms_initial(mType, s) "Sample that presents the realized/forecasted period"
     ms_central(mType, s) "Sample that continues the central forecast after the forecast horizon ends"
     mft_lastSteps(mType, f, t) "Last interval of the current model solve"
@@ -137,10 +135,6 @@ Sets
     s_active(s) "Samples with non-zero probability in the current model solve"
     ss(s, s) "Previous sample of sample"
     s_prev(s) "Temporary set for previous sample"
-$if defined scenario
-    s_scenario(s, scenario) "Which samples belong to which scenarios"
-    gn_forecasts(*, node, timeseries) "Which grid/flow, node and timeseries use short-term forecasts"
-    gn_scenarios(*, node, timeseries) "Which grid/flow, node and timeseries have data for long-term scenarios"
 
     mz(mType, z) "z periods in the models"
     zs(z, s) "relationship between the z-periods and samples"
@@ -189,8 +183,6 @@ Option clear = modelSolves;
 Option clear = ms;
 Option clear = mf;
 mf_realization(mType, 'f00') = yes;
-Option clear = mf_scenario;
-Option clear = gn_scenarios;
 Option clear = mTimeseries_loop_read;
 
 alias(m, mSolve);
