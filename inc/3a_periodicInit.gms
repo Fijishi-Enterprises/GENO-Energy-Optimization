@@ -669,7 +669,7 @@ loop(gnu(grid, node, unit),
     p_vomCost(grid, node, unit, 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
     p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
     p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
-    p_vomCost(grid, node, unit, 'useConstant')${not p_vomCost(grid, node, unit, 'useTimeSeries') and p_gn(grid, node, 'usePrice')} = -1;
+    p_vomCost(grid, node, unit, 'useConstant')${not p_vomCost(grid, node, unit, 'useTimeSeries')} = -1;
 ); // end loop(gnu)
 
 // vomcosts when constant prices.
