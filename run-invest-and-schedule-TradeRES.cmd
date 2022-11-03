@@ -10,7 +10,7 @@ del .\input\TradeRES\invest_results.inc
 copy .\input\TradeRES\changes-invest.inc .\input\TradeRES\changes.inc
 
 :: running backbone in invest mode
-C:\GAMS\win64\24.1\gams Backbone.gms --input_dir=./input/TradeRES --init_file=investInit.gms --debug=1 --lo=2
+C:\GAMS\win64\24.1\gams Backbone.gms --input_dir=./input/TradeRES --init_file=investInit.gms --debug=1 -lo=2
 
 
 :: copying summary of invest results to TradeRES folder
@@ -29,7 +29,7 @@ copy .\input\TradeRES\changes-schedule.inc .\input\TradeRES\changes.inc
 
 
 :: running backbone in schedule mode
-C:\GAMS\win64\24.1\gams Backbone.gms --input_dir=./input/TradeRES --init_file=scheduleInit.gms --debug=1 --lo=2
+C:\GAMS\win64\24.1\gams Backbone.gms --input_dir=./input/TradeRES --init_file=scheduleInit.gms --debug=1 -lo=2
 
 :: copying result files to demo1 folder
 ::copy .\output\results.gdx .\output\results-investAndSchedule.gdx
