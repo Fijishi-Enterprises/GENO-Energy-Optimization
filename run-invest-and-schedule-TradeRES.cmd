@@ -8,6 +8,7 @@ Title Running scenario: "backbone TradeRES model - invest and schedule"
 copy .\input\TradeRES\4d_postProcess_invest.gms .\input\TradeRES\4d_postProcess.gms
 del .\input\TradeRES\invest_results.inc
 copy .\input\TradeRES\changes-invest.inc .\input\TradeRES\changes.inc
+copy .\input\TradeRES\cplex_invest.opt .\cplex.opt
 
 :: running backbone in invest mode
 C:\GAMS\win64\24.1\gams Backbone.gms --input_dir=./input/TradeRES --init_file=investInit.gms --debug=1 -lo=2
@@ -26,6 +27,7 @@ copy .\Backbone.lst .\output\lst-invest.lst
 del .\input\TradeRES\4d_postProcess.gms
 del .\input\TradeRES\changes.inc
 copy .\input\TradeRES\changes-schedule.inc .\input\TradeRES\changes.inc
+copy .\input\TradeRES\cplex_schedule.opt .\cplex.opt
 
 
 :: running backbone in schedule mode
