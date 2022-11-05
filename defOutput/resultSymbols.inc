@@ -28,21 +28,21 @@ t_realized = t
 r_totalObj
 
 // Unit Operational Cost Components
-r_gnuVOMCost
-r_gnuTotalVOMCost
-r_uFuelEmissionCost
-r_uTotalFuelEmissionCost
-r_uStartupCost
-r_uTotalStartupCost
+//r_gnuVOMCost
+//r_gnuTotalVOMCost
+//r_uFuelEmissionCost
+//r_uTotalFuelEmissionCost
+//r_uStartupCost
+//r_uTotalStartupCost
 
 // Nodal Cost Components
 r_gnStateSlackCost
 r_gnTotalStateSlackCost
 r_gnStorageValueChange
-r_gnnVariableTransCost
-r_gnnTotalVariableTransCost
-r_gnnTransferValue
-r_gnnTotalTransferValue
+//r_gnnVariableTransCost
+//r_gnnTotalVariableTransCost
+//r_gnnTransferValue
+//r_gnnTotalTransferValue
 
 // Investment and Fixed Operation and Maintenance Cost Components
 r_gnuFOMCost
@@ -50,9 +50,9 @@ r_gnuUnitInvestmentCost
 r_gnnLinkInvestmentCost
 
 // Realized System Operating Costs
-r_gnRealizedOperatingCost
+//r_gnRealizedOperatingCost
 r_gnTotalRealizedOperatingCost
-r_gnTotalRealizedOperatingCostShare
+//r_gnTotalRealizedOperatingCostShare
 r_gnTotalRealizedNetOperatingCost
 r_gTotalRealizedOperatingCost
 r_gTotalRealizedNetOperatingCost
@@ -77,8 +77,8 @@ r_stateSlack
 
 // Energy transfer and spill variable results
 r_transfer
-r_transferRightward
-r_transferLeftward
+//r_transferRightward
+//r_transferLeftward
 r_spill
 
 // Interesting node related results
@@ -88,7 +88,7 @@ r_gnnTotalTransfer
 r_gnTotalSpill
 r_gnTotalSpillShare
 r_gTotalSpill
-r_gnnDiffusion
+//r_gnnDiffusion
 
 * --- Energy Generation/Consumption Result Symbols ----------------------------
 
@@ -96,26 +96,26 @@ r_gnnDiffusion
 r_gen
 
 // Energy output results based on input types or unittypes
-r_genFuel
+//r_genFuel
 r_genUnittype
 r_genGridUnittype
 r_genGridUnittypeTotal
-r_gnTotalGenFuel
-r_gnTotalGenFuelShare
-r_gTotalGenFuel
+//r_gnTotalGenFuel
+//r_gnTotalGenFuelShare
+//r_gTotalGenFuel
 r_totalGenFuel
 
 // Interesting energy generation results
 r_gnuTotalGen
 r_gnuTotalGen_unittype
 r_gnuTotalGenShare
-r_gnGen
-r_gnTotalGen
-r_gnTotalGenShare
+//r_gnGen
+//r_gnTotalGen
+//r_gnTotalGenShare
 r_gTotalGen
 
 // Approximate utilization rates
-r_gnuUtilizationRate
+//r_gnuUtilizationRate
 
 // Interesting energy consumption results
 r_gnConsumption
@@ -124,61 +124,61 @@ r_gnTotalConsumptionShare
 r_gTotalConsumption
 
 // Start-up consumption results
-r_nuStartupConsumption
+//r_nuStartupConsumption
 
 * --- Unit Online State Result Symbols ----------------------------------------
 
 // Online results required for model structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-r_online
-r_startup
-r_shutdown
+//r_online
+//r_startup
+//r_shutdown
 
 // Interesting unit online results
-r_uTotalOnline
-r_uTotalOnlinePerUnit
+//r_uTotalOnline
+//r_uTotalOnlinePerUnit
 
 // Interesting unit startup and shutdown results
-r_uTotalStartup
-r_uTotalShutdown
+//r_uTotalStartup
+//r_uTotalShutdown
 
 * --- Emissions Results -----------------------------------------------
 
 // Unit level emissions from normal operation inputs
-r_emissions
+//r_emissions
 
 // Unit level emissions from outputs, not considered in the equations
-r_emissionsFromOutput
+//r_emissionsFromOutput
 
 // Unit level emissions from start-ups
-r_emissionsStartup
+//r_emissionsStartup
 
 // Emission sums
-r_nuTotalEmissionsOperation
-r_nuTotalEmissionsFromOutput
-r_nuTotalEmissionsStartup
+//r_nuTotalEmissionsOperation
+//r_nuTotalEmissionsFromOutput
+//r_nuTotalEmissionsStartup
 r_nuTotalEmissions
-r_nTotalEmissions
-r_uTotalEmissions
+//r_nTotalEmissions
+//r_uTotalEmissions
 r_totalEmissions
 
 * --- Reserve Provision Result Symbols ----------------------------------------
 
 // Reserve provision results required for model structure !!!!!!!!!!!!!!!!!!!!!
-r_reserve
-r_reserve2Reserve
-r_resTransferRightward
-r_resTransferLeftward
+//r_reserve
+//r_reserve2Reserve
+//r_resTransferRightward
+//r_resTransferLeftward
 
 // Interesting reserve results
-r_resDemandMarginal
-r_resDemandMarginalAverage
+//r_resDemandMarginal
+//r_resDemandMarginalAverage
 r_gnuTotalReserve
 r_gnuTotalReserveShare
 r_gnTotalReserve
 r_gnnTotalResTransferRightward
 r_gnnTotalResTransferLeftward
-r_resDemandLargestInfeedUnit
-r_groupReserve
+//r_resDemandLargestInfeedUnit
+//r_groupReserve
 r_groupTotalReserve
 
 * --- Investment Result Symbols -----------------------------------------------
