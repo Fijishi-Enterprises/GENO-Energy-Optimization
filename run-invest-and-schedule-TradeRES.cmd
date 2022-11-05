@@ -17,6 +17,7 @@ C:\GAMS\win64\24.1\gams Backbone.gms --input_dir=./input/TradeRES --init_file=in
 :: copying summary of invest results to TradeRES folder
 copy .\output\invest_results.inc .\input\TradeRES\invest_results.inc
 copy .\output\debug.gdx .\output\debug-invest.gdx
+copy .\output\result.gdx .\output\result-invest.gdx
 copy .\Backbone.log .\output\log-invest.log
 copy .\Backbone.lst .\output\lst-invest.lst
 

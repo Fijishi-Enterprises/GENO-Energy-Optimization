@@ -8,7 +8,7 @@ optcr = 0.005  // Relative gap between the found solution and the best possible 
 Solvelink = %Solvelink.ChainScript%
 
 threads = -1          // How many cores the solver can use: 0 = all cores; negative values = all cores - n
-solprint = On          // Don't print a lot of stuff into .lst?
+solprint = Off          // Don't print a lot of stuff into .lst?
 ResLim = 18000
 ;
 

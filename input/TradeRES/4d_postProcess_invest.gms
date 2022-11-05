@@ -39,7 +39,7 @@ loop(gnu(grid, node, unit)${unit_investLP(unit) or unit_investMIP(unit)},
             put "    = p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
                 "', 'input', 'capacity') + ", tmp, ";"/;
         );
-    else
+    elseif (p_gnu(grid, node, unit, 'capacity') = 0),
         put "utAvailabilityLimits('",  unit.tl,    "', t, 'becomeAvailable') = no;" /;
         put "utAvailabilityLimits('",  unit.tl,    "', t, 'becomeUnavailable') = no;" /;
         put "utAvailabilityLimits('",  unit.tl,    "', 't000001', 'becomeUnavailable') = yes;" /;
