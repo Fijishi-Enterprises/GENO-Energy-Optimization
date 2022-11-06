@@ -49,7 +49,7 @@ loop(gnu(grid, node, unit)${unit_investLP(unit) or unit_investMIP(unit)},
 
 // Storage limits
 put /;
-put "* Update storage investments in the subsequent models"/;
+put "* Update storage upper bounds for the subsequent models"/;
 loop(gnu(grid, node, unit)
     ${r_invest(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio')},
     // subunits rounded to the nearest integer
@@ -59,6 +59,17 @@ loop(gnu(grid, node, unit)
         "', 'upwardLimit', 'constant')"/;
     put "    =  p_gnBoundaryPropertiesForStates('",
         grid.tl, "', '", node.tl, "', 'upwardLimit', 'constant') + ", tmp, ";"/;
+);
+put "* Update storage (pumped storage and batteries) reference level for the subsequent models"/;
+loop(gnu(grid, node, unit)
+    ${r_invest(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio') and (grid('pumped') or grid('battery')},
+    // subunits rounded to the nearest integer
+    tmp = p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
+        * round(r_invest(unit), 0) * p_gnu(grid, node, unit, 'unitSize') * 0.5;
+    put "p_gnBoundaryPropertiesForStates('", grid.tl, "', '", node.tl,
+        "', 'reference', 'constant')"/;
+    put "    =  p_gnBoundaryPropertiesForStates('",
+        grid.tl, "', '", node.tl, "', 'reference', 'constant') + ", tmp, ";"/;
 );
 
 // Transfer capacity
