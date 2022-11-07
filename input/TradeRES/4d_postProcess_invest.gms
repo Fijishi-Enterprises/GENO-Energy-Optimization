@@ -62,7 +62,7 @@ loop(gnu(grid, node, unit)
 );
 put "* Update storage (pumped storage and batteries) reference level for the subsequent models"/;
 loop(gnu(grid, node, unit)
-    ${r_invest(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio') and (grid('pumped') or grid('battery')},
+    ${r_invest(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio') and (grid('pumped') or grid('battery'))},
     // subunits rounded to the nearest integer
     tmp = p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
         * round(r_invest(unit), 0) * p_gnu(grid, node, unit, 'unitSize') * 0.5;

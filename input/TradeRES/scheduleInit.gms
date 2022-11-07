@@ -71,9 +71,9 @@ if (mType('schedule'),
 * 1 day hour-by-hour
     // Define the time step intervals in time-steps
     mInterval('schedule', 'stepsPerInterval', 'c000') = 1;
-    mInterval('schedule', 'lastStepInIntervalBlock', 'c000') = 24*1;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c000') = 36*1;
     mInterval('schedule', 'stepsPerInterval', 'c001') = 3;
-    mInterval('schedule', 'lastStepInIntervalBlock', 'c001') = 36;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c001') = 48;
     mInterval('schedule', 'stepsPerInterval', 'c002') = 12;
     mInterval('schedule', 'lastStepInIntervalBlock', 'c002') = 180;
     mInterval('schedule', 'stepsPerInterval', 'c003') = 78;
