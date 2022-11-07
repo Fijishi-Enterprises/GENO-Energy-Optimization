@@ -22,3 +22,4 @@ t_invest(t) = no;
 p_gn(grid, node, 'capacityMargin') = 0;
 
 p_groupPolicy('VRE_limit', 'energyShareMin') = 0;
+p_groupPolicy('VRE_limit', 'energyShareMax') = 0;
