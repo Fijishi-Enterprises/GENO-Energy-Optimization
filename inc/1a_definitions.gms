@@ -170,8 +170,8 @@ Sets
         ts_cf
         ts_reserveDemand
         ts_node
-        ts_priceChange
-        ts_price
+        ts_priceChange    // does not work currently
+        ts_price          // does not work currently
         ts_unavailability
         ts_storageValue
         ts_gnn
@@ -213,7 +213,7 @@ Sets
 * --- Parameter Data Related Sets ---------------------------------------------
 
 param_gn  "Possible parameters for grid, node" /
-    nodeBalance   "A flag to decide whether node balance constraint is to be used"
+    nodeBalance   "A flag to decide whether node balance constraint is to be used and price option disabled"
     selfDischargeLoss "Self discharge rate of the node (MW/[v_state])"
     energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh (MWh/[v_state])"
     boundStart    "A flag to bound the first t in the run using reference constant or time series"
@@ -226,7 +226,7 @@ param_gn  "Possible parameters for grid, node" /
 *    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."  // NOT IMPLEMENTED
     capacityMargin "Capacity margin used in invest mode (MW)"
     storageValueUseTimeSeries "A flag to determine whether to use time series form `storageValue`"
-    usePrice       "A flag to decide whether ts_priceChange is to be used"
+    usePrice       "A flag to decide if node has prices activated and balance deactivated"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
@@ -278,7 +278,7 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment ([v_state]/MW)"
     unitSize      "Input/Output capacity of one subunit for integer investments (MW)"
     invCosts      "Investment costs (EUR/MW)"
-    annuityFactor       "Investment annuityFactor used to multiply investment cost for annualization of costs" 
+    annuityFactor       "Investment annuityFactor used to multiply investment cost for annualization of costs"
     fomCosts      "Fixed operation and maintenance costs (EUR/MW/a)"
     vomCosts       "Variable operation and maintenance costs (EUR/MWh)"
     inertia       "Inertia of the unit (s)"

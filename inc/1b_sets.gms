@@ -15,9 +15,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
+
 Sets
 * --- Geography ---------------------------------------------------------------
-    grid "Forms of energy endogenously presented in the model" / empty /
+    grid "Forms of energy endogenously presented in the model"
     node "Nodes maintain the energy balance or track exogenous commodities"
 
 * --- Emissions & resources -------------------------------------------------------
@@ -51,6 +52,8 @@ Sets
 
 * --- Nodes -------------------------------------------------------------------
     node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
+    node_priceData(node) "Nodes that have input data in ts_price table"
+    node_priceChangeData(node) "Nodes that have input data in ts_price table"
     flowNode(flow, node) "Nodes with flows"
     node_superpos(node) "Nodes whose state is monitored in the z dimension using superpositioning of state"
 
@@ -178,6 +181,7 @@ Sets
 * --- Set of timeseries that will be read from files between solves -----------
     mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"
 ;
+
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 Option clear = modelSolves;
 Option clear = ms;

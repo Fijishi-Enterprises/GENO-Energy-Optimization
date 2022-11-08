@@ -458,6 +458,18 @@ $ifthen exist '%input_dir%/ts_priceChange3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/ts_price2.gdx'
+    $$gdxin '%input_dir%/ts_price2.gdx'
+    $$loaddcm ts_price
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/ts_price3.gdx'
+    $$gdxin '%input_dir%/ts_price3.gdx'
+    $$loaddcm ts_price
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/ts_influx2.gdx'
     $$gdxin '%input_dir%/ts_influx2.gdx'
     $$loaddcm ts_influx

@@ -15,6 +15,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
+
 * =============================================================================
 * --- Load Input Data ---------------------------------------------------------
 * =============================================================================
@@ -28,17 +29,30 @@ $elseif exist '%input_file_excel%'
 $endif
 $ife %system.errorlevel%>0 $abort gdxxrw failed! Check that your input Excel is valid and that your file path and file name are correct.
 
-* --input_file_gdx=nameOfInputFile.gdx for input_file_gdx in input_dir
+
+* if %input_dir%/%input_file_gdx% exists
+*        --input_file_gdx=nameOfInputFile.gdx for input_file_gdx in input_dir
+*        default assumptions input_dir = ./input,  input_file_gdx = inputData.gdx
+* else if %input_file_gdx% exists
+*        --input_file_gdx= input_dir/nameOfInputFile.gdx for input_file_gdx in input_dir
+*        --input_file_gdx=ABSOLUTE/PATH/nameOfInputFile.gdx for input_file_gdx not in input_dir
+* else go to no_input_gdx label
+
 $ifthen exist '%input_dir%/%input_file_gdx%'
-    $$gdxin  '%input_dir%/%input_file_gdx%'
-* --input_file_gdx=ABSOLUTE/PATH/nameOfInputFile.gdx for input_file_gdx not in input_dir
+    $$setglobal inputDataGdx '%input_dir%/%input_file_gdx%'
 $elseif exist '%input_file_gdx%'
-    $$gdxin  '%input_file_gdx%'
+    $$setglobal inputDataGdx '%input_file_gdx%'
 $else
+    put log '!!! Warning: No input data file found. Skipping reading input data gdx.' /;
+    put log '!!! Warning: Will crash the model if alternative data is not given via 1e_scenChanges.gms or changes.inc' /;
     $$goto no_input_gdx
 $endif
 
-$loaddcm grid
+
+* imports the data from the file that exists
+$gdxin '%inputDataGdx%'
+
+$loaddc grid
 $loaddc node
 $loaddc flow
 $loaddc unittype
@@ -75,8 +89,6 @@ $loaddc emission
 $loaddc p_nEmission
 $loaddc p_gnuEmission
 $loaddc ts_cf
-*$loaddc p_price // Disabled for convenience. Read from ts_priceChange if it contains only one value for a node.
-$loaddc ts_priceChange
 $loaddc ts_emissionPriceChange
 $loaddc ts_influx
 $loaddc ts_node
@@ -96,12 +108,27 @@ $loaddc p_groupPolicyEmission
 $loaddc gnss_bound
 $loaddc uss_bound
 
+$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_priceChange > tmp.inc
+$hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
+$INCLUDE tmp2.inc
+
+$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_price > tmp.inc
+$hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
+$INCLUDE tmp2.inc
+
 $gdxin
 
+
+
+
+
+* jumping to here if no input gdx. Reading data from alternative sources (1e_scenchanges.inc and changes.inc)
+* if input data existed, these alternative sources can be used to modify given data, e.g. when using multiple input files
+* or running alternative scenarios.
 $label no_input_gdx
 
-
-* Read changes to inputdata through gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx) - allows scenarios through Sceleton Titan Excel files.
+* Read changes to inputdata through gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx)
+* In addition, allows scenarios through Sceleton Titan Excel files.
 $include 'inc/1e_scenChanges.gms'
 
 * Reads changes or additions to the inputdata through changes.inc file.
@@ -111,43 +138,35 @@ $endif
 
 
 
-$ontext
-* --- sets with 'empty' to enable GDX imports in Sceleton Titan - currently removed when forming gnu (below) and uft (periodicLoop.gms) sets
-* This list can be removed once this has been tested.
-node
-unit
-gngnu_constrainedOutputRatio
-restype
-restypeReleasedForRealization
-p_gnn
-p_gnnReserves
-p_gnuBoundaryProperties
-ts_node
-ts_reserveDemand
-ts_unit
-p_storageValue
-group
-gnuGroup
-gnGroup
-gn2nGroup
-gnss_bound
-$offtext
-
 
 * =============================================================================
 * --- Initialize Price Related Sets & Parameters Based on Input Data -------
 * =============================================================================
 
+// checking nodes that have price data in two optional input data tables
+Option node_priceData < ts_price;
+Option node_priceChangeData < ts_priceChange;
 
-emissionGroup(emission, group)${ sum(t, abs(ts_emissionPriceChange(emission, group, t)))
-                                 or p_groupPolicyEmission(group, 'emissionCap', emission)
-                                   }
-    = yes;
+// Process node prices depending on 'ts_price'
+loop(node$ {node_priceData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
 
+    // Find the steps with changing node prices
+    option clear = tt;
+    tt(t)${ ts_price(node, t) } = yes;
 
-// Use time series for node prices depending on 'ts_priceChange'
-// Determine if node prices require a time series representation or not
-loop(node$sum(grid, p_gn(grid, node, 'usePrice')),
+    // If only up to a single value and usePrice flag activated
+    if({sum(tt, 1) <= 1 and sum(grid, p_gn(grid, node, 'usePrice')) },
+        p_price(node, 'useConstant') = 1; // Use a constant for node prices
+        p_price(node, 'price') = sum(tt, ts_price(node, tt)) // Determine the price as the only value in the time series
+    // If multiple values found, use time series
+    else
+        p_price(node, 'useTimeSeries') = 1;
+        ); // END if(sum(tt_))
+); // END loop(node)
+
+// Process node prices depending on 'ts_priceChange'
+loop(node$ {node_priceChangeData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
+
     // Find the steps with changing node prices
     option clear = tt;
     tt(t)${ ts_priceChange(node, t) } = yes;
@@ -159,8 +178,16 @@ loop(node$sum(grid, p_gn(grid, node, 'usePrice')),
     // If multiple values found, use time series
     else
         p_price(node, 'useTimeSeries') = 1;
-        ); // END if(sum(tt))
+        ); // END if(sum(tt_))
 ); // END loop(node)
+
+
+
+// populating emissionGroup
+emissionGroup(emission, group)${ sum(t, abs(ts_emissionPriceChange(emission, group, t)))
+                                 or p_groupPolicyEmission(group, 'emissionCap', emission)
+                                   }
+    = yes;
 
 // Use time series for emission group prices depending on 'ts_emissionPriceChange'
 // Determine if emission group prices require a time series representation or not
@@ -190,13 +217,12 @@ loop(emissionGroup(emission, group)$sum(t, abs(ts_emissionPriceChange(emission, 
 p_gnu(grid, node, unit, param_gnu) = sum(input_output, p_gnu_io(grid, node, unit, input_output, param_gnu));
 
 // Set of all existing gnu
-gnu(grid, node, unit)${ not sameas(grid, 'empty')
-                        and (   p_gnu(grid, node, unit, 'capacity')
-                                or p_gnu(grid, node, unit, 'unitSize')
-                                or p_gnu(grid, node, unit, 'conversionCoeff')
-                                )
+gnu(grid, node, unit)${p_gnu(grid, node, unit, 'capacity')
+                       or p_gnu(grid, node, unit, 'unitSize')
+                       or p_gnu(grid, node, unit, 'conversionCoeff')
                       }
     = yes;
+
 // Reduce the grid dimension
 nu(node, unit) = sum(grid, gnu(grid, node, unit));
 //p_gnu(grid, node, unit, 'capacity')$(p_gnu(grid, node, unit, 'capacity') = 0) = inf;
@@ -616,7 +642,7 @@ loop(effLevel${ord(effLevel)<=tmp},
     effLevelGroupUnit(effLevel, effSelector, unit)
         ${not sum(effLevelGroupUnit(effLevel, effSelector_, unit), 1)}
         = effLevelGroupUnit(effLevel - 1, effSelector, unit) // Expand previous (effLevel, effSelector) when applicable
-    loop(unit${not unit_flow(unit) and not sameas(unit, 'empty')},
+    loop(unit${not unit_flow(unit) },
         If(not sum(effLevelGroupUnit(effLevel, effSelector, unit), 1),
             put log '!!! Error on unit ' unit.tl:0 /;
             put log '!!! Abort: Insufficient effLevelGroupUnit definitions!' /;
@@ -747,24 +773,28 @@ loop( unit_investMIP(unit),
 
 * --- Check node balance and price related data -------------------------------
 
-// Give a warning if both nodeBalance and usePrice are false
-loop( node,
+loop(node,
+    // Give a warning if both nodeBalance and usePrice are false
     if(not sum(grid, p_gn(grid, node, 'nodeBalance') or p_gn(grid, node, 'usePrice')),
         put log '!!! Warning: Node ', node.tl:0, ' does not have nodeBalance or usePrice activated in p_gn' /;
     ); // END if
-); // END loop(node)
-// Give a warning if usePrice is true but ts_priceChange has no data
-loop( node,
-    if(p_price(node, 'useConstant') and not p_price(node, 'price'),
-        put log '!!! Warning: Node ', node.tl:0, ' has usePrice activated in p_gn but there is no ts_priceChange data' /;
-    ); // END if
-); // END loop(node)
-// Give a warning if both nodeBalance and usePrice are true
-loop( node,
+    // Give a warning if both nodeBalance and usePrice are true
     if(sum(grid, p_gn(grid, node, 'nodeBalance') and p_gn(grid, node, 'usePrice')),
         put log '!!! Warning: Node ', node.tl:0, ' has both nodeBalance or usePrice activated in p_gn' /;
     ); // END if
+    // Give a warning if usePrice is true but there is no price data
+    if(sum(grid, p_gn(grid, node, 'usePrice'))
+       and not [p_price(node, 'price') or p_price(node, 'useTimeSeries')],
+        put log '!!! Warning: Node ', node.tl:0, ' has usePrice activated in p_gn but there is no price data' /;
+    ); // END if
+    // Abort of input data for prices are given both ts_price and ts_priceChange
+    if({node_priceData(node) and node_priceChangeData(node)},
+        put log '!!! Abort: Node ', node.tl:0, ' has both ts_price and ts_priceChange' /;
+        abort "Only ts_price or ts_priceChange can be given to a node"
+    ); // END if
 ); // END loop(node)
+
+// Give a warning if emission group has emission tax activated but no price data
 loop(emissionGroup(emission, group),
     if(p_emissionPrice(emission, group, 'useConstant') and not p_emissionPrice(emission, group, 'price'),
         put log '!!! Warning: Emission group (', group.tl:0, ', ', emission.tl:0, ') has emission tax activated but no price data' /;

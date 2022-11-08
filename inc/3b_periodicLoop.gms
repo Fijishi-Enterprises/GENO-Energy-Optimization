@@ -456,7 +456,7 @@ $macro tt_aggcircular(t, t_)  tt_agg_circular(t, t_, t__)
 
 // Units with capacities or investment option active on each ft
 Option clear = uft;
-uft(unit, ft(f, t))${  not sameas(unit, 'empty')  }
+uft(unit, ft(f, t))
     = yes;
 
 // Units are not active before or after their lifetime

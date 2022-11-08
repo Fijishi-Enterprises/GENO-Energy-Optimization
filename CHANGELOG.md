@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - renamed suft(effSelector, unit, f, t)  to eff_uft to avoid confusions with samples 
 - Automatic formatting and of `tools/bb_data_template.json` data structure.
 - added a warning that directOff deactivates startCosts
+- added option to use ts_price and/or ts_priceChange
 
 ### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves

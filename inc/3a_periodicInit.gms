@@ -630,10 +630,12 @@ loop(m,
 
 * --- Calculating price time series -------------------------------------------
 
+
 tmp_ = smin(t_datalength(t),ord(t));
 
-// node prices
-loop(node$p_price(node, 'useTimeSeries'),
+// converting price change ts data to price ts data
+// calculated here instead 1e_inputs due to t_datalength initiated in 3a_peridicInit
+loop(node_priceChangeData(node)$p_price(node, 'useTimeSeries'),
     // Determine the time steps where the prices change
     Option clear = tt;
     tt(t)$ts_priceChange(node,t) = yes;
@@ -646,8 +648,8 @@ loop(node$p_price(node, 'useTimeSeries'),
     );
 ); // END loop(node)
 
-
-// emission prices
+// converting emission price change ts data to emission price ts data
+// calculated here instead 1e_inputs due to t_datalength initiated in 3a_peridicInit
 loop(emissionGroup(emission, group)$p_emissionPrice(emission, group, 'useTimeSeries'),
     // Determine the time steps where the prices change
     Option clear = tt;

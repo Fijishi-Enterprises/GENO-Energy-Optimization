@@ -16,6 +16,8 @@ Backbone.dat
 diffile.gdx
 EfficiencyPiecewise.xlsx
 /version
+tmp.inc
+tmp2.inc
 
 # Data files
 *.gdx
