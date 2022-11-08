@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - option to bound storage states at the beginning or end of samples
 - results table invested capacity
 - result table for total emissions of emission groups
+- template to activate barrier algorithm in cplex.opt
 
 ### Changed - requiring input data changes
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
