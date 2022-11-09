@@ -628,13 +628,13 @@ loop(m,
 * --- Various Initial Values and Calculations ---------------------------------
 * =============================================================================
 
-* --- Calculating price time series -------------------------------------------
+* --- Calculating price time series when using price change data --------------
 
+// converting price change ts data to price ts data
+// calculated here instead 1e_inputs because t_datalength is initiated in 3a_periodicInit
 
 tmp_ = smin(t_datalength(t),ord(t));
 
-// converting price change ts data to price ts data
-// calculated here instead 1e_inputs due to t_datalength initiated in 3a_peridicInit
 loop(node_priceChangeData(node)$p_price(node, 'useTimeSeries'),
     // Determine the time steps where the prices change
     Option clear = tt;
@@ -649,7 +649,6 @@ loop(node_priceChangeData(node)$p_price(node, 'useTimeSeries'),
 ); // END loop(node)
 
 // converting emission price change ts data to emission price ts data
-// calculated here instead 1e_inputs due to t_datalength initiated in 3a_peridicInit
 loop(emissionGroup(emission, group)$p_emissionPrice(emission, group, 'useTimeSeries'),
     // Determine the time steps where the prices change
     Option clear = tt;
@@ -663,7 +662,7 @@ loop(emissionGroup(emission, group)$p_emissionPrice(emission, group, 'useTimeSer
     );
 ); // END loop(groupEmission)
 
-* --- checking when to use static prices and calculating those ----------------
+* --- checking when to use static unit costs and calculating those ------------
 
 // vomCost calculations
 // looping gnu to decide if using static or time series pricing

@@ -118,17 +118,12 @@ $INCLUDE tmp2.inc
 
 $gdxin
 
-
-
-
-
 * jumping to here if no input gdx. Reading data from alternative sources (1e_scenchanges.inc and changes.inc)
 * if input data existed, these alternative sources can be used to modify given data, e.g. when using multiple input files
 * or running alternative scenarios.
 $label no_input_gdx
 
 * Read changes to inputdata through gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx)
-* In addition, allows scenarios through Sceleton Titan Excel files.
 $include 'inc/1e_scenChanges.gms'
 
 * Reads changes or additions to the inputdata through changes.inc file.
@@ -136,81 +131,9 @@ $ifthen exist '%input_dir%/changes.inc'
    $$include '%input_dir%/changes.inc'
 $endif
 
-
-
-
-* =============================================================================
-* --- Initialize Price Related Sets & Parameters Based on Input Data -------
-* =============================================================================
-
-// checking nodes that have price data in two optional input data tables
-Option node_priceData < ts_price;
-Option node_priceChangeData < ts_priceChange;
-
-// Process node prices depending on 'ts_price'
-loop(node$ {node_priceData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
-
-    // Find the steps with changing node prices
-    option clear = tt;
-    tt(t)${ ts_price(node, t) } = yes;
-
-    // If only up to a single value and usePrice flag activated
-    if({sum(tt, 1) <= 1 and sum(grid, p_gn(grid, node, 'usePrice')) },
-        p_price(node, 'useConstant') = 1; // Use a constant for node prices
-        p_price(node, 'price') = sum(tt, ts_price(node, tt)) // Determine the price as the only value in the time series
-    // If multiple values found, use time series
-    else
-        p_price(node, 'useTimeSeries') = 1;
-        ); // END if(sum(tt_))
-); // END loop(node)
-
-// Process node prices depending on 'ts_priceChange'
-loop(node$ {node_priceChangeData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
-
-    // Find the steps with changing node prices
-    option clear = tt;
-    tt(t)${ ts_priceChange(node, t) } = yes;
-
-    // If only up to a single value and usePrice flag activated
-    if({sum(tt, 1) <= 1 and sum(grid, p_gn(grid, node, 'usePrice')) },
-        p_price(node, 'useConstant') = 1; // Use a constant for node prices
-        p_price(node, 'price') = sum(tt, ts_priceChange(node, tt)) // Determine the price as the only value in the time series
-    // If multiple values found, use time series
-    else
-        p_price(node, 'useTimeSeries') = 1;
-        ); // END if(sum(tt_))
-); // END loop(node)
-
-
-
-// populating emissionGroup
-emissionGroup(emission, group)${ sum(t, abs(ts_emissionPriceChange(emission, group, t)))
-                                 or p_groupPolicyEmission(group, 'emissionCap', emission)
-                                   }
-    = yes;
-
-// Use time series for emission group prices depending on 'ts_emissionPriceChange'
-// Determine if emission group prices require a time series representation or not
-loop(emissionGroup(emission, group)$sum(t, abs(ts_emissionPriceChange(emission, group, t))),
-    // Find the steps with changing node prices
-    option clear = tt;
-    tt(t)${ ts_emissionPriceChange(emission, group, t) } = yes;
-
-    // If only up to a single value
-    if(sum(tt, 1) <= 1,
-        p_emissionPrice(emission, group, 'useConstant') = 1; // Use a constant for node prices
-        p_emissionPrice(emission, group, 'price') = sum(tt, ts_emissionPriceChange(emission, group, tt)) // Determine the price as the only value in the time series
-    // If multiple values found, use time series
-    else
-        p_emissionPrice(emission, group, 'useTimeSeries') = 1;
-        ); // END if(sum(tt))
-); // END loop(group)
-
-
 * =============================================================================
 * --- Initialize Unit Related Sets & Parameters Based on Input Data -----------
 * =============================================================================
-
 
 * --- Generate Unit Related Sets ----------------------------------------------
 
@@ -366,7 +289,6 @@ loop(utAvailabilityLimits(unit, t, availabilityLimits),
     p_unit(unit, availabilityLimits) = ord(t)
 ); // END loop(ut)
 
-
 * =============================================================================
 * --- Generate Node Related Sets Based on Input Data --------------------------
 * =============================================================================
@@ -423,6 +345,14 @@ gn2n_directional_rampConstrained(gn2n_directional(grid, node, node_))
              $  p_gnn(grid, node, node_, 'rampLimit')
     = yes;
 
+* --- Timeseries parameters for node-node connections -------------------------
+
+// Transfer links with time series enabled for certain parameters
+gn2n_timeseries(grid, node, node_, 'availability')${p_gnn(grid, node, node_, 'useTimeseriesAvailability')}
+    = yes;
+gn2n_timeseries(grid, node, node_, 'transferLoss')${p_gnn(grid, node, node_, 'useTimeseriesLoss')}
+    = yes;
+
 * --- Node States -------------------------------------------------------------
 
 // States with slack variables
@@ -458,7 +388,7 @@ p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multipli
                                                                                         and sum(param_gnBoundaryProperties, p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, param_gnBoundaryProperties))
     } = 1; // If multiplier has not been set, set it to 1 by default
 
-* --- Other Node Properties ---------------------------------------------------
+* --- Node Classifications ----------------------------------------------------
 
 // Nodes with flows
 flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
@@ -466,13 +396,78 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
                         }
     = yes;
 
-* --- Timeseries parameters for node-node connections -------------------------
+// checking nodes that have price data in two optional input data tables
+Option node_priceData < ts_price;
+Option node_priceChangeData < ts_priceChange;
 
-// Transfer links with time series enabled for certain parameters
-gn2n_timeseries(grid, node, node_, 'availability')${p_gnn(grid, node, node_, 'useTimeseriesAvailability')}
+* =============================================================================
+* --- Initialize Price Related Sets & Parameters Based on Input Data -------
+* =============================================================================
+
+// Process node prices depending on 'ts_price'
+loop(node$ {node_priceData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
+
+    // Find the steps with changing node prices
+    option clear = tt;
+    tt(t)${ ts_price(node, t) } = yes;
+
+    // If only up to a single value and usePrice flag activated
+    if({sum(tt, 1) <= 1 and sum(grid, p_gn(grid, node, 'usePrice')) },
+        p_price(node, 'useConstant') = 1; // Use a constant for node prices
+        p_price(node, 'price') = sum(tt, ts_price(node, tt)) // Determine the price as the only value in the time series
+    // If multiple values found, use time series
+    else
+        p_price(node, 'useTimeSeries') = 1;
+        ); // END if(sum(tt_))
+); // END loop(node)
+
+// Process node prices depending on 'ts_priceChange'
+loop(node$ {node_priceChangeData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
+
+    // Find the steps with changing node prices
+    option clear = tt;
+    tt(t)${ ts_priceChange(node, t) } = yes;
+
+    // If only up to a single value and usePrice flag activated
+    if({sum(tt, 1) <= 1 and sum(grid, p_gn(grid, node, 'usePrice')) },
+        p_price(node, 'useConstant') = 1; // Use a constant for node prices
+        p_price(node, 'price') = sum(tt, ts_priceChange(node, tt)) // Determine the price as the only value in the time series
+    // If multiple values found, use time series
+    else
+        p_price(node, 'useTimeSeries') = 1;
+        ); // END if(sum(tt_))
+); // END loop(node)
+
+* time series based on ts_priceChange processed in 3a_periodicInit
+
+* =============================================================================
+* --- Emission related Sets & Parameters --------------------------------------
+* =============================================================================
+
+// populating emissionGroup
+emissionGroup(emission, group)${ sum(t, abs(ts_emissionPriceChange(emission, group, t)))
+                                 or p_groupPolicyEmission(group, 'emissionCap', emission)
+                                   }
     = yes;
-gn2n_timeseries(grid, node, node_, 'transferLoss')${p_gnn(grid, node, node_, 'useTimeseriesLoss')}
-    = yes;
+
+// Use time series for emission group prices depending on 'ts_emissionPriceChange'
+// Determine if emission group prices require a time series representation or not
+loop(emissionGroup(emission, group)$sum(t, abs(ts_emissionPriceChange(emission, group, t))),
+    // Find the steps with changing node prices
+    option clear = tt;
+    tt(t)${ ts_emissionPriceChange(emission, group, t) } = yes;
+
+    // If only up to a single value
+    if(sum(tt, 1) <= 1,
+        p_emissionPrice(emission, group, 'useConstant') = 1; // Use a constant for node prices
+        p_emissionPrice(emission, group, 'price') = sum(tt, ts_emissionPriceChange(emission, group, tt)) // Determine the price as the only value in the time series
+    // If multiple values found, use time series
+    else
+        p_emissionPrice(emission, group, 'useTimeSeries') = 1;
+        ); // END if(sum(tt))
+); // END loop(group)
+
+* time series based on ts_emissionPriceChange processed in 3a_periodicInit
 
 * =============================================================================
 * --- Reserves Sets & Parameters ----------------------------------------------
