@@ -595,7 +595,7 @@ q_maxDownward(gnusft(grid, node, unit, s, f, t))
 
 * --- Maximum Downward Capacity for Production/Consumption, Online Reserves and Offline Reserves ---
 
-q_maxDownwardOfflineReserve(gnusft(grid, node, unit, s, f, t))
+q_maxDownwardOfflineReserve(gnusft(grid, node, offlineResUnit(unit), s, f, t))
     ${  (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
             [   ord(t) <= tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is providing
@@ -750,7 +750,7 @@ q_maxUpward(gnusft(grid, node, unit, s, f, t))
 
 * --- Maximum Upwards Capacity for Production/Consumption, Online Reserves and Offline Reserves ---
 
-q_maxUpwardOfflineReserve(gnusft(grid, node, unit, s, f, t))
+q_maxUpwardOfflineReserve(gnusft(grid, node, offlineResUnit(unit), s, f, t))
     ${  (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
             [   ord(t) <= tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is providing
