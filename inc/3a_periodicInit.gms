@@ -649,7 +649,7 @@ loop(node_priceChangeData(node)$p_price(node, 'useTimeSeries'),
 ); // END loop(node)
 
 // converting emission price change ts data to emission price ts data
-loop(emissionGroup(emission, group)$p_emissionPrice(emission, group, 'useTimeSeries'),
+loop(emissionGroup(emission_priceChangeData(emission), group)$p_emissionPrice(emission, group, 'useTimeSeries'),
     // Determine the time steps where the prices change
     Option clear = tt;
     tt(t)$ts_emissionPriceChange(emission, group,t) = yes;

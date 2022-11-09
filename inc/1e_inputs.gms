@@ -89,7 +89,6 @@ $loaddc emission
 $loaddc p_nEmission
 $loaddc p_gnuEmission
 $loaddc ts_cf
-$loaddc ts_emissionPriceChange
 $loaddc ts_influx
 $loaddc ts_node
 $loaddc p_s_discountFactor
@@ -108,11 +107,19 @@ $loaddc p_groupPolicyEmission
 $loaddc gnss_bound
 $loaddc uss_bound
 
+$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_price > tmp.inc
+$hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
+$INCLUDE tmp2.inc
+
 $hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_priceChange > tmp.inc
 $hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
 $INCLUDE tmp2.inc
 
-$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_price > tmp.inc
+$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_emissionPrice > tmp.inc
+$hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
+$INCLUDE tmp2.inc
+
+$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_emissionPriceChange > tmp.inc
 $hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
 $INCLUDE tmp2.inc
 
@@ -404,55 +411,81 @@ Option node_priceChangeData < ts_priceChange;
 * --- Initialize Price Related Sets & Parameters Based on Input Data -------
 * =============================================================================
 
-// Process node prices depending on 'ts_price'
+// Process node prices depending on 'ts_price' if usePrice flag activated
 loop(node$ {node_priceData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
 
     // Find the steps with changing node prices
     option clear = tt;
     tt(t)${ ts_price(node, t) } = yes;
 
-    // If only up to a single value and usePrice flag activated
-    if({sum(tt, 1) <= 1 and sum(grid, p_gn(grid, node, 'usePrice')) },
+    // If only up to a single value
+    if({sum(tt, 1) <= 1 },
         p_price(node, 'useConstant') = 1; // Use a constant for node prices
         p_price(node, 'price') = sum(tt, ts_price(node, tt)) // Determine the price as the only value in the time series
-    // If multiple values found, use time series
+
+    // If multiple values found, use time series. Values already given in input data.
     else
         p_price(node, 'useTimeSeries') = 1;
-        ); // END if(sum(tt_))
+      ); // END if(sum(tt_))
 ); // END loop(node)
 
-// Process node prices depending on 'ts_priceChange'
+// Process node prices depending on 'ts_priceChange' if usePrice flag activated
 loop(node$ {node_priceChangeData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
 
     // Find the steps with changing node prices
     option clear = tt;
     tt(t)${ ts_priceChange(node, t) } = yes;
 
-    // If only up to a single value and usePrice flag activated
-    if({sum(tt, 1) <= 1 and sum(grid, p_gn(grid, node, 'usePrice')) },
+    // If only up to a single value
+    if({sum(tt, 1) <= 1 },
         p_price(node, 'useConstant') = 1; // Use a constant for node prices
         p_price(node, 'price') = sum(tt, ts_priceChange(node, tt)) // Determine the price as the only value in the time series
-    // If multiple values found, use time series
+
+    // If multiple values found, use time series. Values processed in 3a_periodicInit
     else
         p_price(node, 'useTimeSeries') = 1;
-        ); // END if(sum(tt_))
+      ); // END if(sum(tt_))
 ); // END loop(node)
 
-* time series based on ts_priceChange processed in 3a_periodicInit
+
 
 * =============================================================================
 * --- Emission related Sets & Parameters --------------------------------------
 * =============================================================================
 
-// populating emissionGroup
-emissionGroup(emission, group)${ sum(t, abs(ts_emissionPriceChange(emission, group, t)))
+// checking emissions that have price data in two optional input data tables
+Option emission_priceData < ts_emissionPrice;
+Option emission_priceChangeData < ts_emissionPriceChange;
+
+// populating emissionGroup.
+// Can use projection only once as the second time would overwrite. Using it to the most likely option.
+Option emissionGroup < ts_emissionPrice;
+emissionGroup(emission, group)${ sum(t, ts_emissionPriceChange(emission, group, t))
                                  or p_groupPolicyEmission(group, 'emissionCap', emission)
-                                   }
+                               }
     = yes;
 
-// Use time series for emission group prices depending on 'ts_emissionPriceChange'
-// Determine if emission group prices require a time series representation or not
-loop(emissionGroup(emission, group)$sum(t, abs(ts_emissionPriceChange(emission, group, t))),
+// Process emission group prices depending on 'ts_emissionPrice'
+loop(emissionGroup(emission_priceData(emission), group),
+
+    // Find the steps with changing node prices
+    option clear = tt;
+    tt(t)${ ts_emissionPrice(emission, group, t) } = yes;
+
+    // If only up to a single value
+    if(sum(tt, 1) <= 1,
+        p_emissionPrice(emission, group, 'useConstant') = 1; // Use a constant for node prices
+        p_emissionPrice(emission, group, 'price') = sum(tt, ts_emissionPrice(emission, group, tt)) // Determine the price as the only value in the time series
+
+    // If multiple values found, use time series. Values already given in input data.
+    else
+        p_emissionPrice(emission, group, 'useTimeSeries') = 1;
+      ); // END if(sum(tt))
+); // END loop(emissionGroup)
+
+// Process emission group prices depending on 'ts_emissionPriceChange'
+loop(emissionGroup(emission_priceChangeData(emission), group),
+
     // Find the steps with changing node prices
     option clear = tt;
     tt(t)${ ts_emissionPriceChange(emission, group, t) } = yes;
@@ -461,13 +494,14 @@ loop(emissionGroup(emission, group)$sum(t, abs(ts_emissionPriceChange(emission, 
     if(sum(tt, 1) <= 1,
         p_emissionPrice(emission, group, 'useConstant') = 1; // Use a constant for node prices
         p_emissionPrice(emission, group, 'price') = sum(tt, ts_emissionPriceChange(emission, group, tt)) // Determine the price as the only value in the time series
-    // If multiple values found, use time series
+
+    // If multiple values found, use time series. Values processed in 3a_periodicInit
     else
         p_emissionPrice(emission, group, 'useTimeSeries') = 1;
-        ); // END if(sum(tt))
-); // END loop(group)
+      ); // END if(sum(tt))
+); // END loop(emissionGroup)
 
-* time series based on ts_emissionPriceChange processed in 3a_periodicInit
+
 
 * =============================================================================
 * --- Reserves Sets & Parameters ----------------------------------------------
@@ -626,6 +660,29 @@ loop(gn2n(grid, node, node_),
     );
 );
 
+* --- Check node balance and price related data -------------------------------
+
+loop(node,
+    // Give a warning if both nodeBalance and usePrice are false
+    if(not sum(grid, p_gn(grid, node, 'nodeBalance') or p_gn(grid, node, 'usePrice')),
+        put log '!!! Warning: Node ', node.tl:0, ' does not have nodeBalance or usePrice activated in p_gn' /;
+    ); // END if
+    // Give a warning if both nodeBalance and usePrice are true
+    if(sum(grid, p_gn(grid, node, 'nodeBalance') and p_gn(grid, node, 'usePrice')),
+        put log '!!! Warning: Node ', node.tl:0, ' has both nodeBalance or usePrice activated in p_gn' /;
+    ); // END if
+    // Give a warning if usePrice is true but there is no price data
+    if(sum(grid, p_gn(grid, node, 'usePrice'))
+       and not [p_price(node, 'price') or p_price(node, 'useTimeSeries')],
+        put log '!!! Warning: Node ', node.tl:0, ' has usePrice activated in p_gn but there is no price data' /;
+    ); // END if
+    // Abort of input data for prices are given both ts_price and ts_priceChange
+    if({node_priceData(node) and node_priceChangeData(node)},
+        put log '!!! Abort: Node ', node.tl:0, ' has both ts_price and ts_priceChange' /;
+        abort "Only ts_price or ts_priceChange can be given to a node"
+    ); // END if
+); // END loop(node)
+
 * --- Check the integrity of efficiency approximation related data ------------
 
 Option clear = tmp;
@@ -706,6 +763,17 @@ loop( unitStarttype(unit, starttypeConstrained),
     );
 );
 
+* --- Check emission related data ---------------------------------------------
+
+loop(emissionGroup(emission, group),
+    // Abort of input data for prices are given both ts_emissionPrice and ts_emissionPriceChange
+    if({emission_priceData(emission) and emission_priceChangeData(emission)},
+        put log '!!! Abort: EmissionGroup (', group.tl:0, ', ', emission.tl:0, ') has both ts_emissionPrice and ts_emissionPriceChange' /;
+        abort "Only ts_emissionPrice or ts_emissionPriceChange can be given to an emissionGroup"
+    ); // END if
+); // END loop(emissionGroup)
+
+
 * --- Check reserve related data ----------------------------------------------
 
 loop( restypeDirectionGroup(restype, up_down, group),
@@ -765,36 +833,6 @@ loop( unit_investMIP(unit),
         abort "All units with investment possibility should have 'unitSize' in p_gnu!"
     ); // END if
 ); // END loop(unit_investMIP)
-
-* --- Check node balance and price related data -------------------------------
-
-loop(node,
-    // Give a warning if both nodeBalance and usePrice are false
-    if(not sum(grid, p_gn(grid, node, 'nodeBalance') or p_gn(grid, node, 'usePrice')),
-        put log '!!! Warning: Node ', node.tl:0, ' does not have nodeBalance or usePrice activated in p_gn' /;
-    ); // END if
-    // Give a warning if both nodeBalance and usePrice are true
-    if(sum(grid, p_gn(grid, node, 'nodeBalance') and p_gn(grid, node, 'usePrice')),
-        put log '!!! Warning: Node ', node.tl:0, ' has both nodeBalance or usePrice activated in p_gn' /;
-    ); // END if
-    // Give a warning if usePrice is true but there is no price data
-    if(sum(grid, p_gn(grid, node, 'usePrice'))
-       and not [p_price(node, 'price') or p_price(node, 'useTimeSeries')],
-        put log '!!! Warning: Node ', node.tl:0, ' has usePrice activated in p_gn but there is no price data' /;
-    ); // END if
-    // Abort of input data for prices are given both ts_price and ts_priceChange
-    if({node_priceData(node) and node_priceChangeData(node)},
-        put log '!!! Abort: Node ', node.tl:0, ' has both ts_price and ts_priceChange' /;
-        abort "Only ts_price or ts_priceChange can be given to a node"
-    ); // END if
-); // END loop(node)
-
-// Give a warning if emission group has emission tax activated but no price data
-loop(emissionGroup(emission, group),
-    if(p_emissionPrice(emission, group, 'useConstant') and not p_emissionPrice(emission, group, 'price'),
-        put log '!!! Warning: Emission group (', group.tl:0, ', ', emission.tl:0, ') has emission tax activated but no price data' /;
-    ); // END if
-); // END loop(emissionGroup)
 
 * --- Check consistency of inputs for superposed node states -------------------
 

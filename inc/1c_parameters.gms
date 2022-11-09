@@ -156,9 +156,11 @@ $onempty
 Parameters   // optional parameter tables initiated as empty tables
     ts_price(node, t) "commodity price (EUR/MWh). Read directly from input data or calculated from ts_priceChange. Only either allowed." / /
     ts_priceChange(node, t) "Initial commodity price and consequent changes in commodity price (EUR//MWh)" / /
+    ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tCO2)" / /
+    ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tCO2)" / /
 ;
 $offempty
-Parameters 
+Parameters
     // Used mostly for raw data storage
     ts_influx(grid, node, f, t) "External power inflow/outflow during a time step (MWh/h)"
     ts_cf(flow, node, f, t) "Available capacity factor time series (p.u.)"
@@ -166,8 +168,6 @@ Parameters
     ts_node(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input ([v_state])"
     ts_gnn(grid, node, node, param_gnn, f, t) "Time dependent interconnection data"
     ts_storageValue(grid, node, f, t) "Timeseries value of stored something at the end of a time step (EUR/<v_state_unit>)"
-    ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tCO2)"
-    ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tCO2)"
     ts_unavailability(unit, t) "Unavailability of a unit in the time step (p.u.)"
 
     // Aliases used in the equations after interval aggregation
@@ -177,10 +177,10 @@ Parameters
     ts_node_(grid, node, param_gnBoundaryTypes, s, f, t) "Mean value of ts_node"
     ts_gnn_(grid, node, node, param_gnn, f, t) "Mean value of ts_gnn"
     ts_storageValue_(grid, node, s, f, t) "Mean value of ts_storageValue"
-    p_vomCost(grid, node, unit, param_price) "Calculated static variable O&M cost that includes O&M cost, fuel cost and emission cost"
-    ts_vomCost_(grid, node, unit, t) "Calculated time dependent variable O&M cost that includes O&M cost, fuel cost and emission cost"
+    p_vomCost(grid, node, unit, param_price) "Calculated static O&M cost that includes O&M cost, fuel cost and emission cost"
+    ts_vomCost_(grid, node, unit, t) "Calculated time dependent O&M cost that includes O&M cost, fuel cost and emission cost"
     p_startupCost(unit, starttype, param_price) "Calculated static startup cost that includes startup cost, fuel cost and emission cost"
-    ts_startupCost_(unit, starttype, t) "Calculated variable startup cost that includes startup cost, fuel cost and emission cost"
+    ts_startupCost_(unit, starttype, t) "Calculated time dependent startup cost that includes startup cost, fuel cost and emission cost"
 
     // Aliases used for updating data in inputsLoop.gms
     ts_unit_update(unit, param_unit, f, t)

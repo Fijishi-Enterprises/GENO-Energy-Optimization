@@ -25,6 +25,17 @@ Sets
     emission "Emissions"
     flow "Flow based energy resources (time series)"
 
+* --- Node classifications ----------------------------------------------------
+    node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
+    node_priceData(node) "Nodes that have input data in ts_price table"
+    node_priceChangeData(node) "Nodes that have input data in ts_priceChange table"
+    node_superpos(node) "Nodes whose state is monitored in the z dimension using superpositioning of state"
+    flowNode(flow, node) "Nodes with flows"
+
+* --- Emission classifications ------------------------------------------------
+    emission_priceData(emission) "Emissions that have input data in ts_emissionPrice table"
+    emission_priceChangeData(emission) "Emissions that have input data in ts_emissionPriceChange table"
+
 * --- Energy generation and consumption ---------------------------------------
     unit "Set of generators, storages and loads"
     unittype "Unit technology types"
@@ -49,13 +60,6 @@ Sets
     unit_investMIP(unit) "Units with integer investments allowed"
     unit_timeseries(unit) "Units with time series enabled"
     unit_incHRAdditionalConstraints(unit) "Units that use the two additional incremental heat rate constraints"
-
-* --- Nodes -------------------------------------------------------------------
-    node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
-    node_priceData(node) "Nodes that have input data in ts_price table"
-    node_priceChangeData(node) "Nodes that have input data in ts_price table"
-    flowNode(flow, node) "Nodes with flows"
-    node_superpos(node) "Nodes whose state is monitored in the z dimension using superpositioning of state"
 
 * --- Sets bounding geography and units ---------------------------------------
     group "A group of units, transfer links, nodes, etc."
