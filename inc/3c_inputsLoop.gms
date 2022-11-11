@@ -192,7 +192,7 @@ if(mSettings(mSolve, 't_improveForecast'),
         ts_unit(unit_timeseries(unit), param_unit, f, tt(t))// Only update for units with time series enabled
             = ts_unit(unit, param_unit, f, t) - ts_unit(unit, param_unit, f+ddf(f), t);
         // ts_unitConstraintNode
-        ts_unitConstraintNode(unit, constraint, node, f, tt(t))
+        ts_unitConstraintNode(unit, constraint, node, f, tt(t))${unit_tsConstrained(unit)}
             = ts_unitConstraintNode(unit, constraint, node, f, t) - ts_unitConstraintNode(unit, constraint, node, f+ddf(f), t);
 $ontext
 * Should these be handled here at all? See above note
@@ -230,7 +230,7 @@ $offtext
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_unit(unit, param_unit, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
-        ts_unitConstraintNode(unit, constraint, node, f, tt(t))${p_unitConstraint(unit, constraint)}
+        ts_unitConstraintNode(unit, constraint, node, f, tt(t))${unit_tsConstrained(unit)}
             = [ + (ord(t) - tSolveFirst)
                     * ts_unitConstraintNode(unit, constraint, node, f, t)
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
@@ -342,7 +342,7 @@ loop(cc(counter),
             ts_unit(unit, param_unit, f, t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
-    ts_unitConstraintNode_(unit, constraint, node, sft(s, f, tt_interval(t)))
+    ts_unitConstraintNode_(unit, constraint, node, sft(s, f, tt_interval(t)))${unit_tsConstrained(unit)}
         = sum(tt_aggcircular(t, t_),
             ts_unitConstraintNode(unit, constraint, node, f, t_)
             )

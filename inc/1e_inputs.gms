@@ -228,6 +228,11 @@ unit_eqConstrained(unit)${sum((eq_constraint(constraint))$p_unitConstraint(unit,
 // Units that have gt constraints between inputs and/or outputs
 unit_gtConstrained(unit)${sum((gt_constraint(constraint))$p_unitConstraint(unit, constraint), 1)} = yes;
 
+// Units that have time series for eq or gt constraints between inputs and/or outputs
+option tt < ts_unitConstraintNode;
+unit_tsConstrained(unit)${sum((constraint, node, f, tt(t))$ts_unitConstraintNode(unit, constraint, node, f, t), 1) } = yes;
+
+
 * --- Unit Related Parameters -------------------------------------------------
 
 // Assume values for critical unit related parameters, if not provided by input data

@@ -63,6 +63,7 @@ Sets
     unit_incHRAdditionalConstraints(unit) "Units that use the two additional incremental heat rate constraints"
     unit_eqConstrained(unit) "Units that have eq constraints between inputs and/or outputs"
     unit_gtConstrained(unit) "Units that have gt constraints between inputs and/or outputs"
+    unit_tsConstrained(unit) "Units that have timeseries for eq or gt constraints between inputs and/or outputs"
     unit_tmp(unit) "temporary set for summing units"
 
 * --- Sets bounding geography and units ---------------------------------------
