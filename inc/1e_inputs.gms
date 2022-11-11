@@ -20,6 +20,8 @@ $offtext
 * --- Load Input Data ---------------------------------------------------------
 * =============================================================================
 
+* --- optional: translating input excel to gdx --------------------------------
+
 * If input_file excel has been set in the command line arguments, then Gdxxrw will be run to convert the Excel into a GDX file
 *   using the sheet defined by input_excel_index command line argument (default: 'INDEX').
 $ifthen exist '%input_dir%/%input_file_excel%'
@@ -29,105 +31,74 @@ $elseif exist '%input_file_excel%'
 $endif
 $ife %system.errorlevel%>0 $abort gdxxrw failed! Check that your input Excel is valid and that your file path and file name are correct.
 
+* --- locating input data gdx ------------------------------------------------
 
+* setting path for input data gdx and inc files created when reading the data
+* default assumptions input_dir = ./input,  input_file_gdx = inputData.gdx
 * if %input_dir%/%input_file_gdx% exists
-*        --input_file_gdx=nameOfInputFile.gdx for input_file_gdx in input_dir
-*        default assumptions input_dir = ./input,  input_file_gdx = inputData.gdx
+*        option --input_dir specifies alternative input directory. Can be relative reference. See backbone.gms
+*        option --input_file_gdx specifies alternative input gdx name. See backbone.gms
+*        input data inc files created to same folder
 * else if %input_file_gdx% exists
-*        --input_file_gdx= input_dir/nameOfInputFile.gdx for input_file_gdx in input_dir
+*        --input_file_gdx= nameOfInputFile.gdx for input_file_gdx in ./input
 *        --input_file_gdx=ABSOLUTE/PATH/nameOfInputFile.gdx for input_file_gdx not in input_dir
+*        input data inc files created to ./input folder
 * else go to no_input_gdx label
 
 $ifthen exist '%input_dir%/%input_file_gdx%'
     $$setglobal inputDataGdx '%input_dir%/%input_file_gdx%'
+    $$setglobal inputDataInc '%input_dir%/inputData.inc'
+    $$setglobal inputDataInc_ '%input_dir%/inputData_.inc'
 $elseif exist '%input_file_gdx%'
     $$setglobal inputDataGdx '%input_file_gdx%'
+    $$setglobal inputDataInc 'input/inputData.inc'
+    $$setglobal inputDataInc_ 'input/inputData_.inc'
 $else
     put log '!!! Warning: No input data file found. Skipping reading input data gdx.' /;
     put log '!!! Warning: Will crash the model if alternative data is not given via 1e_scenChanges.gms or changes.inc' /;
     $$goto no_input_gdx
 $endif
 
+* --- importing data from the input data gdx ----------------------------------
 
-* imports the data from the file that exists
+* Importing domains from the input data gdx.
+* These can be empty, but must be given in the input data gdx.
+* Domains can be supplemented in scen changes or in changes.inc.
 $gdxin '%inputDataGdx%'
-
-$loaddc grid
-$loaddc node
-$loaddc flow
-$loaddc unittype
-$loaddc unit
-$loaddc unitUnittype
-$loaddc unit_fail
-$loaddc unitUnitEffLevel
-$loaddc effLevelGroupUnit
-$loaddc group
-$loaddc p_gn
-$loaddc p_gnn
-$loaddc ts_gnn
-$loaddc p_gnu_io
-$loaddc p_gnuBoundaryProperties
-$loaddc p_unit
-$loaddc ts_unit
-$loaddc p_unitConstraint
-$loaddc p_unitConstraintNode
-$loaddc restype
-$loaddc restypeDirection
-$loaddc restypeReleasedForRealization
-$loaddc restype_inertia
-$loaddc p_groupReserves
-$loaddc p_groupReserves3D
-$loaddc p_groupReserves4D
-$loaddc p_gnuReserves
-$loaddc p_gnnReserves
-$loaddc p_gnuRes2Res
-$loaddc ts_reserveDemand
-$loaddc p_gnBoundaryPropertiesForStates
-$loaddc p_uStartupfuel
-$loaddc flowUnit
-$loaddc emission
-$loaddc p_nEmission
-$loaddc p_gnuEmission
-$loaddc ts_cf
-$loaddc ts_influx
-$loaddc ts_node
-$loaddc p_s_discountFactor
-$loaddc t_invest
-$loaddc utAvailabilityLimits
-$loaddc p_storageValue
-$loaddc ts_storageValue
-$loaddc uGroup
-$loaddc gnuGroup
-$loaddc gn2nGroup
-$loaddc gnGroup
-$loaddc sGroup
-$loaddc p_groupPolicy
-$loaddc p_groupPolicyUnit
-$loaddc p_groupPolicyEmission
-$loaddc gnss_bound
-$loaddc uss_bound
-
-$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_price > tmp.inc
-$hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
-$INCLUDE tmp2.inc
-
-$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_priceChange > tmp.inc
-$hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
-$INCLUDE tmp2.inc
-
-$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_emissionPrice > tmp.inc
-$hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
-$INCLUDE tmp2.inc
-
-$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_emissionPriceChange > tmp.inc
-$hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
-$INCLUDE tmp2.inc
-
-$hiddencall gdxdump %inputDataGdx%  NODATA SYMB=ts_unitConstraintNode > tmp.inc
-$hiddencall sed "/^\([^$].*symbol not found *$\)/d; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I" tmp.inc > tmp2.inc
-$INCLUDE tmp2.inc
-
+$loaddcm grid
+$loaddcm node
+$loaddcm emission
+$loaddcm flow
+$loaddcm unit
+$loaddcm unittype
+$loaddcm restype
+$loaddcm group
 $gdxin
+
+* In addition to domains, there is a current minimum dataset for any meaningful model.
+* Following data tables must be included either in input data gdx or in data given
+* in scen changes or changes.inc
+*       unitUnittype
+*       p_unit
+*       p_gn
+*       p_gnu_io
+*       effLevelGroupUnit
+*       ts_influx (or other data table creating the energy demand)
+
+* setting quote mark for unix or windows (MSNT)
+$ SET QTE "'"
+$ IFI %SYSTEM.FILESYS%==MSNT $SET QTE '"'
+
+* query checking which data tables exists and writes the list to inputDataInc
+$hiddencall gdxdump %inputDataGdx%  NODATA > %inputDataInc%
+* converting gdxdump output to a format that can be imported to backbone
+$hiddencall sed %QTE%/^symbol not found:.*$/Id; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I%QTE% %inputDataInc% > %inputDataInc_%
+* importing data
+$INCLUDE %inputDataInc_%
+* closing the input file
+$gdxin
+
+* --- Processing alternative sources of input data ----------------------------
 
 * jumping to here if no input gdx. Reading data from alternative sources (1e_scenchanges.inc and changes.inc)
 * if input data existed, these alternative sources can be used to modify given data, e.g. when using multiple input files

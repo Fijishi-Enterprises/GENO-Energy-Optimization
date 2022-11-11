@@ -15,13 +15,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-
+$onempty
 Sets
 * --- Geography ---------------------------------------------------------------
     grid "Forms of energy endogenously presented in the model"
     node "Nodes maintain the energy balance or track exogenous commodities"
 
-* --- Emissions & resources -------------------------------------------------------
+* --- Emissions & flows -------------------------------------------------------
     emission "Emissions"
     flow "Flow based energy resources (time series)"
 
@@ -31,7 +31,7 @@ Sets
     node_priceChangeData(node) "Nodes that have input data in ts_priceChange table"
     node_superpos(node) "Nodes whose state is monitored in the z dimension using superpositioning of state"
     flowNode(flow, node) "Nodes with flows"
-    node_tmp "temporary set for summing nodes"
+    node_tmp(node) "temporary set for summing nodes"
 
 * --- Emission classifications ------------------------------------------------
     emission_priceData(emission) "Emissions that have input data in ts_emissionPrice table"
@@ -41,7 +41,7 @@ Sets
     unit "Set of generators, storages and loads"
     unittype "Unit technology types"
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
-    unit_fail(unit) "Units that might fail"
+    unit_fail(unit) "Units that might fail" / /
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
     unit_online(unit) "Units that have an online variable in the first active effLevel. Excludes units with investment options."
     unit_online_LP(unit) "Units that have an LP online variable in the first active effLevel"
@@ -52,8 +52,8 @@ Sets
     unit_slope(unit) "Units with piecewise linear efficiency constraints"
     unit_noSlope(unit) "Units without piecewise linear efficiency constraints"
     unitAggregator_unit(unit, unit) "Aggregate unit linked to aggregated units"
-    unitUnitEffLevel(unit, unit, EffLevel) "Aggregator unit linked to aggreted units with a definition when to start the aggregation"
-    flowUnit(flow, unit) "Units linked to a certain energy flow time series"
+    unitUnitEffLevel(unit, unit, EffLevel) "Aggregator unit linked to aggreted units with a definition when to start the aggregation" / /
+    flowUnit(flow, unit) "Units linked to a certain energy flow time series" / /
     unitUnittype(unit, unittype) "Link generation technologies to types"
     unitStarttype(unit, starttype) "Units with special startup properties"
     unit_invest(unit) "Units with investments allowed"
@@ -89,17 +89,17 @@ Sets
 
 * --- Reserve types -----------------------------------------------------------
     restype "Reserve types"
-    restypeDirection(restype, up_down) "Different combinations of reserve types and directions"
+    restypeDirection(restype, up_down) "Different combinations of reserve types and directions" / /
     restypeDirectionGridNode(restype, up_down, grid, node) "Nodes with up/down reserve requirements"
     resTypeDirectionGridNodeNode(restype, up_down, grid, node, node) "Node node connections that can transfer up/down reserves"
     restypeDirectionGroup(restype, up_down, group) "Groups with up/down reserve requirements"
     restypeDirectionGridNodeGroup(restype, up_down, grid, node, group)
     gnuRescapable(restype, up_down, grid, node, unit) "Units capable and available to provide particular up/down reserves"
     gnuOfflineRescapable(restype, grid, node, unit) "Units capable and available to provide offline reserves"
-    restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals"
+    restypeReleasedForRealization(restype) "Reserve types that are released for the realized time intervals" / /
     offlineRes (restype) "Reserve types where offline reserve provision possible"
     offlineResUnit (unit) "Units where offline reserve provision possible"
-    restype_inertia(restype) "Reserve types where the requirement can also be fulfilled with the inertia of synchronous machines"
+    restype_inertia(restype) "Reserve types where the requirement can also be fulfilled with the inertia of synchronous machines" / /
     groupRestype(group, restype) "Groups with reserve requirements"
 
 * --- Sets to define time, forecasts and samples ------------------------------
@@ -109,7 +109,7 @@ Sets
     t_datalength(t) "Full set of time steps withing the datalength"
     t_current(t) "Set of time steps within the current solve horizon"
     t_active(t) "Set of active t:s within the current solve horizon, including necessary history"
-    t_invest(t) "Time steps when investments can be made"
+    t_invest(t) "Time steps when investments can be made" / /
     t_realized(t) "Set of realized time steps in the simulation"
     tt(t) "Temporary subset for time steps used for calculations"
     tt_(t) "Another temporary subset for time steps used for calculations"
@@ -142,8 +142,8 @@ Sets
     modelSolves(mType, t) "when different models are to be solved"
     f_solve(f) "forecasts in the model to be solved next"
     t_latestForecast(t) "t for the latest forecast that is available"
-    gnss_bound(grid, node, s, s) "Bound the samples so that the node state at the last interval of the first sample equals the state at the first interval of the second sample"
-    uss_bound(unit, s, s) "Bound the samples so that the unit online state at the last interval of the first sample equals the state at the first interval of the second sample"
+    gnss_bound(grid, node, s, s) "Bound the samples so that the node state at the last interval of the first sample equals the state at the first interval of the second sample" / /
+    uss_bound(unit, s, s) "Bound the samples so that the unit online state at the last interval of the first sample equals the state at the first interval of the second sample" / /
     s_active(s) "Samples with non-zero probability in the current model solve"
     ss(s, s) "Previous sample of sample"
     s_prev(s) "Temporary set for previous sample"
@@ -175,22 +175,23 @@ Sets
     unitCounter(unit, counter) "Counter used for restricting excessive looping over the counter set when defining unit startup/shutdown/online time restrictions"
     runUpCounter(unit, counter) "Counter used for unit run-up intervals"
     shutdownCounter(unit, counter) "Counter used for unit shutdown intervals"
-    utAvailabilityLimits(unit, t, availabilityLimits) "Time step when the unit becomes available/unavailable, e.g. because of technical lifetime"
+    utAvailabilityLimits(unit, t, availabilityLimits) "Time step when the unit becomes available/unavailable, e.g. because of technical lifetime" / /
 
 * --- Sets used for the changing transfer link aggregation and efficiency approximations as well as lifetimes
     gn2nsft_directional_rampConstrained(grid, node, node, s, f, t) "Transfer links with ramp constraints enabled, aggregating time steps"
 
 * --- Sets used for grouping of units, transfer links, nodes, etc. ------------
-    uGroup(unit, group) "Units in particular groups"
-    gnuGroup(grid, node, unit, group) "Combination of grids, nodes and units in particular groups"
-    gn2nGroup(grid, node, node, group) "Transfer links in particular groups"
-    gnGroup(grid, node, group) "Combination of grids and nodes in particular groups"
-    sGroup(s, group) "Samples in particular groups"
+    uGroup(unit, group) "Units in particular groups" / /
+    gnuGroup(grid, node, unit, group) "Combination of grids, nodes and units in particular groups" / /
+    gn2nGroup(grid, node, node, group) "Transfer links in particular groups" / /
+    gnGroup(grid, node, group) "Combination of grids and nodes in particular groups" / /
+    sGroup(s, group) "Samples in particular groups" / /
     emissionGroup(emission, group) "combinations of emissions and groups"
 
 * --- Set of timeseries that will be read from files between solves -----------
     mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"
 ;
+$offempty
 
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 Option clear = modelSolves;

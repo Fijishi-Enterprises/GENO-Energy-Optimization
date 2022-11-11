@@ -57,11 +57,14 @@ GAMS command line arguments
 
 --input_dir=<path>
     Directory to read input from. Defaults to './input'.
+    Path can be absolute, e.g. 'C:/backbone/myModel'
+    or relative, e.g. ./myModel
 
 --input_file_gdx=<filename.gdx>
     Filename of the GDX input file. Defaults to 'inputData.gdx'.
-    --input_file_gdx=<path> including the filename also works (when used with
-    input_file_excel, the file is always stored in input_dir).
+    --input_file_gdx=myInputData.gdx reads the file from input_dir
+    --input_file_gdx='c:/myModel/myInputData.gdx' read a specific file from a specific folder
+    Note: when used with input_file_excel, the created gdx file is always stored in input_dir
 
 --input_file_excel=<filename>
     Filename of the Excel input file. If this filename is given, the GDX input
