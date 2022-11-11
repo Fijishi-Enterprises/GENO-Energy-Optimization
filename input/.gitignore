@@ -1,2 +1,6 @@
 *
 !.gitignore
+
+# Data files
+inputData.inc
+inputData_.inc
