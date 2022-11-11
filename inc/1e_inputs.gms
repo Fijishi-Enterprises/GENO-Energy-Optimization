@@ -78,7 +78,6 @@ $gdxin
 * In addition to domains, there is a current minimum dataset for any meaningful model.
 * Following data tables must be included either in input data gdx or in data given
 * in scen changes or changes.inc
-*       unitUnittype
 *       p_unit
 *       p_gn
 *       p_gnu_io
