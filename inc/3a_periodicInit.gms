@@ -812,11 +812,13 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
 
 * --- Check that there aren't more effLevels defined than exist in data -------
 
-    if( smax(effLevel, ord(effLevel)${mSettingsEff(m, effLevel)}) > smax(effLevelGroupUnit(effLevel, effSelector, unit), ord(effLevel)),
-        put log '!!! Error occurred on mSettingsEff' /;
-        put log '!!! Abort: There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!' /;
-        abort "There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!";
-    ); // END if(smax)
+    if(card(unit) > card(unit_flow),
+        if( smax(effLevel, ord(effLevel)${mSettingsEff(m, effLevel)}) > smax(effLevelGroupUnit(effLevel, effSelector, unit), ord(effLevel)),
+            put log '!!! Error occurred on mSettingsEff' /;
+            put log '!!! Abort: There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!' /;
+            abort "There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!";
+        ); // END if(smax)
+    ); // END if(other units than flow units defined)
 
 * --- Check if time intervals are aggregated before 't_trajectoryHorizon' -----
 
