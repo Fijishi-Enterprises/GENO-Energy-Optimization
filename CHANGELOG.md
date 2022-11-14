@@ -14,16 +14,17 @@ All notable changes to this project will be documented in this file.
 ### Changed - requiring input data changes - see conversion guide from 2.x to 3.x 
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
 - converting input data emission factor from kg/MWh to t/MWh
-- adding option for gnu specific emission parameters
 - replaced emissionTax parameter with ts_emissionPriceChange 
 - changed parameter name annuity to annuityFactor for clarification
 - Adding transfer rampLimit equations, removing old unfinished ICramp equations
 - Improved if checks when using unit node constraints
 - scenarios removed
+- additional sets and parameters in the input data gdx have to be defined in additionalSetsAndParameters.inc
 
 ### Changed - not requiring input data changes
 - clearing Eps values from result table r_state
 - emissions from outputs are included in equations as negative emissions
+- adding option for gnu specific emission parameters
 - combined result tables for emissions from input and emissions from outputs
 - renamed suft(effSelector, unit, f, t)  to eff_uft to avoid confusions with samples 
 - Automatic formatting and of `tools/bb_data_template.json` data structure.

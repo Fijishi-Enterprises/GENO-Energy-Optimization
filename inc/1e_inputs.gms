@@ -61,6 +61,13 @@ $endif
 
 * --- importing data from the input data gdx ----------------------------------
 
+* the new way to read input data breaks the model if input data gdx contains tables not predefined.
+* Reading definitions for user given additional sets and parameters in the input data gdx.
+$ifthen exist '%input_dir%/additionalSetsAndParameters.inc'
+   $$include '%input_dir%/additionalSetsAndParameters.inc'
+$endif
+
+
 * Importing domains from the input data gdx.
 * These can be empty, but must be given in the input data gdx.
 * Domains can be supplemented in scen changes or in changes.inc.
