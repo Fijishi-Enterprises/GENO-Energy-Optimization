@@ -72,11 +72,13 @@ $endif
 * These can be empty, but must be given in the input data gdx.
 * Domains can be supplemented in scen changes or in changes.inc.
 $gdxin '%inputDataGdx%'
+* Following three must contain values
 $loaddcm grid
 $loaddcm node
+$loaddcm unit
+* The rest must be included, but can be empty
 $loaddcm emission
 $loaddcm flow
-$loaddcm unit
 $loaddcm unittype
 $loaddcm restype
 $loaddcm group

@@ -130,10 +130,16 @@ $endif
 
 * === Definitions, sets, parameters and input data=============================
 $include 'inc/1a_definitions.gms'   // Definitions for possible model settings
+* 1a_definitions reads additional parameter definitions from params.inc if exists
 $include 'inc/1b_sets.gms'          // Set definitions used by the models
+* 1b_sets reads %input_dir%/timeAndSamples.inc and inc/rampSched/sets_rampSched.gms if exists
 $include 'inc/1c_parameters.gms'    // Parameter definitions used by the models
 $include 'inc/1d_results.gms'       // Parameter definitions for model results
 $include 'inc/1e_inputs.gms'        // Load input data
+* 1e_inputs can convert %input_file_excel% to %input_dir%/%input_file_gdx%
+* 1e_input reads %input_file_gdx%
+* 1e_inputs read also following files: %input_dir%/additionalSetsAndParameters.inc,
+* inc/1e_scenChanges.gms, and %input_dir%/changes.inc if those exist.
 
 * === Variables and equations =================================================
 $include 'inc/2a_variables.gms'                         // Define variables for the models
@@ -142,8 +148,10 @@ $ifthen exist '%input_dir%/2c_alternative_objective.gms'      // Objective funct
     $$include '%input_dir%/2c_alternative_objective.gms';
 $else
     $$include 'inc/2c_objective.gms'
+    // can be expanded by %input_dir%/2c_additional_objective_terms.gms
 $endif
 $include 'inc/2d_constraints.gms'                       // Define constraint equations for the models
+* can be expanded by %input_dir%/additional_constraints.inc
 $ifthen exist '%input_dir%/2e_additional_constraints.gms'
    $$include '%input_dir%/2e_additional_constraints.gms'      // Define additional constraints from the input data
 $endif
@@ -156,6 +164,7 @@ $include 'defModels/invest.gms'
 
 // Load model input parameters
 $include '%input_dir%/modelsInit.gms'
+* Normally calls scheduleInit.gms or investInit.gms
 
 
 * === Simulation ==============================================================
