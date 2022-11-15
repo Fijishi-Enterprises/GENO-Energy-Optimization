@@ -35,17 +35,35 @@ q_obj ..
                 // Time step length dependent costs
                 + p_stepLength(m, f, t)
                     * [
-                        // Variable O&M costs for inputs
-                        - sum(gnuft(grid, node, unit, f, t)$gnu_input(grid, node, unit),
+                        // O&M costs (gnu), fuel prices (gn), LCA emission costs (gnuEmission), fuel emission costs (gnEmission)
+                        // see 3c_inputsloop for details
+                        + sum(gnusft(grid, node, unit, s, f, t),
                             + v_gen(grid, node, unit, s, f, t)
-                                * ts_vomCost_(grid, node, unit, t)
-                            ) // END sum(gnuft)
+                                * (+p_vomCost(grid, node, unit, 'price')$p_vomCost(grid, node, unit, 'useConstant')
+                                   +ts_vomCost_(grid, node, unit, t)$p_vomCost(grid, node, unit, 'useTimeSeries')
+                                  )
+                                // negative sign for input, because v_gen is negative for input
+                                * (-1$gnu_input(grid, node, unit)
+                                   +1$gnu_output(grid, node, unit)
+                                  )
+                            ) // END sum(gnusft)
 
-                        // Variable O&M costs
-                        + sum(gnuft(grid, node, unit, f, t)$gnu_output(grid, node, unit),
-                            + v_gen(grid, node, unit, s, f, t)
-                                * ts_vomCost_(grid, node, unit, t)
-                            ) // END sum(gnuft)
+                        // Ramping costs (eur/MW) * ramp (MW/h) * stepLength (h) = ramp cost (eur)
+                        + sum(gnuft_rampCost(grid, node, unit, slack, f, t)$p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost'),
+                            + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
+                                * v_genRampUpDown(grid, node, unit, slack, s, f, t)
+                          ) // END sum(gnuft_rampCost)
+
+                        // Variable Transfer cost
+                        + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node, node_, 'variableTransCost'),
+                              + p_gnn(grid, node, node_, 'variableTransCost')
+                              * v_transferLeftward(grid, node_, node, s, f, t)
+                          ) // END sum(gn2n_directional(grid, node_, node))
+
+                        + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node_, node, 'variableTransCost'),
+                              + p_gnn(grid, node_, node, 'variableTransCost')
+                              * v_transferRightward(grid, node_, node, s, f, t)
+                          ) // END sum(gn2n_directional(grid, node_, node))
 
                         // Node state slack variable costs
                         + sum(gn_stateSlack(grid, node),
@@ -58,7 +76,7 @@ q_obj ..
                         // Dummy variable penalties
                         // Energy balance feasibility dummy varible penalties
                         + sum(inc_dec,
-                            + sum(gn(grid, node),
+                            + sum(gn(grid, node)${p_gn(grid, node, 'nodeBalance')},
                                 + vq_gen(inc_dec, grid, node, s, f, t)
                                     *( PENALTY_BALANCE(grid, node)${not p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
                                     + ts_node_(grid, node, 'balancePenalty', s, f, t)${p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
@@ -83,12 +101,14 @@ q_obj ..
 
                 // Start-up costs, initial startup free as units could have been online before model started
                 + sum(uft_online(unit, f, t),
-                    + sum(unitStarttype(unit, starttype)$ts_startupCost_(unit, starttype, t),
+                    + sum(unitStarttype(unit, starttype)${ts_startupCost_(unit, starttype, t) or p_startupCost(unit, starttype, 'useConstant')},
                         + [ // Unit startup variables
                             + v_startup_LP(unit, starttype, s, f, t)${ uft_onlineLP(unit, f, t) }
                             + v_startup_MIP(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
                           ]
-                          * ts_startupCost_(unit, starttype, t)
+                          * (+p_startupCost(unit, starttype, 'price')$p_startupCost(unit, starttype, 'useConstant')
+                             +ts_startupCost_(unit, starttype, t)$p_startupCost(unit, starttype, 'useTimeSeries')
+                            )
                       ) // END sum(starttype)
                   ) // END sum(uft_online)
 
@@ -103,25 +123,7 @@ q_obj ..
                         ]
                   ) // END sum(uft_online)
 
-                // Ramping costs
-                + sum(gnuft_rampCost(grid, node, unit, slack, f, t)$p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost'),
-                    + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
-                        * v_genRampUpDown(grid, node, unit, slack, s, f, t)
-                  ) // END sum(gnuft_rampCost)
-
-                ]  // END * p_sft_probability(s,f,t)
-
-                // Variable Transfer
-                + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node, node_, 'variableTransCost'),
-                    + p_gnn(grid, node, node_, 'variableTransCost')
-                    * v_transferLeftward(grid, node_, node, s, f, t)
-                  ) // END sum(gn2n_directional(grid, node_, node))
-
-                + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node_, node, 'variableTransCost'),
-                    + p_gnn(grid, node_, node, 'variableTransCost')
-                    * v_transferRightward(grid, node_, node, s, f, t)
-                  ) // END sum(gn2n_directional(grid, node_, node))
-
+              ]  // END * p_msft_probability(m, s, f, t)
         ) // END sum over msft(m, s, f, t)
 
     // Cost of energy storage change (note: not discounted)
@@ -158,13 +160,13 @@ q_obj ..
                     + v_invest_LP(unit)${ unit_investLP(unit) and sum(msft(m, s, f, t_), uft(unit, f, t_))} // consider unit only if it is active in the sample
                         * p_gnu(grid, node, unit, 'unitSize')
                         * [
-                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
+                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuityFactor')
                             + p_gnu(grid, node, unit, 'fomCosts')
                           ]
                     + v_invest_MIP(unit)${ unit_investMIP(unit) and sum(msft(m, s, f, t_), uft(unit, f, t_))} // consider unit only if it is active in the sample
                         * p_gnu(grid, node, unit, 'unitSize')
                         * [
-                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
+                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuityFactor')
                             + p_gnu(grid, node, unit, 'fomCosts')
                           ]
                     ) // END sum(gnu)
@@ -175,18 +177,18 @@ q_obj ..
                         + v_investTransfer_LP(grid, from_node, to_node, t)${ gn2n_directional_investLP(grid, from_node, to_node) }
                             * [
                                 + p_gnn(grid, from_node, to_node, 'invCost')
-                                    * p_gnn(grid, from_node, to_node, 'annuity')
+                                    * p_gnn(grid, from_node, to_node, 'annuityFactor')
                                 + p_gnn(grid, to_node, from_node, 'invCost')
-                                    * p_gnn(grid, to_node, from_node, 'annuity')
+                                    * p_gnn(grid, to_node, from_node, 'annuityFactor')
                                 ] // END * v_investTransfer_LP
                         + v_investTransfer_MIP(grid, from_node, to_node, t)${ gn2n_directional_investMIP(grid, from_node, to_node) }
                             * [
                                 + p_gnn(grid, from_node, to_node, 'unitSize')
                                     * p_gnn(grid, from_node, to_node, 'invCost')
-                                    * p_gnn(grid, from_node, to_node, 'annuity')
+                                    * p_gnn(grid, from_node, to_node, 'annuityFactor')
                                 + p_gnn(grid, to_node, from_node, 'unitSize')
                                     * p_gnn(grid, to_node, from_node, 'invCost')
-                                    * p_gnn(grid, to_node, from_node, 'annuity')
+                                    * p_gnn(grid, to_node, from_node, 'annuityFactor')
                                 ] // END * v_investTransfer_MIP
                         ) // END sum(gn2n_directional)
                     ) // END sum(t_invest)

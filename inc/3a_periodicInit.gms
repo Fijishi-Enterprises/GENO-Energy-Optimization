@@ -49,6 +49,12 @@ loop(m,
         abort "t_end is not divisible by t_jump";
     );
 
+    // Determine the full set of timesteps withing datalength
+    t_datalength(t_full(t))${ ord(t) >= mSettings(m, 't_start')+1
+                and ord(t) <= mSettings(m, 'datalength')+1
+                }
+        = yes;
+
     // Calculate realized timesteps in the simulation
     t_realized(t_full(t))${ ord(t) >= mSettings(m, 't_start') + 1
                             and ord(t) <= mSettings(m, 't_end') + 1
@@ -65,9 +71,6 @@ $offtext
 
     // Set the time for the next available forecast.
     tForecastNext(m) = mSettings(m, 't_forecastStart');
-
-    // Update number of samples
-    if(mSettings(m, 'scenarios') = 1, mSettings(m, 'samples') = 2);
 
     // Select samples for the model
     if (not sum(s, ms(m, s)),  // unless they have been provided as input
@@ -94,9 +97,6 @@ $offtext
 
     // Select combinations of models, samples and forecasts to be solved
     msf(m, s, f_solve(f))$(ms(m, s) and mf(m, f)) = yes;
-    if(mSettings(m, 'scenarios'),
-        msf(ms_central(m, s), f_solve(f))$mf_realization(m, f) = no;
-    );
 
     // Check the modelSolves for preset patterns for model solve timings
     // If not found, then use mSettings to set the model solve timings
@@ -252,9 +252,9 @@ loop(m,
     loop(effLevel$mSettingsEff(m, effLevel),
         continueLoop = continueLoop + 1;
         if (continueLoop = 1,
-            unit_online(unit)${ sum(effSelector$effOnline(effSelector), effLevelGroupUnit(effLevel, effSelector, unit)) }
+            unit_online(unit)${ sum(effSelector$effOnline(effSelector), effLevelGroupUnit(effLevel, effSelector, unit))  and not unit_invest(unit)}
                 = yes;
-            unit_online_LP(unit)${ sum(effSelector, effLevelGroupUnit(effLevel, 'directOnLP', unit)) }
+            unit_online_LP(unit)${ sum(effSelector, effLevelGroupUnit(effLevel, 'directOnLP', unit))  and not unit_invest(unit)}
                 = yes;
             unit_online_MIP(unit) = unit_online(unit) - unit_online_LP(unit);
         );
@@ -628,21 +628,116 @@ loop(m,
 * --- Various Initial Values and Calculations ---------------------------------
 * =============================================================================
 
-* --- Calculating fuel price time series --------------------------------------
+* --- Calculating price time series when using price change data --------------
 
-tmp_ = smin(t_full(t),ord(t));
-loop(node$p_price(node, 'useTimeSeries'),
+// converting price change ts data to price ts data
+// calculated here instead 1e_inputs because t_datalength is initiated in 3a_periodicInit
+
+tmp_ = smin(t_datalength(t),ord(t));
+
+loop(node_priceChangeData(node)$p_price(node, 'useTimeSeries'),
     // Determine the time steps where the prices change
     Option clear = tt;
     tt(t)$ts_priceChange(node,t) = yes;
     tmp = sum(tt(t)$(ord(t) < tmp_),
               ts_priceChange(node, t)
           );
-    loop(t_full(t),
+    loop(t_datalength(t),
         tmp = tmp + ts_priceChange(node, t);
         ts_price(node, t) = tmp;
     );
 ); // END loop(node)
+
+// converting emission price change ts data to emission price ts data
+loop(emissionGroup(emission_priceChangeData(emission), group)$p_emissionPrice(emission, group, 'useTimeSeries'),
+    // Determine the time steps where the prices change
+    Option clear = tt;
+    tt(t)$ts_emissionPriceChange(emission, group,t) = yes;
+    tmp = sum(tt(t)$(ord(t) < tmp_),
+              ts_emissionPriceChange(emission, group, t)
+          );
+    loop(t_datalength(t),
+        tmp = tmp + ts_emissionPriceChange(emission, group, t);
+        ts_emissionPrice(emission, group, t) = tmp;
+    );
+); // END loop(groupEmission)
+
+* --- checking when to use static unit costs and calculating those ------------
+
+// vomCost calculations
+// looping gnu to decide if using static or time series pricing
+loop(gnu(grid, node, unit),
+    p_vomCost(grid, node, unit, 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
+    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+    p_vomCost(grid, node, unit, 'useConstant')${not p_vomCost(grid, node, unit, 'useTimeSeries')} = -1;
+); // end loop(gnu)
+
+// vomcosts when constant prices.
+p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConstant')
+        // gnu specific cost (vomCost). Always a cost (positive) if input or output.
+      = + p_gnu(grid, node, unit, 'vomCosts')
+
+        // gnu specific emission cost (e.g. process related LCA emission). Always a cost if input or output.
+        + sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission),
+             + p_gnuEmission(grid, node, unit, emission) // t/MWh
+             * p_emissionPrice(emission, group, 'price')
+             ) // end sum(emissiongroup)
+
+        // gn specific cost (fuel price). Cost when input but income when output.
+        + (p_price(node, 'price')
+
+            // gn specific emission cost (e.g. CO2 allowance price from fuel emissions). Cost when input but income when output.
+            + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                 + p_nEmission(node, emission)  // t/MWh
+                 * p_emissionPrice(emission, group, 'price')
+                 ) // end sum(emissiongroup)
+        )
+        // converting gn specific costs negative if output
+        * (+1$gnu_input(grid, node, unit)
+           -1$gnu_output(grid, node, unit)
+          )
+;
+
+
+// Startup cost calculations
+// looping gnu to decide if using static or time series pricing
+loop(nu_startup(node, unit),
+    p_startupCost(unit, starttype, 'useTimeSeries')${p_price(node, 'useTimeSeries') and unitStarttype(unit, starttype)} = -1;
+    p_startupCost(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
+    p_startupCost(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$sum(grid,p_gnuEmission(grid, node, unit, emission)), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
+); // end loop(nu_startup)
+
+p_startupCost(unitStarttype(unit, starttype), 'useConstant')${not p_startupCost(unit, starttype, 'useTimeSeries')} = -1;
+
+
+// NOTE: does not include unit specific gnu emissions p_gnuEmission
+p_startupCost(unit, starttype, 'price')$p_startupCost(unit, starttype, 'useConstant')
+    = p_uStartup(unit, starttype, 'cost') // CUR/start-up
+    // Start-up fuel and emission costs
+    + sum(nu_startup(node, unit),
+         + p_unStartup(unit, node, starttype) // MWh/start-up
+         * [
+              // Fuel costs
+              + p_price(node, 'price') // CUR/MWh
+              // Emission costs
+              // node specific emission prices
+              + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                   + p_nEmission(node, emission) // t/MWh
+                   * p_emissionPrice(emission, group, 'price')
+                ) // end sum(emissionGroup)
+
+                // gnu specific emission prices
+                // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
+                + sum(emissionGroup(emission, group)$sum(grid, p_gnuEmission(grid, node, unit, emission)),
+                     + sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
+                     * p_emissionPrice(emission, group, 'price')
+                  ) // end sum(emissionGroup)
+
+           ] // END * p_unStartup
+         ) // END sum(nu_startup)
+;
+
 
 * --- Slack Direction ---------------------------------------------------------
 
@@ -717,11 +812,13 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
 
 * --- Check that there aren't more effLevels defined than exist in data -------
 
-    if( smax(effLevel, ord(effLevel)${mSettingsEff(m, effLevel)}) > smax(effLevelGroupUnit(effLevel, effSelector, unit), ord(effLevel)),
-        put log '!!! Error occurred on mSettingsEff' /;
-        put log '!!! Abort: There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!' /;
-        abort "There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!";
-    ); // END if(smax)
+    if(card(unit) > card(unit_flow),
+        if( smax(effLevel, ord(effLevel)${mSettingsEff(m, effLevel)}) > smax(effLevelGroupUnit(effLevel, effSelector, unit), ord(effLevel)),
+            put log '!!! Error occurred on mSettingsEff' /;
+            put log '!!! Abort: There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!' /;
+            abort "There are insufficient effLevels in the effLevelGroupUnit data for all the defined mSettingsEff!";
+        ); // END if(smax)
+    ); // END if(other units than flow units defined)
 
 * --- Check if time intervals are aggregated before 't_trajectoryHorizon' -----
 

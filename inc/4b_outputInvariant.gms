@@ -16,8 +16,9 @@ along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
 
-// for performance, get rid of any zeros in r_gen and r_reserve. Many zero values missing anyway.
+// for performance, get rid of any zeros in selected tables. Many zero values missing anyway.
 r_gen(gnu, f, t)$((r_gen(gnu, f, t)=0)$r_gen(gnu, f, t))=0;
+r_state(grid, node, f, t)$((r_state(grid, node, f, t)=0)$r_state(grid, node, f, t))=0;
 r_reserve(restype, up_down, gnu, f, t)$((r_reserve(restype, up_down, gnu, f, t)=0)$r_reserve(restype, up_down, gnu, f, t))=0;
 
 * =============================================================================
@@ -44,16 +45,33 @@ loop(m,
     r_uFuelEmissionCost(gnu(grid, node, unit), ft_realizedNoReset(f,startp(t)))
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
+            * r_gen(grid, node, unit, f, t)
+            * [ // gn specific costs are positive for input (cost) and negative for output (income).
+                // negative sign in equations as r_gen is negative for input, positive for output
+                // gn specific costs from node
+                - p_price(node, 'price')$p_price(node, 'useConstant')
+                - ts_price(node, t)$p_price(node, 'useTimeSeries')
+                // gn specific costs from node emissions
+                - sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                   + p_nEmission(node, emission)  // t/MWh
+                   * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                       + ts_emissionPrice(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+                     )
+                  ) // end sum(emissiongroup)
+              ]
+             // gnu specific costs from node emissions are positive (cost) for both input and output
+            + p_stepLengthNoReset(m, f, t)
             * abs(r_gen(grid, node, unit, f, t))
-            * [ + p_price(node, 'price')${p_price(node, 'useConstant') and gnu_input(grid, node, unit)}
-                + ts_price(node, t)${p_price(node, 'useTimeSeries') and gnu_input(grid, node, unit)}
-                - p_price(node, 'price')${p_price(node, 'useConstant') and gnu_output(grid, node, unit)}
-                - ts_price(node, t)${p_price(node, 'useTimeSeries') and gnu_output(grid, node, unit)}
-                // Emission costs
-                + sum(emission, p_unitEmissionCost(unit, node, emission))
-              ];
+            * sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission),
+                   + p_gnuEmission(grid, node, unit, emission) // t/MWh
+                   * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                       + ts_emissionPrice(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+                     )
+              ) // end sum(emissiongroup)
+    ;
 
     // Unit startup costs
+    // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
     r_uStartupCost(unit, ft_realizedNoReset(f,startp(t)))$sum(starttype, unitStarttype(unit, starttype))
         = 1e-6 // Scaling to MEUR
             * sum(unitStarttype(unit, starttype),
@@ -68,13 +86,23 @@ loop(m,
                                   + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
                                   + ts_price(node, t)$p_price(node, 'useTimeseries') // CUR/MWh
                                   // Emission costs
-                                  + sum(emission$p_nEmission(node, emission),
-                                       + p_nEmission(node, emission) // kg/MWh
-                                          / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
-                                          * sum(gnGroup(grid, node, group),
-                                              + p_groupPolicyEmission(group, 'emissionTax', emission) // CUR/t
-                                              ) // END sum(gnGroup)
-                                      ) // END sum(emission)
+                                  // node specific emission prices
+                                  + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                                     + p_nEmission(node, emission) // t/MWh
+                                     * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                                         + ts_emissionPrice(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+                                       )
+                                    ) // end sum(emissionGroup)
+
+                                   // gnu specific emission prices
+                                   // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
+                                  + sum(emissionGroup(emission, group)$sum(grid, p_gnuEmission(grid, node, unit, emission)),
+                                     + sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
+                                     * (
+                                         + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                                         + ts_emissionPrice(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+                                       )
+                                    ) // end sum(emissionGroup)
                                 ] // END * p_unStartup
                             ) // END sum(nu_startup)
                       ] // END * r_startup
@@ -210,7 +238,7 @@ loop(m,
                 ) // END * sum(ms)
             * p_gnu(grid, node, unit, 'unitSize')
             * p_gnu(grid, node, unit, 'invCosts')
-            * p_gnu(grid, node, unit, 'annuity');
+            * p_gnu(grid, node, unit, 'annuityFactor');
 
     // Transfer link investment costs
     r_gnnLinkInvestmentCost(gn2n_directional(grid, from_node, to_node)) // gn2n_directional only, as in q_obj
@@ -224,9 +252,9 @@ loop(m,
                 ) // END * sum(ms)
             * [
                 + p_gnn(grid, from_node, to_node, 'invCost')
-                    * p_gnn(grid, from_node, to_node, 'annuity')
+                    * p_gnn(grid, from_node, to_node, 'annuityFactor')
                 + p_gnn(grid, to_node, from_node, 'invCost')
-                    * p_gnn(grid, to_node, from_node, 'annuity')
+                    * p_gnn(grid, to_node, from_node, 'annuityFactor')
                 ]; // END * r_investTransfer;
 
 * --- Realized Nodal System Costs ---------------------------------------------
@@ -257,7 +285,7 @@ loop(m,
 * --- Realized Nodal Energy Consumption ---------------------------------------
 // !!! NOTE !!! This is a bit of an approximation at the moment !!!!!!!!!!!!!!!
 
-    r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, startp(t)))
+    r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, startp(t)))$sum(s, sft_realizedNoReset(s,f,t))
         = p_stepLengthNoReset(m, f, t)
             * [
                 + min(ts_influx(grid, node, f, t), 0) // Not necessarily a good idea, as ts_influx contains energy gains as well...
@@ -352,49 +380,42 @@ loop(m,
 
 * --- Emission Results --------------------------------------------------------
 
-    // Emissions of unit inputs (not including start-up fuels).
-    // Only taking into account emissions from input because emissions from output
-    // do not cause costs and are not considered in emission cap
+    // Emissions from nodes specific and unit specific
+    // inputs (not including start-up fuels) and outputs
     r_emissions(grid, node, emission, unit, ft_realizedNoReset(f,startp(t)))
-       $gnu_input(grid, node, unit)
+        $ {p_nEmission(node, emission) or p_gnuEmission(grid, node, unit, emission)}
         =   + p_stepLengthNoReset(m, f, t)
-            * abs(r_gen(grid, node, unit, f, t))
-            * p_nEmission(node, emission)
-            / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
-    ;
-
-    // Emissions from unit outputs. Negative value signifying emissions bound to product
-    r_emissionsFromOutput(grid, node, emission, unit, ft_realizedNoReset(f,startp(t)))
-        $gnu_output(grid, node, unit)
-        =   - p_stepLengthNoReset(m, f, t)
-            * r_gen(grid, node, unit, f, t)
-            * p_nEmission(node, emission)
-            / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+            * (
+               // multiply by -1 because consumption is negative and production positive
+               -r_gen(grid, node, unit, f, t) * p_nEmission(node, emission)
+               // absolute values as all unit specific emission factors are considered as emissions by default
+               + abs(r_gen(grid, node, unit, f, t) * p_gnuEmission(grid, node, unit, emission))
+              )
     ;
 
     // Emissions from unit start-ups
     r_emissionsStartup(node, emission, unit, ft_realizedNoReset(f,startp(t)))
         ${sum(starttype, p_unStartup(unit, node, starttype))
-          and p_nEmission(node, emission)}
+          and [p_nEmission(node, emission)
+               or sum(grid, p_gnuEmission(grid, node, unit, emission))
+              ]
+         }
         = sum(unitStarttype(unit, starttype),
+            // node specific emissions
             + r_startup(unit, starttype, f, t)
                 * p_unStartup(unit, node, starttype) // MWh/start-up
-                * p_nEmission(node, emission) // kg/MWh
-                / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
+                * p_nEmission(node, emission) // t/MWh
+            // gnu specific emissions
+            // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
+            + r_startup(unit, starttype, f, t)
+                * p_unStartup(unit, node, starttype) // MWh/start-up
+                * sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
             ); // END sum(starttype)
 
     // Emission sums from normal operation input
     r_nuTotalEmissionsOperation(nu(node, unit), emission)
         = sum(ft_realizedNoReset(f, startp(t)),
             + sum(gn(grid, node), r_emissions(grid, node, emission, unit, f, t))
-                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
-            )
-    ;
-
-    // Emission sums from unit outputs
-    r_nuTotalEmissionsFromOutput(nu(node, unit), emission)
-        = sum(ft_realizedNoReset(f, startp(t)),
-            + sum(gn(grid, node), r_emissionsFromOutput(grid, node, emission, unit, f, t))
                  * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             )
     ;
@@ -407,7 +428,7 @@ loop(m,
             )
     ;
 
-    // Emission sums (normal operation input and start-ups)
+    // Emission sums (including normal operation and start-ups)
     r_nuTotalEmissions(node, unit, emission)
         = r_nuTotalEmissionsOperation(node, unit, emission)
             + r_nuTotalEmissionsStartup(node, unit, emission)
@@ -425,6 +446,36 @@ loop(m,
         = sum(node, r_nTotalEmissions(node, emission))
     ;
 
+    // Emission sums for emission groups. Writting in a way that t index can be easily added.
+    r_groupTotalEmissions(group, emission)
+        = sum(ft_realizedNoReset(f, startp(t)),
+            // Time step length dependent emissions - calculated from node specific emissions
+            + sum(gnu(grid, node, unit)${gnGroup(grid, node, group) and p_nEmission(node, emission)},
+                   r_emissions(grid, node, emission, unit, f, t)
+                   * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+              ) // END sum(gnu)
+            // Time step length dependent emissions - calculated from gnu specific emissions
+            + sum(gnu(grid, node, unit)${gnuGroup(grid, node, unit, group) and p_gnuEmission(grid, node, unit, emission)},
+                   r_emissions(grid, node, emission, unit, f, t)
+                   * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+              ) // END sum(gnu)
+            // Start-up emissions, node specific
+            + sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
+                   r_emissionsStartup(node, emission, unit, f, t)
+                   * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+              ) // END sum(nu_startup)
+            // Start-up emissions, gnu specific
+            // NOTE: does not include unit specific startup emissions if node not included in p_gnu_io for unit
+            + sum(nu_startup(node, unit)${sum(grid, gnuGroup(grid, node, unit, group)) and sum(grid, p_gnuEmission(grid, node, unit, emission))},
+                   r_emissionsStartup(node, emission, unit, f, t)
+                   * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+              ) // END sum(nu_startup)
+          )
+    ;
+
+
+
+
 * --- Total Unit Online Results -----------------------------------------------
 
     // Total sub-unit-hours for units over the simulation
@@ -438,7 +489,7 @@ loop(m,
     // Approximate utilization rates for gnus over the simulation
     r_gnuUtilizationRate(gnu(grid, node, unit))${ r_gnuTotalGen(grid, node, unit)
                                                          and ( p_gnu(grid, node, unit, 'capacity')
-                                                               or r_invest(unit)
+                                                               or (r_invest(unit) and p_gnu(grid, node, unit, 'unitSize'))
                                                                )
                                                          }
         = r_gnuTotalGen(grid, node, unit)
@@ -712,7 +763,7 @@ r_groupReserve(restypeDirectionGroup(restype, up_down, group), f, t)
                                           and groupRestype(group, restype)
                                           },
         + r_reserve(restype, up_down, grid, node, unit, f, t)
-      ); // END sum(gnuft)
+      ); // END sum(gnu)
 
 // Total reserve provision in groups over the simulation
 r_groupTotalReserve(restypeDirectionGroup(restype, up_down, group))
@@ -778,7 +829,7 @@ d_eff(unit(unit), ft_realizedNoReset(f, t))$[ord(t) > mSettings(m, 't_start') + 
         / [ sum(gnu_input(grid, node, unit),
                 + abs(r_gen(grid, node, unit, f, t))
                 ) // END sum(gnu_input)
-            + 1${not sum(gnu_input(grid, node, unit), abs(r_gen(node, unit, f, t)))}
+            + 1${not sum(gnu_input(grid, node, unit), abs(r_gen(grid, node, unit, f, t)))}
             ]
         + Eps; // Eps to correct GAMS plotting (zeroes are not skipped)
 $endif.diag

@@ -1,7 +1,7 @@
 $title Backbone
 $ontext
 Backbone - chronological energy systems model
-Copyright (C) 2016 - 2019  VTT Technical Research Centre of Finland
+Copyright (C) 2016 - 2022  VTT Technical Research Centre of Finland
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -21,10 +21,12 @@ Created by:
     Juha Kiviluoma
     Erkka Rinne
     Topi Rasku
-    Niina Helistö
+    Niina Helisto
     Dana Kirchem
     Ran Li
     Ciara O'Dwyer
+    Jussi Ikaheimo
+    Tomi J. Lindroos
 
 This is a GAMS implementation of the Backbone energy system modelling framework
 [1]. Features include:
@@ -34,7 +36,7 @@ This is a GAMS implementation of the Backbone energy system modelling framework
 
 
 GAMS command line arguments
-¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
+
 --debug=[0|1|2]
     Set level of debugging information. Default is 0 when no extra information is
     saved or displayded. At level 1, file 'debug.gdx' containing all GAMS symbols
@@ -55,11 +57,14 @@ GAMS command line arguments
 
 --input_dir=<path>
     Directory to read input from. Defaults to './input'.
+    Path can be absolute, e.g. 'C:/backbone/myModel'
+    or relative, e.g. ./myModel
 
 --input_file_gdx=<filename.gdx>
     Filename of the GDX input file. Defaults to 'inputData.gdx'.
-    --input_file_gdx=<path> including the filename also works (when used with
-    input_file_excel, the file is always stored in input_dir).
+    --input_file_gdx=myInputData.gdx reads the file from input_dir
+    --input_file_gdx='c:/myModel/myInputData.gdx' read a specific file from a specific folder
+    Note: when used with input_file_excel, the created gdx file is always stored in input_dir
 
 --input_file_excel=<filename>
     Filename of the Excel input file. If this filename is given, the GDX input
@@ -71,7 +76,7 @@ GAMS command line arguments
 
 --input_excel_checkdate=checkDate
     Used with input_file_excel: write GDX file only if the input file is more
-    recent than the GDX file. Disabled by default.
+    recent than the GDX file (value = checkDate). Disabled by default (value = '').
 
 --output_dir=<path>
     Directory to write output to. Defaults to './output'.
@@ -82,12 +87,12 @@ GAMS command line arguments
 
 References
 ----------
-[1] N. Helistö et al., ‘Backbone---An Adaptable Energy Systems Modelling Framework’,
+[1] N. Helist et al., Backbone---An Adaptable Energy Systems Modelling Framework,
     Energies, vol. 12, no. 17, p. 3388, Sep. 2019. Available at:
     https://dx.doi.org/10.3390/en12173388.
-[2] K. Nolde, M. Uhr, and M. Morari, ‘Medium term scheduling of a hydro-thermal
-    system using stochastic model predictive control, ’ Automatica, vol. 44,
-    no. 6, pp. 1585–1594, Jun. 2008.
+[2] K. Nolde, M. Uhr, and M. Morari, Medium term scheduling of a hydro-thermal
+    system using stochastic model predictive control,  Automatica, vol. 44,
+    no. 6, pp. 15851594, Jun. 2008.
 
 ==========================================================================
 $offtext
@@ -123,15 +128,18 @@ $ifthen exist '%input_dir%/1_options.gms'
     $$include '%input_dir%/1_options.gms';
 $endif
 
-* === Libraries ===============================================================
-$libinclude scenred2
-
 * === Definitions, sets, parameters and input data=============================
 $include 'inc/1a_definitions.gms'   // Definitions for possible model settings
+* 1a_definitions reads additional parameter definitions from params.inc if exists
 $include 'inc/1b_sets.gms'          // Set definitions used by the models
+* 1b_sets reads %input_dir%/timeAndSamples.inc and inc/rampSched/sets_rampSched.gms if exists
 $include 'inc/1c_parameters.gms'    // Parameter definitions used by the models
 $include 'inc/1d_results.gms'       // Parameter definitions for model results
 $include 'inc/1e_inputs.gms'        // Load input data
+* 1e_inputs can convert %input_file_excel% to %input_dir%/%input_file_gdx%
+* 1e_input reads %input_file_gdx%
+* 1e_inputs read also following files: %input_dir%/additionalSetsAndParameters.inc,
+* inc/1e_scenChanges.gms, and %input_dir%/changes.inc if those exist.
 
 * === Variables and equations =================================================
 $include 'inc/2a_variables.gms'                         // Define variables for the models
@@ -140,8 +148,10 @@ $ifthen exist '%input_dir%/2c_alternative_objective.gms'      // Objective funct
     $$include '%input_dir%/2c_alternative_objective.gms';
 $else
     $$include 'inc/2c_objective.gms'
+    // can be expanded by %input_dir%/2c_additional_objective_terms.gms
 $endif
 $include 'inc/2d_constraints.gms'                       // Define constraint equations for the models
+* can be expanded by %input_dir%/additional_constraints.inc
 $ifthen exist '%input_dir%/2e_additional_constraints.gms'
    $$include '%input_dir%/2e_additional_constraints.gms'      // Define additional constraints from the input data
 $endif
@@ -154,6 +164,7 @@ $include 'defModels/invest.gms'
 
 // Load model input parameters
 $include '%input_dir%/modelsInit.gms'
+* Normally calls scheduleInit.gms or investInit.gms
 
 
 * === Simulation ==============================================================

@@ -3,11 +3,62 @@ All notable changes to this project will be documented in this file.
 
 ## unversioned
 ### Added
+- option to use availabilityCapacityMargin for input units
+- Adding possibility for gnu specific emission factors.
+- time series for emission costs
+- option to bound storage states at the beginning or end of samples
+- results table invested capacity
+- result table for total emissions of emission groups
+- template to activate barrier algorithm in cplex.opt
 
-### Changed
+### Changed - requiring input data changes - see conversion guide from 2.x to 3.x 
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
+- converting input data emission factor from kg/MWh to t/MWh
+- replaced emissionTax parameter with ts_emissionPriceChange 
+- changed parameter name annuity to annuityFactor for clarification
+- Adding transfer rampLimit equations, removing old unfinished ICramp equations
+- Improved if checks when using unit node constraints
+- scenarios removed
+- additional sets and parameters in the input data gdx have to be defined in additionalSetsAndParameters.inc
+
+### Changed - not requiring input data changes
+- clearing Eps values from result table r_state
+- emissions from outputs are included in equations as negative emissions
+- adding option for gnu specific emission parameters
+- combined result tables for emissions from input and emissions from outputs
+- renamed suft(effSelector, unit, f, t)  to eff_uft to avoid confusions with samples 
+- Automatic formatting and of `tools/bb_data_template.json` data structure.
+- added a warning that directOff deactivates startCosts
+- added option to use ts_price and/or ts_priceChange
+- added option to use ts_emissionPrice and/or ts_emissionPriceChange
+- added option to use timeseries based unit node constraints
+- making most of the input data tables optional. Listing mandatory ones in 1e_inputs
+
+### Changed - efficiency improvements
+- improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
+- improved memory size and speed of timeseries looping (ts_vomCost_, ts_startupCost_)
+- improved the speed of ts_price calculation
+- separated units with constant and variable startupCost to improve efficiency
+- improved efficiency of ts_node looping
+- deactivating minimum online and offline equations when timestep is longer than required minimum time 
+- not applying unit ramp rates if allowed ramp up/down is more than 1 in time step.
+- not applying transfer ramp rates if allowed ramp is more than 2 in time step.
+- separated gnu with constant and variable vomCost to improve efficiency
+- replacing gnuft with gnusft to reduce model size
+- not applying energy balance dummy if node does not have energy balance
+- excluding directOff units from a set of units with minimum load
 
 ### Fixed
+- fixing div by zero in twoWayTransfer limits with 0 availability
+- `scheduleInit.gms` is no longer required by `spineToolbox.json`.
+- `tools/bb_data_template.json` and `tools/exporttobb.json` updated to match new input data requirements.
+- correcting sample weights in objective function for transfer vomCosts
+- fixing crash with diag option
+- investments to existing storage units is now possible
+- adding if checks and absolute path option for input data excel
+- fixing div by 0 error in r_gnuUtilizationRate if unit has no unit size
+- fixed shutdown variable at the beginning of solve for MIP units
+- fixed multiplying unit ramping costs and transfer variable cost by stepLength in objective function
 
 
 ## 2.2 - 2022-03-24
@@ -29,6 +80,7 @@ All notable changes to this project will be documented in this file.
 ## 2.1 - 2022-01-24
 ### Added
 - two new result tables (gnGen, groupReserves) for easier graph drawing and debugging
+- fixed flow units to model must-run production or consumption units
 
 ### Changed
 - result table r_gen_gnUnittype renamed to r_gnuTotalGen_unittype. Original was not actively used in master branch.

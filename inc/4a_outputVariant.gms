@@ -114,7 +114,7 @@ loop(s_realized(s),
 loop(s_realized(s),
 
     // Unit generation and consumption
-    r_gen(gnuft(grid, node, unit, f, startp(t)))$sft_realized(s, f, t)
+    r_gen(gnu(grid, node, unit), f, startp(t))$sft_realized(s, f, t)
         = v_gen.l(grid, node, unit, s, f, t)
     ;
     // Transfer of energy between nodes
@@ -160,6 +160,14 @@ r_invest(unit)${ (unit_investLP(unit) or unit_investMIP(unit))
                   }
     = v_invest_LP.l(unit) + v_invest_MIP.l(unit)
 ;
+
+// Capacity of unit investments
+r_investCapacity(grid, node, unit)${ (unit_investLP(unit) or unit_investMIP(unit))
+                  and p_unit(unit, 'becomeAvailable') <= tSolveFirst + mSettings(mSolve, 't_jump')
+                  }
+    = (v_invest_LP.l(unit) + v_invest_MIP.l(unit))*p_gnu(grid, node, unit, 'unitSize')
+;
+
 // Link investments
 r_investTransfer(grid, node, node_, t_invest(t))${ p_gnn(grid, node, node_, 'transferCapInvLimit')
 *                                                   and t_current(t)
@@ -194,10 +202,10 @@ d_capacityFactor(flowNode(flow, node), sft(s, f_solve(f), t_current(t)))
         and sum(flowUnit(flow, unit), nu(node, unit))
         }
     = ts_cf_(flow, node, s, f, t)
-        + ts_cf(flow, node, f, t + dt_scenarioOffset(flow, node, 'ts_cf', s))${ not ts_cf_(flow, node, s, f, t) }
+        + ts_cf(flow, node, f, t)${ not ts_cf_(flow, node, s, f, t) }
         + Eps
 ;
-// Temperature forecast for examining the error
+// Node state forecast for examining the error
 d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f_solve(f), t_current(t)))
     ${  p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
         and t_active(t)
@@ -216,16 +224,6 @@ d_influx(gn(grid, node), sft(s, f_solve(f), t_current(t)))
         + ts_influx(grid, node, f, t)${ not ts_influx_(grid, node, s, f, t)}
         + Eps
 ;
-// Scenario values for time series
-Options clear = d_state, clear = d_ts_scenarios; // Only keep latest results
-loop(s_scenario(s, scenario),
-    loop(mft_start(mSolve, f, t)$ms_initial(mSolve, s),
-        d_state(gn_state(grid, node), scenario, f, t) = v_state.l(grid, node, s, f, t);
-    );
-    d_state(gn_state, scenario, ft)$sft(s, ft) = v_state.l(gn_state, s, ft) + eps;
-    d_ts_scenarios('ts_influx', gn, scenario, ft)$sft(s, ft) = ts_influx_(gn, s, ft) + eps;
-    d_ts_scenarios('ts_cf', flowNode, scenario, ft)$sft(s, ft) = ts_cf_(flowNode, s, ft) + eps;
-);
 $endif.diag
 
 * --- Model Solve & Status ----------------------------------------------------

@@ -26,7 +26,7 @@ Option clear = v_gen;
 Option clear = v_state;
 Option clear = v_genRamp;
 Option clear = v_transfer;
-Option clear = v_ICramp;
+Option clear = v_transferRamp;
 // Integer Variables
 Option clear = v_online_MIP;
 Option clear = v_invest_MIP;
@@ -107,6 +107,9 @@ Option clear = q_transferRightwardLimit;
 Option clear = q_transferLeftwardLimit;
 Option clear = q_resTransferLimitRightward;
 Option clear = q_resTransferLimitLeftward;
+Option clear = q_transferRamp;
+Option clear = q_transferRampLimit1;
+Option clear = q_transferRampLimit2;
 Option clear = q_reserveProvisionRightward;
 Option clear = q_reserveProvisionLeftward;
 Option clear = q_transferTwoWayLimit1;
@@ -139,6 +142,7 @@ Option clear = ts_unit_;
 Option clear = ts_influx_;
 Option clear = ts_cf_;
 Option clear = ts_unit_;
+Option clear = ts_unitConstraintNode_;
 Option clear = ts_reserveDemand_;
 Option clear = ts_node_;
 Option clear = ts_vomCost_;
@@ -163,19 +167,11 @@ tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 u
 // Initializing forecast-time structure sets
 Option clear = p_stepLength;
 Option clear = msft;
-Option clear = msft_wPrevS;
 Option clear = mft;
 Option clear = ft;
 Option clear = sft;
 Option clear = mst;
 Option clear = mst_start, clear = mst_end;
-$ifthen declared scenario
-if(mSettings(mSolve, 'scenarios'),  // Only clear these if using long-term scenarios
-    Options clear = s_active, clear = s_scenario, clear = ss,
-            clear = p_msProbability, clear = ms_central;
-);
-$endif
-
 
 // Initialize the set of active t:s, counters and interval time steps
 Option clear = t_active;
@@ -291,99 +287,17 @@ loop(cc(counter),
 
 ); // END loop(counter)
 
-// Reset initial sample start and end times if using scenarios
-if(mSettings(mSolve, 'scenarios'),
-    Option clear = msStart, clear = msEnd;
-    msStart(ms_initial) = 1;
-    msEnd(ms_initial) = currentForecastLength + 1;
-);
-
-$ifthen defined scenario
-// Create stochastic programming scenarios
-// Select root sample and central forecast
-loop((ms_initial(mSolve, s_), mf_central(mSolve, f)),
-    s_active(s_) = yes;
-    p_msProbability(mSolve, s_)$mSettings(mSolve, 'scenarios') = 1;
-    loop(scenario $p_scenProbability(scenario),
-        s_scenario(s_, scenario) = yes;
-        if(mSettings(mSolve, 'scenarios') > 1,
-            loop(ft(f, t)$(ord(t) >= msEnd(mSolve, s_) + tSolveFirst),
-                loop(s$(ord(s) = mSettings(mSolve, 'samples') + count_sample),
-                    s_active(s) = yes;
-                    ms_central(mSolve, s) = yes;
-                    s_scenario(s, scenario) = yes;
-                    p_msProbability(mSolve, s) = p_scenProbability(scenario);
-                    msStart(mSolve, s) = ord(t) - tSolveFirst;
-                    msEnd(mSolve, s) = ord(t) - tSolveFirst
-                                              + p_stepLength(mSolve, f, t);
-                );
-                count_sample = count_sample + 1;
-            );
-        elseif mSettings(mSolve, 'scenarios') = 1,
-            loop(ms(mSolve, s)$(not sameas(s, s_)),
-                s_active(s) = yes;
-                ms_central(mSolve, s) = yes;
-                p_msProbability(mSolve, s) = 1;
-                s_scenario(s, scenario) = yes;
-                msStart(mSolve, s) = msEnd(mSolve, s_);
-                msEnd(mSolve, s) = msStart(mSolve, s_)
-                                   + mSettings(mSolve, 't_horizon');
-            );
-        );
-    );
-    ms(ms_central(mSolve, s)) = yes;
-    msf(ms_central(mSolve, s), f) = yes;
-);
-$endif
 
 // Loop over defined samples
 loop(msf(mSolve, s, f)$msStart(mSolve, s),
-                      // Move the samples along with the dispatch if scenarios are used
-    sft(s, ft(f, t))${ord(t) > msStart(mSolve, s) + tSolveFirst - 1
-                      and ord(t) < msEnd(mSolve, s) + tSolveFirst
-                      and mSettings(mSolve, 'scenarios')
-                     } = yes;
-                      // Otherwise do not move the samples along with the rolling horizon
     sft(s, ft(f, t))${ord(t) > msStart(mSolve, s)
                       and ord(t) <= msEnd(mSolve, s)
-                      and not mSettings(mSolve, 'scenarios')
                      } = yes;
 );
 
 // Update the model specific sets and the reversed dimension set
 msft(mSolve, sft(s, f, t)) = yes;
 Options mft < msft, ms < msft, msf < msft, mst < msft;  // Projection
-
-* Build stochastic tree by definfing previous samples
-$ifthen defined scenario
-Option clear = s_prev;
-loop(scenario $p_scenProbability(scenario),
-    loop(s_scenario(s, scenario),
-        if(not ms_initial(mSolve, s), ss(s, s_prev) = yes);
-        Option clear = s_prev; s_prev(s) = yes;
-    );
-);
-msft_wPrevS(msft(mSolve, s, f, t), s_)$ss(s, s_) = yes;
-$endif
-
-
-* --- Define sample offsets for creating stochastic scenarios -----------------
-
-Option clear = dt_scenarioOffset;
-
-$ifthen defined scenario
-loop(s_scenario(s, scenario)$(ord(s) > 1 and ord(scenario) > 1),
-    loop(gn_scenarios(grid, node, timeseries),
-         dt_scenarioOffset(grid, node, timeseries, s)
-             = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
-    );
-
-    loop(gn_scenarios(flow, node, timeseries),
-        dt_scenarioOffset(flow, node, timeseries, s)
-            = (ord(scenario) - 1) * mSettings(mSolve, 'scenarioLength');
-    );
-);
-$endif
 
 
 * --- Determine various other forecast-time sets required for the model -------
@@ -465,21 +379,7 @@ loop(mf_realization(mSolve, f_),
     df_realization(ft(f, t))$[ord(t) <= tSolveFirst + currentForecastLength]
       = ord(f_) - ord(f);
 );
-// Central forecast for the long-term scenarios comes from a special forecast label
-Option clear = df_scenario;
-if(mSettings(mSolve, 'scenarios') >= 1,
-    loop((msft(ms_central(mSolve, s), f, t), mf_scenario(mSolve, f_)),
-        df_scenario(ft(f, t)) = ord(f_) - ord(f);
-    );
-);
-// Check that df_forecast and df_scenario do not overlap
-loop(ft(f, t),
-  if(df_realization(f, t) <> 0 and df_scenario(f, t) <> 0,
-      put log "!!! Overlapping period of using realization and scenarios"/;
-      put log "!!! Check forecast lengths, `gn_scenarios` and `gn_forecasts`"/;
-      execError = execError + 1;
-  );
-);
+
 
 // Forecast displacement between central and forecasted intervals at the end of forecast horizon
 Option clear = df_central; // This can be reset.
@@ -557,7 +457,7 @@ $macro tt_aggcircular(t, t_)  tt_agg_circular(t, t_, t__)
 
 // Units with capacities or investment option active on each ft
 Option clear = uft;
-uft(unit, ft(f, t))${  not sameas(unit, 'empty')  }
+uft(unit, ft(f, t))
     = yes;
 
 // Units are not active before or after their lifetime
@@ -605,43 +505,61 @@ loop(unit${unit_aggregator(unit)},
     uft_aggregator_first(uft(unit, f, t))${ord(t) = tmp} = yes;
 );
 
-// Active (grid, node, unit) on each ft
-Option clear = gnuft;
-gnuft(gn(grid, node), uft(unit, f, t))${    gnu(grid, node, unit)  }
-    = yes
-;
+// Active units on each sft
+Option clear = usft;
+usft(unit, sft(s, f, t))${ uft(unit, f ,t)} = yes;
+
+// Active (grid, node, unit) on each sft
+Option clear = gnusft;
+gnusft(gnu(grid, node, unit), sft(s, f, t))${ uft(unit, f ,t)} = yes;
+
 // Active (grid, node, unit, slack, up_down) on each ft step with ramp restrictions
 Option clear = gnuft_rampCost;
-gnuft_rampCost(gnu(grid, node, unit), slack, ft(f, t))${ gnuft(grid, node, unit, f, t)
+gnuft_rampCost(gnu(grid, node, unit), slack, ft(f, t))${ uft(unit, f, t)
                                                          and p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
                                                          }
     = yes;
 // Active (grid, node, unit) on each ft step with ramp restrictions
 Option clear = gnuft_ramp;
-gnuft_ramp(gnuft(grid, node, unit, f, t))${ p_gnu(grid, node, unit, 'maxRampUp')
-                                            OR p_gnu(grid, node, unit, 'maxRampDown')
-                                            OR sum(slack, gnuft_rampCost(grid, node, unit, slack, f, t))
+gnuft_ramp(gnu(grid, node, unit), ft(f, t))${ [p_gnu(grid, node, unit, 'maxRampUp') and
+                                               // deactivating ramp constraints if ramp speed in hour * stepLength allows ramping from 0% to 100%
+                                               p_gnu(grid, node, unit, 'maxRampUp') * 60 * sum(m, p_stepLength(m, f, t)) < 1]
+                                               OR [p_gnu(grid, node, unit, 'maxRampDown') and
+                                               // deactivating ramp constraints if ramp speed in hour * stepLength allows ramping from 100% to 0%
+                                                   p_gnu(grid, node, unit, 'maxRampDown') * 60 * sum(m, p_stepLength(m, f, t)) < 1]
+                                               OR sum(slack, gnuft_rampCost(grid, node, unit, slack, f, t))
                                             }
+    = yes;
+
+
+* --- Defining transfer link aggregations and ramps ---------------------------
+
+// set for ramp constrained transfer links
+Option clear = gn2nsft_directional_rampConstrained;
+gn2nsft_directional_rampConstrained(gn2n_directional_rampConstrained(grid, node, node_), sft(s, f, t))
+                  // deactivating ramp constraints if ramp speed in hour * stepLength allows ramping from -cap to +cap
+                  $ {p_gnn(grid, node, node_, 'rampLimit') * 60 * sum(m, p_stepLength(m, f, t)) < 2
+                     and (ord(t) > sum(m, msStart(m, s)) + 1) }
     = yes;
 
 * --- Defining unit efficiency groups etc. ------------------------------------
 
 // Initializing
-Option clear = suft;
-Option clear = sufts;
+Option clear = eff_uft;
+*Option clear = eff_uft_eff;
 
 // Loop over the defined efficiency groups for units
 loop(effLevelGroupUnit(effLevel, effGroup, unit)${ mSettingsEff(mSolve, effLevel) },
     // Determine the used effGroup for each uft
-    suft(effGroup, uft(unit, f, t))${   ord(t) >= tSolveFirst + mSettingsEff_start(mSolve, effLevel)
+    eff_uft(effGroup, uft(unit, f, t))${   ord(t) >= tSolveFirst + mSettingsEff_start(mSolve, effLevel)
                                         and ord(t) <= tSolveFirst + mSettingsEff(mSolve, effLevel) }
         = yes;
 ); // END loop(effLevelGroupUnit)
 
-// Determine the efficiency selectors for suft
-sufts(suft(effGroup, unit, f, t), effSelector)${    effGroupSelector(effGroup, effSelector) }
-    = yes
-;
+*// Determine the efficiency selectors for eff_uft. Commented out as not used in the model.
+*eff_uft_eff(eff_uft(effGroup, unit, f, t), effSelector)${    effGroupSelector(effGroup, effSelector) }
+*    = yes
+*;
 
 // Units with online variables on each ft
 Option clear = uft_online;
@@ -652,10 +570,10 @@ Option clear = uft_onlineMIP_withPrevious;
 
 // Determine the intervals when units need to have online variables.
 loop(effOnline(effSelector),
-    uft_online(uft(unit, f, t))${ suft(effOnline, unit, f, t) }
+    uft_online(uft(unit, f, t))${ eff_uft(effOnline, unit, f, t) and not unit_invest(unit)}
         = yes;
 ); // END loop(effOnline)
-uft_onlineLP(uft(unit, f, t))${ suft('directOnLP', unit, f, t) }
+uft_onlineLP(uft(unit, f, t))${ eff_uft('directOnLP', unit, f, t) and not unit_invest(unit) }
     = yes;
 uft_onlineMIP(uft_online(unit, f, t)) = uft_online(unit, f, t) - uft_onlineLP(unit, f, t);
 

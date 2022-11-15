@@ -15,87 +15,105 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
+
 * =============================================================================
 * --- Load Input Data ---------------------------------------------------------
 * =============================================================================
 
+* --- optional: translating input excel to gdx --------------------------------
+
 * If input_file excel has been set in the command line arguments, then Gdxxrw will be run to convert the Excel into a GDX file
 *   using the sheet defined by input_excel_index command line argument (default: 'INDEX').
-$if set input_file_excel $call 'gdxxrw Input="%input_dir%/%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
+$ifthen exist '%input_dir%/%input_file_excel%'
+    $$call 'gdxxrw Input="%input_dir%/%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
+$elseif exist '%input_file_excel%'
+    $$call 'gdxxrw Input="%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
+$endif
 $ife %system.errorlevel%>0 $abort gdxxrw failed! Check that your input Excel is valid and that your file path and file name are correct.
 
-* --input_file_gdx=nameOfInputFile.gdx for input_file_gdx in input_dir
+* --- locating input data gdx ------------------------------------------------
+
+* setting path for input data gdx and inc files created when reading the data
+* default assumptions input_dir = ./input,  input_file_gdx = inputData.gdx
+* if %input_dir%/%input_file_gdx% exists
+*        option --input_dir specifies alternative input directory. Can be relative reference. See backbone.gms
+*        option --input_file_gdx specifies alternative input gdx name. See backbone.gms
+*        input data inc files created to same folder
+* else if %input_file_gdx% exists
+*        --input_file_gdx= nameOfInputFile.gdx for input_file_gdx in ./input
+*        --input_file_gdx=ABSOLUTE/PATH/nameOfInputFile.gdx for input_file_gdx not in input_dir
+*        input data inc files created to ./input folder
+* else go to no_input_gdx label
+
 $ifthen exist '%input_dir%/%input_file_gdx%'
-    $$gdxin  '%input_dir%/%input_file_gdx%'
-* --input_file_gdx=ABSOLUTE/PATH/nameOfInputFile.gdx for input_file_gdx not in input_dir
+    $$setglobal inputDataGdx '%input_dir%/%input_file_gdx%'
+    $$setglobal inputDataInc '%input_dir%/inputData.inc'
+    $$setglobal inputDataInc_ '%input_dir%/inputData_.inc'
 $elseif exist '%input_file_gdx%'
-    $$gdxin  '%input_file_gdx%'
+    $$setglobal inputDataGdx '%input_file_gdx%'
+    $$setglobal inputDataInc 'input/inputData.inc'
+    $$setglobal inputDataInc_ 'input/inputData_.inc'
 $else
+    put log '!!! Warning: No input data file found. Skipping reading input data gdx.' /;
+    put log '!!! Warning: Will crash the model if alternative data is not given via 1e_scenChanges.gms or changes.inc' /;
     $$goto no_input_gdx
 $endif
 
-$loaddcm grid
-$loaddc node
-$loaddc flow
-$loaddc unittype
-$loaddc unit
-$loaddc unitUnittype
-$loaddc unit_fail
-$loaddc unitUnitEffLevel
-$loaddc effLevelGroupUnit
-$loaddc group
-$loaddc p_gn
-$loaddc p_gnn
-$loaddc ts_gnn
-$loaddc p_gnu_io
-$loaddc p_gnuBoundaryProperties
-$loaddc p_unit
-$loaddc ts_unit
-$loaddc p_unitConstraint
-$loaddc p_unitConstraintNode
-$loaddc restype
-$loaddc restypeDirection
-$loaddc restypeReleasedForRealization
-$loaddc restype_inertia
-$loaddc p_groupReserves
-$loaddc p_groupReserves3D
-$loaddc p_groupReserves4D
-$loaddc p_gnuReserves
-$loaddc p_gnnReserves
-$loaddc p_gnuRes2Res
-$loaddc ts_reserveDemand
-$loaddc p_gnBoundaryPropertiesForStates
-$loaddc p_uStartupfuel
-$loaddc flowUnit
-$loaddc emission
-$loaddc p_nEmission
-$loaddc ts_cf
-*$loaddc p_price // Disabled for convenience, see line 278-> ("Determine Fuel Price Representation")
-$loaddc ts_priceChange
-$loaddc ts_influx
-$loaddc ts_node
-$loaddc p_s_discountFactor
-$loaddc t_invest
-$loaddc utAvailabilityLimits
-$loaddc p_storageValue
-$loaddc ts_storageValue
-$loaddc uGroup
-$loaddc gnuGroup
-$loaddc gn2nGroup
-$loaddc gnGroup
-$loaddc sGroup
-$loaddc p_groupPolicy
-$loaddc p_groupPolicyUnit
-$loaddc p_groupPolicyEmission
-$loaddc gnss_bound
-$loaddc uss_bound
+* --- importing data from the input data gdx ----------------------------------
 
+* the new way to read input data breaks the model if input data gdx contains tables not predefined.
+* Reading definitions for user given additional sets and parameters in the input data gdx.
+$ifthen exist '%input_dir%/additionalSetsAndParameters.inc'
+   $$include '%input_dir%/additionalSetsAndParameters.inc'
+$endif
+
+
+* Importing domains from the input data gdx.
+* These can be empty, but must be given in the input data gdx.
+* Domains can be supplemented in scen changes or in changes.inc.
+$gdxin '%inputDataGdx%'
+* Following three must contain values
+$loaddcm grid
+$loaddcm node
+$loaddcm unit
+* The rest must be included, but can be empty
+$loaddcm emission
+$loaddcm flow
+$loaddcm unittype
+$loaddcm restype
+$loaddcm group
 $gdxin
 
+* In addition to domains, there is a current minimum dataset for any meaningful model.
+* Following data tables must be included either in input data gdx or in data given
+* in scen changes or changes.inc
+*       p_unit
+*       p_gn
+*       p_gnu_io
+*       effLevelGroupUnit
+*       ts_influx (or other data table creating the energy demand)
+
+* setting quote mark for unix or windows (MSNT)
+$ SET QTE "'"
+$ IFI %SYSTEM.FILESYS%==MSNT $SET QTE '"'
+
+* query checking which data tables exists and writes the list to inputDataInc
+$hiddencall gdxdump %inputDataGdx%  NODATA > %inputDataInc%
+* converting gdxdump output to a format that can be imported to backbone
+$hiddencall sed %QTE%/^symbol not found:.*$/Id; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I%QTE% %inputDataInc% > %inputDataInc_%
+* importing data
+$INCLUDE %inputDataInc_%
+* closing the input file
+$gdxin
+
+* --- Processing alternative sources of input data ----------------------------
+
+* jumping to here if no input gdx. Reading data from alternative sources (1e_scenchanges.inc and changes.inc)
+* if input data existed, these alternative sources can be used to modify given data, e.g. when using multiple input files
+* or running alternative scenarios.
 $label no_input_gdx
 
-
-* Read changes to inputdata through gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx) - allows scenarios through Sceleton Titan Excel files.
+* Read changes to inputdata through gdx files (e.g. node2.gdx, unit2.gdx, unit3.gdx)
 $include 'inc/1e_scenChanges.gms'
 
 * Reads changes or additions to the inputdata through changes.inc file.
@@ -103,48 +121,21 @@ $ifthen exist '%input_dir%/changes.inc'
    $$include '%input_dir%/changes.inc'
 $endif
 
-
-
-$ontext
-* --- sets with 'empty' to enable GDX imports in Sceleton Titan - currently removed when forming gnu (below) and uft (periodicLoop.gms) sets
-* This list can be removed once this has been tested.
-node
-unit
-gngnu_constrainedOutputRatio
-restype
-restypeReleasedForRealization
-p_gnn
-p_gnnReserves
-p_gnuBoundaryProperties
-ts_node
-ts_reserveDemand
-ts_unit
-p_storageValue
-group
-gnuGroup
-gnGroup
-gn2nGroup
-gnss_bound
-$offtext
-
-
 * =============================================================================
 * --- Initialize Unit Related Sets & Parameters Based on Input Data -----------
 * =============================================================================
-
 
 * --- Generate Unit Related Sets ----------------------------------------------
 
 p_gnu(grid, node, unit, param_gnu) = sum(input_output, p_gnu_io(grid, node, unit, input_output, param_gnu));
 
 // Set of all existing gnu
-gnu(grid, node, unit)${ not sameas(grid, 'empty')
-                        and (   p_gnu(grid, node, unit, 'capacity')
-                                or p_gnu(grid, node, unit, 'unitSize')
-                                or p_gnu(grid, node, unit, 'conversionCoeff')
-                                )
+gnu(grid, node, unit)${p_gnu(grid, node, unit, 'capacity')
+                       or p_gnu(grid, node, unit, 'unitSize')
+                       or p_gnu(grid, node, unit, 'conversionCoeff')
                       }
     = yes;
+
 // Reduce the grid dimension
 nu(node, unit) = sum(grid, gnu(grid, node, unit));
 //p_gnu(grid, node, unit, 'capacity')$(p_gnu(grid, node, unit, 'capacity') = 0) = inf;
@@ -168,8 +159,10 @@ gn2gnu(grid, node_input, grid_, node_output, unit)${    gnu_input(grid, node_inp
     = yes;
 
 // Units with minimum load requirements
-unit_minload(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operating point is between 0 and 1, then the unit is considered to have a min load limit
+unit_minLoad(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operating point is between 0 and 1
                         and p_unit(unit, 'op00') < 1
+                        // and if unit has online variable, then unit is considered to have minload
+                        and sum(effLevel, sum(effOnline, effLevelGroupUnit(effLevel, effOnline, unit)))
                         }
     = yes;
 
@@ -178,6 +171,8 @@ unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
 
 // Units with investment variables
+unit_invest(unit)$p_unit(unit, 'maxUnitCount') = yes;
+
 unit_investLP(unit)${  not p_unit(unit, 'investMIP')
                        and p_unit(unit, 'maxUnitCount')
                         }
@@ -192,10 +187,10 @@ unit_investMIP(unit)${  p_unit(unit, 'investMIP')
 unitStarttype(unit, 'cold') = yes;
 // Units with parameters regarding hot/warm starts
 unitStarttype(unit, starttypeConstrained)${ p_unit(unit, 'startWarmAfterXhours')
-                                            or p_unit(unit, 'startCostHot')
-                                            or p_unit(unit, 'startFuelConsHot')
-                                            or p_unit(unit, 'startCostWarm')
-                                            or p_unit(unit, 'startFuelConsWarm')
+                                            or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'startCostHot'))
+                                            or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'startFuelConsHot'))
+                                            or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'startCostWarm'))
+                                            or sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'startFuelConsWarm'))
                                             or p_unit(unit, 'startColdAfterXhours')
                                             }
     = yes;
@@ -205,6 +200,17 @@ nu_startup(node, unit)$p_uStartupfuel(unit, node, 'fixedFuelFraction') = yes;
 // Units with time series data enabled
 unit_timeseries(unit)${ p_unit(unit, 'useTimeseries') or p_unit(unit, 'useTimeseriesAvailability') }
     = yes;
+
+*// Units that have eq constraints between inputs and/or outputs
+unit_eqConstrained(unit)${sum((eq_constraint(constraint))$p_unitConstraint(unit, constraint), 1)} = yes;
+
+// Units that have gt constraints between inputs and/or outputs
+unit_gtConstrained(unit)${sum((gt_constraint(constraint))$p_unitConstraint(unit, constraint), 1)} = yes;
+
+// Units that have time series for eq or gt constraints between inputs and/or outputs
+option tt < ts_unitConstraintNode;
+unit_tsConstrained(unit)${sum((constraint, node, f, tt(t))$ts_unitConstraintNode(unit, constraint, node, f, t), 1) } = yes;
+
 
 * --- Unit Related Parameters -------------------------------------------------
 
@@ -241,11 +247,11 @@ p_uNonoperational(unitStarttype(unit, 'hot'), 'min')
 p_uNonoperational(unitStarttype(unit, 'hot'), 'max')
     = p_unit(unit, 'startWarmAfterXhours');
 p_uStartup(unitStarttype(unit, 'hot'), 'cost')
-    = p_unit(unit, 'startCostHot')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startCostHot'));
 p_uStartup(unitStarttype(unit, 'hot'), 'consumption')
-    = p_unit(unit, 'startFuelConsHot')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startFuelConsHot'));
 
 // Warm startup parameters
 p_uNonoperational(unitStarttype(unit, 'warm'), 'min')
@@ -253,21 +259,21 @@ p_uNonoperational(unitStarttype(unit, 'warm'), 'min')
 p_uNonoperational(unitStarttype(unit, 'warm'), 'max')
     = p_unit(unit, 'startColdAfterXhours');
 p_uStartup(unitStarttype(unit, 'warm'), 'cost')
-    = p_unit(unit, 'startCostWarm')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startCostWarm'));
 p_uStartup(unitStarttype(unit, 'warm'), 'consumption')
-    = p_unit(unit, 'startFuelConsWarm')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startFuelConsWarm'));
 
 // Cold startup parameters
 p_uNonoperational(unitStarttype(unit, 'cold'), 'min')
     = p_unit(unit, 'startColdAfterXhours');
 p_uStartup(unit, 'cold', 'cost')
-    = p_unit(unit, 'startCostCold')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startCostCold'));
 p_uStartup(unit, 'cold', 'consumption')
-    = p_unit(unit, 'startFuelConsCold')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'startFuelConsCold'));
 
 // Start-up fuel consumption per fuel
 p_unStartup(unit, node, starttype)$p_uStartupfuel(unit, node, 'fixedFuelFraction')
@@ -276,45 +282,13 @@ p_unStartup(unit, node, starttype)$p_uStartupfuel(unit, node, 'fixedFuelFraction
 
 //shutdown cost parameters
 p_uShutdown(unit, 'cost')
-    = p_unit(unit, 'shutdownCost')
-        * sum(gnu_output(grid, node, unit), p_gnu(grid, node, unit, 'unitSize'));
-
-// Determine unit emission costs
-p_unitEmissionCost(unit, node, emission)${nu(node, unit) and p_nEmission(node, emission)}
-    = p_nEmission(node, emission)
-        / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
-        * sum(gnGroup(grid, node, group)$gnu_input(grid, node, unit),
-            + p_groupPolicyEmission(group, 'emissionTax', emission)
-          )
-;
-
+    = sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'unitSize')
+        * p_gnu(grid, node, unit, 'shutdownCost'));
 
 // Unit lifetime
 loop(utAvailabilityLimits(unit, t, availabilityLimits),
     p_unit(unit, availabilityLimits) = ord(t)
 ); // END loop(ut)
-
-* =============================================================================
-* --- Determine Commodity Price Representation -------------------------------------
-* =============================================================================
-// Use time series for commodity prices depending on 'ts_priceChange'
-
-// Determine if commodity prices require a time series representation or not
-loop(node$sum(grid, p_gn(grid, node, 'usePrice')),
-    // Find the steps with changing fuel prices
-    option clear = tt;
-    tt(t)${ ts_priceChange(node, t) } = yes;
-
-    // If only up to a single value
-    if(sum(tt, 1) <= 1,
-        p_price(node, 'useConstant') = 1; // Use a constant for commodity prices
-        p_price(node, 'price') = sum(tt, ts_priceChange(node, tt)) // Determine the price as the only value in the time series
-    // If multiple values found, use time series
-    else
-        p_price(node, 'useTimeSeries') = 1;
-        ); // END if(sum(tt))
-); // END loop(fuel)
-
 
 * =============================================================================
 * --- Generate Node Related Sets Based on Input Data --------------------------
@@ -367,6 +341,19 @@ gn2n_directional_investMIP(gn2n_directional(grid, node, node_))${ [p_gnn(grid, n
                                                                  }
     = yes;
 
+// set for ramp constrained transfer links
+gn2n_directional_rampConstrained(gn2n_directional(grid, node, node_))
+             $  p_gnn(grid, node, node_, 'rampLimit')
+    = yes;
+
+* --- Timeseries parameters for node-node connections -------------------------
+
+// Transfer links with time series enabled for certain parameters
+gn2n_timeseries(grid, node, node_, 'availability')${p_gnn(grid, node, node_, 'useTimeseriesAvailability')}
+    = yes;
+gn2n_timeseries(grid, node, node_, 'transferLoss')${p_gnn(grid, node, node_, 'useTimeseriesLoss')}
+    = yes;
+
 * --- Node States -------------------------------------------------------------
 
 // States with slack variables
@@ -402,7 +389,7 @@ p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multipli
                                                                                         and sum(param_gnBoundaryProperties, p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, param_gnBoundaryProperties))
     } = 1; // If multiplier has not been set, set it to 1 by default
 
-* --- Other Node Properties ---------------------------------------------------
+* --- Node Classifications ----------------------------------------------------
 
 // Nodes with flows
 flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
@@ -410,13 +397,105 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
                         }
     = yes;
 
-* --- Timeseries parameters for node-node connections -------------------------
+// checking nodes that have price data in two optional input data tables
+Option node_priceData < ts_price;
+Option node_priceChangeData < ts_priceChange;
 
-// Transfer links with time series enabled for certain parameters
-gn2n_timeseries(grid, node, node_, 'availability')${p_gnn(grid, node, node_, 'useTimeseriesAvailability')}
+* =============================================================================
+* --- Initialize Price Related Sets & Parameters Based on Input Data -------
+* =============================================================================
+
+// Process node prices depending on 'ts_price' if usePrice flag activated
+loop(node$ {node_priceData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
+
+    // Find the steps with changing node prices
+    option clear = tt;
+    tt(t)${ ts_price(node, t) } = yes;
+
+    // If only up to a single value
+    if({sum(tt, 1) <= 1 },
+        p_price(node, 'useConstant') = 1; // Use a constant for node prices
+        p_price(node, 'price') = sum(tt, ts_price(node, tt)) // Determine the price as the only value in the time series
+
+    // If multiple values found, use time series. Values already given in input data.
+    else
+        p_price(node, 'useTimeSeries') = 1;
+      ); // END if(sum(tt_))
+); // END loop(node)
+
+// Process node prices depending on 'ts_priceChange' if usePrice flag activated
+loop(node$ {node_priceChangeData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
+
+    // Find the steps with changing node prices
+    option clear = tt;
+    tt(t)${ ts_priceChange(node, t) } = yes;
+
+    // If only up to a single value
+    if({sum(tt, 1) <= 1 },
+        p_price(node, 'useConstant') = 1; // Use a constant for node prices
+        p_price(node, 'price') = sum(tt, ts_priceChange(node, tt)) // Determine the price as the only value in the time series
+
+    // If multiple values found, use time series. Values processed in 3a_periodicInit
+    else
+        p_price(node, 'useTimeSeries') = 1;
+      ); // END if(sum(tt_))
+); // END loop(node)
+
+
+
+* =============================================================================
+* --- Emission related Sets & Parameters --------------------------------------
+* =============================================================================
+
+// checking emissions that have price data in two optional input data tables
+Option emission_priceData < ts_emissionPrice;
+Option emission_priceChangeData < ts_emissionPriceChange;
+
+// populating emissionGroup.
+// Can use projection only once as the second time would overwrite. Using it to the most likely option.
+Option emissionGroup < ts_emissionPrice;
+emissionGroup(emission, group)${ sum(t, ts_emissionPriceChange(emission, group, t))
+                                 or p_groupPolicyEmission(group, 'emissionCap', emission)
+                               }
     = yes;
-gn2n_timeseries(grid, node, node_, 'transferLoss')${p_gnn(grid, node, node_, 'useTimeseriesLoss')}
-    = yes;
+
+// Process emission group prices depending on 'ts_emissionPrice'
+loop(emissionGroup(emission_priceData(emission), group),
+
+    // Find the steps with changing node prices
+    option clear = tt;
+    tt(t)${ ts_emissionPrice(emission, group, t) } = yes;
+
+    // If only up to a single value
+    if(sum(tt, 1) <= 1,
+        p_emissionPrice(emission, group, 'useConstant') = 1; // Use a constant for node prices
+        p_emissionPrice(emission, group, 'price') = sum(tt, ts_emissionPrice(emission, group, tt)) // Determine the price as the only value in the time series
+
+    // If multiple values found, use time series. Values already given in input data.
+    else
+        p_emissionPrice(emission, group, 'useTimeSeries') = 1;
+      ); // END if(sum(tt))
+); // END loop(emissionGroup)
+
+// Process emission group prices depending on 'ts_emissionPriceChange'
+loop(emissionGroup(emission_priceChangeData(emission), group),
+
+    // Find the steps with changing node prices
+    option clear = tt;
+    tt(t)${ ts_emissionPriceChange(emission, group, t) } = yes;
+
+    // If only up to a single value
+    if(sum(tt, 1) <= 1,
+        p_emissionPrice(emission, group, 'useConstant') = 1; // Use a constant for node prices
+        p_emissionPrice(emission, group, 'price') = sum(tt, ts_emissionPriceChange(emission, group, tt)) // Determine the price as the only value in the time series
+
+    // If multiple values found, use time series. Values processed in 3a_periodicInit
+    else
+        p_emissionPrice(emission, group, 'useTimeSeries') = 1;
+      ); // END if(sum(tt))
+); // END loop(emissionGroup)
+
+
 
 * =============================================================================
 * --- Reserves Sets & Parameters ----------------------------------------------
@@ -526,6 +605,9 @@ p_gnuReserves(gnu(grid, node, unit), restype, up_down)
 loop(node,
     if(sum(gn(grid, node), 1) > 1,
         put log '!!! Error occurred on node ' node.tl:0 /;
+        loop(gn(grid, node),
+               put log '!!! Error occurred on grid ' grid.tl:0 /;
+        );
         put log '!!! Abort: Nodes cannot be assigned to multiple grids!' /;
         abort "Nodes cannot be assigned to multiple grids!"
     ); // END if(sum(gn))
@@ -551,7 +633,49 @@ loop(gn2n(grid, node, node_),
             abort "Parameter 'transferCapBidirectional' must be greater than or equal to defined one-directional transfer capacities!"
         );
     );
+    // Check if transfer ramprate limit exists for this link.
+    if(p_gnn(grid, node, node_, 'rampLimit'),
+        // Check for conflicting ramp limits
+        if(   [p_gnn(grid, node, node_, 'rampLimit')>0] and [p_gnn(grid, node_, node, 'rampLimit')=0],
+            put log '!!! Warning: ' node.tl:0 '->' node_.tl:0 ' has rampLimit, but ' node_.tl:0 '->' node.tl:0 ' does not' /;
+            abort "Conflicting transfer 'rampLimit' definitions!"
+        );
+        if(   [p_gnn(grid, node_, node, 'rampLimit')>0] and [p_gnn(grid, node, node_, 'rampLimit')=0],
+            put log '!!! Warning: ' node_.tl:0 '->' node.tl:0 ' has rampLimit, but ' node.tl:0 '->' node_.tl:0 ' does not' /;
+            abort "Conflicting transfer 'rampLimit' definitions!"
+        );
+    );
+
+    if(p_gnn(grid, node, node_, 'rampLimit'),
+        // Check for conflicting ramp limits
+        if(p_gnn(grid, node, node_, 'rampLimit')*p_gnn(grid, node, node_, 'transferCap') <> p_gnn(grid, node_, node, 'rampLimit')*p_gnn(grid, node_, node, 'transferCap'),
+            put log '!!! Warning: ' node.tl:0 '-' node_.tl:0 ' rampLimit * transfCapacity is not equal to different directions. Will use values from ' node.tl:0 /;
+        );
+    );
 );
+
+* --- Check node balance and price related data -------------------------------
+
+loop(node,
+    // Give a warning if both nodeBalance and usePrice are false
+    if(not sum(grid, p_gn(grid, node, 'nodeBalance') or p_gn(grid, node, 'usePrice')),
+        put log '!!! Warning: Node ', node.tl:0, ' does not have nodeBalance or usePrice activated in p_gn' /;
+    ); // END if
+    // Give a warning if both nodeBalance and usePrice are true
+    if(sum(grid, p_gn(grid, node, 'nodeBalance') and p_gn(grid, node, 'usePrice')),
+        put log '!!! Warning: Node ', node.tl:0, ' has both nodeBalance or usePrice activated in p_gn' /;
+    ); // END if
+    // Give a warning if usePrice is true but there is no price data
+    if(sum(grid, p_gn(grid, node, 'usePrice'))
+       and not [p_price(node, 'price') or p_price(node, 'useTimeSeries')],
+        put log '!!! Warning: Node ', node.tl:0, ' has usePrice activated in p_gn but there is no price data' /;
+    ); // END if
+    // Abort of input data for prices are given both ts_price and ts_priceChange
+    if({node_priceData(node) and node_priceChangeData(node)},
+        put log '!!! Abort: Node ', node.tl:0, ' has both ts_price and ts_priceChange' /;
+        abort "Only ts_price or ts_priceChange can be given to a node"
+    ); // END if
+); // END loop(node)
 
 * --- Check the integrity of efficiency approximation related data ------------
 
@@ -564,7 +688,7 @@ loop(effLevel${ord(effLevel)<=tmp},
     effLevelGroupUnit(effLevel, effSelector, unit)
         ${not sum(effLevelGroupUnit(effLevel, effSelector_, unit), 1)}
         = effLevelGroupUnit(effLevel - 1, effSelector, unit) // Expand previous (effLevel, effSelector) when applicable
-    loop(unit${not unit_flow(unit) and not sameas(unit, 'empty')},
+    loop(unit${not unit_flow(unit) },
         If(not sum(effLevelGroupUnit(effLevel, effSelector, unit), 1),
             put log '!!! Error on unit ' unit.tl:0 /;
             put log '!!! Abort: Insufficient effLevelGroupUnit definitions!' /;
@@ -596,6 +720,12 @@ loop( unit,
             ); // END loop(op_)
         ); // END loop(op__)
     ); // END loop(effLevelGroupUnit)
+
+    if( {effLevelGroupUnit('level1', 'directOff', unit)
+         and sum(gnu(grid, node, unit), sum(input_output, p_gnu_io(grid, node, unit, input_output, 'startCostCold'))) },
+             put log '!!! Warning: unit (', unit.tl:0, ' has start costs, but is a directOff unit that disables the start cost calculations' /;
+    );
+
 );
 
 * --- Check startupfuel fraction related data ----------------------------------------
@@ -608,13 +738,26 @@ loop( unit${sum(starttype$p_uStartup(unit, starttype, 'consumption'), 1)},
     );
 );
 
-loop( unit${sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1)},
-    if(sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1) < 2,
+option tt < ts_unitConstraintNode;
+// checking that each constraint has at least two nodes defined
+loop( unit${sum((constraint)$p_unitConstraint(unit, constraint), 1)},
+     if({sum((constraint, node)$p_unitConstraintNode(unit, constraint, node), 1)
+        +sum((constraint, node, f, tt(t))$ts_unitConstraintNode(unit, constraint, node, f, t), 1)} < 2,
         put log '!!! Error occurred on unit ' unit.tl:0 /;
         put log '!!! Abort: constraint requires at least two inputs or outputs!' /;
-        abort "a constraint has to have more tha one input or output!"
-    );
-);
+        abort "a constraint has to have more than one input or output!"
+    ); // END if
+); // END loop(unit)
+
+// checking that none of the (node, unit) is defined both in p_unitConstraint and ts_unitConstraint
+loop(nu(node, unit)${sum(constraint$p_unitConstraintNode(unit, constraint, node), 1)},
+    if({sum((constraint)$p_unitConstraintNode(unit, constraint, node), 1) and
+        sum((constraint, f, tt(t))$ts_unitConstraintNode(unit, constraint, node, f, t), 1)},
+        put log '!!! Error occurred on (node, unit): (' node.tl:0 ',' unit.tl:0 ')'/;
+        put log '!!! Abort: Constraint node for one unit cannot be defined in p_unitConstraintNode and in ts_unitConstraintNode!' /;
+        abort "a constraint (unit, node) has been defined in p_unitConstraintNode and in ts_unitConstraintNode. Choose only one!"
+    ); // END if
+); // END loop(nu)
 
 * --- Check the shutdown time related data ------------------------------------
 
@@ -626,6 +769,17 @@ loop( unitStarttype(unit, starttypeConstrained),
         abort "Units should have p_unit(unit, 'minShutdownHours') <= p_unit(unit, 'startWarmAfterXhours') <= p_unit(unit, 'startColdAfterXhours')!"
     );
 );
+
+* --- Check emission related data ---------------------------------------------
+
+loop(emissionGroup(emission, group),
+    // Abort of input data for prices are given both ts_emissionPrice and ts_emissionPriceChange
+    if({emission_priceData(emission) and emission_priceChangeData(emission)},
+        put log '!!! Abort: EmissionGroup (', group.tl:0, ', ', emission.tl:0, ') has both ts_emissionPrice and ts_emissionPriceChange' /;
+        abort "Only ts_emissionPrice or ts_emissionPriceChange can be given to an emissionGroup"
+    ); // END if
+); // END loop(emissionGroup)
+
 
 * --- Check reserve related data ----------------------------------------------
 
@@ -687,44 +841,12 @@ loop( unit_investMIP(unit),
     ); // END if
 ); // END loop(unit_investMIP)
 
-* --- Check node balance and price related data -------------------------------
-
-// Give a warning if both nodeBalance and usePrice are false
-loop( node,
-    if(not sum(grid, p_gn(grid, node, 'nodeBalance') or p_gn(grid, node, 'usePrice')),
-        put log '!!! Warning: Node ', node.tl:0, ' does not have nodeBalance or usePrice activated in p_gn' /;
-    ); // END if
-); // END loop(node)
-// Give a warning if usePrice is true but ts_priceChange has no data
-loop( node,
-    if(p_price(node, 'useConstant') and not p_price(node, 'price'),
-        put log '!!! Warning: Node ', node.tl:0, ' has usePrice activated in p_gn but there is no ts_priceChange data' /;
-    ); // END if
-); // END loop(node)
-// Give a warning if both nodeBalance and usePrice are true
-loop( node,
-    if(sum(grid, p_gn(grid, node, 'nodeBalance') and p_gn(grid, node, 'usePrice')),
-        put log '!!! Warning: Node ', node.tl:0, ' has both nodeBalance or usePrice activated in p_gn' /;
-    ); // END if
-); // END loop(node)
-
 * --- Check consistency of inputs for superposed node states -------------------
 
 * no checking yet because node_superpos is not given in the gdx input
 
 
-* =============================================================================
-* --- Default values  ---------------------------------------------------------
-* =============================================================================
-loop(timeseries$(not sameas(timeseries, 'ts_cf')),
-    p_tsMinValue(gn, timeseries) = -Inf;
-    p_tsMaxValue(gn, timeseries) = Inf;
-);
-p_tsMinValue(flowNode, 'ts_cf') = 0;
-p_tsMaxValue(flowNode, 'ts_cf') = 1;
 
-* By default all nodes use forecasts for all timeseries
-gn_forecasts(gn, timeseries) = yes;
-gn_forecasts(flowNode, timeseries) = yes;
-gn_forecasts(restype, node, 'ts_reserveDemand') = yes;
+
+
 

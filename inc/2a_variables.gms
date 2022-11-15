@@ -18,10 +18,10 @@ $offtext
 Free variable v_obj "Total operating cost (monetary unit)";
 Free variables
     v_gen(grid, node, unit, s, f, t) "Energy generation or consumption in an interval (MW)"
-    v_state(grid, node, s, f, t) "State variable for nodes that maintain a state (MWh, unless modified by energyStoredPerUnitOfState and diffCoeff parameters)"
     v_genRamp(grid, node, unit, s, f, t) "Change in energy generation or consumption over an interval (MW/h)"
     v_transfer(grid, node, node, s, f, t) "Average electricity transmission level from node to node during an interval (MW)"
-    v_ICramp(grid, node, node, s, f, t) "Change in energy transfer over an interval (MW/h)"
+    v_transferRamp(grid, node, node, s, f, t) "Change in energy transfer over an interval (MW/h)"
+    v_state(grid, node, s, f, t) "State variable for nodes that maintain a state (MWh, unless modified by energyStoredPerUnitOfState and diffCoeff parameters)"
     v_statemax(grid, node, s) "State variable maximum in sample s"
     v_statemin(grid, node, s) "State variable minimum in sample s"
     v_state_z(grid, node, z) "State in the beginning of the time period z"

@@ -1,0 +1,4 @@
+relaxfixedinfeas = 1
+scaind = -1
+lpmethod = 4
+baralg = 3

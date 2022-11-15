@@ -141,11 +141,10 @@ $offtext
     if (mTimeseries_loop_read(mSolve, 'ts_priceChange'),
         put log '!!! Abort: mTimeseries_loop_read(mSolve, ts_priceChange) currently not working!' /;
         abort "mTimeseries_loop_read(mSolve, ts_priceChange) currently not working!";
-        put_utility 'gdxin' / '%input_dir%/ts_priceChange/' tSolve.tl:0 '.gdx';
-        execute_load ts_priceChange_update=ts_priceChange;
-        ts_priceChange(node, tt_forecast(t))
-*            ${ ts_priceChange_update(fuel, t) } // Update only existing values (zeroes need to be EPS)
-            = ts_priceChange_update(node, t);
+//        put_utility 'gdxin' / '%input_dir%/ts_priceChange/' tSolve.tl:0 '.gdx';
+//        execute_load ts_priceChange_update=ts_priceChange;
+//        ts_priceChange(node, tt_forecast(t))
+//            = ts_priceChange_update(node, t);
     ); // END if('ts_priceChange')
 
     // Update ts_unavailability
@@ -192,6 +191,9 @@ if(mSettings(mSolve, 't_improveForecast'),
         // ts_unit
         ts_unit(unit_timeseries(unit), param_unit, f, tt(t))// Only update for units with time series enabled
             = ts_unit(unit, param_unit, f, t) - ts_unit(unit, param_unit, f+ddf(f), t);
+        // ts_unitConstraintNode
+        ts_unitConstraintNode(unit, constraint, node, f, tt(t))${unit_tsConstrained(unit)}
+            = ts_unitConstraintNode(unit, constraint, node, f, t) - ts_unitConstraintNode(unit, constraint, node, f+ddf(f), t);
 $ontext
 * Should these be handled here at all? See above note
         // ts_effUnit
@@ -228,6 +230,13 @@ $offtext
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_unit(unit, param_unit, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
+        ts_unitConstraintNode(unit, constraint, node, f, tt(t))${unit_tsConstrained(unit)}
+            = [ + (ord(t) - tSolveFirst)
+                    * ts_unitConstraintNode(unit, constraint, node, f, t)
+                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                    * ts_unitConstraintNode(unit, constraint, node, f+ddf_(f), t)
+                ] / mSettings(mSolve, 't_improveForecast');
+
 $ontext
 * Should these be handled here at all? See above note
         // ts_effUnit
@@ -306,7 +315,7 @@ $offtext
         // ts_reserveDemand
         ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
             = max(ts_reserveDemand(restype, up_down, group, f, t) + ts_reserveDemand(restype, up_down, group, f+ddf(f), t), 0); // Ensure that reserve demand forecasts remains positive
-        // ts_node
+       // ts_node
         ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) + ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
         // ts_gnn
@@ -333,6 +342,11 @@ loop(cc(counter),
             ts_unit(unit, param_unit, f, t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
+    ts_unitConstraintNode_(unit, constraint, node, sft(s, f, tt_interval(t)))${unit_tsConstrained(unit)}
+        = sum(tt_aggcircular(t, t_),
+            ts_unitConstraintNode(unit, constraint, node, f, t_)
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
 $ontext
 * Should these be handled here at all? See above comment
     ts_effUnit_(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, ft(f, tt_interval(t)))
@@ -346,98 +360,102 @@ $ontext
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 $offtext
-    ts_influx_(gn, sft(s, f, tt_interval(t)))$gn_scenarios(gn, 'ts_influx')
-        = sum(tt_aggregate(t, t_),
-            ts_influx(gn,
-                f + (  df_realization(f, t)$(not gn_forecasts(gn, 'ts_influx'))
-                     + df_scenario(f, t)),
-                t_+ (+ dt_scenarioOffset(gn, 'ts_influx', s)))
-            ) / mInterval(mSolve, 'stepsPerInterval', counter);
-    ts_influx_(gn, sft(s, f, tt_interval(t)))$(not gn_scenarios(gn, 'ts_influx'))
+    // ts_influx_ for active t in solve including aggregated time steps
+    ts_influx_(gn, sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
             ts_influx(gn,
-                f + (  df_realization(f, t)$(not gn_forecasts(gn, 'ts_influx'))),
+                f + (  df_realization(f, t)),
                 t_  )
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
+    // ts_cf_ for active t in solve including aggregated time steps
     ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))
-        = sum(tt_aggregate(t, t_),
+        = sum(tt_aggcircular(t, t_),
             ts_cf(flow, node,
-                f + (  df_realization(f, t)$(not gn_forecasts(flow, node, 'ts_cf'))
-                     + df_scenario(f, t)$gn_scenarios(flow, node, 'ts_cf')),
-                t_+ (  dt_scenarioOffset(flow, node, 'ts_cf', s)
-                     + dt_circular(t_)$(not gn_scenarios(flow, node, 'ts_cf'))))
-            )
-            / mInterval(mSolve, 'stepsPerInterval', counter);
+                f + (  df_realization(f, t)),
+                t_ )
+            ) / mInterval(mSolve, 'stepsPerInterval', counter);
     // Reserves relevant only until reserve_length
     ts_reserveDemand_(restypeDirectionGroup(restype, up_down, group), ft(f, tt_interval(t)))
       ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')  }
         = sum(tt_aggcircular(t, t_),
             ts_reserveDemand(restype, up_down, group,
-                f + (  df_realization(f, t)${not sum(gnGroup(grid, node, group), gn_forecasts(restype, node, 'ts_reserveDemand'))}
-                     + df_scenario(f, t)${sum(gnGroup(grid, node, group), gn_scenarios(restype, node, 'ts_reserveDemand'))} ), t_)
+                f + (  df_realization(f, t) ), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
+
+    // ts_node_ for active t in solve including aggregated time steps
     ts_node_(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f, tt_interval(t)))
-      $p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+      ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
            // Take average if not a limit type
-        = (sum(tt_aggregate(t, t_),
+        = (sum(tt_aggcircular(t, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))
-                         + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
-                    t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                            + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
+                    f + (  df_realization(f, t) ),
+                    t_ )
             )
             / mInterval(mSolve, 'stepsPerInterval', counter))$( not (sameas(param_gnBoundaryTypes, 'upwardLimit')
                                                                 or sameas(param_gnBoundaryTypes, 'downwardLimit')
                                                                 or slack(param_gnBoundaryTypes)))
           // Maximum lower limit
-          + smax(tt_aggregate(t, t_),
+          + smax(tt_aggcircular(t, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))
-                         + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
-                    t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                            + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
+                    f + (  df_realization(f, t)),
+                    t_ )
                 )
                 $(sameas(param_gnBoundaryTypes, 'downwardLimit') or downwardSlack(param_gnBoundaryTypes))
           // Minimum upper limit
-          + smin(tt_aggregate(t, t_),
+          + smin(tt_aggcircular(t, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))
-                         + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_node')),
-                    t_+ (   + dt_scenarioOffset(grid, node, param_gnBoundaryTypes, s)
-                            + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_node'))))
+                    f + (  df_realization(f, t)),
+                    t_ )
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
 
+
+
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
-        = sum(tt_aggregate(t, t_),
-            ts_gnn(grid, node, node_, param_gnn, f, t_+dt_circular(t_))
-            )
+        = sum(tt_aggcircular(t, t_), ts_gnn(grid, node, node_, param_gnn, f, t_))
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
-    // Node price time series
-    ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
-        = + p_gnu(grid, node, unit, 'vomCosts')
-          // input node cost
-          + (
-             + p_price(node, 'price')$p_price(node, 'useConstant')
-             + sum(tt_aggcircular(t, t_), ts_price(node, t_))$p_price(node, 'useTimeSeries')
-                 / mInterval(mSolve, 'stepsPerInterval', counter)
-            )$gnu_input(grid, node, unit)
-          // output node cost (if price > 0 --> ts_vomCost_ < 0, i.e. considered as revenue)
-          - (
-             + p_price(node, 'price')$p_price(node, 'useConstant')
-             + sum(tt_aggcircular(t, t_), ts_price(node, t_))$p_price(node, 'useTimeSeries')
-                 / mInterval(mSolve, 'stepsPerInterval', counter)
-            )$gnu_output(grid, node, unit)
-          // emission cost
-          + sum(emission$p_unitEmissionCost(unit, node, emission), // Emission taxes
-              + p_unitEmissionCost(unit, node, emission)
-            ); // END sum(emission)
 
-    // Calculating startup cost time series
-    ts_startupCost_(unit, starttype, tt_interval(t))
-      =
+    // vomCost calculations when one or more price time series
+    ts_vomCost_(gnu(grid, node, unit), tt_interval(t))$p_vomCost(grid, node, unit, 'useTimeseries')
+        = sum(tt_aggcircular(t, t_),
+            // gnu specific cost (vomCost). Always a cost (positive) if input or output.
+            + p_gnu(grid, node, unit, 'vomCosts')
+
+            // gnu specific emission cost (e.g. process related LCA emission). Always a cost if input or output.
+            + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                 + p_nEmission(node, emission)  // t/MWh
+                 * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                     + ts_emissionPrice(emission, group, t_)$p_emissionPrice(emission, group, 'useTimeSeries')
+                   )
+                 ) // end sum(emissiongroup)
+
+            // gn specific cost (fuel price). Cost when input but income when output.
+            + ( p_price(node, 'price')${p_price(node, 'useConstant')}
+                + ts_price(node, t_)${p_price(node, 'useTimeSeries')}
+
+                // gn specific emission cost (e.g. CO2 allowance price from fuel emissions). Cost when input but income when output.
+                + sum(emissionGroup(emission, group)$ p_nEmission(node, emission),
+                     + p_gnuEmission(grid, node, unit, emission) // t/MWh
+                     * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                         + ts_emissionPrice(emission, group, t_)$p_emissionPrice(emission, group, 'useTimeSeries')
+                       )
+                     ) // end sum(emissiongroup)
+              )
+             // converting gn specific costs negative if output
+             * (+1$gnu_input(grid, node, unit)
+                -1$gnu_output(grid, node, unit)
+               )
+
+             ) / mInterval(mSolve, 'stepsPerInterval', counter) // END sum(tt_aggcircular)
+    ;
+
+
+    // Startup cost calculations
+    // NOTE: does not include unit specific gnu emissions p_gnuEmission
+    ts_startupCost_(unit, starttype, tt_interval(t))$p_startupCost(unit, starttype, 'useTimeSeries')
+      = sum(tt_aggcircular(t, t_),
         + p_uStartup(unit, starttype, 'cost') // CUR/start-up
         // Start-up fuel and emission costs
         + sum(nu_startup(node, unit),
@@ -445,29 +463,34 @@ $offtext
               * [
                   // Fuel costs
                   + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
-                  + sum(tt_aggcircular(t, t_),
-                      + ts_price(node, t_) // CUR/MWh
-                    )$p_price(node, 'useTimeseries')
-                    / mInterval(mSolve, 'stepsPerInterval', counter)
+                  + ts_price(node, t_)$p_price(node, 'useTimeseries')// CUR/MWh
                   // Emission costs
-                  + sum(emission$p_nEmission(node, emission),
-                      + p_nEmission(node, emission) // kg/MWh
-                          / 1e3 // NOTE!!! Conversion to t/MWh from kg/MWh in data
-                          * sum(gnGroup(grid, node, group),
-                              + p_groupPolicyEmission(group, 'emissionTax', emission) // CUR/t
-                              ) // END sum(gnGroup)
-                      ) // END sum(emission)
+                  // node specific emission prices
+                  + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                     + p_nEmission(node, emission) // t/MWh
+                     * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                         + ts_emissionPrice(emission, group, t_)$p_emissionPrice(emission, group, 'useTimeSeries')
+                       )
+                    ) // end sum(emissionGroup)
+
+                   // gnu specific emission prices
+                   // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
+                  + sum(emissionGroup(emission, group)$sum(grid, p_gnuEmission(grid, node, unit, emission)),
+               + sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
+                     * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                         + ts_emissionPrice(emission, group, t_)$p_emissionPrice(emission, group, 'useTimeSeries')
+                       )
+                    ) // end sum(emissionGroup)
+
                 ] // END * p_unStartup
-            ); // END sum(nu_startup)
+          ) // END sum(nu_startup)
+        ) / mInterval(mSolve, 'stepsPerInterval', counter) // END sum(tt_aggcircular)
+    ;
 
     // `storageValue`
     ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'storageValueUseTimeSeries') }
         = sum(tt_aggregate(t, t_),
-            ts_storageValue(grid, node,
-                f + (  df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_storageValue'))
-                     + df_scenario(f, t)$gn_scenarios(grid, node, 'ts_storageValue')),
-                t_+ (+ dt_scenarioOffset(grid, node, 'ts_storageValue', s)
-                     + dt_circular(t_)$(not gn_scenarios(grid, node, 'ts_storageValue'))))
+            ts_storageValue(grid, node, f + df_realization(f, t), t_+ dt_circular(t_) )
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
@@ -503,13 +526,6 @@ loop(effLevelGroupUnit(effLevel, effGroup, unit)${  mSettingsEff(mSolve, effLeve
 * --- Input data processing ---------------------------------------------------
 * =============================================================================
 
-$ifthen.scenarios defined scenario
-* --- Scenario reduction ------------------------------------------------------
-if(active(mSolve, 'scenred') and mSettings('schedule', 'scenarios') > 1,
-    $$include 'inc/scenred.gms'
-);
-$endif.scenarios
-
 * --- Update probabilities ----------------------------------------------------
 Option clear = p_msft_probability;
 p_msft_probability(msft(mSolve, s, f, t))
@@ -530,30 +546,4 @@ loop((mst_start(mSolve, s, t), ss(s, s_)),
 );
 
 
-* --- Smooting of stochastic scenarios ----------------------------------------
-$ontext
-Smoothen the scenarios following the methodology presented in [1, p. 443].
-This avoids a discontinuity `jump' after the initial sample.
 
-[1] A. Helseth, B. Mo, A. Lote Henden, and G. Warland, "Detailed long-term hydro-
-    thermal scheduling for expansion planning in the Nordic power system," IET Gener.
-    Transm. Distrib., vol. 12, no. 2, pp. 441 - 447, 2018.
-$offtext
-
-* Check that we have values for the autocorrelations
-$ifthen.autocorr defined p_autocorrelation
-
-// Do smoothing
-if(mSettings(mSolve, 'scenarios') > 0,  // Only do smooting if using long-term scenarios
-    // Select the initial sample, the last time in it (t_)
-    // and the forecast (f_) of the last simulated time step (t__) in it
-    loop((ms_initial(mSolve, s_), t_, ft(f_, t__))
-        $[ord(t_) = msEnd(mSolve, s_) + tSolveFirst - 1
-          and mst_end(mSolve, s_, t__)
-          and (mf_realization(mSolve, f_) xor mf_central(mSolve, f_))
-         ],
-        $$batinclude 'inc/smoothing.gms' ts_influx
-        $$batinclude 'inc/smoothing.gms' ts_cf
-    );
-); // END if('scenarios')
-$endif.autocorr

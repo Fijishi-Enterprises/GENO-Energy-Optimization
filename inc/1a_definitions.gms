@@ -52,20 +52,17 @@ Sets
         t_improveForecast "Number of time steps ahead of time on which the forecast is improved on each solve"
         t_perfectForesight "Number of time steps for which realized data is used instead of forecasts"
         onlyExistingForecasts "Use only existing forecast values when reading updated forecasts. Note: zero values need to be saved as Eps in the gdx file."
-        scenarios        "Number of long-term scenarios used"
-        scenarioLength   "Length of scenario in time steps for creating stochastic scenarios from time series data"
         candidate_periods "Number of candidate periods which are mapped to typical periods"
 
         // Features
         t_trajectoryHorizon "Length of the horizon when start-up and shutdown trajectories are considered (in time steps)"
         t_initializationPeriod "Number of time steps in the beginning of the simulation which are solved but the results of which are not stored"
         dataLength "The maximum number of time steps in any input data time series (recommended for correctly circulating data)"
-        red_num_leaves "Desired number of preserved scenarios or leaves of scenario reduction (SCENRED)"
-        red_percentage "Desired relative distance (accuracy) of scenario reduction (SCENRED)"
         incHRAdditionalConstraints "Method to include the two additional constraints for incremental heat rates"
                                    // 0 = include for units with non-convex fuel use, 1 = include for all units
         /
 
+* obsolete code: solveInfoAttributes
     // Solve info
     solveInfoAttributes "Information about model solves" /
         modelStat
@@ -162,7 +159,6 @@ Sets
 *        addOn            "Use StoSSch as a storage add-on to a larger model" // NOT IMPLEMENTED
 *        extraRes         "Use extra tertiary reserves for error in elec. load during time step" // NOT IMPLEMENTED
 *        rampSched        "Use power based scheduling" // PARTIALLY IMPLEMENTED
-        scenRed          "Reduce number of long-tem scenarios using GAMS SCENRED2"
         checkUnavailability "Take into account ts_unit unavailability data"
          /
 * --- Set to declare time series that will be read between solves ------------------------------------------------------
@@ -173,9 +169,10 @@ Sets
         ts_influx
         ts_cf
         ts_reserveDemand
+        ts_unitConstraintNode
         ts_node
-        ts_priceChange
-        ts_price
+        ts_priceChange    // does not work currently
+        ts_price          // does not work currently
         ts_unavailability
         ts_storageValue
         ts_gnn
@@ -217,18 +214,20 @@ Sets
 * --- Parameter Data Related Sets ---------------------------------------------
 
 param_gn  "Possible parameters for grid, node" /
-    nodeBalance   "A flag to decide whether node balance constraint is to be used"
+    nodeBalance   "A flag to decide whether node balance constraint is to be used and price option disabled"
     selfDischargeLoss "Self discharge rate of the node (MW/[v_state])"
     energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh (MWh/[v_state])"
     boundStart    "A flag to bound the first t in the run using reference constant or time series"
+    boundStartOfSamples  "A flag to bound the first t of each sample using reference constant or time series"
     boundStartAndEnd "A flag that both start and end are bound using reference constant or time series"
     boundEnd      "A flag to bound last t in each solve based on the reference constant or time series"
+    boundEndOfSamples  "A flag to bound the last t of each sample using reference constant or time series"
     boundAll      "A flag to bound the state to the reference in all time steps"
     boundStartToEnd  "Force the last states to equal the first state"
 *    forecastLength "Length of forecasts in use for the node (hours). After this, the node will use the central forecast."  // NOT IMPLEMENTED
     capacityMargin "Capacity margin used in invest mode (MW)"
     storageValueUseTimeSeries "A flag to determine whether to use time series form `storageValue`"
-    usePrice       "A flag to decide whether ts_priceChange is to be used"
+    usePrice       "A flag to decide if node has prices activated and balance deactivated"
 /
 
 param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
@@ -261,10 +260,9 @@ param_gnn "Set of possible data parameters for grid, node, node (nodal interconn
     investMIP     "A flag to make integer investment instead of continuous investment (MW versus number of links)"
     unitSize      "Size of one link for integer investments (MW)"
     invCost       "Investment cost (EUR/MW)"
-    annuity       "Investment annuity"
+    annuityFactor       "Investment annuityFactor used to multiply investment cost for annualization of costs"
     portion_of_transfer_to_reserve "Portion of the infeed from the unit that needs to be available as reserve if the unit fails"
-    ICrampUp
-    ICrampDown
+    rampLimit     "Maximum ramp speed (p.u./min). NOTE: does not apply to reserve tranfer at the moment."
     variableTransCost    "Variable cost applied to transfers (EUR/MW)"
     availability  "Availability of the interconnection (p.u.)"
     useTimeseriesAvailability "A flag to use time series form input for availability"
@@ -281,12 +279,19 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     upperLimitCapacityRatio  "Ratio of the upper limit of the node state and the unit capacity investment ([v_state]/MW)"
     unitSize      "Input/Output capacity of one subunit for integer investments (MW)"
     invCosts      "Investment costs (EUR/MW)"
-    annuity       "Investment annuity factor"
+    annuityFactor       "Investment annuityFactor used to multiply investment cost for annualization of costs"
     fomCosts      "Fixed operation and maintenance costs (EUR/MW/a)"
     vomCosts       "Variable operation and maintenance costs (EUR/MWh)"
     inertia       "Inertia of the unit (s)"
     unitSizeMVA   "Generator MVA rating of one subunit (MVA)"
     availabilityCapacityMargin  "Availability of the unit in the capacity margin equation (p.u.). If zero, v_gen is used. Currently used only for output capacity."
+    startCostCold "Variable start-up costs for cold starts excluding fuel costs (EUR/MW)"
+    startCostWarm "Variable start-up costs for warm starts excluding fuel costs (EUR/MW)"
+    startCostHot  "Variable start-up costs for hot starts excluding fuel costs (EUR/MW)"
+    startFuelConsCold "Consumption of start-up fuel per cold subunit started up (MWh_fuel/MW)"
+    startFuelConsWarm "Consumption of start-up fuel per warm subunit started up (MWh_fuel/MW)"
+    startFuelConsHot "Consumption of start-up fuel per hot subunit started up (MWh_fuel/MW)"
+    shutdownCost  "Cost of shutting down the unit (EUR/MW)"
 /
 
 param_gnuBoundaryProperties "Properties that can be set for the different boundaries" /
@@ -303,15 +308,8 @@ param_unit "Set of possible data parameters for units" /
     useInitialOnlineStatus   "A flag to fix the online status of a unit for the first time step (binary)"
     initialOnlineStatus      "Initial online status of the unit in the first time step (0-1)"
     unavailability  "Unavailability of given energy conversion technology (p.u.)"
-    startCostCold "Variable start-up costs for cold starts excluding fuel costs (EUR/MW)"
-    startCostWarm "Variable start-up costs for warm starts excluding fuel costs (EUR/MW)"
-    startCostHot  "Variable start-up costs for hot starts excluding fuel costs (EUR/MW)"
-    startFuelConsCold "Consumption of start-up fuel per cold subunit started up (MWh_fuel/MW)"
-    startFuelConsWarm "Consumption of start-up fuel per warm subunit started up (MWh_fuel/MW)"
-    startFuelConsHot "Consumption of start-up fuel per hot subunit started up (MWh_fuel/MW)"
     startColdAfterXhours "Offline hours after which the start-up will be a cold start (h)"
     startWarmAfterXhours "Offline hours after which the start-up will be a warm start (h)"
-    shutdownCost  "Cost of shutting down the unit"
     rampSpeedToMinLoad "Ramping speed from start-up to minimum load (p.u./min)"
     rampSpeedFromMinLoad "Ramping speed from shutdown decision to zero load (p.u./min)"
     minOperationHours "Minimum operation time (h), prevents shutdown after startup until the defined amount of time has passed"
@@ -362,7 +360,6 @@ param_unitStartupfuel "Parameters for startup fuel limits in units" /
 /
 
 param_policy "Set of possible data parameters for groups or grid, node, regulation" /
-    emissionTax   "Emission tax (EUR/tonne)"
     emissionCap   "Emission limit (tonne)"
     instantaneousShareMax "Maximum instantaneous share of generation and import from a particular group of units and transfer links"
     energyMax      "Maximum energy production or consumption from particular grid-node-units over particular samples"

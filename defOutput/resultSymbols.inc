@@ -142,23 +142,20 @@ r_uTotalShutdown
 
 * --- Emissions Results -----------------------------------------------
 
-// Unit level emissions from normal operation inputs
+// Unit level emissions from normal operation
 r_emissions
-
-// Unit level emissions from outputs, not considered in the equations
-r_emissionsFromOutput
 
 // Unit level emissions from start-ups
 r_emissionsStartup
 
 // Emission sums
 r_nuTotalEmissionsOperation
-r_nuTotalEmissionsFromOutput
 r_nuTotalEmissionsStartup
 r_nuTotalEmissions
 r_nTotalEmissions
 r_uTotalEmissions
 r_totalEmissions
+r_groupTotalEmissions
 
 * --- Reserve Provision Result Symbols ----------------------------------------
 
@@ -184,6 +181,7 @@ r_groupTotalReserve
 
 // Interesting investment results
 r_invest
+r_investCapacity
 r_investTransfer
 
 * --- Sum results for groups --------------------------------------------------
@@ -210,7 +208,6 @@ d_eff
 d_capacityFactor
 d_nodeState
 d_influx
-d_state
 $endif.diag
 
 // Metadata and settings

@@ -137,9 +137,6 @@ Parameters
     // Unit level emissions from normal operation inputs
     r_emissions(grid, node, emission, unit, f, t) "Emissions from units (tCO2)"
 
-    // Unit level emissions from outputs, not considered in the equations
-    r_emissionsFromOutput(grid, node, emission, unit, f, t) "Emissions from outputs (tCO2)"
-
     // Unit level emissions from start-ups
     r_emissionsStartup(node, emission, unit, f, t) "Emissions from units in start-ups (tCO2)"
 
@@ -151,6 +148,7 @@ Parameters
     r_nTotalEmissions(node, emission) "node total emissions (tCO2)"
     r_uTotalEmissions(unit, emission) "unit total emissions (tCO2)"
     r_totalEmissions (emission) "Total emissions (tCO2)"
+    r_groupTotalEmissions (group, emission) "Group total emissions (tCO2)"
 
 
 * --- Unit Online State Results -----------------------------------------------
@@ -193,7 +191,8 @@ Parameters
 
     // Interesting investment results
     r_invest(unit) "Number/amount of invested sub-units"
-    r_investTransfer(grid, node, node, t) "Amount of invested transfer link capacity"
+    r_investCapacity(grid, node, unit) "Total amount of invested capacity in units (MW)"
+    r_investTransfer(grid, node, node, t) "Amount of invested transfer link capacity (MW)"
 
 * --- Group results -----------------------------------------------------------
 
@@ -228,6 +227,7 @@ Option clear = r_gen;
 Option clear = r_realizedLast;
 Option clear = r_startup;
 Option clear = r_shutdown;
+Option clear = r_transfer;
 Option clear = r_invest;
 Option clear = r_investTransfer;
 Option clear = r_qResDemand;
@@ -245,7 +245,5 @@ Parameters
     d_capacityFactor(flow, node, s, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
     d_nodeState(grid, node, param_gnBoundaryTypes, s, f, t) "Diagnostic temperature forecasts (accounting for GAMS plotting error)"
     d_influx(grid, node, s, f, t) "Diagnostic influx forecasts (accounting for GAMS plotting error)"
-    d_state(grid, node, scenario, f, t) "Diagnostic state results in each scenario"
-    d_ts_scenarios(timeseries, *, node, scenario, f, t) "Diagnostic time series values in scenarios"
 ;
 $endif.diag
