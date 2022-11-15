@@ -489,7 +489,17 @@ loop(m,
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
-* --- Total Transfer and Spill ------------------------------------------------
+* --- Total Diffusion, Transfer and Spill ------------------------------------------------
+
+    // Total diffusion of energy between nodes
+    r_gnnTotalDiffusion(gn2n(grid, from_node, to_node))
+        = sum(ft_realizedNoReset(f, startp(t)),
+            + r_gnnDiffusion(grid, from_node, to_node, f, t)
+                * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+            ); // END sum(ft_realizedNoReset)
+
+
 
     // Total transfer of energy between nodes
     r_gnnTotalTransfer(gn2n(grid, from_node, to_node))
