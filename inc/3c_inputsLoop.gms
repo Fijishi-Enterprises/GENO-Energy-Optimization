@@ -368,23 +368,18 @@ $offtext
     // ts_influx_ for active t in solve including aggregated time steps
     ts_influx_(gn_influx(grid, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
-            ts_influx(grid, node,
-                f + (  df_realization(f, t)),
-                t_  )
+            ts_influx(grid, node, f + df_realization(f, t), t_)
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
     // ts_cf_ for active t in solve including aggregated time steps
     ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
-            ts_cf(flow, node,
-                f + (  df_realization(f, t)),
-                t_ )
+            ts_cf(flow, node, f + df_realization(f, t), t_)
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
     // Reserves relevant only until reserve_length
     ts_reserveDemand_(restypeDirectionGroup(restype, up_down, group), ft(f, tt_interval(t)))
       ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')  }
         = sum(tt_aggcircular(t, t_),
-            ts_reserveDemand(restype, up_down, group,
-                f + (  df_realization(f, t) ), t_)
+            ts_reserveDemand(restype, up_down, group, f + df_realization(f, t), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
@@ -392,25 +387,19 @@ $offtext
     ts_node_(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), sft(s, f, tt_interval(t)))
            // Take average if not a limit type
         = (sum(tt_aggcircular(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t) ),
-                    t_ )
+                ts_node(grid, node, param_gnBoundaryTypes, f + df_realization(f, t), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter))$( not (sameas(param_gnBoundaryTypes, 'upwardLimit')
                                                                 or sameas(param_gnBoundaryTypes, 'downwardLimit')
                                                                 or slack(param_gnBoundaryTypes)))
           // Maximum lower limit
           + smax(tt_aggcircular(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)),
-                    t_ )
+                ts_node(grid, node, param_gnBoundaryTypes, f + df_realization(f, t), t_)
                 )
                 $(sameas(param_gnBoundaryTypes, 'downwardLimit') or downwardSlack(param_gnBoundaryTypes))
           // Minimum upper limit
           + smin(tt_aggcircular(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)),
-                    t_ )
+                ts_node(grid, node, param_gnBoundaryTypes, f + df_realization(f, t), t_)
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
 
@@ -493,8 +482,8 @@ $offtext
 
     // `storageValue`
     ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'storageValueUseTimeSeries') }
-        = sum(tt_aggregate(t, t_),
-            ts_storageValue(grid, node, f + df_realization(f, t), t_+ dt_circular(t_) )
+        = sum(tt_aggcircular(t, t_),
+            ts_storageValue(grid, node, f + df_realization(f, t), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 

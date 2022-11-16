@@ -50,6 +50,7 @@ All notable changes to this project will be documented in this file.
 - not applying energy balance dummy if node does not have energy balance
 - excluding directOff units from a set of units with minimum load
 - improving ts_node looping efficiency
+- improving ts_storageValue looping efficiency
 
 ### Fixed
 - fixing div by zero in twoWayTransfer limits with 0 availability
