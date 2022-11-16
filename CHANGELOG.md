@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - results table invested capacity
 - result table for total emissions of emission groups
 - template to activate barrier algorithm in cplex.opt
+- adding number of completed solves between loops
 
 ### Changed - requiring input data changes - see conversion guide from 2.x to 3.x 
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io

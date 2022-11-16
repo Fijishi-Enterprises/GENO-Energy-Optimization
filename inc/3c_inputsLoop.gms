@@ -19,8 +19,13 @@ $offtext
 * --- Update the Forecast Data ------------------------------------------------
 * =============================================================================
 
+tmp = round(sum(m, mSettings(m, 't_end')) / sum(m, mSettings(m, 't_jump')), 0);
+
 put log 'ord tSolve: ';
 put log ord(tSolve):0:0 /;
+put log 'solve count : '
+put log solveCount:0:0 '/' tmp:0:0 /;
+
 putclose log;
 
 // Determine the necessary horizon for updating data
