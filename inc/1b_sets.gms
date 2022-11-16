@@ -81,6 +81,7 @@ Sets
     gnu_output(grid, node, unit) "Forms of energy the unit uses as endogenous outputs"
     nu(node, unit) "Units attached to particular nodes"
     nu_startup(node, unit) "Units consuming energy from particular nodes in start-up"
+    gn_influx(grid, node) "nodes with influx time series"
     gn_state(grid, node) "Nodes with a state variable"
     gn_stateSlack(grid, node) "Nodes with a state slack variable"
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"

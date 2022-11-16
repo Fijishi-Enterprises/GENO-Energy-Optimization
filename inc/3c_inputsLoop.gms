@@ -78,7 +78,7 @@ $offtext
     if (mTimeseries_loop_read(mSolve, 'ts_influx'),
         put_utility 'gdxin' / '%input_dir%/ts_influx/' tSolve.tl:0 '.gdx';
         execute_load ts_influx_update=ts_influx;
-        ts_influx(gn(grid, node), f_solve(f), tt_forecast(t))
+        ts_influx(gn_influx(grid, node), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
                 and (mSettings(mSolve, 'onlyExistingForecasts')
                      -> ts_influx_update(grid, node, f, t)) // Update only existing values (zeroes need to be EPS)
@@ -204,7 +204,7 @@ $ontext
             = ts_effGroupUnit(effSelector, unit, param_eff, f, t) - ts_effGroupUnit(effSelector, unit, param_eff, f+ddf(f), t);
 $offtext
         // ts_influx
-        ts_influx(gn(grid, node), f, tt(t))
+        ts_influx(gn_influx(grid, node), f, tt(t))
             = ts_influx(grid, node, f, t) - ts_influx(grid, node, f+ddf(f), t);
         // ts_cf
         ts_cf(flowNode(flow, node), f, tt(t))
@@ -255,7 +255,7 @@ $ontext
                 ] / mSettings(mSolve, 't_improveForecast');
 $offtext
         // ts_influx
-        ts_influx(gn(grid, node), f, tt(t))
+        ts_influx(gn_influx(grid, node), f, tt(t))
             = [ + (ord(t) - tSolveFirst)
                     * ts_influx(grid, node, f, t)
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
@@ -307,7 +307,7 @@ $ontext
             = ts_effGroupUnit(effSelector, unit, param_eff, f, t) + ts_effGroupUnit(effSelector, unit, param_eff, f+ddf(f), t);
 $offtext
         // ts_influx
-        ts_influx(gn(grid, node), f, tt(t))
+        ts_influx(gn_influx(grid, node), f, tt(t))
             = ts_influx(grid, node, f, t) + ts_influx(grid, node, f+ddf(f), t);
         // ts_cf
         ts_cf(flowNode(flow, node), f, tt(t))
@@ -361,9 +361,9 @@ $ontext
             / mInterval(mSolve, 'stepsPerInterval', counter);
 $offtext
     // ts_influx_ for active t in solve including aggregated time steps
-    ts_influx_(gn, sft(s, f, tt_interval(t)))
+    ts_influx_(gn_influx(grid, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
-            ts_influx(gn,
+            ts_influx(grid, node,
                 f + (  df_realization(f, t)),
                 t_  )
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
