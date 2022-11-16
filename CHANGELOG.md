@@ -49,6 +49,7 @@ All notable changes to this project will be documented in this file.
 - replacing gnuft with gnusft to reduce model size
 - not applying energy balance dummy if node does not have energy balance
 - excluding directOff units from a set of units with minimum load
+- improving ts_node looping efficiency
 
 ### Fixed
 - fixing div by zero in twoWayTransfer limits with 0 availability
@@ -61,6 +62,7 @@ All notable changes to this project will be documented in this file.
 - fixing div by 0 error in r_gnuUtilizationRate if unit has no unit size
 - fixed shutdown variable at the beginning of solve for MIP units
 - fixed multiplying unit ramping costs and transfer variable cost by stepLength in objective function
+- fixing a case where ts_node was not looped for all included values
 
 
 ## 2.2 - 2022-03-24

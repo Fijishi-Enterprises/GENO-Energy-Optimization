@@ -84,6 +84,7 @@ Sets
     gn_influx(grid, node) "nodes with influx time series"
     gn_state(grid, node) "Nodes with a state variable"
     gn_stateSlack(grid, node) "Nodes with a state slack variable"
+    gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes) "nodes with time series for boundaryTypes (ts_node)"
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
     gnn_boundState(grid, node, node) "Nodes with state variables bound by other nodes"
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"

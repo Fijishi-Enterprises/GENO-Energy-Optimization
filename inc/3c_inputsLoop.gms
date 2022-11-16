@@ -119,7 +119,7 @@ $offtext
     if (mTimeseries_loop_read(mSolve, 'ts_node'),
         put_utility 'gdxin' / '%input_dir%/ts_node/' tSolve.tl:0 '.gdx';
         execute_load ts_node_update=ts_node;
-        ts_node(gn(grid, node), param_gnBoundaryTypes, f_solve(f), tt_forecast(t))
+        ts_node(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
                 and (mSettings(mSolve, 'onlyExistingForecasts')
                      -> ts_node_update(grid, node, param_gnBoundaryTypes, f ,t)) // Update only existing values (zeroes need to be EPS)
@@ -218,7 +218,7 @@ $offtext
         ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
             = ts_reserveDemand(restype, up_down, group, f, t) - ts_reserveDemand(restype, up_down, group, f+ddf(f), t);
         // ts_node
-        ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
+        ts_node(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) - ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
         // ts_gnn
         ts_gnn(gn2n_timeseries(grid, node, node_, param_gnn), f, tt(t)) // Only update if time series enabled
@@ -281,7 +281,7 @@ $offtext
                     * ts_reserveDemand(restype, up_down, group, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
         // ts_node
-        ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
+        ts_node(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), f, tt(t))
             = [ + (ord(t) - tSolveFirst)
                     * ts_node(grid, node, param_gnBoundaryTypes, f, t)
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
@@ -321,7 +321,7 @@ $offtext
         ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
             = max(ts_reserveDemand(restype, up_down, group, f, t) + ts_reserveDemand(restype, up_down, group, f+ddf(f), t), 0); // Ensure that reserve demand forecasts remains positive
        // ts_node
-        ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
+        ts_node(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) + ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
         // ts_gnn
         ts_gnn(gn2n_timeseries(grid, node, node_, param_gnn), f, tt(t)) // Only update if time series enabled
@@ -389,8 +389,7 @@ $offtext
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
     // ts_node_ for active t in solve including aggregated time steps
-    ts_node_(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f, tt_interval(t)))
-      ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
+    ts_node_(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), sft(s, f, tt_interval(t)))
            // Take average if not a limit type
         = (sum(tt_aggcircular(t, t_),
                 ts_node(grid, node, param_gnBoundaryTypes,

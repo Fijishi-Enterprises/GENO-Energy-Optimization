@@ -386,6 +386,13 @@ gn(grid, node)${    sum(unit, gnu(grid, node, unit))
 node_spill(node)${ sum((grid, spillLimits, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, spillLimits, useConstantOrTimeSeries)) }
     = yes;
 
+// Nodes with balance and timeseries for boundary properties activated
+gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes)
+    ${p_gn(grid, node, 'nodeBalance')
+      and p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+      }
+    = yes;
+
 // Assume values for critical node related parameters, if not provided by input data
 // Boundary multiplier
 p_gnBoundaryPropertiesForStates(gn(grid, node), param_gnBoundaryTypes, 'multiplier')${  not p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'multiplier')
