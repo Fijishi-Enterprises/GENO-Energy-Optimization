@@ -341,7 +341,7 @@ loop(m,
             );
 
     // energy generation for each gridnode (MW)
-    r_gnGen(grid, node, f, t)
+    r_gnGen(gn(grid, node), ft_realizedNoReset(f, startp(t)))
         = sum(unit, r_gen(grid, node, unit, f, t));
 
     // Total generation in gn
@@ -382,7 +382,7 @@ loop(m,
 
     // Emissions from nodes specific and unit specific
     // inputs (not including start-up fuels) and outputs
-    r_emissions(grid, node, emission, unit, ft_realizedNoReset(f,startp(t)))
+    r_emissions(gn(grid, node), emission, unit, ft_realizedNoReset(f,startp(t)))
         $ {p_nEmission(node, emission) or p_gnuEmission(grid, node, unit, emission)}
         =   + p_stepLengthNoReset(m, f, t)
             * (
@@ -429,7 +429,7 @@ loop(m,
     ;
 
     // Emission sums (including normal operation and start-ups)
-    r_nuTotalEmissions(node, unit, emission)
+    r_nuTotalEmissions(nu(node, unit), emission)
         = r_nuTotalEmissionsOperation(node, unit, emission)
             + r_nuTotalEmissionsStartup(node, unit, emission)
     ;
@@ -574,7 +574,7 @@ r_resDemandMarginal(restypeDirectionGroup(restype, up_down, group), ft_realizedN
 
 * --- Annual averages of marginal values --------------------------------------
 
-r_balanceMarginalAverage(grid, node)
+r_balanceMarginalAverage(gn(grid, node))
     = sum(ft_realizedNoReset(f, startp(t)),
          + r_balanceMarginal(grid, node, f, t)
             // * p_stepLengthNoReset(m, f, t)   // not including steplength due to division by number of timesteps
