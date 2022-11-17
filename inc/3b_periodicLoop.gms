@@ -570,10 +570,10 @@ Option clear = uft_onlineMIP_withPrevious;
 
 // Determine the intervals when units need to have online variables.
 loop(effOnline(effSelector),
-    uft_online(uft(unit, f, t))${ eff_uft(effOnline, unit, f, t) and not unit_invest(unit)}
+    uft_online(uft(unit, f, t))${ eff_uft(effOnline, unit, f, t) }
         = yes;
 ); // END loop(effOnline)
-uft_onlineLP(uft(unit, f, t))${ eff_uft('directOnLP', unit, f, t) and not unit_invest(unit) }
+uft_onlineLP(uft(unit, f, t))${ eff_uft('directOnLP', unit, f, t) }
     = yes;
 uft_onlineMIP(uft_online(unit, f, t)) = uft_online(unit, f, t) - uft_onlineLP(unit, f, t);
 
