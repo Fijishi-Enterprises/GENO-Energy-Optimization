@@ -252,9 +252,9 @@ loop(m,
     loop(effLevel$mSettingsEff(m, effLevel),
         continueLoop = continueLoop + 1;
         if (continueLoop = 1,
-            unit_online(unit)${ sum(effSelector$effOnline(effSelector), effLevelGroupUnit(effLevel, effSelector, unit))  and not unit_invest(unit)}
+            unit_online(unit)${ sum(effSelector$effOnline(effSelector), effLevelGroupUnit(effLevel, effSelector, unit)) }
                 = yes;
-            unit_online_LP(unit)${ sum(effSelector, effLevelGroupUnit(effLevel, 'directOnLP', unit))  and not unit_invest(unit)}
+            unit_online_LP(unit)${ sum(effSelector, effLevelGroupUnit(effLevel, 'directOnLP', unit)) }
                 = yes;
             unit_online_MIP(unit) = unit_online(unit) - unit_online_LP(unit);
         );

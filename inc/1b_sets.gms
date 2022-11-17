@@ -141,7 +141,7 @@ Sets
 
 * --- Sets used for the changing unit aggregation and efficiency approximations as well as unit lifetimes
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
-    uft_online(unit, f, t) "Units with any online and startup variables on intervals. Excludes units with investment options."
+    uft_online(unit, f, t) "Units with any online and startup variables on intervals"
     uft_onlineLP(unit, f, t) "Units with LP online and startup variables on intervals"
     uft_onlineMIP(unit, f, t) "Units with MIP online and startup variables on intervals"
     uft_onlineLP_withPrevious(unit,f,t) "Units with LP online and startup variables on intervals, including t0"
