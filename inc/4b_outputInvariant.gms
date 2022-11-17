@@ -324,6 +324,26 @@ loop(m,
                 * p_unStartup(unit, node, starttype) // MWh/start-up
             ); // END sum(unitStarttype)
 
+* --- Curtailed Nodal Energy Generation ---------------------------------------
+
+    r_gnCurtailments(gn(grid, node), ft_realizedNoReset(f,startp(t)))
+        ${sum(flow, flowNode(flow, node))}
+        = sum(flowUnit(flow, unit),
+            // + (capacity + investments) * ts_cf   for generating units only
+            + [p_gnu(grid, node, unit, 'capacity')$gnu_output(grid, node, unit)
+               + r_invest(unit)$gnu_output(grid, node, unit)
+              ]
+            * ts_cf(flow, node, f ,t)
+
+            // - actual generation
+            - r_gen(grid, node, unit, f, t)
+        ); // END sum(flowUnit)
+
+    r_gnTotalCurtailments(gn(grid, node))
+        ${sum(flow, flowNode(flow, node))}
+        = sum(ft_realizedNoReset(f,startp(t)), r_gnCurtailments(grid, node, f, t)
+          ); // END sum (ft_realizedNoReset)
+
 * --- Total Energy Generation -------------------------------------------------
 
     // Total energy generation in gnu

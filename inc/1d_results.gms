@@ -95,6 +95,8 @@ Parameters
     r_gnTotalSpillShare(grid, node) "Total spilled energy gn/g share"
     r_gTotalSpill(grid) "Total spilled energy from gn over the simulation (MWh)"
     r_gnnDiffusion(grid, node, node, f, t) "Diffusion between nodes"
+    r_gnCurtailments(grid, node, f, t) "Curtailed flow generation in node"
+    r_gnTotalCurtailments(grid, node) "Total curtailed flow generation in node"
 
 * --- Energy Generation/Consumption Results -----------------------------------
 
