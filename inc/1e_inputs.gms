@@ -356,6 +356,9 @@ gn2n_timeseries(grid, node, node_, 'transferLoss')${p_gnn(grid, node, node_, 'us
 
 * --- Node States -------------------------------------------------------------
 
+// (grid, node) that has influx time series
+option gn_influx < ts_influx;
+
 // States with slack variables
 gn_stateSlack(grid, node)${ sum((slack, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, slack, useConstantOrTimeSeries)) }
     = yes;
@@ -370,8 +373,8 @@ gn_state(grid, node)${  gn_stateSlack(grid, node)
 
 // Existing grid-node pairs
 gn(grid, node)${    sum(unit, gnu(grid, node, unit))
+                    or gn_influx(grid, node)
                     or gn_state(grid, node)
-                    or sum((f, t), ts_influx(grid, node, f, t))
                     or sum(node_, gn2n(grid, node, node_))
                     or sum(node_, gn2n(grid, node_, node))
                     or sum(node_, gnn_state(grid, node, node_))
@@ -381,6 +384,13 @@ gn(grid, node)${    sum(unit, gnu(grid, node, unit))
 
 // Nodes with spill permitted
 node_spill(node)${ sum((grid, spillLimits, useConstantOrTimeSeries), p_gnBoundaryPropertiesForStates(grid, node, spillLimits, useConstantOrTimeSeries)) }
+    = yes;
+
+// Nodes with balance and timeseries for boundary properties activated
+gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes)
+    ${p_gn(grid, node, 'nodeBalance')
+      and p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
+      }
     = yes;
 
 // Assume values for critical node related parameters, if not provided by input data

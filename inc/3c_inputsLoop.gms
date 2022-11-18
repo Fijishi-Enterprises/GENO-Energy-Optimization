@@ -19,8 +19,13 @@ $offtext
 * --- Update the Forecast Data ------------------------------------------------
 * =============================================================================
 
+tmp = round(sum(m, mSettings(m, 't_end')) / sum(m, mSettings(m, 't_jump')), 0);
+
 put log 'ord tSolve: ';
 put log ord(tSolve):0:0 /;
+put log 'solve count : '
+put log solveCount:0:0 '/' tmp:0:0 /;
+
 putclose log;
 
 // Determine the necessary horizon for updating data
@@ -78,7 +83,7 @@ $offtext
     if (mTimeseries_loop_read(mSolve, 'ts_influx'),
         put_utility 'gdxin' / '%input_dir%/ts_influx/' tSolve.tl:0 '.gdx';
         execute_load ts_influx_update=ts_influx;
-        ts_influx(gn(grid, node), f_solve(f), tt_forecast(t))
+        ts_influx(gn_influx(grid, node), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
                 and (mSettings(mSolve, 'onlyExistingForecasts')
                      -> ts_influx_update(grid, node, f, t)) // Update only existing values (zeroes need to be EPS)
@@ -114,7 +119,7 @@ $offtext
     if (mTimeseries_loop_read(mSolve, 'ts_node'),
         put_utility 'gdxin' / '%input_dir%/ts_node/' tSolve.tl:0 '.gdx';
         execute_load ts_node_update=ts_node;
-        ts_node(gn(grid, node), param_gnBoundaryTypes, f_solve(f), tt_forecast(t))
+        ts_node(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
                 and (mSettings(mSolve, 'onlyExistingForecasts')
                      -> ts_node_update(grid, node, param_gnBoundaryTypes, f ,t)) // Update only existing values (zeroes need to be EPS)
@@ -204,7 +209,7 @@ $ontext
             = ts_effGroupUnit(effSelector, unit, param_eff, f, t) - ts_effGroupUnit(effSelector, unit, param_eff, f+ddf(f), t);
 $offtext
         // ts_influx
-        ts_influx(gn(grid, node), f, tt(t))
+        ts_influx(gn_influx(grid, node), f, tt(t))
             = ts_influx(grid, node, f, t) - ts_influx(grid, node, f+ddf(f), t);
         // ts_cf
         ts_cf(flowNode(flow, node), f, tt(t))
@@ -213,7 +218,7 @@ $offtext
         ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
             = ts_reserveDemand(restype, up_down, group, f, t) - ts_reserveDemand(restype, up_down, group, f+ddf(f), t);
         // ts_node
-        ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
+        ts_node(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) - ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
         // ts_gnn
         ts_gnn(gn2n_timeseries(grid, node, node_, param_gnn), f, tt(t)) // Only update if time series enabled
@@ -255,7 +260,7 @@ $ontext
                 ] / mSettings(mSolve, 't_improveForecast');
 $offtext
         // ts_influx
-        ts_influx(gn(grid, node), f, tt(t))
+        ts_influx(gn_influx(grid, node), f, tt(t))
             = [ + (ord(t) - tSolveFirst)
                     * ts_influx(grid, node, f, t)
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
@@ -276,7 +281,7 @@ $offtext
                     * ts_reserveDemand(restype, up_down, group, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
         // ts_node
-        ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
+        ts_node(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), f, tt(t))
             = [ + (ord(t) - tSolveFirst)
                     * ts_node(grid, node, param_gnBoundaryTypes, f, t)
                 + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
@@ -307,7 +312,7 @@ $ontext
             = ts_effGroupUnit(effSelector, unit, param_eff, f, t) + ts_effGroupUnit(effSelector, unit, param_eff, f+ddf(f), t);
 $offtext
         // ts_influx
-        ts_influx(gn(grid, node), f, tt(t))
+        ts_influx(gn_influx(grid, node), f, tt(t))
             = ts_influx(grid, node, f, t) + ts_influx(grid, node, f+ddf(f), t);
         // ts_cf
         ts_cf(flowNode(flow, node), f, tt(t))
@@ -316,7 +321,7 @@ $offtext
         ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
             = max(ts_reserveDemand(restype, up_down, group, f, t) + ts_reserveDemand(restype, up_down, group, f+ddf(f), t), 0); // Ensure that reserve demand forecasts remains positive
        // ts_node
-        ts_node(gn(grid, node), param_gnBoundaryTypes, f, tt(t))
+        ts_node(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), f, tt(t))
             = ts_node(grid, node, param_gnBoundaryTypes, f, t) + ts_node(grid, node, param_gnBoundaryTypes, f+ddf(f), t);
         // ts_gnn
         ts_gnn(gn2n_timeseries(grid, node, node_, param_gnn), f, tt(t)) // Only update if time series enabled
@@ -361,52 +366,40 @@ $ontext
             / mInterval(mSolve, 'stepsPerInterval', counter);
 $offtext
     // ts_influx_ for active t in solve including aggregated time steps
-    ts_influx_(gn, sft(s, f, tt_interval(t)))
+    ts_influx_(gn_influx(grid, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
-            ts_influx(gn,
-                f + (  df_realization(f, t)),
-                t_  )
+            ts_influx(grid, node, f + df_realization(f, t), t_)
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
     // ts_cf_ for active t in solve including aggregated time steps
     ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
-            ts_cf(flow, node,
-                f + (  df_realization(f, t)),
-                t_ )
+            ts_cf(flow, node, f + df_realization(f, t), t_)
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
     // Reserves relevant only until reserve_length
     ts_reserveDemand_(restypeDirectionGroup(restype, up_down, group), ft(f, tt_interval(t)))
       ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')  }
         = sum(tt_aggcircular(t, t_),
-            ts_reserveDemand(restype, up_down, group,
-                f + (  df_realization(f, t) ), t_)
+            ts_reserveDemand(restype, up_down, group, f + df_realization(f, t), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
     // ts_node_ for active t in solve including aggregated time steps
-    ts_node_(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f, tt_interval(t)))
-      ${p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries') }
+    ts_node_(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), sft(s, f, tt_interval(t)))
            // Take average if not a limit type
         = (sum(tt_aggcircular(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t) ),
-                    t_ )
+                ts_node(grid, node, param_gnBoundaryTypes, f + df_realization(f, t), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter))$( not (sameas(param_gnBoundaryTypes, 'upwardLimit')
                                                                 or sameas(param_gnBoundaryTypes, 'downwardLimit')
                                                                 or slack(param_gnBoundaryTypes)))
           // Maximum lower limit
           + smax(tt_aggcircular(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)),
-                    t_ )
+                ts_node(grid, node, param_gnBoundaryTypes, f + df_realization(f, t), t_)
                 )
                 $(sameas(param_gnBoundaryTypes, 'downwardLimit') or downwardSlack(param_gnBoundaryTypes))
           // Minimum upper limit
           + smin(tt_aggcircular(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes,
-                    f + (  df_realization(f, t)),
-                    t_ )
+                ts_node(grid, node, param_gnBoundaryTypes, f + df_realization(f, t), t_)
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
 
@@ -489,8 +482,8 @@ $offtext
 
     // `storageValue`
     ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'storageValueUseTimeSeries') }
-        = sum(tt_aggregate(t, t_),
-            ts_storageValue(grid, node, f + df_realization(f, t), t_+ dt_circular(t_) )
+        = sum(tt_aggcircular(t, t_),
+            ts_storageValue(grid, node, f + df_realization(f, t), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 

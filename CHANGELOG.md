@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - results table invested capacity
 - result table for total emissions of emission groups
 - template to activate barrier algorithm in cplex.opt
+- adding number of completed solves between loops
+- result tables of curtailments (r_gnCurtailments and r_gnTotalCurtailments)
 
 ### Changed - requiring input data changes - see conversion guide from 2.x to 3.x 
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
@@ -33,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - added option to use ts_emissionPrice and/or ts_emissionPriceChange
 - added option to use timeseries based unit node constraints
 - making most of the input data tables optional. Listing mandatory ones in 1e_inputs
+- assuming default discount factor of 1 if not given in input data
 
 ### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
@@ -47,6 +50,9 @@ All notable changes to this project will be documented in this file.
 - replacing gnuft with gnusft to reduce model size
 - not applying energy balance dummy if node does not have energy balance
 - excluding directOff units from a set of units with minimum load
+- improving ts_node looping efficiency
+- improving ts_storageValue looping efficiency
+- reducing result table calculation duration
 
 ### Fixed
 - fixing div by zero in twoWayTransfer limits with 0 availability
@@ -59,6 +65,7 @@ All notable changes to this project will be documented in this file.
 - fixing div by 0 error in r_gnuUtilizationRate if unit has no unit size
 - fixed shutdown variable at the beginning of solve for MIP units
 - fixed multiplying unit ramping costs and transfer variable cost by stepLength in objective function
+- fixing a case where ts_node was not looped for all included values
 
 
 ## 2.2 - 2022-03-24

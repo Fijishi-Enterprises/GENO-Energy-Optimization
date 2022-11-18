@@ -81,8 +81,10 @@ Sets
     gnu_output(grid, node, unit) "Forms of energy the unit uses as endogenous outputs"
     nu(node, unit) "Units attached to particular nodes"
     nu_startup(node, unit) "Units consuming energy from particular nodes in start-up"
+    gn_influx(grid, node) "nodes with influx time series"
     gn_state(grid, node) "Nodes with a state variable"
     gn_stateSlack(grid, node) "Nodes with a state slack variable"
+    gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes) "nodes with time series for boundaryTypes (ts_node)"
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
     gnn_boundState(grid, node, node) "Nodes with state variables bound by other nodes"
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
@@ -153,7 +155,7 @@ Sets
 
 * --- Sets used for the changing unit aggregation and efficiency approximations as well as unit lifetimes
     uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
-    uft_online(unit, f, t) "Units with any online and startup variables on intervals. Excludes units with investment options."
+    uft_online(unit, f, t) "Units with any online and startup variables on intervals"
     uft_onlineLP(unit, f, t) "Units with LP online and startup variables on intervals"
     uft_onlineMIP(unit, f, t) "Units with MIP online and startup variables on intervals"
     uft_onlineLP_withPrevious(unit,f,t) "Units with LP online and startup variables on intervals, including t0"

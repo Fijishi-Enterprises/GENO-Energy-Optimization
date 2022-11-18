@@ -252,9 +252,9 @@ loop(m,
     loop(effLevel$mSettingsEff(m, effLevel),
         continueLoop = continueLoop + 1;
         if (continueLoop = 1,
-            unit_online(unit)${ sum(effSelector$effOnline(effSelector), effLevelGroupUnit(effLevel, effSelector, unit))  and not unit_invest(unit)}
+            unit_online(unit)${ sum(effSelector$effOnline(effSelector), effLevelGroupUnit(effLevel, effSelector, unit)) }
                 = yes;
-            unit_online_LP(unit)${ sum(effSelector, effLevelGroupUnit(effLevel, 'directOnLP', unit))  and not unit_invest(unit)}
+            unit_online_LP(unit)${ sum(effSelector, effLevelGroupUnit(effLevel, 'directOnLP', unit)) }
                 = yes;
             unit_online_MIP(unit) = unit_online(unit) - unit_online_LP(unit);
         );
@@ -868,6 +868,17 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
             abort "The 'utAvailabilityLimits(unit, t, 'becomeAvailable')' should correspond to a timestep in the model without the initial timestep!"
         ); // END if
     ); // END loop(unit_investMIP)
+
+* --- sample discount factors -------------------------------------------
+
+    loop(s_active(s),
+        // Check that the discount factor > 0
+        if(p_s_discountFactor(s)=0,
+            put log '!!! Warning: Sample discount weight is set to zero. Fixing the value to 1.' /;
+
+            p_s_discountFactor(s) = 1;
+        );
+    );
 
 ); // END loop(m)
 

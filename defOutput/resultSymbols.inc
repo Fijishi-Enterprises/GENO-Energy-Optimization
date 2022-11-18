@@ -90,6 +90,8 @@ r_gnTotalSpill
 r_gnTotalSpillShare
 r_gTotalSpill
 r_gnnDiffusion
+r_gnCurtailments
+r_gnTotalCurtailments
 
 * --- Energy Generation/Consumption Result Symbols ----------------------------
 

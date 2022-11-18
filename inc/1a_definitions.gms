@@ -230,7 +230,7 @@ param_gn  "Possible parameters for grid, node" /
     usePrice       "A flag to decide if node has prices activated and balance deactivated"
 /
 
-param_gnBoundaryTypes "Types of boundaries that can be set for a node with a state variable" /
+param_gnBoundaryTypes "Types of boundaries that can be set for a node with balance" /
     upwardLimit   "Absolute maximum state of the node (unit of measure depends on energyStoredPerUnitOfState)"
     downwardLimit "Absolute minimum energy in the node (unit of measure depends on energyStoredPerUnitOfState)"
     upwardSlack01*upwardSlack20 "A threshold after which a specific cost co-efficient is applied (unit of measure depends on energyStoredPerUnitOfState)"

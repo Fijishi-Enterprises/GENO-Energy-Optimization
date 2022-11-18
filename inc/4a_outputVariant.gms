@@ -206,7 +206,7 @@ d_capacityFactor(flowNode(flow, node), sft(s, f_solve(f), t_current(t)))
         + Eps
 ;
 // Node state forecast for examining the error
-d_nodeState(gn_state(grid, node), param_gnBoundaryTypes, sft(s, f_solve(f), t_current(t)))
+d_nodeState(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), sft(s, f_solve(f), t_current(t)))
     ${  p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, 'useTimeseries')
         and t_active(t)
         and msf(mSolve, s, f)

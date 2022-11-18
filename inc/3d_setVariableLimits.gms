@@ -66,7 +66,7 @@ loop(node$(not node_superpos(node)),
                                                     and not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))
                                                     and not df_central(f,t)
                                                     }
-            = ts_node_(grid, node,   'upwardLimit', s, f, t)
+            = ts_node_(grid, node, 'upwardLimit', s, f, t)
                     * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier')
     ;
     // Lower bound
