@@ -159,7 +159,6 @@ Sets
 *        addOn            "Use StoSSch as a storage add-on to a larger model" // NOT IMPLEMENTED
 *        extraRes         "Use extra tertiary reserves for error in elec. load during time step" // NOT IMPLEMENTED
 *        rampSched        "Use power based scheduling" // PARTIALLY IMPLEMENTED
-        checkUnavailability "Take into account ts_unit unavailability data"
          /
 * --- Set to declare time series that will be read between solves ------------------------------------------------------
     timeseries "Names of time series that could be loop read from files between solves" /
@@ -173,7 +172,6 @@ Sets
         ts_node
         ts_priceChange    // does not work currently
         ts_price          // does not work currently
-        ts_unavailability
         ts_storageValue
         ts_gnn
         /
@@ -307,7 +305,6 @@ param_unit "Set of possible data parameters for units" /
     availability  "Availability of given energy conversion technology (p.u.)"
     useInitialOnlineStatus   "A flag to fix the online status of a unit for the first time step (binary)"
     initialOnlineStatus      "Initial online status of the unit in the first time step (0-1)"
-    unavailability  "Unavailability of given energy conversion technology (p.u.)"
     startColdAfterXhours "Offline hours after which the start-up will be a cold start (h)"
     startWarmAfterXhours "Offline hours after which the start-up will be a warm start (h)"
     rampSpeedToMinLoad "Ramping speed from start-up to minimum load (p.u./min)"

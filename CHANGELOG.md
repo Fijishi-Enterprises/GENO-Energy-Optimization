@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Improved if checks when using unit node constraints
 - scenarios removed
 - additional sets and parameters in the input data gdx have to be defined in additionalSetsAndParameters.inc
+- removing unavailability (availability timeseries covers those functions from now on)
 
 ### Changed - not requiring input data changes
 - clearing Eps values from result table r_state

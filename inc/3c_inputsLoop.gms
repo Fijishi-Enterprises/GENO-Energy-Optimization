@@ -152,14 +152,6 @@ $offtext
 //            = ts_priceChange_update(node, t);
     ); // END if('ts_priceChange')
 
-    // Update ts_unavailability
-    if (mTimeseries_loop_read(mSolve, 'ts_unavailability'),
-        put_utility 'gdxin' / '%input_dir%/ts_unavailability/' tSolve.tl:0 '.gdx';
-        execute_load ts_unavailability_update=ts_unavailability;
-        ts_unavailability(unit, tt_forecast(t))
-*            ${ ts_unavailability_update(unit, t) } // Update only existing values (zeroes need to be EPS)
-            = ts_unavailability_update(unit, t);
-    ); // END if('ts_unavailability')
 
 ); // END if(tForecastNext)
 

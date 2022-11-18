@@ -170,7 +170,6 @@ Parameters   // optional parameter tables initiated as empty tables
     ts_priceChange(node, t) "Initial commodity price and consequent changes in commodity price (EUR//MWh)" / /
     ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tCO2)" / /
     ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tCO2)" / /
-    ts_unavailability(unit, t) "Unavailability of a unit in the time step (p.u.)"
 ;
 $offempty
 Parameters
@@ -197,7 +196,6 @@ Parameters
     ts_node_update(grid, node, param_gnBoundaryTypes, f, t)
     ts_gnn_update(grid, node, node, param_gnn, f, t)
 *    ts_priceChange_update(node, t)
-    ts_unavailability_update(unit, t)
 
     // Help parameters for calculating smoothening of time series
     ts_influx_std(grid, node, t)  "Standard deviation of ts_influx over samples"

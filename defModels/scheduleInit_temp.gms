@@ -119,7 +119,6 @@ if (mType('schedule'),
     mTimeseries_loop_read('schedule', 'ts_cf') = no;
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
     mTimeseries_loop_read('schedule', 'ts_node') = no;
-    mTimeseries_loop_read('schedule', 'ts_unavailability') = no;
 
     // Define Realized and Central forecasts
     mf_realization('schedule', f) = no;
