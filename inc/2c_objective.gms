@@ -150,13 +150,16 @@ q_obj ..
             ) // END sum(mftLastSteps)
         ) // END sum(gn_state)
 
-    // Investment Costs
+    // Fixed maintenance costs of existing units and investment costs of new units
     + sum(ms(m, s)${ sum(msft(m, s, f, t), 1) }, // consider ms only if it has active msft
         + p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
             * p_s_discountFactor(s) // Discount costs
             * [
-                // Unit investment costs (including fixed operation and maintenance costs)
                 + sum(gnu(grid, node, unit),
+                    // Fixed operation and maintenance costs of existing units
+                    + p_gnu(grid, node, unit, 'capacity')${not unit_investLP(unit) and not unit_investMIP(unit) and sum(msft(m, s, f, t_), uft(unit, f, t_))}
+                        * p_gnu(grid, node, unit, 'fomCosts')
+                    // Unit investment costs (including fixed operation and maintenance costs)
                     + v_invest_LP(unit)${ unit_investLP(unit) and sum(msft(m, s, f, t_), uft(unit, f, t_))} // consider unit only if it is active in the sample
                         * p_gnu(grid, node, unit, 'unitSize')
                         * [
