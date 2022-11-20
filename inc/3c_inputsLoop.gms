@@ -557,3 +557,26 @@ if(mSettings(mSolve, 'scenarios') > 0,  // Only do smooting if using long-term s
     );
 ); // END if('scenarios')
 $endif.autocorr
+
+* --- Calculate relative error -------------------------------------------------
+$iftheni %diag% == 'yes'
+d_totalEnergyMAPE(tSolve) = sum(t_active(t)$[ord(t) > ord(tSolve)], abs(1
+    // Forecast/scenario values with time aggragation
+    - sum((sft(s, f, t), gn(grid, node)),
+        p_msft_probability(mSolve, s, f, t) * (
+            ts_influx_(grid, node, s, f, t)
+            + sum(gnuft(grid, node, unit, f, t),
+                sum(flowUnit(flow, unit), ts_cf_(flow, node, s, f, t) * p_gnu(grid, node, unit, 'capacity'))
+              )
+        )
+      ) / (
+    // Actual values
+    sum((mf_realization(mSolve, f), gn(grid, node)),
+        ts_influx(grid, node, f, t)
+        + sum(gnuft(grid, node, unit, f, t),
+            sum(flowUnit(flow, unit), ts_cf(flow, node, f, t) * p_gnu(grid, node, unit, 'capacity'))
+          )
+    )
+  )
+)) / sum(t_active(t)$[ord(t) > ord(tSolve)], 1);
+$endif
