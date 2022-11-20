@@ -208,6 +208,7 @@ d_nodeState
 d_influx
 d_state
 d_netLoad_NMAE
+d_netLoad_NMAE_fcast
 $endif.diag
 
 // Metadata and settings

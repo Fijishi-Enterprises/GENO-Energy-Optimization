@@ -244,5 +244,6 @@ Parameters
     d_state(grid, node, scenario, f, t) "Diagnostic state results in each scenario"
     d_ts_scenarios(timeseries, *, node, scenario, f, t) "Diagnostic time series values in scenarios"
     d_netLoad_NMAE(t) "Normalised mean absolute error of net load compared to the actual realising value"
+    d_netLoad_NMAE_fcast(t) "Normalised mean absolute error of net load compared to the actual realising value, only forecasts"
 ;
 $endif.diag

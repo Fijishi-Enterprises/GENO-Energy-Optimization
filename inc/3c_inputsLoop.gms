@@ -587,4 +587,12 @@ d_netLoad_NMAE(tSolve) =
         abs(p_netLoad_model(t) - p_netLoad_real(t))
     ) / sum(t_current(t)$[ord(t) > ord(tSolve)], p_netLoad_real(t));
 
+loop(ms_initial(mSolve, s),
+    d_netLoad_NMAE_fcast(tSolve) =
+        sum(t_current(t)$[ord(t) > ord(tSolve) and ord(t) < msEnd(mSolve, s) + tSolveFirst],
+            abs(p_netLoad_model(t) - p_netLoad_real(t))
+        ) / sum(t_current(t)$[ord(t) > ord(tSolve) and ord(t) < msEnd(mSolve, s) + tSolveFirst],
+                p_netLoad_real(t)
+            );
+);
 $endif
