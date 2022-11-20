@@ -207,7 +207,7 @@ d_capacityFactor
 d_nodeState
 d_influx
 d_state
-d_totalEnergyMAPE
+d_netLoad_NMAE
 $endif.diag
 
 // Metadata and settings

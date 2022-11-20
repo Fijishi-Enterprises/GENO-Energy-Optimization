@@ -560,23 +560,31 @@ $endif.autocorr
 
 * --- Calculate relative error -------------------------------------------------
 $iftheni %diag% == 'yes'
-d_totalEnergyMAPE(tSolve) = sum(t_active(t)$[ord(t) > ord(tSolve)], abs(1
-    // Forecast/scenario values with time aggregation
-    - sum(msft(mSolve, s, f, t_)$tt_aggregate(t_, t),
+
+// Forecast/scenario values with time aggregation
+p_netLoad_model(t_current(t))$[ord(t) > ord(tSolve)]
+     = sum(msft(mSolve, s, f, t_)$tt_aggregate(t_, t),
         p_msft_probability(mSolve, s, f, t_) * sum(gn(grid, node),
-            ts_influx_(grid, node, s, f, t_)
-            + sum((gnuft(grid, node, unit, f, t_), flowUnit(flow, unit)),
+            -1 * ts_influx_(grid, node, s, f, t_)
+            - sum((gnuft(grid, node, unit, f, t_), flowUnit(flow, unit)),
                     ts_cf_(flow, node, s, f, t_) * p_gnu(grid, node, unit, 'capacity')
               )
         )
-      ) /
-    // Actual values
-    sum((mf_realization(mSolve, f), gn(grid, node)),
-        ts_influx(grid, node, f, t)
-        + sum((gnuft(grid, node, unit, f, t), flowUnit(flow, unit)),
+      );
+
+// Actual values
+p_netLoad_real(t_current(t))$[ord(t) > ord(tSolve)]
+     = sum((mf_realization(mSolve, f), gn(grid, node)),
+        -1 * ts_influx(grid, node, f, t)
+        - sum((gnuft(grid, node, unit, f, t), flowUnit(flow, unit)),
             ts_cf(flow, node, f, t) * p_gnu(grid, node, unit, 'capacity')
           )
-    )
-  )
-) / sum(t_active(t)$[ord(t) > ord(tSolve)], 1);
+    );
+
+// Calculate MAE and normalize with average realized net load
+d_netLoad_NMAE(tSolve) =
+    sum(t_current(t)$[ord(t) > ord(tSolve)],
+        abs(p_netLoad_model(t) - p_netLoad_real(t))
+    ) / sum(t_current(t)$[ord(t) > ord(tSolve)], p_netLoad_real(t));
+
 $endif
