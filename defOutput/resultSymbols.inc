@@ -43,6 +43,7 @@ r_gnnVariableTransCost
 r_gnnTotalVariableTransCost
 r_gnnTransferValue
 r_gnnTotalTransferValue
+r_gnnTotalDiffusion
 
 // Investment and Fixed Operation and Maintenance Cost Components
 r_gnuFOMCost
