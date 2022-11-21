@@ -699,6 +699,13 @@ p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConsta
           )
 ;
 
+// removing flag to use p_vomCost if cost is zero
+loop(gnu$p_vomCost(gnu, 'useConstant'),
+    if(p_vomCost(gnu, 'price')= 0,  
+        p_vomCost(gnu, 'useConstant')=0; 
+    );
+);
+
 
 // Startup cost calculations
 // looping gnu to decide if using static or time series pricing
@@ -737,6 +744,13 @@ p_startupCost(unit, starttype, 'price')$p_startupCost(unit, starttype, 'useConst
            ] // END * p_unStartup
          ) // END sum(nu_startup)
 ;
+
+// removing flag to use p_startupCost if cost is zero
+loop(unitStarttype(unit, starttype)$p_startupCost(unit, starttype, 'useConstant'),
+    if(p_startupCost(unit, starttype, 'price') = 0,
+        p_startupCost(unit, starttype, 'useConstant') = 0;
+    );
+);
 
 
 * --- Slack Direction ---------------------------------------------------------
