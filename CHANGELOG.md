@@ -6,39 +6,42 @@ All notable changes to this project will be documented in this file.
 - option to use availabilityCapacityMargin for input units
 - Adding possibility for gnu specific emission factors.
 - time series for emission costs
-- option to bound storage states at the beginning or end of samples
-- results table invested capacity
-- result table for total emissions of emission groups
-- template to activate barrier algorithm in cplex.opt
-- adding number of completed solves between loops
-- result tables of curtailments (r_gnCurtailments and r_gnTotalCurtailments)
+- option to bound storage states at the beginning and/or end of samples
+- template to activate barrier algorithm in cplex.opt (cplex_templateBarrier.opt)
+- timeseries based unit node constraints
+- option to add user defined parameters and sets in additionalSetsAndParameters.inc
+
+### Removed - requiring input data changes - see conversion guide from 2.x to 3.x 
+- scenarios removed
+- removing unavailability (availability timeseries covers those functions from now on)
 
 ### Changed - requiring input data changes - see conversion guide from 2.x to 3.x 
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
 - converting input data emission factor from kg/MWh to t/MWh
-- replaced emissionTax parameter with ts_emissionPriceChange 
+- replaced emissionTax parameter with ts_emissionPrice and ts_emissionPriceChange 
 - changed parameter name annuity to annuityFactor for clarification
 - Adding transfer rampLimit equations, removing old unfinished ICramp equations
-- Improved if checks when using unit node constraints
-- scenarios removed
-- additional sets and parameters in the input data gdx have to be defined in additionalSetsAndParameters.inc
-- removing unavailability (availability timeseries covers those functions from now on)
+- Stricter if checks when using unit node constraints
+- If input data gdx contains additional sets and parameters, those have to be defined in additionalSetsAndParameters.inc
 
 ### Changed - not requiring input data changes
-- clearing Eps values from result table r_state
-- emissions from outputs are included in equations as negative emissions
-- adding option for gnu specific emission parameters
+- emissions bound to outputs (e.g. P2X) are included in equations as negative emissions
 - combined result tables for emissions from input and emissions from outputs
-- renamed suft(effSelector, unit, f, t)  to eff_uft to avoid confusions with samples 
-- Automatic formatting and of `tools/bb_data_template.json` data structure.
+- emissions bound to outputs (e.g. P2X) are included in result tables as negative emissions
+
+### Changed - Quality of Life improvements
+- making most of the input data tables optional. Listing mandatory ones in 1e_inputs
+- adding explanations and clarifications to paramater, set, and variable descriptions
+- adding if checks and absolute path option for input data excel
+- assuming default discount factor of 1 if not given in input data
 - added a warning that directOff deactivates startCosts
+- clearing Eps values from result table r_state
 - added option to use ts_price and/or ts_priceChange
 - added option to use ts_emissionPrice and/or ts_emissionPriceChange
-- added option to use timeseries based unit node constraints
-- making most of the input data tables optional. Listing mandatory ones in 1e_inputs
-- assuming default discount factor of 1 if not given in input data
-- fixed operation and maintenance costs of existings units are included in the objective function
-- adding explanations and clarifications to paramater, set, and variable descriptions
+- results tables: invested capacity, total emissions of emission groups, total diffusion between nodes, hourly curtailments, total curtailments
+- adding number of completed and remaining solves between loops
+- renamed suft(effSelector, unit, f, t)  to eff_uft to avoid confusions with samples 
+- Automatic formatting and of `tools/bb_data_template.json` data structure.
 
 ### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
@@ -64,11 +67,11 @@ All notable changes to this project will be documented in this file.
 - correcting sample weights in objective function for transfer vomCosts
 - fixing crash with diag option
 - investments to existing storage units is now possible
-- adding if checks and absolute path option for input data excel
 - fixing div by 0 error in r_gnuUtilizationRate if unit has no unit size
 - fixed shutdown variable at the beginning of solve for MIP units
 - fixed multiplying unit ramping costs and transfer variable cost by stepLength in objective function
 - fixing a case where ts_node was not looped for all included values
+- Existing unit fixed operation and maintenance costs (fomCosts) are now included in the objective function
 
 
 ## 2.2 - 2022-03-24
