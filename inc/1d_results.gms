@@ -41,8 +41,8 @@ Parameters
     r_gnStorageValueChange(grid, node) "Change in storage values over the simulation (MEUR)"
     r_gnnVariableTransCost(grid, node_,node, f, t) "Variable Transfer costs (MEUR)"
     r_gnnTotalVariableTransCost(grid, node_, node) "Total Variable Transfer costs over the simulation (MEUR)"
-    r_gnnTransferValue(grid, from_node, to_node, f, t) "Transfer marginal value (Me) = r_transfer (MW) * r_balanceMarginal (e/MWh)"
-    r_gnnTotalTransferValue(grid, from_node, to_node) "Total ransfer marginal value summed over the simulation (Me)"
+    r_gnnTransferValue(grid, from_node, to_node, f, t) "Transfer marginal value (Me) = r_transfer (MW) * r_balanceMarginal (EUR/MWh)"
+    r_gnnTotalTransferValue(grid, from_node, to_node) "Total ransfer marginal value summed over the simulation (MEUR)"
 
     // Investment and Fixed Operation and Maintenance Cost Components
     r_gnuFOMCost(grid, node, unit) "Total gnu fixed O&M costs over the simulation (MEUR)"
@@ -79,7 +79,7 @@ Parameters
     // State variable results, required for model structure
     r_state(grid, node, f, t) "Node state at time step t"
     // State variable slack values
-    r_stateSlack(grid, node, slack, f, t) "Note state slack at time step t"
+    r_stateSlack(grid, node, slack, f, t) "Note state slack at time step t (MWh, unless modified by energyStoredPerUnitOfState parameter)"
 
     // Energy transfer and spill variable results
     r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
@@ -88,16 +88,16 @@ Parameters
     r_spill(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
 
     // Interesting node related results
-    r_balanceMarginal(grid, node, f, t) "Marginal values of the q_balance equation"
-    r_balanceMarginalAverage(grid, node) "Annual average of marginal values of the q_balance equation"
+    r_balanceMarginal(grid, node, f, t) "Marginal values of the q_balance equation (EUR/MWh)"
+    r_balanceMarginalAverage(grid, node) "Annual average of marginal values of the q_balance equation (EUR/MWh)"
     r_gnnTotalTransfer(grid, node, node) "Total amount of energy transferred between gnn over the simulation (MWh)"
     r_gnTotalSpill(grid, node) "Total spilled energy from gn over the simulation (MWh)"
     r_gnTotalSpillShare(grid, node) "Total spilled energy gn/g share"
     r_gTotalSpill(grid) "Total spilled energy from gn over the simulation (MWh)"
-    r_gnnDiffusion(grid, node, node, f, t) "Diffusion between nodes"
+    r_gnnDiffusion(grid, node, node, f, t) "Diffusion between nodes (MW)"
     r_gnnTotalDiffusion(grid,node,node) "Total amount of energy diffused between nodes (MWh)"
-    r_gnCurtailments(grid, node, f, t) "Curtailed flow generation in node"
-    r_gnTotalCurtailments(grid, node) "Total curtailed flow generation in node"
+    r_gnCurtailments(grid, node, f, t) "Curtailed flow generation in node (MW)"
+    r_gnTotalCurtailments(grid, node) "Total curtailed flow generation in node (MWh)"
 
 * --- Energy Generation/Consumption Results -----------------------------------
 
@@ -122,7 +122,7 @@ Parameters
     r_gTotalGen(grid) "Total energy generation in g over the simulation (MWh)"
 
     // Approximate utilization rates
-    r_gnuUtilizationRate(grid, node, unit) "Approximate utilization rates of gnus over the simulation"
+    r_gnuUtilizationRate(grid, node, unit) "Approximate utilization rates of gnus over the simulation (p.u.)"
 
     // Interesting energy consumption results
     r_gnConsumption(grid, node, f, t) "Consumption of energy in gn for each t (MWh)"
@@ -137,20 +137,20 @@ Parameters
 * --- Emissions Results -------------------------------------------------------
 
     // Unit level emissions from normal operation inputs
-    r_emissions(grid, node, emission, unit, f, t) "Emissions from units (tCO2)"
+    r_emissions(grid, node, emission, unit, f, t) "Emissions from units (tEmission)"
 
     // Unit level emissions from start-ups
-    r_emissionsStartup(node, emission, unit, f, t) "Emissions from units in start-ups (tCO2)"
+    r_emissionsStartup(node, emission, unit, f, t) "Emissions from units in start-ups (tEmission)"
 
     // Emission sums
-    r_nuTotalEmissionsOperation(node, unit, emission) "node unit total emissions in normal operation (tCO2)"
-    r_nuTotalEmissionsFromOutput(node, unit, emission) "node unit total emissions from output (tCO2)"
-    r_nuTotalEmissionsStartup(node, unit, emission) "node unit total emissions in start-ups (tCO2)"
-    r_nuTotalEmissions(node, unit, emission) "node unit total emissions (tCO2)"
-    r_nTotalEmissions(node, emission) "node total emissions (tCO2)"
-    r_uTotalEmissions(unit, emission) "unit total emissions (tCO2)"
-    r_totalEmissions (emission) "Total emissions (tCO2)"
-    r_groupTotalEmissions (group, emission) "Group total emissions (tCO2)"
+    r_nuTotalEmissionsOperation(node, unit, emission) "node unit total emissions in normal operation (tEmission)"
+    r_nuTotalEmissionsFromOutput(node, unit, emission) "node unit total emissions from output (tEmission)"
+    r_nuTotalEmissionsStartup(node, unit, emission) "node unit total emissions in start-ups (tEmission)"
+    r_nuTotalEmissions(node, unit, emission) "node unit total emissions (tEmission)"
+    r_nTotalEmissions(node, emission) "node total emissions (tEmission)"
+    r_uTotalEmissions(unit, emission) "unit total emissions (tEmission)"
+    r_totalEmissions (emission) "Total emissions (tEmission)"
+    r_groupTotalEmissions (group, emission) "Group total emissions (tEmission)"
 
 
 * --- Unit Online State Results -----------------------------------------------

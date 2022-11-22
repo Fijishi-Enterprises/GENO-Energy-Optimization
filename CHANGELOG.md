@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 - making most of the input data tables optional. Listing mandatory ones in 1e_inputs
 - assuming default discount factor of 1 if not given in input data
 - fixed operation and maintenance costs of existings units are included in the objective function
+- adding explanations and clarifications to paramater, set, and variable descriptions
 
 ### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
