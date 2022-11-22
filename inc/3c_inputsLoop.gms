@@ -53,32 +53,7 @@ if (ord(tSolve) = tForecastNext(mSolve) - mSettings(mSolve, 't_forecastJump'), /
                 }
             = ts_unit_update(unit, param_unit, f, t);
     ); // END if('ts_unit')
-$ontext
-* !!! NOTE !!!
-* These probably shouldn't be read at all, as p_effUnit and p_effGroupUnit are
-* not input data, but calculated based on p_unit
-    // Update ts_effUnit
-    if (mTimeseries_loop_read(mSolve, 'ts_effUnit'),
-        put_utility 'gdxin' / '%input_dir%/ts_effUnit/' tSolve.tl:0 '.gdx';
-        execute_load ts_effUnit_update=ts_effUnit;
-        ts_effUnit(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f_solve(f), tt_forecast(t)) // Only update if time series enabled for the unit
-            ${  not mf_realization(mSolve, f) // Realization not updated
-*               and ts_effUnit_update(effSelector, unit, effSelector, param_eff, f, t) // Update only existing values (zeroes need to be EPS)
-                }
-            = ts_effUnit_update(effSelector, unit, effSelector, param_eff, f, t);
-    ); // END if('ts_effUnit')
 
-    // Update ts_effGroupUnit
-    if (mTimeseries_loop_read(mSolve, 'ts_effGroupUnit'),
-        put_utility 'gdxin' / '%input_dir%/ts_effGroupUnit/' tSolve.tl:0 '.gdx';
-        execute_load ts_effGroupUnit_update=ts_effGroupUnit;
-        ts_effGroupUnit(effSelector, unit_timeseries(unit), param_eff, f_solve(f), tt_forecast(t)) // Only update if time series enabled for the unit
-            ${  not mf_realization(mSolve, f) // Realization not updated
-*               and ts_effGroupUnit_update(effSelector, unit, param_eff, f, t) // Update only existing values (zeroes need to be EPS)
-                }
-            = ts_effGroupUnit_update(effSelector, unit, param_eff, f, t);
-    ); // END if('ts_effGroupUnit')
-$offtext
     // Update ts_influx
     if (mTimeseries_loop_read(mSolve, 'ts_influx'),
         put_utility 'gdxin' / '%input_dir%/ts_influx/' tSolve.tl:0 '.gdx';
@@ -139,20 +114,6 @@ $offtext
             = ts_gnn_update(grid, node, node_, param_gnn, f, t);
     ); // END if('ts_gnn')
 
-* --- NO FORECAST DIMENSION, SHOULD THESE BE HANDLED SEPARATELY? --------------
-// Currently, only updated until the forecast horizon, but is this correct?
-
-    // Update ts_priceChange
-    if (mTimeseries_loop_read(mSolve, 'ts_priceChange'),
-        put log '!!! Abort: mTimeseries_loop_read(mSolve, ts_priceChange) currently not working!' /;
-        abort "mTimeseries_loop_read(mSolve, ts_priceChange) currently not working!";
-//        put_utility 'gdxin' / '%input_dir%/ts_priceChange/' tSolve.tl:0 '.gdx';
-//        execute_load ts_priceChange_update=ts_priceChange;
-//        ts_priceChange(node, tt_forecast(t))
-//            = ts_priceChange_update(node, t);
-    ); // END if('ts_priceChange')
-
-
 ); // END if(tForecastNext)
 
 * =============================================================================
@@ -191,15 +152,6 @@ if(mSettings(mSolve, 't_improveForecast'),
         // ts_unitConstraintNode
         ts_unitConstraintNode(unit, constraint, node, f, tt(t))${unit_tsConstrained(unit)}
             = ts_unitConstraintNode(unit, constraint, node, f, t) - ts_unitConstraintNode(unit, constraint, node, f+ddf(f), t);
-$ontext
-* Should these be handled here at all? See above note
-        // ts_effUnit
-        ts_effUnit(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f, tt(t)) // Only update for units with time series enabled
-            = ts_effUnit(effSelector, unit, effSelector, param_eff, f, t) - ts_effUnit(effSelector, unit, effSelector, param_eff, f+ddf(f), t);
-        // ts_effGroupUnit
-        ts_effGroupUnit(effSelector, unit_timeseries(unit), param_eff, f, tt(t)) // Only update for units with time series enabled
-            = ts_effGroupUnit(effSelector, unit, param_eff, f, t) - ts_effGroupUnit(effSelector, unit, param_eff, f+ddf(f), t);
-$offtext
         // ts_influx
         ts_influx(gn_influx(grid, node), f, tt(t))
             = ts_influx(grid, node, f, t) - ts_influx(grid, node, f+ddf(f), t);
@@ -344,29 +296,19 @@ loop(cc(counter),
             ts_unitConstraintNode(unit, constraint, node, f, t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
-$ontext
-* Should these be handled here at all? See above comment
-    ts_effUnit_(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, ft(f, tt_interval(t)))
-        = sum(tt_aggcircular(t, t_),
-            ts_effUnit(effSelector, unit, effSelector, param_eff, f, t_)
-            )
-            / mInterval(mSolve, 'stepsPerInterval', counter);
-    ts_effGroupUnit_(effSelector, unit_timeseries(unit), param_eff, ft(f, tt_interval(t)))
-        = sum(tt_aggcircular(t, t_),
-            ts_effGroupUnit(effSelector, unit, param_eff, f, t_)
-            )
-            / mInterval(mSolve, 'stepsPerInterval', counter);
-$offtext
+
     // ts_influx_ for active t in solve including aggregated time steps
     ts_influx_(gn_influx(grid, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
             ts_influx(grid, node, f + df_realization(f, t), t_)
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
+
     // ts_cf_ for active t in solve including aggregated time steps
     ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
             ts_cf(flow, node, f + df_realization(f, t), t_)
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
+
     // Reserves relevant only until reserve_length
     ts_reserveDemand_(restypeDirectionGroup(restype, up_down, group), ft(f, tt_interval(t)))
       ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')  }
@@ -395,12 +337,10 @@ $offtext
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
 
-
-
+    // processing ts_gnn values for active ft including time step aggregation
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_), ts_gnn(grid, node, node_, param_gnn, f, t_))
             / mInterval(mSolve, 'stepsPerInterval', counter);
-
 
     // vomCost calculations when one or more price time series
     ts_vomCost_(gnu(grid, node, unit), tt_interval(t))$p_vomCost(grid, node, unit, 'useTimeseries')
@@ -435,7 +375,6 @@ $offtext
 
              ) / mInterval(mSolve, 'stepsPerInterval', counter) // END sum(tt_aggcircular)
     ;
-
 
     // Startup cost calculations
     // NOTE: does not include unit specific gnu emissions p_gnuEmission

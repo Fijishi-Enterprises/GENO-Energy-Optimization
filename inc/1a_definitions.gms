@@ -144,15 +144,11 @@ Sets
 * --- Set to declare time series that will be read between solves ------------------------------------------------------
     timeseries "Names of time series that could be loop read from files between solves" /
         ts_unit
-        ts_effUnit
-        ts_effGroupUnit
         ts_influx
         ts_cf
         ts_reserveDemand
         ts_unitConstraintNode
         ts_node
-        ts_priceChange    // does not work currently
-        ts_price          // does not work currently
         ts_storageValue
         ts_gnn
         /

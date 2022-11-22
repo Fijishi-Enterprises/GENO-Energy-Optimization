@@ -12,17 +12,18 @@ All notable changes to this project will be documented in this file.
 - option to add user defined parameters and sets in additionalSetsAndParameters.inc
 
 ### Removed - requiring input data changes - see conversion guide from 2.x to 3.x 
-- scenarios removed
-- removing unavailability (availability timeseries covers those functions from now on)
+- scenarios set including related equations and parameters
+- removed unavailability (availability timeseries covers those functions from now on)
+- removed unfinished features of reading new data during loop for ts_effUnit, ts_effGroupUnit, ts_priceChange, ts_price 
 
 ### Changed - requiring input data changes - see conversion guide from 2.x to 3.x 
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
 - converting input data emission factor from kg/MWh to t/MWh
 - replaced emissionTax parameter with ts_emissionPrice and ts_emissionPriceChange 
 - changed parameter name annuity to annuityFactor for clarification
-- Adding transfer rampLimit equations, removing old unfinished ICramp equations
-- Stricter if checks when using unit node constraints
-- If input data gdx contains additional sets and parameters, those have to be defined in additionalSetsAndParameters.inc
+- adding transfer rampLimit equations, removing old unfinished ICramp equations
+- stricter if checks when using unit node constraints
+- if input data gdx contains additional sets and parameters, those have to be defined in additionalSetsAndParameters.inc
 
 ### Changed - not requiring input data changes
 - emissions bound to outputs (e.g. P2X) are included in equations as negative emissions
@@ -34,14 +35,15 @@ All notable changes to this project will be documented in this file.
 - adding explanations and clarifications to paramater, set, and variable descriptions
 - adding if checks and absolute path option for input data excel
 - assuming default discount factor of 1 if not given in input data
-- added a warning that directOff deactivates startCosts
-- clearing Eps values from result table r_state
 - added option to use ts_price and/or ts_priceChange
 - added option to use ts_emissionPrice and/or ts_emissionPriceChange
-- results tables: invested capacity, total emissions of emission groups, total diffusion between nodes, hourly curtailments, total curtailments
+- added a warning that directOff deactivates startCosts
+- New results tables: invested capacity, total emissions of emission groups, total diffusion between nodes, hourly curtailments, total curtailments
 - adding number of completed and remaining solves between loops
 - renamed suft(effSelector, unit, f, t)  to eff_uft to avoid confusions with samples 
 - Automatic formatting and of `tools/bb_data_template.json` data structure.
+- clearing Eps values from result table r_state
+
 
 ### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
