@@ -93,15 +93,22 @@ $gdxin
 *       effLevelGroupUnit
 *       ts_influx (or other data table creating the energy demand)
 
+
+* ---  Reading all other data present in the input data gdx.  -------------
+
 * setting quote mark for unix or windows (MSNT)
 $ SET QTE "'"
 $ IFI %SYSTEM.FILESYS%==MSNT $SET QTE '"'
 
-* query checking which data tables exists and writes the list to inputDataInc
+* query checking which data tables exists and writes the list to file inputDataInc
 $hiddencall gdxdump %inputDataGdx%  NODATA > %inputDataInc%
-* converting gdxdump output to a format that can be imported to backbone
-$hiddencall sed %QTE%/^symbol not found:.*$/Id; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I%QTE% %inputDataInc% > %inputDataInc_%
-* importing data
+* Using sed utility program to convert gdxdump output to a format that can be imported to backbone
+* This does the following:
+* - deletes lines of gdxdump output which do not start with dollar sign
+* - changes various load commands to loaddcm commands
+*$hiddencall sed %QTE%/^symbol not found:.*$/Id; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I%QTE% %inputDataInc% > %inputDataInc_%
+$hiddencall sed %QTE%/^[$]/!d;  s/\$LOAD.. /\$LOADDCM /I%QTE%  %inputDataInc% > %inputDataInc_%
+* importing data from the input data gdx as specified by the sed command output
 $INCLUDE %inputDataInc_%
 * closing the input file
 $gdxin
