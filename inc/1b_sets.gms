@@ -49,6 +49,7 @@ Sets
     unit_aggregator(unit) "Aggregator units aggragating several units"
     unit_aggregated(unit) "Units that are aggregated"
     unit_noAggregate(unit) "Units that are not aggregated and are not aggregators"
+    unit_startCost(unit) "units that have start costs defined"
     unit_slope(unit) "Units with piecewise linear efficiency constraints"
     unit_noSlope(unit) "Units without piecewise linear efficiency constraints"
     unitAggregator_unit(unit, unit) "Aggregate unit linked to aggregated units"
@@ -88,6 +89,7 @@ Sets
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
     gnn_boundState(grid, node, node) "Nodes with state variables bound by other nodes"
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
+    gnu_tmp(grid, node, unit) "temporary table of (grid, node, unit) for easier if chekcs and looping"
 
 * --- Reserve types -----------------------------------------------------------
     restype "Reserve types"

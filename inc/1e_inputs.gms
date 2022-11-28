@@ -733,7 +733,7 @@ loop( unit,
 
     if( {effLevelGroupUnit('level1', 'directOff', unit)
          and sum(gnu(grid, node, unit), sum(input_output, p_gnu_io(grid, node, unit, input_output, 'startCostCold'))) },
-             put log '!!! Warning: unit (', unit.tl:0, ' has start costs, but is a directOff unit that disables the start cost calculations' /;
+             put log '!!! Warning: unit (', unit.tl:0, ' has start costs, but is a directOff unit that disables start cost calculations' /;
     );
 
 );
@@ -783,12 +783,23 @@ loop( unitStarttype(unit, starttypeConstrained),
 * --- Check emission related data ---------------------------------------------
 
 loop(emissionGroup(emission, group),
-    // Abort of input data for prices are given both ts_emissionPrice and ts_emissionPriceChange
+    // Abort if input data for prices are given both ts_emissionPrice and ts_emissionPriceChange
     if({emission_priceData(emission) and emission_priceChangeData(emission)},
         put log '!!! Abort: EmissionGroup (', group.tl:0, ', ', emission.tl:0, ') has both ts_emissionPrice and ts_emissionPriceChange' /;
         abort "Only ts_emissionPrice or ts_emissionPriceChange can be given to an emissionGroup"
     ); // END if
 ); // END loop(emissionGroup)
+
+// checking that invEmissionFactor
+option gnu_tmp < p_gnuEmission;
+loop(gnu_tmp(grid, node, unit),
+    loop(emission$p_gnuEmission(grid, node, unit, emission, 'invEmissions'),
+        if(not p_gnuEmission(grid, node, unit, emission, 'invEmissionsFactor'),
+           put log '!!! Warning: (grid, node, unit, emission) (', grid.tl:0 ,',', node.tl:0 ,',', unit.tl:0 ,',', emission.tl:0 ,',', ') has invEmissions>0, but invEmissionsFactor is empty. Assuming 1.' /;
+           p_gnuEmission(grid, node, unit, emission, 'invEmissionsFactor') = 1;
+        ); // END if
+    ); // END loop(emission)
+); // END loop(gnu_tmp)
 
 
 * --- Check reserve related data ----------------------------------------------

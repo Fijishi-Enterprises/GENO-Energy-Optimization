@@ -275,6 +275,21 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     shutdownCost  "Cost of shutting down the unit (EUR/MW)"
 /
 
+* Emissions in model typically include CO2 only measured in tonnes of CO2 (tCO2).
+* Same equations can be used to model multiple emissions and the unit in parameters and equations is generic (tEmission).
+* In addition, equations apply also for modelling other environmental impacts, such as pollutants, land-use, or material demand.
+param_gnuEmission "Properties that can be set for emissions from operation, capacity, and investments" /
+    vomEmissions  "Emissions from variable operation and maintenance (tEmission/MWh)"
+    fomEmissions  "Emissions from fixed operation and maintenance (tEmission/MW/a)"
+    invEmissions  "Emissions from capacity investments (tEmission/MW)"
+    invEmissionsFactor "Factor used to multiply investment emissions to divide them over multiple years (0-1). Default 1."
+    // not implemented, but could be expanded to
+    //startEmissionsCold
+    //startEmissionsWarm
+    //startEmissionsHot
+    //shutdownEmissions
+/
+
 param_gnuBoundaryProperties "Properties that can be set for the different boundaries" /
     rampLimit     "Maximum ramp speed of unit (p.u./min)"
     rampCost      "Wear and tear cost of ramping up (EUR/MW)"

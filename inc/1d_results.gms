@@ -136,11 +136,13 @@ Parameters
 
 * --- Emissions Results -------------------------------------------------------
 
-    // Unit level emissions from normal operation inputs
-    r_emissions(grid, node, emission, unit, f, t) "Emissions from units (tEmission)"
+    // Unit level emissions
+    r_emissions(grid, node, emission, unit, f, t) "Emissions during normal operation (tEmission)"
+    r_emissionsStartup(node, emission, unit, f, t) "Emissions from units during start-ups (tEmission)"
+    r_emissionsCapacity(unit, emission) "Emissions from investments and fixed annual operation and maintenance emissions (tEmission)"
 
-    // Unit level emissions from start-ups
-    r_emissionsStartup(node, emission, unit, f, t) "Emissions from units in start-ups (tEmission)"
+    // Emissions in group
+    r_emissionsNodeGroupTotal (emission, group) "Group total emissions (tEmission)"
 
     // Emission sums
     r_nuTotalEmissionsOperation(node, unit, emission) "node unit total emissions in normal operation (tEmission)"
@@ -150,8 +152,6 @@ Parameters
     r_nTotalEmissions(node, emission) "node total emissions (tEmission)"
     r_uTotalEmissions(unit, emission) "unit total emissions (tEmission)"
     r_totalEmissions (emission) "Total emissions (tEmission)"
-    r_groupTotalEmissions (group, emission) "Group total emissions (tEmission)"
-
 
 * --- Unit Online State Results -----------------------------------------------
 

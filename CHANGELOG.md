@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 ## unversioned
 ### Added
 - option to use availabilityCapacityMargin for input units
-- Adding possibility for gnu specific emission factors.
+- emission factors for invested capacity, fixed o&m, and variable o&m for units
 - time series for emission costs
 - option to bound storage states at the beginning and/or end of samples
 - template to activate barrier algorithm in cplex.opt (cplex_templateBarrier.opt)

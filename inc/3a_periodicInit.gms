@@ -669,18 +669,18 @@ loop(emissionGroup(emission_priceChangeData(emission), group)$p_emissionPrice(em
 loop(gnu(grid, node, unit),
     p_vomCost(grid, node, unit, 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
     p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
-    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission, 'vomEmissions'), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
     p_vomCost(grid, node, unit, 'useConstant')${not p_vomCost(grid, node, unit, 'useTimeSeries')} = -1;
 ); // end loop(gnu)
 
-// vomcosts when constant prices.
+// vomcosts when constant prices. Includes O&M cost, fuel cost and emission cost (EUR/MWh)
 p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConstant')
         // gnu specific cost (vomCost). Always a cost (positive) if input or output.
       = + p_gnu(grid, node, unit, 'vomCosts')
 
         // gnu specific emission cost (e.g. process related LCA emission). Always a cost if input or output.
-        + sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission),
-             + p_gnuEmission(grid, node, unit, emission) // t/MWh
+        + sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission, 'vomEmissions'),
+             + p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
              * p_emissionPrice(emission, group, 'price')
              ) // end sum(emissiongroup)
 
@@ -699,10 +699,10 @@ p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConsta
           )
 ;
 
-// removing flag to use p_vomCost if cost is zero
+// clearing flag to use p_vomCost if cost is zero
 loop(gnu$p_vomCost(gnu, 'useConstant'),
-    if(p_vomCost(gnu, 'price')= 0,  
-        p_vomCost(gnu, 'useConstant')=0; 
+    if(p_vomCost(gnu, 'price')= 0,
+        p_vomCost(gnu, 'useConstant')=0;
     );
 );
 
@@ -712,13 +712,12 @@ loop(gnu$p_vomCost(gnu, 'useConstant'),
 loop(nu_startup(node, unit),
     p_startupCost(unit, starttype, 'useTimeSeries')${p_price(node, 'useTimeSeries') and unitStarttype(unit, starttype)} = -1;
     p_startupCost(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
-    p_startupCost(unit, starttype, 'useTimeSeries')${sum(emissionGroup(emission, group)$sum(grid,p_gnuEmission(grid, node, unit, emission)), p_emissionPrice(emission, group, 'useTimeSeries'))} = -1;
 ); // end loop(nu_startup)
 
+// Using constant if not using time series
 p_startupCost(unitStarttype(unit, starttype), 'useConstant')${not p_startupCost(unit, starttype, 'useTimeSeries')} = -1;
 
-
-// NOTE: does not include unit specific gnu emissions p_gnuEmission
+// static startup cost that includes startup cost, fuel cost and emission cost (EUR/MW)
 p_startupCost(unit, starttype, 'price')$p_startupCost(unit, starttype, 'useConstant')
     = p_uStartup(unit, starttype, 'cost') // CUR/start-up
     // Start-up fuel and emission costs
@@ -728,29 +727,24 @@ p_startupCost(unit, starttype, 'price')$p_startupCost(unit, starttype, 'useConst
               // Fuel costs
               + p_price(node, 'price') // CUR/MWh
               // Emission costs
-              // node specific emission prices
               + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
                    + p_nEmission(node, emission) // t/MWh
                    * p_emissionPrice(emission, group, 'price')
                 ) // end sum(emissionGroup)
 
-                // gnu specific emission prices
-                // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
-                + sum(emissionGroup(emission, group)$sum(grid, p_gnuEmission(grid, node, unit, emission)),
-                     + sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
-                     * p_emissionPrice(emission, group, 'price')
-                  ) // end sum(emissionGroup)
-
            ] // END * p_unStartup
          ) // END sum(nu_startup)
 ;
 
-// removing flag to use p_startupCost if cost is zero
+// clearing flag to use p_startupCost if cost is zero
 loop(unitStarttype(unit, starttype)$p_startupCost(unit, starttype, 'useConstant'),
     if(p_startupCost(unit, starttype, 'price') = 0,
         p_startupCost(unit, starttype, 'useConstant') = 0;
     );
 );
+
+// mapping units that have startup costs, either constant or time series 
+Option unit_startCost < p_startupCost;
 
 
 * --- Slack Direction ---------------------------------------------------------

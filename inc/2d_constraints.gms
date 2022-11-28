@@ -3322,40 +3322,54 @@ q_constrainedCapMultiUnit(group)
 ;
 
 *--- Required Emission Cap ----------------------------------------------------
-// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// This equation doesn't really make sense for rolling planning simulations.
-// Is there any way to make it work?
+* Limit for emissions in a specific group of nodes, gnGroup, during specified time steps, sGroup.
+* This can limit total emissions by grouping all nodes in one group, but
+* allows controlling also smaller subsets, e.g. a single country.
+* Corresponding results table is r_emissionsNodeGroupTotal, however that does not take into account sGroup condition.
+* result tables r_emissions, r_emissionsStartup, and r_emissionsCapacity cover emissions even if they are not in any group
 
-q_emissioncap(group, emission)
+* !!! NOTES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+* This limits emissions only included in gnGroup and sGroup
+* This equation doesn't currently work with rolling planning simulations. Is there any way to make it work?
+* Limiting emissions from a specific unit group, e.g. all coal power plants, would require a corresponding constraint for gnuGroup
+
+q_emissioncapNodeGroup(group, emission)
     ${  p_groupPolicyEmission(group, 'emissionCap', emission)
         } ..
 
     + sum(msft(m, s, f, t)${sGroup(s, group)},
         + p_msft_Probability(m,s,f,t)
         * [
-            // Time step length dependent emissions - calculated from node specific emissions
-            // includes both consumption (+emission) and production (-emission)
+            // Time step length dependent emissions
+
+            // Emissions from operation: consumption and production of fuels - gn related emissions (tEmission)
+            // if consumption -> emissions, if production -> emission reductions due to emissions bound to product
             + p_stepLength(m, f, t)
-                * sum(gnu_input(grid, node, unit)${gnGroup(grid, node, group) and p_nEmission(node, emission)},
+                * sum(gnu(grid, node, unit)${gnGroup(grid, node, group)
+                                             and p_nEmission(node, emission)
+                                             and uft(unit, f, t) },
                     - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative and production positive
-                        * p_nEmission(node, emission) // t/MWh
+                        * p_nEmission(node, emission) // tEmission/MWh
                   ) // END sum(gnu_input)
 
-            // Time step length dependent emissions - calculated from gnu specific emissions
-            // includes both consumption (+emission) and production (+emission)
+            // Emissions from operation: gnu related vomEmissions (tEmission)
+            // emissions from input and output are both calculated as emissions
             + p_stepLength(m, f, t)
-                * sum(gnu_input(grid, node, unit)${gnuGroup(grid, node, unit, group) and p_gnuEmission(grid, node, unit, emission)},
+                * sum(gnu_input(grid, node, unit)${gnGroup(grid, node, group)
+                                                   and p_gnuEmission(grid, node, unit, emission, 'vomEmissions')
+                                                   and uft(unit, f, t) },
                     - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative
-                        * p_gnuEmission(grid, node, unit, emission) // t/MWh
+                        * p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // tEmission/MWh
                   ) // END sum(gnu_input)
             + p_stepLength(m, f, t)
-                * sum(gnu_output(grid, node, unit)${gnuGroup(grid, node, unit, group) and p_gnuEmission(grid, node, unit, emission)},
-                    + v_gen(grid, node, unit, s, f, t) // absolute values as all unit specific emission factors are considered as emissions by default
-                        * p_gnuEmission(grid, node, unit, emission) // t/MWh
+                * sum(gnu_output(grid, node, unit)${gnGroup(grid, node, group)
+                                                    and p_gnuEmission(grid, node, unit, emission, 'vomEmissions')
+                                                    and uft(unit, f, t) },
+                    + v_gen(grid, node, unit, s, f, t)
+                        * p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // tEmission/MWh
                   ) // END sum(gnu_input)
 
-            // Start-up emissions
-            // NOTE: does not include unit specific emissions if node not included in p_gnu_io for unit
+            // Emissions from operation: Start-up emissions (tEmission)
             + sum((uft_online(unit, f, t), starttype)$[unitStarttype(unit, starttype) and p_uStartup(unit, starttype, 'consumption')],
                 + [
                     + v_startup_LP(unit, starttype, s, f, t)
@@ -3369,13 +3383,41 @@ q_emissioncap(group, emission)
                       + p_unStartup(unit, node, starttype) // MWh/start-up
                           * p_nEmission(node, emission) // t/MWh
                     ) // END sum(nu, emission)
-                   // gnu specific emissions
-                   +sum(nu_startup(node, unit)${sum(grid, gnuGroup(grid, node, unit, group)) and sum(grid, p_gnuEmission(grid, node, unit, emission))},
-                      + p_unStartup(unit, node, starttype) // MWh/start-up
-                          * sum(grid, p_gnuEmission(grid, node, unit, emission)) // t/MWh
-                    ) // END sum(nu, emission)
                   ]
               ) // sum(uft_online)
+
+
+            // capacity emissions: fixed o&M emissions (tEmission)
+            + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, emission, 'fomEmissions')
+                                         and gnGroup(grid, node, group)
+                                         and uft(unit, f, t) },
+                + p_gnuEmission(grid, node, unit, emission, 'fomEmissions')       // (tEmissions/MW)
+                    * p_gnu(grid, node, unit, 'unitSize')   // (MW/unit)
+                    * [
+                        // Existing capacity
+                        + p_unit(unit, 'unitCount')         // (number of existing units)
+
+                        // Investments to new capacity
+                        + v_invest_LP(unit)${unit_investLP(unit)}        // (number of invested units)
+                        + v_invest_MIP(unit)${unit_investMIP(unit)}      // (number of invested units)
+                      ] // END * p_gnuEmssion
+            ) // END sum(gnu)
+
+            // capacity emissions: investment emissions (tEmission)
+            + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, emission, 'invEmissions')
+                                         and (unit_investLP(unit) or unit_investMIP(unit))
+                                         and gnGroup(grid, node, group)
+                                         and uft(unit, f, t) },
+                // Capacity restriction
+                + p_gnuEmission(grid, node, unit, emission, 'invEmissions')    // (tEmission/MW)
+                    * p_gnuEmission(grid, node, unit, emission, 'invEmissionsFactor')    // factor dividing emissions to N years
+                    * p_gnu(grid, node, unit, 'unitSize')     // (MW/unit)
+                    * [
+                        // Investments to new capacity
+                        + v_invest_LP(unit)${unit_investLP(unit)}         // (number of invested units)
+                        + v_invest_MIP(unit)${unit_investMIP(unit)}       // (number of invested units)
+                      ] // END * p_gnuEmssion
+            ) // END sum(gnu)
           ] // END * p_sft_Probability
       ) // END sum(msft)
 

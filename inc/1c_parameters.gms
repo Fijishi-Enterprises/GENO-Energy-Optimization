@@ -71,7 +71,7 @@ Parameters
     p_price(node, param_price)         "Commodity price parameters"
     p_emissionPrice(emission, group, param_price) "emission price parameters (EUR/tEmission)"
     p_nEmission(node, emission)        "Emission content (tEmission/MWh)" / /
-    p_gnuEmission(grid, node, unit, emission) "unit data of energy specific emission factors (tEmission/MWh)" / /
+    p_gnuEmission(grid, node, unit, emission, param_gnuEmission) "unit data of emission factors for investments, maintenance, and energy" / /
     p_uStartupfuel(unit, node, param_unitStartupfuel) "Parameters for startup fuels" / /
     p_unStartup(unit, node, starttype) "Consumption during the start-up (MWh/start-up)"
     p_effUnit(effSelector, unit, effSelector, param_eff)  "Data for piece-wise linear efficiency blocks"
@@ -195,7 +195,6 @@ Parameters
     ts_reserveDemand_update(restype, up_down, group, f, t)
     ts_node_update(grid, node, param_gnBoundaryTypes, f, t)
     ts_gnn_update(grid, node, node, param_gnn, f, t)
-*    ts_priceChange_update(node, t) // reading new prices in the loop phase not implemented
 
     // Help parameters for calculating smoothening of time series
     ts_influx_std(grid, node, t)  "Standard deviation of ts_influx over samples"

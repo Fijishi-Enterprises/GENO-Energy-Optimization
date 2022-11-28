@@ -127,7 +127,7 @@ equations
     q_constrainedOnlineMultiUnit(group, s, f, t) "Constrained number of online units for a group of units"
     q_capacityMargin(grid, node, s, f, t) "There needs to be enough capacity to cover energy demand plus a margin"
     q_constrainedCapMultiUnit(group) "Constrained unit number ratios and sums for a group of units"
-    q_emissioncap(group, emission) "Limit for emissions"
+    q_emissioncapNodeGroup(group, emission) "Limit for emissions in a specific group of nodes, gnGroup, during specified time steps, sGroup"
     q_energyLimit(group, min_max) "Limited energy production or consumption from a group of units"
     q_energyShareLimit(group, min_max) "Limited share of energy production from a group of units"
     q_ReserveShareMax(group, restype, up_down, group, s, f, t) "Maximum reserve share of a group of units"

@@ -144,11 +144,13 @@ r_uTotalShutdown
 
 * --- Emissions Results -----------------------------------------------
 
-// Unit level emissions from normal operation
+// Unit level emissions
 r_emissions
-
-// Unit level emissions from start-ups
 r_emissionsStartup
+r_emissionsCapacity
+
+// Emissions in group
+r_emissionsNodeGroupTotal
 
 // Emission sums
 r_nuTotalEmissionsOperation
@@ -157,7 +159,6 @@ r_nuTotalEmissions
 r_nTotalEmissions
 r_uTotalEmissions
 r_totalEmissions
-r_groupTotalEmissions
 
 * --- Reserve Provision Result Symbols ----------------------------------------
 
