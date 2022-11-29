@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - scenarios set including related equations and parameters
 - removed unavailability (availability timeseries covers those functions from now on)
 - removed unfinished features of reading new data during loop for ts_effUnit, ts_effGroupUnit, ts_priceChange, ts_price 
+- removing option to read params.inc for additional parameters. New file additionalSetsAndParameters.inc replaces.
 
 ### Changed - requiring input data changes - see conversion guide from 2.x to 3.x 
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io

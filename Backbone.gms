@@ -130,16 +130,18 @@ $endif
 
 * === Definitions, sets, parameters and input data=============================
 $include 'inc/1a_definitions.gms'   // Definitions for possible model settings
-* 1a_definitions reads additional parameter definitions from params.inc if exists
 $include 'inc/1b_sets.gms'          // Set definitions used by the models
-* 1b_sets reads %input_dir%/timeAndSamples.inc and inc/rampSched/sets_rampSched.gms if exists
+* 1b_sets reads %input_dir%/timeAndSamples.inc if exists
+* 1b_sets reads inc/rampSched/sets_rampSched.gms if exists
 $include 'inc/1c_parameters.gms'    // Parameter definitions used by the models
 $include 'inc/1d_results.gms'       // Parameter definitions for model results
 $include 'inc/1e_inputs.gms'        // Load input data
-* 1e_inputs can convert %input_file_excel% to %input_dir%/%input_file_gdx%
-* 1e_input reads %input_file_gdx%
-* 1e_inputs read also following files: %input_dir%/additionalSetsAndParameters.inc,
-* inc/1e_scenChanges.gms, and %input_dir%/changes.inc if those exist.
+* 1e_inputs can convert %input_dir%/%input_file_excel% or %input_file_excel%  to %input_dir%/%input_file_gdx%
+* 1e_input reads %input_dir%/%input_file_gdx% or %input_file_gdx%
+* 1e_inputs read also following files if exist:
+*      - %input_dir%/additionalSetsAndParameters.inc
+*      - inc/1e_scenChanges.gms, and
+*      - %input_dir%/changes.inc
 
 * === Variables and equations =================================================
 $include 'inc/2a_variables.gms'                         // Define variables for the models

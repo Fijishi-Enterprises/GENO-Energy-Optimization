@@ -171,11 +171,6 @@ Parameter
     t_skip_counter "Numerical counter for solve time steps"
 ;
 
-// Include additional parameters if found
-Parameter params(*) /
-$if exist 'params.inc' $include 'params.inc'
-/;
-
 // Features
 Set active(mType, feature) "Set membership tells active model features";
 option clear = active;
