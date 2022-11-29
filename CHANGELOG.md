@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - emissions bound to outputs (e.g. P2X) are included in equations as negative emissions
 - combined result tables for emissions from input and emissions from outputs
 - emissions bound to outputs (e.g. P2X) are included in result tables as negative emissions
+- moving metadata to 1b_sets to allow expanding it with user given metadata
 
 ### Changed - Quality of Life improvements
 - making most of the input data tables optional. Listing mandatory ones in 1e_inputs

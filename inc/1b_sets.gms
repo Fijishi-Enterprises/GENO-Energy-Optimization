@@ -240,6 +240,23 @@ sets
     sft_resdgn(restype, up_down, grid, node, s,f,t) "Temporary tuplet for reserves by restypeDirectionGridNode"
 ;
 
+* --- Set for metadata --------------------------------------------------------
 
+* Get current username
+$ifthen %system.filesys% == 'MSNT'
+$set username %sysenv.USERNAME%
+$else
+$set username %sysenv.USER%
+$endif
 
+* Create metadata
+set metadata(*) /
+   'User' '%username%'
+   'Date' '%system.date%'
+   'Time' '%system.time%'
+   'GAMS version' '%system.gamsrelease%'
+   'GAMS system' '%system.gstring%'
+$include 'version'
+/;
+if(execError > 0, metadata('FAILED') = yes);
 

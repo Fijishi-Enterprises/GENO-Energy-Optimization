@@ -211,7 +211,11 @@ Parameters
     r_qResMissing(restype, up_down, group, f, t) "Dummy to decrease demand for a reserve (MW) after reserve commitment"
     r_groupTotalqResDemand(restype, up_down, group) "Total dummy reserve provisions in the group over the simulation"
     r_qCapacity(grid, node, f, t) "Dummy capacity to ensure capacity margin equation feasibility (MW)"
+
+* --- Info Results ------------------------------------------------------------
+
     r_solveStatus(t, solve_info) "Information about the solve"
+    // metadata written directly from metadata set 
 
 ; // END PARAMETER DECLARATION
 
