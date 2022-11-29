@@ -166,7 +166,7 @@ $include 'defModels/invest.gms'
 
 // Load model input parameters
 $include '%input_dir%/modelsInit.gms'
-* Normally calls scheduleInit.gms or investInit.gms
+* Normally calls corresponding init file, e.g. '%input_dir%/scheduleInit.gms' or '%input_dir%/investInit.gms'
 
 
 * === Simulation ==============================================================

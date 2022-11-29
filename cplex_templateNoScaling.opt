@@ -1,0 +1,7 @@
+* this file needs to be in the root folder, not in input folder
+relaxfixedinfeas = 1
+
+* sometimes the model solve works fine for most of the year, but but remains infeasible for 
+* single days. Solver might provide error message "infeasibilities after unscaling".
+* Try scaind = -1 in these cases to not apply scaling. Will increase the solve time.
+scaind = -1

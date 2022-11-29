@@ -46,7 +46,7 @@ All notable changes to this project will be documented in this file.
 - renamed suft(effSelector, unit, f, t)  to eff_uft to avoid confusions with samples 
 - Automatic formatting and of `tools/bb_data_template.json` data structure.
 - clearing Eps values from result table r_state
-
+- moving example files, e.g. 1_options_temp.gms, to their default folders
 
 ### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves

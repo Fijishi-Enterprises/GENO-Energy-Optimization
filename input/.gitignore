@@ -2,5 +2,11 @@
 *
 
 # Except following data files
-!/additionalSetsAndParameters_temp.inc
-
+!/temp_1_options.gms
+!/temp_4d_postProcess_invest2schedule.gms
+!/temp_additionalSetsAndParameters.inc
+!/temp_buildingsInit.gms
+!/temp_investInit.gms
+!/temp_modelsInit.gms
+!/temp_scheduleInit.gms
+!/temp_timeAndSamples.inc
