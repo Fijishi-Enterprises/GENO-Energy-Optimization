@@ -202,7 +202,11 @@ r_qResDemand
 r_qResMissing
 r_groupTotalqResDemand
 r_qCapacity
+
+// Info results
 r_solveStatus
+metadata
+mSettings
 
 // Diagnostics
 $iftheni.diag '%diag%' == yes
@@ -213,9 +217,6 @@ d_nodeState
 d_influx
 $endif.diag
 
-// Metadata and settings
-metadata
-mSettings
 
 // OLD RESULTS, mostly here for inspiration
 *r_elec_type

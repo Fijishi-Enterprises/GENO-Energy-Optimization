@@ -214,8 +214,9 @@ Parameters
 
 * --- Info Results ------------------------------------------------------------
 
-    r_solveStatus(t, solve_info) "Information about the solve"
-    // metadata written directly from metadata set 
+    r_solveStatus(t, solve_info) "Information about status of solves"
+    // metadata written directly from metadata set
+    // mSettings written directly from init file
 
 ; // END PARAMETER DECLARATION
 
