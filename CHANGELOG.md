@@ -10,7 +10,6 @@ All notable changes to this project will be documented in this file.
 - template to activate barrier algorithm in cplex.opt (cplex_templateBarrier.opt)
 - timeseries based unit node constraints
 - option to add user defined parameters and sets in additionalSetsAndParameters.inc
-- example file additionalSetsAndParameters_temp.inc
 
 ### Removed - requiring input data changes - see conversion guide from 2.x to 3.x 
 - scenarios set including related equations and parameters
@@ -47,6 +46,8 @@ All notable changes to this project will be documented in this file.
 - Automatic formatting and of `tools/bb_data_template.json` data structure.
 - clearing Eps values from result table r_state
 - moving example files, e.g. 1_options_temp.gms, to their default folders
+- example file temp_additionalSetsAndParameters.inc
+- example file temp_changes.inc
 
 ### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves

@@ -6,6 +6,7 @@
 !/temp_4d_postProcess_invest2schedule.gms
 !/temp_additionalSetsAndParameters.inc
 !/temp_buildingInit.gms
+!/temp_changes.inc
 !/temp_investInit.gms
 !/temp_modelsInit.gms
 !/temp_scheduleInit.gms

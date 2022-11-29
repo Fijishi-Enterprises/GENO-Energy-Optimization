@@ -138,10 +138,10 @@ $include 'inc/1d_results.gms'       // Parameter definitions for model results
 $include 'inc/1e_inputs.gms'        // Load input data
 * 1e_inputs can convert %input_dir%/%input_file_excel% or %input_file_excel%  to %input_dir%/%input_file_gdx%
 * 1e_input reads %input_dir%/%input_file_gdx% or %input_file_gdx%
-* 1e_inputs read also following files if exist:
-*      - %input_dir%/additionalSetsAndParameters.inc
-*      - inc/1e_scenChanges.gms, and
-*      - %input_dir%/changes.inc
+* 1e_inputs read also following files:
+*      - %input_dir%/additionalSetsAndParameters.inc if exist
+*      - inc/1e_scenChanges.gms,
+*      - %input_dir%/changes.inc if exist
 
 * === Variables and equations =================================================
 $include 'inc/2a_variables.gms'                         // Define variables for the models
