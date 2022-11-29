@@ -46,8 +46,9 @@ All notable changes to this project will be documented in this file.
 - Automatic formatting and of `tools/bb_data_template.json` data structure.
 - clearing Eps values from result table r_state
 - moving example files, e.g. 1_options_temp.gms, to their default folders
-- example file temp_additionalSetsAndParameters.inc
-- example file temp_changes.inc
+- adding example file temp_additionalSetsAndParameters.inc
+- adding example file temp_changes.inc
+- adding example how to add new result tables
 
 ### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves

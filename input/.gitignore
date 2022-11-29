@@ -4,7 +4,9 @@
 # Except following data files
 !/temp_1_options.gms
 !/temp_4d_postProcess_invest2schedule.gms
+!/temp_4d_postProcess_newResultsTable.gms
 !/temp_additionalSetsAndParameters.inc
+!/temp_additionalResultSymbols.inc
 !/temp_buildingInit.gms
 !/temp_changes.inc
 !/temp_investInit.gms
