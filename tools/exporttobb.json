@@ -2933,8 +2933,8 @@
                 },
                 {
                     "map_type": "ParameterDefinition",
-                    "position": "hidden",
-                    "filter_re": "^emissionFactor"
+                    "position": 4,
+                    "header": "*"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2975,7 +2975,7 @@
                 },
                 {
                     "map_type": "ParameterValue",
-                    "position": 4
+                    "position": 5
                 }
             ],
             "enabled": true,
