@@ -211,3 +211,22 @@ Parameters
     p_s_discountFactor(s) "Discount factor for samples for objective function. Allows multiyear modelling." / /
 ;
 $offempty
+
+* --- UGLY HACK Dynamic buildings (Toni Lastusilta) -----------
+Parameters
+    elspotIsoBB(t,tsIso)     "Elspot Prices_2013 (EUR/MWh) with backbone timestamp and ISO date"
+    ts_priceElspotNP(t)      "Elspot NordPool Prices_2013 (EUR/MWh)"
+    ts_priceElspot(t)        "Elspot Prices_2013 inc. tarifs and taxes (EUR/MWh)"
+    ts_priceElspot_backup(t) "Elspot Prices_2013 inc. tarifs and taxes (backup) (EUR/MWh)"
+    p_price_el_select        "Use flat price 1 EUR/MWh (set 0). Use elspot price (set 1)"
+    flat_elec_price           Calculated average price from spot price
+    cardt_flat_elec_price     Number of non-zeroes in ts_priceElspot
+    modify_input             "Modify input (0=no, 1=yes: to set new limits)"
+    c2k                      "Convert celcius to kelvin degrees"
+    temp_limit(place,dir)    "Limit temperatures in Celcius"
+    building_squares(grid)   Building square meters
+    building_squares4elec(node)
+    temp_out(t)              "Outside temperature (C)"
+;
+
+

@@ -1,5 +1,6 @@
 $title Backbone
 $ontext
+Downloaded on 21.11.2022
 Backbone - chronological energy systems model
 Copyright (C) 2016 - 2022  VTT Technical Research Centre of Finland
 
@@ -225,4 +226,10 @@ if(execError,
    putclose log "!!! Errors encountered: " execError:0:0/;
    abort "FAILED";
 );
+
+$if not set plot $set plot 0
+$ifThenE %plot%<>0
+execute_unload '%output_dir%/data4plot.gdx';
+execute 'gams plots/plot_building.gms lo=%GAMS.lo% --backbone_output_GDX=%output_dir%/data4plot.gdx';
+$endIf
 * === THE END =================================================================

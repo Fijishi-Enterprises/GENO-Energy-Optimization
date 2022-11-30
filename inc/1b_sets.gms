@@ -192,6 +192,32 @@ Sets
 
 * --- Set of timeseries that will be read from files between solves -----------
     mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"
+* --- UGLY HACK Dynamic buildings (Toni Lastusilta) -----------
+    tsIso                                     Time-stamp in ISO8601 format
+    dir                                       "Direction: lo ,reference ,up"
+    place                                     "Measurement place in building"
+    grid2node(grid,node)
+    grid2node2unit(grid,node,unit)
+    node2unit(node,unit)
+    building_heat(grid) Grid elements for building temperature
+    heat_interior_air_and_furniture(node)
+    building_heat_interior_air_and_furniture(grid,node)
+    heat_light_fabrics(node)
+    building_heat_light_fabrics(grid,node)
+    heat_load_bearing_fabrics(node)
+    building_heat_load_bearing_fabrics(grid,node)
+    heat_DHWT_daily(node)
+    building_heat_DHWT_daily(grid,node)
+    elec(node)
+    building_elec(grid,node) "Nodes using electricity"
+    elec_trans2building(grid,node) "Nodes transfering electricty to buildings"
+    building_nodes
+    unit_heat(unit)
+    unit_cool(unit)
+    unit_DHW(unit)
+    unit_heat_and_cool(unit)
+    building2unit(grid,unit)
+    building_heat_storage(grid,node)     "All nodes for buildings, except for electricity"
 ;
 $offempty
 
