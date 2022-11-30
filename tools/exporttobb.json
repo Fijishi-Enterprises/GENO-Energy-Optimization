@@ -4,18 +4,18 @@
     "name": "ExportToBB",
     "description": "",
     "mappings": {
-        "main_sets": {
+        "emission": {
             "type": "objects",
             "mapping": [
                 {
                     "map_type": "ObjectClass",
                     "position": "table_name",
-                    "filter_re": "^grid$|^node$|^flow$|^unittype$|^unit$|^group$|^restype$|^emission$"
+                    "filter_re": "^emission$"
                 },
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "emission"
                 }
             ],
             "enabled": true,
@@ -23,13 +23,146 @@
             "group_fn": "no_group",
             "use_fixed_table_name": false
         },
-        "2D_sets": {
+        "flow": {
+            "type": "objects",
+            "mapping": [
+                {
+                    "map_type": "ObjectClass",
+                    "position": "table_name",
+                    "filter_re": "^flow$"
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "flow"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "grid": {
+            "type": "objects",
+            "mapping": [
+                {
+                    "map_type": "ObjectClass",
+                    "position": "table_name",
+                    "filter_re": "^grid$"
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "grid"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "group": {
+            "type": "objects",
+            "mapping": [
+                {
+                    "map_type": "ObjectClass",
+                    "position": "table_name",
+                    "filter_re": "^group$"
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "group"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "node": {
+            "type": "objects",
+            "mapping": [
+                {
+                    "map_type": "ObjectClass",
+                    "position": "table_name",
+                    "filter_re": "^node$"
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "node"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "restype": {
+            "type": "objects",
+            "mapping": [
+                {
+                    "map_type": "ObjectClass",
+                    "position": "table_name",
+                    "filter_re": "^restype$"
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "restype"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "unit": {
+            "type": "objects",
+            "mapping": [
+                {
+                    "map_type": "ObjectClass",
+                    "position": "table_name",
+                    "filter_re": "^unit$"
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "unit"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "unittype": {
+            "type": "objects",
+            "mapping": [
+                {
+                    "map_type": "ObjectClass",
+                    "position": "table_name",
+                    "filter_re": "^unittype$"
+                },
+                {
+                    "map_type": "Object",
+                    "position": 0,
+                    "header": "unittype"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "flowUnit": {
             "type": "relationships",
             "mapping": [
                 {
                     "map_type": "RelationshipClass",
                     "position": "table_name",
-                    "filter_re": "^unitUnittype$|^restypeDirection$|^flowUnit$|^uGroup$"
+                    "filter_re": "^flowUnit$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -46,12 +179,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "flow"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "unit"
                 }
             ],
             "enabled": true,
@@ -59,13 +192,121 @@
             "group_fn": "no_group",
             "use_fixed_table_name": false
         },
-        "3D_sets": {
+        "restypeDirection": {
             "type": "relationships",
             "mapping": [
                 {
                     "map_type": "RelationshipClass",
                     "position": "table_name",
-                    "filter_re": "^unitUnitEffLevel$|^effLevelGroupUnit$|^gnGroup$"
+                    "filter_re": "^restypeDirection$"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "Relationship",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 0,
+                    "header": "restype"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 1,
+                    "header": "up_down"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "uGroup": {
+            "type": "relationships",
+            "mapping": [
+                {
+                    "map_type": "RelationshipClass",
+                    "position": "table_name",
+                    "filter_re": "^uGroup$"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "Relationship",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 0,
+                    "header": "unit"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 1,
+                    "header": "group"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "unitUnittype": {
+            "type": "relationships",
+            "mapping": [
+                {
+                    "map_type": "RelationshipClass",
+                    "position": "table_name",
+                    "filter_re": "^unitUnittype$"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "Relationship",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 0,
+                    "header": "unit"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 1,
+                    "header": "unittype"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "effLevelGroupUnit": {
+            "type": "relationships",
+            "mapping": [
+                {
+                    "map_type": "RelationshipClass",
+                    "position": "table_name",
+                    "filter_re": "^effLevelGroupUnit$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -86,17 +327,17 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "effLevel"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "effSelector"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "unit"
                 }
             ],
             "enabled": true,
@@ -104,13 +345,103 @@
             "group_fn": "no_group",
             "use_fixed_table_name": false
         },
-        "4D_sets": {
+        "gnGroup": {
             "type": "relationships",
             "mapping": [
                 {
                     "map_type": "RelationshipClass",
                     "position": "table_name",
-                    "filter_re": "^gnuGroup$|^gn2nGroup$"
+                    "filter_re": "^gnGroup$"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "Relationship",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 0,
+                    "header": "grid"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 1,
+                    "header": "node"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 2,
+                    "header": "group"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "unitUnitEffLevel": {
+            "type": "relationships",
+            "mapping": [
+                {
+                    "map_type": "RelationshipClass",
+                    "position": "table_name",
+                    "filter_re": "^unitUnitEffLevel$"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "Relationship",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 0,
+                    "header": "unit"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 1,
+                    "header": "unit"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 2,
+                    "header": "EffLevel"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "gn2nGroup": {
+            "type": "relationships",
+            "mapping": [
+                {
+                    "map_type": "RelationshipClass",
+                    "position": "table_name",
+                    "filter_re": "^gn2nGroup$"
                 },
                 {
                     "map_type": "RelationshipClassObjectClass",
@@ -135,22 +466,76 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 3,
-                    "header": "*"
+                    "header": "group"
+                }
+            ],
+            "enabled": true,
+            "always_export_header": true,
+            "group_fn": "no_group",
+            "use_fixed_table_name": false
+        },
+        "gnuGroup": {
+            "type": "relationships",
+            "mapping": [
+                {
+                    "map_type": "RelationshipClass",
+                    "position": "table_name",
+                    "filter_re": "^gnuGroup$"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipClassObjectClass",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "Relationship",
+                    "position": "hidden"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 0,
+                    "header": "grid"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 1,
+                    "header": "node"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 2,
+                    "header": "unit"
+                },
+                {
+                    "map_type": "RelationshipObject",
+                    "position": 3,
+                    "header": "group"
                 }
             ],
             "enabled": true,
@@ -175,7 +560,7 @@
                     "map_type": "ParameterDefinition",
                     "position": 1,
                     "filter_re": "^((?!(efficiency|becomeAvailable|becomeUnavailable|boundSamples|unit_fail)).)*$",
-                    "header": "*"
+                    "header": "param_unit"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -248,7 +633,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 0,
-                    "header": "*"
+                    "header": "s"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -276,7 +661,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 1,
-                    "header": "*"
+                    "header": "param_policy"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -286,7 +671,7 @@
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "group"
                 },
                 {
                     "map_type": "Alternative",
@@ -332,7 +717,7 @@
                     "map_type": "ParameterDefinition",
                     "position": 2,
                     "filter_re": "^((?!(^storageValue$)).)*$",
-                    "header": "*"
+                    "header": "param_gn"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -346,12 +731,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "Alternative",
@@ -400,7 +785,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 3,
-                    "header": "*"
+                    "header": "param_gnn"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -414,17 +799,17 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "Alternative",
@@ -477,7 +862,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 4,
-                    "header": "*"
+                    "header": "param_gnu"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -491,22 +876,22 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 3,
-                    "header": "*"
+                    "header": "input_output"
                 },
                 {
                     "map_type": "Alternative",
@@ -558,7 +943,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 4,
-                    "header": "*"
+                    "header": "param_gnuBoundaryProperties"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -572,22 +957,22 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 3,
-                    "header": "*"
+                    "header": "slack"
                 },
                 {
                     "map_type": "Alternative",
@@ -644,12 +1029,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "constraint"
                 },
                 {
                     "map_type": "Alternative",
@@ -710,17 +1095,17 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "constraint"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "Alternative",
@@ -764,7 +1149,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 2,
-                    "header": "*"
+                    "header": "param_policy"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -778,12 +1163,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "group"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "restype"
                 },
                 {
                     "map_type": "Alternative",
@@ -832,7 +1217,7 @@
                     "map_type": "ParameterDefinition",
                     "position": 3,
                     "filter_re": "^((?!(reserveDemand)).)*$",
-                    "header": "*"
+                    "header": "param_policy"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -846,17 +1231,17 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "group"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "restype"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "up_down"
                 },
                 {
                     "map_type": "Alternative",
@@ -908,7 +1293,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 4,
-                    "header": "*"
+                    "header": "param_policy"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -922,22 +1307,22 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "group"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "restype"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "up_down"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 3,
-                    "header": "*"
+                    "header": "group"
                 },
                 {
                     "map_type": "Alternative",
@@ -989,7 +1374,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 4,
-                    "header": "*"
+                    "header": "param_policy"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1003,22 +1388,22 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 3,
-                    "header": "*"
+                    "header": "restype"
                 },
                 {
                     "map_type": "Alternative",
@@ -1070,7 +1455,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 4,
-                    "header": "*"
+                    "header": "up_down"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1084,22 +1469,22 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 3,
-                    "header": "*"
+                    "header": "restype"
                 },
                 {
                     "map_type": "Alternative",
@@ -1172,32 +1557,32 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 3,
-                    "header": "*"
+                    "header": "restype"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 4,
-                    "header": "*"
+                    "header": "up_down"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 5,
-                    "header": "*"
+                    "header": "restype"
                 },
                 {
                     "map_type": "Alternative",
@@ -1245,7 +1630,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 3,
-                    "header": "*"
+                    "header": "param_gnBoundaryProperties"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1259,17 +1644,17 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "param_gnBoundaryTypes"
                 },
                 {
                     "map_type": "Alternative",
@@ -1314,7 +1699,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 1,
-                    "header": "*"
+                    "header": "param_policy"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1328,12 +1713,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "group"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "emission"
                 },
                 {
                     "map_type": "Alternative",
@@ -1377,7 +1762,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 2,
-                    "header": "*"
+                    "header": "param_unitStartupfuel"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1391,12 +1776,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "Alternative",
@@ -1453,12 +1838,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "emission"
                 },
                 {
                     "map_type": "Alternative",
@@ -1516,12 +1901,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "Alternative",
@@ -1566,7 +1951,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 1,
-                    "header": "*"
+                    "header": "param_policy"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -1580,12 +1965,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "group"
                 },
                 {
                     "map_type": "Alternative",
@@ -1631,7 +2016,7 @@
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "Alternative",
@@ -1649,7 +2034,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 1,
-                    "header": "*"
+                    "header": "param_unit"
                 },
                 {
                     "map_type": "IndexName",
@@ -1658,7 +2043,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 2,
-                    "header": "*"
+                    "header": "f"
                 },
                 {
                     "map_type": "IndexName",
@@ -1667,7 +2052,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 3,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -1721,17 +2106,17 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "group"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "restype"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "up_down"
                 },
                 {
                     "map_type": "Alternative",
@@ -1749,7 +2134,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 3,
-                    "header": "*"
+                    "header": "f"
                 },
                 {
                     "map_type": "IndexName",
@@ -1758,7 +2143,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 4,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -1807,12 +2192,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "flow"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "Alternative",
@@ -1829,7 +2214,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 2,
-                    "header": "*"
+                    "header": "f"
                 },
                 {
                     "map_type": "IndexName",
@@ -1838,7 +2223,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 3,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -1875,7 +2260,7 @@
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "Alternative",
@@ -1892,7 +2277,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 1,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -1942,12 +2327,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "Alternative",
@@ -1965,7 +2350,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 2,
-                    "header": "*"
+                    "header": "f"
                 },
                 {
                     "map_type": "IndexName",
@@ -1974,7 +2359,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 3,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2028,17 +2413,17 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "param_gnBoundaryTypes"
                 },
                 {
                     "map_type": "Alternative",
@@ -2056,7 +2441,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 3,
-                    "header": "*"
+                    "header": "f"
                 },
                 {
                     "map_type": "IndexName",
@@ -2065,7 +2450,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 4,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2105,7 +2490,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 3,
-                    "header": "*"
+                    "header": "param_gnn"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2119,17 +2504,17 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "Alternative",
@@ -2147,7 +2532,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 4,
-                    "header": "*"
+                    "header": "f"
                 },
                 {
                     "map_type": "IndexName",
@@ -2156,7 +2541,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 5,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2206,12 +2591,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "Alternative",
@@ -2229,7 +2614,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 2,
-                    "header": "*"
+                    "header": "f"
                 },
                 {
                     "map_type": "IndexName",
@@ -2238,7 +2623,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 3,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2266,8 +2651,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": "hidden",
-                    "filter_re": "^efficiency$",
-                    "header": "*"
+                    "filter_re": "^efficiency$"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2295,7 +2679,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 1,
-                    "header": "*"
+                    "header": "param_unit"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2349,7 +2733,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 0,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2388,7 +2772,7 @@
                 {
                     "map_type": "Object",
                     "position": 1,
-                    "header": "*"
+                    "header": "group"
                 },
                 {
                     "map_type": "Alternative",
@@ -2405,7 +2789,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 0,
-                    "header": "*"
+                    "header": "s"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2444,7 +2828,7 @@
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "Alternative",
@@ -2461,7 +2845,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 1,
-                    "header": "*"
+                    "header": "s"
                 },
                 {
                     "map_type": "IndexName",
@@ -2470,7 +2854,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 2,
-                    "header": "*"
+                    "header": "s"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2521,12 +2905,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "Alternative",
@@ -2543,7 +2927,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 2,
-                    "header": "*"
+                    "header": "s"
                 },
                 {
                     "map_type": "IndexName",
@@ -2552,7 +2936,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 3,
-                    "header": "*"
+                    "header": "s"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2582,7 +2966,7 @@
                     "map_type": "ParameterDefinition",
                     "position": 2,
                     "filter_re": "^becomeAvailable$|^becomeUnavailable$",
-                    "header": "*"
+                    "header": "availabilityLimits"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2592,7 +2976,7 @@
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "Alternative",
@@ -2609,7 +2993,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 1,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2648,7 +3032,7 @@
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "Alternative",
@@ -2695,7 +3079,7 @@
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "restype"
                 },
                 {
                     "map_type": "Alternative",
@@ -2742,7 +3126,7 @@
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "restype"
                 },
                 {
                     "map_type": "Alternative",
@@ -2805,17 +3189,17 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "group"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "restype"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "param_policy"
                 },
                 {
                     "map_type": "Alternative",
@@ -2853,7 +3237,7 @@
                     "map_type": "ParameterDefinition",
                     "position": 1,
                     "filter_re": "^availability$",
-                    "header": "*"
+                    "header": "param_unit"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2863,7 +3247,7 @@
                 {
                     "map_type": "Object",
                     "position": 0,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "Alternative",
@@ -2881,7 +3265,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 2,
-                    "header": "*"
+                    "header": "f"
                 },
                 {
                     "map_type": "IndexName",
@@ -2890,7 +3274,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 3,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
@@ -2934,7 +3318,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": 4,
-                    "header": "*"
+                    "header": "param_gnuEmission"
                 },
                 {
                     "map_type": "ParameterValueList",
@@ -2948,22 +3332,22 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "grid"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "node"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 2,
-                    "header": "*"
+                    "header": "unit"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 3,
-                    "header": "*"
+                    "header": "emission"
                 },
                 {
                     "map_type": "Alternative",
@@ -3021,12 +3405,12 @@
                 {
                     "map_type": "RelationshipObject",
                     "position": 0,
-                    "header": "*"
+                    "header": "emission"
                 },
                 {
                     "map_type": "RelationshipObject",
                     "position": 1,
-                    "header": "*"
+                    "header": "group"
                 },
                 {
                     "map_type": "Alternative",
@@ -3044,7 +3428,7 @@
                 {
                     "map_type": "ParameterValueIndex",
                     "position": 2,
-                    "header": "*"
+                    "header": "t"
                 },
                 {
                     "map_type": "ExpandedValue",
