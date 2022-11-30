@@ -3325,8 +3325,9 @@ q_constrainedCapMultiUnit(group)
 * Limit for emissions in a specific group of nodes, gnGroup, during specified time steps, sGroup.
 * This can limit total emissions by grouping all nodes in one group, but
 * allows controlling also smaller subsets, e.g. a single country.
-* Corresponding results table is r_emissionsNodeGroupTotal, however that does not take into account sGroup condition.
-* result tables r_emissions, r_emissionsStartup, and r_emissionsCapacity cover emissions even if they are not in any group
+* Corresponding results table is r_emissionByNodeGroup, however that does not take into account sGroup condition.
+* result tables r_emission_operationEmissions, r_emission_startupEmissions,
+* and r_emission_capacityEmissions cover emissions even if they are not in any group
 
 * !!! NOTES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 * This limits emissions only included in gnGroup and sGroup

@@ -197,40 +197,6 @@ Sets
 ;
 $offempty
 
-* Set initial values to avoid errors when checking if parameter contents have been loaded from input data
-Option clear = modelSolves;
-Option clear = ms;
-Option clear = mf;
-mf_realization(mType, 'f00') = yes;
-Option clear = mTimeseries_loop_read;
-
-alias(m, mSolve);
-alias(t, t_, t__, tSolve, tFuel);
-alias(f, f_, f__);
-alias(s, s_, s__);
-alias(grid, grid_, grid_output);
-alias(unit, unit_);
-alias(node, from_node, to_node, node_, node_input, node_output, node_fail, node_left, node_right);
-alias(effSelector, effSelector_);
-alias(effDirect, effDirect_);
-alias(effDirectOff, effDirectOff_);
-alias(effDirectOn, effDirectOn_);
-alias(effLambda, effLambda_);
-alias(lambda, lambda_, lambda__);
-alias(op, op_, op__);
-alias(hrop, hrop_, hrop__);
-alias(eff, eff_, eff__);
-alias(hr, hr_, hr__);
-alias(effLevel, effLevel_);
-alias(restype, restype_);
-alias(group, group_);
-
-
-*if(active('rampSched'),
-  $$include inc/rampSched/sets_rampSched.gms
-*);
-
-
 
 
 sets
@@ -259,4 +225,41 @@ set metadata(*) /
 $include 'version'
 /;
 if(execError > 0, metadata('FAILED') = yes);
+
+
+
+* Set initial values to avoid errors when checking if parameter contents have been loaded from input data
+Option clear = modelSolves;
+Option clear = ms;
+Option clear = mf;
+mf_realization(mType, 'f00') = yes;
+Option clear = mTimeseries_loop_read;
+
+alias(m, mSolve);
+alias(t, t_, t__, tSolve, tFuel);
+alias(f, f_, f__);
+alias(s, s_, s__);
+alias(grid, grid_, grid_output);
+alias(unit, unit_);
+alias(node, from_node, to_node, node_, node_input, node_output, node_fail, node_left, node_right);
+alias(effSelector, effSelector_);
+alias(effDirect, effDirect_);
+alias(effDirectOff, effDirectOff_);
+alias(effDirectOn, effDirectOn_);
+alias(effLambda, effLambda_);
+alias(lambda, lambda_, lambda__);
+alias(op, op_, op__);
+alias(hrop, hrop_, hrop__);
+alias(eff, eff_, eff__);
+alias(hr, hr_, hr__);
+alias(effLevel, effLevel_);
+alias(restype, restype_);
+alias(group, group_);
+alias(metadata, r_info_metadata);
+
+*if(active('rampSched'),
+  $$include inc/rampSched/sets_rampSched.gms
+*);
+
+
 

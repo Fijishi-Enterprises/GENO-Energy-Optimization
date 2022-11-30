@@ -34,6 +34,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed - Quality of Life improvements
 - making most of the input data tables optional. Listing mandatory ones in 1e_inputs
+- updated result table names with an improved logic
+- added an option to use old 2.x result tables instead
+- adding example how to add new result tables (temp_4d_postProcess_newResultsTable.gms and temp_additionalResultSymbols.inc)
 - adding explanations and clarifications to paramater, set, and variable descriptions
 - adding if checks and absolute path option for input data excel
 - assuming default discount factor of 1 if not given in input data
@@ -48,7 +51,7 @@ All notable changes to this project will be documented in this file.
 - moving example files, e.g. 1_options_temp.gms, to their default folders
 - adding example file temp_additionalSetsAndParameters.inc
 - adding example file temp_changes.inc
-- adding example how to add new result tables
+
 
 ### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves

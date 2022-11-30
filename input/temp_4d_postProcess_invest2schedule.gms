@@ -18,9 +18,9 @@ put f_changes
 
 // Number of subunits
 put "* Update the number of subunits in the subsequent models"/;
-loop(unit${r_invest(unit)},
+loop(unit${r_invest_unitCount_u(unit)},
     // subunits rounded to the nearest integer
-    tmp = round(r_invest(unit), 0)
+    tmp = round(r_invest_unitCount_u(unit), 0)
     put "p_unit('", unit.tl, "', 'unitCount') = p_unit('", unit.tl,
         "', 'unitCount') + ", tmp, ";"/;
 );
@@ -28,9 +28,9 @@ loop(unit${r_invest(unit)},
 // Unit capacities
 put /;
 put "* Update unit capacities in the subsequent models"/;
-loop(gnu(grid, node, unit)${r_invest(unit)},
+loop(gnu(grid, node, unit)${r_invest_unitCount_u(unit)},
     // subunits rounded to the nearest integer
-    tmp = round(r_invest(unit), 0) * p_gnu(grid, node, unit, 'unitSize');
+    tmp = round(r_invest_unitCount_u(unit), 0) * p_gnu(grid, node, unit, 'unitSize');
     if(gnu_output(grid, node, unit),
         put "p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
             "', 'output', 'capacity')"/;
@@ -49,10 +49,10 @@ loop(gnu(grid, node, unit)${r_invest(unit)},
 put /;
 put "* Update storage investments in the subsequent models"/;
 loop(gnu(grid, node, unit)
-    ${r_invest(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio')},
+    ${r_invest_unitCount_u(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio')},
     // subunits rounded to the nearest integer
     tmp = p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
-        * round(r_invest(unit), 0) * p_gnu(grid, node, unit, 'unitSize');
+        * round(r_invest_unitCount_u(unit), 0) * p_gnu(grid, node, unit, 'unitSize');
     put "p_gnBoundaryPropertiesForStates('", grid.tl, "', '", node.tl,
         "', 'upwardLimit', 'constant')"/;
     put "    =  p_gnBoundaryPropertiesForStates('",
@@ -137,14 +137,14 @@ put f_loop_changes
 // Transfer capacity
 put "* Update transfer capacities in the subsequent models"/;
 loop(gn2n_directional(grid, node, node_)
-    ${sum(t_invest, r_investTransfer(grid, node, node_, t_invest))},
+    ${sum(t_invest, r_invest_transferCapacity_gnn(grid, node, node_, t_invest))},
     tmp = 0;
     tmp_ = 0;
     loop(t_invest(t),
         tmp = p_gnn(grid, node, node_, 'transferCap') + tmp
-            + r_investTransfer(grid, node, node_, t);
+            + r_invest_transferCapacity_gnn(grid, node, node_, t);
         tmp_ = p_gnn(grid, node_, node, 'transferCap') + tmp_
-            + r_investTransfer(grid, node, node_, t);
+            + r_invest_transferCapacity_gnn(grid, node, node_, t);
         put "if(ord(tSolve) >= ", ord(t), " - 1,"/;
         put "    p_gnn('", grid.tl, "', '", node.tl, "', '", node_.tl,
             "', 'transferCap')"/;
