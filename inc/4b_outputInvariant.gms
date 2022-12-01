@@ -156,12 +156,12 @@ loop(m,
        = sum(gn(grid, node), r_gen_gn(grid, node));
 
     // Total generation gnu/gn shares
-    r_gen_gnuShare(gnu_output(grid, node, unit))${ r_gen_gn(grid, node) > 0 }
+    r_gen_gnuShare(gnu(grid, node, unit))${ r_gen_gn(grid, node) <> 0 }
        = r_gen_gnu(grid, node, unit)
            / r_gen_gn(grid, node);
 
     // Total generation gn/g shares
-    r_gen_gnShare(gn(grid, node))${ r_gen_g(grid) > 0 }
+    r_gen_gnShare(gn(grid, node))${ r_gen_g(grid) <> 0 }
        = r_gen_gn(grid, node)
            / r_gen_g(grid);
 
@@ -180,8 +180,9 @@ loop(m,
                     * mSettings(m, 'stepLengthInHours')
                 ]; // END division
 
-* --- Energy generation results based on input or unittypes -------------------------------------------------------
+* --- Energy generation results based on input unittype, or group -------------------------------------------------------
 
+    // Calculates wrong with storages when there is a loop, e.g. elecGrid -> elecStorage -> elecGrid
     // Energy output to a node based on inputs from another node or flows
     r_genByFuel_gnft(gn(grid, node), node_, ft_realizedNoReset(f, startp(t)))$sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit),r_gen_gnuft(grid_, node_, unit, f, t))
         = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, node_, unit), 1),
@@ -196,7 +197,6 @@ loop(m,
         = sum(gnu_output(grid, node, unit)$flowUnit(flow, unit),
             + r_gen_gnuft(grid, node, unit, f, t));
 
-
     // Total energy generation in gn per input type over the simulation
     r_genByFuel_gn(gn(grid, node), node_)
         = sum(ft_realizedNoReset(f, startp(t)),
@@ -204,18 +204,31 @@ loop(m,
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
+    r_genByFuel_gn(gn(grid, node), flow)
+        = sum(ft_realizedNoReset(f, startp(t)),
+            + r_genByFuel_gnft(grid, node, flow, f, t)
+                * p_stepLengthNoReset(m, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+            ); // END sum(ft_realizedNoReset)
 
     // Total energy generation in grids per input type over the simulation
     r_genByFuel_g(grid, node_)
         = sum(gn(grid, node), r_genByFuel_gn(grid, node, node_));
+    r_genByFuel_g(grid, flow)
+        = sum(gn(grid, node), r_genByFuel_gn(grid, node, flow));
 
     // Total overall energy generation per input type over the simulation
-    r_genByFuel_n(node_)
+    r_genByFuel_fuel(node_)
         = sum(gn(grid, node), r_genByFuel_gn(grid, node, node_));
+    r_genByFuel_fuel(flow)
+        = sum(gn(grid, node), r_genByFuel_gn(grid, node, flow));
 
     // Total energy generation in gn per input type as a share of total energy generation in gn across all input types
     r_genByFuel_gnShare(gn(grid, node), node_)${ r_gen_gn(grid, node) }
         = r_genByFuel_gn(grid, node, node_)
+            / r_gen_gn(grid, node);
+    r_genByFuel_gnShare(gn(grid, node), flow)${ r_gen_gn(grid, node) }
+        = r_genByFuel_gn(grid, node, flow)
             / r_gen_gn(grid, node);
 
     // Energy generation for each unittype
@@ -236,32 +249,7 @@ loop(m,
             + r_gen_gnu(grid, node, unit)
             ); // END sum(unit)
 
-* --- Energy consumption results ---------------------------------------
-
-    // !!! NOTE !!! This is a bit of an approximation at the moment !!!!!!!!!!!!!!!
-    r_consumption_gnft(gn(grid, node), ft_realizedNoReset(f, startp(t)))$sum(s, sft_realizedNoReset(s,f,t))
-        = p_stepLengthNoReset(m, f, t)
-            * [
-                + min(ts_influx(grid, node, f, t), 0) // Not necessarily a good idea, as ts_influx contains energy gains as well...
-                + sum(gnu_input(grid, node, unit),
-                    + r_gen_gnuft(grid, node, unit, f, t)
-                    ) // END sum(gnu_input)
-                ];
-
-    // Total consumption on each gn over the simulation
-    r_consumption_gn(gn(grid, node))
-        = sum(ft_realizedNoReset(f, startp(t)),
-            + r_consumption_gnft(grid, node, f ,t)
-                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
-            );
-
-    // Total consumption in each grid over the simulation
-    r_consumption_g(grid)
-        = sum(gn(grid, node), r_consumption_gn(grid, node));
-
-    // Total consumption gn/g share
-    r_consumption_gnShare(gn(grid, node))${ r_consumption_g(grid) > 0 }
-        = r_consumption_gn(grid, node) / r_consumption_g(grid);
+* --- Energy consumption during startups --------------------------------------
 
     // Unit start-up consumption
     r_consumption_unitStartup_nu(nu_startup(node, unit), ft_realizedNoReset(f,startp(t)))
@@ -270,8 +258,6 @@ loop(m,
             + r_startup_uft(unit, starttype, f, t)
                 * p_unStartup(unit, node, starttype) // MWh/start-up
             ); // END sum(unitStarttype)
-
-
 
 * --- Unit Online, startup, and shutdown Result Symbols ---------------------------------------
 * --- other online, startup, and shutdown results ---------------------------------------
@@ -788,7 +774,7 @@ loop(m,
         = sum(gn(grid, node), r_cost_realizedOperatingCost_gn(grid, node));
 
     // Total realized operating costs gn/g share
-    r_cost_realizedOperatingCost_gnShare(gn(grid, node))${ r_cost_realizedOperatingCost_g(grid) > 0 }
+    r_cost_realizedOperatingCost_gnShare(gn(grid, node))${ r_cost_realizedOperatingCost_g(grid) <> 0 }
         = r_cost_realizedOperatingCost_gn(grid, node)
             / r_cost_realizedOperatingCost_g(grid);
 
@@ -832,7 +818,7 @@ loop(m,
         = sum(gn(grid, node), r_cost_realizedCost_gn(grid, node));
 
     // Total realized costs gn/g share
-    r_cost_realizedCost_gnShare(gn(grid, node))${ r_cost_realizedCost_g(grid) > 0 }
+    r_cost_realizedCost_gnShare(gn(grid, node))${ r_cost_realizedCost_g(grid) <> 0 }
         = r_cost_realizedCost_gn(grid, node)
             / r_cost_realizedCost_g(grid);
 

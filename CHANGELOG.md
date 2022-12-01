@@ -11,11 +11,12 @@ All notable changes to this project will be documented in this file.
 - timeseries based unit node constraints
 - option to add user defined parameters and sets in additionalSetsAndParameters.inc
 
-### Removed - requiring input data changes - see conversion guide from 2.x to 3.x 
-- scenarios set including related equations and parameters
-- removed unavailability (availability timeseries covers those functions from now on)
+### Removed - possibly requiring changes in input or result processing - see conversion guide from 2.x to 3.x 
+- removed scenarios set including related equations and parameters
+- removed unavailability paramater. Aavailability timeseries covers those functions from now on.
 - removed unfinished features of reading new data during loop for ts_effUnit, ts_effGroupUnit, ts_priceChange, ts_price 
 - removing option to read params.inc for additional parameters. New file additionalSetsAndParameters.inc replaces.
+- removing consumption result tables as those are part of generation tables. 
 
 ### Changed - requiring input data changes - see conversion guide from 2.x to 3.x 
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
@@ -82,6 +83,8 @@ All notable changes to this project will be documented in this file.
 - fixed multiplying unit ramping costs and transfer variable cost by stepLength in objective function
 - fixing a case where ts_node was not looped for all included values
 - Existing unit fixed operation and maintenance costs (fomCosts) are now included in the objective function
+- Adding flow units to all generation by fuel result tables
+- fixing calculation of share result tables
 
 
 ## 2.2 - 2022-03-24

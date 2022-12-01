@@ -74,17 +74,13 @@ r_utilizationRate_gnu
 r_genByFuel_gnft
 r_genByFuel_gn
 r_genByFuel_g
-r_genByFuel_n
+r_genByFuel_fuel
 r_genByFuel_gnShare
 r_genByUnittype_gnft
 r_genByUnittype_gn
 r_genByGnuGroup_gn
 
-// Energy consumption results
-r_consumption_gnft
-r_consumption_gn
-r_consumption_g
-r_consumption_gnShare
+// Energy consumption during startups 
 r_consumption_unitStartup_nu
 
 
