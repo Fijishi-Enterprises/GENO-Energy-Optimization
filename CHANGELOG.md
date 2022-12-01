@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file.
 
 ## unversioned
+
+### Added
+
+### Changed
+
+### Fixed
+
+
+
+
+## 3.0 - 2022-12-01
+
 ### Added
 - option to use availabilityCapacityMargin for input units
 - emission factors for invested capacity, fixed o&m, and variable o&m for units
