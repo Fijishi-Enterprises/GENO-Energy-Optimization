@@ -85,6 +85,7 @@ All notable changes to this project will be documented in this file.
 - Existing unit fixed operation and maintenance costs (fomCosts) are now included in the objective function
 - Adding flow units to all generation by fuel result tables
 - fixing calculation of share result tables
+- finished partially completed shutdown cost result tables
 
 
 ## 2.2 - 2022-03-24

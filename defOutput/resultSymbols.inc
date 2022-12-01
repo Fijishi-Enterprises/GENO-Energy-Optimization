@@ -166,7 +166,8 @@ r_cost_unitFuelEmissionCost_gnuft
 r_cost_unitFuelEmissionCost_u
 r_cost_unitStartupCost_uft
 r_cost_unitStartupCost_u
-*r_cost_unitShutdownCost_uft
+r_cost_unitShutdownCost_uft
+r_cost_unitShutdownCost_u
 r_cost_unitFOMCost_gnu
 r_cost_unitInvestmentCost_gnu
 r_cost_unitCapacityEmissionCost_nu

@@ -614,6 +614,20 @@ loop(m,
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
 
+    // Unit shutdown costs (MEUR)
+    r_cost_unitShutdownCost_uft(unit, f, t)
+        = 1e-6 // Scaling to MEUR
+            * r_shutdown_uft(unit, f, t) // number of shutdowns
+            * p_uShutdown(unit, 'cost') // EUR/shutdown
+          ;
+
+    // Total unit shutdown costs over the simulation (MEUR)
+    r_cost_unitShutdownCost_u(unit)
+        = sum(ft_realizedNoReset(f,startp(t)),
+            + r_cost_unitShutdownCost_uft(unit, f, t)
+                * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
+            );
+
     // Total gnu fixed O&M costs over the simulation, existing and invested units (MEUR)
     r_cost_unitFOMCost_gnu(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
