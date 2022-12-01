@@ -19,51 +19,6 @@ $offtext
 * --- Results Symbols Included in Output --------------------------------------
 * =============================================================================
 
-* --- Cost Result Symbols -----------------------------------------------------
-
-// Total Objective Function
-r_cost_objectiveFunction_t
-
-// Unit Cost Components
-r_cost_unitVOMCost_gnuft
-r_cost_unitVOMCost_gnu
-r_cost_unitFuelEmissionCost_gnuft
-r_cost_unitFuelEmissionCost_u
-r_cost_unitStartupCost_uft
-r_cost_unitStartupCost_u
-*r_cost_unitShutdownCost_uft
-r_cost_unitFOMCost_gnu
-r_cost_unitInvestmentCost_gnu
-
-// Transfer Link Cost Components
-r_cost_linkVOMCost_gnnft
-r_cost_linkVOMCost_gnn
-r_cost_linkInvestmentCost_gnn
-
-// Nodal Cost Components
-r_cost_stateSlackCost_gnt
-r_cost_stateSlackCost_gn
-r_cost_storageValueChange_gn
-
-// Realized System Operating Costs
-r_cost_realizedOperatingCost_gnft
-r_cost_realizedOperatingCost_gn
-r_cost_realizedOperatingCost_g
-r_cost_realizedOperatingCost
-r_cost_realizedOperatingCost_gnShare
-r_cost_realizedNetOperatingCost_gn
-r_cost_realizedNetOperatingCost_g
-r_cost_realizedNetOperatingCost
-
-// Realized System Costs
-r_cost_realizedCost_gn
-r_cost_realizedCost_g
-r_cost_realizedCost
-r_cost_realizedCost_gnShare
-r_cost_realizedNetCost_gn
-r_cost_realizedNetCost_g
-r_cost_realizedNetCost
-
 * --- Node Result Symbols -----------------------------------------------------
 
 // r_state required for model structure !!!!!!!!!!!
@@ -160,7 +115,7 @@ r_emission_operationEmissions_gnuft
 r_emission_operationEmissions_nu
 r_emission_startupEmissions_nuft
 r_emission_StartupEmissions_nu
-r_emission_capacityEmissions_u
+r_emission_capacityEmissions_nu
 
 // Emission sum results
 r_emissionByNodeGroup
@@ -191,7 +146,7 @@ r_reserveDemand_largestInfeedUnit_ft
 r_reserveTransferRightward_gnn
 r_reserveTransferLeftward_gnn
 
-* --- Dummy, info, and Diagnostic Result Symbols ----------------------------
+* --- Dummy Result Symbols ----------------------------
 
 // Results regarding solution feasibility
 r_qGen_gnft
@@ -201,6 +156,55 @@ r_qReserveDemand_ft
 r_qReserveMissing_ft
 r_qReserveDemand
 r_qCapacity_ft
+
+
+* --- Cost Result Symbols -----------------------------------------------------
+
+// Total Objective Function
+r_cost_objectiveFunction_t
+
+// Unit Cost Components
+r_cost_unitVOMCost_gnuft
+r_cost_unitVOMCost_gnu
+r_cost_unitFuelEmissionCost_gnuft
+r_cost_unitFuelEmissionCost_u
+r_cost_unitStartupCost_uft
+r_cost_unitStartupCost_u
+*r_cost_unitShutdownCost_uft
+r_cost_unitFOMCost_gnu
+r_cost_unitInvestmentCost_gnu
+r_cost_unitCapacityEmissionCost_nu
+
+// Transfer Link Cost Components
+r_cost_linkVOMCost_gnnft
+r_cost_linkVOMCost_gnn
+r_cost_linkInvestmentCost_gnn
+
+// Nodal Cost Components
+r_cost_stateSlackCost_gnt
+r_cost_stateSlackCost_gn
+r_cost_storageValueChange_gn
+
+// Realized System Operating Costs
+r_cost_realizedOperatingCost_gnft
+r_cost_realizedOperatingCost_gn
+r_cost_realizedOperatingCost_g
+r_cost_realizedOperatingCost
+r_cost_realizedOperatingCost_gnShare
+r_cost_realizedNetOperatingCost_gn
+r_cost_realizedNetOperatingCost_g
+r_cost_realizedNetOperatingCost
+
+// Realized System Costs
+r_cost_realizedCost_gn
+r_cost_realizedCost_g
+r_cost_realizedCost
+r_cost_realizedCost_gnShare
+r_cost_realizedNetCost_gn
+r_cost_realizedNetCost_g
+r_cost_realizedNetCost
+
+* --- Info and Diagnostic Result Symbols ----------------------------
 
 // Info results
 r_info_solveStatus

@@ -21,51 +21,6 @@ $offtext
 
 Parameters
 
-* --- Cost Results ------------------------------------------------------------
-
-    // Total Objective Function
-    r_cost_objectiveFunction_t(t) "Total accumulated value of the objective function over all solves"
-
-    // Unit Cost Components
-    r_cost_unitVOMCost_gnuft(grid, node, unit, f, t) "Variable O&M costs for energy input and outputs (MEUR)"
-    r_cost_unitVOMCost_gnu(grid, node, unit) "Total gnu VOM costs over the simulation (MEUR)"
-    r_cost_unitFuelEmissionCost_gnuft(grid, node, unit, f, t) "Unit fuel & emission costs for normal operation (MEUR)"
-    r_cost_unitFuelEmissionCost_u(grid, node, unit) "Total unit fuel & emission costs over the simulation for normal operation (MEUR)"
-    r_cost_unitStartupCost_uft(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
-    r_cost_unitStartupCost_u(unit) "Total unit startup costs over the simulation (MEUR)"
-    //r_cost_unitShutdownCost_uft(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
-    r_cost_unitFOMCost_gnu(grid, node, unit) "Total gnu fixed O&M costs over the simulation (MEUR)"
-    r_cost_unitInvestmentCost_gnu(grid, node, unit) "Total unit investment costs over the simulation (MEUR)"
-
-    // Transfer Link Cost Components
-    r_cost_linkVOMCost_gnnft(grid, node_,node, f, t) "Variable Transfer costs (MEUR)"
-    r_cost_linkVOMCost_gnn(grid, node_, node) "Total Variable Transfer costs over the simulation (MEUR)"
-    r_cost_linkInvestmentCost_gnn(grid, node, node) "Total transfer link investment costs over the simulation (MEUR)"
-
-    // Nodal Cost Components
-    r_cost_stateSlackCost_gnt(grid, node, f, t) "Costs for states requiring slack (MEUR)"
-    r_cost_stateSlackCost_gn(grid, node) "Total costs for state slacks over the simulation (MEUR)"
-    r_cost_storageValueChange_gn(grid, node) "Change in storage values over the simulation (MEUR)"
-
-    // Realized System Operating Costs
-    r_cost_realizedOperatingCost_gnft(grid, node, f, t) "Realized system operating costs in gn for each t (MEUR)"
-    r_cost_realizedOperatingCost_gn(grid, node) "Total realized system operating costs in gn over the simulation (MEUR)"
-    r_cost_realizedOperatingCost_g(grid) "Total realized system operating costs in g over the simulation (MEUR)"
-    r_cost_realizedOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
-    r_cost_realizedOperatingCost_gnShare(grid, node) "Total realized system operating cost gn/g shares over the simulation"
-    r_cost_realizedNetOperatingCost_gn(grid, node) "Total realized system operating costs in gn over the simulation, minus the increase in storage values (MEUR)"
-    r_cost_realizedNetOperatingCost_g(grid) "Total realized system operating costs in g over the simulation, minus the increase in storage values (MEUR)"
-    r_cost_realizedNetOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
-
-    // Realized System Costs
-    r_cost_realizedCost_gn(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
-    r_cost_realizedCost_g(grid) "Total realized system costs in g over the simulation (MEUR)"
-    r_cost_realizedCost "Total realized system costs over the simulation (MEUR)" / 0 /
-    r_cost_realizedCost_gnShare(grid, node) "Total realized system cost gn/g shares over the simulation"
-    r_cost_realizedNetCost_gn(grid, node) "Total realized system costs in gn over the simulation, minus the increase in storage values (MEUR)"
-    r_cost_realizedNetCost_g(grid) "Total realized system costs in g over the simulation, minus the increase in storage values (MEUR)"
-    r_cost_realizedNetCost "Total realized system costs over the simulation (MEUR)" / 0 /
-
 * --- Node Results ------------------------------------------------------------
 
     // required for model structure
@@ -160,7 +115,7 @@ Parameters
     r_emission_operationEmissions_nu(node, unit, emission) "node unit total emissions in normal operation (tEmission)"
     r_emission_startupEmissions_nuft(node, emission, unit, f, t) "Emissions from units during start-ups (tEmission)"
     r_emission_StartupEmissions_nu(node, unit, emission) "node unit total emissions in start-ups (tEmission)"
-    r_emission_capacityEmissions_u(unit, emission) "Emissions from investments and fixed annual operation and maintenance emissions (tEmission)"
+    r_emission_capacityEmissions_nu(node, unit, emission) "Emissions from fixed o&m emissions and investments (tEmission)"
 
     // Emission sums
     r_emissionByNodeGroup(emission, group) "Group total emissions (tEmission)"
@@ -191,7 +146,7 @@ Parameters
     r_reserveTransferRightward_gnn(restype, up_down, grid, node, node) "Total electricity transmission capacity from the first node to the second node reserved for providing reserves (MW*h)"
     r_reserveTransferLeftward_gnn(restype, up_down, grid, node, node) "Total electricity transmission capacity from the second node to the first node reserved for providing reserves (MW*h)"
 
-* --- Dummy, info, and Diagnostic Result Symbols --------------------------------------------------
+* --- Dummy Result Symbols ----------------------------------------------------
 
     // Results regarding solution feasibility
     r_qGen_gnft(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
@@ -201,6 +156,56 @@ Parameters
     r_qReserveMissing_ft(restype, up_down, group, f, t) "Dummy to decrease demand for a reserve (MW) after reserve commitment"
     r_qReserveDemand(restype, up_down, group) "Total dummy reserve provisions in the group over the simulation"
     r_qCapacity_ft(grid, node, f, t) "Dummy capacity to ensure capacity margin equation feasibility (MW)"
+
+* --- Cost Results ------------------------------------------------------------
+
+    // Total Objective Function
+    r_cost_objectiveFunction_t(t) "Total accumulated value of the objective function over all solves"
+
+    // Unit Cost Components
+    r_cost_unitVOMCost_gnuft(grid, node, unit, f, t) "Variable O&M costs for energy input and outputs (MEUR)"
+    r_cost_unitVOMCost_gnu(grid, node, unit) "Total gnu VOM costs over the simulation (MEUR)"
+    r_cost_unitFuelEmissionCost_gnuft(grid, node, unit, f, t) "Unit fuel & emission costs for normal operation (MEUR)"
+    r_cost_unitFuelEmissionCost_u(grid, node, unit) "Total unit fuel & emission costs over the simulation for normal operation (MEUR)"
+    r_cost_unitStartupCost_uft(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
+    r_cost_unitStartupCost_u(unit) "Total unit startup costs over the simulation (MEUR)"
+    //r_cost_unitShutdownCost_uft(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
+    r_cost_unitFOMCost_gnu(grid, node, unit) "Total gnu fixed O&M costs over the simulation, existing and invested units (MEUR)"
+    r_cost_unitInvestmentCost_gnu(grid, node, unit) "Total unit investment costs over the simulation (MEUR)"
+    r_cost_unitCapacityEmissionCost_nu(node, unit) "Cost from unit FOM emissions and investment emissions (MEUR)"
+
+    // Transfer Link Cost Components
+    r_cost_linkVOMCost_gnnft(grid, node_,node, f, t) "Variable Transfer costs (MEUR)"
+    r_cost_linkVOMCost_gnn(grid, node_, node) "Total Variable Transfer costs over the simulation (MEUR)"
+    r_cost_linkInvestmentCost_gnn(grid, node, node) "Total transfer link investment costs over the simulation (MEUR)"
+
+    // Nodal Cost Components
+    r_cost_stateSlackCost_gnt(grid, node, f, t) "Costs for states requiring slack (MEUR)"
+    r_cost_stateSlackCost_gn(grid, node) "Total costs for state slacks over the simulation (MEUR)"
+    r_cost_storageValueChange_gn(grid, node) "Change in storage values over the simulation (MEUR)"
+
+    // Realized System Operating Costs
+    r_cost_realizedOperatingCost_gnft(grid, node, f, t) "Realized system operating costs in gn for each t (MEUR)"
+    r_cost_realizedOperatingCost_gn(grid, node) "Total realized system operating costs in gn over the simulation (MEUR)"
+    r_cost_realizedOperatingCost_g(grid) "Total realized system operating costs in g over the simulation (MEUR)"
+    r_cost_realizedOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
+    r_cost_realizedOperatingCost_gnShare(grid, node) "Total realized system operating cost gn/g shares over the simulation"
+    r_cost_realizedNetOperatingCost_gn(grid, node) "Total realized system operating costs in gn over the simulation, minus the increase in storage values (MEUR)"
+    r_cost_realizedNetOperatingCost_g(grid) "Total realized system operating costs in g over the simulation, minus the increase in storage values (MEUR)"
+    r_cost_realizedNetOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
+
+    // Realized System Costs
+    r_cost_realizedCost_gn(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
+    r_cost_realizedCost_g(grid) "Total realized system costs in g over the simulation (MEUR)"
+    r_cost_realizedCost "Total realized system costs over the simulation (MEUR)" / 0 /
+    r_cost_realizedCost_gnShare(grid, node) "Total realized system cost gn/g shares over the simulation"
+    r_cost_realizedNetCost_gn(grid, node) "Total realized system costs in gn over the simulation, minus the increase in storage values (MEUR)"
+    r_cost_realizedNetCost_g(grid) "Total realized system costs in g over the simulation, minus the increase in storage values (MEUR)"
+    r_cost_realizedNetCost "Total realized system costs over the simulation (MEUR)" / 0 /
+
+
+
+* --- Info, and Diagnostic Result Symbols -------------------------------------
 
     // Info Results
     r_info_solveStatus(t, solve_info) "Information about status of solves"
