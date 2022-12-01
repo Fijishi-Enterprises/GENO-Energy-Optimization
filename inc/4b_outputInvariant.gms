@@ -368,7 +368,7 @@ loop(m,
 
 * --- Emission Sum Results ----------------------------------------------------
 
-    // Emission sums for emission in gnGroup
+    // Emission in gnGroup
     r_emissionByNodeGroup(emission, group)
         = sum(ft_realizedNoReset(f, startp(t)),
             // Emissions from operation: consumption and production of fuels - gn related emissions (tEmission)
@@ -409,11 +409,11 @@ loop(m,
             ) // END sum(gnu)
     ;
 
-    // Emission sums (including normal operation and start-ups)
+    // Emission sums
     r_emission_nu(nu(node, unit), emission)
         = r_emission_operationEmissions_nu(node, unit, emission)
             + r_emission_StartupEmissions_nu(node, unit, emission)
-// ADD CAPACITY EMISSIONS
+            + r_emission_capacityEmissions_nu(node, unit, emission)
     ;
 
     r_emission_n(node, emission)
