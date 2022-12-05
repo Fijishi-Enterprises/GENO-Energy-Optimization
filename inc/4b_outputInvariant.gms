@@ -634,11 +634,12 @@ loop(m,
 
     // Total gnu fixed O&M costs over the simulation, existing and invested units (MEUR)
     r_cost_unitFOMCost_gnu(gnu(grid, node, unit))
+        ${ sum(msft(m, s, f, t), usft(unit, s, f, t)) }
         = 1e-6 // Scaling to MEUR
-            * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
+            * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t), 1) }, // consider ms only if it has active msft_realizedNoReset
                 + [
-                    + p_gnu(grid, node, unit, 'capacity')$sum(msft_realizedNoReset(m, s, f, t_), usft(unit, s, f, t_)) // Not in v_obj; only units active in msft_realizedNoReset
-                    + r_invest_unitCount_u(unit)$sum(msft_realizedNoReset(m, s, f, t_), usft(unit, s, f, t_)) // only units active in msft_realizedNoReset
+                    + p_gnu(grid, node, unit, 'capacity')
+                    + r_invest_unitCount_u(unit)
                         * p_gnu(grid, node, unit, 'unitSize')
                     ]
                     * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
@@ -649,8 +650,8 @@ loop(m,
     // Unit investment costs
     r_cost_unitInvestmentCost_gnu(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
-            * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
-                + r_invest_unitCount_u(unit)$sum(msft_realizedNoReset(m, s, f, t_), usft(unit, s, f, t_)) // only units active in msft_realizedNoReset
+            * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t), 1) }, // consider ms only if it has active msft_realizedNoReset
+                + r_invest_unitCount_u(unit)
                     * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
                     * p_s_discountFactor(s) // Discount costs
                 ) // END * sum(ms)
@@ -660,13 +661,14 @@ loop(m,
 
     // Cost from unit FOM emissions and investment emissions (MEUR)
     r_cost_unitCapacityEmissionCost_nu(node, unit)
+        ${ sum(msft(m, s, f, t), usft(unit, s, f, t)) }
         = 1e-6 // Scaling to MEUR
-            * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
+            * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t), 1) }, // consider ms only if it has active msft_realizedNoReset
                 +p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
                 * p_s_discountFactor(s) // Discount costs
 
                 * sum(emissionGroup(emission, group)$p_nEmission(node, emission),
-                    + r_emission_capacityEmissions_nu(node, unit, emission)$sum(msft_realizedNoReset(m, s, f, t_), usft(unit, s, f, t_)) // only units active in msft_realizedNoReset
+                    + r_emission_capacityEmissions_nu(node, unit, emission)
                     * [ + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
                         + (sum(t_realized(t), ts_emissionPrice(emission, group, t))/card(t_realized))$p_emissionPrice(emission, group, 'useTimeSeries')
                       ]// END * p_gnuEmssion
@@ -695,7 +697,7 @@ loop(m,
     // Transfer link investment costs
     r_cost_linkInvestmentCost_gnn(gn2n_directional(grid, from_node, to_node)) // gn2n_directional only, as in q_obj
         = 1e-6 // Scaling to MEUR
-            * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
+            * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t), 1) }, // consider ms only if it has active msft_realizedNoReset
                 + sum(t_invest(t)${ord(t) <= msEnd(m, s)}, // only if investment was made before or during the sample
                     + r_invest_transferCapacity_gnn(grid, from_node, to_node, t)
                     )
