@@ -331,12 +331,19 @@ loop(ft_realizedNoReset(f, t),
 // Time step displacement to reach previous time step
 option clear = dt;
 option clear = dt_next;
-tmp = max(tSolveFirst + tmp_dt, 1); // The ord(t) of the first time step in t_active, cannot decrease below 1 to avoid referencing time steps before t000000
-loop(t_active(t),
-    dt(t) = tmp - ord(t);
-    dt_next(t+dt(t)) = -dt(t);
-    tmp = ord(t);
-); // END loop(t_active)
+
+tmp = smax(mft, p_stepLength(mft));
+if(tmp = 1,
+    dt(t_active(t)) = -1;
+    dt_next(t_active(t)) = 1;
+else
+    tmp = max(tSolveFirst + tmp_dt, 1); // The ord(t) of the first time step in t_active, cannot decrease below 1 to avoid referencing time steps before t000000
+    loop(t_active(t),
+        dt(t) = tmp - ord(t);
+        dt_next(t+dt(t)) = -dt(t);
+        tmp = ord(t);
+    ); // END loop(t_active)
+);
 
 // First model ft
 Option clear = mft_start;
@@ -511,7 +518,7 @@ usft(unit, sft(s, f, t))${ uft(unit, f ,t)} = yes;
 
 // Active (grid, node, unit) on each sft
 Option clear = gnusft;
-gnusft(gnu(grid, node, unit), sft(s, f, t))${ uft(unit, f ,t)} = yes;
+gnusft(gnu(grid, node, unit), sft(s, f, t))${ usft(unit, s, f ,t)} = yes;
 
 // Active (grid, node, unit, slack, up_down) on each ft step with ramp restrictions
 Option clear = gnuft_rampCost;

@@ -92,7 +92,7 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
     ) // END * p_stepLength
 
     // Unit start-up consumption
-    - sum(uft(unit, f, t)$nu_startup(node, unit),
+    - sum(usft(unit, s, f, t)$nu_startup(node, unit),
         + sum(unitStarttype(unit, starttype),
             + p_unStartup(unit, node, starttype) // MWh/start-up
             * [ // Startup type
@@ -100,7 +100,7 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
                 + v_startup_MIP(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
                 ]
             ) // END sum(unitStarttype)
-        ) // END sum(uft)
+        ) // END sum(usft)
 
 ;
 
@@ -204,7 +204,7 @@ q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_f
             and ft_realized(f, t)
             ]
         and sum(gnGroup(grid, node, group), p_gnuReserves(grid, node, unit_, restype, 'portion_of_infeed_to_reserve'))
-        and uft(unit_, f, t) // only active units
+        and usft(unit_, s, f, t) // only active units
         and sum(gnGroup(grid, node, group), gnu_output(grid, node, unit_)) // only units with output capacity 'inside the group'
         } ..
 
@@ -289,7 +289,7 @@ q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
     ${  p_groupPolicy(group, 'defaultFrequency')
         and p_groupPolicy(group, 'ROCOF')
         and p_groupPolicy(group, 'dynamicInertia')
-        and uft(unit_, f, t) // only active units
+        and usft(unit_, s, f, t) // only active units
         and sum(gnGroup(grid, node, group), gnu_output(grid, node, unit_)) // only units with output capacity 'inside the group'
         } ..
 
@@ -298,7 +298,7 @@ q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
         * [
             + sum(gnu_output(grid, node, unit)${   ord(unit) ne ord(unit_)
                                                    and gnGroup(grid, node, group)
-                                                   and uft(unit, f, t)
+                                                   and usft(unit, s, f, t)
                                                    },
                 + p_gnu(grid, node, unit, 'inertia')
                     * p_gnu(grid ,node, unit, 'unitSizeMVA')
@@ -340,7 +340,7 @@ q_rateOfChangeOfFrequencyTransfer(group, gn2n(grid, node_, node_fail), sft(s, f,
     + p_groupPolicy(group, 'ROCOF')*2
         * [
             + sum(gnu_output(grid, node, unit)${   gnGroup(grid, node, group)
-                                                   and uft(unit, f, t)
+                                                   and usft(unit, s, f, t)
                                                    },
                 + p_gnu(grid, node, unit, 'inertia')
                     * p_gnu(grid ,node, unit, 'unitSizeMVA')
@@ -841,7 +841,7 @@ q_fixedFlow(gnusft(grid, node, unit_flow(unit), s, f, t))
 
 q_reserveProvision(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid, node), unit), sft(s, f, t))
     ${  ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
-        and uft(unit, f, t)
+        and usft(unit, s, f, t)
         and (unit_investLP(unit) or unit_investMIP(unit))
         and not sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group),
                     ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t))
@@ -877,7 +877,7 @@ q_reserveProvision(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid
 
 q_reserveProvisionOnline(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid, node), unit), sft(s, f, t))
     ${  ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
-        and uft(unit, f, t)
+        and usft(unit, s, f, t)
         and not sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group),
                     ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t))
         and uft_online(unit, f ,t)
@@ -2545,7 +2545,7 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
           ) ${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useTimeseries') }
 
         // Investments
-        + sum(gnu(grid, node, unit)${uft(unit, f, t)},
+        + sum(gnu(grid, node, unit)${usft(unit, s, f, t)},
             + p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
                 * p_gnu(grid, node, unit, 'unitSize')
                 * [
@@ -2576,7 +2576,7 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
     + p_stepLength(m, f, t)
         * [
             // Reserve provision from units that output to this node
-            + sum(gn2gnu(grid_, node_input, grid, node, unit)${uft(unit, f, t)},
+            + sum(gn2gnu(grid_, node_input, grid, node, unit)${usft(unit, s, f, t)},
                 // Downward reserves from units that output energy to the node
                 + sum(gnuRescapable(restype, 'down', grid_, node_input, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid_, node_input, restype, 'reserve_length') },
                     + v_reserve(restype, 'down', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
@@ -2590,7 +2590,7 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
                 ) // END sum(gn2gnu)
 
             // Reserve provision from units that take input from this node
-            + sum(gn2gnu(grid, node, grid_, node_output, unit)${uft(unit, f, t)},
+            + sum(gn2gnu(grid, node, grid_, node_output, unit)${usft(unit, s, f, t)},
                 // Downward reserves from units that use the node as energy input
                 + sum(gnuRescapable(restype, 'down', grid_, node_output, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid_, node_output, restype, 'reserve_length') },
                     + v_reserve(restype, 'down', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
@@ -2652,7 +2652,7 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
     + p_stepLength(m, f, t)
         * [
             // Reserve provision from units that output to this node
-            + sum(gn2gnu(grid_, node_input, grid, node, unit)${uft(unit, f, t)},
+            + sum(gn2gnu(grid_, node_input, grid, node, unit)${usft(unit, s, f, t)},
                 // Upward reserves from units that output energy to the node
                 + sum(gnuRescapable(restype, 'up', grid_, node_input, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid_, node_input, restype, 'reserve_length') },
                     + v_reserve(restype, 'up', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
@@ -2666,7 +2666,7 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
                 ) // END sum(gn2gnu)
 
             // Reserve provision from units that take input from this node
-            + sum(gn2gnu(grid, node, grid_, node_output, unit)${uft(unit, f, t)},
+            + sum(gn2gnu(grid, node, grid_, node_output, unit)${usft(unit, s, f, t)},
                 // Upward reserves from units that use the node as energy input
                 + sum(gnuRescapable(restype, 'up', grid_, node_output, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid_, node_output, restype, 'reserve_length') },
                     + v_reserve(restype, 'up', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
@@ -2701,7 +2701,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
             // Downwards reserve provided by input units
             + sum(gnuRescapable(restype, 'down', grid_, node_input, unit)${ p_gn(grid, node, 'energyStoredPerUnitOfState') // Reserve provisions not applicable if no state energy content
                                                                             and gn2gnu(grid_, node_input, grid, node, unit)
-                                                                            and uft(unit, f, t)
+                                                                            and usft(unit, s, f, t)
                                                                             and ord(t) <= tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                             },
                 + v_reserve(restype, 'down', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
@@ -2716,7 +2716,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
             // Downwards reserve provided by output units
             + sum(gnuRescapable(restype, 'down', grid_, node_output, unit)${ p_gn(grid, node, 'energyStoredPerUnitOfState') // Reserve provisions not applicable if no state energy content
                                                                              and gn2gnu(grid, node, grid_, node_output, unit)
-                                                                             and uft(unit, f, t)
+                                                                             and usft(unit, s, f, t)
                                                                              and ord(t) <= tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                              },
                 + v_reserve(restype, 'down', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
@@ -2750,7 +2750,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
             // Upwards reserve by input node
             + sum(gnuRescapable(restype, 'up', grid_, node_input, unit)${ p_gn(grid, node_, 'energyStoredPerUnitOfState')
                                                                           and gn2gnu(grid_, node_input, grid, node_, unit)
-                                                                          and uft(unit, f, t)
+                                                                          and usft(unit, s, f, t)
                                                                           and ord(t) <= tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                           },
                 + v_reserve(restype, 'up', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
@@ -2765,7 +2765,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
             // Upwards reserve by output node
             + sum(gnuRescapable(restype, 'up', grid_, node_output, unit)${ p_gn(grid, node_, 'energyStoredPerUnitOfState')
                                                                            and gn2gnu(grid, node_, grid_, node_output, unit)
-                                                                           and uft(unit, f, t)
+                                                                           and usft(unit, s, f, t)
                                                                            and ord(t) <= tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                            },
                 + v_reserve(restype, 'up', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
@@ -3027,7 +3027,7 @@ q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t
     + p_groupPolicy(group, 'ROCOF')*2
         * [
             + sum(gnu(grid, node, unit)${ p_gnu(grid, node, unit, 'unitSize')
-                                            and uft(unit, f, t)
+                                            and usft(unit, s, f, t)
                                         },
                 + p_gnu(grid, node, unit, 'inertia')
                     * p_gnu(grid ,node, unit, 'unitSizeMVA')
@@ -3185,7 +3185,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
         } ..
 
     // Availability of output units, based on 'availabilityCapacityMargin'
-    + sum(gnu_output(grid, node, unit)${ uft(unit, f, t)
+    + sum(gnu_output(grid, node, unit)${ usft(unit, s, f, t)
                                          and p_gnu(grid, node, unit, 'availabilityCapacityMargin')
                                          },
         + [
@@ -3207,7 +3207,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
         ) // END sum(gnu_output)
 
     // Availability of input units, based on 'availabilityCapacityMargin'
-    - sum(gnu_input(grid, node, unit)${ uft(unit, f, t)
+    - sum(gnu_input(grid, node, unit)${ usft(unit, s, f, t)
                                          and p_gnu(grid, node, unit, 'availabilityCapacityMargin')
                                          },
         + [
@@ -3229,7 +3229,7 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
         ) // END sum(gnu_output)
 
     // Availability of units, including capacity factors for flow units and v_gen for other units
-    + sum(gnu(grid, node, unit)${ uft(unit, f, t)
+    + sum(gnu(grid, node, unit)${ usft(unit, s, f, t)
                                          and not p_gnu(grid, node, unit, 'availabilityCapacityMargin')
                                          },
         // Capacity factors for flow units
@@ -3348,7 +3348,7 @@ q_emissioncapNodeGroup(group, emission)
             + p_stepLength(m, f, t)
                 * sum(gnu(grid, node, unit)${gnGroup(grid, node, group)
                                              and p_nEmission(node, emission)
-                                             and uft(unit, f, t) },
+                                             and usft(unit, s, f, t) },
                     - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative and production positive
                         * p_nEmission(node, emission) // tEmission/MWh
                   ) // END sum(gnu_input)
@@ -3358,14 +3358,14 @@ q_emissioncapNodeGroup(group, emission)
             + p_stepLength(m, f, t)
                 * sum(gnu_input(grid, node, unit)${gnGroup(grid, node, group)
                                                    and p_gnuEmission(grid, node, unit, emission, 'vomEmissions')
-                                                   and uft(unit, f, t) },
+                                                   and usft(unit, s, f, t) },
                     - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative
                         * p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // tEmission/MWh
                   ) // END sum(gnu_input)
             + p_stepLength(m, f, t)
                 * sum(gnu_output(grid, node, unit)${gnGroup(grid, node, group)
                                                     and p_gnuEmission(grid, node, unit, emission, 'vomEmissions')
-                                                    and uft(unit, f, t) },
+                                                    and usft(unit, s, f, t) },
                     + v_gen(grid, node, unit, s, f, t)
                         * p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // tEmission/MWh
                   ) // END sum(gnu_input)
@@ -3391,7 +3391,7 @@ q_emissioncapNodeGroup(group, emission)
             // capacity emissions: fixed o&M emissions (tEmission)
             + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, emission, 'fomEmissions')
                                          and gnGroup(grid, node, group)
-                                         and uft(unit, f, t) },
+                                         and usft(unit, s, f, t) },
                 + p_gnuEmission(grid, node, unit, emission, 'fomEmissions')       // (tEmissions/MW)
                     * p_gnu(grid, node, unit, 'unitSize')   // (MW/unit)
                     * [
@@ -3408,7 +3408,7 @@ q_emissioncapNodeGroup(group, emission)
             + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, emission, 'invEmissions')
                                          and (unit_investLP(unit) or unit_investMIP(unit))
                                          and gnGroup(grid, node, group)
-                                         and uft(unit, f, t) },
+                                         and usft(unit, s, f, t) },
                 // Capacity restriction
                 + p_gnuEmission(grid, node, unit, emission, 'invEmissions')    // (tEmission/MW)
                     * p_gnuEmission(grid, node, unit, emission, 'invEmissionsFactor')    // factor dividing emissions to N years
@@ -3445,13 +3445,13 @@ q_energyLimit(group, min_max)
             * [
                 // Production of units in the group
                 + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
-                                                        and uft(unit, f, t)
+                                                        and usft(unit, s, f, t)
                                                         },
                     + v_gen(grid, node, unit, s, f, t)
                     ) // END sum(gnu)
                 // Consumption of units in the group
                 + sum(gnu_input(grid, node, unit)${    gnuGroup(grid, node, unit, group)
-                                                       and uft(unit, f, t)
+                                                       and usft(unit, s, f, t)
                                                        },
                     - v_gen(grid, node, unit, s, f, t)
                     ) // END sum(gnu)
@@ -3492,7 +3492,7 @@ q_energyShareLimit(group, min_max)
             * [
                 // Generation of units in the group
                 + sum(gnu_output(grid, node, unit)${    gnuGroup(grid, node, unit, group)
-                                                        and uft(unit, f, t)
+                                                        and usft(unit, s, f, t)
                                                         },
                     + v_gen(grid, node, unit, s, f, t) // production is taken into account if the grid-node-unit is in gnuGroup
                     ) // END sum(gnu)
@@ -3507,7 +3507,7 @@ q_energyShareLimit(group, min_max)
                         + ts_influx_(grid, node, s, f, t) // influx is taken into account if the node is in gnGroup
                         ) // END sum(gnGroup)
                     - sum(gnu_input(grid, node, unit)${ gnuGroup(grid, node, unit, group)
-                                                        and uft(unit, f, t)
+                                                        and usft(unit, s, f, t)
                                                         },
                         + v_gen(grid, node, unit, s, f, t) // consumption is taken into account if the grid-node-unit is in gnuGroup
                         ) // END sum(gnu_input)

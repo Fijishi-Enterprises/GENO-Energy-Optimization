@@ -319,11 +319,11 @@ v_genRamp.lo(gnusft(grid, node, unit, s, f, t))${   ord(t) > msStart(mSolve, s) 
 
 // v_online cannot exceed unit count if investments disabled
 // LP variant
-v_online_LP.up(unit, sft(s, f, t))${uft_onlineLP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
+v_online_LP.up(usft(unit, s, f, t))${uft_onlineLP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
     = p_unit(unit, 'unitCount')
 ;
 // MIP variant
-v_online_MIP.up(unit, sft(s, f, t))${uft_onlineMIP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
+v_online_MIP.up(usft(unit, s, f, t))${uft_onlineMIP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
     = p_unit(unit, 'unitCount')
 ;
 
@@ -336,7 +336,7 @@ v_startup_LP.up(unitStarttype(unit, starttype), sft(s, f, t))
 v_startup_MIP.up(unitStarttype(unit, starttype), sft(s, f, t))
     ${ uft_onlineMIP(unit, f, t) }
     = inf;
-v_shutdown.up(unit, sft(s, f, t))$uft(unit, f, t) = inf;
+v_shutdown.up(usft(unit, s, f, t)) = inf;
 $offtext
 
 // v_startup cannot exceed unitCount

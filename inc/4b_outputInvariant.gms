@@ -28,7 +28,11 @@ r_reserve_gnuft(restype, up_down, gnu, f, t)$((r_reserve_gnuft(restype, up_down,
 // Need to loop over the model dimension, as this file is no longer contained in the modelSolves loop...
 loop(m,
 
-    option clear=startp; startp(t)$(ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod'))=yes;
+    startp(t)
+      ${(ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod'))
+        and (ord(t) <= mSettings(m, 't_end'))
+        and sum((s,f), sft_realized(s, f , t))
+        } =yes;
 
 * --- Node result Symbols -----------------------------------------------------------
 * --- Spill results -----------------------------------------------------------
@@ -95,7 +99,7 @@ loop(m,
 * --- Other node related results -----------------------------------------------------------
 
     r_curtailments_gnft(gn(grid, node), ft_realizedNoReset(f,startp(t)))
-        ${sum(flow, flowNode(flow, node))}
+        ${sum(flow, flowNode(flow, node)) }
         = sum(flowUnit(flow, unit),
             // + (capacity + investments) * ts_cf   for generating units only
             + [p_gnu(grid, node, unit, 'capacity')$gnu_output(grid, node, unit)
@@ -184,7 +188,8 @@ loop(m,
 
     // Calculates wrong with storages when there is a loop, e.g. elecGrid -> elecStorage -> elecGrid
     // Energy output to a node based on inputs from another node or flows
-    r_genByFuel_gnft(gn(grid, node), node_, ft_realizedNoReset(f, startp(t)))$sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit),r_gen_gnuft(grid_, node_, unit, f, t))
+    r_genByFuel_gnft(gn(grid, node), node_, ft_realizedNoReset(f, startp(t)))
+        ${sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit),r_gen_gnuft(grid_, node_, unit, f, t)) }
         = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, node_, unit), 1),
             + r_gen_gnuft(grid, node, unit, f, t)
           );
@@ -238,7 +243,7 @@ loop(m,
             ); // END sum(unit)
 
     // Total energy generation in gnu by unit type
-    r_genByUnittype_gn(gn(grid, node), unittype)$sum(unit$unitUnittype(unit, unittype), 1)
+    r_genByUnittype_gn(gn(grid, node), unittype)${ sum(unit$unitUnittype(unit, unittype), 1) }
       = sum(gnu(grid,node,unit)$unitUnittype(unit, unittype),
              + r_gen_gnu(grid, node, unit)
             );
@@ -353,8 +358,7 @@ loop(m,
     r_emission_capacityEmissions_nu(node, unit, emission)
         ${(sum(gn, p_gnuEmission(gn, unit, emission, 'fomEmissions'))
           or sum(gn, p_gnuEmission(gn, unit, emission, 'invEmissions')))
-          and sum(ft_realizedNoReset(f, t), uft(unit, f, t))
-         }
+          }
         = + sum(grid$p_gnuEmission(grid, node, unit, emission, 'fomEmissions'),
                p_gnuEmission(grid, node, unit, emission, 'fomEmissions')
                * (p_gnu(grid, node, unit, 'capacity')
@@ -633,8 +637,8 @@ loop(m,
         = 1e-6 // Scaling to MEUR
             * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
                 + [
-                    + p_gnu(grid, node, unit, 'capacity')$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // Not in v_obj; only units active in msft_realizedNoReset
-                    + r_invest_unitCount_u(unit)$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // only units active in msft_realizedNoReset
+                    + p_gnu(grid, node, unit, 'capacity')$sum(msft_realizedNoReset(m, s, f, t_), usft(unit, s, f, t_)) // Not in v_obj; only units active in msft_realizedNoReset
+                    + r_invest_unitCount_u(unit)$sum(msft_realizedNoReset(m, s, f, t_), usft(unit, s, f, t_)) // only units active in msft_realizedNoReset
                         * p_gnu(grid, node, unit, 'unitSize')
                     ]
                     * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
@@ -646,7 +650,7 @@ loop(m,
     r_cost_unitInvestmentCost_gnu(gnu(grid, node, unit))
         = 1e-6 // Scaling to MEUR
             * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t_), 1) }, // consider ms only if it has active msft_realizedNoReset
-                + r_invest_unitCount_u(unit)$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // only units active in msft_realizedNoReset
+                + r_invest_unitCount_u(unit)$sum(msft_realizedNoReset(m, s, f, t_), usft(unit, s, f, t_)) // only units active in msft_realizedNoReset
                     * p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
                     * p_s_discountFactor(s) // Discount costs
                 ) // END * sum(ms)
@@ -662,7 +666,7 @@ loop(m,
                 * p_s_discountFactor(s) // Discount costs
 
                 * sum(emissionGroup(emission, group)$p_nEmission(node, emission),
-                    + r_emission_capacityEmissions_nu(node, unit, emission)$sum(msft_realizedNoReset(m, s, f, t_), uft(unit, f, t_)) // only units active in msft_realizedNoReset
+                    + r_emission_capacityEmissions_nu(node, unit, emission)$sum(msft_realizedNoReset(m, s, f, t_), usft(unit, s, f, t_)) // only units active in msft_realizedNoReset
                     * [ + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
                         + (sum(t_realized(t), ts_emissionPrice(emission, group, t))/card(t_realized))$p_emissionPrice(emission, group, 'useTimeSeries')
                       ]// END * p_gnuEmssion

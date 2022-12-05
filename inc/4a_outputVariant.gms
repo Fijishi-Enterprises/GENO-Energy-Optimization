@@ -34,7 +34,12 @@ if(tSolveFirst >= mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializa
 
 // Improve performance & readibility by using a few helper sets
 option clear=startp, clear=sft_resdgn, s_realized < sft_realized;
-startp(t)$(ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod'))=yes;
+*startp(t)$(ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod'))=yes;
+startp(t)
+   ${(ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod'))
+     and (ord(t) <= mSettings(mSolve, 't_end'))
+     and sum((s,f), sft_realized(s, f , t))
+     } =yes;
 
 // Realized state history
 loop(ms(mSolve, s_realized(s)),

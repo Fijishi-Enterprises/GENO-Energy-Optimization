@@ -287,6 +287,7 @@ loop(cc(counter),
 
     // Select and average time series data matching the intervals
     ts_unit_(unit_timeseries(unit), param_unit, ft(f, tt_interval(t)))
+        ${ sum(s, sft(s, f, t)) }
         = sum(tt_aggcircular(t, t_),
             ts_unit(unit, param_unit, f, t_)
             )
@@ -311,7 +312,8 @@ loop(cc(counter),
 
     // Reserves relevant only until reserve_length
     ts_reserveDemand_(restypeDirectionGroup(restype, up_down, group), ft(f, tt_interval(t)))
-      ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')  }
+      ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')
+        and sum(s, sft(s, f, t)) }
         = sum(tt_aggcircular(t, t_),
             ts_reserveDemand(restype, up_down, group, f + df_realization(f, t), t_)
             )
@@ -339,11 +341,14 @@ loop(cc(counter),
 
     // processing ts_gnn values for active ft including time step aggregation
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
+        ${ sum(s, sft(s, f, t)) }
         = sum(tt_aggcircular(t, t_), ts_gnn(grid, node, node_, param_gnn, f, t_))
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
     // vomCost calculations when one or more price time series
-    ts_vomCost_(gnu(grid, node, unit), tt_interval(t))$p_vomCost(grid, node, unit, 'useTimeseries')
+    ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
+        ${p_vomCost(grid, node, unit, 'useTimeseries')
+          and sum((s, f), sft(s, f, t)) }
         = sum(tt_aggcircular(t, t_),
                 // gnu specific cost. Always a cost (positive) if input or output.
                 // vomCosts
@@ -380,7 +385,9 @@ loop(cc(counter),
     ;
 
     // Startup cost calculations
-    ts_startupCost_(unit, starttype, tt_interval(t))$p_startupCost(unit, starttype, 'useTimeSeries')
+    ts_startupCost_(unit, starttype, tt_interval(t))
+        ${p_startupCost(unit, starttype, 'useTimeSeries')
+          and sum((s, f), sft(s, f, t)) }
       = sum(tt_aggcircular(t, t_),
         + p_uStartup(unit, starttype, 'cost') // CUR/start-up
         // Start-up fuel and emission costs

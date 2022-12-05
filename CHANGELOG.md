@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 ### Changed
+- improving looping and if conditions to avoid unnecessary calculations in investment runs
 
 ### Fixed
 

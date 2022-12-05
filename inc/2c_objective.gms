@@ -155,7 +155,7 @@ q_obj ..
             * p_s_discountFactor(s) // Discount costs
             * [
                 // unit fixed o&m and investment costs (EUR)
-                + sum(gnu(grid, node, unit)${sum(msft(m, s, f, t_), uft(unit, f, t_))   // consider unit only if it is active in the sample
+                + sum(gnu(grid, node, unit)${sum(msft(m, s, f, t_), usft(unit, s, f, t_))   // consider unit only if it is active in the sample
                                              and (p_gnu(grid, node, unit, 'fomCosts')   // and it has fomCost or invCost parameter defined
                                                   or p_gnu(grid, node, unit, 'invCosts'))
                                             },
@@ -184,7 +184,7 @@ q_obj ..
                 + sum((gnu(grid, node, unit),emissionGroup(emission, group))
                        ${p_gnuEmission(grid, node, unit, emission, 'fomEmissions')
                          and gnGroup(grid, node, group)
-                         and sum(msft(m, s, f, t_), uft(unit, f, t_))
+                         and sum(msft(m, s, f, t_), usft(unit, s, f, t_))
                          and (p_emissionPrice(emission, group, 'useConstant') or p_emissionPrice(emission, group, 'useTimeseries'))
                          },
                     + p_gnuEmission(grid, node, unit, emission, 'fomEmissions')       // (tEmissions/MW)
@@ -208,7 +208,7 @@ q_obj ..
                        ${p_gnuEmission(grid, node, unit, emission, 'invEmissions')
                          and (unit_investLP(unit) or unit_investMIP(unit))
                          and gnGroup(grid, node, group)
-                         and sum(msft(m, s, f, t_), uft(unit, f, t_))
+                         and sum(msft(m, s, f, t_), usft(unit, s, f, t_))
                          and (p_emissionPrice(emission, group, 'useConstant') or p_emissionPrice(emission, group, 'useTimeseries'))
                          },
                     // Capacity restriction
