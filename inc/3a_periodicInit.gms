@@ -36,6 +36,9 @@ loop(m,
 
 * --- Time Steps within Model Horizon -----------------------------------------
 
+    // that first t for faster fi checks
+    t_start(t)${ ord(t) = mSettings(m, 't_start') } = yes;
+
     // Determine the full set of timesteps to be considered by the defined simulation
     t_full(t)${ ord(t) >= mSettings(m, 't_start')
                 and ord(t) <= mSettings(m, 't_end') + mSettings(m, 't_horizon')
@@ -743,7 +746,7 @@ loop(unitStarttype(unit, starttype)$p_startupCost(unit, starttype, 'useConstant'
     );
 );
 
-// mapping units that have startup costs, either constant or time series 
+// mapping units that have startup costs, either constant or time series
 Option unit_startCost < p_startupCost;
 
 
@@ -766,15 +769,11 @@ loop(m,
 
 * --- Include 't_start' as a realized time step -------------------------------
 
-loop(msf(m, s, f)${ mf_realization(m, f) },
-    // Initial values included into previously realized time steps
-    ft_realizedNoReset(f, t_full(t))${ ord(t) = mSettings(m, 't_start') }
-        = yes;
-    sft_realizedNoReset(s, f, t_full(t))${ ord(t) = mSettings(m, 't_start') }
-        = yes;
-    msft_realizedNoReset(m, s, f, t_full(t))${ ord(t) = mSettings(m, 't_start') }
-        = yes;
-); // END loop(m, s, f)
+// Initial values included into previously realized time steps
+ft_realizedNoReset(f, t_start(t))$sum(m, mf_realization(m, f)) = yes;
+sft_realizedNoReset(s, f, t_start(t))${ sum(m, msf(m, s, f)) and sum(m, mf_realization(m, f)) } = yes;
+msft_realizedNoReset(m, s, f, t_start(t))${ msf(m, s, f) and mf_realization(m, f) } = yes;
+
 
 * =============================================================================
 * --- Model Parameter Validity Checks -----------------------------------------

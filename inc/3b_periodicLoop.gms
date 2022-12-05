@@ -453,9 +453,15 @@ tt_aggregate(t_current(t+dt_active(t)), tt(t))
     = yes;
 
 // Make alternative aggregation ordering
-option clear=tt_agg_circular; tt_agg_circular(t, t_+dt_circular(t_), t_) $= tt_aggregate(t, t_);
+option clear=tt_agg_circular;
+tmp = smax(mft, p_stepLength(mft));
+if(tmp=1,
+   tt_agg_circular(t, t_, t_) $= tt_aggregate(t, t_);
+else
+   tt_agg_circular(t, t_+dt_circular(t_), t_) $= tt_aggregate(t, t_);
+);
+
 $macro tt_aggcircular(t, t_)  tt_agg_circular(t, t_, t__)
-*$macro tt_aggcircular(t, t_) (tt_aggregate(t, t__), t_(t__+dt_circular(t__)))
 
 
 * =============================================================================
@@ -467,22 +473,26 @@ Option clear = usft;
 usft(unit, sft(s, f, t))
     = yes;
 
+// temporary unit set for units affected by becomeAvailable or becomeUnavailable
+option clear = unit_tmp;
+unit_tmp(unit)${p_unit(unit, 'becomeAvailable') or p_unit(unit, 'becomeUnavailable')} = yes;
+
 // Units are not active before or after their lifetime
-usft(unit, sft(s, f, t))${   [ ord(t) < p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeAvailable') ]
-                        or [ ord(t) >= p_unit(unit, 'becomeUnavailable') and p_unit(unit, 'becomeUnavailable') ]
-                        }
+usft(unit_tmp(unit), sft(s, f, t))${   [ ord(t) < p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeAvailable') ]
+                                    or [ ord(t) >= p_unit(unit, 'becomeUnavailable') and p_unit(unit, 'becomeUnavailable') ]
+                                    }
     = no;
 // Unless before becomeUnavailable if becomeUnavailable < becomeAvailable (maintenance break case)
-usft(unit, sft(s, f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
-                      and [ord(t) < p_unit(unit, 'becomeUnavailable')]
-                      and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
-                    }
+usft(unit_tmp(unit), sft(s, f, t))${    [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
+                                    and [ord(t) < p_unit(unit, 'becomeUnavailable')]
+                                    and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
+                                    }
     = yes;
 // Unless after becomeAvailable if becomeUnavailable < becomeAvailable (maintenance break case)
-usft(unit, sft(s, f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
-                      and [ord(t) >= p_unit(unit, 'becomeAvailable')]
-                      and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
-                    }
+usft(unit_tmp(unit), sft(s, f, t))${    [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
+                                    and [ord(t) >= p_unit(unit, 'becomeAvailable')]
+                                    and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
+                                    }
     = yes;
 
 
@@ -523,7 +533,12 @@ gnusft_rampCost(slack, gnusft(grid, node, unit, s, f, t))${ p_gnuBoundaryPropert
     = yes;
 // Active (grid, node, unit) on each ft step with ramp restrictions
 Option clear = gnusft_ramp;
-gnusft_ramp(gnusft(grid, node, unit, s, f, t))${ [p_gnu(grid, node, unit, 'maxRampUp') and
+
+// temporary unit set for units affected by maxRampUp or maxRampDown
+option clear = unit_tmp;
+unit_tmp(unit)${sum(gn, p_gnu(gn, unit, 'maxRampUp')) or sum(gn, p_gnu(gn, unit, 'maxRampDown'))} = yes;
+
+gnusft_ramp(gnusft(grid, node, unit_tmp(unit), s, f, t))${ [p_gnu(grid, node, unit, 'maxRampUp') and
                                                // deactivating ramp constraints if ramp speed in hour * stepLength allows ramping from 0% to 100%
                                                p_gnu(grid, node, unit, 'maxRampUp') * 60 * sum(m, p_stepLength(m, f, t)) < 1]
                                                OR [p_gnu(grid, node, unit, 'maxRampDown') and
