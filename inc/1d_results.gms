@@ -87,8 +87,10 @@ Parameters
 * --- Unit Online, startup, and shutdown Result Symbols -----------------------
 
     // required for model structure
+    r_online_usft(unit, s, f, t) "Sub-units online"
     r_online_uft(unit, f, t) "Sub-units online"
     r_startup_uft(unit, starttype, f, t) "Sub-units started up"
+    r_shutdown_usft(unit, s, f, t) "Sub-units shut down"
     r_shutdown_uft(unit, f, t) "Sub-units shut down"
 
     // other online, startup, and shutdown results

@@ -51,20 +51,23 @@ loop(ms(mSolve, s_realized(s)),
         = v_state.l(grid, node, s, f, t_)
     ;
     // Realized unit online history
-    r_online_uft(uft_online(unit, f, startp(t)))$sft_realized(s, f, t)
-        = v_online_LP.l(unit, s, f, t)$uft_onlineLP(unit, f, t)
-            + v_online_MIP.l(unit, s, f, t)$uft_onlineMIP(unit, f, t)
+    r_online_usft(usft_online(unit, s, f, startp(t)))
+        = v_online_LP.l(unit, s, f, t)$usft_onlineLP(unit, s, f, t)
+            + v_online_MIP.l(unit, s, f, t)$usft_onlineMIP(unit, s, f, t)
     ;
     // Unit startup and shutdown history
-    r_startup_uft(unit, starttype, f, startp(t))$(uft_online(unit, f, t)$sft_realized(s, f, t))
-        = v_startup_LP.l(unit, starttype, s, f, t)$uft_onlineLP(unit, f, t)
-            + v_startup_MIP.l(unit, starttype, s, f, t)$uft_onlineMIP(unit, f, t)
+    r_startup_uft(unit, starttype, f, startp(t))$usft(unit, s, f, t)
+        = v_startup_LP.l(unit, starttype, s, f, t)$usft_onlineLP(unit, s, f, t)
+            + v_startup_MIP.l(unit, starttype, s, f, t)$usft_onlineMIP(unit, s, f, t)
     ;
-    r_shutdown_uft(uft_online(unit, f, startp(t)))$sft_realized(s, f, t)
-        = v_shutdown_LP.l(unit, s, f, t)$uft_onlineLP(unit, f, t)
-            + v_shutdown_MIP.l(unit, s, f, t)$uft_onlineMIP(unit, f, t)
+    r_shutdown_usft(usft_online(unit, s, f, startp(t)))
+        = v_shutdown_LP.l(unit, s, f, t)$usft_onlineLP(unit, s, f, t)
+            + v_shutdown_MIP.l(unit, s, f, t)$usft_onlineMIP(unit, s, f, t)
     ;
 );
+
+r_online_uft(unit, f, t) = sum(s, r_online_usft(unit, s, f, t));
+r_shutdown_uft(unit, f, t) = sum(s, r_shutdown_usft(unit, s, f, t));
 
 * --- Reserve results ---------------------------------------------------------
 

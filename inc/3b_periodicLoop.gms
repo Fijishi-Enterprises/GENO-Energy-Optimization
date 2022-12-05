@@ -463,23 +463,23 @@ $macro tt_aggcircular(t, t_)  tt_agg_circular(t, t_, t__)
 * =============================================================================
 
 // Units with capacities or investment option active on each ft
-Option clear = uft;
-uft(unit, ft(f, t))
+Option clear = usft;
+usft(unit, sft(s, f, t))
     = yes;
 
 // Units are not active before or after their lifetime
-uft(unit, ft(f, t))${   [ ord(t) < p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeAvailable') ]
+usft(unit, sft(s, f, t))${   [ ord(t) < p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeAvailable') ]
                         or [ ord(t) >= p_unit(unit, 'becomeUnavailable') and p_unit(unit, 'becomeUnavailable') ]
                         }
     = no;
 // Unless before becomeUnavailable if becomeUnavailable < becomeAvailable (maintenance break case)
-uft(unit, ft(f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
+usft(unit, sft(s, f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
                       and [ord(t) < p_unit(unit, 'becomeUnavailable')]
                       and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
                     }
     = yes;
 // Unless after becomeAvailable if becomeUnavailable < becomeAvailable (maintenance break case)
-uft(unit, ft(f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
+usft(unit, sft(s, f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
                       and [ord(t) >= p_unit(unit, 'becomeAvailable')]
                       and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
                     }
@@ -487,7 +487,7 @@ uft(unit, ft(f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeU
 
 
 // Deactivating aggregated after lastStepNotAggregated and aggregators before
-uft(unit, ft(f, t))${  (   [
+usft(unit, sft(s, f, t))${  (   [
                                 ord(t) > tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
                                 and unit_aggregated(unit) // Aggregated units
                            ]
@@ -501,20 +501,16 @@ uft(unit, ft(f, t))${  (   [
     = no;
 
 // First ft:s for each aggregator unit
-Option clear = uft_aggregator_first;
+Option clear = usft_aggregator_first;
 loop(unit${unit_aggregator(unit)},
     tmp = card(t);
-    loop(uft(unit, f, t),
+    loop(usft(unit, s, f, t),
         if(ord(t) < tmp,
             tmp = ord(t)
         );
     );
-    uft_aggregator_first(uft(unit, f, t))${ord(t) = tmp} = yes;
+    usft_aggregator_first(usft(unit, s, f, t))${ord(t) = tmp} = yes;
 );
-
-// Active units on each sft
-Option clear = usft;
-usft(unit, sft(s, f, t))${ uft(unit, f ,t)} = yes;
 
 // Active (grid, node, unit) on each sft
 Option clear = gnusft;
@@ -522,7 +518,7 @@ gnusft(gnu(grid, node, unit), sft(s, f, t))${ usft(unit, s, f ,t)} = yes;
 
 // Active (grid, node, unit, slack, up_down) on each ft step with ramp restrictions
 Option clear = gnuft_rampCost;
-gnuft_rampCost(gnu(grid, node, unit), slack, ft(f, t))${ uft(unit, f, t)
+gnuft_rampCost(gnu(grid, node, unit), slack, ft(f, t))${ sum(s, usft(unit, s, f, t))
                                                          and p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
                                                          }
     = yes;
@@ -552,52 +548,46 @@ gn2nsft_directional_rampConstrained(gn2n_directional_rampConstrained(grid, node,
 * --- Defining unit efficiency groups etc. ------------------------------------
 
 // Initializing
-Option clear = eff_uft;
-*Option clear = eff_uft_eff;
+Option clear = eff_usft;
 
 // Loop over the defined efficiency groups for units
 loop(effLevelGroupUnit(effLevel, effGroup, unit)${ mSettingsEff(mSolve, effLevel) },
     // Determine the used effGroup for each uft
-    eff_uft(effGroup, uft(unit, f, t))${   ord(t) >= tSolveFirst + mSettingsEff_start(mSolve, effLevel)
+    eff_usft(effGroup, usft(unit, s, f, t))${   ord(t) >= tSolveFirst + mSettingsEff_start(mSolve, effLevel)
                                         and ord(t) <= tSolveFirst + mSettingsEff(mSolve, effLevel) }
         = yes;
 ); // END loop(effLevelGroupUnit)
 
-*// Determine the efficiency selectors for eff_uft. Commented out as not used in the model.
-*eff_uft_eff(eff_uft(effGroup, unit, f, t), effSelector)${    effGroupSelector(effGroup, effSelector) }
-*    = yes
-*;
-
 // Units with online variables on each ft
-Option clear = uft_online;
-Option clear = uft_onlineLP;
-Option clear = uft_onlineMIP;
-Option clear = uft_onlineLP_withPrevious;
-Option clear = uft_onlineMIP_withPrevious;
+Option clear = usft_online;
+Option clear = usft_onlineLP;
+Option clear = usft_onlineMIP;
+Option clear = usft_onlineLP_withPrevious;
+Option clear = usft_onlineMIP_withPrevious;
 
 // Determine the intervals when units need to have online variables.
 loop(effOnline(effSelector),
-    uft_online(uft(unit, f, t))${ eff_uft(effOnline, unit, f, t) }
+    usft_online(usft(unit, s, f, t))${ eff_usft(effOnline, unit, s, f, t) }
         = yes;
 ); // END loop(effOnline)
-uft_onlineLP(uft(unit, f, t))${ eff_uft('directOnLP', unit, f, t) }
+usft_onlineLP(usft(unit, s, f, t))${ eff_usft('directOnLP', unit, s, f, t) }
     = yes;
-uft_onlineMIP(uft_online(unit, f, t)) = uft_online(unit, f, t) - uft_onlineLP(unit, f, t);
+usft_onlineMIP(usft_online(unit, s, f, t)) = usft_online(unit, s, f, t) - usft_onlineLP(unit, s, f, t);
 
 // Units with start-up and shutdown trajectories
-Option clear = uft_startupTrajectory;
-Option clear = uft_shutdownTrajectory;
+Option clear = usft_startupTrajectory;
+Option clear = usft_shutdownTrajectory;
 
 // Determine the intervals when units need to follow start-up and shutdown trajectories.
 loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
-    uft_startupTrajectory(uft_online(unit, f, t))
-        ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
-        = yes;
+    usft_startupTrajectory(usft_online(unit, s, f, t))
+       ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
+       = yes;
 ); // END loop(runUpCounter)
 loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
-    uft_shutdownTrajectory(uft_online(unit, f, t))
-        ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
-        = yes;
+    usft_shutdownTrajectory(usft_online(unit, s, f, t))
+       ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
+       = yes;
 ); // END loop(shutdownCounter)
 
 * -----------------------------------------------------------------------------
@@ -627,18 +617,18 @@ loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
 
 * --- Historical Unit LP and MIP information ----------------------------------
 
-uft_onlineLP_withPrevious(uft_onlineLP(unit, f, t)) = yes;
-uft_onlineMIP_withPrevious(uft_onlineMIP(unit, f, t)) = yes;
+usft_onlineLP_withPrevious(usft_onlineLP(unit, s, f, t)) = yes;
+usft_onlineMIP_withPrevious(usft_onlineMIP(unit, s, f, t)) = yes;
 
 // Units with online variables on each active ft starting at t0
 loop(mft_start(mSolve, f, t_), // Check the uft_online used on the first time step of the current solve
-    uft_onlineLP_withPrevious(unit, f, t_active(t)) // Include all historical t_active
-        ${  uft_onlineLP(unit, f, t_+1) // Displace by one to reach the first current time step
+    usft_onlineLP_withPrevious(unit, s, f, t_active(t)) // Include all historical t_active
+        ${  usft_onlineLP(unit, s, f, t_+1) // Displace by one to reach the first current time step
             and ord(t) <= tSolveFirst // Include all historical t_active
             }
          = yes;
-    uft_onlineMIP_withPrevious(unit, f, t_active(t)) // Include all historical t_active
-        ${  uft_onlineMIP(unit, f, t_+1) // Displace by one to reach the first current time step
+    usft_onlineMIP_withPrevious(unit, s, f, t_active(t)) // Include all historical t_active
+        ${  usft_onlineMIP(unit, s, f, t_+1) // Displace by one to reach the first current time step
             and ord(t) <= tSolveFirst // Include all historical t_active
             }
         = yes;
@@ -649,13 +639,16 @@ loop(mft_start(mSolve, f, t_), // Check the uft_online used on the first time st
 if(tSolveFirst = mSettings(mSolve, 't_start'),
     // Sample start intervals
     loop(mst_start(mSolve, s, t),
-        uft_onlineLP_withPrevious(unit, f, t+dt(t)) // Displace by one to reach the time step just before the sample
-            ${  uft_onlineLP(unit, f, t)
+        usft_onlineLP_withPrevious(unit, s, f, t+dt(t)) // Displace by one to reach the time step just before the sample
+            ${  usft_onlineLP(unit, s, f, t)
                 }
              = yes;
-        uft_onlineMIP_withPrevious(unit, f, t+dt(t)) // Displace by one to reach the time step just before the sample
-            ${  uft_onlineMIP(unit, f, t)
+        usft_onlineMIP_withPrevious(unit, s, f, t+dt(t)) // Displace by one to reach the time step just before the sample
+            ${  usft_onlineMIP(unit, s, f, t)
                 }
             = yes;
     ); // END loop(mst_start)
 ); // END if(tSolveFirst)
+
+
+

@@ -100,7 +100,7 @@ q_obj ..
                         ] // END * p_stepLength
 
                 // Start-up costs, initial startup free as units could have been online before model started
-                + sum(uft_online(unit_startCost(unit), f, t),
+                + sum(usft_online(unit_startCost(unit), s, f, t),
                     + sum(unitStarttype(unit, starttype)${p_startupCost(unit, starttype, 'useConstant') or ts_startupCost_(unit, starttype, t) },
                         + [ // Unit startup variables
                             + v_startup_LP(unit, starttype, s, f, t)${ unit_online_LP(unit) }
@@ -110,16 +110,16 @@ q_obj ..
                              +ts_startupCost_(unit, starttype, t)${ p_startupCost(unit, starttype, 'useTimeSeries') }
                             )
                       ) // END sum(starttype)
-                  ) // END sum(uft_online)
+                  ) // END sum(usft_online)
 
                 // Shut-down costs, initial shutdown free?
-                + sum(uft_online(unit, f, t)$p_uShutdown(unit, 'cost'),
+                + sum(usft_online(unit, s, f, t)$p_uShutdown(unit, 'cost'),
                     + p_uShutdown(unit, 'cost')
                       * [
                             + v_shutdown_LP(unit, s, f, t)${ unit_online_LP(unit) }
                             + v_shutdown_MIP(unit, s, f, t)${ unit_online_MIP(unit) }
                         ]
-                  ) // END sum(uft_online)
+                  ) // END sum(usft_online)
 
               ]  // END * p_msft_probability(m, s, f, t)
         ) // END sum over msft(m, s, f, t)
