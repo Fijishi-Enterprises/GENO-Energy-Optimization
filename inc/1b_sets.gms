@@ -165,11 +165,9 @@ Sets
     usft_startupTrajectory(unit, s, f, t) "Units with start-up trajectories on intervals"
     usft_shutdownTrajectory(unit, s, f, t) "Units with shutdown trajectories on intervals"
     usft_aggregator_first(unit, s, f, t) "The first intervals when aggregator units are active"
-
-    gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"
-    gnuft_rampCost(grid, node, unit, slack, f, t) "Units with ramp costs"
-
     gnusft(grid, node, unit, s, f, t) "set of active gnu and aggregated sft"
+    gnusft_ramp(grid, node, unit, s, f, t) "Units with ramp requirements or costs"
+    gnusft_rampCost(slack, grid, node, unit, s, f, t) "Units with ramp costs"
     eff_usft(effSelector, unit, s, f, t) "Selecting conversion efficiency equations"
     effGroup(effSelector) "Group name for efficiency selector set, e.g. DirectOff and Lambda02"
     effGroupSelector(effSelector, effSelector) "Efficiency selectors included in efficiency groups, e.g. Lambda02 contains Lambda01 and Lambda02."

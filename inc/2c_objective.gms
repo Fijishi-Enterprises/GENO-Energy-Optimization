@@ -49,10 +49,10 @@ q_obj ..
                             ) // END sum(gnusft)
 
                         // Ramping costs (eur/MW) * ramp (MW/h) * stepLength (h) = ramp cost (eur)
-                        + sum(gnuft_rampCost(grid, node, unit, slack, f, t)$p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost'),
+                        + sum(gnusft_rampCost(slack, grid, node, unit, s, f, t)$p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost'),
                             + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
-                                * v_genRampUpDown(grid, node, unit, slack, s, f, t)
-                          ) // END sum(gnuft_rampCost)
+                                * v_genRampUpDown(slack, grid, node, unit, s, f, t)
+                          ) // END sum(gnusft_rampCost)
 
                         // Variable Transfer cost
                         + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node, node_, 'variableTransCost'),
@@ -68,7 +68,7 @@ q_obj ..
                         // Node state slack variable costs
                         + sum(gn_stateSlack(grid, node),
                             + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
-                                + v_stateSlack(grid, node, slack, s, f, t)
+                                + v_stateSlack(slack, grid, node, s, f, t)
                                     * p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
                                 ) // END sum(slack)
                             ) // END sum(gn_stateSlack)
@@ -101,10 +101,13 @@ q_obj ..
 
                 // Start-up costs, initial startup free as units could have been online before model started
                 + sum(usft_online(unit_startCost(unit), s, f, t),
-                    + sum(unitStarttype(unit, starttype)${p_startupCost(unit, starttype, 'useConstant') or ts_startupCost_(unit, starttype, t) },
+                    + sum(unitStarttype(unit, starttype)
+                        ${p_startupCost(unit, starttype, 'useConstant')
+                          or ts_startupCost_(unit, starttype, t)
+                          },
                         + [ // Unit startup variables
-                            + v_startup_LP(unit, starttype, s, f, t)${ unit_online_LP(unit) }
-                            + v_startup_MIP(unit, starttype, s, f, t)${ unit_online_MIP(unit) }
+                            + v_startup_LP(starttype, unit, s, f, t)${ usft_onlineLP(unit, s, f, t) }
+                            + v_startup_MIP(starttype, unit, s, f, t)${ usft_onlineMIP(unit, s, f, t) }
                           ]
                           * (+p_startupCost(unit, starttype, 'price')${ p_startupCost(unit, starttype, 'useConstant') }
                              +ts_startupCost_(unit, starttype, t)${ p_startupCost(unit, starttype, 'useTimeSeries') }
@@ -116,8 +119,8 @@ q_obj ..
                 + sum(usft_online(unit, s, f, t)$p_uShutdown(unit, 'cost'),
                     + p_uShutdown(unit, 'cost')
                       * [
-                            + v_shutdown_LP(unit, s, f, t)${ unit_online_LP(unit) }
-                            + v_shutdown_MIP(unit, s, f, t)${ unit_online_MIP(unit) }
+                            + v_shutdown_LP(unit, s, f, t)${ usft_onlineLP(unit, s, f, t) }
+                            + v_shutdown_MIP(unit, s, f, t)${ usft_onlineMIP(unit, s, f, t) }
                         ]
                   ) // END sum(usft_online)
 

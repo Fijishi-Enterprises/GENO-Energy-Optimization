@@ -517,20 +517,19 @@ Option clear = gnusft;
 gnusft(gnu(grid, node, unit), sft(s, f, t))${ usft(unit, s, f ,t)} = yes;
 
 // Active (grid, node, unit, slack, up_down) on each ft step with ramp restrictions
-Option clear = gnuft_rampCost;
-gnuft_rampCost(gnu(grid, node, unit), slack, ft(f, t))${ sum(s, usft(unit, s, f, t))
-                                                         and p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
+Option clear = gnusft_rampCost;
+gnusft_rampCost(slack, gnusft(grid, node, unit, s, f, t))${ p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
                                                          }
     = yes;
 // Active (grid, node, unit) on each ft step with ramp restrictions
-Option clear = gnuft_ramp;
-gnuft_ramp(gnu(grid, node, unit), ft(f, t))${ [p_gnu(grid, node, unit, 'maxRampUp') and
+Option clear = gnusft_ramp;
+gnusft_ramp(gnusft(grid, node, unit, s, f, t))${ [p_gnu(grid, node, unit, 'maxRampUp') and
                                                // deactivating ramp constraints if ramp speed in hour * stepLength allows ramping from 0% to 100%
                                                p_gnu(grid, node, unit, 'maxRampUp') * 60 * sum(m, p_stepLength(m, f, t)) < 1]
                                                OR [p_gnu(grid, node, unit, 'maxRampDown') and
                                                // deactivating ramp constraints if ramp speed in hour * stepLength allows ramping from 100% to 0%
                                                    p_gnu(grid, node, unit, 'maxRampDown') * 60 * sum(m, p_stepLength(m, f, t)) < 1]
-                                               OR sum(slack, gnuft_rampCost(grid, node, unit, slack, f, t))
+                                               OR sum(slack, gnusft_rampCost(slack, grid, node, unit, s, f, t))
                                             }
     = yes;
 

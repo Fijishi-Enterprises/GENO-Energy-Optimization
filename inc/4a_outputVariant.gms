@@ -56,9 +56,9 @@ loop(ms(mSolve, s_realized(s)),
             + v_online_MIP.l(unit, s, f, t)$usft_onlineMIP(unit, s, f, t)
     ;
     // Unit startup and shutdown history
-    r_startup_uft(unit, starttype, f, startp(t))$usft(unit, s, f, t)
-        = v_startup_LP.l(unit, starttype, s, f, t)$usft_onlineLP(unit, s, f, t)
-            + v_startup_MIP.l(unit, starttype, s, f, t)$usft_onlineMIP(unit, s, f, t)
+    r_startup_uft(starttype, unit_online(unit), f, startp(t))$usft(unit, s, f, t)
+        = v_startup_LP.l(starttype, unit, s, f, t)$usft_onlineLP(unit, s, f, t)
+            + v_startup_MIP.l(starttype, unit, s, f, t)$usft_onlineMIP(unit, s, f, t)
     ;
     r_shutdown_usft(usft_online(unit, s, f, startp(t)))
         = v_shutdown_LP.l(unit, s, f, t)$usft_onlineLP(unit, s, f, t)
@@ -160,8 +160,8 @@ loop(s_realized(s),
         = 1e6 * q_resDemand.m(restype, up_down, group, s, f, t)
     ;
     // v_stateSlack values for calculation of realized costs later on
-    r_stateSlack_gnft(gn_stateSlack(gn), slack, f, startp(t))$sft_realized(s, f, t)
-        = v_stateSlack.l(gn, slack, s, f, t)
+    r_stateSlack_gnft(slack, gn_stateSlack(gn), f, startp(t))$sft_realized(s, f, t)
+        = v_stateSlack.l(slack, gn, s, f, t)
     ;
 );
 // Unit investments

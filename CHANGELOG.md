@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - improving looping and if conditions to avoid unnecessary calculations in investment runs
+- replacing uft sets with usft sets for faster investment runs
 
 ### Fixed
 
