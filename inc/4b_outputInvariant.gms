@@ -173,7 +173,7 @@ loop(m,
 * --- Approximate utilization rates ---------------------------------------
 
     // Approximate utilization rates for gnus over the simulation
-    r_utilizationRate_gnu(gnu(grid, node, unit))${ r_gen_gnu(grid, node, unit)
+    r_gen_utilizationRate_gnu(gnu(grid, node, unit))${ r_gen_gnu(grid, node, unit)
                                                          and ( p_gnu(grid, node, unit, 'capacity')
                                                                or (r_invest_unitCount_u(unit) and p_gnu(grid, node, unit, 'unitSize'))
                                                                )
@@ -258,7 +258,7 @@ loop(m,
 * --- Energy consumption during startups --------------------------------------
 
     // Unit start-up consumption
-    r_consumption_unitStartup_nu(nu_startup(node, unit), ft_realizedNoReset(f,t_startp(t)))
+    r_gen_unitStartupConsumption_nu(nu_startup(node, unit), ft_realizedNoReset(f,t_startp(t)))
         ${sum(starttype, unitStarttype(unit, starttype))}
         = sum(unitStarttype(unit, starttype),
             + r_startup_uft(starttype, unit, f, t)

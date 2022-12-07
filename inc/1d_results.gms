@@ -69,7 +69,7 @@ Parameters
     r_gen_gnShare(grid, node) "Total energy generation and consumption gn/g share"
 
     // Approximate utilization rates
-    r_utilizationRate_gnu(grid, node, unit) "Approximate utilization rates of gnus over the simulation (p.u.)"
+    r_gen_utilizationRate_gnu(grid, node, unit) "Approximate utilization rates of gnus over the simulation (p.u.)"
 
     // Energy generation results based on input, unittype, or group
     r_genByFuel_gnft(grid, node, *, f, t) "Energy generation to a node based on inputs from another node or flows (MW)"
@@ -82,7 +82,7 @@ Parameters
     r_genByGnuGroup_gn(grid, node, group) "Total energy generation and consumption in units that belong to gnuGroup (MWh)"
 
     // Energy consumption during startups
-    r_consumption_unitStartup_nu(node, unit, f, t) "Energy consumption during start-up (MWh)"
+    r_gen_unitStartupConsumption_nu(node, unit, f, t) "Energy consumption during start-up (MWh)"
 
 * --- Unit Online, startup, and shutdown Result Symbols -----------------------
 

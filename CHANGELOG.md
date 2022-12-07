@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - improving looping and if conditions to avoid unnecessary calculations in investment runs
 - replacing uft sets with usft sets for faster investment runs
 - renaming startp set to t_startp
+- renaming 3.x result tables. New names: r_gen_utilizationRate_gnu, r_gen_unitStartupConsumption_nu
 
 ### Fixed
 

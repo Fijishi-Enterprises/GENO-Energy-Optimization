@@ -216,7 +216,7 @@ loop(m,
 * --- Energy consumption results ---------------------------------------
 
     // !!! NOTE !!! This is a bit of an approximation at the moment !!!!!!!!!!!!!!!
-    r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, startp(t)))$sum(s, sft_realizedNoReset(s,f,t))
+    r_gnConsumption(gn(grid, node), ft_realizedNoReset(f, t_startp(t)))
         = p_stepLengthNoReset(m, f, t)
             * [
                 + min(ts_influx(grid, node, f, t), 0) // Not necessarily a good idea, as ts_influx contains energy gains as well...
@@ -227,7 +227,7 @@ loop(m,
 
     // Total consumption on each gn over the simulation
     r_gnTotalConsumption(gn(grid, node))
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_gnConsumption(grid, node, f ,t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             );
@@ -294,7 +294,7 @@ Option r_gnuTotalGenShare <= r_gen_gnuShare;
 Option r_gnTotalGenShare <= r_gen_gnShare;
 
 // Approximate utilization rates
-Option r_gnuUtilizationRate <= r_utilizationRate_gnu;
+Option r_gnuUtilizationRate <= r_gen_utilizationRate_gnu;
 
 // Energy generation results based on input, unittype, or group
 Option r_genFuel <= r_genByFuel_gnft;
@@ -307,7 +307,7 @@ Option r_gnuTotalGen_unittype <= r_genByUnittype_gn;
 Option r_gnTotalGenGnuGroup <= r_genByGnuGroup_gn;
 
 // Energy consumption results
-Option r_nuStartupConsumption <= r_consumption_unitStartup_nu;
+Option r_nuStartupConsumption <= r_gen_unitStartupConsumption_nu;
 
 * --- Unit Online, startup, and shutdown Result Symbols ----------------------------------------
 
