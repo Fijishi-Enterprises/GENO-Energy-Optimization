@@ -132,7 +132,7 @@ if (mType('building'),
 * --- Define output settings for results --------------------------------------
 
     // Define the length of the initialization period. Results outputting starts after the period. Uses ord(t) > t_start + t_initializationPeriod in the code.
-    mSettings('building', 't_initializationPeriod') = 0;  // r_state and r_online are stored also for the last step in the initialization period, i.e. ord(t) = t_start + t_initializationPeriod
+    mSettings('building', 't_initializationPeriod') = 0;  // r_state_gnft and r_online_uft are stored also for the last step in the initialization period, i.e. ord(t) = t_start + t_initializationPeriod
 
 * --- Define the use of additional constraints for units with incremental heat rates
 

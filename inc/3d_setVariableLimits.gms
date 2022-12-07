@@ -133,7 +133,7 @@ loop(node$(not node_superpos(node)),
                                                     and (solveCount > 1)
                                                     }
             = sum(mf_realization(mSolve, f_),
-                    + r_state(grid, node, f_, tSolve)
+                    + r_state_gnft(grid, node, f_, tSolve)
               ); // END sum(mf_realization)
 
     // BoundStartToEnd: bound the last interval in the horizon to the reference value if first solve and constant reference
@@ -292,26 +292,24 @@ v_gen.up(gnusft(gnu_output(grid, node, unit), s, f, t))${p_gnu(grid, node, unit,
 // Ramping capability of units not part of investment set
 // NOTE: Apply the corresponding equations only to units with investment possibility,
 // online variable, or reserve provision
-v_genRamp.up(gnusft(grid, node, unit, s, f, t))${   ord(t) > msStart(mSolve, s) + 1
-                                                    and gnuft_ramp(grid, node, unit, f, t)
-                                                    and p_gnu(grid, node, unit, 'maxRampUp')
-                                                    and not uft_online(unit, f, t)
-                                                    and not unit_investLP(unit)
-                                                    and not unit_investMIP(unit)
-                                                    and not uft_startupTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedToMinLoad'
-                                                    }
+v_genRamp.up(gnusft_ramp(grid, node, unit, s, f, t))${ ord(t) > msStart(mSolve, s) + 1
+                                                       and p_gnu(grid, node, unit, 'maxRampUp')
+                                                       and not usft_online(unit, s, f, t)
+                                                       and not unit_investLP(unit)
+                                                       and not unit_investMIP(unit)
+                                                       and not usft_startupTrajectory(unit, s, f, t) // Trajectories require occasional combinations with 'rampSpeedToMinLoad'
+                                                       }
  // Unit conversion from [p.u./min] to [MW/h]
  = p_gnu(grid, node, unit, 'capacity')
         * p_gnu(grid, node, unit, 'maxRampUp')
         * 60;
-v_genRamp.lo(gnusft(grid, node, unit, s, f, t))${   ord(t) > msStart(mSolve, s) + 1
-                                                    and gnuft_ramp(grid, node, unit, f, t)
-                                                    and p_gnu(grid, node, unit, 'maxRampDown')
-                                                    and not uft_online(unit, f, t)
-                                                    and not unit_investLP(unit)
-                                                    and not unit_investMIP(unit)
-                                                    and not uft_shutdownTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedFromMinLoad'
-                                                    }
+v_genRamp.lo(gnusft_ramp(grid, node, unit, s, f, t))${ ord(t) > msStart(mSolve, s) + 1
+                                                       and p_gnu(grid, node, unit, 'maxRampDown')
+                                                       and not usft_online(unit, s, f, t)
+                                                       and not unit_investLP(unit)
+                                                       and not unit_investMIP(unit)
+                                                       and not usft_shutdownTrajectory(unit, s, f, t) // Trajectories require occasional combinations with 'rampSpeedFromMinLoad'
+                                                       }
  // Unit conversion from [p.u./min] to [MW/h]
  = -p_gnu(grid, node, unit, 'capacity')
         * p_gnu(grid, node, unit, 'maxRampDown')
@@ -319,76 +317,54 @@ v_genRamp.lo(gnusft(grid, node, unit, s, f, t))${   ord(t) > msStart(mSolve, s) 
 
 // v_online cannot exceed unit count if investments disabled
 // LP variant
-v_online_LP.up(unit, sft(s, f, t))${uft_onlineLP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
+v_online_LP.up(usft_onlineLP(unit, s, f, t))${not (unit_investLP(unit) or unit_investMIP(unit))}
     = p_unit(unit, 'unitCount')
 ;
 // MIP variant
-v_online_MIP.up(unit, sft(s, f, t))${uft_onlineMIP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
+v_online_MIP.up(usft_onlineMIP(unit, s, f, t))${not (unit_investLP(unit) or unit_investMIP(unit))}
     = p_unit(unit, 'unitCount')
 ;
 
 $ontext
 // NOTE! These are unnecessary?
 // Free the upper bound of start-up and shutdown variables (if previously bounded)
-v_startup_LP.up(unitStarttype(unit, starttype), sft(s, f, t))
-    ${ uft_onlineLP(unit, f, t) }
+v_startup_LP.up(starttype, usft_onlineLP(unit, s, f, t))
+    ${ unitStarttype(unit, starttype) }
     = inf;
-v_startup_MIP.up(unitStarttype(unit, starttype), sft(s, f, t))
-    ${ uft_onlineMIP(unit, f, t) }
+v_startup_MIP.up(starttype, usft_onlineMIP(unit, s, f, t))
+    ${ unitStarttype(unit, starttype) }
     = inf;
-v_shutdown.up(unit, sft(s, f, t))$uft(unit, f, t) = inf;
+v_shutdown.up(usft(unit, s, f, t)) = inf;
 $offtext
 
 // v_startup cannot exceed unitCount
-v_startup_LP.up(unitStarttype(unit, starttype), sft(s, f, t))
-    ${  uft_onlineLP(unit, f, t)
+v_startup_LP.up(starttype, usft_onlineLP(unit, s, f, t))
+    ${  unitStarttype(unit, starttype)
         and not unit_investLP(unit)
         and not unit_investMIP(unit)
         }
     = p_unit(unit, 'unitCount');
-v_startup_MIP.up(unitStarttype(unit, starttype), sft(s, f, t))
-    ${  uft_onlineMIP(unit, f, t)
+v_startup_MIP.up(starttype, usft_onlineMIP(unit, s, f, t))
+    ${  unitStarttype(unit, starttype)
         and not unit_investLP(unit)
         and not unit_investMIP(unit)
         }
     = p_unit(unit, 'unitCount');
 
 // v_shutdown cannot exceed unitCount
-v_shutdown_LP.up(unit, sft(s, f, t))
-    ${  uft_onlineLP(unit, f, t)
-        and not unit_investLP(unit)
+v_shutdown_LP.up(usft_onlineLP(unit, s, f, t))
+    ${  not unit_investLP(unit)
         and not unit_investMIP(unit)}
     = p_unit(unit, 'unitCount');
 // v_shutdown cannot exceed unitCount
-v_shutdown_MIP.up(unit, sft(s, f, t))
-    ${  uft_onlineMIP(unit, f, t)
-        and not unit_investLP(unit)
+v_shutdown_MIP.up(usft_onlineMIP(unit, s, f, t))
+    ${  not unit_investLP(unit)
         and not unit_investMIP(unit)}
     = p_unit(unit, 'unitCount');
-
-// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// The following limits are extremely slow, and shouldn't strictly be required.
-// Commenting them out for now at least.
-$ontext
-// Cannot start a unit if the time when the unit would become online is outside
-// the horizon when the unit has an online variable
-v_startup.up(unitStarttype(unit, starttype), sft(s, f, t))${    uft_online(unit, f, t)
-                                                            and p_u_runUpTimeIntervals(unit)
-                                                            and not sum(t_active(t_)${ord(t) = ord(t_) + dt_toStartup(unit,t_)}, uft_online(unit, f, t_))
-                                                            }
-    = 0;
-// Cannot shut down a unit if the time when the generation of the unit would become
-// zero is outside the horizon when the unit has an online variable
-v_shutdown.up(unit, sft(s, f, t))${uft_online(unit, f, t)
-                                   and p_u_shutdownTimeIntervals(unit)
-                                   and not sum(t_active(t_)${ord(t) = ord(t_) + dt_toShutdown(unit,t_)}, uft_online(unit, f, t_))
-                                  }
-    = 0;
-$offtext
 
 //These might speed up, but they should be applied only to the new part of the horizon (should be explored)
-*v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
-*v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
+*v_startup.l(unitStarttype(unit, starttype), f, t)${usft_online(unit, s, f, t) and  not unit_investLP(unit) } = 0;
+*v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and usft_online(unit, s, f, t) and  not unit_investLP(unit) } = 0;
 
 *----------------------------------------------------------------------IC RAMP-------------------------------------------------------------------------------------------------------------------------------------
 v_transferRamp.up(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
@@ -521,7 +497,7 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
                 )  // This set contains the combination of reserve types and time intervals that should be fixed based on previous solves
             and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
             }
-      = r_reserve(restype, up_down, grid, node, unit, f+df_reserves(grid, node, restype, f, t), t);
+      = r_reserve_gnuft(restype, up_down, grid, node, unit, f+df_reserves(grid, node, restype, f, t), t);
 
     // Fix transfer of reserves at the gate closure of reserves, LOWER BOUND ONLY!
     v_resTransferRightward.fx(restype, up_down, grid, node, node_, s, f+df_reserves(grid, node, restype, f, t), t)
@@ -534,7 +510,7 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
                            ) // Commit reserve transfer as long as either end commits.
                     ]
           }
-      = r_resTransferRightward(restype, up_down, grid, node, node_, f+df_reserves(grid, node, restype, f, t), t);
+      = r_reserveTransferRightward_gnnft(restype, up_down, grid, node, node_, f+df_reserves(grid, node, restype, f, t), t);
 
     v_resTransferLeftward.fx(restype, up_down, grid, node, node_, s, f+df_reserves(grid, node, restype, f, t), t)
         $ { gn2n_directional(grid, node, node_)
@@ -546,12 +522,12 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
                            ) // Commit reserve transfer as long as either end commits.
                     ]
           }
-      = r_resTransferLeftward(restype, up_down, grid, node, node_, f+df_reserves(grid, node, restype, f, t), t);
+      = r_reserveTransferLeftward_gnnft(restype, up_down, grid, node, node_, f+df_reserves(grid, node, restype, f, t), t);
 
     // Fix slack variable for reserves that is used before the reserves need to be locked (vq_resMissing is used after this)
     vq_resDemand.fx(restype, up_down, group, s, f+df_reserves(grid, node, restype, f, t), t)
         $ { ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t) }  // This set contains the combination of reserve types and time intervals that should be fixed
-      = r_qResDemand(restype, up_down, group, f+df_reservesGroup(group, restype, f, t), t);
+      = r_qReserveDemand_ft(restype, up_down, group, f+df_reservesGroup(group, restype, f, t), t);
 
 ); // END loop(restypeDirectionGridNode, ft)
 
@@ -628,10 +604,9 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
 
 
         // Initial online status for units
-        v_online_MIP.fx(unit, s, f, t)${p_unit(unit, 'useInitialOnlineStatus') and uft_onlineMIP(unit, f, t+1)}   //sets online status for one time step before the first solve
+        v_online_LP.fx(unit, s, f, t)${p_unit(unit, 'useInitialOnlineStatus') and usft_onlineLP(unit, s, f, t+1)}  //sets online status for one time step before the first solve
             = p_unit(unit, 'initialOnlineStatus');
-
-        v_online_LP.fx(unit, s, f, t)${p_unit(unit, 'useInitialOnlineStatus') and uft_onlineLP(unit, f, t+1)}
+        v_online_MIP.fx(unit, s, f, t)${p_unit(unit, 'useInitialOnlineStatus') and usft_onlineMIP(unit, s, f, t+1)}
             = p_unit(unit, 'initialOnlineStatus');
 
         // Initial generation for units
@@ -639,8 +614,8 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
             = p_gnu(grid, node, unit, 'initialGeneration');
 
         // Startup and shutdown variables are not applicable at the first time step
-        v_startup_LP.fx(unitStarttype(unit_online_LP, starttype), s, f, t) = 0;
-        v_startup_MIP.fx(unitStarttype(unit_online_MIP, starttype), s, f, t) = 0;
+        v_startup_LP.fx(starttype, usft_onlineLP(unit, s, f, t))$unitStarttype(unit, starttype) = 0;
+        v_startup_MIP.fx(starttype, usft_onlineMIP(unit, s, f, t))$unitStarttype(unit, starttype) = 0;
         v_shutdown_LP.fx(unit_online_LP, s, f, t) = 0;
         v_shutdown_MIP.fx(unit_online_MIP, s, f, t) = 0;
 
@@ -650,15 +625,15 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
 
         // State and online variable initial values for the subsequent solves
         v_state.fx(gn_state(grid, node), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
-            = r_state(grid, node, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
+            = r_state_gnft(grid, node, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
 
         // Generation initial value (needed at least for ramp constraints)
         v_gen.fx(gnu(grid, node, unit), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
-            = r_gen(grid, node, unit, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
+            = r_gen_gnuft(grid, node, unit, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
 
         // Transfer initial value (needed at least for ramp constraints)
         v_transfer.fx(gn2n(grid, from_node, to_node), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
-            = r_transfer(grid, from_node, to_node, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
+            = r_transfer_gnnft(grid, from_node, to_node, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
 
 
     ); // END if(tSolveFirst)
@@ -686,33 +661,35 @@ if(tSolveFirst = mSettings(mSolve, 't_start'),
 
 // Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up and shutdown phases.
 if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on the first solve handled above
-    v_startup_LP.fx(unitStarttype(unit_online_LP(unit), starttype), sft_realizedNoReset(s, f, t_active(t)))
-        ${ ord(t) <= tSolveFirst } // Only fix previously realized time steps
-        = r_startup(unit, starttype, f, t);
+    // Units that have a LP online variable on the first effLevel. Applies also following v_startup and v_online.
+    v_startup_LP.fx(starttype, unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
+        ${ (ord(t) <= tSolveFirst) // Only fix previously realized time steps
+           and unitStarttype(unit, starttype) }
+        = r_startup_uft(starttype, unit, f, t);
 
-    v_startup_MIP.fx(unitStarttype(unit_online_MIP(unit), starttype), sft_realizedNoReset(s, f, t_active(t)))
-        ${ ord(t) <= tSolveFirst } // Only fix previously realized time steps
-        = r_startup(unit, starttype, f, t);
+    // Units that have a MIP online variable on the first effLevel. Applies also following v_startup and v_online.
+    v_startup_MIP.fx(starttype, unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
+        ${ (ord(t) <= tSolveFirst) // Only fix previously realized time steps
+           and unitStarttype(unit, starttype) }
+        = r_startup_uft(starttype, unit, f, t);
 
     v_shutdown_LP.fx(unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
         ${  ord(t) <= tSolveFirst } // Only fix previously realized time steps
-        = r_shutdown(unit, f, t);
+        = r_shutdown_uft(unit, f, t);
 
     v_shutdown_MIP.fx(unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
         ${  ord(t) <= tSolveFirst } // Only fix previously realized time steps
-        = r_shutdown(unit, f, t);
+        = r_shutdown_uft(unit, f, t);
 
-    v_online_MIP.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
+    v_online_LP.fx(unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
         ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
-            and unit_online_MIP(unit) // Check if the unit has a MIP online variable on the first effLevel
             }
-        = round(r_online(unit, f, t));
+        = r_online_uft(unit, f, t);
 
-    v_online_LP.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
+    v_online_MIP.fx(unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
         ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
-            and unit_online_LP(unit) // Check if the unit has a LP online variable on the first effLevel
             }
-        = r_online(unit, f, t);
+        = round(r_online_uft(unit, f, t));
 ); // END if
 
 
@@ -721,20 +698,20 @@ if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on
 * =============================================================================
 
 v_invest_LP.fx(unit_investLP(unit))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
-    = r_invest(unit)
+    = r_invest_unitCount_u(unit)
 ;
 v_invest_MIP.fx(unit_investMIP(unit))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
-    = r_invest(unit)
+    = r_invest_unitCount_u(unit)
 ;
 v_investTransfer_LP.fx(gn2n_directional(grid, node, node_), t_invest(t))${    not p_gnn(grid, node, node_, 'investMIP')
                                                                               and p_gnn(grid, node, node_, 'transferCapInvLimit')
                                                                               and ord(t) <= tSolveFirst
                                                                               }
-    = r_investTransfer(grid, node, node_, t)
+    = r_invest_transferCapacity_gnn(grid, node, node_, t)
 ;
 v_investTransfer_MIP.fx(gn2n_directional(grid, node, node_), t_invest(t))${   p_gnn(grid, node, node_, 'investMIP')
                                                                               and p_gnn(grid, node, node_, 'transferCapInvLimit')
                                                                               and ord(t) <= tSolveFirst
                                                                               }
-    = r_investTransfer(grid, node, node_, t) / p_gnn(grid, node, node_, 'unitSize')
+    = r_invest_transferCapacity_gnn(grid, node, node_, t) / p_gnn(grid, node, node_, 'unitSize')
 ;

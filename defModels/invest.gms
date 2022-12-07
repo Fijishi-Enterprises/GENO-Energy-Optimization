@@ -95,7 +95,7 @@ Model invest /
     q_constrainedOnlineMultiUnit
     q_capacityMargin
     q_constrainedCapMultiUnit
-    q_emissioncap
+    q_emissioncapNodeGroup
     q_energyLimit
     q_energyShareLimit
     q_ReserveShareMax

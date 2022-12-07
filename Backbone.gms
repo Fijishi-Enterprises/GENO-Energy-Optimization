@@ -85,6 +85,9 @@ GAMS command line arguments
 --output_file=<filename.gdx>
     Filename of the results file. Defaults to 'results.gdx'
 
+--resultsVer2x=TRUE
+    Flag to use backbone 2.x result tables. Default value ''
+
 
 References
 ----------
@@ -109,6 +112,7 @@ $if not set debug $setglobal debug 0
 *   input_excel_checkdate. It is off by default, since there has been some problems with it.
 $if not set input_dir $setglobal input_dir 'input'
 $if not set output_dir $setglobal output_dir 'output'
+$if not set output_file $setglobal output_file 'results.gdx'
 $if not set input_file_gdx $setglobal input_file_gdx 'inputData.gdx'
 $if not set input_excel_index $setglobal input_excel_index 'INDEX'
 $if not set input_excel_checkdate $setglobal input_excel_checkdate ''
@@ -131,16 +135,18 @@ $endif
 
 * === Definitions, sets, parameters and input data=============================
 $include 'inc/1a_definitions.gms'   // Definitions for possible model settings
-* 1a_definitions reads additional parameter definitions from params.inc if exists
 $include 'inc/1b_sets.gms'          // Set definitions used by the models
-* 1b_sets reads %input_dir%/timeAndSamples.inc and inc/rampSched/sets_rampSched.gms if exists
+* 1b_sets reads %input_dir%/timeAndSamples.inc if exists
+* 1b_sets reads inc/rampSched/sets_rampSched.gms if exists
 $include 'inc/1c_parameters.gms'    // Parameter definitions used by the models
 $include 'inc/1d_results.gms'       // Parameter definitions for model results
 $include 'inc/1e_inputs.gms'        // Load input data
-* 1e_inputs can convert %input_file_excel% to %input_dir%/%input_file_gdx%
-* 1e_input reads %input_file_gdx%
-* 1e_inputs read also following files: %input_dir%/additionalSetsAndParameters.inc,
-* inc/1e_scenChanges.gms, and %input_dir%/changes.inc if those exist.
+* 1e_inputs can convert %input_dir%/%input_file_excel% or %input_file_excel%  to %input_dir%/%input_file_gdx%
+* 1e_input reads %input_dir%/%input_file_gdx% or %input_file_gdx%
+* 1e_inputs read also following files:
+*      - %input_dir%/additionalSetsAndParameters.inc if exist
+*      - inc/1e_scenChanges.gms,
+*      - %input_dir%/changes.inc if exist
 
 * === Variables and equations =================================================
 $include 'inc/2a_variables.gms'                         // Define variables for the models
@@ -165,7 +171,7 @@ $include 'defModels/invest.gms'
 
 // Load model input parameters
 $include '%input_dir%/modelsInit.gms'
-* Normally calls scheduleInit.gms or investInit.gms
+* Normally calls corresponding init file, e.g. '%input_dir%/scheduleInit.gms' or '%input_dir%/investInit.gms'
 
 
 * === Simulation ==============================================================
@@ -201,22 +207,28 @@ $if exist '%input_dir%/3z_modelsClose.gms' $include '%input_dir%/3z_modelsClose.
 $echon "'version' " > 'version'
 $call 'git describe --dirty=+ --always >> version'
 $ifi not %dummy% == 'yes'
+
+* calculating remaining result tables
 $include 'inc/4b_outputInvariant.gms'
+* converting results to 2.x format if user given option is '2x'
+$if set resultsVer2x $include 'inc/4b_outputInvariant_convertTo2x.gms'
+* selecting correct set of result symbols
+$if set resultsVer2x $setglobal resultSymbols 'resultSymbols_2x.inc'
+$if not set resultsVer2x $setglobal resultSymbols 'resultSymbols.inc'
+
 $include 'inc/4c_outputQuickFile.gms'
 
 * Post-process results
 $if exist '%input_dir%/4d_postProcess.gms' $include '%input_dir%/4d_postProcess.gms'
 
-$if not set output_file $setglobal output_file 'results.gdx'
-
 $ifthen exist '%input_dir%/additionalResultSymbols.inc'
    execute_unload '%output_dir%/%output_file%',
-     $$include 'defOutput/resultSymbols.inc'//,
+     $$include 'defOutput/%resultSymbols%'//,
      $$include '%input_dir%/additionalResultSymbols.inc'
    ;
 $else
    execute_unload '%output_dir%/%output_file%',
-     $$include 'defOutput/resultSymbols.inc'//,
+     $$include 'defOutput/%resultSymbols%'//,
    ;
 $endif
 

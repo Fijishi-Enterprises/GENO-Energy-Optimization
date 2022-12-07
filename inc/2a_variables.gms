@@ -15,19 +15,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-Free variable v_obj "Total operating cost (monetary unit)";
+* Variable units are given in brackets after the names to help users.
+* These default units are not strict limits and some can be modified easily and some with little care.
+* One example of alternative units is the currency. Default unit says EUR, but it can be any currency unit.
+* Also MW of generation and MWh of storages can be used to model e.g. tons of emissions without
+* changing any code, but in this case the modeller must be careful to not mix up units.
+
+Free variable v_obj "Total operating cost (million EUR)";
 Free variables
     v_gen(grid, node, unit, s, f, t) "Energy generation or consumption in an interval (MW)"
     v_genRamp(grid, node, unit, s, f, t) "Change in energy generation or consumption over an interval (MW/h)"
     v_transfer(grid, node, node, s, f, t) "Average electricity transmission level from node to node during an interval (MW)"
     v_transferRamp(grid, node, node, s, f, t) "Change in energy transfer over an interval (MW/h)"
     v_state(grid, node, s, f, t) "State variable for nodes that maintain a state (MWh, unless modified by energyStoredPerUnitOfState and diffCoeff parameters)"
-    v_statemax(grid, node, s) "State variable maximum in sample s"
-    v_statemin(grid, node, s) "State variable minimum in sample s"
-    v_state_z(grid, node, z) "State in the beginning of the time period z"
+    v_statemax(grid, node, s) "State variable maximum in sample s (MWh, unless modified by energyStoredPerUnitOfState parameter)"
+    v_statemin(grid, node, s) "State variable minimum in sample s (MWh, unless modified by energyStoredPerUnitOfState parameter)"
+    v_state_z(grid, node, z) "State in the beginning of the time period z (MWh, unless modified by energyStoredPerUnitOfState parameter)"
 ;
 Integer variables
-    v_startup_MIP(unit, starttype, s, f, t) "Sub-units started up after/during an interval (p.u.), (MIP variant)"
+    v_startup_MIP(starttype, unit, s, f, t) "Sub-units started up after/during an interval (p.u.), (MIP variant)"
     v_shutdown_MIP(unit, s, f, t) "Sub-units shut down after/during an interval (p.u.) (MIP variant)"
     v_online_MIP(unit, s, f, t) "Number of sub-units online for units with unit commitment restrictions"
     v_invest_MIP(unit) "Number of invested sub-units"
@@ -40,9 +46,9 @@ SOS2 variables
     v_sos2(unit, s, f, t, effSelector) "Intermediate lambda variable for SOS2 based piece-wise linear efficiency curve"
 ;
 Positive variables
-    v_startup_LP(unit, starttype, s, f, t) "Sub-units started up after/during an interval (p.u.), (LP variant)"
-    v_shutdown_LP(unit, s, f, t) "Sub-units shut down after/during an interval (p.u.) (LP variant)"
-    v_genRampUpDown(grid, node, unit, slack, s, f, t) "Change in energy generation or consumption over an interval, separated into different 'slacks' (MW/h)"
+    v_startup_LP(starttype, unit, s, f, t) "Sub-units started up after/during an interval (p.u.), LP variant"
+    v_shutdown_LP(unit, s, f, t) "Sub-units shut down after/during an interval (p.u.), LP variant"
+    v_genRampUpDown(slack, grid, node, unit, s, f, t) "Change in energy generation or consumption over an interval, separated into different 'slacks' (MW/h)"
     v_spill(grid, node, s, f, t) "Spill of energy from storage node during an interval (MWh/h)"
     v_transferRightward(grid, node, node, s, f, t) "Average electricity transmission level from the first node to the second node during an interval (MW)"
     v_transferLeftward(grid, node, node, s, f, t) "Average electricity transmission level from the second node to the first node during an interval (MW)"
@@ -50,14 +56,14 @@ Positive variables
     v_resTransferLeftward(restype, up_down, grid, node, node, s, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
     v_reserve(restype, up_down, grid, node, unit, s, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
     v_investTransfer_LP(grid, node, node, t) "Invested transfer capacity (MW)"
-    v_online_LP(unit, s, f, t) "Number of sub-units online for 'units' with unit commitment restrictions (LP variant)"
-    v_invest_LP(unit) "Number of invested 'sub-units' (LP variant)"
+    v_online_LP(unit, s, f, t) "Number of sub-units online for 'units' with unit commitment restrictions (p.u.), LP variant"
+    v_invest_LP(unit) "Number of invested 'sub-units' (p.u.), LP variant"
     v_gen_inc(grid, node, unit, hr, s, f, t) "Energy generation in hr block in an interval (MW)"
 ;
 
 * --- Feasibility control -----------------------------------------------------
 Positive variables
-    v_stateSlack(grid, node, slack, s, f, t) "Slack variable for different v_state slack categories, permits e.g. costs for exceeding acceptable v_states (MWh, unless modified by energyCapacity parameter)"
+    v_stateSlack(slack, grid, node, s, f, t) "Slack variable for different v_state slack categories, permits e.g. costs for exceeding acceptable v_states (MWh, unless modified by energyStoredPerUnitOfState parameter)"
     vq_gen(inc_dec, grid, node, s, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
     vq_resDemand(restype, up_down, group, s, f, t) "Dummy to decrease demand for a reserve (MW) before the reserve has been locked"
     vq_resMissing(restype, up_down, group, s, f, t) "Dummy to decrease demand for a reserve (MW) after the reserve has been locked"

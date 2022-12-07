@@ -43,12 +43,13 @@ Sets
     unit_flow(unit) "Unit that depend directly on variable energy flows (RoR, solar PV, etc.)"
     unit_fail(unit) "Units that might fail" / /
     unit_minLoad(unit) "Units that have unit commitment restrictions (e.g. minimum power level)"
-    unit_online(unit) "Units that have an online variable in the first active effLevel. Excludes units with investment options."
+    unit_online(unit) "Units that have an online variable in the first active effLevel"
     unit_online_LP(unit) "Units that have an LP online variable in the first active effLevel"
     unit_online_MIP(unit) "Units that have an MIP online variable in the first active effLevel"
     unit_aggregator(unit) "Aggregator units aggragating several units"
     unit_aggregated(unit) "Units that are aggregated"
     unit_noAggregate(unit) "Units that are not aggregated and are not aggregators"
+    unit_startCost(unit) "units that have start costs defined"
     unit_slope(unit) "Units with piecewise linear efficiency constraints"
     unit_noSlope(unit) "Units without piecewise linear efficiency constraints"
     unitAggregator_unit(unit, unit) "Aggregate unit linked to aggregated units"
@@ -61,6 +62,7 @@ Sets
     unit_investMIP(unit) "Units with integer investments allowed"
     unit_timeseries(unit) "Units with time series enabled"
     unit_incHRAdditionalConstraints(unit) "Units that use the two additional incremental heat rate constraints"
+    unitConstraint(unit, constraint) "combinations of units and their eq/gt constraints"
     unit_eqConstrained(unit) "Units that have eq constraints between inputs and/or outputs"
     unit_gtConstrained(unit) "Units that have gt constraints between inputs and/or outputs"
     unit_tsConstrained(unit) "Units that have timeseries for eq or gt constraints between inputs and/or outputs"
@@ -88,6 +90,7 @@ Sets
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
     gnn_boundState(grid, node, node) "Nodes with state variables bound by other nodes"
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
+    gnu_tmp(grid, node, unit) "temporary table of (grid, node, unit) for easier if chekcs and looping"
 
 * --- Reserve types -----------------------------------------------------------
     restype "Reserve types"
@@ -107,6 +110,7 @@ Sets
 * --- Sets to define time, forecasts and samples ------------------------------
     $$include '%input_dir%/timeAndSamples.inc'
     m(mType) "model(s) in use"
+    t_start(t) "start t"
     t_full(t) "Full set of time steps in the current model"
     t_datalength(t) "Full set of time steps withing the datalength"
     t_current(t) "Set of time steps within the current solve horizon"
@@ -154,21 +158,19 @@ Sets
     zs(z, s) "relationship between the z-periods and samples"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations as well as unit lifetimes
-    uft(unit, f, t) "Active units on intervals, enables aggregation of units for later intervals"
-    uft_online(unit, f, t) "Units with any online and startup variables on intervals"
-    uft_onlineLP(unit, f, t) "Units with LP online and startup variables on intervals"
-    uft_onlineMIP(unit, f, t) "Units with MIP online and startup variables on intervals"
-    uft_onlineLP_withPrevious(unit,f,t) "Units with LP online and startup variables on intervals, including t0"
-    uft_onlineMIP_withPrevious(unit,f,t) "Units with MIP online and startup variables on intervals, including t0"
-    uft_startupTrajectory(unit, f, t) "Units with start-up trajectories on intervals"
-    uft_shutdownTrajectory(unit, f, t) "Units with shutdown trajectories on intervals"
-    uft_aggregator_first(unit, f, t) "The first intervals when aggregator units are active"
-    gnuft_ramp(grid, node, unit, f, t) "Units with ramp requirements or costs"
-    gnuft_rampCost(grid, node, unit, slack, f, t) "Units with ramp costs"
     usft(unit, s, f, t) "set of active units and aggregated sft"
+    usft_onlineLP(unit, s, f, t) "Units with LP online and startup variables on intervals"
+    usft_online(unit, s, f, t) "Units with any online and startup variables on intervals"
+    usft_onlineMIP(unit, s, f, t) "Units with MIP online and startup variables on intervals"
+    usft_onlineLP_withPrevious(unit, s, f, t) "Units with LP online and startup variables on intervals, including t0"
+    usft_onlineMIP_withPrevious(unit, s, f, t) "Units with MIP online and startup variables on intervals, including t0"
+    usft_startupTrajectory(unit, s, f, t) "Units with start-up trajectories on intervals"
+    usft_shutdownTrajectory(unit, s, f, t) "Units with shutdown trajectories on intervals"
+    usft_aggregator_first(unit, s, f, t) "The first intervals when aggregator units are active"
     gnusft(grid, node, unit, s, f, t) "set of active gnu and aggregated sft"
-    eff_uft(effSelector, unit, f, t) "Selecting conversion efficiency equations"
-*    eff_uft_eff(effSelector, unit, f, t, effSelector) "Selecting conversion efficiency equations"
+    gnusft_ramp(grid, node, unit, s, f, t) "Units with ramp requirements or costs"
+    gnusft_rampCost(slack, grid, node, unit, s, f, t) "Units with ramp costs"
+    eff_usft(effSelector, unit, s, f, t) "Selecting conversion efficiency equations"
     effGroup(effSelector) "Group name for efficiency selector set, e.g. DirectOff and Lambda02"
     effGroupSelector(effSelector, effSelector) "Efficiency selectors included in efficiency groups, e.g. Lambda02 contains Lambda01 and Lambda02."
     effLevelGroupUnit(effLevel, effSelector, unit) "What efficiency selectors are in use for each unit at each efficiency representation level" / /
@@ -221,6 +223,37 @@ Sets
 ;
 $offempty
 
+
+
+sets
+    tt_agg_circular(t, t, t) "Alternative aggregation ordering with embedded circulars"
+    t_startp(t) "Temporary subset for time steps"
+    s_realized(s) "All s among realized sft (redundant if always equivalent to s)"
+    sft_resdgn(restype, up_down, grid, node, s,f,t) "Temporary tuplet for reserves by restypeDirectionGridNode"
+;
+
+* --- Set for metadata --------------------------------------------------------
+
+* Get current username
+$ifthen %system.filesys% == 'MSNT'
+$set username %sysenv.USERNAME%
+$else
+$set username %sysenv.USER%
+$endif
+
+* Create metadata
+set metadata(*) /
+   'User' '%username%'
+   'Date' '%system.date%'
+   'Time' '%system.time%'
+   'GAMS version' '%system.gamsrelease%'
+   'GAMS system' '%system.gstring%'
+$include 'version'
+/;
+if(execError > 0, metadata('FAILED') = yes);
+
+
+
 * Set initial values to avoid errors when checking if parameter contents have been loaded from input data
 Option clear = modelSolves;
 Option clear = ms;
@@ -248,22 +281,11 @@ alias(hr, hr_, hr__);
 alias(effLevel, effLevel_);
 alias(restype, restype_);
 alias(group, group_);
-
+alias(metadata, r_info_metadata);
 
 *if(active('rampSched'),
   $$include inc/rampSched/sets_rampSched.gms
 *);
-
-
-
-
-sets
-    tt_agg_circular(t, t, t) "Alternative aggregation ordering with embedded circulars"
-    startp(t) "Temporary subset for time steps"
-    s_realized(s) "All s among realized sft (redundant if always equivalent to s)"
-    sft_resdgn(restype, up_down, grid, node, s,f,t) "Temporary tuplet for reserves by restypeDirectionGridNode"
-;
-
 
 
 
