@@ -63,9 +63,6 @@ loop(ms(mSolve, s_realized(s)),
      ;
 );
 
-r_online_uft(unit, f, t) = sum(s, r_online_usft(unit, s, f, t));
-r_shutdown_uft(unit, f, t) = sum(s, r_shutdown_usft(unit, s, f, t));
-
 * --- Reserve results ---------------------------------------------------------
 
 // Loop over reserve horizon, as the reserve variables use a different ft-structure due to commitment
