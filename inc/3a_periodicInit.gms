@@ -36,7 +36,7 @@ loop(m,
 
 * --- Time Steps within Model Horizon -----------------------------------------
 
-    // that first t for faster fi checks
+    // the first t for faster if checks
     t_start(t)${ ord(t) = mSettings(m, 't_start') } = yes;
 
     // Determine the full set of timesteps to be considered by the defined simulation
