@@ -12,7 +12,7 @@ Parameter
 * Calculating the values for the new result table.
 * See further examples from 4b_outputInvariant.gms
 r_uTotalVOMCost(unit)
-    = sum(ft_realizedNoReset(f,startp(t)),
+    = sum(ft_realizedNoReset(f, t_startp(t)),
         sum(gnu(grid, node, unit),
                 + r_gnuVOMCost(grid, node, unit, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))

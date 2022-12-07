@@ -33,34 +33,33 @@ if(tSolveFirst >= mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializa
 );
 
 // Improve performance & readibility by using a few helper sets
-option clear=startp, clear=sft_resdgn, s_realized < sft_realized;
-*startp(t)$(ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod'))=yes;
-startp(t)
+option clear=t_startp, clear=sft_resdgn, s_realized < sft_realized;
+t_startp(t)
    ${(ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod'))
-     and (ord(t) <= mSettings(mSolve, 't_end'))
+     and (ord(t) <= mSettings(mSolve, 't_end')+1)
      and sum((s,f), sft_realized(s, f , t))
      } =yes;
 
 // Realized state history
 loop(ms(mSolve, s_realized(s)),
-    r_state_gnft(gn_state(grid, node), f, startp(t))$sft_realized(s, f, t)
+    r_state_gnft(gn_state(grid, node), f, t_startp(t))$sft_realized(s, f, t)
         = v_state.l(grid, node, s, f, t);
 
     // Realized state history - initial state values in samples
-    r_state_gnft(gn_state(grid, node), f_solve(f), t_(t+dt(t)))$(mst_start(ms, t)$sft_realized(s, f, t)$startp(t))
+    r_state_gnft(gn_state(grid, node), f_solve(f), t_(t+dt(t)))$(mst_start(ms, t)$sft_realized(s, f, t)$t_startp(t))
         = v_state.l(grid, node, s, f, t_)
     ;
     // Realized unit online history
-    r_online_uft(uft_online(unit, f, startp(t)))$sft_realized(s, f, t)
+    r_online_uft(uft_online(unit, f, t_startp(t)))$sft_realized(s, f, t)
         = v_online_LP.l(unit, s, f, t)$uft_onlineLP(unit, f, t)
             + v_online_MIP.l(unit, s, f, t)$uft_onlineMIP(unit, f, t)
     ;
     // Unit startup and shutdown history
-    r_startup_uft(unit, starttype, f, startp(t))$(uft_online(unit, f, t)$sft_realized(s, f, t))
+    r_startup_uft(unit, starttype, f, t_startp(t))$(uft_online(unit, f, t)$sft_realized(s, f, t))
         = v_startup_LP.l(unit, starttype, s, f, t)$uft_onlineLP(unit, f, t)
             + v_startup_MIP.l(unit, starttype, s, f, t)$uft_onlineMIP(unit, f, t)
     ;
-    r_shutdown_uft(uft_online(unit, f, startp(t)))$sft_realized(s, f, t)
+    r_shutdown_uft(uft_online(unit, f, t_startp(t)))$sft_realized(s, f, t)
         = v_shutdown_LP.l(unit, s, f, t)$uft_onlineLP(unit, f, t)
             + v_shutdown_MIP.l(unit, s, f, t)$uft_onlineMIP(unit, f, t)
     ;
@@ -70,7 +69,7 @@ loop(ms(mSolve, s_realized(s)),
 
 // Loop over reserve horizon, as the reserve variables use a different ft-structure due to commitment
 
-sft_resdgn(restypeDirectionGridNode(restype, up_down, gn), sft(s, f, startp(t)))
+sft_resdgn(restypeDirectionGridNode(restype, up_down, gn), sft(s, f, t_startp(t)))
   ${ord(t) <= tSolveFirst + p_gnReserves(gn, restype, 'reserve_length')} = yes;
 
 loop(s_realized(s),
@@ -93,7 +92,7 @@ loop(s_realized(s),
         = v_resTransferLeftward.l(restype, up_down, gn, to_node, s, f_, t);
 
     // Loop over group reserve horizon
-    loop((restypeDirectionGroup(restype, up_down, group), sft(s, f, startp(t)))
+    loop((restypeDirectionGroup(restype, up_down, group), sft(s, f, t_startp(t)))
         ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')},
 
         // Reserve requirement due to N-1 reserve constraint
@@ -119,23 +118,23 @@ loop(s_realized(s),
 loop(s_realized(s),
 
     // Unit generation and consumption
-    r_gen_gnuft(gnu(grid, node, unit), f, startp(t))$sft_realized(s, f, t)
+    r_gen_gnuft(gnu(grid, node, unit), f, t_startp(t))$sft_realized(s, f, t)
         = v_gen.l(grid, node, unit, s, f, t)
     ;
     // Transfer of energy between nodes
-    r_transfer_gnnft(gn2n(grid, from_node, to_node), f, startp(t))$sft_realized(s, f, t)
+    r_transfer_gnnft(gn2n(grid, from_node, to_node), f, t_startp(t))$sft_realized(s, f, t)
         = v_transfer.l(grid, from_node, to_node, s, f, t)
     ;
     // Transfer of energy from first node to second node
-    r_transferRightward_gnnft(gn2n_directional(grid, from_node, to_node), f, startp(t))$sft_realized(s, f, t)
+    r_transferRightward_gnnft(gn2n_directional(grid, from_node, to_node), f, t_startp(t))$sft_realized(s, f, t)
         = v_transferRightward.l(grid, from_node, to_node, s, f, t)
     ;
     // Transfer of energy from second node to first node
-    r_transferLeftward_gnnft(gn2n_directional(grid, to_node, from_node), f, startp(t))$sft_realized(s, f, t)
+    r_transferLeftward_gnnft(gn2n_directional(grid, to_node, from_node), f, t_startp(t))$sft_realized(s, f, t)
         = v_transferLeftward.l(grid, to_node, from_node, s, f, t)
     ;
     // Energy spilled from nodes
-    r_spill_gnft(gn, f, startp(t))$sft_realized(s, f, t)
+    r_spill_gnft(gn, f, t_startp(t))$sft_realized(s, f, t)
         = v_spill.l(gn, s, f, t) * p_stepLength(mSolve, f, t)
     ;
 );
@@ -148,16 +147,16 @@ r_cost_objectiveFunction_t(tSolve)
 loop(s_realized(s),
     // q_balance marginal values
     // Scaling Marginal Values to EUR/MWh from MEUR/MWh
-    r_balance_marginalValue_gnft(gn, f, startp(t))$sft_realized(s, f, t)
+    r_balance_marginalValue_gnft(gn, f, t_startp(t))$sft_realized(s, f, t)
         = 1e6 * q_balance.m(gn, mSolve, s, f, t)
     ;
     // q_resDemand marginal values
     // Scaling Marginal Values to EUR/MWh from MEUR/MWh
-    r_reserve_marginalValue_ft(restypeDirectionGroup(restype, up_down, group), f, startp(t))$sft_realized(s, f, t)
+    r_reserve_marginalValue_ft(restypeDirectionGroup(restype, up_down, group), f, t_startp(t))$sft_realized(s, f, t)
         = 1e6 * q_resDemand.m(restype, up_down, group, s, f, t)
     ;
     // v_stateSlack values for calculation of realized costs later on
-    r_stateSlack_gnft(gn_stateSlack(gn), slack, f, startp(t))$sft_realized(s, f, t)
+    r_stateSlack_gnft(gn_stateSlack(gn), slack, f, t_startp(t))$sft_realized(s, f, t)
         = v_stateSlack.l(gn, slack, s, f, t)
     ;
 );
@@ -180,11 +179,11 @@ r_invest_transferCapacity_gnn(grid, node, node_, t_invest(t))${ p_gnn(grid, node
 * --- Feasibility results -----------------------------------------------------
 loop(sft_realized(s, f, t),
 // Dummy generation & consumption
-r_qGen_gnft(inc_dec, gn, f, startp(t))
+r_qGen_gnft(inc_dec, gn, f, t_startp(t))
     = vq_gen.l(inc_dec, gn, s, f, t)
 ;
 // Dummy capacity
-r_qCapacity_ft(gn, f, startp(t))
+r_qCapacity_ft(gn, f, t_startp(t))
     = vq_capacity.l(gn, s, f, t)
 ;
 );

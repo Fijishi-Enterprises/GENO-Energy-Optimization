@@ -28,9 +28,10 @@ r_reserve_gnuft(restype, up_down, gnu, f, t)$((r_reserve_gnuft(restype, up_down,
 // Need to loop over the model dimension, as this file is no longer contained in the modelSolves loop...
 loop(m,
 
-    startp(t)
+    option clear=t_startp;
+    t_startp(t)
       ${(ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod'))
-        and (ord(t) <= mSettings(m, 't_end'))
+        and (ord(t) <= mSettings(m, 't_end')+1)
         and sum((s,f), sft_realized(s, f , t))
         } =yes;
 
@@ -39,7 +40,7 @@ loop(m,
 
     // Total energy spill from nodes
     r_spill_gn(grid, node_spill(node))
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_spill_gnft(grid, node, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -58,7 +59,7 @@ loop(m,
 
     // Total transfer of energy between nodes
     r_transfer_gnn(gn2n(grid, from_node, to_node))
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_transfer_gnnft(grid, from_node, to_node, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -67,7 +68,7 @@ loop(m,
 * --- Marginal value of energy results -----------------------------------------------------------
 
     r_balance_marginalValue_gnAverage(gn(grid, node))
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
              + r_balance_marginalValue_gnft(grid, node, f, t)
                 // * p_stepLengthNoReset(m, f, t)   // not including steplength due to division by number of timesteps
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -76,7 +77,7 @@ loop(m,
             ;
 
    // Transfer marginal value (Me) calculated from r_transfer * balanceMarginal * transferLosses
-   r_transferValue_gnnft(gn2n_directional(grid, node_, node), ft_realizedNoReset(f,startp(t)))
+   r_transferValue_gnnft(gn2n_directional(grid, node_, node), ft_realizedNoReset(f,t_startp(t)))
         = p_stepLengthNoReset(m, f, t)
             * [ r_transferRightward_gnnft(grid, node_, node, f, t)
                 * r_balance_marginalValue_gnft(grid, node, f, t)
@@ -90,7 +91,7 @@ loop(m,
 
     // Total transfer marginal value over the simulation
     r_transferValue_gnn(gn2n_directional(grid, node_, node))
-        = sum(ft_realizedNoReset(f,startp(t)),
+        = sum(ft_realizedNoReset(f,t_startp(t)),
             + r_transferValue_gnnft(grid, node_, node, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             )
@@ -98,7 +99,7 @@ loop(m,
 
 * --- Other node related results -----------------------------------------------------------
 
-    r_curtailments_gnft(gn(grid, node), ft_realizedNoReset(f,startp(t)))
+    r_curtailments_gnft(gn(grid, node), ft_realizedNoReset(f,t_startp(t)))
         ${sum(flow, flowNode(flow, node)) }
         = sum(flowUnit(flow, unit),
             // + (capacity + investments) * ts_cf   for generating units only
@@ -113,7 +114,7 @@ loop(m,
 
     r_curtailments_gn(gn(grid, node))
         ${sum(flow, flowNode(flow, node))}
-        = sum(ft_realizedNoReset(f,startp(t)), r_curtailments_gnft(grid, node, f, t)
+        = sum(ft_realizedNoReset(f,t_startp(t)), r_curtailments_gnft(grid, node, f, t)
           ); // END sum (ft_realizedNoReset)
 
 
@@ -121,7 +122,7 @@ loop(m,
     // Note that this result paramater does not necessarily consider the
     // implicit node state variable dynamics properly if energyStoredPerUnitOfState
     // is not equal to 0
-    r_diffusion_gnnft(gn_state(grid, node), node_, ft_realizedNoReset(f,startp(t)))
+    r_diffusion_gnnft(gn_state(grid, node), node_, ft_realizedNoReset(f,t_startp(t)))
         ${gnn_state(grid, node, node_) or gnn_state(grid, node_, node)}
         = p_gnn(grid, node, node_, 'diffCoeff') * r_state_gnft(grid, node, f, t)
             - p_gnn(grid, node_, node, 'diffCoeff') * r_state_gnft(grid, node_, f, t)
@@ -129,7 +130,7 @@ loop(m,
 
     // Total diffusion of energy between nodes
     r_diffusion_gnn(gn2n(grid, from_node, to_node))
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_diffusion_gnnft(grid, from_node, to_node, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -141,14 +142,14 @@ loop(m,
 
     // Total energy generation in gnu
     r_gen_gnu(gnu(grid, node, unit))
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_gen_gnuft(grid, node, unit, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // energy generation for each gridnode (MW)
-    r_gen_gnft(gn(grid, node), ft_realizedNoReset(f, startp(t)))
+    r_gen_gnft(gn(grid, node), ft_realizedNoReset(f, t_startp(t)))
         = sum(unit, r_gen_gnuft(grid, node, unit, f, t));
 
     // Total generation in gn
@@ -188,7 +189,7 @@ loop(m,
 
     // Calculates wrong with storages when there is a loop, e.g. elecGrid -> elecStorage -> elecGrid
     // Energy output to a node based on inputs from another node or flows
-    r_genByFuel_gnft(gn(grid, node), node_, ft_realizedNoReset(f, startp(t)))
+    r_genByFuel_gnft(gn(grid, node), node_, ft_realizedNoReset(f, t_startp(t)))
         ${sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit),r_gen_gnuft(grid_, node_, unit, f, t)) }
         = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, node_, unit), 1),
             + r_gen_gnuft(grid, node, unit, f, t)
@@ -204,13 +205,13 @@ loop(m,
 
     // Total energy generation in gn per input type over the simulation
     r_genByFuel_gn(gn(grid, node), node_)
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_genByFuel_gnft(grid, node, node_, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
     r_genByFuel_gn(gn(grid, node), flow)
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_genByFuel_gnft(grid, node, flow, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -237,7 +238,7 @@ loop(m,
             / r_gen_gn(grid, node);
 
     // Energy generation for each unittype
-    r_genByUnittype_gnft(gn(grid, node), unittype, ft_realizedNoReset(f,startp(t)))
+    r_genByUnittype_gnft(gn(grid, node), unittype, ft_realizedNoReset(f,t_startp(t)))
         = sum(gnu(grid, node, unit)$unitUnittype(unit, unittype),
             + r_gen_gnuft(grid, node, unit, f, t)
             ); // END sum(unit)
@@ -257,7 +258,7 @@ loop(m,
 * --- Energy consumption during startups --------------------------------------
 
     // Unit start-up consumption
-    r_consumption_unitStartup_nu(nu_startup(node, unit), ft_realizedNoReset(f,startp(t)))
+    r_consumption_unitStartup_nu(nu_startup(node, unit), ft_realizedNoReset(f,t_startp(t)))
         ${sum(starttype, unitStarttype(unit, starttype))}
         = sum(unitStarttype(unit, starttype),
             + r_startup_uft(unit, starttype, f, t)
@@ -270,7 +271,7 @@ loop(m,
 
     // Total sub-unit-hours for units over the simulation
     r_online_u(unit)
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_online_uft(unit, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -283,14 +284,14 @@ loop(m,
 
     // Total sub-unit startups over the simulation
     r_startup_u(unit, starttype)
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_startup_uft(unit, starttype, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Total sub-unit shutdowns over the simulation
     r_shutdown_u(unit)
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_shutdown_uft(unit, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
@@ -315,7 +316,7 @@ loop(m,
 * --- Emissions by activity type ---------------------------------------------
 
     // Emissions during normal operation (tEmission)
-    r_emission_operationEmissions_gnuft(gn(grid, node), emission, unit, ft_realizedNoReset(f,startp(t)))
+    r_emission_operationEmissions_gnuft(gn(grid, node), emission, unit, ft_realizedNoReset(f,t_startp(t)))
         $ {p_nEmission(node, emission)
            or p_gnuEmission(grid, node, unit, emission, 'vomEmissions')
           }
@@ -331,13 +332,13 @@ loop(m,
 
     // Emission sums from normal operation input
     r_emission_operationEmissions_nu(nu(node, unit), emission)
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + sum(gn(grid, node), r_emission_operationEmissions_gnuft(grid, node, emission, unit, f, t))
                  * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
     // Emissions from unit start-ups (tEmission)
-    r_emission_startupEmissions_nuft(node, emission, unit, ft_realizedNoReset(f,startp(t)))
+    r_emission_startupEmissions_nuft(node, emission, unit, ft_realizedNoReset(f,t_startp(t)))
         ${sum(starttype, p_unStartup(unit, node, starttype))
           and p_nEmission(node, emission)
          }
@@ -349,7 +350,7 @@ loop(m,
 
     // Emission sums from start-ups
     r_emission_StartupEmissions_nu(nu_startup(node, unit), emission)
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_emission_startupEmissions_nuft(node, emission, unit, f, t)
                  * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
@@ -374,7 +375,7 @@ loop(m,
 
     // Emission in gnGroup
     r_emissionByNodeGroup(emission, group)
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             // Emissions from operation: consumption and production of fuels - gn related emissions (tEmission)
             + sum(gnu(grid, node, unit)${gnGroup(grid, node, group) and p_nEmission(node, emission)},
                  // multiply by -1 because consumption in r_gen is negative and production positive
@@ -440,7 +441,7 @@ loop(m,
 
     // Total reserve provisions over the simulation
     r_reserve_gnu(gnuRescapable(restype, up_down, grid, node, unit))
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_reserve_gnuft(restype, up_down, grid, node, unit, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -479,7 +480,7 @@ loop(m,
 * --- Other reserve Results ---------------------------------------------
 
     r_reserve_marginalValue_average(restype, up_down, group)
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
              + r_reserve_marginalValue_ft(restype, up_down, group, f, t)
                 // * p_stepLengthNoReset(m, f, t)   // not including steplength due to division by number of timesteps
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -489,7 +490,7 @@ loop(m,
 
     // Total reserve transfer rightward over the simulation
     r_reserveTransferRightward_gnn(restype, up_down, grid, node, to_node)
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_reserveTransferRightward_gnnft(restype, up_down, grid, node, to_node, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -497,7 +498,7 @@ loop(m,
 
     // Total reserve transfer leftward over the simulation
     r_reserveTransferLeftward_gnn(restype, up_down, grid, node, to_node)
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_reserveTransferLeftward_gnnft(restype, up_down, grid, node, to_node, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -509,7 +510,7 @@ loop(m,
 
     // Total dummy generation/consumption in gn
     r_qGen_gn(inc_dec, gn(grid, node))
-        = sum(ft_realizedNoReset(f,startp(t)),
+        = sum(ft_realizedNoReset(f,t_startp(t)),
             + r_qGen_gnft(inc_dec, grid, node, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -521,7 +522,7 @@ loop(m,
 
     // Total dummy reserve provisions over the simulation
     r_qReserveDemand(restypeDirectionGroup(restype, up_down, group))
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_qReserveDemand_ft(restype, up_down, group, f, t)
                 * p_stepLengthNoReset(m, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
@@ -533,7 +534,7 @@ loop(m,
 * --- Unit operational Cost Components ----------------------------------------------
 
     // Variable O&M costs
-    r_cost_unitVOMCost_gnuft(gnu(grid, node, unit), ft_realizedNoReset(f,startp(t)))
+    r_cost_unitVOMCost_gnuft(gnu(grid, node, unit), ft_realizedNoReset(f, t_startp(t)))
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * abs(r_gen_gnuft(grid, node, unit, f, t))
@@ -541,7 +542,7 @@ loop(m,
 
     // Total VOM costs
     r_cost_unitVOMCost_gnu(gnu(grid, node, unit))
-        = sum(ft_realizedNoReset(f,startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_cost_unitVOMCost_gnuft(grid, node, unit, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
@@ -550,7 +551,7 @@ loop(m,
     // Note that this result calculation uses ts_price directly while the
     // objective function uses ts_price_ that is average over the intervals. There can
     // be differences if realized intervals contain several time steps.
-    r_cost_unitFuelEmissionCost_gnuft(gnu(grid, node, unit), ft_realizedNoReset(f,startp(t)))
+    r_cost_unitFuelEmissionCost_gnuft(gnu(grid, node, unit), ft_realizedNoReset(f, t_startp(t)))
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * r_gen_gnuft(grid, node, unit, f, t)
@@ -580,13 +581,13 @@ loop(m,
 
     // Total fuel & emission costs
     r_cost_unitFuelEmissionCost_u(gnu(grid, node, unit))
-        = sum(ft_realizedNoReset(f,startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_cost_unitFuelEmissionCost_gnuft(grid, node, unit, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
 
     // Unit startup costs
-    r_cost_unitStartupCost_uft(unit, ft_realizedNoReset(f,startp(t)))$sum(starttype, unitStarttype(unit, starttype))
+    r_cost_unitStartupCost_uft(unit, ft_realizedNoReset(f, t_startp(t)))$sum(starttype, unitStarttype(unit, starttype))
         = 1e-6 // Scaling to MEUR
             * sum(unitStarttype(unit, starttype),
                 + r_startup_uft(unit, starttype, f, t)
@@ -613,7 +614,7 @@ loop(m,
 
     // Total unit startup costs
     r_cost_unitStartupCost_u(unit)$sum(starttype, unitStarttype(unit, starttype))
-        = sum(ft_realizedNoReset(f,startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_cost_unitStartupCost_uft(unit, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
@@ -627,7 +628,7 @@ loop(m,
 
     // Total unit shutdown costs over the simulation (MEUR)
     r_cost_unitShutdownCost_u(unit)
-        = sum(ft_realizedNoReset(f,startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_cost_unitShutdownCost_uft(unit, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
@@ -679,7 +680,7 @@ loop(m,
 * --- Transfer Link Operational Cost Components ----------------------------------------------
 
     //Variable Transfer Costs
-    r_cost_linkVOMCost_gnnft(gn2n_directional(grid, node_, node), ft_realizedNoReset(f,startp(t)))
+    r_cost_linkVOMCost_gnnft(gn2n_directional(grid, node_, node), ft_realizedNoReset(f, t_startp(t)))
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
                     *[+ p_gnn(grid, node, node_, 'variableTransCost')
@@ -689,7 +690,7 @@ loop(m,
 
     // Total Variable Transfer costs
     r_cost_linkVOMCost_gnn(gn2n_directional(grid, node_, node))
-        = sum(ft_realizedNoReset(f,startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_cost_linkVOMCost_gnnft(grid, node_, node, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
@@ -715,7 +716,7 @@ loop(m,
 * --- Nodel Cost Components ----------------------------------------------
 
     // Node state slack costs
-    r_cost_stateSlackCost_gnt(gn_stateSlack(grid, node), ft_realizedNoReset(f,startp(t)))
+    r_cost_stateSlackCost_gnt(gn_stateSlack(grid, node), ft_realizedNoReset(f, t_startp(t)))
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * sum(slack${ p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost') },
@@ -727,7 +728,7 @@ loop(m,
 
     // Total state variable slack costs
     r_cost_stateSlackCost_gn(gn_stateSlack(grid, node))
-        = sum(ft_realizedNoReset(f,startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_cost_stateSlackCost_gnt(grid, node, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
             );
@@ -755,7 +756,7 @@ loop(m,
 * --- Realized System Operating Costs ---------------------------------------------
 
     // Total realized gn operating costs
-    r_cost_realizedOperatingCost_gnft(gn(grid, node), ft_realizedNoReset(f, startp(t)))
+    r_cost_realizedOperatingCost_gnft(gn(grid, node), ft_realizedNoReset(f, t_startp(t)))
         = + sum(gnu(grid, node, unit),
               // VOM costs
               + r_cost_unitVOMCost_gnuft(grid, node, unit, f, t)
@@ -780,7 +781,7 @@ loop(m,
 
     // Total realized operating costs on each gn over the simulation
     r_cost_realizedOperatingCost_gn(gn(grid, node))
-        = sum(ft_realizedNoReset(f, startp(t)),
+        = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_cost_realizedOperatingCost_gnft(grid, node, f ,t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s) * p_s_discountFactor(s))
         );
@@ -862,7 +863,7 @@ loop(m,
     r_info_mSettings(mSetting) = mSettings(m, mSetting);
 
     // copying realized t
-    r_info_t_realized(startp(t))${ sum(f, ft_realizedNoReset(f, t)) } = yes;
+    r_info_t_realized(t_startp(t))${ sum(f, ft_realizedNoReset(f, t)) } = yes;
 
 
 * --- Diagnostic Results ------------------------------------------------------
@@ -870,7 +871,7 @@ loop(m,
 // Only include these if '--diag=yes' given as a command line argument
 $iftheni.diag '%diag%' == yes
 // Estimated coefficients of performance
-d_cop(unit, ft_realizedNoReset(f, startp(t)))$sum(gnu_input(grid, node, unit), 1)
+d_cop(unit, ft_realizedNoReset(f, t_startp(t)))$sum(gnu_input(grid, node, unit), 1)
     = sum(gnu_output(grid, node, unit),
         + r_gen_gnuft(grid, node, unit, f, t)
         ) // END sum(gnu_output)

@@ -201,7 +201,7 @@ $offempty
 
 sets
     tt_agg_circular(t, t, t) "Alternative aggregation ordering with embedded circulars"
-    startp(t) "Temporary subset for time steps"
+    t_startp(t) "Temporary subset for time steps"
     s_realized(s) "All s among realized sft (redundant if always equivalent to s)"
     sft_resdgn(restype, up_down, grid, node, s,f,t) "Temporary tuplet for reserves by restypeDirectionGridNode"
 ;
