@@ -34,7 +34,7 @@ error_unit_details(node,unit,t)           "Show which unit supplies energy to gr
 ;
 
 *Load result file : r_gen(grid, node, unit,f,t)
-execute_loaddc "%backbone_output_GDX%", r_gen;
+execute_loaddc "%backbone_output_GDX%", r_gen_gnuft;
 
 Parameter tparam_card
           degree_hours_under_target(grid,node,t)
@@ -49,17 +49,17 @@ summary("avg_temp_under_target(degree-hours)",grid) = sum((building_nodes(buildi
 summary("tot_temp_over_target(degree-hours)",grid)  = sum((building_nodes(building_heat_interior_air_and_furniture(grid,node)),tparam(t)), degree_hours_over_target(building_heat_interior_air_and_furniture,t));
 summary("avg_temp_over_target(degree-hours)",grid)  = sum((building_nodes(building_heat_interior_air_and_furniture(grid,node)),tparam(t)), degree_hours_over_target(building_heat_interior_air_and_furniture,t)) /tparam_card;
 * Energy flow
-summary("building_heating_(kWh/m2)"    ,grid)  = sum((building_nodes(grid,node),unit_heat(unit),tparam(t)), w2kw * r_gen(grid, node, unit,'f00',t)/ building_squares(grid)  + eps);
-summary("building_cooling_(kWh/m2)"    ,grid)  = sum((building_nodes(grid,node),unit_cool(unit),tparam(t)), w2kw * r_gen(grid, node, unit,'f00',t)/ building_squares(grid)  + eps);
-summary("building_DHW_heating_(kWh/m2)",grid)  = sum((building_nodes(grid,node),unit_DHW(unit),tparam(t)) , w2kw * r_gen(grid, node, unit,'f00',t)/ building_squares(grid)  + eps);
-summary("building_energy_(kWh/m2)"     ,grid)  = sum((building_nodes(grid,node),unit,tparam(t)),            w2kw * r_gen(grid, node, unit,'f00',t)/ building_squares(grid)  + eps);
-summary("building_energy_(kWh)"        ,grid)  = sum((building_nodes(grid,node),unit,tparam(t)),            w2kw * r_gen(grid, node, unit,'f00',t)                                   + eps);
+summary("building_heating_(kWh/m2)"    ,grid)  = sum((building_nodes(grid,node),unit_heat(unit),tparam(t)), w2kw * r_gen_gnuft(grid, node, unit,'f00',t)/ building_squares(grid)  + eps);
+summary("building_cooling_(kWh/m2)"    ,grid)  = sum((building_nodes(grid,node),unit_cool(unit),tparam(t)), w2kw * r_gen_gnuft(grid, node, unit,'f00',t)/ building_squares(grid)  + eps);
+summary("building_DHW_heating_(kWh/m2)",grid)  = sum((building_nodes(grid,node),unit_DHW(unit),tparam(t)) , w2kw * r_gen_gnuft(grid, node, unit,'f00',t)/ building_squares(grid)  + eps);
+summary("building_energy_(kWh/m2)"     ,grid)  = sum((building_nodes(grid,node),unit,tparam(t)),            w2kw * r_gen_gnuft(grid, node, unit,'f00',t)/ building_squares(grid)  + eps);
+summary("building_energy_(kWh)"        ,grid)  = sum((building_nodes(grid,node),unit,tparam(t)),            w2kw * r_gen_gnuft(grid, node, unit,'f00',t)                                   + eps);
 * Electricity usage
-tmp_cost("elec_ideal_heating_(kWh/m2)",grid,tparam(t))  = sum((node,building2unit(grid,unit),unit_heat(unit)), sign * w2kw * r_gen("elec", node, unit,'f00',t)/ building_squares(grid)+ eps) ;
-tmp_cost("elec_ideal_cooling_(kWh/m2)",grid,tparam(t))  = sum((node,building2unit(grid,unit),unit_cool(unit)), sign * w2kw * r_gen("elec", node, unit,'f00',t)/ building_squares(grid)+ eps);
-tmp_cost("elec_ideal_DHW_(kWh/m2)"    ,grid,tparam(t))  = sum((node,building2unit(grid,unit),unit_DHW(unit)) , sign * w2kw * r_gen("elec", node, unit,'f00',t)/ building_squares(grid)+ eps);
-tmp_cost("elec_usage_(kWh/m2)"        ,grid,tparam(t))  = sum((node,building2unit(grid,unit)), sign * w2kw * r_gen("elec", node, unit,'f00',t) / building_squares(grid)+ eps);
-tmp_cost("elec_usage_(kWh)"           ,grid,tparam(t))  = sum((node,building2unit(grid,unit)), sign * w2kw * r_gen("elec", node, unit,'f00',t)+ eps);
+tmp_cost("elec_ideal_heating_(kWh/m2)",grid,tparam(t))  = sum((node,building2unit(grid,unit),unit_heat(unit)), sign * w2kw * r_gen_gnuft("elec", node, unit,'f00',t)/ building_squares(grid)+ eps) ;
+tmp_cost("elec_ideal_cooling_(kWh/m2)",grid,tparam(t))  = sum((node,building2unit(grid,unit),unit_cool(unit)), sign * w2kw * r_gen_gnuft("elec", node, unit,'f00',t)/ building_squares(grid)+ eps);
+tmp_cost("elec_ideal_DHW_(kWh/m2)"    ,grid,tparam(t))  = sum((node,building2unit(grid,unit),unit_DHW(unit)) , sign * w2kw * r_gen_gnuft("elec", node, unit,'f00',t)/ building_squares(grid)+ eps);
+tmp_cost("elec_usage_(kWh/m2)"        ,grid,tparam(t))  = sum((node,building2unit(grid,unit)), sign * w2kw * r_gen_gnuft("elec", node, unit,'f00',t) / building_squares(grid)+ eps);
+tmp_cost("elec_usage_(kWh)"           ,grid,tparam(t))  = sum((node,building2unit(grid,unit)), sign * w2kw * r_gen_gnuft("elec", node, unit,'f00',t)+ eps);
 summary("elec_ideal_heating_(kWh/m2)",grid) = sum(tparam(t),tmp_cost("elec_ideal_heating_(kWh/m2)",grid,t)) ;
 summary("elec_ideal_cooling_(kWh/m2)",grid) = sum(tparam(t),tmp_cost("elec_ideal_cooling_(kWh/m2)",grid,t)) ;
 summary("elec_ideal_DHW_(kWh/m2)"    ,grid) = sum(tparam(t),tmp_cost("elec_ideal_DHW_(kWh/m2)"    ,grid,t)) ;
