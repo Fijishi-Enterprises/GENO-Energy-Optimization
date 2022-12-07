@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - replacing uft sets with usft sets for faster investment runs
 - renaming startp set to t_startp
 - renaming 3.x result tables. New names: r_gen_utilizationRate_gnu, r_gen_unitStartupConsumption_nu
+- aligned unitConstraint (e.g. CHP units with constraint heat/elec ratio) behaviour with 2.x
 
 ### Fixed
 

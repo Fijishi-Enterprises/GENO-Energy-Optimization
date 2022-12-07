@@ -62,6 +62,7 @@ Sets
     unit_investMIP(unit) "Units with integer investments allowed"
     unit_timeseries(unit) "Units with time series enabled"
     unit_incHRAdditionalConstraints(unit) "Units that use the two additional incremental heat rate constraints"
+    unitConstraint(unit, constraint) "combinations of units and their eq/gt constraints"
     unit_eqConstrained(unit) "Units that have eq constraints between inputs and/or outputs"
     unit_gtConstrained(unit) "Units that have gt constraints between inputs and/or outputs"
     unit_tsConstrained(unit) "Units that have timeseries for eq or gt constraints between inputs and/or outputs"

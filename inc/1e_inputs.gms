@@ -208,11 +208,15 @@ nu_startup(node, unit)$p_uStartupfuel(unit, node, 'fixedFuelFraction') = yes;
 unit_timeseries(unit)${ p_unit(unit, 'useTimeseries') or p_unit(unit, 'useTimeseriesAvailability') }
     = yes;
 
+// formaing a set of units and their eq/gt constraints
+option unitConstraint < ts_unitConstraintNode;
+unitConstraint(unit, constraint)$sum(node$p_unitConstraintNode(unit, constraint, node), 1) = yes;
+
 *// Units that have eq constraints between inputs and/or outputs
-unit_eqConstrained(unit)${sum((eq_constraint(constraint))$p_unitConstraint(unit, constraint), 1)} = yes;
+unit_eqConstrained(unit)${sum(eq_constraint(constraint), unitConstraint(unit, constraint)) } = yes;
 
 // Units that have gt constraints between inputs and/or outputs
-unit_gtConstrained(unit)${sum((gt_constraint(constraint))$p_unitConstraint(unit, constraint), 1)} = yes;
+unit_gtConstrained(unit)${sum(gt_constraint(constraint), unitConstraint(unit, constraint)) } = yes;
 
 // Units that have time series for eq or gt constraints between inputs and/or outputs
 option tt < ts_unitConstraintNode;
