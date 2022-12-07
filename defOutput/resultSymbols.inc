@@ -68,7 +68,7 @@ r_gen_gnuShare
 r_gen_gnShare
 
 // Approximate utilization rates
-r_utilizationRate_gnu
+r_gen_utilizationRate_gnu
 
 // Energy generation results based on input, unittype, or group
 r_genByFuel_gnft
@@ -81,7 +81,7 @@ r_genByUnittype_gn
 r_genByGnuGroup_gn
 
 // Energy consumption during startups 
-r_consumption_unitStartup_nu
+r_gen_unitStartupConsumption_nu
 
 
 * --- Unit Online, startup, and shutdown Result Symbols ----------------------------------------

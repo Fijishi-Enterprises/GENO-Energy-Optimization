@@ -27,7 +27,7 @@ Parameters
     r_state_gnft(grid, node, f, t) "Node state at time step t"
 
     // State variable slack results
-    r_stateSlack_gnft(grid, node, slack, f, t) "Note state slack at time step t (MWh, unless modified by energyStoredPerUnitOfState parameter)"
+    r_stateSlack_gnft(slack, grid, node, f, t) "Note state slack at time step t (MWh, unless modified by energyStoredPerUnitOfState parameter)"
 
     // Spill results
     r_spill_gnft(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
@@ -69,7 +69,7 @@ Parameters
     r_gen_gnShare(grid, node) "Total energy generation and consumption gn/g share"
 
     // Approximate utilization rates
-    r_utilizationRate_gnu(grid, node, unit) "Approximate utilization rates of gnus over the simulation (p.u.)"
+    r_gen_utilizationRate_gnu(grid, node, unit) "Approximate utilization rates of gnus over the simulation (p.u.)"
 
     // Energy generation results based on input, unittype, or group
     r_genByFuel_gnft(grid, node, *, f, t) "Energy generation to a node based on inputs from another node or flows (MW)"
@@ -82,13 +82,13 @@ Parameters
     r_genByGnuGroup_gn(grid, node, group) "Total energy generation and consumption in units that belong to gnuGroup (MWh)"
 
     // Energy consumption during startups
-    r_consumption_unitStartup_nu(node, unit, f, t) "Energy consumption during start-up (MWh)"
+    r_gen_unitStartupConsumption_nu(node, unit, f, t) "Energy consumption during start-up (MWh)"
 
 * --- Unit Online, startup, and shutdown Result Symbols -----------------------
 
     // required for model structure
     r_online_uft(unit, f, t) "Sub-units online"
-    r_startup_uft(unit, starttype, f, t) "Sub-units started up"
+    r_startup_uft(starttype, unit, f, t) "Sub-units started up"
     r_shutdown_uft(unit, f, t) "Sub-units shut down"
 
     // other online, startup, and shutdown results

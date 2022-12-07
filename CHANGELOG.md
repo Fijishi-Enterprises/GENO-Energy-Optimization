@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 ### Changed
+- improving looping and if conditions to avoid unnecessary calculations in investment runs
+- replacing uft sets with usft sets for faster investment runs
+- renaming startp set to t_startp
+- renaming 3.x result tables. New names: r_gen_utilizationRate_gnu, r_gen_unitStartupConsumption_nu
+- aligned unitConstraint (e.g. CHP units with constraint heat/elec ratio) behaviour with 2.x
 
 ### Fixed
 
@@ -14,8 +19,7 @@ All notable changes to this project will be documented in this file.
 
 ## 3.0 - 2022-12-01
 
-### Added
-- option to use availabilityCapacityMargin for input units
+### Added- option to use availabilityCapacityMargin for input units
 - emission factors for invested capacity, fixed o&m, and variable o&m for units
 - time series for emission costs
 - option to bound storage states at the beginning and/or end of samples
@@ -44,6 +48,7 @@ All notable changes to this project will be documented in this file.
 - combined result tables for emissions from input and emissions from outputs
 - emissions bound to outputs (e.g. P2X) are included in result tables as negative emissions
 - moving metadata to 1b_sets to allow expanding it with user given metadata
+- update `tools/bb_data_template.json` for 3.x input data.
 
 ### Changed - Quality of Life improvements
 - making most of the input data tables optional. Listing mandatory ones in 1e_inputs
@@ -64,6 +69,7 @@ All notable changes to this project will be documented in this file.
 - moving example files, e.g. 1_options_temp.gms, to their default folders
 - adding example file temp_additionalSetsAndParameters.inc
 - adding example file temp_changes.inc
+- stricter domains for `tools/exporttobb.json` .gdx exporter.
 
 
 ### Changed - efficiency improvements
