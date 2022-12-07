@@ -47,6 +47,7 @@ All notable changes to this project will be documented in this file.
 - combined result tables for emissions from input and emissions from outputs
 - emissions bound to outputs (e.g. P2X) are included in result tables as negative emissions
 - moving metadata to 1b_sets to allow expanding it with user given metadata
+- update `tools/bb_data_template.json` for 3.x input data.
 
 ### Changed - Quality of Life improvements
 - making most of the input data tables optional. Listing mandatory ones in 1e_inputs
@@ -67,6 +68,7 @@ All notable changes to this project will be documented in this file.
 - moving example files, e.g. 1_options_temp.gms, to their default folders
 - adding example file temp_additionalSetsAndParameters.inc
 - adding example file temp_changes.inc
+- stricter domains for `tools/exporttobb.json` .gdx exporter.
 
 
 ### Changed - efficiency improvements
