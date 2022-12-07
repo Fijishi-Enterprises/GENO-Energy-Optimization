@@ -27,7 +27,7 @@ Parameters
     r_state_gnft(grid, node, f, t) "Node state at time step t"
 
     // State variable slack results
-    r_stateSlack_gnft(grid, node, slack, f, t) "Note state slack at time step t (MWh, unless modified by energyStoredPerUnitOfState parameter)"
+    r_stateSlack_gnft(slack, grid, node, f, t) "Note state slack at time step t (MWh, unless modified by energyStoredPerUnitOfState parameter)"
 
     // Spill results
     r_spill_gnft(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
@@ -88,7 +88,7 @@ Parameters
 
     // required for model structure
     r_online_uft(unit, f, t) "Sub-units online"
-    r_startup_uft(unit, starttype, f, t) "Sub-units started up"
+    r_startup_uft(starttype, unit, f, t) "Sub-units started up"
     r_shutdown_uft(unit, f, t) "Sub-units shut down"
 
     // other online, startup, and shutdown results

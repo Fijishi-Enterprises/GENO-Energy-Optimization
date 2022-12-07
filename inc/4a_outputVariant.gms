@@ -43,25 +43,25 @@ t_startp(t)
 // Realized state history
 loop(ms(mSolve, s_realized(s)),
     r_state_gnft(gn_state(grid, node), f, t_startp(t))$sft_realized(s, f, t)
-        = v_state.l(grid, node, s, f, t);
-
+        = v_state.l(grid, node, s, f, t)
+    ;
     // Realized state history - initial state values in samples
     r_state_gnft(gn_state(grid, node), f_solve(f), t_(t+dt(t)))$(mst_start(ms, t)$sft_realized(s, f, t)$t_startp(t))
         = v_state.l(grid, node, s, f, t_)
     ;
     // Realized unit online history
-    r_online_uft(uft_online(unit, f, t_startp(t)))$sft_realized(s, f, t)
-        = v_online_LP.l(unit, s, f, t)$uft_onlineLP(unit, f, t)
-            + v_online_MIP.l(unit, s, f, t)$uft_onlineMIP(unit, f, t)
+    r_online_uft(unit_online(unit), f, t_startp(t))$sft_realized(s, f, t)
+        = v_online_LP.l(unit, s, f, t)$usft_onlineLP(unit, s, f, t)
+            + v_online_MIP.l(unit, s, f, t)$usft_onlineMIP(unit, s, f, t)
     ;
     // Unit startup and shutdown history
-    r_startup_uft(unit, starttype, f, t_startp(t))$(uft_online(unit, f, t)$sft_realized(s, f, t))
-        = v_startup_LP.l(unit, starttype, s, f, t)$uft_onlineLP(unit, f, t)
-            + v_startup_MIP.l(unit, starttype, s, f, t)$uft_onlineMIP(unit, f, t)
+    r_startup_uft(starttype, unit_online(unit), f, t_startp(t))$sft_realized(s, f, t)
+        = v_startup_LP.l(starttype, unit, s, f, t)$usft_onlineLP(unit, s, f, t)
+            + v_startup_MIP.l(starttype, unit, s, f, t)$usft_onlineMIP(unit, s, f, t)
     ;
-    r_shutdown_uft(uft_online(unit, f, t_startp(t)))$sft_realized(s, f, t)
-        = v_shutdown_LP.l(unit, s, f, t)$uft_onlineLP(unit, f, t)
-            + v_shutdown_MIP.l(unit, s, f, t)$uft_onlineMIP(unit, f, t)
+    r_shutdown_uft(unit_online(unit), f, t_startp(t))$sft_realized(s, f, t)
+        = v_shutdown_LP.l(unit, s, f, t)$usft_onlineLP(unit, s, f, t)
+            + v_shutdown_MIP.l(unit, s, f, t)$usft_onlineMIP(unit, s, f, t)
     ;
 );
 
@@ -156,9 +156,8 @@ loop(s_realized(s),
         = 1e6 * q_resDemand.m(restype, up_down, group, s, f, t)
     ;
     // v_stateSlack values for calculation of realized costs later on
-    r_stateSlack_gnft(gn_stateSlack(gn), slack, f, t_startp(t))$sft_realized(s, f, t)
-        = v_stateSlack.l(gn, slack, s, f, t)
-    ;
+    r_stateSlack_gnft(slack, gn_stateSlack(gn), f, t_startp(t))$sft_realized(s, f, t)
+        = v_stateSlack.l(slack, gn, s, f, t)    ;
 );
 // Unit investments
 r_invest_unitCount_u(unit)${ (unit_investLP(unit) or unit_investMIP(unit))

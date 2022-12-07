@@ -32,7 +32,7 @@ loop(m,
     t_startp(t)
       ${(ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod'))
         and (ord(t) <= mSettings(m, 't_end')+1)
-        and sum((s,f), sft_realized(s, f , t))
+        and sum((s,f), sft_realizedNoReset(s, f , t))
         } =yes;
 
 * --- Node result Symbols -----------------------------------------------------------
@@ -261,7 +261,7 @@ loop(m,
     r_consumption_unitStartup_nu(nu_startup(node, unit), ft_realizedNoReset(f,t_startp(t)))
         ${sum(starttype, unitStarttype(unit, starttype))}
         = sum(unitStarttype(unit, starttype),
-            + r_startup_uft(unit, starttype, f, t)
+            + r_startup_uft(starttype, unit, f, t)
                 * p_unStartup(unit, node, starttype) // MWh/start-up
             ); // END sum(unitStarttype)
 
@@ -285,7 +285,7 @@ loop(m,
     // Total sub-unit startups over the simulation
     r_startup_u(unit, starttype)
         = sum(ft_realizedNoReset(f, t_startp(t)),
-            + r_startup_uft(unit, starttype, f, t)
+            + r_startup_uft(starttype, unit, f, t)
                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
             ); // END sum(ft_realizedNoReset)
 
@@ -343,7 +343,7 @@ loop(m,
           and p_nEmission(node, emission)
          }
         = sum(unitStarttype(unit, starttype),
-            + r_startup_uft(unit, starttype, f, t) // number of startups
+            + r_startup_uft(starttype, unit, f, t) // number of startups
                 * p_unStartup(unit, node, starttype) // MWh_fuel/startup
                 * p_nEmission(node, emission) // tEmission/MWh_fuel
             ); // END sum(starttype)
@@ -590,7 +590,7 @@ loop(m,
     r_cost_unitStartupCost_uft(unit, ft_realizedNoReset(f, t_startp(t)))$sum(starttype, unitStarttype(unit, starttype))
         = 1e-6 // Scaling to MEUR
             * sum(unitStarttype(unit, starttype),
-                + r_startup_uft(unit, starttype, f, t)
+                + r_startup_uft(starttype, unit, f, t)
                     * [
                         // Fuel costs
                         + p_uStartup(unit, starttype, 'cost') // CUR/start-up
@@ -720,7 +720,7 @@ loop(m,
         = 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * sum(slack${ p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost') },
-                + r_stateSlack_gnft(grid, node, slack, f, t)
+                + r_stateSlack_gnft(slack, grid, node, f, t)
                     * p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
                 ); // END sum(slack)
 
