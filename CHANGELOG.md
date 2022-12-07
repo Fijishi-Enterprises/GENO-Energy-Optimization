@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - improving looping and if conditions to avoid unnecessary calculations in investment runs
 - replacing uft sets with usft sets for faster investment runs
+- renaming startp set to t_startp
 
 ### Fixed
 
