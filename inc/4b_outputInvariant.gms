@@ -32,7 +32,7 @@ loop(m,
     t_startp(t)
       ${(ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod'))
         and (ord(t) <= mSettings(m, 't_end')+1)
-        and sum((s,f), sft_realized(s, f , t))
+        and sum((s,f), sft_realizedNoReset(s, f , t))
         } =yes;
 
 * --- Node result Symbols -----------------------------------------------------------
