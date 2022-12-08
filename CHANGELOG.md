@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - template file temp_changes_readSecondInputFile.inc
 
 ### Changed
+- renaming tSolve t_solve
 
 ### Fixed
 - updated result table naming in an example of new result table

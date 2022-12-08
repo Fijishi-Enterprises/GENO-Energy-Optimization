@@ -18,8 +18,8 @@ $offtext
 * --- Internal counters -------------------------------------------------------
 Scalars
     solveCount /0/
-    tSolveFirst "counter (ord) for the first t in the solve"
-    tSolveLast "counter for the last t in the solve"
+    t_solveFirst "counter (ord) for the first t in the solve"
+    t_solveLast "counter for the last t in the solve"
     tCounter "counter for t" /0/
     lastCounter "last member in use of the general counter"
     continueLoop "Helper to stop the looping early"

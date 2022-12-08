@@ -181,7 +181,7 @@ $macro checkSolveStatus(mdl) \
     )
 
 $include 'inc/3a_periodicInit.gms'  // Initialize modelling loop
-loop(modelSolves(mSolve, tSolve)$(execError = 0),
+loop(modelSolves(mSolve, t_solve)$(execError = 0),
     solveCount = solveCount + 1;
     $$include 'inc/3b_periodicLoop.gms'         // Update modelling loop
     $$include 'inc/3c_inputsLoop.gms'           // Read input data that is updated within the loop
@@ -193,7 +193,7 @@ $iftheni.dummy not %dummy% == 'yes'
 $endif.dummy
 $ifthene.debug %debug%>1
         putclose gdx;
-        put_utility 'gdxout' / '%output_dir%/' mSolve.tl:0 '-' tSolve.tl:0 '.gdx';
+        put_utility 'gdxout' / '%output_dir%/' mSolve.tl:0 '-' t_solve.tl:0 '.gdx';
             execute_unload
             $$include defOutput/debugSymbols.inc
         ;

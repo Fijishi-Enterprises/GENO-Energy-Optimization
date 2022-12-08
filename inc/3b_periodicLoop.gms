@@ -160,7 +160,7 @@ $endif
 * =============================================================================
 
 // Determine the time steps of the current solve
-tSolveFirst = ord(tSolve);  // tSolveFirst: the start of the current solve, t0 used only for initial values
+t_solveFirst = ord(t_solve);  // t_solveFirst: the start of the current solve, t0 used only for initial values
 
 * --- Build the forecast-time structure using the intervals -------------------
 
@@ -187,23 +187,23 @@ cc(counter)${ mInterval(mSolve, 'stepsPerInterval', counter) }
 
 // Update tForecastNext
 tForecastNext(mSolve)
-    ${ tSolveFirst >= tForecastNext(mSolve) }
+    ${ t_solveFirst >= tForecastNext(mSolve) }
     = tForecastNext(mSolve) + mSettings(mSolve, 't_forecastJump');
 
 // Calculate forecast length
 currentForecastLength
     = max(  mSettings(mSolve, 't_forecastLengthUnchanging'),  // Unchanging forecast length would remain the same
-            mSettings(mSolve, 't_forecastLengthDecreasesFrom') - [mSettings(mSolve, 't_forecastJump') - {tForecastNext(mSolve) - tSolveFirst}] // While decreasing forecast length has a fixed horizon point and thus gets shorter
+            mSettings(mSolve, 't_forecastLengthDecreasesFrom') - [mSettings(mSolve, 't_forecastJump') - {tForecastNext(mSolve) - t_solveFirst}] // While decreasing forecast length has a fixed horizon point and thus gets shorter
             );   // Larger forecast horizon is selected
 
 // Is there any case where t_forecastLength should be larger than t_horizon? Could happen if one doesn't want to join forecasts at the end of the solve horizon.
 // If not, add a check for currentForecastLength <= mSettings(mSolve, 't_horizon')
-// and change the line below to 'tSolveLast = ord(tSolve) + mSettings(mSolve, 't_horizon');'
-tSolveLast = ord(tSolve) + mSettings(mSolve, 't_horizon');  // tSolveLast: the end of the current solve
+// and change the line below to 't_solveLast = ord(t_solve) + mSettings(mSolve, 't_horizon');'
+t_solveLast = ord(t_solve) + mSettings(mSolve, 't_horizon');  // t_solveLast: the end of the current solve
 Option clear = t_current;
 t_current(t_full(t))
-    ${  ord(t) >= tSolveFirst
-        and ord (t) <= tSolveLast
+    ${  ord(t) >= t_solveFirst
+        and ord (t) <= t_solveLast
         }
     = yes;
 
@@ -218,10 +218,10 @@ loop(cc(counter),
     // Time steps within the current block
     option clear = tt;
     tt(t_current(t))
-        ${ord(t) >= tSolveFirst + tCounter
-          and ord(t) <= min(tSolveFirst
+        ${ord(t) >= t_solveFirst + tCounter
+          and ord(t) <= min(t_solveFirst
                             + mInterval(mSolve, 'lastStepInIntervalBlock', counter),
-                            tSolveLast)
+                            t_solveLast)
          } = yes;
 
     // Store the interval time steps for each interval block (counter)
@@ -239,7 +239,7 @@ loop(cc(counter),
     elseif mInterval(mSolve, 'stepsPerInterval', counter) > 1,
 
         // Calculate the displacement required to reach the corresponding active time step from any time step
-        dt_active(tt(t)) = - (mod(ord(t) - tSolveFirst - tCounter, mInterval(mSolve, 'stepsPerInterval', counter)));
+        dt_active(tt(t)) = - (mod(ord(t) - t_solveFirst - tCounter, mInterval(mSolve, 'stepsPerInterval', counter)));
 
         // Select the active time steps within the block
         tt_interval(tt(t))${ not dt_active(t) } = yes;
@@ -254,7 +254,7 @@ loop(cc(counter),
     // Determine the combinations of forecasts and intervals
     // Include the t_jump for the realization
     ft(f_solve, tt_interval(t))
-       ${ord(t) <= tSolveFirst + max(mSettings(mSolve, 't_jump'),
+       ${ord(t) <= t_solveFirst + max(mSettings(mSolve, 't_jump'),
                                      min(mSettings(mSolve, 't_perfectForesight'),
                                          currentForecastLength))
          and mf_realization(mSolve, f_solve)
@@ -262,7 +262,7 @@ loop(cc(counter),
 
     // Include the full horizon for the central forecast
     ft(f_solve, tt_interval(t))
-      ${ord(t) > tSolveFirst + max(mSettings(mSolve, 't_jump'),
+      ${ord(t) > t_solveFirst + max(mSettings(mSolve, 't_jump'),
                                    min(mSettings(mSolve, 't_perfectForesight'),
                                        currentForecastLength))
         and (mf_central(mSolve, f_solve)
@@ -273,10 +273,10 @@ loop(cc(counter),
     ft(f_solve, tt_interval(t))
       ${not mf_central(mSolve, f_solve)
         and not mf_realization(mSolve, f_solve)
-        and ord(t) > tSolveFirst + max(mSettings(mSolve, 't_jump'),
+        and ord(t) > t_solveFirst + max(mSettings(mSolve, 't_jump'),
                                        min(mSettings(mSolve, 't_perfectForesight'),
                                            currentForecastLength))
-        and ord(t) <= tSolveFirst + currentForecastLength
+        and ord(t) <= t_solveFirst + currentForecastLength
        } = yes;
 
     // Update tActive
@@ -306,7 +306,7 @@ Options mft < msft, ms < msft, msf < msft, mst < msft;  // Projection
 Option clear = ft_realized;
 ft_realized(ft(f_solve, t))
     ${  mf_realization(mSolve, f_solve)
-        and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
+        and ord(t) <= t_solveFirst + mSettings(mSolve, 't_jump')
         }
     = yes;
 
@@ -322,8 +322,8 @@ msft_realizedNoReset(msft(mSolve, s, ft_realized(f, t))) = yes;
 // Include the necessary amount of historical timesteps to the active time step set of the current solve
 loop(ft_realizedNoReset(f, t),
     t_active(t)
-        ${  ord(t) <= tSolveFirst
-            and ord(t) > tSolveFirst + tmp_dt // Strict inequality accounts for tSolvefirst being one step before the first ft step.
+        ${  ord(t) <= t_solveFirst
+            and ord(t) > t_solveFirst + tmp_dt // Strict inequality accounts for t_solvefirst being one step before the first ft step.
             }
         = yes;
 ); // END loop(ft_realizedNoReset
@@ -337,7 +337,7 @@ if(tmp = 1,
     dt(t_active(t)) = -1;
     dt_next(t_active(t)) = 1;
 else
-    tmp = max(tSolveFirst + tmp_dt, 1); // The ord(t) of the first time step in t_active, cannot decrease below 1 to avoid referencing time steps before t000000
+    tmp = max(t_solveFirst + tmp_dt, 1); // The ord(t) of the first time step in t_active, cannot decrease below 1 to avoid referencing time steps before t000000
     loop(t_active(t),
         dt(t) = tmp - ord(t);
         dt_next(t+dt(t)) = -dt(t);
@@ -347,7 +347,7 @@ else
 
 // First model ft
 Option clear = mft_start;
-mft_start(mf_realization(mSolve, f), tSolve)
+mft_start(mf_realization(mSolve, f), t_solve)
     = yes
 ;
 // Last model fts
@@ -358,9 +358,9 @@ mft_lastSteps(mSolve, ft(f,t))
 ;
 
 // Sample start and end intervals
-mst_start(mst(mSolve, s, t))$[ord(t) - tSolveFirst = msStart(mSolve, s)] = yes;
+mst_start(mst(mSolve, s, t))$[ord(t) - t_solveFirst = msStart(mSolve, s)] = yes;
 loop(ms(mSolve, s),
-    loop(t_active(t)$[ord(t) - tSolveFirst = msEnd(mSolve, s)],
+    loop(t_active(t)$[ord(t) - t_solveFirst = msEnd(mSolve, s)],
         mst_end(mSolve, s, t + dt(t)) = yes;
     );
 );
@@ -376,22 +376,22 @@ dt(t_active(t))
 
 // Forecast index displacement between realized and forecasted intervals
 // NOTE! This set cannot be reset without references to previously solved time steps in the stochastic tree becoming ill-defined!
-df(f_solve(f), t_active(t))${ ord(t) <= tSolveFirst + max(mSettings(mSolve, 't_jump'),
+df(f_solve(f), t_active(t))${ ord(t) <= t_solveFirst + max(mSettings(mSolve, 't_jump'),
                                                           min(mSettings(mSolve, 't_perfectForesight'),
                                                               currentForecastLength))}
     = sum(mf_realization(mSolve, f_), ord(f_) - ord(f));
 // Displacement to reach the realized forecast
 Option clear = df_realization;
 loop(mf_realization(mSolve, f_),
-    df_realization(ft(f, t))$[ord(t) <= tSolveFirst + currentForecastLength]
+    df_realization(ft(f, t))$[ord(t) <= t_solveFirst + currentForecastLength]
       = ord(f_) - ord(f);
 );
 
 
 // Forecast displacement between central and forecasted intervals at the end of forecast horizon
 Option clear = df_central; // This can be reset.
-df_central(ft(f,t))${   ord(t) > tSolveFirst + currentForecastLength - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'stepLengthInHours')
-                        and ord(t) <= tSolveFirst + currentForecastLength
+df_central(ft(f,t))${   ord(t) > t_solveFirst + currentForecastLength - p_stepLength(mSolve, f, t) / mSettings(mSolve, 'stepLengthInHours')
+                        and ord(t) <= t_solveFirst + currentForecastLength
                         and not mf_realization(mSolve, f)
                         }
     = sum(mf_central(mSolve, f_), ord(f_) - ord(f));
@@ -401,9 +401,9 @@ Option clear = df_reserves;
 df_reserves(grid, node, restype, ft(f, t))
     ${  p_gnReserves(grid, node, restype, 'update_frequency')
         and p_gnReserves(grid, node, restype, 'gate_closure')
-        and ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'gate_closure')
+        and ord(t) <= t_solveFirst + p_gnReserves(grid, node, restype, 'gate_closure')
                                   + p_gnReserves(grid, node, restype, 'update_frequency')
-                                  - mod(tSolveFirst - 1 + p_gnReserves(grid, node, restype, 'gate_closure')
+                                  - mod(t_solveFirst - 1 + p_gnReserves(grid, node, restype, 'gate_closure')
                                                     + p_gnReserves(grid, node, restype, 'update_frequency')
                                                     - p_gnReserves(grid, node, restype, 'update_offset'),
                                     p_gnReserves(grid, node, restype, 'update_frequency'))
@@ -413,9 +413,9 @@ Option clear = df_reservesGroup;
 df_reservesGroup(groupRestype(group, restype), ft(f, t))
     ${  p_groupReserves(group, restype, 'update_frequency')
         and p_groupReserves(group, restype, 'gate_closure')
-        and ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'gate_closure')
+        and ord(t) <= t_solveFirst + p_groupReserves(group, restype, 'gate_closure')
                                   + p_groupReserves(group, restype, 'update_frequency')
-                                  - mod(tSolveFirst - 1 + p_groupReserves(group, restype, 'gate_closure')
+                                  - mod(t_solveFirst - 1 + p_groupReserves(group, restype, 'gate_closure')
                                                     + p_groupReserves(group, restype, 'update_frequency')
                                                     - p_groupReserves(group, restype, 'update_offset'),
                                     p_groupReserves(group, restype, 'update_frequency'))
@@ -426,12 +426,12 @@ df_reservesGroup(groupRestype(group, restype), ft(f, t))
 Option clear = ft_reservesFixed;
 ft_reservesFixed(groupRestype(group, restype), f_solve(f), t_active(t))
     ${  mf_realization(mSolve, f)
-        and not tSolveFirst = mSettings(mSolve, 't_start') // No reserves are locked on the first solve!
+        and not t_solveFirst = mSettings(mSolve, 't_start') // No reserves are locked on the first solve!
         and p_groupReserves(group, restype, 'update_frequency')
         and p_groupReserves(group, restype, 'gate_closure')
-        and ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'gate_closure')
+        and ord(t) <= t_solveFirst + p_groupReserves(group, restype, 'gate_closure')
                                   + p_groupReserves(group, restype, 'update_frequency')
-                                  - mod(tSolveFirst - 1
+                                  - mod(t_solveFirst - 1
                                           + p_groupReserves(group, restype, 'gate_closure')
                                           - mSettings(mSolve, 't_jump')
                                           + p_groupReserves(group, restype, 'update_frequency')
@@ -498,12 +498,12 @@ usft(unit_tmp(unit), sft(s, f, t))${    [p_unit(unit, 'becomeAvailable') and p_u
 
 // Deactivating aggregated after lastStepNotAggregated and aggregators before
 usft(unit, sft(s, f, t))${  (   [
-                                ord(t) > tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
+                                ord(t) > t_solveFirst + p_unit(unit, 'lastStepNotAggregated')
                                 and unit_aggregated(unit) // Aggregated units
                            ]
                             or
                            [
-                                ord(t) <= tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
+                                ord(t) <= t_solveFirst + p_unit(unit, 'lastStepNotAggregated')
                                 and unit_aggregator(unit) // Aggregator units
                            ]
                         )
@@ -567,8 +567,8 @@ Option clear = eff_usft;
 // Loop over the defined efficiency groups for units
 loop(effLevelGroupUnit(effLevel, effGroup, unit)${ mSettingsEff(mSolve, effLevel) },
     // Determine the used effGroup for each uft
-    eff_usft(effGroup, usft(unit, s, f, t))${   ord(t) >= tSolveFirst + mSettingsEff_start(mSolve, effLevel)
-                                        and ord(t) <= tSolveFirst + mSettingsEff(mSolve, effLevel) }
+    eff_usft(effGroup, usft(unit, s, f, t))${   ord(t) >= t_solveFirst + mSettingsEff_start(mSolve, effLevel)
+                                        and ord(t) <= t_solveFirst + mSettingsEff(mSolve, effLevel) }
         = yes;
 ); // END loop(effLevelGroupUnit)
 
@@ -595,12 +595,12 @@ Option clear = usft_shutdownTrajectory;
 // Determine the intervals when units need to follow start-up and shutdown trajectories.
 loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
     usft_startupTrajectory(usft_online(unit, s, f, t))
-       ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
+       ${ ord(t) <= t_solveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
        = yes;
 ); // END loop(runUpCounter)
 loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
     usft_shutdownTrajectory(usft_online(unit, s, f, t))
-       ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
+       ${ ord(t) <= t_solveFirst + mSettings(mSolve, 't_trajectoryHorizon') }
        = yes;
 ); // END loop(shutdownCounter)
 
@@ -614,7 +614,7 @@ loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
 // displacement needed to reach the time interval where the unit was started up
 Option clear = dt_toStartup;
 loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
-    dt_toStartup(unit, t_active(t))$(ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon'))
+    dt_toStartup(unit, t_active(t))$(ord(t) <= t_solveFirst + mSettings(mSolve, 't_trajectoryHorizon'))
         = - p_u_runUpTimeIntervalsCeil(unit) + dt_active(t - p_u_runUpTimeIntervalsCeil(unit));
 ); // END loop(runUpCounter)
 
@@ -625,7 +625,7 @@ loop(runUpCounter(unit, 'c000'), // Loop over units with meaningful run-ups
 // the shutdown decisions was made
 Option clear = dt_toShutdown;
 loop(shutdownCounter(unit, 'c000'), // Loop over units with meaningful shutdowns
-    dt_toShutdown(unit, t_active(t))$(ord(t) <= tSolveFirst + mSettings(mSolve, 't_trajectoryHorizon'))
+    dt_toShutdown(unit, t_active(t))$(ord(t) <= t_solveFirst + mSettings(mSolve, 't_trajectoryHorizon'))
         = - p_u_shutdownTimeIntervalsCeil(unit) + dt_active(t - p_u_shutdownTimeIntervalsCeil(unit))
 ); // END loop(runUpCounter)
 
@@ -638,19 +638,19 @@ usft_onlineMIP_withPrevious(usft_onlineMIP(unit, s, f, t)) = yes;
 loop(mft_start(mSolve, f, t_), // Check the uft_online used on the first time step of the current solve
     usft_onlineLP_withPrevious(unit, s, f, t_active(t)) // Include all historical t_active
         ${  usft_onlineLP(unit, s, f, t_+1) // Displace by one to reach the first current time step
-            and ord(t) <= tSolveFirst // Include all historical t_active
+            and ord(t) <= t_solveFirst // Include all historical t_active
             }
          = yes;
     usft_onlineMIP_withPrevious(unit, s, f, t_active(t)) // Include all historical t_active
         ${  usft_onlineMIP(unit, s, f, t_+1) // Displace by one to reach the first current time step
-            and ord(t) <= tSolveFirst // Include all historical t_active
+            and ord(t) <= t_solveFirst // Include all historical t_active
             }
         = yes;
 ); // END loop(mft_start)
 
 // Historical Unit LP and MIP information for models with multiple samples
 // If this is the very first solve
-if(tSolveFirst = mSettings(mSolve, 't_start'),
+if(t_solveFirst = mSettings(mSolve, 't_start'),
     // Sample start intervals
     loop(mst_start(mSolve, s, t),
         usft_onlineLP_withPrevious(unit, s, f, t+dt(t)) // Displace by one to reach the time step just before the sample
@@ -662,7 +662,7 @@ if(tSolveFirst = mSettings(mSolve, 't_start'),
                 }
             = yes;
     ); // END loop(mst_start)
-); // END if(tSolveFirst)
+); // END if(t_solveFirst)
 
 
 

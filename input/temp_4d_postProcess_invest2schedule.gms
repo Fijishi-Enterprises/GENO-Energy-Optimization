@@ -145,7 +145,7 @@ loop(gn2n_directional(grid, node, node_)
             + r_invest_transferCapacity_gnn(grid, node, node_, t);
         tmp_ = p_gnn(grid, node_, node, 'transferCap') + tmp_
             + r_invest_transferCapacity_gnn(grid, node, node_, t);
-        put "if(ord(tSolve) >= ", ord(t), " - 1,"/;
+        put "if(ord(t_solve) >= ", ord(t), " - 1,"/;
         put "    p_gnn('", grid.tl, "', '", node.tl, "', '", node_.tl,
             "', 'transferCap')"/;
         put "        = ", tmp, ";"/;
