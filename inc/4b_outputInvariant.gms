@@ -29,7 +29,7 @@ r_reserve_gnuft(restype, up_down, gnu, f, t)$((r_reserve_gnuft(restype, up_down,
 loop(m,
 
     option clear=t_startp;
-    t_startp(t)
+    t_startp(t_full(t))
       ${(ord(t) > mSettings(m, 't_start') + mSettings(m, 't_initializationPeriod'))
         and (ord(t) <= mSettings(m, 't_end')+1)
         and sum((s,f), sft_realizedNoReset(s, f , t))

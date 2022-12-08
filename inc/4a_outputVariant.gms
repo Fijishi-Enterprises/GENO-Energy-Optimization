@@ -34,7 +34,7 @@ if(t_solveFirst >= mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializ
 
 // Improve performance & readibility by using a few helper sets
 option clear=t_startp, clear=sft_resdgn, s_realized < sft_realized;
-t_startp(t)
+t_startp(t_full(t))
    ${(ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod'))
      and (ord(t) <= mSettings(mSolve, 't_end')+1)
      and sum((s,f), sft_realized(s, f , t))

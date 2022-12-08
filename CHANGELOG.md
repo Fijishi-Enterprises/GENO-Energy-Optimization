@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - renaming tSolve t_solve
+- defining t_startp only over t_full instead of t
 
 ### Fixed
 - updated result table naming in an example of new result table
