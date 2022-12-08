@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 ### Changed
+
+### Fixed
+
+
+
+## 3.1 - 2022-12-07
+
+### Added
+
+### Changed
 - improving looping and if conditions to avoid unnecessary calculations in investment runs
 - replacing uft sets with usft sets for faster investment runs
 - renaming startp set to t_startp
@@ -13,8 +23,6 @@ All notable changes to this project will be documented in this file.
 - aligned unitConstraint (e.g. CHP units with constraint heat/elec ratio) behaviour with 2.x
 
 ### Fixed
-
-
 
 
 ## 3.0 - 2022-12-01
@@ -25,12 +33,13 @@ All notable changes to this project will be documented in this file.
 - time series for emission costs
 - option to bound storage states at the beginning and/or end of samples
 - template to activate barrier algorithm in cplex.opt (cplex_templateBarrier.opt)
+- template to remove scaling in cplex.opt (cplex_templateNoScaling.opt)
 - timeseries based unit node constraints
 - option to add user defined parameters and sets in additionalSetsAndParameters.inc
 
 ### Removed - possibly requiring changes in input or result processing - see conversion guide from 2.x to 3.x 
 - removed scenarios set including related equations and parameters
-- removed unavailability paramater. Aavailability timeseries covers those functions from now on.
+- removed unavailability parameter. Availability timeseries covers those functions from now on.
 - removed unfinished features of reading new data during loop for ts_effUnit, ts_effGroupUnit, ts_priceChange, ts_price 
 - removing option to read params.inc for additional parameters. New file additionalSetsAndParameters.inc replaces.
 - removing consumption result tables as those are part of generation tables. 
@@ -41,7 +50,6 @@ All notable changes to this project will be documented in this file.
 - replaced emissionTax parameter with ts_emissionPrice and ts_emissionPriceChange 
 - changed parameter name annuity to annuityFactor for clarification
 - adding transfer rampLimit equations, removing old unfinished ICramp equations
-- stricter if checks when using unit node constraints
 - if input data gdx contains additional sets and parameters, those have to be defined in additionalSetsAndParameters.inc
 
 ### Changed - not requiring input data changes
@@ -85,7 +93,6 @@ All notable changes to this project will be documented in this file.
 - separated gnu with constant and variable vomCost to improve efficiency
 - replacing gnuft with gnusft to reduce model size
 - not applying energy balance dummy if node does not have energy balance
-- excluding directOff units from a set of units with minimum load
 - improving ts_node looping efficiency
 - improving ts_storageValue looping efficiency
 - reducing result table calculation duration
