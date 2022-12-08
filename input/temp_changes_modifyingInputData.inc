@@ -1,8 +1,6 @@
 * the model reads changes.inc after input data gdx and after 1e_scenchanges.gms
-* changes.inc can be used for may uses, e.g. modifying input data
+* changes.inc can be used for may uses, e.g. modifying input data or reading second input file
 
-
-$ontext
 
 * Converting all invest units with directLP to directOff
 * Note: Excluding flow units as those should not have efficiency parameters
@@ -19,7 +17,7 @@ loop(unit${ not unit_flow(unit) },
 
 
 
-$ontext
+
 * Adjusting emissionPrice based on value in changes.inc 
 * Note: example uses hard coded names which must match input data.
 ts_emissionPriceChange('CO2', 'CO2group', 't000001') = 40;
@@ -36,6 +34,5 @@ $if not set emissionPrice $set emissionPrice '40'
 * setting emission price to user given value  
 ts_emissionPriceChange('CO2', 'CO2group', 't000001') = %emissionPrice%;
 
-$offtext
 
 
