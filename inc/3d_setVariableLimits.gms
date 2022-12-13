@@ -133,7 +133,7 @@ loop(node$(not node_superpos(node)),
                                                     and (solveCount > 1)
                                                     }
             = sum(mf_realization(mSolve, f_),
-                    + r_state_gnft(grid, node, f_, tSolve)
+                    + r_state_gnft(grid, node, f_, t_solve)
               ); // END sum(mf_realization)
 
     // BoundStartToEnd: bound the last interval in the horizon to the reference value if first solve and constant reference
@@ -161,7 +161,7 @@ loop(node$(not node_superpos(node)),
     // Bound also the intervals just before the start of each sample
     // - currently just 'upwardLimit'&'useConstant' and 'downwardLimit'&'useConstant'
     // this is performed only for the first solve!
-    loop(mst_start(mSolve, s, t)$(tSolveFirst = mSettings(mSolve, 't_start')),
+    loop(mst_start(mSolve, s, t)$(t_solveFirst = mSettings(mSolve, 't_start')),
 
         // Upper bound
         v_state.up(gn_state(grid, node), s, f_solve, t+dt(t))${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
@@ -436,7 +436,7 @@ v_transferLeftward.up(gn2n_directional(grid, node, node_), sft(s, f, t))${  not 
 * --- Reserve Provision Boundaries --------------------------------------------
 
 // Loop over the forecasts to minimize confusion regarding the df_reserves forecast displacement
-loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length') },
+loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ ord(t) <= t_solveFirst + p_gnReserves(grid, node, restype, 'reserve_length') },
     // Reserve provision limits without investments
     // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
     v_reserve.up(gnuRescapable(restype, up_down, grid, node, unit), s, f+df_reserves(grid, node, restype, f, t), t)
@@ -569,7 +569,7 @@ v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ 
 loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
 
     // If this is the very first solve, set various initial bounds
-    if(tSolveFirst = mSettings(mSolve, 't_start'),
+    if(t_solveFirst = mSettings(mSolve, 't_start'),
 
         // state limits for normal (not superposed) nodes
         loop(node$(not node_superpos(node)),
@@ -636,12 +636,12 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
             = r_transfer_gnnft(grid, from_node, to_node, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
 
 
-    ); // END if(tSolveFirst)
+    ); // END if(t_solveFirst)
 ) // END loop(mft_start)
 ;
 
 // If this is the very first solve, set various initial bounds for the superposed node states
-if(tSolveFirst = mSettings(mSolve, 't_start'),
+if(t_solveFirst = mSettings(mSolve, 't_start'),
     // state limits for normal (not superposed) nodes
     loop(node_superpos(node),
         loop(mz(mSolve, z)$(ord(z) eq 1),
@@ -653,41 +653,41 @@ if(tSolveFirst = mSettings(mSolve, 't_start'),
                         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
             ) //END loop mz
         ) //END loop node_superpos
-); //END if(tSolveFirst)
+); //END if(t_solveFirst)
 
 * =============================================================================
 * --- Fix previously realized start-ups, shutdowns, and online states ---------
 * =============================================================================
 
 // Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up and shutdown phases.
-if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on the first solve handled above
+if( t_solveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on the first solve handled above
     // Units that have a LP online variable on the first effLevel. Applies also following v_startup and v_online.
     v_startup_LP.fx(starttype, unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
-        ${ (ord(t) <= tSolveFirst) // Only fix previously realized time steps
+        ${ (ord(t) <= t_solveFirst) // Only fix previously realized time steps
            and unitStarttype(unit, starttype) }
         = r_startup_uft(starttype, unit, f, t);
 
     // Units that have a MIP online variable on the first effLevel. Applies also following v_startup and v_online.
     v_startup_MIP.fx(starttype, unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
-        ${ (ord(t) <= tSolveFirst) // Only fix previously realized time steps
+        ${ (ord(t) <= t_solveFirst) // Only fix previously realized time steps
            and unitStarttype(unit, starttype) }
         = r_startup_uft(starttype, unit, f, t);
 
     v_shutdown_LP.fx(unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
-        ${  ord(t) <= tSolveFirst } // Only fix previously realized time steps
+        ${  ord(t) <= t_solveFirst } // Only fix previously realized time steps
         = r_shutdown_uft(unit, f, t);
 
     v_shutdown_MIP.fx(unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
-        ${  ord(t) <= tSolveFirst } // Only fix previously realized time steps
+        ${  ord(t) <= t_solveFirst } // Only fix previously realized time steps
         = r_shutdown_uft(unit, f, t);
 
     v_online_LP.fx(unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
-        ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
+        ${  ord(t) <= t_solveFirst // Only fix previously realized time steps
             }
         = r_online_uft(unit, f, t);
 
     v_online_MIP.fx(unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
-        ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
+        ${  ord(t) <= t_solveFirst // Only fix previously realized time steps
             }
         = round(r_online_uft(unit, f, t));
 ); // END if
@@ -697,21 +697,21 @@ if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on
 * --- Fix previously realized investment results ------------------------------
 * =============================================================================
 
-v_invest_LP.fx(unit_investLP(unit))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
+v_invest_LP.fx(unit_investLP(unit))${ p_unit(unit, 'becomeAvailable') <= t_solveFirst }
     = r_invest_unitCount_u(unit)
 ;
-v_invest_MIP.fx(unit_investMIP(unit))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
+v_invest_MIP.fx(unit_investMIP(unit))${ p_unit(unit, 'becomeAvailable') <= t_solveFirst }
     = r_invest_unitCount_u(unit)
 ;
 v_investTransfer_LP.fx(gn2n_directional(grid, node, node_), t_invest(t))${    not p_gnn(grid, node, node_, 'investMIP')
                                                                               and p_gnn(grid, node, node_, 'transferCapInvLimit')
-                                                                              and ord(t) <= tSolveFirst
+                                                                              and ord(t) <= t_solveFirst
                                                                               }
     = r_invest_transferCapacity_gnn(grid, node, node_, t)
 ;
 v_investTransfer_MIP.fx(gn2n_directional(grid, node, node_), t_invest(t))${   p_gnn(grid, node, node_, 'investMIP')
                                                                               and p_gnn(grid, node, node_, 'transferCapInvLimit')
-                                                                              and ord(t) <= tSolveFirst
+                                                                              and ord(t) <= t_solveFirst
                                                                               }
     = r_invest_transferCapacity_gnn(grid, node, node_, t) / p_gnn(grid, node, node_, 'unitSize')
 ;

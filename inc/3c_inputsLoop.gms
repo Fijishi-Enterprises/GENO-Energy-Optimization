@@ -21,8 +21,8 @@ $offtext
 
 tmp = round(sum(m, mSettings(m, 't_end')) / sum(m, mSettings(m, 't_jump')), 0);
 
-put log 'ord tSolve: ';
-put log ord(tSolve):0:0 /;
+put log 'ord t_solve: ';
+put log ord(t_solve):0:0 /;
 put log 'solve count : '
 put log solveCount:0:0 '/' tmp:0:0 /;
 
@@ -37,14 +37,14 @@ tmp = max(  mSettings(mSolve, 't_forecastLengthUnchanging'),
 // Find time steps until the forecast horizon
 option clear = tt_forecast;
 tt_forecast(t_current(t))
-    ${ ord(t) <= tSolveFirst + tmp }
+    ${ ord(t) <= t_solveFirst + tmp }
     = yes;
 
-if (ord(tSolve) = tForecastNext(mSolve) - mSettings(mSolve, 't_forecastJump'), // tForecastNext updated already in periodicLoop!
+if (ord(t_solve) = tForecastNext(mSolve) - mSettings(mSolve, 't_forecastJump'), // tForecastNext updated already in periodicLoop!
 
     // Update ts_unit
     if (mTimeseries_loop_read(mSolve, 'ts_unit'),
-        put_utility 'gdxin' / '%input_dir%/ts_unit/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_unit/' t_solve.tl:0 '.gdx';
         execute_load ts_unit_update=ts_unit;
         ts_unit(unit_timeseries(unit), param_unit, f_solve(f), tt_forecast(t)) // Only update if time series enabled for the unit
             ${not mf_realization(mSolve, f) // Realization not updated
@@ -56,7 +56,7 @@ if (ord(tSolve) = tForecastNext(mSolve) - mSettings(mSolve, 't_forecastJump'), /
 
     // Update ts_influx
     if (mTimeseries_loop_read(mSolve, 'ts_influx'),
-        put_utility 'gdxin' / '%input_dir%/ts_influx/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_influx/' t_solve.tl:0 '.gdx';
         execute_load ts_influx_update=ts_influx;
         ts_influx(gn_influx(grid, node), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
@@ -68,7 +68,7 @@ if (ord(tSolve) = tForecastNext(mSolve) - mSettings(mSolve, 't_forecastJump'), /
 
     // Update ts_cf
     if (mTimeseries_loop_read(mSolve, 'ts_cf'),
-        put_utility 'gdxin' / '%input_dir%/ts_cf/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_cf/' t_solve.tl:0 '.gdx';
         execute_load ts_cf_update=ts_cf;
         ts_cf(flowNode(flow, node), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
@@ -80,7 +80,7 @@ if (ord(tSolve) = tForecastNext(mSolve) - mSettings(mSolve, 't_forecastJump'), /
 
     // Update ts_reserveDemand
     if (mTimeseries_loop_read(mSolve, 'ts_reserveDemand'),
-        put_utility 'gdxin' / '%input_dir%/ts_reserveDemand/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_reserveDemand/' t_solve.tl:0 '.gdx';
         execute_load ts_reserveDemand_update=ts_reserveDemand;
         ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
@@ -92,7 +92,7 @@ if (ord(tSolve) = tForecastNext(mSolve) - mSettings(mSolve, 't_forecastJump'), /
 
     // Update ts_node
     if (mTimeseries_loop_read(mSolve, 'ts_node'),
-        put_utility 'gdxin' / '%input_dir%/ts_node/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_node/' t_solve.tl:0 '.gdx';
         execute_load ts_node_update=ts_node;
         ts_node(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), f_solve(f), tt_forecast(t))
             ${  not mf_realization(mSolve, f) // Realization not updated
@@ -104,7 +104,7 @@ if (ord(tSolve) = tForecastNext(mSolve) - mSettings(mSolve, 't_forecastJump'), /
 
     // Update ts_gnn
     if (mTimeseries_loop_read(mSolve, 'ts_gnn'),
-        put_utility 'gdxin' / '%input_dir%/ts_gnn/' tSolve.tl:0 '.gdx';
+        put_utility 'gdxin' / '%input_dir%/ts_gnn/' t_solve.tl:0 '.gdx';
         execute_load ts_gnn_update=ts_gnn;
         ts_gnn(gn2n_timeseries(grid, node, node_, param_gnn), f_solve(f), tt_forecast(t)) // Only update if time series enabled
             ${  not mf_realization(mSolve, f) // Realization not updated
@@ -128,7 +128,7 @@ if(mSettings(mSolve, 't_improveForecast'),
     // Determine the set of improved time steps
     option clear = tt;
     tt(tt_forecast(t))
-        ${ ord(t) <= tSolveFirst + mSettings(mSolve, 't_improveForecast') }
+        ${ ord(t) <= t_solveFirst + mSettings(mSolve, 't_improveForecast') }
         = yes;
 
     // Temporary forecast displacement to reach the central forecast
@@ -174,15 +174,15 @@ if(mSettings(mSolve, 't_improveForecast'),
     loop(mf_central(mSolve, f),
         // ts_unit
         ts_unit(unit_timeseries(unit), param_unit, f, tt(t)) // Only update for units with time series enabled
-            = [ + (ord(t) - tSolveFirst)
+            = [ + (ord(t) - t_solveFirst)
                     * ts_unit(unit, param_unit, f, t)
-                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                + (t_solveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_unit(unit, param_unit, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
         ts_unitConstraintNode(unit, constraint, node, f, tt(t))${unit_tsConstrained(unit)}
-            = [ + (ord(t) - tSolveFirst)
+            = [ + (ord(t) - t_solveFirst)
                     * ts_unitConstraintNode(unit, constraint, node, f, t)
-                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                + (t_solveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_unitConstraintNode(unit, constraint, node, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
 
@@ -205,37 +205,37 @@ $ontext
 $offtext
         // ts_influx
         ts_influx(gn_influx(grid, node), f, tt(t))
-            = [ + (ord(t) - tSolveFirst)
+            = [ + (ord(t) - t_solveFirst)
                     * ts_influx(grid, node, f, t)
-                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                + (t_solveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_influx(grid, node, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
         // ts_cf
         ts_cf(flowNode(flow, node), f, tt(t))
-            = [ + (ord(t) - tSolveFirst)
+            = [ + (ord(t) - t_solveFirst)
                     * ts_cf(flow, node, f, t)
-                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                + (t_solveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_cf(flow, node, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
         // ts_reserveDemand
         ts_reserveDemand(restypeDirectionGroup(restype, up_down, group), f, tt(t))
-            = [ + (ord(t) - tSolveFirst)
+            = [ + (ord(t) - t_solveFirst)
                     * ts_reserveDemand(restype, up_down, group, f, t)
-                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                + (t_solveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_reserveDemand(restype, up_down, group, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
         // ts_node
         ts_node(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), f, tt(t))
-            = [ + (ord(t) - tSolveFirst)
+            = [ + (ord(t) - t_solveFirst)
                     * ts_node(grid, node, param_gnBoundaryTypes, f, t)
-                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                + (t_solveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_node(grid, node, param_gnBoundaryTypes, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
         // ts_gnn
         ts_gnn(gn2n_timeseries(grid, node, node_, param_gnn), f, tt(t)) // Only update if time series enabled
-            = [ + (ord(t) - tSolveFirst)
+            = [ + (ord(t) - t_solveFirst)
                     * ts_gnn(grid, node, node_, param_gnn, f, t)
-                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
+                + (t_solveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_gnn(grid, node, node_, param_gnn, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
     ); // END loop(mf_central)
@@ -312,7 +312,7 @@ loop(cc(counter),
 
     // Reserves relevant only until reserve_length
     ts_reserveDemand_(restypeDirectionGroup(restype, up_down, group), ft(f, tt_interval(t)))
-      ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')
+      ${ord(t) <= t_solveFirst + p_groupReserves(group, restype, 'reserve_length')
         and sum(s, sft(s, f, t)) }
         = sum(tt_aggcircular(t, t_),
             ts_reserveDemand(restype, up_down, group, f + df_realization(f, t), t_)
@@ -345,69 +345,85 @@ loop(cc(counter),
         = sum(tt_aggcircular(t, t_), ts_gnn(grid, node, node_, param_gnn, f, t_))
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
+
+    // ts_price_ calculation to avoid recalculating this for every unit in ts_vomCost_ and ts_startupCost_
+    ts_price_(node, tt_interval(t))
+        ${p_price(node, 'useTimeSeries')
+          and sum((s, f), sft(s, f, t)) }
+        = sum(tt_aggcircular(t, t_),
+                ts_price(node, t_)
+             ) // END sum(tt_aggcircular)
+             / mInterval(mSolve, 'stepsPerInterval', counter) // dividing the sum by steplength to convert values in aggregated time steps to hourly values
+    ;
+
+    // ts_emissionPrice_ calculation to avoid recalculating this for every unit in ts_vomCost_ and ts_startupCost_
+    ts_price_(node, tt_interval(t))
+        ${p_price(node, 'useTimeSeries')
+          and sum((s, f), sft(s, f, t)) }
+        = sum(tt_aggcircular(t, t_),
+                ts_price(node, t_)
+             ) // END sum(tt_aggcircular)
+             / mInterval(mSolve, 'stepsPerInterval', counter) // dividing the sum by steplength to convert values in aggregated time steps to hourly values
+    ;
+
     // vomCost calculations when one or more price time series
     ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
         ${p_vomCost(grid, node, unit, 'useTimeseries')
           and sum((s, f), sft(s, f, t)) }
-        = sum(tt_aggcircular(t, t_),
-                // gnu specific cost. Always a cost (positive) if input or output.
-                // vomCosts
-                + p_gnu(grid, node, unit, 'vomCosts')
+        = // gnu specific cost. Always a cost (positive) if input or output.
+          // vomCosts
+          + p_gnu(grid, node, unit, 'vomCosts')
 
-                // gnu specific emission cost (e.g. process related LCA emission). Always a cost if input or output.
-                + sum(emissionGroup(emission, group)$ p_nEmission(node, emission),
-                     + p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
-                     * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
-                         + ts_emissionPrice(emission, group, t_)$p_emissionPrice(emission, group, 'useTimeSeries')
-                       )
-                     ) // end sum(emissiongroup)
+          // gnu specific emission cost (e.g. process related LCA emission). Always a cost if input or output.
+          + sum(emissionGroup(emission, group)$ p_nEmission(node, emission),
+               + p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
+               * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                   + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+                 )
+               ) // end sum(emissiongroup)
 
-                // gn specific costs. Cost when input but income when output.
-                // converting gn specific costs negative if output -> income
-                + (+1$gnu_input(grid, node, unit)
-                   -1$gnu_output(grid, node, unit)
-                  )
+          // gn specific costs. Cost when input but income when output.
+          // converting gn specific costs negative if output -> income
+          + (+1$gnu_input(grid, node, unit)
+             -1$gnu_output(grid, node, unit)
+             )
 
-                * ( // gn specific node cost, e.g. fuel price
-                    + p_price(node, 'price')${p_price(node, 'useConstant')}
-                    + ts_price(node, t_)${p_price(node, 'useTimeSeries')}
+          * ( // gn specific node cost, e.g. fuel price
+              + p_price(node, 'price')${p_price(node, 'useConstant')}
+              + ts_price_(node, t)${p_price(node, 'useTimeSeries')}
 
-                    // gn specific emission cost, e.g. CO2 allowance price from fuel emissions.
-                    + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
-                        + p_nEmission(node, emission)  // t/MWh
-                        * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
-                            + ts_emissionPrice(emission, group, t_)$p_emissionPrice(emission, group, 'useTimeSeries')
-                          )
-                        ) // end sum(emissiongroup)
-                  ) // END * gnu_input/output
-             ) // END sum(tt_aggcircular)
-             / mInterval(mSolve, 'stepsPerInterval', counter) // dividing the sum by steplength to convert values in aggregated time steps to hourly values
+              // gn specific emission cost, e.g. CO2 allowance price from fuel emissions.
+              + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                  + p_nEmission(node, emission)  // t/MWh
+                  * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                      + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+                     )
+                  ) // end sum(emissiongroup)
+             ) // END * gnu_input/output
     ;
 
     // Startup cost calculations
     ts_startupCost_(unit, starttype, tt_interval(t))
         ${p_startupCost(unit, starttype, 'useTimeSeries')
           and sum((s, f), sft(s, f, t)) }
-      = sum(tt_aggcircular(t, t_),
-        + p_uStartup(unit, starttype, 'cost') // CUR/start-up
+      = + p_uStartup(unit, starttype, 'cost') // CUR/start-up
         // Start-up fuel and emission costs
         + sum(nu_startup(node, unit),
             + p_unStartup(unit, node, starttype) // MWh/start-up
               * [
                   // Fuel costs
                   + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
-                  + ts_price(node, t_)$p_price(node, 'useTimeseries')// CUR/MWh
+                  + ts_price_(node, t)$p_price(node, 'useTimeseries')// CUR/MWh
                   // Emission costs
                   // node specific emission prices
                   + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
                      + p_nEmission(node, emission) // t/MWh
                      * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
-                         + ts_emissionPrice(emission, group, t_)$p_emissionPrice(emission, group, 'useTimeSeries')
+                         + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
                        )
                     ) // end sum(emissionGroup)
                 ] // END * p_unStartup
           ) // END sum(nu_startup)
-        ) / mInterval(mSolve, 'stepsPerInterval', counter) // END sum(tt_aggcircular)
     ;
 
     // `storageValue`
