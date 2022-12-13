@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - template file temp_changes_readSecondInputFile.inc
+- adding a mod folder for mods delivered with the main backbone model
 
 ### Changed
 - renaming tSolve t_solve
