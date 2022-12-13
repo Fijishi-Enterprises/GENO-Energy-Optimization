@@ -183,6 +183,8 @@ Parameters
     ts_unitConstraintNode_(unit, constraint, node, s, f, t) "ts_unitConstraintNode values processed for looping including time step aggregation if required (coefficient of constraint)"
     ts_gnn_(grid, node, node, param_gnn, f, t) "ts_gnn values processed for looping including time step aggregation if required (unit depending on parameter)"
     ts_storageValue_(grid, node, s, f, t) "ts_storageValue values processed for looping including time step aggregation if required (EUR/<v_state_unit>)"
+    ts_price_(node, t) "Commodity price (EUR/MWh) for aggregated time steps"
+    ts_emissionPrice_(emission, group, t) "Emission group price time series  for aggregated time steps (EUR/tEmission)"
     ts_vomCost_(grid, node, unit, t) "Calculated time dependent O&M cost that includes O&M cost, fuel cost and emission cost (EUR/MWh)"
     ts_startupCost_(unit, starttype, t) "Calculated time dependent startup cost that includes startup cost, fuel cost and emission cost (EUR/MW)"
 

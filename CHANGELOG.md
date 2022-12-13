@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - renaming tSolve t_solve
 - defining t_startp only over t_full instead of t
+- improved efficiency of ts_vomCost_ and ts_startupCost_ by avoiding repeated sums
 
 ### Fixed
 - updated result table naming in an example of new result table
