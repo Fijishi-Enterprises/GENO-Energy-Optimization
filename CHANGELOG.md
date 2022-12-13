@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 ## unversioned
 
 ### Added
+
+### Changed
+
+### Fixed
+
+
+
+
+## 3.2 - 2022-12-13
+
+### Added
 - template file temp_changes_readSecondInputFile.inc
 - adding a mod folder for mods delivered with the main backbone model
 
@@ -14,7 +25,6 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - updated result table naming in an example of new result table
-
 
 
 ## 3.1 - 2022-12-07
