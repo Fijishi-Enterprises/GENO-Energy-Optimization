@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - updating temp_4d_postProcess_invest2schedule.gms
 
 ### Fixed
+- capacity margin equation in case of flow unit inputs
 
 
 
