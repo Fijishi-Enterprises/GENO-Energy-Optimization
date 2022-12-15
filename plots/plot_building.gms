@@ -16,7 +16,7 @@ $offtext
 * Set TRUE or FALSE
 $set archive FALSE
 * Set file name prefix for archivation
-$set archive_prefix 2022-11-30_TEST_elec_price_2015__t_jump_168__t_horizon_336_CBC
+$set archive_prefix 2022-12-15_flat_elec_price_2015__t_jump_168__t_horizon_336_CBC
 $set archive_exec 0
 $if "%archive%"=="TRUE" $set archive_exec 1
 
@@ -308,3 +308,6 @@ execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 %TMPparam%(tparam(t),heat_DHWT_daily(node)) =                                 sum((building_heat_DHWT_daily(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
 execute_unload 'plots/%GDXfile%', tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
+
+Parameter supplementary_info(*);
+supplementary_info('plot_building.gms runtime (secs)')=timeelapsed

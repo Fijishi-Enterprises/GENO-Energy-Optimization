@@ -66,11 +66,11 @@ summary("elec_ideal_DHW_(kWh/m2)"    ,grid) = sum(tparam(t),tmp_cost("elec_ideal
 summary("elec_usage_(kWh/m2)"        ,grid) = sum(tparam(t),tmp_cost("elec_usage_(kWh/m2)"        ,grid,t)) ;
 summary("elec_usage_(kWh)"           ,grid) = sum(tparam(t),tmp_cost("elec_usage_(kWh)"           ,grid,t)) ;
 * Electricity cost (spot price)
-summary("cost_ideal_heating_(euro/m2)",grid)  = sum(tparam(t),ts_priceElspot_backup(t) * e_per_Mw_2_e_per_kw * tmp_cost("elec_ideal_heating_(kWh/m2)",grid,t));
-summary("cost_ideal_cooling_(euro/m2)",grid)  = sum(tparam(t),ts_priceElspot_backup(t) * e_per_Mw_2_e_per_kw * tmp_cost("elec_ideal_cooling_(kWh/m2)",grid,t));
-summary("cost_ideal_DHW_(euro/m2)"    ,grid)  = sum(tparam(t),ts_priceElspot_backup(t) * e_per_Mw_2_e_per_kw * tmp_cost("elec_ideal_DHW_(kWh/m2)"    ,grid,t));
-summary("cost_tot_spot_price_(euro/m2)"          ,grid)  = sum(tparam(t),ts_priceElspot_backup(t) * e_per_Mw_2_e_per_kw * tmp_cost("elec_usage_(kWh/m2)"        ,grid,t));
-summary("cost_tot_spot_price_(euro)"             ,grid)  = sum(tparam(t),ts_priceElspot_backup(t) * e_per_Mw_2_e_per_kw * tmp_cost("elec_usage_(kWh)"           ,grid,t));
+summary("cost_ideal_heating_(euro/m2)"      ,grid)  = sum(tparam(t),ts_priceElspot_backup(t) * e_per_Mw_2_e_per_kw * tmp_cost("elec_ideal_heating_(kWh/m2)",grid,t));
+summary("cost_ideal_cooling_(euro/m2)"      ,grid)  = sum(tparam(t),ts_priceElspot_backup(t) * e_per_Mw_2_e_per_kw * tmp_cost("elec_ideal_cooling_(kWh/m2)",grid,t));
+summary("cost_ideal_DHW_(euro/m2)"          ,grid)  = sum(tparam(t),ts_priceElspot_backup(t) * e_per_Mw_2_e_per_kw * tmp_cost("elec_ideal_DHW_(kWh/m2)"    ,grid,t));
+summary("cost_tot_spot_price_(euro/m2)"     ,grid)  = sum(tparam(t),ts_priceElspot_backup(t) * e_per_Mw_2_e_per_kw * tmp_cost("elec_usage_(kWh/m2)"        ,grid,t));
+summary("cost_tot_spot_price_(euro)"        ,grid)  = sum(tparam(t),ts_priceElspot_backup(t) * e_per_Mw_2_e_per_kw * tmp_cost("elec_usage_(kWh)"           ,grid,t));
 * Electricity cost (flat price)
 if(0=p_price_el_select,
   summary("cost_tot_fixed_price_(euro/m2)"  ,grid)  = sum(tparam(t),ts_priceElspot(t) * e_per_Mw_2_e_per_kw * tmp_cost("elec_usage_(kWh/m2)"        ,grid,t));

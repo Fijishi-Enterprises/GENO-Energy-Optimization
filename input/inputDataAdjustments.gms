@@ -66,7 +66,7 @@ ts_priceElspot_backup(t)=ts_priceElspot(t);
 
 *Settings
 Parameter
-  p_price_el_select "Use flat price 1 EUR/MWh (set 0). Use elspot price (set 1)" /1/;
+  p_price_el_select "Use flat price <avg. price> EUR/MWh (set 0). Use elspot price (set 1)" /0/;
 Scalar
   flat_elec_price        Calculated average price from spot price
   cardt_flat_elec_price  Number of non-zeroes in ts_priceElspot
@@ -148,13 +148,16 @@ Sets
 option node2unit < grid2node2unit;
 building_heat_storage(grid,node) =  building_nodes(grid,node) and not building_elec(grid,node);
 
+* Indoor air temperature between 21-27C as per Finnish guidelines.
+* DHW preheating to 60C from heat pump, topping 60 -> 90C with resistance heaters.
+
 Table
   temp_limit(place,dir)   "Limit temperatures in Celcius"
                              lo      ref        up
-interior_air_and_furniture   20      20         24
+interior_air_and_furniture   21      21         27
 internal_mass                0       20         50
 envelope_mass                -90     20         50
-DHWT_daily                   60      60         80
+DHWT_daily                   60      60         90
 ;
 
 Parameter building_squares(grid) Building square meters by grid /
@@ -169,7 +172,6 @@ building_squares4elec("elec_AB")= building_squares("heat_AB");
 
 * Changing Backbone Settings like t_jump, t_horizon, dataLength, etc.
 * See file input/buildingInit.gms
-
 
 if(modify_input=1,
 * Defintion: p_gnBoundaryPropertiesForStates(grid,node,param_gnBoundaryTypes,param_gnBoundaryProperties)
@@ -205,7 +207,6 @@ if(modify_input=1,
   p_gnBoundaryPropertiesForStates(elec_trans2building(grid,node),'upwardLimit','useTimeSeries') = 1E50;
 ) ;
 
-
 * Adding temperature data
 *Parameter
 *  temp_out(t) "Outside temperature (C)";
@@ -214,13 +215,14 @@ if(modify_input=1,
 * Write input with domains at execution time to take in consideration modifications
 execute_unloaddi "input\inputDataAdjusted1.gdx";
 
-*Add specific symbols to input GDX
-execute_unload "%proj_dir%input\indata2.gdx" modify_input;
-$set inFile1 inputData.gdx
-$set inFile2 indata2.gdx
-$set outFile1 %proj_dir%input\inputDataAdjusted2.gdx
-
-execute "gams %proj_dir%input\add_to_gdx.gms curDir=%proj_dir%input --inFile1=%inFile1% --inFile2=%inFile2% --outFile1=%outFile1% " ;
-
+$ontext
+* Add specific symbols to input GDX
+* Not currently working the add_to_gdx.gms can not handle variables correctly, nor can it handle set increments.
+  execute_unload "%proj_dir%input\indata2.gdx" modify_input;
+  $$set inFile1 inputData.gdx
+  $$set inFile2 indata2.gdx
+  $$set outFile1 %proj_dir%input\inputDataAdjusted2.gdx
+  execute "gams %proj_dir%input\add_to_gdx.gms curDir=%proj_dir%input --inFile1=%inFile1% --inFile2=%inFile2% --outFile1=%outFile1% " ;
+$offtext
 
 

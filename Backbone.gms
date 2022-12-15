@@ -239,6 +239,9 @@ if(execError,
    abort "FAILED";
 );
 
+Parameter supplementary_info(*);
+supplementary_info('Backbone.gms runtime (secs)')=timeelapsed
+
 $if not set plot $set plot 0
 $ifThenE %plot%<>0
 execute_unload '%output_dir%/data4plot.gdx';
