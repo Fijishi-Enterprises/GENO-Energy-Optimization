@@ -140,9 +140,9 @@ $include 'inc/1b_sets.gms'          // Set definitions used by the models
 $include 'inc/1c_parameters.gms'    // Parameter definitions used by the models
 $include 'inc/1d_results.gms'       // Parameter definitions for model results
 $include 'inc/1e_inputs.gms'        // Load input data
-* 1e_inputs can convert %input_dir%/%input_file_excel% or %input_file_excel%  to %input_dir%/%input_file_gdx%
-* 1e_input reads %input_dir%/%input_file_gdx% or %input_file_gdx%
-* 1e_inputs read also following files:
+* 1e_inputs converts %input_dir%/%input_file_excel% or %input_file_excel%  to %input_dir%/%input_file_gdx%
+* 1e_inputs reads %input_dir%/%input_file_gdx% or %input_file_gdx%
+* 1e_inputs reads also following files:
 *      - %input_dir%/additionalSetsAndParameters.inc if exist
 *      - inc/1e_scenChanges.gms,
 *      - %input_dir%/changes.inc if exist
@@ -150,14 +150,12 @@ $include 'inc/1e_inputs.gms'        // Load input data
 * === Variables and equations =================================================
 $include 'inc/2a_variables.gms'                         // Define variables for the models
 $include 'inc/2b_eqDeclarations.gms'                    // Equation declarations
-$ifthen exist '%input_dir%/2c_alternative_objective.gms'      // Objective function - either the default or an alternative from input files
+$ifthen exist '%input_dir%/2c_alternative_objective.gms' // Objective function - either the default or an alternative from input files
     $$include '%input_dir%/2c_alternative_objective.gms';
 $else
     $$include 'inc/2c_objective.gms'
-    // can be expanded by %input_dir%/2c_additional_objective_terms.gms
 $endif
 $include 'inc/2d_constraints.gms'                       // Define constraint equations for the models
-* can be expanded by %input_dir%/additional_constraints.inc
 $ifthen exist '%input_dir%/2e_additional_constraints.gms'
    $$include '%input_dir%/2e_additional_constraints.gms'      // Define additional constraints from the input data
 $endif
@@ -186,6 +184,7 @@ loop(modelSolves(mSolve, t_solve)$(execError = 0),
     $$include 'inc/3b_periodicLoop.gms'         // Update modelling loop
     $$include 'inc/3c_inputsLoop.gms'           // Read input data that is updated within the loop
     $$include 'inc/3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
+    // 3d reads additional file '%input_dir%/changes_loop.inc' if exists
 $iftheni.dummy not %dummy% == 'yes'
     $$include 'inc/3e_solve.gms'                // Solve model(s)
     $$include 'inc/3f_afterSolve.gms'           // Post-processing variables after the solve

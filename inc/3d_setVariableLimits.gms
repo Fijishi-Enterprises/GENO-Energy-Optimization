@@ -86,14 +86,14 @@ loop(node$(not node_superpos(node)),
     ;
 
     // Bounding the start time step of each sample to reference value if boundStartofSamples and constant values are enabled
-    v_state.fx(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'boundStartOfSamples')
+    v_state.fx(gn_state(grid, node), sft(s, f, t))${ p_gn(grid, node, 'boundStartOfSamples')
                                                      and sum(tt_aggcircular(t, t_),  sum(m, mst_start(m, s, t_)))
                                                      and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')  }
             = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
                * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
     ;
     // Bounding the start time step of each sample to reference value if boundStartofSamples and constant values are enabled
-    v_state.fx(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'boundStartOfSamples')
+    v_state.fx(gn_state(grid, node), sft(s, f, t))${ p_gn(grid, node, 'boundStartOfSamples')
                                                      and sum(tt_aggcircular(t, t_),  sum(m, mst_start(m, s, t_)))
                                                      and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')  }
             // calculating value as an average of included time steps in an aggregated timestep
@@ -110,14 +110,14 @@ loop(node$(not node_superpos(node)),
                     * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
     // Bounding the end time step of each sample to reference value if boundStartofSamples and constant values are enabled
-    v_state.fx(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'boundEndOfSamples')
+    v_state.fx(gn_state(grid, node), sft(s, f, t))${ p_gn(grid, node, 'boundEndOfSamples')
                                                      and sum(tt_aggcircular(t, t_),  sum(m, mst_end(m, s, t_)))
                                                      and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')  }
             = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
                * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
     ;
     // Bounding the end time step of each sample to reference value if boundStartofSamples and constant values are enabled
-    v_state.fx(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'boundEndOfSamples')
+    v_state.fx(gn_state(grid, node), sft(s, f, t))${ p_gn(grid, node, 'boundEndOfSamples')
                                                      and sum(tt_aggcircular(t, t_),  sum(m, mst_end(m, s, t_)))
                                                      and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')  }
             // calculating value as an average of included time steps in an aggregated timestep
@@ -715,3 +715,14 @@ v_investTransfer_MIP.fx(gn2n_directional(grid, node, node_), t_invest(t))${   p_
                                                                               }
     = r_invest_transferCapacity_gnn(grid, node, node_, t) / p_gnn(grid, node, node_, 'unitSize')
 ;
+
+
+
+* =============================================================================
+* --- Read additional user given changes in loop phase ------------------------
+* =============================================================================
+
+
+$ifthen exist '%input_dir%/changes_loop.inc'
+    $$include '%input_dir%/changes_loop.inc'  // reading changes to looping phase if file exists
+$endif

@@ -10,7 +10,9 @@
 !/temp_buildingInit.gms
 !/temp_changes_modifyingInputData.inc
 !/temp_changes_readSecondInputFile.inc
+!/temp_changes_loop.inc
 !/temp_investInit.gms
 !/temp_modelsInit.gms
-!/temp_scheduleInit.gms
+!/temp_scheduleInit_3Forecasts.gms
+!/temp_scheduleInit_noForecasts.gms
 !/temp_timeAndSamples.inc

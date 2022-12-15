@@ -3222,6 +3222,11 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
                 + p_unit(unit, 'availability')${not p_unit(unit, 'useTimeseriesAvailability')}
                 + ts_unit_(unit, 'availability', f, t)${p_unit(unit, 'useTimeseriesAvailability')}
                 ]
+            // adding exception of input flow units
+            * [ -1 $ gnu_input(grid, node, unit)
+                +1 $ gnu_output(grid, node, unit)
+                ]
+            // capacity
             * [
                 // Output capacity before investments
                 + p_gnu(grid, node, unit, 'capacity')
