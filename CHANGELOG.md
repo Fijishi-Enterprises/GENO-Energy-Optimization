@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 ## unversioned
 
 ### Added
+
+### Changed
+
+### Fixed
+
+
+
+## 3.3 - 2022-12-15
+
+### Added
 - new user input file changes_loop.inc that is read at the end of each loop compile phase
 - file `input/temp_changes_loop.inc` demonstrating the use
 
@@ -13,8 +23,6 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - capacity margin equation in case of flow unit inputs
 - bound start and end of samples in certain cases with aggregated time steps
-
-
 
 
 ## 3.2 - 2022-12-13
