@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - new user input file changes_loop.inc that is read at the end of each loop compile phase
+- file `input/temp_changes_loop.inc` demonstrating the use
 
 ### Changed
 - updating temp_4d_postProcess_invest2schedule.gms
