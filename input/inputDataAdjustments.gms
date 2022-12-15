@@ -18,7 +18,9 @@ $if not exist %GAMS.curDir%Backbone.gms $abort GAMS Project or curDir command li
 $set proj_dir %GAMS.curDir%
 
 * Create elspot_prices
-$if 1==0 $call gams input/elspot_price_xls2gdx.gms
+$set year 2015
+* year is used also for input folder name
+$if 1==0 $call gams input/elspot_price_xls2gdx.gms --year=%year%
 
 *Use backbone definition of sets and parameters
 $if not set input_dir $setglobal input_dir 'input'
@@ -35,7 +37,7 @@ $include 'inc\1c_parameters.gms'    // Parameter definitions used by the models
 
 *Read data from inputData.gdx
 $onmultiR
-$gdxIn input\inputData.gdx
+$gdxIn %input_dir%/%year%/%input_file_gdx%
 $load grid node unit unittype unitUnittype effLevelGroupUnit
 $load ts_influx p_gnBoundaryPropertiesForStates p_gnn p_s_discountFactor
 $offmulti
@@ -48,12 +50,12 @@ Set
   tsIso Time-stamp in ISO8601 format
 ;
 Parameters
- elspotIsoBB(t,tsIso)     "Elspot Prices_2013 (EUR/MWh) with backbone timestamp and ISO date"
- ts_priceElspotNP(t)      "Elspot NordPool Prices_2013 (EUR/MWh)"
- ts_priceElspot(t)        "Elspot Prices_2013 inc. tarifs and taxes (EUR/MWh)"
- ts_priceElspot_backup(t) "Elspot Prices_2013 inc. tarifs and taxes (backup) (EUR/MWh)"
+ elspotIsoBB(t,tsIso)     "Elspot Prices_%year% (EUR/MWh) with backbone timestamp and ISO date"
+ ts_priceElspotNP(t)      "Elspot price EntsoE_%year% (EUR/MWh)"
+ ts_priceElspot(t)        "Elspot Prices_%year% inc. tarifs and taxes (EUR/MWh)"
+ ts_priceElspot_backup(t) "Elspot Prices_%year% inc. tarifs and taxes (backup) (EUR/MWh)"
 ;
-$gdxIn input\data\elspot_prices_2015.gdx
+$gdxIn %input_dir%/%year%/elspot_prices_%year%.gdx
 $load tsIso elspotIsoBB ts_priceElspotNP=elspotBB
 $gdxin
 * Add taxes S�hk� snt/kWh � veroluokka I : 2,253 snt/kWh --> 22,53 �/MWh
@@ -208,9 +210,14 @@ if(modify_input=1,
 ) ;
 
 * Adding temperature data
-*Parameter
-*  temp_out(t) "Outside temperature (C)";
-*execute_load "input\ambient_temp_2013.gdx" temp_out;
+Sets t_temp(t);
+Parameter
+  temp_out "Outside temperature year %year% (C)"
+  ambient_temperature_K(grid,f,t);
+$gdxin %input_dir%/%year%/buildings_auxiliary_data.gdx
+$load  t_temp<ambient_temperature_K.dim3 ambient_temperature_K
+$gdxin
+temp_out(t_temp)= ambient_temperature_K('heat_AB','f00',t_temp) - c2k;
 
 * Write input with domains at execution time to take in consideration modifications
 execute_unloaddi "input\inputDataAdjusted1.gdx";

@@ -14,7 +14,7 @@ $offtext
 
 * ARCHIVE SETTING
 * Set TRUE or FALSE
-$set archive FALSE
+$set archive TRUE
 * Set file name prefix for archivation
 $set archive_prefix 2022-12-15_flat_elec_price_2015__t_jump_168__t_horizon_336_CBC
 $set archive_exec 0
@@ -111,16 +111,6 @@ Parameters
 *$load node_building_interior_air_and_furniture,node_building_internal_mass,node_building2node
 *$load unit_heat,unit_cool,unit_DHW,unit_heat_and_cool,node_building2unit
 *$gdxin
-
-* Adding temperature data
-Sets grid,f,t,t_temp(t);
-Parameter
-  temp_out "Outside temperature (C)"
-  ambient_temperature_K(grid,f,t);
-$gdxin input\buildings_auxiliary_data.gdx
-$load  t_temp<ambient_temperature_K.dim3 ambient_temperature_K
-$gdxin
-temp_out(t_temp)= ambient_temperature_K('heat_AB','f00',t_temp) - c2k;
 
 * Read tparam : what is visible in plots
 execute_loaddc "%backbone_output_GDX%", mSettings ;
@@ -311,3 +301,8 @@ $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 
 Parameter supplementary_info(*);
 supplementary_info('plot_building.gms runtime (secs)')=timeelapsed
+
+execute_unload 'plots/plot_building.gdx';
+$if "%archive%"=="TRUE"  execute 'cp "plots/plot_building.gdx" "plots/archive/%archive_prefix%_plot_building_out.gdx"'
+$if "%archive%"=="TRUE"  execute 'cp "input/inputDataAdjusted1.gdx" "plots/archive/%archive_prefix%_inputDataAdjusted1.gdx"'
+
