@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - capacity margin equation in case of flow unit inputs
+- bound start and end of samples in certain cases with aggregated time steps
 
 
 
