@@ -715,3 +715,14 @@ v_investTransfer_MIP.fx(gn2n_directional(grid, node, node_), t_invest(t))${   p_
                                                                               }
     = r_invest_transferCapacity_gnn(grid, node, node_, t) / p_gnn(grid, node, node_, 'unitSize')
 ;
+
+
+
+* =============================================================================
+* --- Read additional user given changes in loop phase ------------------------
+* =============================================================================
+
+
+$ifthen exist '%input_dir%/changes_loop.inc'
+    $$include '%input_dir%/changes_loop.inc'  // reading changes to looping phase if file exists
+$endif
