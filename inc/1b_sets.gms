@@ -220,7 +220,6 @@ Sets
     unit_heat_and_cool(unit)
     building2unit(grid,unit)
     building_heat_storage(grid,node)     "All nodes for buildings, except for electricity"
-    t_temp(t)
 ;
 $offempty
 

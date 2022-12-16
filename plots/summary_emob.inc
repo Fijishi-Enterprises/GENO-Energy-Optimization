@@ -2,9 +2,11 @@ $ontext
 Create summary of Energy Modelling Of Buildings (EMOB)
 Create file summary_emob.txt
 
-
 Toni Lastusilta (VTT) , 2022-01-09
 $offtext
+
+$if not "%1"=="" $set output_dir %1
+$if not set output_dir $set output_dir plots/archive
 
 Scalars
   error_elec_tot       "Supplementary scalar of error checking of electricity" /0/
@@ -100,6 +102,6 @@ $offtext
 $set emob_GDX "output/summary_emob.gdx"
 execute_unload "%emob_GDX%", summary, info;
 if(%archive_exec%,
-  Execute 'cp "%emob_GDX%" "plots/archive/%archive_prefix%_summary_emob.gdx"';
+  Execute 'cp "%emob_GDX%" "%output_dir%/%archive_prefix%_summary_emob.gdx"';
 );
 

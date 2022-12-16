@@ -10,7 +10,7 @@ text[4 ] <- "  First index x maps to x-axis, e.g. t1,t2,...t3 (converted to nume
 text[5 ] <- "  Second index y maps to categories, e.g. oil, gas, nuclear (categories)"
 text[6 ] <- "  Third index contains parameter values, e.g. 9 ,7 ,5 (numeric expected)"
 text[7 ] <- "  The second parameter p2(x,z) maps to a seconday y-axis (optional)"
-text[8 ] <- "  Example:  Rscript do_r_plot.r plot4r.gdx -p p1 -s p2 -w 50 -a TRUE"
+text[8 ] <- "  Example:  Rscript do_r_plot.r -i plot4r.gdx -p p1 -s p2 -w 50 -a archive"
 text[9 ] <- ""
 text[10 ] <-"  version 2022-01-10"
 text[11] <- ""
@@ -64,8 +64,8 @@ option_list = list(
               help="Optional right Y-axis label for plot [default= %default]", metavar="character"),
   make_option(c("-w", "--window"), type="integer", default="", 
               help="do additional plots by splitting x (x-axis) to the specified time step length [default= %default]", metavar="integer"),
-  make_option(c("-a", "--archive"), type="logical", default=FALSE, 
-              help="archive the created pdf in folder archive [default= %default]", metavar="logical")
+  make_option(c("-a", "--archive"), type="character", default="", 
+              help="if specified, copy the pdf to the specified folder [default= %default]", metavar="character")
     ); 
 opt_parser = OptionParser(option_list=option_list, description = program_description)
 opt = parse_args(opt_parser);
@@ -308,13 +308,14 @@ if(file.exists(pdf_name)){
   print(sprintf("Rscript created %d figures (%s) see:",cnt_plots, exec_sys_date))
   print(sprintf("%s",pdf_path))
   flush.console()
-  if(opt$archive){
-    dir_name="archive"
+  if(is.empty(opt$archive)==FALSE){
+    dir_name=opt$archive
     if(!dir.exists(dir_name)){
       dir.create(dir_name)
     }
     dataPath <- sprintf("%s/%s_%s.pdf",file_path_as_absolute(dir_name),exec_sys_date,symName)
     invisible(file.copy(pdf_name, dataPath, overwrite = TRUE ))
+    print(sprintf("Create copy: %s",dataPath))
   }  
 }else{
   stop("Rscript failed to create PDF")

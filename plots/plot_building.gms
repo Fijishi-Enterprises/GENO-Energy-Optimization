@@ -8,15 +8,23 @@ Plot backbone output with R for energy modelling of buildings
 Toni Lastusilta (VTT) ,
 
 Change Log
+
 2022-01-09 , first version
 2022-11-30 , conforming to new input format (Backbone downloaded  21.11.2022)
 $offtext
+
+$if not set run_title $set run_title TEST
+$if not set year $set year 2000
+$if not set t_jump $set t_jump ERR
+$if not set t_horizon $set t_horizon ERR
 
 * ARCHIVE SETTING
 * Set TRUE or FALSE
 $set archive TRUE
 * Set file name prefix for archivation
-$set archive_prefix 2022-12-15_flat_elec_price_2015__t_jump_168__t_horizon_336_CBC
+$set archive_prefix 2022-12-16_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
+$set output_dir plots\archive\%archive_prefix%
+$if not dExist %output_dir% $call mkdir %output_dir%
 $set archive_exec 0
 $if "%archive%"=="TRUE" $set archive_exec 1
 
@@ -39,7 +47,7 @@ $onechoV > runR.inc
  $$if set Ylabel2  $set r_ylabel2 -z "%Ylabel2%"
  $$set r_xlabel
  $$if set Xlabel  $set r_xlabel -x "%Xlabel%"
- execute 'Rscript "%gams.wDir%plots\do_r_plot.r" -i "%gams.wDir%plots/%1" -o "%gams.wDir%output/%2.pdf"  -p %2 %r_param2% -w 168 -a %archive% %r_ylabel% %r_ylabel2% %r_xlabel%  ';
+ execute 'Rscript "%gams.wDir%plots\do_r_plot.r" -i "%gams.wDir%plots/%1" -o "%gams.wDir%output/%2.pdf"  -p %2 %r_param2% -w 168 -a archive/%archive_prefix% %r_ylabel% %r_ylabel2% %r_xlabel%  ';
  myerrorlevel = errorlevel;
  if(myerrorlevel=0,
    Execute.ASyncNC 'SumatraPDF.exe  "%gams.wDir%output/%2.pdf"';
@@ -53,8 +61,8 @@ $if not set input_file_gdx $set input_file_gdx inputDataAdjusted1.gdx
 $batinclude backbone_definitions_4plots.gms
 
 * Define source GDX for plotting data
-$if not set backbone_output_GDX $set backbone_output_GDX "output\out.gdx"
-$if "%archive%"=="TRUE"  $call cp "%backbone_output_GDX%" "plots/archive/%archive_prefix%_backbone_out.gdx"
+$if not set backbone_output_GDX $set backbone_output_GDX "output/out.gdx"
+$if "%archive%"=="TRUE"  $call cp "%backbone_output_GDX%" "%output_dir%/%archive_prefix%_backbone_out.gdx"
 
 * Define common sets and parameters
 $set GDXparam2         priceElec
@@ -112,6 +120,16 @@ Parameters
 *$load unit_heat,unit_cool,unit_DHW,unit_heat_and_cool,node_building2unit
 *$gdxin
 
+* Adding temperature data
+Sets grid,f,t,t_temp(t);
+Parameter
+  temp_out "Outside temperature (C)"
+  ambient_temperature_K(grid,f,t);
+$gdxin input/%year%/buildings_auxiliary_data.gdx
+$load  t_temp<ambient_temperature_K.dim3 ambient_temperature_K
+$gdxin
+temp_out(t_temp)= ambient_temperature_K('heat_AB','f00',t_temp) - c2k;
+
 * Read tparam : what is visible in plots
 execute_loaddc "%backbone_output_GDX%", mSettings ;
 *tparam(t)=(ord(t)<=(min(mSettings('building','dataLength'),mSettings('building','t_end')) - (mSettings('building','t_horizon')-mSettings('building','t_jump'))));
@@ -124,7 +142,7 @@ $set Ylabel2_alt1 "Price of electricity (EUR/MWh) :"
 $set Ylabel2_alt2 "Outside temperature (C) :"
 
 * Create summary_emob.gdx
-$include plots/summary_emob.inc
+$batinclude plots/summary_emob.inc %output_dir%
 
 * CREATE INDIVIDUAL PLOTS
 * Input for runR.inc : %GDXfile% for R, %GDXparam% parameter to plot, %TMPParam% two-dimensional counterpart to %GDXparam%
@@ -303,6 +321,6 @@ Parameter supplementary_info(*);
 supplementary_info('plot_building.gms runtime (secs)')=timeelapsed
 
 execute_unload 'plots/plot_building.gdx';
-$if "%archive%"=="TRUE"  execute 'cp "plots/plot_building.gdx" "plots/archive/%archive_prefix%_plot_building_out.gdx"'
-$if "%archive%"=="TRUE"  execute 'cp "input/inputDataAdjusted1.gdx" "plots/archive/%archive_prefix%_inputDataAdjusted1.gdx"'
+$if "%archive%"=="TRUE"  execute 'cp "plots/plot_building.gdx" "%output_dir%/%archive_prefix%_plot_building_out.gdx"'
+$if "%archive%"=="TRUE"  execute 'cp "input/inputDataAdjusted1.gdx" "%output_dir%/%archive_prefix%_inputDataAdjusted1.gdx"'
 

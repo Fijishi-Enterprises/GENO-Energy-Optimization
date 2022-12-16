@@ -225,8 +225,6 @@ Parameters
     temp_limit(place,dir)    "Limit temperatures in Celcius"
     building_squares(grid)   Building square meters
     building_squares4elec(node)
-    temp_out(t)
-    ambient_temperature_K(grid,f,t)
 ;
 
 

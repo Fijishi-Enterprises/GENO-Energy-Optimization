@@ -101,6 +101,16 @@ References
 ==========================================================================
 $offtext
 
+* valid run_titles are: spot and flat
+* default --t_jump=168 --t_horizon=336
+$if not set run_title  $set       run_title spot
+$if not set year       $set       year 2015
+$if not set t_jump     $setglobal t_jump 1
+$if set t_jump         $setglobal t_jump %t_jump%
+$if not set t_horizon  $setglobal t_horizon 12
+$if set t_horizon      $setglobal t_horizon %t_horizon%
+$if 1==1 $call gams input/inputDataAdjustments.gms --year=%year% --run_title=%run_title%
+
 * Check current GAMS version
 $ife %system.gamsversion%<240 $abort GAMS distribution 24.0 or later required!
 
@@ -239,12 +249,15 @@ if(execError,
    abort "FAILED";
 );
 
+execute_unload '%output_dir%\out.gdx';
+
 Parameter supplementary_info(*);
 supplementary_info('Backbone.gms runtime (secs)')=timeelapsed
 
 $if not set plot $set plot 0
 $ifThenE %plot%<>0
 execute_unload '%output_dir%/data4plot.gdx';
-execute 'gams plots/plot_building.gms lo=%GAMS.lo% --backbone_output_GDX=%output_dir%/data4plot.gdx';
+$log execute 'gams plots/plot_building.gms lo=%GAMS.lo% --backbone_output_GDX=%output_dir%/data4plot.gdx --year=%year% --t_jump=%t_jump% --t_horizon=%t_horizon% --run_title=%run_title% '
+execute 'gams plots/plot_building.gms lo=%GAMS.lo% --backbone_output_GDX=%output_dir%/data4plot.gdx --year=%year% --t_jump=%t_jump% --t_horizon=%t_horizon% --run_title=%run_title% ';
 $endIf
 * === THE END =================================================================

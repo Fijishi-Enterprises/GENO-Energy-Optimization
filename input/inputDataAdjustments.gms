@@ -18,7 +18,8 @@ $if not exist %GAMS.curDir%Backbone.gms $abort GAMS Project or curDir command li
 $set proj_dir %GAMS.curDir%
 
 * Create elspot_prices
-$set year 2015
+$if not set year $set year 2020
+$if not set run_title $set run_title spot
 * year is used also for input folder name
 $if 1==0 $call gams input/elspot_price_xls2gdx.gms --year=%year%
 
@@ -68,7 +69,12 @@ ts_priceElspot_backup(t)=ts_priceElspot(t);
 
 *Settings
 Parameter
-  p_price_el_select "Use flat price <avg. price> EUR/MWh (set 0). Use elspot price (set 1)" /0/;
+  p_price_el_select "Use flat price <avg. price> EUR/MWh (set 0). Use elspot price (set 1)" /1/;
+$ifThen %run_title%=="spot" p_price_el_select=1;
+$elseIf %run_title%=="flat" p_price_el_select=0;
+$else $abort invalid run_title value %run_title%. Valid spot and flat
+$endIf
+
 Scalar
   flat_elec_price        Calculated average price from spot price
   cardt_flat_elec_price  Number of non-zeroes in ts_priceElspot
@@ -209,15 +215,6 @@ if(modify_input=1,
   p_gnBoundaryPropertiesForStates(elec_trans2building(grid,node),'upwardLimit','useTimeSeries') = 1E50;
 ) ;
 
-* Adding temperature data
-Sets t_temp(t);
-Parameter
-  temp_out "Outside temperature year %year% (C)"
-  ambient_temperature_K(grid,f,t);
-$gdxin %input_dir%/%year%/buildings_auxiliary_data.gdx
-$load  t_temp<ambient_temperature_K.dim3 ambient_temperature_K
-$gdxin
-temp_out(t_temp)= ambient_temperature_K('heat_AB','f00',t_temp) - c2k;
 
 * Write input with domains at execution time to take in consideration modifications
 execute_unloaddi "input\inputDataAdjusted1.gdx";
