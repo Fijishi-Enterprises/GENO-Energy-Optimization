@@ -456,11 +456,10 @@ tt_aggregate(t_current(t+dt_active(t)), tt(t))
 
 // Make alternative aggregation ordering
 option clear=tt_agg_circular;
-tmp = smax(mft, p_stepLength(mft));
-if(tmp=1,
-   tt_agg_circular(t, t_, t_) $= tt_aggregate(t, t_);
+if(sum(t_active, dt_circular(t_active)),
+    tt_agg_circular(t, t_+dt_circular(t_), t_) $= tt_aggregate(t, t_);
 else
-   tt_agg_circular(t, t_+dt_circular(t_), t_) $= tt_aggregate(t, t_);
+    tt_agg_circular(t, t_, t_) $= tt_aggregate(t, t_);
 );
 
 $macro tt_aggcircular(t, t_)  tt_agg_circular(t, t_, t__)

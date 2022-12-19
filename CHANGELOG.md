@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Fixing a bug with data recycling with constant hourly time resolution.
 
 
 ## 3.3 - 2022-12-15
