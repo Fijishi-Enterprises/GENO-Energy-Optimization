@@ -5,11 +5,14 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Add `ts_price` equivalent to Spine datastore template.
+
 ### Changed
 
 ### Fixed
 
 - Fixing a bug with data recycling with constant hourly time resolution.
+- Minor tweaks to Spine exporter settings to avoid erronous data export.
 
 
 ## 3.3 - 2022-12-15
