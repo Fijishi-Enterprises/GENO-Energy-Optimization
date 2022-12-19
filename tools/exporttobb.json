@@ -2457,6 +2457,7 @@
                 {
                     "map_type": "ParameterDefinition",
                     "position": "hidden",
+                    "filter_re": "^timeseries$",
                     "header": "*"
                 },
                 {
