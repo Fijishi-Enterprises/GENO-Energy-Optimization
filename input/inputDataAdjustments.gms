@@ -59,10 +59,10 @@ Parameters
 $gdxIn %input_dir%/%year%/elspot_prices_%year%.gdx
 $load tsIso elspotIsoBB ts_priceElspotNP=elspotBB
 $gdxin
-* Add taxes S�hk� snt/kWh � veroluokka I : 2,253 snt/kWh --> 22,53 �/MWh
+* Add taxes Sahko snt/kWh � veroluokka I : 2,253 snt/kWh --> 22,53 e/MWh
 * https://www.vero.fi/yritykset-ja-yhteisot/verot-ja-maksut/valmisteverotus/sahkovero/verotaulukot/
-* Considering Lumo tarif:  Margin call: 0,24 snt/kWh + Basic fee 1,90 �/month
-* Ignoring basic fee: 0,24 snt/kWh --> 2,4 �/MWh
+* Considering Lumo tarif:  Margin call: 0,24 snt/kWh + Basic fee 1,90 e/month
+* Ignoring basic fee: 0,24 snt/kWh --> 2,4 e/MWh
 * https://www.sahkon-kilpailutus.fi/en/market-electricity-price/
 ts_priceElspot(t)$ts_priceElspotNP(t)=ts_priceElspotNP(t) + 22.53 + 2.4 ;
 ts_priceElspot_backup(t)=ts_priceElspot(t);

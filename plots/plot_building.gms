@@ -21,12 +21,18 @@ $if not set t_horizon $set t_horizon ERR
 * ARCHIVE SETTING
 * Set TRUE or FALSE
 $set archive TRUE
+$ifThen "%archive%"=="TRUE"
 * Set file name prefix for archivation
-$set archive_prefix 2022-12-16_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
-$set output_dir plots\archive\%archive_prefix%
-$if not dExist %output_dir% $call mkdir %output_dir%
-$set archive_exec 0
-$if "%archive%"=="TRUE" $set archive_exec 1
+  $$set archive_prefix 2022-12-19_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
+  $$set output_dir_R archive/%archive_prefix%
+  $$set output_dir plots\archive\%archive_prefix%
+  $$if not dExist %output_dir% $call mkdir %output_dir%
+$else
+  $$set archive_prefix
+  $$set output_dir_R tmp
+  $$set output_dir plots
+  $$if not dExist %output_dir% $call mkdir %output_dir%
+$endIf
 
 * TEST RUN SETTING (0==False 1==True), if TRUE then time consuming R-script to create plots is called.
 $if not set testrun $set testrun 0
@@ -47,7 +53,7 @@ $onechoV > runR.inc
  $$if set Ylabel2  $set r_ylabel2 -z "%Ylabel2%"
  $$set r_xlabel
  $$if set Xlabel  $set r_xlabel -x "%Xlabel%"
- execute 'Rscript "%gams.wDir%plots\do_r_plot.r" -i "%gams.wDir%plots/%1" -o "%gams.wDir%output/%2.pdf"  -p %2 %r_param2% -w 168 -a archive/%archive_prefix% %r_ylabel% %r_ylabel2% %r_xlabel%  ';
+ execute 'Rscript "%gams.wDir%plots\do_r_plot.r" -i "%gams.wDir%plots/%1" -o "%gams.wDir%output/%2.pdf"  -p %2 %r_param2% -w 672 -a %output_dir_R% %r_ylabel% %r_ylabel2% %r_xlabel%  ';
  myerrorlevel = errorlevel;
  if(myerrorlevel=0,
    Execute.ASyncNC 'SumatraPDF.exe  "%gams.wDir%output/%2.pdf"';
@@ -104,6 +110,7 @@ Sets
     unit_DHW
     unit_heat_and_cool
     node_building2unit
+
 Parameters
     ts_priceElspot(t)               "Elspot prices (EUR/MWh)"
     ts_priceElspot_backup(t)        "Elspot Prices_2013 inc. tarifs and taxes (backup) (EUR/MWh)"
@@ -131,9 +138,8 @@ $gdxin
 temp_out(t_temp)= ambient_temperature_K('heat_AB','f00',t_temp) - c2k;
 
 * Read tparam : what is visible in plots
-execute_loaddc "%backbone_output_GDX%", mSettings ;
-*tparam(t)=(ord(t)<=(min(mSettings('building','dataLength'),mSettings('building','t_end')) - (mSettings('building','t_horizon')-mSettings('building','t_jump'))));
-tparam(t)= (ord(t)>mSettings('building','t_start')) and (ord(t)<=(mSettings('building','t_end') - (mSettings('building','t_horizon')-mSettings('building','t_jump'))));
+execute_loaddc "%backbone_output_GDX%", mSettings, t_realized ;
+tparam(t)= t_realized(t);
 * Read Elspot
 %GDXparam2%(tparam,%GDXparam2set2%)=ts_priceElspot(tparam) + eps  ;
 $set Ylabel2_alt1 "Price of electricity (EUR/MWh) :"
