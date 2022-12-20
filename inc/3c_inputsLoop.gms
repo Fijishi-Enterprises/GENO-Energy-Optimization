@@ -179,30 +179,13 @@ if(mSettings(mSolve, 't_improveForecast'),
                 + (t_solveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_unit(unit, param_unit, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
+        // ts_unitConstraintNode
         ts_unitConstraintNode(unit, constraint, node, f, tt(t))${unit_tsConstrained(unit)}
             = [ + (ord(t) - t_solveFirst)
                     * ts_unitConstraintNode(unit, constraint, node, f, t)
                 + (t_solveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
                     * ts_unitConstraintNode(unit, constraint, node, f+ddf_(f), t)
                 ] / mSettings(mSolve, 't_improveForecast');
-
-$ontext
-* Should these be handled here at all? See above note
-        // ts_effUnit
-        ts_effUnit(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f, tt(t)) // Only update for units with time series enabled
-            = [ + (ord(t) - tSolveFirst)
-                    * ts_effUnit(effSelector, unit, effSelector, param_eff, f, t)
-                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
-                    * ts_effUnit(effSelector, unit, effSelector, param_eff, f+ddf_(f), t)
-                ] / mSettings(mSolve, 't_improveForecast');
-        // ts_effGroupUnit
-        ts_effGroupUnit(effSelector, unit_timeseries(unit), param_eff, f, tt(t)) // Only update for units with time series enabled
-            = [ + (ord(t) - tSolveFirst)
-                    * ts_effGroupUnit(effSelector, unit, param_eff, f, t)
-                + (tSolveFirst - ord(t) + mSettings(mSolve, 't_improveForecast'))
-                    * ts_effGroupUnit(effSelector, unit, param_eff, f+ddf_(f), t)
-                ] / mSettings(mSolve, 't_improveForecast');
-$offtext
         // ts_influx
         ts_influx(gn_influx(grid, node), f, tt(t))
             = [ + (ord(t) - t_solveFirst)
@@ -246,15 +229,6 @@ $offtext
         // ts_unit
         ts_unit(unit_timeseries(unit), param_unit, f, tt(t)) // Only update for units with time series enabled
             = ts_unit(unit, param_unit, f, t) + ts_unit(unit, param_unit, f+ddf(f), t);
-$ontext
-* Should these be handled here at all? See above note
-        // ts_effUnit
-        ts_effUnit(effGroupSelectorUnit(effSelector, unit_timeseries(unit), effSelector), param_eff, f, tt(t)) // Only update for units with time series enabled
-            = ts_effUnit(effSelector, unit, effSelector, param_eff, f, t) + ts_effUnit(effSelector, unit, effSelector, param_eff, f+ddf(f), t);
-        // ts_effGroupUnit
-        ts_effGroupUnit(effSelector, unit_timeseries(unit), param_eff, f, tt(t)) // Only update for units with time series enabled
-            = ts_effGroupUnit(effSelector, unit, param_eff, f, t) + ts_effGroupUnit(effSelector, unit, param_eff, f+ddf(f), t);
-$offtext
         // ts_influx
         ts_influx(gn_influx(grid, node), f, tt(t))
             = ts_influx(grid, node, f, t) + ts_influx(grid, node, f+ddf(f), t);

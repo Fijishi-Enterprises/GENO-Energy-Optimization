@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 
 - Fixing a bug with data recycling with constant hourly time resolution.
 - Minor tweaks to Spine exporter settings to avoid erronous data export.
+- removed old unused sections of code from 3c_inputsLoop
 
 
 ## 3.3 - 2022-12-15
