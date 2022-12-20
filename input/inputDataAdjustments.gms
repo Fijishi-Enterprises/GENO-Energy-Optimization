@@ -64,7 +64,10 @@ $gdxin
 * Considering Lumo tarif:  Margin call: 0,24 snt/kWh + Basic fee 1,90 e/month
 * Ignoring basic fee: 0,24 snt/kWh --> 2,4 e/MWh
 * https://www.sahkon-kilpailutus.fi/en/market-electricity-price/
-ts_priceElspot(t)$ts_priceElspotNP(t)=ts_priceElspotNP(t) + 22.53 + 2.4 ;
+
+* we use a temporary set to ensure that if price is zero, then eps is written. Hence, adding taxes to eps makes the cost positive
+option tt<elspotIsoBB;
+ts_priceElspot(tt(t))=eps + ts_priceElspotNP(t) + 22.53 + 2.4 ;
 ts_priceElspot_backup(t)=ts_priceElspot(t);
 
 *Settings
