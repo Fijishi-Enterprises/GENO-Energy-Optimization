@@ -30,7 +30,7 @@ cat "Summary categories"/
 /;
 
 Parameters
-summary(*,grid)                  "Summary of Energy Modelling of Buildings in Backbone: %run_title% %year%"
+summary(*,grid)                  "Summary of Energy Modelling of Buildings in Backbone: %run_title% %year% (t_jump %t_jump% t_horizon %t_horizon%) "
 tmp_cost(*,grid,t)               "Auxiliary parameter for calculations"
 error_unit_details(node,unit,t)           "Show which unit supplies energy to grid "
 ;

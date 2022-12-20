@@ -17,13 +17,13 @@ $if not set run_title $set run_title TEST
 $if not set year $set year 2000
 $if not set t_jump $set t_jump ERR
 $if not set t_horizon $set t_horizon ERR
-
-* ARCHIVE SETTING
 * Set TRUE or FALSE
-$set archive TRUE
+$if not set archive $set archive TRUE
+
+* ARCHIVE 
 $ifThen "%archive%"=="TRUE"
 * Set file name prefix for archivation
-  $$set archive_prefix 2022-12-19_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
+  $$set archive_prefix 2022-12-20_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
   $$set output_dir_R archive/%archive_prefix%
   $$set output_dir plots\archive\%archive_prefix%
   $$if not dExist %output_dir% $call mkdir %output_dir%
@@ -53,7 +53,7 @@ $onechoV > runR.inc
  $$if set Ylabel2  $set r_ylabel2 -z "%Ylabel2%"
  $$set r_xlabel
  $$if set Xlabel  $set r_xlabel -x "%Xlabel%"
- execute 'Rscript "%gams.wDir%plots\do_r_plot.r" -i "%gams.wDir%plots/%1" -o "%gams.wDir%output/%2.pdf"  -p %2 %r_param2% -w 672 -a %output_dir_R% %r_ylabel% %r_ylabel2% %r_xlabel%  ';
+ execute 'Rscript "%gams.wDir%plots\do_r_plot.r" -i "%gams.wDir%plots/%1" -o "%gams.wDir%output/%2.pdf"  -p %2 %r_param2% -w 168 -a %output_dir_R% %r_ylabel% %r_ylabel2% %r_xlabel%  ';
  myerrorlevel = errorlevel;
  if(myerrorlevel=0,
    Execute.ASyncNC 'SumatraPDF.exe  "%gams.wDir%output/%2.pdf"';
@@ -72,7 +72,7 @@ $if "%archive%"=="TRUE"  $call cp "%backbone_output_GDX%" "%output_dir%/%archive
 
 * Define common sets and parameters
 $set GDXparam2         priceElec
-$set GDXparam2set2     price_2013
+$set GDXparam2set2     price_%year%
 $set GDXparam2alt2     TempOut
 $set GDXparam2set2alt2 temp
 
@@ -113,7 +113,7 @@ Sets
 
 Parameters
     ts_priceElspot(t)               "Elspot prices (EUR/MWh)"
-    ts_priceElspot_backup(t)        "Elspot Prices_2013 inc. tarifs and taxes (backup) (EUR/MWh)"
+    ts_priceElspot_backup(t)        "Elspot Prices_%year% inc. tarifs and taxes (backup) (EUR/MWh)"
     building_squares                "Building square meters (m2)"
     c2k                             "Convert celcius to kelvin degrees"
     p_price_el_select               "Use flat price 1 EUR/MWh (set 0). Use elspot price (set 1)"
@@ -296,7 +296,7 @@ $set GDXparam r_state_gnft
 $set TMPparam r_state_DH1
 $set Ylabel Temperture (Celcius) :
 $set Ylabel2 %Ylabel2_alt1%
-Parameter %TMPparam%(t,*)   "Detached House 1 (DH1)" ;
+Parameter %TMPparam%(t,*)   "Detached House(DH)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
 %TMPparam%(tparam(t),'out_temp')=temp_out(t);

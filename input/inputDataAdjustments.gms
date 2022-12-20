@@ -18,7 +18,7 @@ $if not exist %GAMS.curDir%Backbone.gms $abort GAMS Project or curDir command li
 $set proj_dir %GAMS.curDir%
 
 * Create elspot_prices
-$if not set year $set year 2020
+$if not set year $set year 2015
 $if not set run_title $set run_title spot
 * year is used also for input folder name
 $if 1==0 $call gams input/elspot_price_xls2gdx.gms --year=%year%
@@ -162,7 +162,7 @@ building_heat_storage(grid,node) =  building_nodes(grid,node) and not building_e
 Table
   temp_limit(place,dir)   "Limit temperatures in Celcius"
                              lo      ref        up
-interior_air_and_furniture   21      21         27
+interior_air_and_furniture   21      21         25
 internal_mass                0       20         50
 envelope_mass                -90     20         50
 DHWT_daily                   60      60         90
@@ -205,14 +205,11 @@ if(modify_input=1,
   p_gnBoundaryPropertiesForStates(building_heat_DHWT_daily(grid,node),'downwardLimit','constant') = c2k + temp_limit('DHWT_daily' ,'lo');
   p_gnBoundaryPropertiesForStates(building_heat_DHWT_daily(grid,node),'reference','constant')     = c2k + temp_limit('DHWT_daily' ,'ref');
   p_gnBoundaryPropertiesForStates(building_heat_DHWT_daily(grid,node),'upwardLimit','constant')   = c2k + temp_limit('DHWT_daily' ,'up');
-* Set electricity price with ts_node modifier
-  p_gnBoundaryPropertiesForStates(elec_trans2building(grid,node), 'balancePenalty', 'useTimeSeries') = 1 ;
-  p_gnBoundaryPropertiesForStates(elec_trans2building(grid,node), 'balancePenalty', 'useConstant')   = 0 ;
-  p_gnBoundaryPropertiesForStates(elec_trans2building(grid,node), 'balancePenalty', 'constant')      = 0 ;
-  ts_node(grid, node, 'balancePenalty', f, t) = 1E9;
-  ts_node(elec_trans2building(grid,node), 'balancePenalty', f, t) = ts_priceElspot(t);
-* Work around
-  p_gnBoundaryPropertiesForStates(elec_trans2building(grid,node),'upwardLimit','useTimeSeries') = 1E50;
+* Set electricity price with ts_price modifier
+  p_gn( 'elec', elec(node), 'nodeBalance')=0;
+  p_gn( 'elec', elec(node), 'usePrice')=1;
+*Warning, we have not considered properly the case that price is exactly 0, i.e. missing
+  ts_price(elec(node),t) = ts_priceElspot(t);
 ) ;
 
 
