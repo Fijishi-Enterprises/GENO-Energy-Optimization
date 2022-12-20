@@ -18,9 +18,9 @@ $if not set year $set year 2000
 $if not set t_jump $set t_jump ERR
 $if not set t_horizon $set t_horizon ERR
 * Set TRUE or FALSE
-$if not set archive $set archive TRUE
+$if not set archive $set archive FALSE
 
-* ARCHIVE 
+* ARCHIVE
 $ifThen "%archive%"=="TRUE"
 * Set file name prefix for archivation
   $$set archive_prefix 2022-12-20_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC

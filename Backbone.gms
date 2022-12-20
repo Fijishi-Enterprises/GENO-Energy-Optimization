@@ -103,13 +103,14 @@ $offtext
 
 * valid run_titles are: spot and flat
 * default --t_jump=168 --t_horizon=336
-$if not set run_title  $set       run_title spot
+$if not set run_title  $set       run_title flat
 $if not set year       $set       year      2015
 $if not set t_jump     $setglobal t_jump    168
 $setglobal t_jump %t_jump%
 $if not set t_horizon  $setglobal t_horizon 336
 $setglobal t_horizon %t_horizon%
-$log t_jump %t_jump%  %t_horizon%  year %year% run_title %run_title%
+$if not set archive    $set       archive   TRUE
+$log t_jump %t_jump%  %t_horizon%  year %year% run_title %run_title% archive %archive%
 $if 1==1 $call gams input/inputDataAdjustments.gms --year=%year% --run_title=%run_title%
 
 * Check current GAMS version
@@ -258,7 +259,7 @@ supplementary_info('Backbone.gms runtime (secs)')=timeelapsed
 $if not set plot $set plot 0
 $ifThenE %plot%<>0
 execute_unload '%output_dir%/data4plot.gdx';
-$log execute 'gams plots/plot_building.gms lo=%GAMS.lo% --backbone_output_GDX=%output_dir%/data4plot.gdx --year=%year% --t_jump=%t_jump% --t_horizon=%t_horizon% --run_title=%run_title% '
-execute 'gams plots/plot_building.gms lo=%GAMS.lo% --backbone_output_GDX=%output_dir%/data4plot.gdx --year=%year% --t_jump=%t_jump% --t_horizon=%t_horizon% --run_title=%run_title% ';
+$log execute 'gams plots/plot_building.gms lo=%GAMS.lo% --backbone_output_GDX=%output_dir%/data4plot.gdx --year=%year% --t_jump=%t_jump% --t_horizon=%t_horizon% --run_title=%run_title% --archive=%archive%'
+execute 'gams plots/plot_building.gms lo=%GAMS.lo% --backbone_output_GDX=%output_dir%/data4plot.gdx --year=%year% --t_jump=%t_jump% --t_horizon=%t_horizon% --run_title=%run_title% --archive=%archive%';
 $endIf
 * === THE END =================================================================
