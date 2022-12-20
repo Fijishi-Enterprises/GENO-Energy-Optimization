@@ -1,5 +1,4 @@
 
-$ontext
 * AdditionalSetsAndParameters.inc is read in 1e_inputs before the input data gdx.
 * This is a template file giving examples how this can be used to expand the model
 
@@ -8,5 +7,3 @@ $ontext
 Sets
 	set1(unit) "new input data set for units"   
 ;
-
-$offtext 

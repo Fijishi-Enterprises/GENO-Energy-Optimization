@@ -20,7 +20,7 @@ $offtext
 * =============================================================================
 
 * --- Result arrays required by model dynamics --------------------------------
-if(tSolveFirst >= mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod') - mSettings(mSolve, 't_jump')
+if(t_solveFirst >= mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod') - mSettings(mSolve, 't_jump')
    and firstResultsOutputSolve,
     loop(msf(mSolve, s, f_solve),
         firstResultsOutputSolve = 0;
@@ -34,7 +34,7 @@ if(tSolveFirst >= mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializa
 
 // Improve performance & readibility by using a few helper sets
 option clear=t_startp, clear=sft_resdgn, s_realized < sft_realized;
-t_startp(t)
+t_startp(t_full(t))
    ${(ord(t) > mSettings(mSolve, 't_start') + mSettings(mSolve, 't_initializationPeriod'))
      and (ord(t) <= mSettings(mSolve, 't_end')+1)
      and sum((s,f), sft_realized(s, f , t))
@@ -70,7 +70,7 @@ loop(ms(mSolve, s_realized(s)),
 // Loop over reserve horizon, as the reserve variables use a different ft-structure due to commitment
 
 sft_resdgn(restypeDirectionGridNode(restype, up_down, gn), sft(s, f, t_startp(t)))
-  ${ord(t) <= tSolveFirst + p_gnReserves(gn, restype, 'reserve_length')} = yes;
+  ${ord(t) <= t_solveFirst + p_gnReserves(gn, restype, 'reserve_length')} = yes;
 
 loop(s_realized(s),
     // Reserve provisions of units
@@ -93,7 +93,7 @@ loop(s_realized(s),
 
     // Loop over group reserve horizon
     loop((restypeDirectionGroup(restype, up_down, group), sft(s, f, t_startp(t)))
-        ${ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')},
+        ${ord(t) <= t_solveFirst + p_groupReserves(group, restype, 'reserve_length')},
 
         // Reserve requirement due to N-1 reserve constraint
         r_reserveDemand_largestInfeedUnit_ft(restype, 'up', group, f_(f+df_reservesGroup(group, restype, f, t)), t)
@@ -140,8 +140,8 @@ loop(s_realized(s),
 );
 
 // Total Objective function
-r_cost_objectiveFunction_t(tSolve)
-    = r_cost_objectiveFunction_t(tSolve - mSettings(mSolve, 't_jump')) + v_obj.l
+r_cost_objectiveFunction_t(t_solve)
+    = r_cost_objectiveFunction_t(t_solve - mSettings(mSolve, 't_jump')) + v_obj.l
 ;
 
 loop(s_realized(s),
@@ -161,7 +161,7 @@ loop(s_realized(s),
 );
 // Unit investments
 r_invest_unitCount_u(unit)${ (unit_investLP(unit) or unit_investMIP(unit))
-                  and p_unit(unit, 'becomeAvailable') <= tSolveFirst + mSettings(mSolve, 't_jump')
+                  and p_unit(unit, 'becomeAvailable') <= t_solveFirst + mSettings(mSolve, 't_jump')
                   }
     = v_invest_LP.l(unit) + v_invest_MIP.l(unit)
 ;
@@ -169,7 +169,7 @@ r_invest_unitCount_u(unit)${ (unit_investLP(unit) or unit_investMIP(unit))
 // Link investments
 r_invest_transferCapacity_gnn(grid, node, node_, t_invest(t))${ p_gnn(grid, node, node_, 'transferCapInvLimit')
 *                                                   and t_current(t)
-                                                   and ord(t) <= tSolveFirst + mSettings(mSolve, 't_jump')
+                                                   and ord(t) <= t_solveFirst + mSettings(mSolve, 't_jump')
                                                    }
     = v_investTransfer_LP.l(grid, node, node_, t)
         + v_investTransfer_MIP.l(grid, node, node_, t) * p_gnn(grid, node, node_, 'unitSize')
@@ -228,34 +228,34 @@ $endif.diag
 
 // Model/solve status
 if (mSolve('schedule'),
-    r_info_solveStatus(tSolve,'modelStat')=schedule.modelStat;
-    r_info_solveStatus(tSolve,'solveStat')=schedule.solveStat;
-    r_info_solveStatus(tSolve,'totalTime')=schedule.etSolve;
-    r_info_solveStatus(tSolve,'solverTime')=schedule.etSolver;
-    r_info_solveStatus(tSolve,'iterations')=schedule.iterUsd;
-    r_info_solveStatus(tSolve,'nodes')=schedule.nodUsd;
-    r_info_solveStatus(tSolve,'numEqu')=schedule.numEqu;
-    r_info_solveStatus(tSolve,'numDVar')=schedule.numDVar;
-    r_info_solveStatus(tSolve,'numVar')=schedule.numVar;
-    r_info_solveStatus(tSolve,'numNZ')=schedule.numNZ;
-    r_info_solveStatus(tSolve,'sumInfes')=schedule.sumInfes;
-    r_info_solveStatus(tSolve,'objEst')=schedule.objEst;
-    r_info_solveStatus(tSolve,'objVal')=schedule.objVal;
+    r_info_solveStatus(t_solve,'modelStat')=schedule.modelStat;
+    r_info_solveStatus(t_solve,'solveStat')=schedule.solveStat;
+    r_info_solveStatus(t_solve,'totalTime')=schedule.etSolve;
+    r_info_solveStatus(t_solve,'solverTime')=schedule.etSolver;
+    r_info_solveStatus(t_solve,'iterations')=schedule.iterUsd;
+    r_info_solveStatus(t_solve,'nodes')=schedule.nodUsd;
+    r_info_solveStatus(t_solve,'numEqu')=schedule.numEqu;
+    r_info_solveStatus(t_solve,'numDVar')=schedule.numDVar;
+    r_info_solveStatus(t_solve,'numVar')=schedule.numVar;
+    r_info_solveStatus(t_solve,'numNZ')=schedule.numNZ;
+    r_info_solveStatus(t_solve,'sumInfes')=schedule.sumInfes;
+    r_info_solveStatus(t_solve,'objEst')=schedule.objEst;
+    r_info_solveStatus(t_solve,'objVal')=schedule.objVal;
 );
 if (mSolve('invest'),
-    r_info_solveStatus(tSolve,'modelStat')=invest.modelStat;
-    r_info_solveStatus(tSolve,'solveStat')=invest.solveStat;
-    r_info_solveStatus(tSolve,'totalTime')=invest.etSolve;
-    r_info_solveStatus(tSolve,'solverTime')=invest.etSolver;
-    r_info_solveStatus(tSolve,'iterations')=invest.iterUsd;
-    r_info_solveStatus(tSolve,'nodes')=invest.nodUsd;
-    r_info_solveStatus(tSolve,'numEqu')=invest.numEqu;
-    r_info_solveStatus(tSolve,'numDVar')=invest.numDVar;
-    r_info_solveStatus(tSolve,'numVar')=invest.numVar;
-    r_info_solveStatus(tSolve,'numNZ')=invest.numNZ;
-    r_info_solveStatus(tSolve,'sumInfes')=invest.sumInfes;
-    r_info_solveStatus(tSolve,'objEst')=invest.objEst;
-    r_info_solveStatus(tSolve,'objVal')=invest.objVal;
+    r_info_solveStatus(t_solve,'modelStat')=invest.modelStat;
+    r_info_solveStatus(t_solve,'solveStat')=invest.solveStat;
+    r_info_solveStatus(t_solve,'totalTime')=invest.etSolve;
+    r_info_solveStatus(t_solve,'solverTime')=invest.etSolver;
+    r_info_solveStatus(t_solve,'iterations')=invest.iterUsd;
+    r_info_solveStatus(t_solve,'nodes')=invest.nodUsd;
+    r_info_solveStatus(t_solve,'numEqu')=invest.numEqu;
+    r_info_solveStatus(t_solve,'numDVar')=invest.numDVar;
+    r_info_solveStatus(t_solve,'numVar')=invest.numVar;
+    r_info_solveStatus(t_solve,'numNZ')=invest.numNZ;
+    r_info_solveStatus(t_solve,'sumInfes')=invest.sumInfes;
+    r_info_solveStatus(t_solve,'objEst')=invest.objEst;
+    r_info_solveStatus(t_solve,'objVal')=invest.objVal;
 );
 
 

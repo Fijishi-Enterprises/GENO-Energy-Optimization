@@ -262,7 +262,7 @@ mf_realization(mType, 'f00') = yes;
 Option clear = mTimeseries_loop_read;
 
 alias(m, mSolve);
-alias(t, t_, t__, tSolve, tFuel);
+alias(t, t_, t__, t_solve);
 alias(f, f_, f__);
 alias(s, s_, s__);
 alias(grid, grid_, grid_output);

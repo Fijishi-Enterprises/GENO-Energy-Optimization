@@ -109,7 +109,7 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
 
 q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
-    ${  ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')
+    ${  ord(t) <= t_solveFirst + p_groupReserves(group, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
                   and sft_realized(s, f, t)]
         and not restype_inertia(restype)
@@ -199,7 +199,7 @@ q_resDemand(restypeDirectionGroup(restype, up_down, group), sft(s, f, t))
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
 
 q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_fail(unit_), sft(s, f, t))
-    ${  ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')
+    ${  ord(t) <= t_solveFirst + p_groupReserves(group, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
             and ft_realized(f, t)
             ]
@@ -386,7 +386,7 @@ q_rateOfChangeOfFrequencyTransfer(group, gn2n(grid, node_, node_fail), sft(s, f,
 // NOTE! This could be solved by formulating a new "ft_reserves" set to cover only the relevant forecast-time steps, but it would possibly make the reserves even more confusing.
 
 q_resDemandLargestInfeedTransfer(restypeDirectionGroup(restype, up_down, group), gn2n(grid, node_left, node_right), sft(s, f, t))
-    ${  ord(t) <= tSolveFirst + p_groupReserves(group, restype, 'reserve_length')
+    ${  ord(t) <= t_solveFirst + p_groupReserves(group, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
                   and sft_realized(s, f, t)]
         and gn2n_directional(grid, node_left, node_right)
@@ -492,7 +492,7 @@ q_resDemandLargestInfeedTransfer(restypeDirectionGroup(restype, up_down, group),
 q_maxDownward(gnusft(grid, node, unit, s, f, t))
     ${  (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
-            [   ord(t) <= tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is either providing
+            [   ord(t) <= t_solveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is either providing
                 and sum(restype, gnuRescapable(restype, 'down', grid, node, unit)) // downward reserves
                 ]
             // NOTE!!! Could be better to form a gnusft_reserves subset?
@@ -513,7 +513,7 @@ q_maxDownward(gnusft(grid, node, unit, s, f, t))
     + v_gen(grid, node, unit, s, f, t)
 
     // Downward reserve participation
-    - sum(gnuRescapable(restype, 'down', grid, node, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
+    - sum(gnuRescapable(restype, 'down', grid, node, unit)${ ord(t) <= t_solveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
                                                              and not gnuOfflineRescapable(restype, grid, node, unit)
                                                              },
         + v_reserve(restype, 'down', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
@@ -598,7 +598,7 @@ q_maxDownward(gnusft(grid, node, unit, s, f, t))
 q_maxDownwardOfflineReserve(gnusft(grid, node, offlineResUnit(unit), s, f, t))
     ${  (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
-            [   ord(t) <= tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is providing
+            [   ord(t) <= t_solveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is providing
                 and sum(restype, gnuRescapable(restype, 'down', grid, node, unit)) // downward reserves
                 ]
         }
@@ -611,7 +611,7 @@ q_maxDownwardOfflineReserve(gnusft(grid, node, offlineResUnit(unit), s, f, t))
     + v_gen(grid, node, unit, s, f, t)
 
     // Downward reserve participation
-    - sum(gnuRescapable(restype, 'down', grid, node, unit)${ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')},
+    - sum(gnuRescapable(restype, 'down', grid, node, unit)${ord(t) <= t_solveFirst + p_gnReserves(grid, node, restype, 'reserve_length')},
         + v_reserve(restype, 'down', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t)
         ) // END sum(nuRescapable)
 
@@ -651,7 +651,7 @@ q_maxDownwardOfflineReserve(gnusft(grid, node, offlineResUnit(unit), s, f, t))
 q_maxUpward(gnusft(grid, node, unit, s, f, t))
     ${  (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
-            [   ord(t) <= tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is either providing
+            [   ord(t) <= t_solveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is either providing
                 and sum(restype, gnuRescapable(restype, 'up', grid, node, unit)) // upward reserves
                 ]
             or [
@@ -673,7 +673,7 @@ q_maxUpward(gnusft(grid, node, unit, s, f, t))
     + v_gen(grid, node, unit, s, f, t)
 
     // Upwards reserve participation
-    + sum(gnuRescapable(restype, 'up', grid, node, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
+    + sum(gnuRescapable(restype, 'up', grid, node, unit)${ ord(t) <= t_solveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
                                                            and not gnuOfflineRescapable(restype, grid, node, unit)
                                                            },
         + v_reserve(restype, 'up', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t)
@@ -753,7 +753,7 @@ q_maxUpward(gnusft(grid, node, unit, s, f, t))
 q_maxUpwardOfflineReserve(gnusft(grid, node, offlineResUnit(unit), s, f, t))
     ${  (p_gnu(grid, node, unit, 'capacity') or p_gnu(grid, node, unit, 'unitSize'))
         and {
-            [   ord(t) <= tSolveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is providing
+            [   ord(t) <= t_solveFirst + smax(restype, p_gnReserves(grid, node, restype, 'reserve_length')) // Unit is providing
                 and sum(restype, gnuRescapable(restype, 'up', grid, node, unit)) // upward reserves
                 ]
         }
@@ -766,7 +766,7 @@ q_maxUpwardOfflineReserve(gnusft(grid, node, offlineResUnit(unit), s, f, t))
     + v_gen(grid, node, unit, s, f, t)
 
     // Upwards reserve participation
-    + sum(gnuRescapable(restype, 'up', grid, node, unit)${ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')},
+    + sum(gnuRescapable(restype, 'up', grid, node, unit)${ord(t) <= t_solveFirst + p_gnReserves(grid, node, restype, 'reserve_length')},
         + v_reserve(restype, 'up', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t)
         ) // END sum(nuRescapable)
 
@@ -840,7 +840,7 @@ q_fixedFlow(gnusft(grid, node, unit_flow(unit), s, f, t))
 * --- Reserve Provision of Units with Investments -----------------------------
 
 q_reserveProvision(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid, node), unit), sft(s, f, t))
-    ${  ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
+    ${  ord(t) <= t_solveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
         and usft(unit, s, f, t)
         and (unit_investLP(unit) or unit_investMIP(unit))
         and not sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group),
@@ -876,7 +876,7 @@ q_reserveProvision(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid
 * --- Online Reserve Provision of Units with Online Variables -----------------
 
 q_reserveProvisionOnline(gnuRescapable(restypeDirectionGridNode(restype, up_down, grid, node), unit), sft(s, f, t))
-    ${  ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
+    ${  ord(t) <= t_solveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
         and usft(unit, s, f, t)
         and not sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group),
                     ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t))
@@ -923,7 +923,7 @@ q_startshut(usft_online(unit, s, f, t))
     // Units previously online
     // The same units
     - v_online_LP (unit, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))${ usft_onlineLP_withPrevious(unit, s, f+df(f,t+dt(t)), t+dt(t))
-                                                             and not usft_aggregator_first(unit, s, f, t) } // This reaches to tFirstSolve when dt = -1
+                                                             and not usft_aggregator_first(unit, s, f, t) } // This reaches to tFirstSolve when dt = -1   // t_solveFirst?
     - v_online_MIP(unit, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))${ usft_onlineMIP_withPrevious(unit, s, f+df(f,t+dt(t)), t+dt(t))
                                                              and not usft_aggregator_first(unit, s, f, t) }
 
@@ -943,7 +943,7 @@ q_startshut(usft_online(unit, s, f, t))
             ${ usft_onlineLP_withPrevious(unit, s, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) }
         + v_startup_MIP(starttype, unit, s, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t))
             ${ usft_onlineMIP_withPrevious(unit, s, f+df(f,t+dt_toStartup(unit, t)), t+dt_toStartup(unit, t)) }
-        )${not [unit_aggregator(unit) and ord(t) + dt_toStartup(unit, t) <= tSolveFirst + p_unit(unit, 'lastStepNotAggregated')]} // END sum(starttype)
+        )${not [unit_aggregator(unit) and ord(t) + dt_toStartup(unit, t) <= t_solveFirst + p_unit(unit, 'lastStepNotAggregated')]} // END sum(starttype)
 
     // NOTE! According to 3d_setVariableLimits,
     // cannot start a unit if the time when the unit would become online is outside
@@ -1183,7 +1183,7 @@ q_rampUpLimit(gnusft_ramp(grid, node, unit, s, f, t))
 
     // Ramp speed of the unit?
     + v_genRamp(grid, node, unit, s, f, t)    // MW/h
-    + sum(gnuRescapable(restype, 'up', grid, node, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
+    + sum(gnuRescapable(restype, 'up', grid, node, unit)${ ord(t) <= t_solveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
                                                            and not gnuOfflineRescapable(restype, grid, node, unit)
                                                            },
         + v_reserve(restype, 'up', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
@@ -1316,7 +1316,7 @@ q_rampDownLimit(gnusft_ramp(grid, node, unit, s, f, t))
 
     // Ramp speed of the unit?
     + v_genRamp(grid, node, unit, s, f, t)   // MW/h
-    - sum(gnuRescapable(restype, 'down', grid, node, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
+    - sum(gnuRescapable(restype, 'down', grid, node, unit)${ ord(t) <= t_solveFirst + p_gnReserves(grid, node, restype, 'reserve_length')
                                                              and not gnuOfflineRescapable(restype, grid, node, unit)
                                                              },
         + v_reserve(restype, 'down', grid, node, unit, s, f+df_reserves(grid, node, restype, f, t), t) // (v_reserve can be used only if the unit is capable of providing a particular reserve)
@@ -2559,7 +2559,7 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
             // Reserve provision from units that output to this node
             + sum(gn2gnu(grid_, node_input, grid, node, unit)${usft(unit, s, f, t)},
                 // Downward reserves from units that output energy to the node
-                + sum(gnuRescapable(restype, 'down', grid_, node_input, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid_, node_input, restype, 'reserve_length') },
+                + sum(gnuRescapable(restype, 'down', grid_, node_input, unit)${ ord(t) <= t_solveFirst + p_gnReserves(grid_, node_input, restype, 'reserve_length') },
                     + v_reserve(restype, 'down', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
                         * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
                         / p_gnReserves(grid_, node_input, restype, 'reserve_reactivation_time')
@@ -2573,7 +2573,7 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
             // Reserve provision from units that take input from this node
             + sum(gn2gnu(grid, node, grid_, node_output, unit)${usft(unit, s, f, t)},
                 // Downward reserves from units that use the node as energy input
-                + sum(gnuRescapable(restype, 'down', grid_, node_output, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid_, node_output, restype, 'reserve_length') },
+                + sum(gnuRescapable(restype, 'down', grid_, node_output, unit)${ ord(t) <= t_solveFirst + p_gnReserves(grid_, node_output, restype, 'reserve_length') },
                     + v_reserve(restype, 'down', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
                         * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
                         / p_gnReserves(grid_, node_output, restype, 'reserve_reactivation_time')
@@ -2635,7 +2635,7 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
             // Reserve provision from units that output to this node
             + sum(gn2gnu(grid_, node_input, grid, node, unit)${usft(unit, s, f, t)},
                 // Upward reserves from units that output energy to the node
-                + sum(gnuRescapable(restype, 'up', grid_, node_input, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid_, node_input, restype, 'reserve_length') },
+                + sum(gnuRescapable(restype, 'up', grid_, node_input, unit)${ ord(t) <= t_solveFirst + p_gnReserves(grid_, node_input, restype, 'reserve_length') },
                     + v_reserve(restype, 'up', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
                         * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
                         / p_gnReserves(grid_, node_input, restype, 'reserve_reactivation_time')
@@ -2649,7 +2649,7 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
             // Reserve provision from units that take input from this node
             + sum(gn2gnu(grid, node, grid_, node_output, unit)${usft(unit, s, f, t)},
                 // Upward reserves from units that use the node as energy input
-                + sum(gnuRescapable(restype, 'up', grid_, node_output, unit)${ ord(t) <= tSolveFirst + p_gnReserves(grid_, node_output, restype, 'reserve_length') },
+                + sum(gnuRescapable(restype, 'up', grid_, node_output, unit)${ ord(t) <= t_solveFirst + p_gnReserves(grid_, node_output, restype, 'reserve_length') },
                     + v_reserve(restype, 'up', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
                         * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
                         / p_gnReserves(grid_, node_output, restype, 'reserve_reactivation_time')
@@ -2683,7 +2683,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
             + sum(gnuRescapable(restype, 'down', grid_, node_input, unit)${ p_gn(grid, node, 'energyStoredPerUnitOfState') // Reserve provisions not applicable if no state energy content
                                                                             and gn2gnu(grid_, node_input, grid, node, unit)
                                                                             and usft(unit, s, f, t)
-                                                                            and ord(t) <= tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
+                                                                            and ord(t) <= t_solveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                             },
                 + v_reserve(restype, 'down', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
                     * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
@@ -2698,7 +2698,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
             + sum(gnuRescapable(restype, 'down', grid_, node_output, unit)${ p_gn(grid, node, 'energyStoredPerUnitOfState') // Reserve provisions not applicable if no state energy content
                                                                              and gn2gnu(grid, node, grid_, node_output, unit)
                                                                              and usft(unit, s, f, t)
-                                                                             and ord(t) <= tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
+                                                                             and ord(t) <= t_solveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                              },
                 + v_reserve(restype, 'down', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
                     * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
@@ -2732,7 +2732,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
             + sum(gnuRescapable(restype, 'up', grid_, node_input, unit)${ p_gn(grid, node_, 'energyStoredPerUnitOfState')
                                                                           and gn2gnu(grid_, node_input, grid, node_, unit)
                                                                           and usft(unit, s, f, t)
-                                                                          and ord(t) <= tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
+                                                                          and ord(t) <= t_solveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                           },
                 + v_reserve(restype, 'up', grid_, node_input, unit, s, f+df_reserves(grid_, node_input, restype, f, t), t)
                     * p_gnReserves(grid_, node_input, restype, 'reserve_activation_duration')
@@ -2747,7 +2747,7 @@ q_boundStateMaxDiff(gnn_boundState(grid, node, node_), msft(m, s, f, t))
             + sum(gnuRescapable(restype, 'up', grid_, node_output, unit)${ p_gn(grid, node_, 'energyStoredPerUnitOfState')
                                                                            and gn2gnu(grid, node_, grid_, node_output, unit)
                                                                            and usft(unit, s, f, t)
-                                                                           and ord(t) <= tSolveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
+                                                                           and ord(t) <= t_solveFirst + p_gnReserves(grid_, node, restype, 'reserve_length')
                                                                            },
                 + v_reserve(restype, 'up', grid_, node_output, unit, s, f+df_reserves(grid_, node_output, restype, f, t), t)
                     * p_gnReserves(grid_, node_output, restype, 'reserve_activation_duration')
@@ -2996,7 +2996,7 @@ q_superposStateDownwardLimit(gn_state(grid, node_superpos(node)), mz(m,z))..
 *--- Minimum Inertia ----------------------------------------------------------
 
 q_inertiaMin(restypeDirectionGroup(restype_inertia, up_down, group), sft(s, f, t))
-    ${  ord(t) <= tSolveFirst + p_groupReserves(group, restype_inertia, 'reserve_length')
+    ${  ord(t) <= t_solveFirst + p_groupReserves(group, restype_inertia, 'reserve_length')
         and not [ restypeReleasedForRealization(restype_inertia)
                   and sft_realized(s, f, t)]
         and p_groupPolicy(group, 'ROCOF')
@@ -3222,6 +3222,11 @@ q_capacityMargin(gn(grid, node), sft(s, f, t))
                 + p_unit(unit, 'availability')${not p_unit(unit, 'useTimeseriesAvailability')}
                 + ts_unit_(unit, 'availability', f, t)${p_unit(unit, 'useTimeseriesAvailability')}
                 ]
+            // adding exception of input flow units
+            * [ -1 $ gnu_input(grid, node, unit)
+                +1 $ gnu_output(grid, node, unit)
+                ]
+            // capacity
             * [
                 // Output capacity before investments
                 + p_gnu(grid, node, unit, 'capacity')
@@ -3509,7 +3514,7 @@ q_energyShareLimit(group, min_max)
 *--- Maximum Share of Reserve Provision ---------------------------------------
 
 q_ReserveShareMax(group, restypeDirectionGroup(restype, up_down, group_), sft(s, f, t))
-    ${  ord(t) <= tSolveFirst + p_groupReserves(group_, restype, 'reserve_length')
+    ${  ord(t) <= t_solveFirst + p_groupReserves(group_, restype, 'reserve_length')
         and not [ restypeReleasedForRealization(restype)
                   and sft_realized(s, f, t)]
         and p_groupReserves4D(group, restype, up_down, group_, 'ReserveShareMax')

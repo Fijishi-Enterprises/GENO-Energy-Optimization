@@ -197,7 +197,7 @@ param_gn  "Possible parameters for grid, node" /
     boundStart       "A flag to bound the first t in the run using reference constant or time series (empty or 1)"
     boundStartOfSamples  "A flag to bound the first t of each sample using reference constant or time series (empty or 1)"
     boundStartAndEnd "A flag that both start and end are bound using reference constant or time series (empty or 1)"
-    boundStartToEnd  "Force the last states of solve to equal the first state (empty or 1)"
+    boundStartToEnd  "A flag to force the last states of solve to equal the first state (empty or 1)"
     boundEnd         "A flag to bound last t in each solve based on the reference constant or time series (empty or 1)"
     boundEndOfSamples  "A flag to bound the last t of each sample using reference constant or time series (empty or 1)"
     boundAll         "A flag to bound the state to the reference in all time steps (empty or 1)"

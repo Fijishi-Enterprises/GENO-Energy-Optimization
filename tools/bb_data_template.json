@@ -441,10 +441,17 @@
         ],
         [
             "node",
+            "price",
+            null,
+            null,
+            "Commodity price (EUR/MWh). Values are read directly from input data or calculated from ts_priceChange. Can use both, but only one option for each node allowed."
+        ],
+        [
+            "node",
             "priceChange",
             null,
             null,
-            "Initial node/commodity price and consequent changes in price (EUR/MWh)"
+            "Initial commodity price and consequent changes in commodity price (EUR/MWh)"
         ],
         [
             "restype",
