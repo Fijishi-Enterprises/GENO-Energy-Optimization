@@ -18,8 +18,8 @@ $offtext
 * --- Internal counters -------------------------------------------------------
 Scalars
     solveCount /0/
-    tSolveFirst "counter (ord) for the first t in the solve"
-    tSolveLast "counter for the last t in the solve"
+    t_solveFirst "counter (ord) for the first t in the solve"
+    t_solveLast "counter for the last t in the solve"
     tCounter "counter for t" /0/
     lastCounter "last member in use of the general counter"
     continueLoop "Helper to stop the looping early"
@@ -48,14 +48,14 @@ Scalars
 * initiating optional input data tables with empty
 $onempty
 Parameters
-    p_gn(grid, node, param_gn) "Properties for energy nodes"
+    p_gn(grid, node, param_gn)         "Properties for energy nodes"
     p_gnBoundaryPropertiesForStates(grid, node, param_gnBoundaryTypes, param_gnBoundaryProperties) "Properties of different state boundaries and limits" / /
-    p_storageValue(grid, node) "Constant value of stored something at the end of a time step (EUR/<v_state_unit>)" / /
+    p_storageValue(grid, node)         "Constant value of stored something at the end of a time step (EUR/<v_state_unit>)" / /
     p_gnn(grid, node, node, param_gnn) "Data for interconnections between energy nodes" / /
-    p_gnu(grid, node, unit, param_gnu) "Unit data where energy type matters"
+    p_gnu(grid, node, unit, param_gnu) "Unit data where energy type matters. Automatically calculated from input data p_gnu_io."
     p_gnu_io(grid, node, unit, input_output, param_gnu) "Unit data where energy type matters"
     p_gnuBoundaryProperties(grid, node, unit, slack, param_gnuBoundaryProperties) "Properties for unit boundaries where energy type matters" / /
-    p_unit(unit, param_unit) "Unit data where energy type does not matter"
+    p_unit(unit, param_unit)           "Unit data where energy type does not matter"
     p_unitConstraint(unit, constraint) "Constant for constraints (eq1-9, gt1-9) between inputs and/or outputs. Each unit have their own (eq1-9, gt1-9)." / /
     p_unitConstraintNode(unit, constraint, node) "Coefficients for constraints (eq1-9, gt1-9) between inputs and/or outputs" / /
     p_gnReserves(grid, node, restype, param_policy) "Data defining the reserve rules in each node"
@@ -68,10 +68,10 @@ Parameters
     p_groupPolicy(group, param_policy) "Two-dimensional policy data for groups" / /
     p_groupPolicyUnit(group, param_policy, unit) "Three-dimensional policy data for groups and units" / /
     p_groupPolicyEmission(group, param_policy, emission) "Three-dimensional policy data for groups and emissions" / /
-    p_price(node, param_price) "Commodity price parameters"
-    p_emissionPrice(emission, group, param_price) "emission price parameters (EUR/t)"
-    p_nEmission(node, emission) "Emission content (t/MWh)" / /
-    p_gnuEmission(grid, node, unit, emission) "unit data of energy specific emission factors (t/MWh)" / /
+    p_price(node, param_price)         "Commodity price parameters"
+    p_emissionPrice(emission, group, param_price) "emission price parameters (EUR/tEmission)"
+    p_nEmission(node, emission)        "Emission content (tEmission/MWh)" / /
+    p_gnuEmission(grid, node, unit, emission, param_gnuEmission) "unit data of emission factors for investments, maintenance, and energy" / /
     p_uStartupfuel(unit, node, param_unitStartupfuel) "Parameters for startup fuels" / /
     p_unStartup(unit, node, starttype) "Consumption during the start-up (MWh/start-up)"
     p_effUnit(effSelector, unit, effSelector, param_eff)  "Data for piece-wise linear efficiency blocks"
@@ -80,13 +80,13 @@ Parameters
     p_uStartup(unit, starttype, cost_consumption) "Startup cost and fuel consumption"
     p_u_maxOutputInLastRunUpInterval(unit) "Maximum output in the last interval for the run-up to min. load (p.u.)"
     p_u_maxRampSpeedInLastRunUpInterval(unit) "Maximum ramp speed in the last interval for the run-up to min. load (p.u.)"
-    p_u_runUpTimeIntervals(unit) "Time steps required for the run-up phase"
-    p_u_runUpTimeIntervalsCeil(unit) "Ceiling of time steps required for the run-up phase"
+    p_u_runUpTimeIntervals(unit)       "Time steps required for the run-up phase"
+    p_u_runUpTimeIntervalsCeil(unit)   "Ceiling of time steps required for the run-up phase"
     p_uCounter_runUpMin(unit, counter) "Minimum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
     p_uCounter_runUpMax(unit, counter) "Maximum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
     p_u_maxOutputInFirstShutdownInterval(unit) "Maximum output in the first interval for the shutdown from min. load (p.u.)"
     p_uShutdown(unit, cost_consumption) "Shutdown cost per unit"
-    p_u_shutdownTimeIntervals(unit) "Time steps required for the shutdown phase"
+    p_u_shutdownTimeIntervals(unit)     "Time steps required for the shutdown phase"
     p_u_shutdownTimeIntervalsCeil(unit) "Floor of time steps required for the shutdown phase"
     p_uCounter_shutdownMin(unit, counter) "Minimum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
     p_uCounter_shutdownMax(unit, counter) "Maximum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
@@ -105,12 +105,12 @@ $offempty
 
 * --- Probability -------------------------------------------------------------
 Parameters
-    p_msWeight(mType, s) "Temporal weight of sample: number of similar periods represented by sample s"
-    p_msAnnuityWeight(mType, s) "Temporal weight of sample: used when calculating annuities"
-    p_msProbability(mType, s) "Probability to reach sample conditioned on ancestor samples"
-    p_mfProbability(mType, f) "Probability of forecast"
-    p_msft_probability(mType, s, f, t) "Probability of forecast"
-    p_sProbability(s) "Probability of sample"
+    p_msWeight(mType, s) "Temporal weight of sample: number of similar periods represented by sample s (0-1)"
+    p_msAnnuityWeight(mType, s) "Temporal weight of sample: used when calculating annuities (0-1)"
+    p_msProbability(mType, s) "Probability to reach sample conditioned on ancestor samples (0-1)"
+    p_mfProbability(mType, f) "Probability of forecast (0-1)"
+    p_msft_probability(mType, s, f, t) "Probability of forecast (0-1)"
+    p_sProbability(s) "Probability of sample (0-1)"
 ;
 
 Scalar p_sWeightSum "Sum of sample weights";
@@ -148,8 +148,6 @@ Parameters
     // Other
     p_slackDirection(param_gnBoundaryTypes) "+1 for upward slacks and -1 for downward slacks"
     tForecastNext(mType) "When the next forecast will be available (ord time)"
-* obsolete code: aaSolveInfo
-    aaSolveInfo(mType, t, solveInfoAttributes) "Stores information about the solve status"
     msStart(mType, s) "Start point of samples: first time step in the sample"
     msEnd(mType, s) "End point of samples: first time step not in the sample"
     tOrd(t) "Order of t"
@@ -162,29 +160,33 @@ Parameters   // optional parameter tables initiated as empty tables
     ts_influx(grid, node, f, t) "External power inflow/outflow during a time step (MWh/h)" / /
     ts_cf(flow, node, f, t) "Available capacity factor time series (p.u.)" / /
     ts_reserveDemand(restype, up_down, group, f, t) "Reserve demand in region in the time step (MW)" / /
-    ts_node(grid, node, param_gnBoundaryTypes, f, t) "Fix the states of a node according to time-series form exogenous input ([v_state])" / /
+    ts_node(grid, node, param_gnBoundaryTypes, f, t) "Time-series for node constraints (<v_state_unit>) or balance penalty cost (EUR / <v_state_unit>)" / /
     ts_unitConstraintNode(unit, constraint, node, f, t) "Time series coefficients for constraints (eq1-9, gt1-9) between inputs and/or outputs" / /
-    ts_gnn(grid, node, node, param_gnn, f, t) "Time dependent interconnection data" / /
-    ts_storageValue(grid, node, f, t) "Timeseries value of stored something at the end of a time step (EUR/<v_state_unit>)" / /
-    ts_price(node, t) "commodity price (EUR/MWh). Read directly from input data or calculated from ts_priceChange. Only either allowed." / /
-    ts_priceChange(node, t) "Initial commodity price and consequent changes in commodity price (EUR//MWh)" / /
-    ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tCO2)" / /
-    ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tCO2)" / /
+    ts_gnn(grid, node, node, param_gnn, f, t) "Time dependent interconnection data (unit depending on parameter)" / /
+    ts_storageValue(grid, node, f, t) "Timeseries of storage value at the end of a time step (EUR/<v_state_unit>)" / /
+    ts_price(node, t) "Commodity price (EUR/MWh). Values are read directly from input data or calculated from ts_priceChange. Can use both, but only one option for each node allowed." / /
+    ts_priceChange(node, t) "Initial commodity price and consequent changes in commodity price (EUR/MWh)" / /
+    ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tEmission)" / /
+    ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tEmission)" / /
 ;
 $offempty
 Parameters
-    // Aliases used in the equations after interval aggregation
-    ts_influx_(grid, node, s, f, t) "Mean external power inflow/outflow during a time step (MWh/h)"
-    ts_cf_(flow, node, s, f, t) "Mean available capacity factor time series (p.u.)"
-    ts_reserveDemand_(restype, up_down, group, f, t) "Mean reserve demand in region in the time step (MW)"
-    ts_node_(grid, node, param_gnBoundaryTypes, s, f, t) "Mean value of ts_node"
-    ts_unitConstraintNode_(unit, constraint, node, s, f, t) "Mean time series coefficients for constraints (eq1-9, gt1-9) between inputs and/or outputs"
-    ts_gnn_(grid, node, node, param_gnn, f, t) "Mean value of ts_gnn"
-    ts_storageValue_(grid, node, s, f, t) "Mean value of ts_storageValue"
-    p_vomCost(grid, node, unit, param_price) "Calculated static O&M cost that includes O&M cost, fuel cost and emission cost"
-    ts_vomCost_(grid, node, unit, t) "Calculated time dependent O&M cost that includes O&M cost, fuel cost and emission cost"
-    p_startupCost(unit, starttype, param_price) "Calculated static startup cost that includes startup cost, fuel cost and emission cost"
-    ts_startupCost_(unit, starttype, t) "Calculated time dependent startup cost that includes startup cost, fuel cost and emission cost"
+    // static cost parameters
+    p_vomCost(grid, node, unit, param_price) "Calculated static O&M cost that includes O&M costs, fuel costs, and emission costs (EUR/MWh)"
+    p_startupCost(unit, starttype, param_price) "Calculated static startup cost that includes startup costs, fuel costs, and emission costs (EUR/MW)"
+
+    // Aliases used in the equations after processing values for looping including time step aggregation if required
+    ts_influx_(grid, node, s, f, t) "ts_influx values processed for looping including time step aggregation if required (MWh/h)"
+    ts_cf_(flow, node, s, f, t) "ts_cf values processed for looping including time step aggregation if required (p.u.)"
+    ts_reserveDemand_(restype, up_down, group, f, t) "ts_reserveDemand values processed for looping including time step aggregation if required (MW)"
+    ts_node_(grid, node, param_gnBoundaryTypes, s, f, t) "ts_node values processed for looping including time step aggregation if required (unit depending on parameter)"
+    ts_unitConstraintNode_(unit, constraint, node, s, f, t) "ts_unitConstraintNode values processed for looping including time step aggregation if required (coefficient of constraint)"
+    ts_gnn_(grid, node, node, param_gnn, f, t) "ts_gnn values processed for looping including time step aggregation if required (unit depending on parameter)"
+    ts_storageValue_(grid, node, s, f, t) "ts_storageValue values processed for looping including time step aggregation if required (EUR/<v_state_unit>)"
+    ts_price_(node, t) "Commodity price (EUR/MWh) for aggregated time steps"
+    ts_emissionPrice_(emission, group, t) "Emission group price time series  for aggregated time steps (EUR/tEmission)"
+    ts_vomCost_(grid, node, unit, t) "Calculated time dependent O&M cost that includes O&M cost, fuel cost and emission cost (EUR/MWh)"
+    ts_startupCost_(unit, starttype, t) "Calculated time dependent startup cost that includes startup cost, fuel cost and emission cost (EUR/MW)"
 
     // Aliases used for updating data in inputsLoop.gms
     ts_unit_update(unit, param_unit, f, t)
@@ -195,7 +197,6 @@ Parameters
     ts_reserveDemand_update(restype, up_down, group, f, t)
     ts_node_update(grid, node, param_gnBoundaryTypes, f, t)
     ts_gnn_update(grid, node, node, param_gnn, f, t)
-*    ts_priceChange_update(node, t)
 
     // Help parameters for calculating smoothening of time series
     ts_influx_std(grid, node, t)  "Standard deviation of ts_influx over samples"

@@ -21,222 +21,199 @@ $offtext
 
 Parameters
 
-* --- Cost Results ------------------------------------------------------------
-
-    // Total Objective Function
-    r_totalObj(t) "Total accumulated value of the objective function over all solves"
-
-    // Unit Operational Cost Components
-    r_gnuVOMCost(grid, node, unit, f, t) "Variable O&M costs for energy outputs (MEUR)"
-    r_gnuTotalVOMCost(grid, node, unit) "Total gnu VOM costs over the simulation (MEUR)"
-    r_uFuelEmissionCost(grid, node, unit, f, t) "Unit fuel & emission costs for normal operation (MEUR)"
-    r_uTotalFuelEmissionCost(grid, node, unit) "Total unit fuel & emission costs over the simulation for normal operation (MEUR)"
-    r_uStartupCost(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
-    r_uShutdownCost(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
-    r_uTotalStartupCost(unit) "Total unit startup costs over the simulation (MEUR)"
-
-    // Nodal Cost Components
-    r_gnStateSlackCost(grid, node, f, t) "Costs for states requiring slack (MEUR)"
-    r_gnTotalStateSlackCost(grid, node) "Total costs for state slacks over the simulation (MEUR)"
-    r_gnStorageValueChange(grid, node) "Change in storage values over the simulation (MEUR)"
-    r_gnnVariableTransCost(grid, node_,node, f, t) "Variable Transfer costs (MEUR)"
-    r_gnnTotalVariableTransCost(grid, node_, node) "Total Variable Transfer costs over the simulation (MEUR)"
-    r_gnnTransferValue(grid, from_node, to_node, f, t) "Transfer marginal value (Me) = r_transfer (MW) * r_balanceMarginal (e/MWh)"
-    r_gnnTotalTransferValue(grid, from_node, to_node) "Total ransfer marginal value summed over the simulation (Me)"
-
-    // Investment and Fixed Operation and Maintenance Cost Components
-    r_gnuFOMCost(grid, node, unit) "Total gnu fixed O&M costs over the simulation (MEUR)"
-    r_gnuUnitInvestmentCost(grid, node, unit) "Total unit investment costs over the simulation (MEUR)"
-    r_gnnLinkInvestmentCost(grid, node, node) "Total transfer link investment costs over the simulation (MEUR)"
-
-    // Realized System Operating Costs
-    r_gnRealizedOperatingCost(grid, node, f, t) "Realized system operating costs in gn for each t (MEUR)"
-    r_gnTotalRealizedOperatingCost(grid, node) "Total realized system operating costs in gn over the simulation (MEUR)"
-    r_gnTotalRealizedOperatingCostShare(grid, node) "Total realized system operating cost gn/g shares over the simulation"
-    r_gnTotalRealizedNetOperatingCost(grid, node) "Total realized system operating costs in gn over the simulation, minus the increase in storage values (MEUR)"
-    r_gTotalRealizedOperatingCost(grid) "Total realized system operating costs in g over the simulation (MEUR)"
-    r_gTotalRealizedNetOperatingCost(grid) "Total realized system operating costs in g over the simulation, minus the increase in storage values (MEUR)"
-    r_totalRealizedOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
-    r_totalRealizedNetOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
-
-    // Realized System Fixed Costs
-    r_gnTotalRealizedFixedCost(grid, node) "Total realized system fixed costs in gn over the simulation (MEUR)"
-    r_gnTotalRealizedFixedCostShare(grid, node) "Total realized system fixed cost gn/g shares over the simulation"
-    r_gTotalRealizedFixedCost(grid) "Total realized system fixed costs in g over the simulation (MEUR)"
-    r_totalRealizedFixedCost "Total realized system fixed costs over the simulation (MEUR)" / 0 /
-
-    // Realized System Costs
-    r_gnTotalRealizedCost(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
-    r_gnTotalRealizedCostShare(grid, node) "Total realized system cost gn/g shares over the simulation"
-    r_gnTotalRealizedNetCost(grid, node) "Total realized system costs in gn over the simulation, minus the increase in storage values (MEUR)"
-    r_gTotalRealizedCost(grid) "Total realized system costs in g over the simulation (MEUR)"
-    r_gTotalRealizedNetCost(grid) "Total realized system costs in g over the simulation, minus the increase in storage values (MEUR)"
-    r_totalRealizedCost "Total realized system costs over the simulation (MEUR)" / 0 /
-    r_totalRealizedNetCost "Total realized system costs over the simulation (MEUR)" / 0 /
-
 * --- Node Results ------------------------------------------------------------
 
-    // State variable results, required for model structure
-    r_state(grid, node, f, t) "Node state at time step t"
-    // State variable slack values
-    r_stateSlack(grid, node, slack, f, t) "Note state slack at time step t"
+    // required for model structure
+    r_state_gnft(grid, node, f, t) "Node state at time step t"
 
-    // Energy transfer and spill variable results
-    r_transfer(grid, from_node, to_node, f, t) "Energy transfer (MW)"
-    r_transferRightward(grid, from_node, to_node, f, t) "Energy transfer from first node to second node (MW)"
-    r_transferLeftward(grid, to_node, from_node, f, t) "Energy transfer from second node to first node (MW)"
-    r_spill(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
+    // State variable slack results
+    r_stateSlack_gnft(slack, grid, node, f, t) "Note state slack at time step t (MWh, unless modified by energyStoredPerUnitOfState parameter)"
 
-    // Interesting node related results
-    r_balanceMarginal(grid, node, f, t) "Marginal values of the q_balance equation"
-    r_balanceMarginalAverage(grid, node) "Annual average of marginal values of the q_balance equation"
-    r_gnnTotalTransfer(grid, node, node) "Total amount of energy transferred between gnn over the simulation (MWh)"
-    r_gnTotalSpill(grid, node) "Total spilled energy from gn over the simulation (MWh)"
-    r_gnTotalSpillShare(grid, node) "Total spilled energy gn/g share"
-    r_gTotalSpill(grid) "Total spilled energy from gn over the simulation (MWh)"
-    r_gnnDiffusion(grid, node, node, f, t) "Diffusion between nodes"
-    r_gnCurtailments(grid, node, f, t) "Curtailed flow generation in node"
-    r_gnTotalCurtailments(grid, node) "Total curtailed flow generation in node"
+    // Spill results
+    r_spill_gnft(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
+    r_spill_gn(grid, node) "Total spilled energy from gn over the simulation (MWh)"
+    r_spill_g(grid) "Total spilled energy from gn over the simulation (MWh)"
+    r_spill_gnShare(grid, node) "Total spilled energy gn/g share"
+
+    // required for model structure
+    r_transfer_gnnft(grid, from_node, to_node, f, t) "Energy transfer (MW)"
+
+    // Energy transfer results
+    r_transferRightward_gnnft(grid, from_node, to_node, f, t) "Energy transfer from first node to second node (MW)"
+    r_transferLeftward_gnnft(grid, to_node, from_node, f, t) "Energy transfer from second node to first node (MW)"
+    r_transfer_gnn(grid, node, node) "Total amount of energy transferred between gnn over the simulation (MWh)"
+
+    // Marginal value of energy results
+    r_balance_marginalValue_gnft(grid, node, f, t) "Marginal values of the q_balance equation (EUR/MWh)"
+    r_balance_marginalValue_gnAverage(grid, node) "Average of marginal values of the q_balance equation (EUR/MWh)"
+    r_transferValue_gnnft(grid, from_node, to_node, f, t) "Transfer marginal value (Me) = transfer (MW) * balanceMarginal (EUR/MWh)"
+    r_transferValue_gnn(grid, from_node, to_node) "Total ransfer marginal value summed over the simulation (MEUR)"
+
+    // Other node related results
+    r_curtailments_gnft(grid, node, f, t) "Curtailed flow generation in node (MW)"
+    r_curtailments_gn(grid, node) "Total curtailed flow generation in node (MWh)"
+    r_diffusion_gnnft(grid, node, node, f, t) "Diffusion between nodes (MW)"
+    r_diffusion_gnn(grid,node,node) "Total amount of energy diffused between nodes (MWh)"
 
 * --- Energy Generation/Consumption Results -----------------------------------
 
-    // Results required for model structure
-    r_gen(grid, node, unit, f, t) "Energy generation for a unit (MW)"
+    // required for model structure
+    r_gen_gnuft(grid, node, unit, f, t) "Energy generation for a unit (MW)"
 
-    // Energy output results based on input types or unittypes
-    r_genFuel(grid, node, *, f, t) "Energy output to a node based on inputs from another node or flows (MW)"
-    r_genUnittype(grid, node, unittype, f, t) "Energy generation for each unittype (MW)"
-    r_gnTotalGenFuel(grid, node, node) "Total energy generation in gn per input type over the simulation (MWh)"
-    r_gnTotalGenFuelShare(grid, node, node) "Total energy generation in gn per input type as a share of total energy generation in gn"
-    r_gTotalGenFuel(grid, node) "Total energy generation in g per input type over the simulation (MWh)"
-    r_totalGenFuel(node) "Total overall energy generation per input type over the simulation (MWh)"
-
-    // Interesting energy generation results
-    r_gnuTotalGen(grid, node, unit) "Total energy generation in gnu over the simulation (MWh)"
-    r_gnuTotalGen_unittype(grid, node, unittype) "Energy generation for each unittype in each node (MWh)"
-    r_gnuTotalGenShare(grid, node, unit) "Total energy generation gnu/gn share"
-    r_gnGen(grid, node, f, t) "energy generation for each gridnode (MW)"
-    r_gnTotalGen(grid, node) "Total energy generation in gn over the simulation (MWh)"
-    r_gnTotalGenShare(grid, node) "Total energy generation gn/g share"
-    r_gTotalGen(grid) "Total energy generation in g over the simulation (MWh)"
+    // Energy generation results
+    r_gen_gnu(grid, node, unit) "Total energy generation and consumption in gnu over the simulation (MWh)"
+    r_gen_gnft(grid, node, f, t) "energy generation and consumption for each gridnode (MW)"
+    r_gen_gn(grid, node) "Total energy generation and consumption in gn over the simulation (MWh)"
+    r_gen_g(grid) "Total energy generation and consumption in g over the simulation (MWh)"
+    r_gen_gnuShare(grid, node, unit) "Total energy generation and consumption gnu/gn share"
+    r_gen_gnShare(grid, node) "Total energy generation and consumption gn/g share"
 
     // Approximate utilization rates
-    r_gnuUtilizationRate(grid, node, unit) "Approximate utilization rates of gnus over the simulation"
+    r_gen_utilizationRate_gnu(grid, node, unit) "Approximate utilization rates of gnus over the simulation (p.u.)"
 
-    // Interesting energy consumption results
-    r_gnConsumption(grid, node, f, t) "Consumption of energy in gn for each t (MWh)"
-    r_gnTotalConsumption(grid, node) "Total consumption of energy in gn over the simulation (MWh)"
-    r_gnTotalConsumptionShare(grid, node) "Total consumption gn/g share"
-    r_gTotalConsumption(grid) "Total consumption of energy in g over the simulation (MWh)"
+    // Energy generation results based on input, unittype, or group
+    r_genByFuel_gnft(grid, node, *, f, t) "Energy generation to a node based on inputs from another node or flows (MW)"
+    r_genByFuel_gn(grid, node, *) "Total energy generation in gn per input type over the simulation (MWh)"
+    r_genByFuel_g(grid, *) "Total energy generation in g per input type over the simulation (MWh)"
+    r_genByFuel_fuel(*) "Total overall energy generation per input type over the simulation (MWh)"
+    r_genByFuel_gnShare(grid, node, *) "Total energy generation in gn per input type as a share of total energy generation in gn"
+    r_genByUnittype_gnft(grid, node, unittype, f, t) "Energy generation and consumption for each unittype (MW)"
+    r_genByUnittype_gn(grid, node, unittype) "Energy generation and consumption for each unittype in each node (MWh)"
+    r_genByGnuGroup_gn(grid, node, group) "Total energy generation and consumption in units that belong to gnuGroup (MWh)"
 
-    // Start-up consumption results
-    r_nuStartupConsumption(node, unit, f, t) "Energy consumption during start-up (MWh)"
+    // Energy consumption during startups
+    r_gen_unitStartupConsumption_nu(node, unit, f, t) "Energy consumption during start-up (MWh)"
 
+* --- Unit Online, startup, and shutdown Result Symbols -----------------------
 
-* --- Emissions Results -------------------------------------------------------
+    // required for model structure
+    r_online_uft(unit, f, t) "Sub-units online"
+    r_startup_uft(starttype, unit, f, t) "Sub-units started up"
+    r_shutdown_uft(unit, f, t) "Sub-units shut down"
 
-    // Unit level emissions from normal operation inputs
-    r_emissions(grid, node, emission, unit, f, t) "Emissions from units (tCO2)"
-
-    // Unit level emissions from start-ups
-    r_emissionsStartup(node, emission, unit, f, t) "Emissions from units in start-ups (tCO2)"
-
-    // Emission sums
-    r_nuTotalEmissionsOperation(node, unit, emission) "node unit total emissions in normal operation (tCO2)"
-    r_nuTotalEmissionsFromOutput(node, unit, emission) "node unit total emissions from output (tCO2)"
-    r_nuTotalEmissionsStartup(node, unit, emission) "node unit total emissions in start-ups (tCO2)"
-    r_nuTotalEmissions(node, unit, emission) "node unit total emissions (tCO2)"
-    r_nTotalEmissions(node, emission) "node total emissions (tCO2)"
-    r_uTotalEmissions(unit, emission) "unit total emissions (tCO2)"
-    r_totalEmissions (emission) "Total emissions (tCO2)"
-    r_groupTotalEmissions (group, emission) "Group total emissions (tCO2)"
-
-
-* --- Unit Online State Results -----------------------------------------------
-
-    // Online results required for model structure
-    r_online(unit, f, t) "Sub-units online"
-    r_startup(unit, starttype, f, t) "Sub-units started up"
-    r_shutdown(unit, f, t) "Sub-units shut down"
-
-    // Interesting unit online results
-    r_uTotalOnline(unit) "Total online sub-unit-hours of units over the simulation"
-    r_uTotalOnlinePerUnit(unit) "Total unit online hours per sub-unit over the simulation"
-
-    // Interesting unit startup and shutdown results
-    r_uTotalStartup(unit, starttype) "Number of sub-unit startups over the simulation"
-    r_uTotalShutdown(unit) "Number of sub-unit shutdowns over the simulation"
-
-* --- Reserve Provision Results -----------------------------------------------
-
-    // Reserve provision results required for model structure
-    r_reserve(restype, up_down, grid, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
-    r_resTransferRightward(restype, up_down, grid, node, node, f, t) "Electricity transmission capacity from the first node to the second node reserved for providing reserves (MW)"
-    r_resTransferLeftward(restype, up_down, grid, node, node, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
-    r_reserve2Reserve(restype, up_down, grid, node, unit, restype, f, t) "Reserve provided for another reserve category (MW) (also included in r_reserve - this is just for debugging)"
-
-    // Interesting reserve results
-    r_resDemandMarginal(restype, up_down, group, f, t) "Marginal values of the q_resDemand equation"
-    r_resDemandMarginalAverage(restype, up_down, group) "Annual average of marginal values of the q_resDemand equation"
-    r_gnuTotalReserve(restype, up_down, grid, node, unit) "Total gnu reserve provision over the simulation (MW*h)"
-    r_gnuTotalReserveShare(restype, up_down, grid, node, unit) "Total gnu/group reserve provision share over the simulation"
-    r_gnTotalReserve(restype, up_down, grid, node) "Total gn reserve provision over the simulation (MW*h)"
-    r_gnnTotalResTransferRightward(restype, up_down, grid, node, node) "Total electricity transmission capacity from the first node to the second node reserved for providing reserves (MW*h)"
-    r_gnnTotalResTransferLeftward(restype, up_down, grid, node, node) "Total electricity transmission capacity from the second node to the first node reserved for providing reserves (MW*h)"
-    r_resDemandLargestInfeedUnit(restype, up_down, group, f, t) "Reserve Demand from the loss of largest infeed unit"
-    r_groupReserve(restype, up_down, group, f, t) "Group sum of reserves of specific types (MW)"
-    r_groupTotalReserve(restype, up_down, group) "Total reserve provisions in groups over the simulation (MW*h)"
-
+    // other online, startup, and shutdown results
+    r_online_u(unit) "Total online sub-unit-hours of units over the simulation"
+    r_online_perUnit_u(unit) "Total unit online hours per sub-unit over the simulation"
+    r_startup_u(unit, starttype) "Number of sub-unit startups over the simulation"
+    r_shutdown_u(unit) "Number of sub-unit shutdowns over the simulation"
 
 * --- Investment Results ------------------------------------------------------
 
-    // Interesting investment results
-    r_invest(unit) "Number/amount of invested sub-units"
-    r_investCapacity(grid, node, unit) "Total amount of invested capacity in units (MW)"
-    r_investTransfer(grid, node, node, t) "Amount of invested transfer link capacity (MW)"
+    // Invested unit count and capacity
+    r_invest_unitCount_u(unit) "Number/amount of invested sub-units"
+    r_invest_unitCapacity_gnu(grid, node, unit) "Total amount of invested capacity in units (MW)"
+    r_invest_transferCapacity_gnn(grid, node, node, t) "Amount of invested transfer link capacity (MW)"
 
-* --- Group results -----------------------------------------------------------
+* --- Emissions Results -------------------------------------------------------
 
-    // gnTotalgen in units that belong to gnuGroups over the simulation
-    r_gnTotalGenGnuGroup(grid, node, group) "gnTotalGen in units that belong to gnuGroup (MWh)"
+    // emissions by activity type
+    r_emission_operationEmissions_gnuft(grid, node, emission, unit, f, t) "Emissions during normal operation (tEmission)"
+    r_emission_operationEmissions_nu(node, unit, emission) "node unit total emissions in normal operation (tEmission)"
+    r_emission_startupEmissions_nuft(node, emission, unit, f, t) "Emissions from units during start-ups (tEmission)"
+    r_emission_StartupEmissions_nu(node, unit, emission) "node unit total emissions in start-ups (tEmission)"
+    r_emission_capacityEmissions_nu(node, unit, emission) "Emissions from fixed o&m emissions and investments (tEmission)"
 
-* --- Dummy Variable Results --------------------------------------------------
+    // Emission sums
+    r_emissionByNodeGroup(emission, group) "Group total emissions (tEmission)"
+    r_emission_nu(node, unit, emission) "node unit total emissions (tEmission)"
+    r_emission_n(node, emission) "node total emissions (tEmission)"
+    r_emission_u(unit, emission) "unit total emissions (tEmission)"
+    r_emission(emission) "Total emissions (tEmission)"
+
+* --- Reserve Provision Results -----------------------------------------------
+
+    // required for model structure
+    r_reserve_gnuft(restype, up_down, grid, node, unit, f, t) "Unit capacity reserved for providing reserve of specific type (MW)"
+    r_reserveTransferRightward_gnnft(restype, up_down, grid, node, node, f, t) "Electricity transmission capacity from the first node to the second node reserved for providing reserves (MW)"
+    r_reserveTransferLeftward_gnnft(restype, up_down, grid, node, node, f, t) "Electricity transmission capacity from the second node to the first node reserved for providing reserves (MW)"
+
+    // Unit level reserve results
+    r_reserve_gnu(restype, up_down, grid, node, unit) "Total gnu reserve provision over the simulation (MW*h)"
+    r_reserve_gn(restype, up_down, grid, node) "Total gn reserve provision over the simulation (MW*h)"
+    r_reserveByGroup_ft(restype, up_down, group, f, t) "Group sum of reserves of specific types (MW)"
+    r_reserveByGroup(restype, up_down, group) "Total reserve provisions in groups over the simulation (MW*h)"
+    r_reserve_gnuShare(restype, up_down, grid, node, unit) "Total gnu/group reserve provision share over the simulation"
+    r_reserve2Reserve_gnuft(restype, up_down, grid, node, unit, restype, f, t) "Reserve provided for another reserve category (MW) (also included in r_reserve - this is just for debugging)"
+
+    // Other reserve results
+    r_reserve_marginalValue_ft(restype, up_down, group, f, t) "Marginal values of the q_resDemand equation"
+    r_reserve_marginalValue_average(restype, up_down, group) "Annual average of marginal values of the q_resDemand equation"
+    r_reserveDemand_largestInfeedUnit_ft(restype, up_down, group, f, t) "Reserve Demand from the loss of largest infeed unit"
+    r_reserveTransferRightward_gnn(restype, up_down, grid, node, node) "Total electricity transmission capacity from the first node to the second node reserved for providing reserves (MW*h)"
+    r_reserveTransferLeftward_gnn(restype, up_down, grid, node, node) "Total electricity transmission capacity from the second node to the first node reserved for providing reserves (MW*h)"
+
+* --- Dummy Result Symbols ----------------------------------------------------
 
     // Results regarding solution feasibility
-    r_qGen(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
-    r_gnTotalqGen(inc_dec, grid, node) "Total dummy energy generation/consumption in gn over the simulation (MWh)."
-    r_gTotalqGen(inc_dec, grid) "Total dummy energy generation/consumption in g over the simulation (MWh)."
-    r_qResDemand(restype, up_down, group, f, t) "Dummy to decrease demand for a reserve (MW) before reserve commitment"
-    r_qResMissing(restype, up_down, group, f, t) "Dummy to decrease demand for a reserve (MW) after reserve commitment"
-    r_groupTotalqResDemand(restype, up_down, group) "Total dummy reserve provisions in the group over the simulation"
-    r_qCapacity(grid, node, f, t) "Dummy capacity to ensure capacity margin equation feasibility (MW)"
-    r_solveStatus(t, solve_info) "Information about the solve"
+    r_qGen_gnft(inc_dec, grid, node, f, t) "Dummy energy generation (increase) or consumption (generation decrease) to ensure equation feasibility (MW)"
+    r_qGen_gn(inc_dec, grid, node) "Total dummy energy generation/consumption in gn over the simulation (MWh)."
+    r_qGen_g(inc_dec, grid) "Total dummy energy generation/consumption in g over the simulation (MWh)."
+    r_qReserveDemand_ft(restype, up_down, group, f, t) "Dummy to decrease demand for a reserve (MW) before reserve commitment"
+    r_qReserveMissing_ft(restype, up_down, group, f, t) "Dummy to decrease demand for a reserve (MW) after reserve commitment"
+    r_qReserveDemand(restype, up_down, group) "Total dummy reserve provisions in the group over the simulation"
+    r_qCapacity_ft(grid, node, f, t) "Dummy capacity to ensure capacity margin equation feasibility (MW)"
+
+* --- Cost Results ------------------------------------------------------------
+
+    // Total Objective Function
+    r_cost_objectiveFunction_t(t) "Total accumulated value of the objective function over all solves"
+
+    // Unit Cost Components
+    r_cost_unitVOMCost_gnuft(grid, node, unit, f, t) "Variable O&M costs for energy input and outputs (MEUR)"
+    r_cost_unitVOMCost_gnu(grid, node, unit) "Total gnu VOM costs over the simulation (MEUR)"
+    r_cost_unitFuelEmissionCost_gnuft(grid, node, unit, f, t) "Unit fuel & emission costs for normal operation (MEUR)"
+    r_cost_unitFuelEmissionCost_u(grid, node, unit) "Total unit fuel & emission costs over the simulation for normal operation (MEUR)"
+    r_cost_unitStartupCost_uft(unit, f, t) "Unit startup VOM, fuel, & emission costs (MEUR)"
+    r_cost_unitStartupCost_u(unit) "Total unit startup costs over the simulation (MEUR)"
+    r_cost_unitShutdownCost_uft(unit, f, t) "Unit shutdown costs (MEUR)"
+    r_cost_unitShutdownCost_u(unit) "Total unit shutdown costs over the simulation (MEUR)"
+    r_cost_unitFOMCost_gnu(grid, node, unit) "Total gnu fixed O&M costs over the simulation, existing and invested units (MEUR)"
+    r_cost_unitInvestmentCost_gnu(grid, node, unit) "Total unit investment costs over the simulation (MEUR)"
+    r_cost_unitCapacityEmissionCost_nu(node, unit) "Cost from unit FOM emissions and investment emissions (MEUR)"
+
+    // Transfer Link Cost Components
+    r_cost_linkVOMCost_gnnft(grid, node_,node, f, t) "Variable Transfer costs (MEUR)"
+    r_cost_linkVOMCost_gnn(grid, node_, node) "Total Variable Transfer costs over the simulation (MEUR)"
+    r_cost_linkInvestmentCost_gnn(grid, node, node) "Total transfer link investment costs over the simulation (MEUR)"
+
+    // Nodal Cost Components
+    r_cost_stateSlackCost_gnt(grid, node, f, t) "Costs for states requiring slack (MEUR)"
+    r_cost_stateSlackCost_gn(grid, node) "Total costs for state slacks over the simulation (MEUR)"
+    r_cost_storageValueChange_gn(grid, node) "Change in storage values over the simulation (MEUR)"
+
+    // Realized System Operating Costs
+    r_cost_realizedOperatingCost_gnft(grid, node, f, t) "Realized system operating costs in gn for each t (MEUR)"
+    r_cost_realizedOperatingCost_gn(grid, node) "Total realized system operating costs in gn over the simulation (MEUR)"
+    r_cost_realizedOperatingCost_g(grid) "Total realized system operating costs in g over the simulation (MEUR)"
+    r_cost_realizedOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
+    r_cost_realizedOperatingCost_gnShare(grid, node) "Total realized system operating cost gn/g shares over the simulation"
+    r_cost_realizedNetOperatingCost_gn(grid, node) "Total realized system operating costs in gn over the simulation, minus the increase in storage values (MEUR)"
+    r_cost_realizedNetOperatingCost_g(grid) "Total realized system operating costs in g over the simulation, minus the increase in storage values (MEUR)"
+    r_cost_realizedNetOperatingCost "Total realized system operating costs over the simulation (MEUR)" / 0 /
+
+    // Realized System Costs
+    r_cost_realizedCost_gn(grid, node) "Total realized system costs in gn over the simulation (MEUR)"
+    r_cost_realizedCost_g(grid) "Total realized system costs in g over the simulation (MEUR)"
+    r_cost_realizedCost "Total realized system costs over the simulation (MEUR)" / 0 /
+    r_cost_realizedCost_gnShare(grid, node) "Total realized system cost gn/g shares over the simulation"
+    r_cost_realizedNetCost_gn(grid, node) "Total realized system costs in gn over the simulation, minus the increase in storage values (MEUR)"
+    r_cost_realizedNetCost_g(grid) "Total realized system costs in g over the simulation, minus the increase in storage values (MEUR)"
+    r_cost_realizedNetCost "Total realized system costs over the simulation (MEUR)" / 0 /
+
+
+
+* --- Info, and Diagnostic Result Symbols -------------------------------------
+
+    // Info Results
+    r_info_solveStatus(t, solve_info) "Information about status of solves"
+    // r_info_metadata // metadata written directly from r_info_metadata set
+    r_info_mSettings(mSetting) "information about model settings"
 
 ; // END PARAMETER DECLARATION
 
-Scalar r_realizedLast "Order of last realised time step";
-
-* --- Initialize a few of the results arrays, required by model structure -----
-
-Option clear = r_totalObj;
-Option clear = r_state;
-Option clear = r_online;
-Option clear = r_reserve;
-Option clear = r_resTransferRightward;
-Option clear = r_resTransferLeftward;
-Option clear = r_gen;
-Option clear = r_realizedLast;
-Option clear = r_startup;
-Option clear = r_shutdown;
-Option clear = r_transfer;
-Option clear = r_invest;
-Option clear = r_investTransfer;
-Option clear = r_qResDemand;
-Option clear = r_resDemandLargestInfeedUnit;
-
-* =============================================================================
-* --- Diagnostics Results Arrays ----------------------------------------------
-* =============================================================================
+Sets
+    r_info_t_realized(t) "result table of realized t"
+;
 
 // Only include these if '--diag=yes' given as a command line argument
 $iftheni.diag '%diag%' == yes
@@ -248,3 +225,24 @@ Parameters
     d_influx(grid, node, s, f, t) "Diagnostic influx forecasts (accounting for GAMS plotting error)"
 ;
 $endif.diag
+
+* --- Initialize a few of the results arrays, required by model structure -----
+
+Option clear = r_cost_objectiveFunction_t;
+Option clear = r_state_gnft;
+Option clear = r_transfer_gnnft;
+Option clear = r_gen_gnuft;
+Option clear = r_online_uft;
+Option clear = r_startup_uft;
+Option clear = r_shutdown_uft;
+Option clear = r_invest_unitCount_u;
+Option clear = r_invest_transferCapacity_gnn;
+Option clear = r_reserve_gnuft;
+Option clear = r_reserveTransferRightward_gnnft;
+Option clear = r_reserveTransferLeftward_gnnft;
+Option clear = r_reserveDemand_largestInfeedUnit_ft;
+Option clear = r_qReserveDemand_ft;
+
+
+
+

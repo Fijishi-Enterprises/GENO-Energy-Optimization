@@ -441,10 +441,17 @@
         ],
         [
             "node",
+            "price",
+            null,
+            null,
+            "Commodity price (EUR/MWh). Values are read directly from input data or calculated from ts_priceChange. Can use both, but only one option for each node allowed."
+        ],
+        [
+            "node",
             "priceChange",
             null,
             null,
-            "Initial node/commodity price and consequent changes in price (EUR/MWh)"
+            "Initial commodity price and consequent changes in commodity price (EUR/MWh)"
         ],
         [
             "restype",
@@ -961,10 +968,31 @@
         ],
         [
             "grid__node__unit__emission",
-            "emissionFactor",
+            "fomEmissions",
             null,
             null,
-            "Emission factors (t/MWh)"
+            "Emissions from fixed operation and maintenance (tEmission/MW/a)"
+        ],
+        [
+            "grid__node__unit__emission",
+            "invEmissions",
+            null,
+            null,
+            "Emissions from capacity investments (tEmission/MW)"
+        ],
+        [
+            "grid__node__unit__emission",
+            "invEmissionFactor",
+            null,
+            null,
+            "Factor used to multiply investment emissions to divide them over multiple years (0-1). Default 1."
+        ],
+        [
+            "grid__node__unit__emission",
+            "vomEmissions",
+            null,
+            null,
+            "Emissions from variable operation and maintenance (tEmission/MWh)"
         ],
         [
             "grid__node__unit__io",

@@ -93,15 +93,22 @@ $gdxin
 *       effLevelGroupUnit
 *       ts_influx (or other data table creating the energy demand)
 
+
+* ---  Reading all other data present in the input data gdx.  -------------
+
 * setting quote mark for unix or windows (MSNT)
 $ SET QTE "'"
 $ IFI %SYSTEM.FILESYS%==MSNT $SET QTE '"'
 
-* query checking which data tables exists and writes the list to inputDataInc
+* query checking which data tables exists and writes the list to file inputDataInc
 $hiddencall gdxdump %inputDataGdx%  NODATA > %inputDataInc%
-* converting gdxdump output to a format that can be imported to backbone
-$hiddencall sed %QTE%/^symbol not found:.*$/Id; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I%QTE% %inputDataInc% > %inputDataInc_%
-* importing data
+* Using sed utility program to convert gdxdump output to a format that can be imported to backbone
+* This does the following:
+* - deletes lines of gdxdump output which do not start with dollar sign
+* - changes various load commands to loaddcm commands
+*$hiddencall sed %QTE%/^symbol not found:.*$/Id; /^\([^$]\|$\)/d; s/\$LOAD.. /\$LOADDCM /I%QTE% %inputDataInc% > %inputDataInc_%
+$hiddencall sed %QTE%/^[$]/!d;  s/\$LOAD.. /\$LOADDCM /I%QTE%  %inputDataInc% > %inputDataInc_%
+* importing data from the input data gdx as specified by the sed command output
 $INCLUDE %inputDataInc_%
 * closing the input file
 $gdxin
@@ -201,11 +208,15 @@ nu_startup(node, unit)$p_uStartupfuel(unit, node, 'fixedFuelFraction') = yes;
 unit_timeseries(unit)${ p_unit(unit, 'useTimeseries') or p_unit(unit, 'useTimeseriesAvailability') }
     = yes;
 
+// formaing a set of units and their eq/gt constraints
+option unitConstraint < ts_unitConstraintNode;
+unitConstraint(unit, constraint)$sum(node$p_unitConstraintNode(unit, constraint, node), 1) = yes;
+
 *// Units that have eq constraints between inputs and/or outputs
-unit_eqConstrained(unit)${sum((eq_constraint(constraint))$p_unitConstraint(unit, constraint), 1)} = yes;
+unit_eqConstrained(unit)${sum(eq_constraint(constraint), unitConstraint(unit, constraint)) } = yes;
 
 // Units that have gt constraints between inputs and/or outputs
-unit_gtConstrained(unit)${sum((gt_constraint(constraint))$p_unitConstraint(unit, constraint), 1)} = yes;
+unit_gtConstrained(unit)${sum(gt_constraint(constraint), unitConstraint(unit, constraint)) } = yes;
 
 // Units that have time series for eq or gt constraints between inputs and/or outputs
 option tt < ts_unitConstraintNode;
@@ -733,7 +744,7 @@ loop( unit,
 
     if( {effLevelGroupUnit('level1', 'directOff', unit)
          and sum(gnu(grid, node, unit), sum(input_output, p_gnu_io(grid, node, unit, input_output, 'startCostCold'))) },
-             put log '!!! Warning: unit (', unit.tl:0, ' has start costs, but is a directOff unit that disables the start cost calculations' /;
+             put log '!!! Warning: unit (', unit.tl:0, ' has start costs, but is a directOff unit that disables start cost calculations' /;
     );
 
 );
@@ -783,12 +794,23 @@ loop( unitStarttype(unit, starttypeConstrained),
 * --- Check emission related data ---------------------------------------------
 
 loop(emissionGroup(emission, group),
-    // Abort of input data for prices are given both ts_emissionPrice and ts_emissionPriceChange
+    // Abort if input data for prices are given both ts_emissionPrice and ts_emissionPriceChange
     if({emission_priceData(emission) and emission_priceChangeData(emission)},
         put log '!!! Abort: EmissionGroup (', group.tl:0, ', ', emission.tl:0, ') has both ts_emissionPrice and ts_emissionPriceChange' /;
         abort "Only ts_emissionPrice or ts_emissionPriceChange can be given to an emissionGroup"
     ); // END if
 ); // END loop(emissionGroup)
+
+// checking that invEmissionFactor
+option gnu_tmp < p_gnuEmission;
+loop(gnu_tmp(grid, node, unit),
+    loop(emission$p_gnuEmission(grid, node, unit, emission, 'invEmissions'),
+        if(not p_gnuEmission(grid, node, unit, emission, 'invEmissionsFactor'),
+           put log '!!! Warning: (grid, node, unit, emission) (', grid.tl:0 ,',', node.tl:0 ,',', unit.tl:0 ,',', emission.tl:0 ,',', ') has invEmissions>0, but invEmissionsFactor is empty. Assuming 1.' /;
+           p_gnuEmission(grid, node, unit, emission, 'invEmissionsFactor') = 1;
+        ); // END if
+    ); // END loop(emission)
+); // END loop(gnu_tmp)
 
 
 * --- Check reserve related data ----------------------------------------------

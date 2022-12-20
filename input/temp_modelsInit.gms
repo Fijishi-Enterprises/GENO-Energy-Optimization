@@ -16,10 +16,16 @@ along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
 * =============================================================================
-* --- Sets to define time, forecasts and samples ------------------------------
+* --- Load Model Parameters ---------------------------------------------------
 * =============================================================================
 
-    s "Samples from historical periods" / s000 * s999 /
-    f "Forecasts for the short term" / f00 * f99 /
-    t "Model time steps" / t000000 * t017568 /
-    z "periods for superpositioning of states (candidate periods)" /z000 * z100/
+// Include desired model definition files here
+$include '%input_dir%/scheduleInit.gms'
+
+* =============================================================================
+* --- Optional Data Manipulation ----------------------------------------------
+* =============================================================================
+
+// which nodes follow the superposed states scheme? Add the information here.
+// Probably should be included in the input data later.
+node_superpos(node) = no;

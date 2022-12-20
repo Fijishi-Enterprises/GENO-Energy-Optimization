@@ -6,7 +6,7 @@
 file f_changes /'output\changes.inc'/;
 
 // Field width of set label output, default in GAMS is 12, increase as needed
-f_changes.lw = 26;
+f_changes.lw = 40;
 
 // Number of characters that may be placed on a single row of the page, default
 // in GAMS is 255, increase as needed
@@ -18,9 +18,9 @@ put f_changes
 
 // Number of subunits
 put "* Update the number of subunits in the subsequent models"/;
-loop(unit${r_invest(unit)},
+loop(unit${r_invest_unitCount_u(unit)},
     // subunits rounded to the nearest integer
-    tmp = round(r_invest(unit), 0)
+    tmp = round(r_invest_unitCount_u(unit), 0)
     put "p_unit('", unit.tl, "', 'unitCount') = p_unit('", unit.tl,
         "', 'unitCount') + ", tmp, ";"/;
 );
@@ -28,20 +28,27 @@ loop(unit${r_invest(unit)},
 // Unit capacities
 put /;
 put "* Update unit capacities in the subsequent models"/;
-loop(gnu(grid, node, unit)${r_invest(unit)},
+put "* Set 'becomeUnavailable' if no existing capacity and no investments" /;
+loop(gnu(grid, node, unit)${r_invest_unitCount_u(unit)},
     // subunits rounded to the nearest integer
-    tmp = round(r_invest(unit), 0) * p_gnu(grid, node, unit, 'unitSize');
-    if(gnu_output(grid, node, unit),
-        put "p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
-            "', 'output', 'capacity')"/;
-        put "    = p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
-            "', 'output', 'capacity') + ", tmp, ";"/;
-    );
-    if(gnu_input(grid, node, unit),
-        put "p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
-            "', 'input', 'capacity')"/;
-        put "    = p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
-            "', 'input', 'capacity') + ", tmp, ";"/;
+    tmp = Eps + p_gnu(grid, node, unit, 'capacity') + p_gnu(grid, node, unit, 'unitSize') * round(r_invest_unitCount_u(unit), 0);
+    if(tmp > 0,
+        if(gnu_output(grid, node, unit),
+            put "p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
+                "', 'output', 'capacity')"/;
+            put "    = p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
+                "', 'output', 'capacity') + ", p_gnu(grid, node, unit, 'unitSize') * round(r_invest_unitCount_u(unit), 0), ";"/;
+        );
+        if(gnu_input(grid, node, unit),
+            put "p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
+                "', 'input', 'capacity')"/;
+            put "    = p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
+                "', 'input', 'capacity') + ", p_gnu(grid, node, unit, 'unitSize') * round(r_invest_unitCount_u(unit), 0), ";"/;
+        );
+    else
+        put "utAvailabilityLimits('",  unit.tl,    "', t, 'becomeAvailable') = no;" /;
+        put "utAvailabilityLimits('",  unit.tl,    "', t, 'becomeUnavailable') = no;" /;
+        put "utAvailabilityLimits('",  unit.tl,    "', 't000001', 'becomeUnavailable') = yes;" /;
     );
 );
 
@@ -49,14 +56,37 @@ loop(gnu(grid, node, unit)${r_invest(unit)},
 put /;
 put "* Update storage investments in the subsequent models"/;
 loop(gnu(grid, node, unit)
-    ${r_invest(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio')},
+    ${r_invest_unitCount_u(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio')},
     // subunits rounded to the nearest integer
     tmp = p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
-        * round(r_invest(unit), 0) * p_gnu(grid, node, unit, 'unitSize');
+        * round(r_invest_unitCount_u(unit), 0) * p_gnu(grid, node, unit, 'unitSize');
     put "p_gnBoundaryPropertiesForStates('", grid.tl, "', '", node.tl,
         "', 'upwardLimit', 'constant')"/;
     put "    =  p_gnBoundaryPropertiesForStates('",
         grid.tl, "', '", node.tl, "', 'upwardLimit', 'constant') + ", tmp, ";"/;
+);
+
+// Transfer capacity
+// NOTE: this assumes a single year investment run. In case of multiyear investment run, activate similar code block in f_loop_changes.
+put "* Update transfer capacities in the subsequent models"/;
+loop(gn2n_directional(grid, node, node_)
+    ${sum(t_invest, r_invest_transferCapacity_gnn(grid, node, node_, t_invest))},
+    tmp = 0;
+    tmp_ = 0;
+    loop(t_invest(t),
+        tmp = p_gnn(grid, node, node_, 'transferCap') + tmp
+            + r_invest_transferCapacity_gnn(grid, node, node_, t);
+        tmp_ = p_gnn(grid, node_, node, 'transferCap') + tmp_
+            + r_invest_transferCapacity_gnn(grid, node, node_, t);
+        put "if(ord(t_solve) >= ", ord(t), " - 1,"/;
+        put "    p_gnn('", grid.tl, "', '", node.tl, "', '", node_.tl,
+            "', 'transferCap')"/;
+        put "        = ", tmp, ";"/;
+        put "    p_gnn('", grid.tl, "', '", node_.tl, "', '", node.tl,
+            "', 'transferCap')"/;
+        put "        = ", tmp_, ";"/;
+        put ");"/;
+    );
 );
 
 * --- Update online group constraints in the subsequent models ----------------
@@ -120,11 +150,16 @@ loop(gnu(grid, node, unit)$p_gnu(grid, node, unit, 'upperLimitCapacityRatio'),
 
 putclose;
 
+
+%ontext
+// NOTE: this block handles transfer investments in case of multiyear investment run. It is currently deactived with ontext comments.
+// Deactivate similar block of code from above and activate this if running multiyear investment runs.
+
 * Output file streams for data to be read in the loop
 file f_loop_changes /'output\loop_changes.inc'/;
 
 // Field width of set label output, default in GAMS is 12, increase as needed
-f_loop_changes.lw = 26;
+f_loop_changes.lw = 40;
 
 // Number of characters that may be placed on a single row of the page, default
 // in GAMS is 255, increase as needed
@@ -137,15 +172,15 @@ put f_loop_changes
 // Transfer capacity
 put "* Update transfer capacities in the subsequent models"/;
 loop(gn2n_directional(grid, node, node_)
-    ${sum(t_invest, r_investTransfer(grid, node, node_, t_invest))},
+    ${sum(t_invest, r_invest_transferCapacity_gnn(grid, node, node_, t_invest))},
     tmp = 0;
     tmp_ = 0;
     loop(t_invest(t),
         tmp = p_gnn(grid, node, node_, 'transferCap') + tmp
-            + r_investTransfer(grid, node, node_, t);
+            + r_invest_transferCapacity_gnn(grid, node, node_, t);
         tmp_ = p_gnn(grid, node_, node, 'transferCap') + tmp_
-            + r_investTransfer(grid, node, node_, t);
-        put "if(ord(tSolve) >= ", ord(t), " - 1,"/;
+            + r_invest_transferCapacity_gnn(grid, node, node_, t);
+        put "if(ord(t_solve) >= ", ord(t), " - 1,"/;
         put "    p_gnn('", grid.tl, "', '", node.tl, "', '", node_.tl,
             "', 'transferCap')"/;
         put "        = ", tmp, ";"/;
@@ -157,3 +192,5 @@ loop(gn2n_directional(grid, node, node_)
 );
 
 putclose;
+
+%offtext

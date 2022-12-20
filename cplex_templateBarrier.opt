@@ -1,4 +1,7 @@
+* this file needs to be in the root folder, not in input folder
 relaxfixedinfeas = 1
-scaind = -1
+
+* These options switch solver to barrier algorithm, that might be particularly useful
+* with very large investment problems. 
 lpmethod = 4
 baralg = 3

@@ -19,188 +19,195 @@ $offtext
 * --- Results Symbols Included in Output --------------------------------------
 * =============================================================================
 
-* --- Symbols related to the simulation setup ---------------------------------
-t_realized = t
+* --- Node Result Symbols -----------------------------------------------------
+
+// r_state required for model structure !!!!!!!!!!!
+r_state_gnft
+
+// State variable slack results
+r_stateSlack_gnft
+
+// spill results
+r_spill_gnft
+r_spill_gn
+r_spill_g
+r_spill_gnShare
+
+// required for model structure !!!!!!!!!!!
+r_transfer_gnnft
+
+// Energy transfer results
+r_transferRightward_gnnft
+r_transferLeftward_gnnft
+r_transfer_gnn
+
+// Marginal value of energy results
+r_balance_marginalValue_gnft
+r_balance_marginalValue_gnAverage
+r_transferValue_gnnft
+r_transferValue_gnn
+
+// Other node related results
+r_curtailments_gnft
+r_curtailments_gn
+r_diffusion_gnnft
+r_diffusion_gnn
+
+
+* --- Energy Generation/Consumption Result Symbols ----------------------------
+
+// required for model structure !!!!!!!!!!!
+r_gen_gnuft
+
+// Energy generation results
+r_gen_gnu
+r_gen_gnft
+r_gen_gn
+r_gen_g
+r_gen_gnuShare
+r_gen_gnShare
+
+// Approximate utilization rates
+r_gen_utilizationRate_gnu
+
+// Energy generation results based on input, unittype, or group
+r_genByFuel_gnft
+r_genByFuel_gn
+r_genByFuel_g
+r_genByFuel_fuel
+r_genByFuel_gnShare
+r_genByUnittype_gnft
+r_genByUnittype_gn
+r_genByGnuGroup_gn
+
+// Energy consumption during startups 
+r_gen_unitStartupConsumption_nu
+
+
+* --- Unit Online, startup, and shutdown Result Symbols ----------------------------------------
+
+// required for model structure !!!!!!!!!!!
+r_online_uft
+r_startup_uft
+r_shutdown_uft
+
+// other online, startup, and shutdown results
+r_online_u
+r_online_perUnit_u
+r_startup_u
+r_shutdown_u
+
+* --- Investment Result Symbols -----------------------------------------------
+
+// Invested unit count and capacity
+r_invest_unitCount_u
+r_invest_unitCapacity_gnu
+r_invest_transferCapacity_gnn
+
+* --- Emissions Results -----------------------------------------------
+
+// emissions by activity type
+r_emission_operationEmissions_gnuft
+r_emission_operationEmissions_nu
+r_emission_startupEmissions_nuft
+r_emission_StartupEmissions_nu
+r_emission_capacityEmissions_nu
+
+// Emission sum results
+r_emissionByNodeGroup
+r_emission_nu
+r_emission_n
+r_emission_u
+r_emission
+
+* --- Reserve Result Symbols ----------------------------------------
+
+// required for model structure !!!!!!!!!!!
+r_reserve_gnuft
+r_reserveTransferRightward_gnnft
+r_reserveTransferLeftward_gnnft
+
+// Unit level reserve results
+r_reserve_gnu
+r_reserve_gn
+r_reserveByGroup_ft
+r_reserveByGroup
+r_reserve_gnuShare
+r_reserve2Reserve_gnuft
+
+// Other reserve results
+r_reserve_marginalValue_ft
+r_reserve_marginalValue_average
+r_reserveDemand_largestInfeedUnit_ft
+r_reserveTransferRightward_gnn
+r_reserveTransferLeftward_gnn
+
+* --- Dummy Result Symbols ----------------------------
+
+// Results regarding solution feasibility
+r_qGen_gnft
+r_qGen_gn
+r_qGen_g
+r_qReserveDemand_ft
+r_qReserveMissing_ft
+r_qReserveDemand
+r_qCapacity_ft
+
 
 * --- Cost Result Symbols -----------------------------------------------------
 
 // Total Objective Function
-r_totalObj
+r_cost_objectiveFunction_t
 
-// Unit Operational Cost Components
-r_gnuVOMCost
-r_gnuTotalVOMCost
-r_uFuelEmissionCost
-r_uTotalFuelEmissionCost
-r_uStartupCost
-r_uTotalStartupCost
+// Unit Cost Components
+r_cost_unitVOMCost_gnuft
+r_cost_unitVOMCost_gnu
+r_cost_unitFuelEmissionCost_gnuft
+r_cost_unitFuelEmissionCost_u
+r_cost_unitStartupCost_uft
+r_cost_unitStartupCost_u
+r_cost_unitShutdownCost_uft
+r_cost_unitShutdownCost_u
+r_cost_unitFOMCost_gnu
+r_cost_unitInvestmentCost_gnu
+r_cost_unitCapacityEmissionCost_nu
+
+// Transfer Link Cost Components
+r_cost_linkVOMCost_gnnft
+r_cost_linkVOMCost_gnn
+r_cost_linkInvestmentCost_gnn
 
 // Nodal Cost Components
-r_gnStateSlackCost
-r_gnTotalStateSlackCost
-r_gnStorageValueChange
-r_gnnVariableTransCost
-r_gnnTotalVariableTransCost
-r_gnnTransferValue
-r_gnnTotalTransferValue
-
-// Investment and Fixed Operation and Maintenance Cost Components
-r_gnuFOMCost
-r_gnuUnitInvestmentCost
-r_gnnLinkInvestmentCost
+r_cost_stateSlackCost_gnt
+r_cost_stateSlackCost_gn
+r_cost_storageValueChange_gn
 
 // Realized System Operating Costs
-r_gnRealizedOperatingCost
-r_gnTotalRealizedOperatingCost
-r_gnTotalRealizedOperatingCostShare
-r_gnTotalRealizedNetOperatingCost
-r_gTotalRealizedOperatingCost
-r_gTotalRealizedNetOperatingCost
-r_totalRealizedOperatingCost
-r_totalRealizedNetOperatingCost
+r_cost_realizedOperatingCost_gnft
+r_cost_realizedOperatingCost_gn
+r_cost_realizedOperatingCost_g
+r_cost_realizedOperatingCost
+r_cost_realizedOperatingCost_gnShare
+r_cost_realizedNetOperatingCost_gn
+r_cost_realizedNetOperatingCost_g
+r_cost_realizedNetOperatingCost
 
 // Realized System Costs
-r_gnTotalRealizedCost
-r_gnTotalRealizedCostShare
-r_gnTotalRealizedNetCost
-r_gTotalRealizedCost
-r_gTotalRealizedNetCost
-r_totalRealizedCost
-r_totalRealizedNetCost
+r_cost_realizedCost_gn
+r_cost_realizedCost_g
+r_cost_realizedCost
+r_cost_realizedCost_gnShare
+r_cost_realizedNetCost_gn
+r_cost_realizedNetCost_g
+r_cost_realizedNetCost
 
-* --- Node Result Symbols -----------------------------------------------------
+* --- Info and Diagnostic Result Symbols ----------------------------
 
-// State variable results, required for model structure !!!!!!!!!!!!!!!!!!!!!!!
-r_state
-// State variable slack results
-r_stateSlack
-
-// Energy transfer and spill variable results
-r_transfer
-r_transferRightward
-r_transferLeftward
-r_spill
-
-// Interesting node related results
-r_balanceMarginal
-r_balanceMarginalAverage
-r_gnnTotalTransfer
-r_gnTotalSpill
-r_gnTotalSpillShare
-r_gTotalSpill
-r_gnnDiffusion
-r_gnCurtailments
-r_gnTotalCurtailments
-
-* --- Energy Generation/Consumption Result Symbols ----------------------------
-
-// Results required for model structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-r_gen
-
-// Energy output results based on input types or unittypes
-r_genFuel
-r_genUnittype
-r_gnTotalGenFuel
-r_gnTotalGenFuelShare
-r_gTotalGenFuel
-r_totalGenFuel
-
-// Interesting energy generation results
-r_gnuTotalGen
-r_gnuTotalGen_unittype
-r_gnuTotalGenShare
-r_gnGen
-r_gnTotalGen
-r_gnTotalGenShare
-r_gTotalGen
-
-// Approximate utilization rates
-r_gnuUtilizationRate
-
-// Interesting energy consumption results
-r_gnConsumption
-r_gnTotalConsumption
-r_gnTotalConsumptionShare
-r_gTotalConsumption
-
-// Start-up consumption results
-r_nuStartupConsumption
-
-* --- Unit Online State Result Symbols ----------------------------------------
-
-// Online results required for model structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-r_online
-r_startup
-r_shutdown
-
-// Interesting unit online results
-r_uTotalOnline
-r_uTotalOnlinePerUnit
-
-// Interesting unit startup and shutdown results
-r_uTotalStartup
-r_uTotalShutdown
-
-* --- Emissions Results -----------------------------------------------
-
-// Unit level emissions from normal operation
-r_emissions
-
-// Unit level emissions from start-ups
-r_emissionsStartup
-
-// Emission sums
-r_nuTotalEmissionsOperation
-r_nuTotalEmissionsStartup
-r_nuTotalEmissions
-r_nTotalEmissions
-r_uTotalEmissions
-r_totalEmissions
-r_groupTotalEmissions
-
-* --- Reserve Provision Result Symbols ----------------------------------------
-
-// Reserve provision results required for model structure !!!!!!!!!!!!!!!!!!!!!
-r_reserve
-r_reserve2Reserve
-r_resTransferRightward
-r_resTransferLeftward
-
-// Interesting reserve results
-r_resDemandMarginal
-r_resDemandMarginalAverage
-r_gnuTotalReserve
-r_gnuTotalReserveShare
-r_gnTotalReserve
-r_gnnTotalResTransferRightward
-r_gnnTotalResTransferLeftward
-r_resDemandLargestInfeedUnit
-r_groupReserve
-r_groupTotalReserve
-
-* --- Investment Result Symbols -----------------------------------------------
-
-// Interesting investment results
-r_invest
-r_investCapacity
-r_investTransfer
-
-* --- Sum results for groups --------------------------------------------------
-
-// gnTotalgen in units that belong to gnuGroups over the simulation
-r_gnTotalGenGnuGroup
-
-* --- Dummy and Diagnostic Variable Result Symbols ----------------------------
-
-// Results regarding solution feasibility
-r_qGen
-r_gnTotalqGen
-r_gTotalqGen
-r_qResDemand
-r_qResMissing
-r_groupTotalqResDemand
-r_qCapacity
-r_solveStatus
+// Info results
+r_info_solveStatus
+r_info_metadata
+r_info_mSettings
+r_info_t_realized
 
 // Diagnostics
 $iftheni.diag '%diag%' == yes
@@ -211,18 +218,8 @@ d_nodeState
 d_influx
 $endif.diag
 
-// Metadata and settings
-metadata
-mSettings
 
 // OLD RESULTS, mostly here for inspiration
-*r_elec_type
-*r_demand
 *r_onlineCap
-*r_heat
 *r_capacity_type
-*r_elecConsumption
 *r_storageValue
-*r_storageControl
-*r_elecPrice
-*r_cost
