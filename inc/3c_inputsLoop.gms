@@ -259,13 +259,15 @@ loop(cc(counter),
     option clear = tt_interval;
     tt_interval(t) = tt_block(counter, t);
 
-    // Select and average time series data matching the intervals
+    // ts_unit_ for active t in solve including aggregated time steps
     ts_unit_(unit_timeseries(unit), param_unit, ft(f, tt_interval(t)))
         ${ sum(s, sft(s, f, t)) }
         = sum(tt_aggcircular(t, t_),
             ts_unit(unit, param_unit, f, t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
+
+    // ts_unitConstraintNode_ for active t in solve including aggregated time steps
     ts_unitConstraintNode_(unit, constraint, node, sft(s, f, tt_interval(t)))${unit_tsConstrained(unit)}
         = sum(tt_aggcircular(t, t_),
             ts_unitConstraintNode(unit, constraint, node, f, t_)
@@ -275,13 +277,13 @@ loop(cc(counter),
     // ts_influx_ for active t in solve including aggregated time steps
     ts_influx_(gn_influx(grid, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
-            ts_influx(grid, node, f + df_realization(f, t), t_)
+            ts_influx(grid, node, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_influx'))), t_)
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
 
     // ts_cf_ for active t in solve including aggregated time steps
     ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))
         = sum(tt_aggcircular(t, t_),
-            ts_cf(flow, node, f + df_realization(f, t), t_)
+            ts_cf(flow, node, f +(df_realization(f, t)$(not gn_forecasts(flow, node, 'ts_cf'))), t_)
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
 
     // Reserves relevant only until reserve_length
@@ -289,7 +291,8 @@ loop(cc(counter),
       ${ord(t) <= t_solveFirst + p_groupReserves(group, restype, 'reserve_length')
         and sum(s, sft(s, f, t)) }
         = sum(tt_aggcircular(t, t_),
-            ts_reserveDemand(restype, up_down, group, f + df_realization(f, t), t_)
+            ts_reserveDemand(restype, up_down, group,
+                             f +(df_realization(f, t)${not sum(gnGroup(grid, node, group), gn_forecasts(restype, node, 'ts_reserveDemand'))}), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
@@ -297,30 +300,32 @@ loop(cc(counter),
     ts_node_(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), sft(s, f, tt_interval(t)))
            // Take average if not a limit type
         = (sum(tt_aggcircular(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes, f + df_realization(f, t), t_)
+                ts_node(grid, node, param_gnBoundaryTypes, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter))$( not (sameas(param_gnBoundaryTypes, 'upwardLimit')
                                                                 or sameas(param_gnBoundaryTypes, 'downwardLimit')
                                                                 or slack(param_gnBoundaryTypes)))
           // Maximum lower limit
           + smax(tt_aggcircular(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes, f + df_realization(f, t), t_)
+                ts_node(grid, node, param_gnBoundaryTypes, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))), t_)
                 )
                 $(sameas(param_gnBoundaryTypes, 'downwardLimit') or downwardSlack(param_gnBoundaryTypes))
           // Minimum upper limit
           + smin(tt_aggcircular(t, t_),
-                ts_node(grid, node, param_gnBoundaryTypes, f + df_realization(f, t), t_)
+                ts_node(grid, node, param_gnBoundaryTypes, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))), t_)
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
 
     // processing ts_gnn values for active ft including time step aggregation
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
         ${ sum(s, sft(s, f, t)) }
-        = sum(tt_aggcircular(t, t_), ts_gnn(grid, node, node_, param_gnn, f, t_))
+        = sum(tt_aggcircular(t, t_), ts_gnn(grid, node, node_, param_gnn, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_gnn'))), t_)
+             ) // END sum(tt_aggcircular)  
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
 
     // ts_price_ calculation to avoid recalculating this for every unit in ts_vomCost_ and ts_startupCost_
+    // note: same values for each forecast
     ts_price_(node, tt_interval(t))
         ${p_price(node, 'useTimeSeries')
           and sum((s, f), sft(s, f, t)) }
@@ -331,6 +336,7 @@ loop(cc(counter),
     ;
 
     // ts_emissionPrice_ calculation to avoid recalculating this for every unit in ts_vomCost_ and ts_startupCost_
+    // note: same values for each forecast
     ts_price_(node, tt_interval(t))
         ${p_price(node, 'useTimeSeries')
           and sum((s, f), sft(s, f, t)) }
@@ -403,7 +409,7 @@ loop(cc(counter),
     // `storageValue`
     ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'storageValueUseTimeSeries') }
         = sum(tt_aggcircular(t, t_),
-            ts_storageValue(grid, node, f + df_realization(f, t), t_)
+            ts_storageValue(grid, node, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_storageValue'))), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 

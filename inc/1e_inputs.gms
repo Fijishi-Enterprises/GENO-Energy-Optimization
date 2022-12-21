@@ -128,6 +128,8 @@ $ifthen exist '%input_dir%/changes.inc'
    $$include '%input_dir%/changes.inc'
 $endif
 
+
+
 * =============================================================================
 * --- Initialize Unit Related Sets & Parameters Based on Input Data -----------
 * =============================================================================
@@ -878,7 +880,13 @@ loop( unit_investMIP(unit),
 * no checking yet because node_superpos is not given in the gdx input
 
 
+* =============================================================================
+* --- Default values  ---------------------------------------------------------
+* =============================================================================
 
-
+* By default all nodes use forecasts for all timeseries
+gn_forecasts(gn, timeseries) = yes;
+gn_forecasts(flowNode, timeseries) = yes;
+gn_forecasts(restype, node, 'ts_reserveDemand') = yes;
 
 
