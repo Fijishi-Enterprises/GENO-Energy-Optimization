@@ -12,6 +12,25 @@ All notable changes to this project will be documented in this file.
 - Fixing a bug with data recycling with constant hourly time resolution.
 
 
+## 3.4 - 2022-12-21
+
+### Added
+
+- Add `ts_price` equivalent to Spine datastore template.
+- Option to declare which units use forecast data
+
+### Changed
+
+- updated scheduleInit template with 3 forecasts
+
+### Fixed
+
+- Fixing a bug with data recycling with constant hourly time resolution.
+- Minor tweaks to Spine exporter settings to avoid erronous data export.
+- removed old unused sections of code from 3c_inputsLoop
+- Aligning the behaviour of 3.x with 2.x in case of 3 or more forecasts
+
+
 ## 3.3 - 2022-12-15
 
 ### Added

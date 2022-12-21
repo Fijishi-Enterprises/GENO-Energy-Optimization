@@ -99,6 +99,15 @@ if (mType('schedule'),
     // Define the number of forecasts used by the model
     mSettings('schedule', 'forecasts') = 3;
 
+    // Define which nodes and timeseries use forecasts
+    Option clear = gn_forecasts;  // By default includes everything, so clear first
+    //gn_forecasts('wind', 'XXX', 'ts_cf') = yes;  // declare a time serie that has forecasts. Syntax: (*, node, timeseries) where * = grid, flow, or restype
+    //gn_forecasts('hydro', 'XXX', 'ts_influx') = yes;  // declare a time serie that has forecasts. Syntax: (*, node, timeseries) where * = grid, flow, or restype
+
+    // Define which units and timeseries use forecasts
+    Option clear = unit_forecasts;  // By default includes everything, so clear first
+    //unit_forecasts('XXX', 'ts_unit') = yes;  // declare a time serie that has forecasts. Syntax: (unit, timeseries)
+
     // Define forecast properties and features
     mSettings('schedule', 't_forecastStart') = 1;                  // At which time step the first forecast is available ( 1 = t000001 )
     mSettings('schedule', 't_forecastLengthUnchanging') = 36;      // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)
@@ -110,11 +119,9 @@ if (mType('schedule'),
     // Define how forecast data is read
     mSettings(mSolve, 'onlyExistingForecasts') = no; // yes = Read only existing data; zeroes need to be EPS to be recognized as data.
 
-    // Define what forecast data is read
+    // Define what forecast data is read during the loop phase
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
     mTimeseries_loop_read('schedule', 'ts_unit') = no;
-*    mTimeseries_loop_read('schedule', 'ts_effUnit') = no; // THESE ARE CURRENTLY DISABLED, ENABLE AT OWN RISK
-*    mTimeseries_loop_read('schedule', 'ts_effGroupUnit') = no; // THESE ARE CURRENTLY DISABLED, ENABLE AT OWN RISK
     mTimeseries_loop_read('schedule', 'ts_influx') = no;
     mTimeseries_loop_read('schedule', 'ts_cf') = no;
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;

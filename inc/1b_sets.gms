@@ -67,6 +67,7 @@ Sets
     unit_gtConstrained(unit) "Units that have gt constraints between inputs and/or outputs"
     unit_tsConstrained(unit) "Units that have timeseries for eq or gt constraints between inputs and/or outputs"
     unit_tmp(unit) "temporary set for summing units"
+    unit_forecasts(unit, timeseries) "A flag which (unit, timeseries) have forecast data. If not set, values are read from f_realized. Default value = yes."
 
 * --- Sets bounding geography and units ---------------------------------------
     group "A group of units, transfer links, nodes, etc."
@@ -87,6 +88,7 @@ Sets
     gn_state(grid, node) "Nodes with a state variable"
     gn_stateSlack(grid, node) "Nodes with a state slack variable"
     gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes) "nodes with time series for boundaryTypes (ts_node)"
+    gn_forecasts(*, node, timeseries) "A flag which (grid/flow/restype, node, timeseries) have forecast data. If not set, values are read from f_realized. Default value = yes."
     gnn_state(grid, node, node) "Nodes with state variables interconnected via diffusion"
     gnn_boundState(grid, node, node) "Nodes with state variables bound by other nodes"
     gn2gnu(grid, node, grid, node, unit) "Conversions between energy grids by specific units"
