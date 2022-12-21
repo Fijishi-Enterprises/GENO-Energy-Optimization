@@ -889,4 +889,5 @@ gn_forecasts(gn, timeseries) = yes;
 gn_forecasts(flowNode, timeseries) = yes;
 gn_forecasts(restype, node, 'ts_reserveDemand') = yes;
 
-
+* By default all units use forecasts for all timeseries
+unit_forecasts(unit, timeseries) = yes;

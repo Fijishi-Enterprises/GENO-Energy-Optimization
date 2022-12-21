@@ -263,14 +263,14 @@ loop(cc(counter),
     ts_unit_(unit_timeseries(unit), param_unit, ft(f, tt_interval(t)))
         ${ sum(s, sft(s, f, t)) }
         = sum(tt_aggcircular(t, t_),
-            ts_unit(unit, param_unit, f, t_)
+            ts_unit(unit, param_unit, f +(df_realization(f, t)$(not unit_forecasts(unit, 'ts_unit'))), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
     // ts_unitConstraintNode_ for active t in solve including aggregated time steps
     ts_unitConstraintNode_(unit, constraint, node, sft(s, f, tt_interval(t)))${unit_tsConstrained(unit)}
         = sum(tt_aggcircular(t, t_),
-            ts_unitConstraintNode(unit, constraint, node, f, t_)
+            ts_unitConstraintNode(unit, constraint, node, f +(df_realization(f, t)$(not unit_forecasts(unit, 'ts_unitConstraintNode'))), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
@@ -320,7 +320,7 @@ loop(cc(counter),
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
         ${ sum(s, sft(s, f, t)) }
         = sum(tt_aggcircular(t, t_), ts_gnn(grid, node, node_, param_gnn, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_gnn'))), t_)
-             ) // END sum(tt_aggcircular)  
+             ) // END sum(tt_aggcircular)
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
 

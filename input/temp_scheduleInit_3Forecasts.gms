@@ -104,6 +104,10 @@ if (mType('schedule'),
     //gn_forecasts('wind', 'XXX', 'ts_cf') = yes;  // declare a time serie that has forecasts. Syntax: (*, node, timeseries) where * = grid, flow, or restype
     //gn_forecasts('hydro', 'XXX', 'ts_influx') = yes;  // declare a time serie that has forecasts. Syntax: (*, node, timeseries) where * = grid, flow, or restype
 
+    // Define which units and timeseries use forecasts
+    Option clear = unit_forecasts;  // By default includes everything, so clear first
+    //unit_forecasts('XXX', 'ts_unit') = yes;  // declare a time serie that has forecasts. Syntax: (unit, timeseries)
+
     // Define forecast properties and features
     mSettings('schedule', 't_forecastStart') = 1;                  // At which time step the first forecast is available ( 1 = t000001 )
     mSettings('schedule', 't_forecastLengthUnchanging') = 36;      // Length of forecasts in time steps - this does not decrease when the solve moves forward (requires forecast data that is longer than the horizon at first)

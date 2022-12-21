@@ -6,8 +6,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Add `ts_price` equivalent to Spine datastore template.
+- Option to declare which units use forecast data
 
 ### Changed
+
+- updated scheduleInit template with 3 forecasts
 
 ### Fixed
 
