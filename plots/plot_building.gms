@@ -19,6 +19,9 @@ $if not set t_jump $set t_jump ERR
 $if not set t_horizon $set t_horizon ERR
 * Set TRUE or FALSE
 $if not set archive $set archive FALSE
+$if not set openpdf $set openpdf FALSE
+$if not set user_y_axis_min_left $set user_y_axis_min_left 0
+$if not set user_y_axis_max_left $set user_y_axis_max_left 0
 
 * ARCHIVE
 $ifThen "%archive%"=="TRUE"
@@ -53,10 +56,10 @@ $onechoV > runR.inc
  $$if set Ylabel2  $set r_ylabel2 -z "%Ylabel2%"
  $$set r_xlabel
  $$if set Xlabel  $set r_xlabel -x "%Xlabel%"
- execute 'Rscript "%gams.wDir%plots\do_r_plot.r" -i "%gams.wDir%plots/%1" -o "%gams.wDir%output/%2.pdf"  -p %2 %r_param2% -w 168 -a %output_dir_R% %r_ylabel% %r_ylabel2% %r_xlabel%  ';
+ execute 'Rscript "%gams.wDir%plots\do_r_plot.r" -i "%gams.wDir%plots/%1" -o "%gams.wDir%output/%2.pdf"  -p %2 %r_param2% -w 168 -a %output_dir_R% %r_ylabel% %r_ylabel2% %r_xlabel%  --user_y_axis_min_left %user_y_axis_min_left% --user_y_axis_max_left %user_y_axis_max_left%';
  myerrorlevel = errorlevel;
  if(myerrorlevel=0,
-   Execute.ASyncNC 'SumatraPDF.exe  "%gams.wDir%output/%2.pdf"';
+   $$if "%openpdf%"=="TRUE"  Execute.ASyncNC 'SumatraPDF.exe  "%gams.wDir%output/%2.pdf"';
  else
    abort "Execution error in Rscript with input argument %1 )";
 )
@@ -242,6 +245,9 @@ $set GDXparam r_state_gnft
 $set TMPparam r_state_interior_air
 $set Ylabel Temperture (Celcius) :
 $set Ylabel2 %Ylabel2_alt1%
+$set user_y_axis_min_left -40
+$set user_y_axis_max_left 90
+
 Parameter %TMPparam%(t,*)   "Temperature at interior_air_and_furniture (Celcius)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -290,10 +296,10 @@ execute_unload 'plots/%GDXfile%', tparam=t, node, %TMPparam%, %GDXparam2set2%, %
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 
 * Plots 4 Building specific plots
-* Plot r_state: Building DH1 *******************************************************
+* Plot r_state: Building DH *******************************************************
 $set GDXfile  plot4r.gdx
 $set GDXparam r_state_gnft
-$set TMPparam r_state_DH1
+$set TMPparam r_state_DH
 $set Ylabel Temperture (Celcius) :
 $set Ylabel2 %Ylabel2_alt1%
 Parameter %TMPparam%(t,*)   "Detached House(DH)" ;

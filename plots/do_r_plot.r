@@ -64,6 +64,10 @@ option_list = list(
               help="Optional right Y-axis label for plot [default= %default]", metavar="character"),
   make_option(c("-w", "--window"), type="integer", default="", 
               help="do additional plots by splitting x (x-axis) to the specified time step length [default= %default]", metavar="integer"),
+  make_option(c("-k", "--user_y_axis_min_left"), type="integer", default="0", 
+              help="minimum limit value for left side y-axis (expanded if data requires it) [default= %default]", metavar="integer"),
+  make_option(c("-l", "--user_y_axis_max_left"), type="integer", default="0", 
+              help="maximum limit value for left side y-axis (expanded if data requires it) [default= %default]", metavar="integer"),
   make_option(c("-a", "--archive"), type="character", default="", 
               help="if specified, copy the pdf to the specified folder [default= %default]", metavar="character")
     ); 
@@ -247,6 +251,10 @@ if(nr_cat<=8){
   my_legend_title_font_size <- 1
   my_legend_entry_font_size <- 1
 }
+y_axis_min_left=min(min(df_p[,3]),opt$user_y_axis_min_left)
+y_axis_max_left=max(max(df_p[,3]),opt$user_y_axis_max_left)
+y_axis_lim_left=c(y_axis_min_left, y_axis_max_left)
+#secondary axis range is derived by transformation
 
 # plot p(x,y)
 df_p_index2_ordered <- fct_reorder2(df_p[,2],df_p[,1],df_p[,3])
@@ -271,6 +279,7 @@ if(!empty(df_p2)){
   g2 <- g1 + 
          geom_line(data=df_p2, aes(x=!!xvar2, y=!!value2*scaleFactor, group=df_p2_index2_ordered, linetype=df_p2_index2_ordered)) +
          scale_y_continuous(
+          limits = y_axis_lim_left, 
           name = paste(value, "-axis. ", ylabel),
           breaks = get_custom_x_axis_breaks(custom_y_axis_tick_distance, max_nr_of_custom_y_axis_ticks, df_p[,3]),
           sec.axis = sec_axis(~./scaleFactor, name=paste(value2, "-axis. ",zlabel)))  + 
