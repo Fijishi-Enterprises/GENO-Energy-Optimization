@@ -1,5 +1,9 @@
 # Program description (run "Rscript do_r_plot.r -h")
 #
+# For testing 
+# 1. In GAMS: simple_r_plot_create_data.gms
+# 2. In CMD : Rscript do_r_plot.r -i plot4r.gdx -p p1 -s p2 -w 50 
+#
 # Author: Toni Lastusilta (VTT)  2022/01
 
 text <- vector("character")
@@ -40,6 +44,11 @@ max_nr_of_custom_x_axis_ticks = 20
 # Use custom y-axis ticks distance for graphs (0 disabled)
 custom_y_axis_tick_distance = 10
 max_nr_of_custom_y_axis_ticks = 21
+
+# Use custom y2-axis ticks distance for graphs (0 disabled)
+custom_y2_axis_tick_distance=50
+max_nr_of_custom_y2_axis_ticks=21
+user_minval_y2_axis=0
 
 #Preprocessing : set working directory
 r_dir <- this.dir()
@@ -95,6 +104,17 @@ if (is.null(opt$input) || isFALSE(file.exists(opt$input))) {
 }
 if (! require(gdxrrw))      stop ("gdxrrw package is not available")
 if (0 == igdx(silent=TRUE)) stop ("the gdx shared library has not been loaded")
+
+# Read symbol year from GDX if it exists
+pyear <- sprintf("")
+tryCatch({
+  gdxName <- opt$input
+  symName <- "info4R"
+  df_info <- rgdx.param(gdxName,symName, ts=TRUE, squeeze=FALSE)
+  pyear <- sprintf(" year %s",df_info[1,2])
+}
+, error = function(ex) { print(ex); warning("WARNING: see above message", call.=FALSE) }
+)
 
 # read gdx parameter p of p(x,y)
 df_p <- NULL
@@ -186,7 +206,8 @@ if(!is.null(attr(df_p,"ts"))){
   ptitle <- symName
 }
 exec_sys_date=format(Sys.time(), "%Y-%m-%d%Z_%H-%M-%S")
-ptitle <- sprintf("%s  %s",ptitle,exec_sys_date)
+ptitle <- sprintf("%s %s",ptitle,pyear)
+pfootnote <- sprintf("%s",exec_sys_date)
 
 # check value of input option window 
 window_step=0
@@ -204,21 +225,21 @@ df_p[,1] <- ordered(df_p[,1])
 levels(df_p[,1]) <- 1:nrow(unique(df_p[1])) 
 df_p[,1] <- as.numeric(as.character(df_p[,1]))
 
-# Prepare plot p(x,y)
+# Prepare plot p(x,y) : define axis labels
 xvar <- sym(colnames(df_p)[1])
 yvar <- sym(colnames(df_p)[2])
 value <- sym(colnames(df_p)[3])
 xlabel <- paste(xvar_desc,xvar,"(",xvar_labels[1,1],"=1, ...,",xvar_labels[window_end,1],"=",window_end,")")
-ylabel <- paste(yvar_desc,yvar)
+ylabel <- paste(yvar_desc) # you may add ,yvar
 nr_colors <- nrow(unique(df_p[2]))
  
-# Prepare plot p2(x,z)
+# Prepare plot p2(x,z) : define axis labels
 nr_shapes <- 0
 if(!empty(df_p2)){  
   xvar2 <- sym(colnames(df_p2)[1])
   zvar  <- sym(colnames(df_p2)[2])
   value2 <- sym(colnames(df_p2)[3])
-  zlabel <- paste(zvar_desc,zvar)
+  zlabel <- paste(zvar_desc) # you may add ,zvar
   if(!identical(levels(df_p_org[,1]),levels(df_p2_org[,1]))){
     stop(paste("Error: index missmatch. Symbols ",value,"and",value2, " must have same indices for factor",xvar))
   }
@@ -253,8 +274,12 @@ if(nr_cat<=8){
 }
 y_axis_min_left=min(min(df_p[,3]),opt$user_y_axis_min_left)
 y_axis_max_left=max(max(df_p[,3]),opt$user_y_axis_max_left)
-y_axis_lim_left=c(y_axis_min_left, y_axis_max_left)
 #secondary axis range is derived by transformation
+scaleFactor <- (max(df_p[,3])) / (max(df_p2[,3]))
+#we include in the y-axis range the min and max of y and y2 values
+y_axis_min_left=min(y_axis_min_left,df_p2[,3]*scaleFactor)
+y_axis_max_left=max(y_axis_max_left,df_p2[,3]*scaleFactor)
+y_axis_lim_left=c(y_axis_min_left, y_axis_max_left)
 
 # plot p(x,y)
 df_p_index2_ordered <- fct_reorder2(df_p[,2],df_p[,1],df_p[,3])
@@ -274,17 +299,19 @@ g2 <- g1
 
 # plot p2(x,z)
 if(!empty(df_p2)){
-  scaleFactor <- max(df_p[,3]) / max(df_p2[,3])
   df_p2_index2_ordered <- fct_reorder2(df_p2[,2],df_p2[,1],df_p2[,3])
   g2 <- g1 + 
          geom_line(data=df_p2, aes(x=!!xvar2, y=!!value2*scaleFactor, group=df_p2_index2_ordered, linetype=df_p2_index2_ordered)) +
          scale_y_continuous(
-          limits = y_axis_lim_left, 
           name = paste(value, "-axis. ", ylabel),
+          limits = y_axis_lim_left, 
           breaks = get_custom_x_axis_breaks(custom_y_axis_tick_distance, max_nr_of_custom_y_axis_ticks, df_p[,3]),
-          sec.axis = sec_axis(~./scaleFactor, name=paste(value2, "-axis. ",zlabel)))  + 
-         scale_linetype_discrete(name = paste(value2))+
-         guides(linetype=guide_legend(ncol=3))
+          sec.axis = sec_axis(~./scaleFactor, 
+                              breaks = get_custom_x_axis_breaks(custom_y2_axis_tick_distance, max_nr_of_custom_y2_axis_ticks, df_p2[,3], user_minval=user_minval_y2_axis), 
+                              name=paste(value2, "-axis. ",zlabel)))  + 
+          scale_linetype_discrete(name = paste(value2))+
+          guides(linetype=guide_legend(ncol=3)) +
+          labs(caption = pfootnote)
 }
 g3 <- g2 + scale_x_continuous(breaks = get_custom_x_axis_breaks(custom_x_axis_tick_distance, max_nr_of_custom_x_axis_ticks, df_p[,1]))           
 #g3_copy<-g3 # to avoid errors we create a copy, g2 changes with switch -w

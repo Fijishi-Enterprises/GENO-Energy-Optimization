@@ -4,9 +4,9 @@
 
 # Function to set custom distance for x-axis tick marks or return default on failure
 # window_step == 0 (disabled)
-get_custom_x_axis_breaks <- function(axis_tick_distance, max_nr_of_axis_ticks, axis_vec, window_step=0, x_round_denom=10){
+get_custom_x_axis_breaks <- function(axis_tick_distance, max_nr_of_axis_ticks, axis_vec, window_step=0, x_round_denom=10, user_minval=Inf){
   minval_in = min(axis_vec)
-  minval_used = (floor(minval_in)%/%x_round_denom)*x_round_denom
+  minval_used = min(user_minval,(floor(minval_in)%/%x_round_denom))*x_round_denom
   maxval_used = ceiling(max(axis_vec))
   if(window_step<=0){
     window_step=axis_range = abs(maxval_used- minval_used)

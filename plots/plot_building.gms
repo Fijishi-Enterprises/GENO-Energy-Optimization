@@ -74,27 +74,28 @@ $if not set backbone_output_GDX $set backbone_output_GDX "output/out.gdx"
 $if "%archive%"=="TRUE"  $call cp "%backbone_output_GDX%" "%output_dir%/%archive_prefix%_backbone_out.gdx"
 
 * Define common sets and parameters
-$set GDXparam2         priceElec
+$set GDXparam2         price
 $set GDXparam2set2     price_%year%
 $set GDXparam2alt2     TempOut
-$set GDXparam2set2alt2 temp
+$set GDXparam2set2alt2 Temperature_outside
 
 * Define sets and parameters to be used to prepare data for plots or in ggplots in R
 Set
   tparam(t)                      "Time steps (in hours)"
   %GDXparam2set2%                "Electricity price (EUR/MWh)"                /price/
   %GDXparam2set2alt2%            "Outside temperature (C)"                    /temp_out/
-  out_temp                       "Outside temperature (C)"
 
 ;
 Parameter
+  info4R(*)                              "Additional info for R plot"
   myerrorlevel                           "Save Rscript callback error level"          / 0 /
   w2kw                                   "Convert whatt to kilowhatt"                 / 0.001 /
   sign                                   "Switch sign"                                / -1 /
   %GDXparam2%(t,%GDXparam2set2%)         "Electricity spot price (EUR/MWh)"
   %GDXparam2alt2%(t,%GDXparam2set2alt2%) "Temperature outside (Celcius)"
-  temp_out(t)                            "Outside temperature (C)"
+  temp_out(t)                            "Raw data: Outside temperature (C)"
 ;
+info4R("year")=%year%;
 
 * CREATE PLOTS:
 * Read common sets and parameters
@@ -145,10 +146,10 @@ execute_loaddc "%backbone_output_GDX%", mSettings, t_realized ;
 tparam(t)= t_realized(t);
 * Read Elspot
 %GDXparam2%(tparam,%GDXparam2set2%)=ts_priceElspot(tparam) + eps  ;
-$set Ylabel2_alt1 "Price of electricity (EUR/MWh) :"
+$set Ylabel2_alt1 "Price of electricity (EUR/MWh)"
 * Read temp_out
 %GDXparam2alt2%(tparam,%GDXparam2set2alt2%)= temp_out(tparam)+ eps ;
-$set Ylabel2_alt2 "Outside temperature (C) :"
+$set Ylabel2_alt2 "Outside temperature (C)"
 
 * Create summary_emob.gdx
 $batinclude plots/summary_emob.inc %output_dir%
@@ -169,7 +170,7 @@ Parameter %TMPparam%(t,node)   "External power (weather) influencing building" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
 %TMPparam%(tparam(t),node)=sum((building_heat_storage(grid,node),f)$(sameas(f,'f00')),w2kw*%GDXparam%(grid,node,f,t) + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, node, %TMPparam%, %GDXparam2set2alt2%, %GDXparam2alt2% ;
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, node, %TMPparam%, %GDXparam2set2alt2%, %GDXparam2alt2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2alt2%
 * Plot ts_influx_normalized *******************************************************
 $set GDXfile  plot4r.gdx
@@ -181,7 +182,7 @@ Parameter %TMPparam%(t,node)   "External power (weather) influencing building - 
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
 %TMPparam%(tparam(t),node)=sum((building_heat_storage(grid,node),f)$(sameas(f,'f00')), w2kw*%GDXparam%(grid,node,f,t)/building_squares(grid) + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, node, %TMPparam%, %GDXparam2set2alt2%, %GDXparam2alt2% ;
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, node, %TMPparam%, %GDXparam2set2alt2%, %GDXparam2alt2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2alt2%
 
 * Plots 2 : r_gen
@@ -197,7 +198,7 @@ execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
 display unit_heat_and_cool;
 %TMPparam%(tparam(t),unit_heat_and_cool(unit))=sum((grid2node(grid,node),f)$(sameas(grid,"elec") and sameas(f,'f00') ),sign* w2kw* %GDXparam%(grid,node,unit,f,t) + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, unit, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, unit, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 * Plot r_gen_heat_normalized *******************************************************
 $set GDXfile  plot4r.gdx
@@ -209,7 +210,7 @@ Parameter %TMPparam%(t,unit)   "Electric power consumption for heating and cooli
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
 %TMPparam%(tparam(t),unit_heat_and_cool(unit))=sum((grid2node2unit(grid,node,unit),f)$(sameas(grid,"elec") and sameas(f,'f00')),sign* w2kw* %GDXparam%(grid,node,unit,f,t)/building_squares4elec(node) + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, unit, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, unit, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 
 * Plot r_gen DHW absolute *******************************************************
@@ -222,7 +223,7 @@ Parameter %TMPparam%(t,unit)   "Electric power consumption for domestic hot wate
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
 %TMPparam%(tparam(t),unit_DHW(unit))=sum((grid2node2unit(grid,node,unit),f)$(unit_DHW(unit) and sameas(f,'f00')),sign* w2kw* %GDXparam%(grid,node,unit,f,t) + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, unit, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, unit, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 * Plot r_gen DHW normalized *******************************************************
 $set GDXfile  plot4r.gdx
@@ -234,7 +235,7 @@ Parameter %TMPparam%(t,unit)   "Electric power consumption for domestic hot wate
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
 %TMPparam%(tparam(t),unit_DHW(unit))=sum((grid2node2unit(grid,node,unit),f)$(unit_DHW(unit) and sameas(f,'f00')),sign* w2kw* %GDXparam%(grid,node,unit,f,t)/building_squares4elec(node) + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, unit, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, unit, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 
 * Plots 3 r_state
@@ -243,7 +244,7 @@ $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 $set GDXfile  plot4r.gdx
 $set GDXparam r_state_gnft
 $set TMPparam r_state_interior_air
-$set Ylabel Temperture (Celcius) :
+$set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
 $set user_y_axis_min_left -40
 $set user_y_axis_max_left 90
@@ -251,48 +252,48 @@ $set user_y_axis_max_left 90
 Parameter %TMPparam%(t,*)   "Temperature at interior_air_and_furniture (Celcius)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
-%TMPparam%(tparam(t),'out_temp')=temp_out(t);
+%TMPparam%(tparam(t),'%GDXparam2set2alt2%')=temp_out(t);
 %TMPparam%(tparam(t),heat_interior_air_and_furniture(node))=sum((building_heat_interior_air_and_furniture(grid,node),f)$(sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 * Plot r_state(light_fabrics) *******************************************************
 $set GDXfile  plot4r.gdx
 $set GDXparam r_state_gnft
 $set TMPparam r_state_light_fabrics
-$set Ylabel Temperture (Celcius) :
+$set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
 Parameter %TMPparam%(t,*)   "Temperature at internal_mass: inside walls  (Celcius)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
-%TMPparam%(tparam(t),'out_temp')=temp_out(t);
+%TMPparam%(tparam(t),'%GDXparam2set2alt2%')=temp_out(t);
 %TMPparam%(tparam(t),heat_light_fabrics(node))=sum((building_heat_light_fabrics(grid,node),f)$(sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 * Plot r_state(load_bearing_fabrics) *******************************************************
 $set GDXfile  plot4r.gdx
 $set GDXparam r_state_gnft
 $set TMPparam r_state_load_bearing_fabrics
-$set Ylabel Temperture (Celcius) :
+$set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
 Parameter %TMPparam%(t,*)   "Temperature at envelope_mass: outside walls (Celcius)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
-%TMPparam%(tparam(t),'out_temp')=temp_out(t);
+%TMPparam%(tparam(t),'%GDXparam2set2alt2%')=temp_out(t);
 %TMPparam%(tparam(t),heat_load_bearing_fabrics(node))=sum((building_heat_load_bearing_fabrics(grid,node),f)$(sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 * Plot r_state(DHWT) *******************************************************
 $set GDXfile  plot4r.gdx
 $set GDXparam r_state_gnft
 $set TMPparam r_state_DHWT
-$set Ylabel Temperture (Celcius) :
+$set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
 Parameter %TMPparam%(t,*)   "Temperature at Domestic Hot Water Tank (Celcius)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
-%TMPparam%(tparam(t),'out_temp')=temp_out(t);
+%TMPparam%(tparam(t),'%GDXparam2set2alt2%')=temp_out(t);
 %TMPparam%(tparam(t),heat_DHWT_daily(node))=sum((building_heat_DHWT_daily(grid,node),f)$(sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 
 * Plots 4 Building specific plots
@@ -300,33 +301,33 @@ $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 $set GDXfile  plot4r.gdx
 $set GDXparam r_state_gnft
 $set TMPparam r_state_DH
-$set Ylabel Temperture (Celcius) :
+$set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
-Parameter %TMPparam%(t,*)   "Detached House(DH)" ;
+Parameter %TMPparam%(t,*)   "Detached House (DH)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
-%TMPparam%(tparam(t),'out_temp')=temp_out(t);
+%TMPparam%(tparam(t),'Outside temperature')=temp_out(t);
 %TMPparam%(tparam(t),heat_interior_air_and_furniture(node)) = sum((building_heat_interior_air_and_furniture(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_light_fabrics(node)) =                           sum((building_heat_light_fabrics(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_load_bearing_fabrics(node))=              sum((building_heat_load_bearing_fabrics(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_DHWT_daily(node)) =                                 sum((building_heat_DHWT_daily(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
+%TMPparam%(tparam(t),heat_light_fabrics(node))              = sum((building_heat_light_fabrics(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
+%TMPparam%(tparam(t),heat_load_bearing_fabrics(node))       = sum((building_heat_load_bearing_fabrics(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
+%TMPparam%(tparam(t),heat_DHWT_daily(node))                 = sum((building_heat_DHWT_daily(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 * Plot r_state: Building AB  *******************************************************
 $set GDXfile  plot4r.gdx
 $set GDXparam r_state_gnft
 $set TMPparam r_state_AB
-$set Ylabel Temperture (Celcius) :
+$set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
 Parameter %TMPparam%(t,*)   "Apartment Building (AB)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
-%TMPparam%(tparam(t),'out_temp')=temp_out(t);
+%TMPparam%(tparam(t),'Outside temperature')=temp_out(t);
 %TMPparam%(tparam(t),heat_interior_air_and_furniture(node)) = sum((building_heat_interior_air_and_furniture(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_light_fabrics(node)) =                           sum((building_heat_light_fabrics(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_load_bearing_fabrics(node))=              sum((building_heat_load_bearing_fabrics(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_DHWT_daily(node)) =                                 sum((building_heat_DHWT_daily(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-execute_unload 'plots/%GDXfile%', tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
+%TMPparam%(tparam(t),heat_light_fabrics(node))              = sum((building_heat_light_fabrics(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
+%TMPparam%(tparam(t),heat_load_bearing_fabrics(node))       = sum((building_heat_load_bearing_fabrics(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
+%TMPparam%(tparam(t),heat_DHWT_daily(node))                 = sum((building_heat_DHWT_daily(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
+execute_unload 'plots/%GDXfile%', info4R, tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 
 Parameter supplementary_info(*);

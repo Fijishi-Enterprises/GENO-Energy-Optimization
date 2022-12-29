@@ -13,11 +13,19 @@ p1(i,j)  "parameter to plot on first y-axis"
 p2(i,k)  "parameter to plot on second y-axis"
 ;
 p1(i,j)=ord(i)*ord(j);
-p2(i,k)=(1+card(i)-ord(i))*10*ord(k);
+p2(i,k)=(1+card(i)-ord(i))*10*ord(k)-500;
+
+$if not set year $set year 2016
+Parameter
+  info4R(*)
+;
+info4R("year")=%year%   ;
 
 execute_unload "%gams.wDir%\plots\simple_r_plot_data.gdx";
 *execute 'Rscript "%gams.curDir%plots\create_simple_r_plot.r"';
 
 * Create data for do_r_plot.r
 execute_unload "%gams.wDir%\plots\plot4r.gdx";
+
+*execute 'Rscript do_r_plot.r -i plot4r.gdx -p p1 -s p2 -w 50';
 
