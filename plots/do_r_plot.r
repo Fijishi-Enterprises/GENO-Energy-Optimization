@@ -254,18 +254,19 @@ if(!empty(df_p2)){
 }
 
 #Prepare plot p1 and p2
-my_title_font_size = 8
-my_axis_title_font_size = 7
-my_axis_scale_font_size = 6
-my_legend_title_font_size <- 7
-my_legend_entry_font_size <- 6
+my_title_font_size =  8 # 8
+my_axis_title_font_size = 8 # 7
+my_axis_scale_font_size = 8 # 6
+my_legend_title_font_size <- 8 # 7
+my_legend_entry_font_size <- 8 # 6
+my_footnote_entry_font_size <- 8 # 8
 nr_cat <- nr_colors + nr_shapes
 if(nr_cat<=8){
   mypalette="Dark2"
 } else if(nr_cat<=12){
   mypalette=NULL
-  my_legend_title_font_size <- 7
-  my_legend_entry_font_size <- 6
+  my_legend_title_font_size <- 8 # 7
+  my_legend_entry_font_size <- 8 # 6
 }else if(nr_cat<=20) {
   mypalette=NULL
   my_legend_title_font_size <- 4
@@ -296,7 +297,8 @@ g1 <- ggplot() +
        theme(plot.title = element_text(size = my_title_font_size), axis.title=element_text(size=my_axis_title_font_size),
              axis.text = element_text(size = my_axis_scale_font_size), legend.position="bottom", 
              legend.title = element_text(size=my_legend_title_font_size), legend.box = "vertical", 
-             legend.text = element_text(size=my_legend_entry_font_size)) +
+             legend.text = element_text(size=my_legend_entry_font_size),
+             plot.caption = element_text(size = my_footnote_entry_font_size)) +
        guides(color=guide_legend(ncol=3))
 if(!is.empty(mypalette)){
   g1 <- g1 +
