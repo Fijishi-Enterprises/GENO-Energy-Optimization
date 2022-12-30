@@ -41,14 +41,11 @@ suppressMessages(library(this.path))
 custom_x_axis_tick_distance = 24
 max_nr_of_custom_x_axis_ticks = 20
 
-# Use custom y-axis ticks distance for graphs (0 disabled)
-custom_y_axis_tick_distance = 10
+# Max number of user defined ticks for y-axis before using default ticks
 max_nr_of_custom_y_axis_ticks = 21
 
-# Use custom y2-axis ticks distance for graphs (0 disabled)
-custom_y2_axis_tick_distance=50
+# Max number of user defined ticks for y2-axis before using default ticks
 max_nr_of_custom_y2_axis_ticks=21
-user_minval_y2_axis=0
 
 #Preprocessing : set working directory
 r_dir <- this.dir()
@@ -73,10 +70,16 @@ option_list = list(
               help="Optional right Y-axis label for plot [default= %default]", metavar="character"),
   make_option(c("-w", "--window"), type="integer", default="", 
               help="do additional plots by splitting x (x-axis) to the specified time step length [default= %default]", metavar="integer"),
-  make_option(c("-k", "--user_y_axis_min_left"), type="integer", default="0", 
-              help="minimum limit value for left side y-axis (expanded if data requires it) [default= %default]", metavar="integer"),
-  make_option(c("-l", "--user_y_axis_max_left"), type="integer", default="0", 
-              help="maximum limit value for left side y-axis (expanded if data requires it) [default= %default]", metavar="integer"),
+  make_option(c("-j", "--y_axis_min"), type="numeric", default="Inf", 
+              help="smallest possible value for left side axis, y-axis. Expanded if data requires it [default= %default]", metavar="integer"),
+  make_option(c("-k", "--y_axis_max"), type="numeric", default="-Inf", 
+              help="largest possible value for left side axis: y-axis. Expanded if data requires it [default= %default]", metavar="integer"),
+  make_option(c("-l", "--y_axis_tick_distance"), type="numeric", default="10", 
+              help="user defined tick distance for y1-axis [default= %default]", metavar="integer"),
+  make_option(c("-m", "--y2_axis_tick_distance"), type="numeric", default="0", 
+              help="user defined tick distance for y2-axis [default= %default]", metavar="integer"),
+  make_option(c("-n", "--y2_axis_min"), type="numeric", default="Inf", 
+              help="smallest possible value for right side axis, y2-axis. Expanded if data requires it [default= %default]", metavar="integer"),
   make_option(c("-a", "--archive"), type="character", default="", 
               help="if specified, copy the pdf to the specified folder [default= %default]", metavar="character")
     ); 
@@ -272,14 +275,18 @@ if(nr_cat<=8){
   my_legend_title_font_size <- 1
   my_legend_entry_font_size <- 1
 }
-y_axis_min_left=min(min(df_p[,3]),opt$user_y_axis_min_left)
-y_axis_max_left=max(max(df_p[,3]),opt$user_y_axis_max_left)
-#secondary axis range is derived by transformation
-scaleFactor <- (max(df_p[,3])) / (max(df_p2[,3]))
-#we include in the y-axis range the min and max of y and y2 values
-y_axis_min_left=min(y_axis_min_left,df_p2[,3]*scaleFactor)
-y_axis_max_left=max(y_axis_max_left,df_p2[,3]*scaleFactor)
-y_axis_lim_left=c(y_axis_min_left, y_axis_max_left)
+y_axis_min=min(min(df_p[,3]),opt$y_axis_min)
+y_axis_max=max(max(df_p[,3]),opt$y_axis_max)
+y_axis_tick_distance=opt$y_axis_tick_distance
+y2_axis_tick_distance=opt$y2_axis_tick_distance
+y2_axis_min=opt$y2_axis_min
+
+# secondary axis range is derived by transformation: scaleFactor
+# we consider pos. and neg. y1 and y2 values when deriving scaleFactor
+scaleFactor <- (max(df_p[,3],abs(min(df_p[,3])))) / (max(df_p2[,3],abs(min(df_p2[,3]))))
+y_axis_min=min(y_axis_min,min(df_p2[,3])*scaleFactor)
+y_axis_max=max(y_axis_max,max(df_p2[,3])*scaleFactor)
+y_axis_lim_left=c(y_axis_min, y_axis_max)
 
 # plot p(x,y)
 df_p_index2_ordered <- fct_reorder2(df_p[,2],df_p[,1],df_p[,3])
@@ -305,9 +312,9 @@ if(!empty(df_p2)){
          scale_y_continuous(
           name = paste(value, "-axis. ", ylabel),
           limits = y_axis_lim_left, 
-          breaks = get_custom_x_axis_breaks(custom_y_axis_tick_distance, max_nr_of_custom_y_axis_ticks, df_p[,3]),
+          breaks = get_custom_x_axis_breaks(y_axis_tick_distance, max_nr_of_custom_y_axis_ticks, df_p[,3], user_minval=opt$y_axis_min),
           sec.axis = sec_axis(~./scaleFactor, 
-                              breaks = get_custom_x_axis_breaks(custom_y2_axis_tick_distance, max_nr_of_custom_y2_axis_ticks, df_p2[,3], user_minval=user_minval_y2_axis), 
+                              breaks = get_custom_x_axis_breaks(y2_axis_tick_distance, max_nr_of_custom_y2_axis_ticks, df_p2[,3], user_minval=y2_axis_min), 
                               name=paste(value2, "-axis. ",zlabel)))  + 
           scale_linetype_discrete(name = paste(value2))+
           guides(linetype=guide_legend(ncol=3)) +

@@ -13,7 +13,7 @@ p1(i,j)  "parameter to plot on first y-axis"
 p2(i,k)  "parameter to plot on second y-axis"
 ;
 p1(i,j)=ord(i)*ord(j);
-p2(i,k)=(1+card(i)-ord(i))*10*ord(k)-500;
+p2(i,k)=(1+card(i)-ord(i))*10*ord(k)-100;
 
 $if not set year $set year 2016
 Parameter

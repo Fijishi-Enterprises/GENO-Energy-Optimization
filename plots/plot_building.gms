@@ -20,13 +20,13 @@ $if not set t_horizon $set t_horizon ERR
 * Set TRUE or FALSE
 $if not set archive $set archive FALSE
 $if not set openpdf $set openpdf FALSE
-$if not set user_y_axis_min_left $set user_y_axis_min_left 0
-$if not set user_y_axis_max_left $set user_y_axis_max_left 0
+$if not set y_axis_min $set y_axis_min 0
+$if not set y_axis_max $set y_axis_max 0
 
 * ARCHIVE
 $ifThen "%archive%"=="TRUE"
 * Set file name prefix for archivation
-  $$set archive_prefix 2022-12-20_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
+  $$set archive_prefix 2022-12-30_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
   $$set output_dir_R archive/%archive_prefix%
   $$set output_dir plots\archive\%archive_prefix%
   $$if not dExist %output_dir% $call mkdir %output_dir%
@@ -56,7 +56,27 @@ $onechoV > runR.inc
  $$if set Ylabel2  $set r_ylabel2 -z "%Ylabel2%"
  $$set r_xlabel
  $$if set Xlabel  $set r_xlabel -x "%Xlabel%"
- execute 'Rscript "%gams.wDir%plots\do_r_plot.r" -i "%gams.wDir%plots/%1" -o "%gams.wDir%output/%2.pdf"  -p %2 %r_param2% -w 168 -a %output_dir_R% %r_ylabel% %r_ylabel2% %r_xlabel%  --user_y_axis_min_left %user_y_axis_min_left% --user_y_axis_max_left %user_y_axis_max_left%';
+ $$set r_y_axis_min
+ $$if not set y_axis_min $set y_axis_min NA
+ $$if not "%y_axis_min%"=="NA"            $set r_y_axis_min            "-j %y_axis_min%"
+ $$set r_y_axis_max
+ $$if not set y_axis_max $set y_axis_max NA
+ $$if not "%y_axis_max%"==""            $set r_y_axis_max            "-k %y_axis_max%"
+ $$set r_y_axis_tick_distance
+ $$if not set y_axis_tick_distance $set y_axis_tick_distance NA
+ $$if not "%y_axis_tick_distance%"=="NA"  $set r_y_axis_tick_distance  "-l %y_axis_tick_distance%"
+ $$set r_y2_axis_tick_distance
+ $$if not set y2_axis_tick_distance $set y2_axis_tick_distance NA
+ $$if not "%y2_axis_tick_distance%"=="NA" $set r_y2_axis_tick_distance "-m %y2_axis_tick_distance%"
+ $$set r_y2_axis_min
+ $$if not set y2_axis_min $set y2_axis_min NA
+ $$if not "%y2_axis_min%"=="NA"           $set r_y2_axis_min           "-n %y2_axis_min%"
+ execute 'Rscript "%gams.wDir%plots\do_r_plot.r" -i "%gams.wDir%plots/%1" -o "%gams.wDir%output/%2.pdf"  -p %2 %r_param2% -w 168 -a %output_dir_R% %r_ylabel% %r_ylabel2% %r_xlabel% %r_y_axis_min% %r_y_axis_max% %r_y_axis_tick_distance% %r_y2_axis_tick_distance% %r_y2_axis_min%';
+ $$drop y_axis_min
+ $$drop y_axis_max
+ $$drop y_axis_tick_distance
+ $$drop y2_axis_tick_distance
+ $$drop y2_axis_min
  myerrorlevel = errorlevel;
  if(myerrorlevel=0,
    $$if "%openpdf%"=="TRUE"  Execute.ASyncNC 'SumatraPDF.exe  "%gams.wDir%output/%2.pdf"';
@@ -166,6 +186,11 @@ $set GDXparam ts_influx
 $set TMPparam ts_influx_absolute
 $set Ylabel "Track exogenous commodities (kWh) :"
 $set Ylabel2 %Ylabel2_alt2%
+$set y_axis_min -300
+$set y_axis_max 500
+$set y_axis_tick_distance 100
+$set y2_axis_tick_distance 10
+$set y2_axis_min -40
 Parameter %TMPparam%(t,node)   "External power (weather) influencing building" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -178,6 +203,11 @@ $set GDXparam ts_influx
 $set TMPparam ts_influx_normalized
 $set Ylabel "Track exogenous commodities per m2 (kWh) :"
 $set Ylabel2 %Ylabel2_alt2%
+$set y_axis_min -0.2
+$set y_axis_max 0.3
+$set y_axis_tick_distance 0.1
+$set y2_axis_tick_distance 10
+$set y2_axis_min -40
 Parameter %TMPparam%(t,node)   "External power (weather) influencing building - normalized by bulding m2" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -193,6 +223,11 @@ $set GDXparam r_gen_gnuft
 $set TMPparam r_gen_heat_absolute
 $set Ylabel Electricity usage (kW) :
 $set Ylabel2 %Ylabel2_alt1%
+$set y_axis_min -0.2
+$set y_axis_max 0.3
+$set y_axis_tick_distance 0.1
+$set y2_axis_tick_distance 20
+$set y2_axis_min 0
 Parameter %TMPparam%(t,unit)   "Electric power consumption for heating and cooling of air" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -206,6 +241,11 @@ $set GDXparam r_gen_gnuft
 $set TMPparam r_gen_heat_normalized
 $set Ylabel Electricity usage per m2(kW) :
 $set Ylabel2 %Ylabel2_alt1%
+$set y_axis_min -0.005
+$set y_axis_max 0.015
+$set y_axis_tick_distance 0.005
+$set y2_axis_tick_distance 20
+$set y2_axis_min 0
 Parameter %TMPparam%(t,unit)   "Electric power consumption for heating and cooling of air - normalized by bulding m2" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -219,6 +259,11 @@ $set GDXparam r_gen_gnuft
 $set TMPparam r_gen_dhw_absolute
 $set Ylabel Electricity usage (kW) :
 $set Ylabel2 %Ylabel2_alt1%
+$set y_axis_min -5
+$set y_axis_max 15
+$set y_axis_tick_distance 5
+$set y2_axis_tick_distance 20
+$set y2_axis_min 0
 Parameter %TMPparam%(t,unit)   "Electric power consumption for domestic hot water" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -231,6 +276,11 @@ $set GDXparam r_gen_gnuft
 $set TMPparam r_gen_dhw_normalized
 $set Ylabel Electricity usage per m2(kW) :
 $set Ylabel2 %Ylabel2_alt1%
+$set y_axis_min -0.002
+$set y_axis_max 0.01
+$set y_axis_tick_distance 0.002
+$set y2_axis_tick_distance 20
+$set y2_axis_min 0
 Parameter %TMPparam%(t,unit)   "Electric power consumption for domestic hot water - normalized by bulding m2" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -246,9 +296,11 @@ $set GDXparam r_state_gnft
 $set TMPparam r_state_interior_air
 $set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
-$set user_y_axis_min_left -40
-$set user_y_axis_max_left 90
-
+$set y_axis_min -20
+$set y_axis_max 30
+$set y_axis_tick_distance 10
+$set y2_axis_tick_distance 20
+$set y2_axis_min 0
 Parameter %TMPparam%(t,*)   "Temperature at interior_air_and_furniture (Celcius)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -262,6 +314,11 @@ $set GDXparam r_state_gnft
 $set TMPparam r_state_light_fabrics
 $set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
+$set y_axis_min -20
+$set y_axis_max 30
+$set y_axis_tick_distance 10
+$set y2_axis_tick_distance 20
+$set y2_axis_min 0
 Parameter %TMPparam%(t,*)   "Temperature at internal_mass: inside walls  (Celcius)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -275,6 +332,11 @@ $set GDXparam r_state_gnft
 $set TMPparam r_state_load_bearing_fabrics
 $set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
+$set y_axis_min -20
+$set y_axis_max 30
+$set y_axis_tick_distance 10
+$set y2_axis_tick_distance 20
+$set y2_axis_min 0
 Parameter %TMPparam%(t,*)   "Temperature at envelope_mass: outside walls (Celcius)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -288,6 +350,11 @@ $set GDXparam r_state_gnft
 $set TMPparam r_state_DHWT
 $set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
+$set y_axis_min -40
+$set y_axis_max 90
+$set y_axis_tick_distance 10
+$set y2_axis_tick_distance 20
+$set y2_axis_min 0
 Parameter %TMPparam%(t,*)   "Temperature at Domestic Hot Water Tank (Celcius)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -303,6 +370,11 @@ $set GDXparam r_state_gnft
 $set TMPparam r_state_DH
 $set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
+$set y_axis_min -40
+$set y_axis_max 90
+$set y_axis_tick_distance 10
+$set y2_axis_tick_distance 20
+$set y2_axis_min 0
 Parameter %TMPparam%(t,*)   "Detached House (DH)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
@@ -319,6 +391,11 @@ $set GDXparam r_state_gnft
 $set TMPparam r_state_AB
 $set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
+$set y_axis_min -40
+$set y_axis_max 90
+$set y_axis_tick_distance 10
+$set y2_axis_tick_distance 20
+$set y2_axis_min 0
 Parameter %TMPparam%(t,*)   "Apartment Building (AB)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
