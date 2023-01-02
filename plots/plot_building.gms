@@ -26,7 +26,7 @@ $if not set y_axis_max $set y_axis_max 0
 * ARCHIVE
 $ifThen "%archive%"=="TRUE"
 * Set file name prefix for archivation
-  $$set archive_prefix 2022-12-30b_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
+  $$set archive_prefix 2023-01-03_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
   $$set output_dir_R archive/%archive_prefix%
   $$set output_dir plots\archive\%archive_prefix%
   $$if not dExist %output_dir% $call mkdir %output_dir%
@@ -94,7 +94,7 @@ $if not set backbone_output_GDX $set backbone_output_GDX "output/out.gdx"
 $if "%archive%"=="TRUE"  $call cp "%backbone_output_GDX%" "%output_dir%/%archive_prefix%_backbone_out.gdx"
 
 * Define common sets and parameters
-$set GDXparam2         price
+$set GDXparam2         Right_axis
 $set GDXparam2set2     price_%year%
 $set GDXparam2alt2     TempOut
 $set GDXparam2set2alt2 Temperature_outside
@@ -375,7 +375,7 @@ $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 * Plot r_state: Building DH *******************************************************
 $set GDXfile  plot4r.gdx
 $set GDXparam r_state_gnft
-$set TMPparam r_state_DH
+$set TMPparam Left_axis_
 $set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
 $set y_axis_min -40
@@ -384,20 +384,27 @@ $set y_axis_tick_distance 10
 $set y2_axis_tick_distance 20
 $if "%year%"=="2021" $set y2_axis_tick_distance 100
 $set y2_axis_min 0
-Parameter %TMPparam%(t,*)   "Detached House (DH)" ;
+* Rename sets
+set DH_node / "Interior air and furniture", "Light structures", "Heavy structures", "Domestic hot water tank" /;
+set rn_DH(node,DH_node) /"heat_DH__interior_air_and_furniture"."Interior air and furniture",
+                         "heat_DH__light_fabrics"             ."Light structures",
+                         "heat_DH__load-bearing_fabrics"      ."Heavy structures"
+                         "heat_DH__DHWT_daily_YM"             ."Domestic hot water tank"
+/;
+Parameter %TMPparam%(t,*)   "Detached house (DH)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
 %TMPparam%(tparam(t),'Outside temperature')=temp_out(t);
-%TMPparam%(tparam(t),heat_interior_air_and_furniture(node)) = sum((building_heat_interior_air_and_furniture(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_light_fabrics(node))              = sum((building_heat_light_fabrics(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_load_bearing_fabrics(node))       = sum((building_heat_load_bearing_fabrics(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_DHWT_daily(node))                 = sum((building_heat_DHWT_daily(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
+%TMPparam%(tparam(t),DH_node)$sameas(DH_node,"Interior air and furniture") = sum(rn_DH(node,DH_node), sum((building_heat_interior_air_and_furniture(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps));
+%TMPparam%(tparam(t),DH_node)$sameas(DH_node,"Light structures")           = sum(rn_DH(node,DH_node), sum((building_heat_light_fabrics(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps));
+%TMPparam%(tparam(t),DH_node)$sameas(DH_node,"Heavy structures")           = sum(rn_DH(node,DH_node), sum((building_heat_load_bearing_fabrics(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps));
+%TMPparam%(tparam(t),DH_node)$sameas(DH_node,"Domestic hot water tank")    = sum(rn_DH(node,DH_node), sum((building_heat_DHWT_daily(grid,node),f)$(sameas(grid,"heat_DH") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps))
 execute_unload 'plots/%GDXfile%', info4R, tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 * Plot r_state: Building AB  *******************************************************
 $set GDXfile  plot4r.gdx
 $set GDXparam r_state_gnft
-$set TMPparam r_state_AB
+$set TMPparam Left_axis
 $set Ylabel Temperture (Celcius)
 $set Ylabel2 %Ylabel2_alt1%
 $set y_axis_min -40
@@ -406,14 +413,21 @@ $set y_axis_tick_distance 10
 $set y2_axis_tick_distance 20
 $if "%year%"=="2021" $set y2_axis_tick_distance 100
 $set y2_axis_min 0
-Parameter %TMPparam%(t,*)   "Apartment Building (AB)" ;
+* Rename sets
+set AB_node / "Interior air and furniture", "Light structures", "Heavy structures", "Domestic hot water tank" /;
+set rn_AB(node,AB_node) /"heat_AB__interior_air_and_furniture"."Interior air and furniture",
+                         "heat_AB__light_fabrics"             ."Light structures",
+                         "heat_AB__load-bearing_fabrics"      ."Heavy structures"
+                         "heat_AB__DHWT_daily_YM"             ."Domestic hot water tank"
+/;
+Parameter %TMPparam%(t,*)   "Apartment block (AB)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
 * Below line is adjusted for each paramGDX and paramPlot pair
 %TMPparam%(tparam(t),'Outside temperature')=temp_out(t);
-%TMPparam%(tparam(t),heat_interior_air_and_furniture(node)) = sum((building_heat_interior_air_and_furniture(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_light_fabrics(node))              = sum((building_heat_light_fabrics(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_load_bearing_fabrics(node))       = sum((building_heat_load_bearing_fabrics(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
-%TMPparam%(tparam(t),heat_DHWT_daily(node))                 = sum((building_heat_DHWT_daily(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps);
+%TMPparam%(tparam(t),AB_node)$sameas(AB_node,"Interior air and furniture") = sum(rn_AB(node,AB_node), sum((building_heat_interior_air_and_furniture(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps));
+%TMPparam%(tparam(t),AB_node)$sameas(AB_node,"Light structures")           = sum(rn_AB(node,AB_node), sum((building_heat_light_fabrics(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps));
+%TMPparam%(tparam(t),AB_node)$sameas(AB_node,"Heavy structures")           = sum(rn_AB(node,AB_node), sum((building_heat_load_bearing_fabrics(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps));
+%TMPparam%(tparam(t),AB_node)$sameas(AB_node,"Domestic hot water tank")    = sum(rn_AB(node,AB_node), sum((building_heat_DHWT_daily(grid,node),f)$(sameas(grid,"heat_AB") and sameas(f,'f00')),%GDXparam%(grid,node,f,t) - c2k + eps));
 execute_unload 'plots/%GDXfile%', info4R, tparam=t, node, %TMPparam%, %GDXparam2set2%, %GDXparam2% ;
 $ifE %testrun%==0 $batInclude runR.inc %GDXfile% %TMPparam% %GDXparam2%
 

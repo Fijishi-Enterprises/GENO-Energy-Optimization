@@ -253,12 +253,12 @@ if(!empty(df_p2)){
   df_p2[,1] <- as.numeric(as.character(df_p2[,1]))
 }
 
-#Prepare plot p1 and p2
-my_title_font_size =  8 # 8
-my_axis_title_font_size = 8 # 7
-my_axis_scale_font_size = 8 # 6
-my_legend_title_font_size <- 8 # 7
-my_legend_entry_font_size <- 8 # 6
+#Prepare plot p1 and p2 . Adjust font size here
+my_title_font_size =  12 # 8
+my_axis_title_font_size = 12 # 7
+my_axis_scale_font_size = 12 # 6
+my_legend_title_font_size <- 12 # 7
+my_legend_entry_font_size <- 12 # 6
 my_footnote_entry_font_size <- 8 # 8
 nr_cat <- nr_colors + nr_shapes
 if(nr_cat<=8){
@@ -312,12 +312,14 @@ if(!empty(df_p2)){
   g2 <- g1 + 
          geom_line(data=df_p2, aes(x=!!xvar2, y=!!value2*scaleFactor, group=df_p2_index2_ordered, linetype=df_p2_index2_ordered)) +
          scale_y_continuous(
-          name = paste(value, "-axis. ", ylabel),
+          # to add GAMS symbol for LHS axis: name = paste(value, "-axis. ", ylabel),
+          name = paste(ylabel),
           limits = y_axis_lim_left, 
           breaks = get_custom_x_axis_breaks(y_axis_tick_distance, max_nr_of_custom_y_axis_ticks, df_p[,3], user_minval=opt$y_axis_min),
           sec.axis = sec_axis(~./scaleFactor, 
                               breaks = get_custom_x_axis_breaks(y2_axis_tick_distance, max_nr_of_custom_y2_axis_ticks, df_p2[,3], user_minval=y2_axis_min), 
-                              name=paste(value2, "-axis. ",zlabel)))  + 
+                              # to add GAMS symbol for RHS axis: name=paste(value2, "-axis. ",zlabel)))  +
+                              name=paste(zlabel)))  +
           scale_linetype_discrete(name = paste(value2))+
           guides(linetype=guide_legend(ncol=3)) +
           labs(caption = pfootnote)

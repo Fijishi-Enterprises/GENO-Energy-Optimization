@@ -103,7 +103,7 @@ $offtext
 
 * valid run_titles are: spot and flat
 * default --t_jump=168 --t_horizon=336
-$if not set run_title  $set       run_title flat
+$if not set run_title  $set       run_title spot
 $if not set year       $set       year      2015
 $if not set t_jump     $setglobal t_jump    168
 $setglobal t_jump %t_jump%
