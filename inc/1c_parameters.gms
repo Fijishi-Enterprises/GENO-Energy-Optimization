@@ -212,6 +212,6 @@ Parameters
     p_s_discountFactor(s) "Discount factor for samples when using a multi-year horizon"
 $iftheni %diag% == 'yes'
     p_netLoad_real(t) "Total realized net load"
-    p_netLoad_model(t) "Total net load seen by the model"
+    p_netLoad_model(t) "Total expected net load seen by the model"
 $endif
 ;

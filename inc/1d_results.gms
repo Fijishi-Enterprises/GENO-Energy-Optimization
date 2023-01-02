@@ -243,7 +243,7 @@ Parameters
     d_influx(grid, node, s, f, t) "Diagnostic influx forecasts (accounting for GAMS plotting error)"
     d_state(grid, node, scenario, f, t) "Diagnostic state results in each scenario"
     d_ts_scenarios(timeseries, *, node, scenario, f, t) "Diagnostic time series values in scenarios"
-    d_netLoad_NMAE(t) "Normalised mean absolute error of net load compared to the actual realising value"
-    d_netLoad_NMAE_fcast(t) "Normalised mean absolute error of net load compared to the actual realising value, only forecasts"
+    d_totalNetLoad_error(t) "Total horizon net load percentage error"
+    d_totalNetLoad_error_fcast "Forecast period total net load percentage error"
 ;
 $endif.diag

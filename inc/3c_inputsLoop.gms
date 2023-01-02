@@ -581,16 +581,27 @@ p_netLoad_real(t_current(t))$[ord(t) > ord(tSolve)]
           )
     );
 
-// Calculate MAE and normalize with average realized net load
-d_netLoad_NMAE(tSolve) =
-    sum(t_current(t)$[ord(t) > ord(tSolve)],
-        abs(p_netLoad_model(t) - p_netLoad_real(t))
-    ) / sum(t_current(t)$[ord(t) > ord(tSolve)], p_netLoad_real(t));
+// Calculate total horizon expected net load error
+d_totalNetLoad_error(tSolve) =
+    sum(t_current(t)$[ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')],
+        p_netLoad_model(t)
+    ) / sum(t_current(t)$[ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')],
+        p_netLoad_real(t)
+      ) - 1;
 
+// Calculate forecast period expected net load error
 loop(ms_initial(mSolve, s),
-    d_netLoad_NMAE_fcast(tSolve) =
-        sum(t_current(t)$[ord(t) > ord(tSolve) and ord(t) < msEnd(mSolve, s) + tSolveFirst],
-            abs(p_netLoad_model(t) - p_netLoad_real(t))
-        ) / sum(t_current(t)$[ord(t) > ord(tSolve)], p_netLoad_real(t));
+    d_totalNetLoad_error_fcast(tSolve) =
+        sum(t_current(t)$[
+          ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')
+          and ord(t) < msEnd(mSolve, s) + tSolveFirst
+        ],
+            p_netLoad_model(t)
+        ) / sum(t_current(t)$[
+            ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')
+            and ord(t) < msEnd(mSolve, s) + tSolveFirst
+        ],
+            p_netLoad_real(t)
+          ) - 1;
 );
 $endif
