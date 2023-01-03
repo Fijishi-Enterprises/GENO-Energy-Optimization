@@ -209,6 +209,7 @@ d_influx
 d_state
 d_totalNetLoad_error
 d_totalNetLoad_error_fcast
+d_netLoad_error
 $endif.diag
 
 // Metadata and settings

@@ -603,5 +603,14 @@ loop(ms_initial(mSolve, s),
         ],
             p_netLoad_real(t)
           ) - 1;
+
+    loop((counter, t_current(t))$[
+        counter.off >= mSettings(mSolve, 't_jump') + 1
+        and counter.off <= mSettings(mSolve, 't_forecastLengthDecreasesFrom')
+        and ord(t) = ord(tSolve) + ord(counter) - 1
+    ],
+        d_netLoad_error(tSolve, counter)
+            = p_netLoad_model(t) / p_netLoad_real(t) - 1;
+    );
 );
 $endif
