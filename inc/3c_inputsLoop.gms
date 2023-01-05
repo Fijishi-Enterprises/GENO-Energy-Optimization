@@ -606,7 +606,7 @@ loop(ms_initial(mSolve, s),
 
     loop((counter, t_current(t))$[
         counter.off >= mSettings(mSolve, 't_jump') + 1
-        and counter.off <= mSettings(mSolve, 't_forecastLengthDecreasesFrom')
+        and counter.off < msEnd(mSolve, s)
         and ord(t) = ord(tSolve) + ord(counter) - 1
     ],
         d_netLoad_error(tSolve, counter)
