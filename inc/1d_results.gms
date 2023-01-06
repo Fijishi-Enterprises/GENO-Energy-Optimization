@@ -245,6 +245,6 @@ Parameters
     d_ts_scenarios(timeseries, *, node, scenario, f, t) "Diagnostic time series values in scenarios"
     d_totalNetLoad_error(t) "Total horizon expected net load relative error"
     d_totalNetLoad_error_fcast "Forecast period total expected net load relative error"
-    d_netLoad_error(t, counter) "Relative error of expected net load during forecast period as function of lead time"
+    d_netLoad_error(t, counter) "Error of expected net load during forecast period as function of lead time"
 ;
 $endif.diag

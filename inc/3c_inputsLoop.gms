@@ -610,7 +610,7 @@ loop(ms_initial(mSolve, s),
         and ord(t) = ord(tSolve) + ord(counter) - 1
     ],
         d_netLoad_error(tSolve, counter)
-            = p_netLoad_model(t) / p_netLoad_real(t) - 1;
+            = p_netLoad_model(t) - p_netLoad_real(t);
     );
 );
 $endif
