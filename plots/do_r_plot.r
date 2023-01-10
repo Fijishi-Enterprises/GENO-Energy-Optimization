@@ -254,11 +254,11 @@ if(!empty(df_p2)){
 }
 
 #Prepare plot p1 and p2 . Adjust font size here
-my_title_font_size =  12 # 8
-my_axis_title_font_size = 12 # 7
-my_axis_scale_font_size = 12 # 6
-my_legend_title_font_size <- 12 # 7
-my_legend_entry_font_size <- 12 # 6
+my_title_font_size =  10 # 8
+my_axis_title_font_size = 10 # 7
+my_axis_scale_font_size = 10 # 6
+my_legend_title_font_size <- 10 # 7
+my_legend_entry_font_size <- 10 # 6
 my_footnote_entry_font_size <- 8 # 8
 nr_cat <- nr_colors + nr_shapes
 if(nr_cat<=8){

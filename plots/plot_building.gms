@@ -26,7 +26,7 @@ $if not set y_axis_max $set y_axis_max 0
 * ARCHIVE
 $ifThen "%archive%"=="TRUE"
 * Set file name prefix for archivation
-  $$set archive_prefix 2023-01-03_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
+  $$set archive_prefix 2023-01-10_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
   $$set output_dir_R archive/%archive_prefix%
   $$set output_dir plots\archive\%archive_prefix%
   $$if not dExist %output_dir% $call mkdir %output_dir%
@@ -246,7 +246,7 @@ $set y_axis_min -0.005
 $set y_axis_max 0.015
 $set y_axis_tick_distance 0.005
 $set y2_axis_tick_distance 20
-$if "%year%"=="2021" $set y2_axis_tick_distance 100
+$if "%year%"=="2021" $$if "%run_title%"=="spot" $set y2_axis_tick_distance 100
 $set y2_axis_min 0
 Parameter %TMPparam%(t,unit)   "Electric power consumption for heating and cooling of air - normalized by bulding m2" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
@@ -304,7 +304,7 @@ $set y_axis_min -20
 $set y_axis_max 30
 $set y_axis_tick_distance 10
 $set y2_axis_tick_distance 20
-$if "%year%"=="2021" $set y2_axis_tick_distance 100
+$if "%year%"=="2021" $$if "%run_title%"=="spot" $set y2_axis_tick_distance 100
 $set y2_axis_min 0
 Parameter %TMPparam%(t,*)   "Temperature at interior_air_and_furniture (Celcius)" ;
 execute_loaddc "%backbone_output_GDX%", %GDXparam%;
@@ -412,6 +412,7 @@ $set y_axis_max 90
 $set y_axis_tick_distance 10
 $set y2_axis_tick_distance 20
 $if "%year%"=="2021" $set y2_axis_tick_distance 100
+$if "%year%"=="2022" $set y2_axis_tick_distance 100
 $set y2_axis_min 0
 * Rename sets
 set AB_node / "Interior air and furniture", "Light structures", "Heavy structures", "Domestic hot water tank" /;

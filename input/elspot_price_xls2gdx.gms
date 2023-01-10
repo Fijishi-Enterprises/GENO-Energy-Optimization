@@ -30,7 +30,7 @@ Parameters
 ;
 
 *User Settings
-$if not set year $set year 2021
+$if not set year $set year 2022
 *Settings
 $set outFileName elspot_prices_%year%
 $set readSheet elspot_day-ahead_prices
@@ -64,6 +64,10 @@ $onEcho > howToRead2021.txt
 set=tsIso          rng=%readSheet%!K61379:K70138 rDim=1 values=noData
 par=elspotIso      rng=%readSheet%!K61379:P70138 rDim=1
 $offEcho
+$onEcho > howToRead2022.txt
+set=tsIso          rng=%readSheet%!K70139:K78898 rDim=1 values=noData
+par=elspotIso      rng=%readSheet%!K70139:P78898 rDim=1
+$offEcho
 
 $call gdxxrw %input_dir%\data\elspot-prices_hourly_eur.xlsx squeeze=n output=%input_dir%\data\%outFileName%.gdx @howToRead%year%.txt trace=3'
 $gdxIn %input_dir%\data\%outFileName%
@@ -71,7 +75,7 @@ $load tsIso elspotIso
 $gdxIn
 
 Loop((t,tsIso)$(ord(t)=ord(tsIso)),
-elspotIsoBB(t,tsIso)=elspotIso(tsIso);
+elspotIsoBB(t,tsIso)=elspotIso(tsIso) + eps;
 );
 elspotBB(t)=sum(tsIso,elspotIsoBB(t,tsIso));
 
