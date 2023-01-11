@@ -64,5 +64,5 @@ $call cp "C:\Users\tltoni\GIT\FlexiB\energy_flexible_building_v3\plots\archive\2
 $call cp "C:\Users\tltoni\GIT\FlexiB\energy_flexible_building_v3\plots\archive\2023-01-06_spot_elec_price_2015__t_jump_8736__t_horizon_8760_CBC\*emob.gdx" %output_dir%
 
 *$call sleep 1
-$call gdxmerge %output_dir%/*.gdx  id=summary
+$call gdxmerge %output_dir%/*.gdx  id=summary o=merged_horizon
 

@@ -290,7 +290,7 @@ y_axis_max=max(y_axis_max,max(df_p2[,3])*scaleFactor)
 y_axis_lim_left=c(y_axis_min, y_axis_max)
 
 # plot p(x,y)
-df_p_index2_ordered <- fct_reorder2(df_p[,2],df_p[,1],df_p[,3])
+df_p_index2_ordered <- fct_reorder2(df_p[,2],df_p[,1],df_p[,2])
 g1 <- ggplot() + 
        geom_line(data=df_p, aes(x=!!xvar, y=!!value, group=df_p_index2_ordered, color=df_p_index2_ordered)) +
        labs(colour = value) + ggtitle(ptitle) + xlab(xlabel) + 
@@ -308,7 +308,7 @@ g2 <- g1
 
 # plot p2(x,z)
 if(!empty(df_p2)){
-  df_p2_index2_ordered <- fct_reorder2(df_p2[,2],df_p2[,1],df_p2[,3])
+  df_p2_index2_ordered <- fct_reorder2(df_p2[,2],df_p2[,1],df_p2[,2])
   g2 <- g1 + 
          geom_line(data=df_p2, aes(x=!!xvar2, y=!!value2*scaleFactor, group=df_p2_index2_ordered, linetype=df_p2_index2_ordered)) +
          scale_y_continuous(
