@@ -26,7 +26,7 @@ $if not set y_axis_max $set y_axis_max 0
 * ARCHIVE
 $ifThen "%archive%"=="TRUE"
 * Set file name prefix for archivation
-  $$set archive_prefix 2023-01-11_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
+  $$set archive_prefix 2023-01-12_%run_title%_elec_price_%year%__t_jump_%t_jump%__t_horizon_%t_horizon%_CBC
   $$set output_dir_R archive/%archive_prefix%
   $$set output_dir plots\archive\%archive_prefix%
   $$if not dExist %output_dir% $call mkdir %output_dir%
