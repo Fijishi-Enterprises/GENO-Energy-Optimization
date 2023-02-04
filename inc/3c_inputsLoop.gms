@@ -607,7 +607,9 @@ loop(ms_initial(mSolve, s),
     loop((counter, t_current(t))$[
         counter.off >= mSettings(mSolve, 't_jump') + 1
         and counter.off < msEnd(mSolve, s)
-        and ord(t) = ord(tSolve) + ord(counter) - 1
+        and ord(t) = ord(tSolve) + counter.off
+        // prevent lead times beyond the model horizon
+        and ord(tSolve) + counter.off <= mSettings(mSolve, 't_end')
     ],
         d_netLoad_error(tSolve, counter)
             = p_netLoad_model(t) - p_netLoad_real(t);
