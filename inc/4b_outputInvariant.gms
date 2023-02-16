@@ -137,6 +137,27 @@ loop(m,
             ); // END sum(ft_realizedNoReset)
 
 
+    // Total discomfort according to PPD approximation
+    r_totalDiscomfort
+        = sum(msft(m, s, f, t),
+            // Probability (weight coefficient) of (s,f,t)
+            + p_msft_probability(m, s, f, t)
+                * [ 
+                    + p_stepLength(m, f, t)                                         // length of time interval (h)
+                        * [
+                                    // sum over differences from set temperature
+                                    + sum(gn_state(grid, node)$gnGroup(grid, node, 'objectiveGroup'),
+                                        + v_tempDiff_plus.l(grid, node, s, f, t)    // calculation of PPD (comfort) value happens in v_tempDiff_plus and ..._minus
+                                        + v_tempDiff_minus.l(grid, node, s, f, t)   // until now, they are defined in additional constraints and alternative objective
+                                                                                    // !!! NEEDS TO BE CHANGED AS IT CAUSES ERROR WHEN NOT USING THESE OPTIONAL FILES
+                                        + p_gnBoundaryPropertiesForStates(grid, node, 'discomfort_offset', 'constant')${p_gnBoundaryPropertiesForStates(grid, node, 'discomfort_offset', 'useConstant')}
+                                        ) // END sum(gn_state)
+                                        
+                        ] // END * p_stepLength
+                    ]     // END * p_msft_probability(m,s,f,t)
+            )             // END sum over msft(m, s, f, t)
+    ;
+
 * --- Energy Generation/Consumption Result Symbols -----------------------------------------------------------
 * --- Energy Generation results-------------------------------------------------------
 

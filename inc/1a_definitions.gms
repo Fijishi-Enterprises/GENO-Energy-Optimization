@@ -215,6 +215,9 @@ param_gnBoundaryTypes "Types of boundaries that can be set for a node with balan
     maxSpill         "Maximum spill rate from the node (MWh/h, unless modified by energyStoredPerUnitOfState parameter)"
     minSpill         "Minimum spill rate from the node (MWh/h, unless modified by energyStoredPerUnitOfState parameter)"
     balancePenalty   "Penalty value for violating the energy balance of that particular node (EUR/MWh, unless modified by energyStoredPerUnitOfState parameter). Can be interpretated as the energy price in certain settings."
+    T_set            "Optimal temperature of PPD approximation for thermal comfort (°C)"
+    m_set            "Slope of PPD approximation for thermal comfort (PPD/°C)"
+    discomfort_offset "Offset of PPD approximation for thermal comfort (%)"
 /
 
 param_gnBoundaryProperties "Properties that can be set for the different boundaries" /

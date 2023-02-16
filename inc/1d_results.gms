@@ -29,6 +29,9 @@ Parameters
     // State variable slack results
     r_stateSlack_gnft(slack, grid, node, f, t) "Note state slack at time step t (MWh, unless modified by energyStoredPerUnitOfState parameter)"
 
+    // Total discomfort result (summed deviations of state from set temperature)
+    r_totalDiscomfort
+
     // Spill results
     r_spill_gnft(grid, node, f, t) "Spill of energy from storage node during time interval (MWh)"
     r_spill_gn(grid, node) "Total spilled energy from gn over the simulation (MWh)"

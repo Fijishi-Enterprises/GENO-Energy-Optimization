@@ -27,6 +27,9 @@ r_state_gnft
 // State variable slack results
 r_stateSlack_gnft
 
+// Total discomfort value (sum of deviation of v_state from T_set)
+r_totalDiscomfort
+
 // spill results
 r_spill_gnft
 r_spill_gn
