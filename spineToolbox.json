@@ -30,6 +30,7 @@
         "--init_file=investInit.gms",
         "--debug=1",
         "-lo=4"
+        "--penalty=4000"
     ],
     "execute_in_work": true,
     "includes_main_path": "."
