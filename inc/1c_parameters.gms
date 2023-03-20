@@ -168,6 +168,8 @@ Parameters   // optional parameter tables initiated as empty tables
     ts_priceChange(node, t) "Initial commodity price and consequent changes in commodity price (EUR/MWh)" / /
     ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tEmission)" / /
     ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tEmission)" / /
+    ts_groupPolicy(group, param_policy, t) "Two-dimensional time-dependent policy data for groups" / /
+    ts_groupPolicy_(group, param_policy, t) "Two-dimensional time-dependent policy data for groups processed for looping including time step aggregation if required"
 ;
 $offempty
 Parameters

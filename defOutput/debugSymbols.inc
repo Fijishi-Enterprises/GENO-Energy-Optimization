@@ -24,16 +24,16 @@ t_active
 t_current
 t_full
 t_invest
-uft
-uft_online
-uft_onlineLP
-uft_onlineMIP
-uft_onlineLP_withPrevious
-uft_onlineMIP_withPrevious
+usft
+usft_online
+usft_onlineLP
+usft_onlineMIP
+usft_onlineLP_withPrevious
+usft_onlineMIP_withPrevious
 
 * Parameters
-tSolveFirst
-tSolveLast
+t_SolveFirst
+t_SolveLast
 p_stepLength
 p_unit
 *ts_cf
@@ -50,7 +50,6 @@ p_groupPolicy
 p_groupPolicyUnit
 p_groupPolicyEmission
 p_nEmission
-p_unitEmissionCost
 p_effUnit
 p_effGroupUnit
 p_uNonoperational
@@ -158,7 +157,6 @@ v_help_inc
     q_constrainedOnlineMultiUnit
     q_capacityMargin
     q_constrainedCapMultiUnit
-    q_emissioncap
     q_energyLimit
     q_energyShareLimit
     q_ReserveShareMax

@@ -3155,8 +3155,11 @@ q_constrainedOnlineMultiUnit(group, sft(s, f, t))
 
     =L=
 
-    // Total maximum of multiplied online units
+    // Total maximum of multiplied online units, constant
     + p_groupPolicy(group, 'constrainedOnlineTotalMax')
+
+    // Total maximum of multiplied online units, timeseries
+    + ts_groupPolicy_(group, 'constrainedOnlineTotalMax', t)
 ;
 
 *--- Required Capacity Margin -------------------------------------------------
