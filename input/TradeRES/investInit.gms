@@ -39,7 +39,7 @@ if (mType('invest'),
 * --- Define Samples ----------------------------------------------------------
 
     // Number of samples used by the model
-    mSettings('invest', 'samples') = 5;
+    mSettings('invest', 'samples') = 7;
 
     // Clear Initial and Central samples
     ms_initial('invest', s) = no;
@@ -48,6 +48,8 @@ if (mType('invest'),
     ms_initial('invest', 's002') = yes;
     ms_initial('invest', 's003') = yes;
     ms_initial('invest', 's004') = yes;
+    ms_initial('invest', 's005') = yes;
+    ms_initial('invest', 's006') = yes;
     ms_central('invest', s) = no;
 
     // Define time span of samples
@@ -64,6 +66,10 @@ if (mType('invest'),
     msEnd('invest', 's003') = msStart('invest', 's003') + 168;
     msStart('invest', 's004') = 1 + 43*7*24;
     msEnd('invest', 's004') = msStart('invest', 's004') + 168;
+    msStart('invest', 's005') = 1 + 30*7*24;//12*7*24;
+    msEnd('invest', 's005') = msStart('invest', 's005') + 168;
+    msStart('invest', 's006') = 1 + 44*7*24;
+    msEnd('invest', 's006') = msStart('invest', 's006') + 168;
 
     // Define the probability of samples
     // Probabilities are 1 in deterministic model runs.
@@ -75,17 +81,21 @@ if (mType('invest'),
     p_msProbability('invest', 's002') = 1;
     p_msProbability('invest', 's003') = 1;
     p_msProbability('invest', 's004') = 1;
+    p_msProbability('invest', 's005') = 1;
+    p_msProbability('invest', 's006') = 1;
     // Define the weight of samples
     // Weights describe how many times the samples are repeated in order to get the (typically) annual results.
     // For example, 3 samples with equal weights and with a duration of 1 week should be repeated 17.38 times in order
     // to cover the 52.14 weeks of the year.
     // Weights are used for scaling energy production and consumption results and for estimating node state evolution.
     p_msWeight('invest', s) = 0;
-    p_msWeight('invest', 's000') = 8760/168/5;
-    p_msWeight('invest', 's001') = 8760/168/5;
-    p_msWeight('invest', 's002') = 8760/168/5;
-    p_msWeight('invest', 's003') = 8760/168/5;
-    p_msWeight('invest', 's004') = 8760/168/5;
+    p_msWeight('invest', 's000') = (8760-2*168)/168/5;
+    p_msWeight('invest', 's001') = (8760-2*168)/168/5;
+    p_msWeight('invest', 's002') = (8760-2*168)/168/5;
+    p_msWeight('invest', 's003') = (8760-2*168)/168/5;
+    p_msWeight('invest', 's004') = (8760-2*168)/168/5;
+    p_msWeight('invest', 's005') = 1;
+    p_msWeight('invest', 's006') = 1;
     // Define the weight of samples in the calculation of fixed costs
     // The sum of p_msAnnuityWeight should be 1 over the samples belonging to the same year.
     // The p_msAnnuityWeight parameter is used for describing which samples belong to the same year so that the model
@@ -110,7 +120,7 @@ if (mType('invest'),
 
     // number of candidate periods in model
     // please provide this data
-    mSettings('invest', 'candidate_periods') = 10;
+    mSettings('invest', 'candidate_periods') = 0;
 
     // add the candidate periods to model
     // no need to touch this part
@@ -124,16 +134,6 @@ if (mType('invest'),
     // sequence.
     // please provide this data
     zs(z,s) = no;
-    zs('z000','s000') = yes;
-    zs('z001','s000') = yes;
-    zs('z002','s001') = yes;
-    zs('z003','s001') = yes;
-    zs('z004','s002') = yes;
-    zs('z005','s003') = yes;
-    zs('z006','s004') = yes;
-    zs('z007','s002') = yes;
-    zs('z008','s002') = yes;
-    zs('z009','s004') = yes;
 
 * =============================================================================
 * --- Model Forecast Structure ------------------------------------------------
@@ -204,3 +204,24 @@ if (mType('invest'),
 ); // END if(mType)
 
 
+* Defining sets and parameters related to extreme periods
+* 0, 14, 17, 21, 43, 30, 44
+* 0, 1, 2, 3, 5, 4, 6
+gnss_bound(grid, node, s, s_) = no;
+loop(gn(grid,node)${sameas(grid, 'hydro') or sameas(grid, 'pumped') or sameas(grid, 'H2')},
+    gnss_bound(grid,node,'s000','s001') = yes;
+    gnss_bound(grid,node,'s001','s002') = yes;
+    gnss_bound(grid,node,'s002','s003') = yes;
+    gnss_bound(grid,node,'s003','s005') = yes;
+    gnss_bound(grid,node,'s005','s004') = yes;
+    gnss_bound(grid,node,'s004','s006') = yes;
+    gnss_bound(grid,node,'s006','s000') = yes;
+);
+loop(s$ms_initial('invest', s),
+    gnss_bound(gn('battery',node),s,s) = yes;
+	gnss_bound(gn('ev',node),s,s) = yes;
+);
+sGroup('s005','VRE_limit') = yes;
+sGroup('s006','VRE_limit') = yes;
+p_s_discountFactor('s005') = 1;
+p_s_discountFactor('s006') = 1;

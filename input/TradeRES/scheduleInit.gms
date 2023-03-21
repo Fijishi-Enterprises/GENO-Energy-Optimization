@@ -71,14 +71,14 @@ if (mType('schedule'),
 * 1 day hour-by-hour
     // Define the time step intervals in time-steps
     mInterval('schedule', 'stepsPerInterval', 'c000') = 1;
-    mInterval('schedule', 'lastStepInIntervalBlock', 'c000') = 36*1;
-    mInterval('schedule', 'stepsPerInterval', 'c001') = 3;
-    mInterval('schedule', 'lastStepInIntervalBlock', 'c001') = 48;
-    mInterval('schedule', 'stepsPerInterval', 'c002') = 12;
-    mInterval('schedule', 'lastStepInIntervalBlock', 'c002') = 180;
-    mInterval('schedule', 'stepsPerInterval', 'c003') = 78;
-    mInterval('schedule', 'lastStepInIntervalBlock', 'c003') = 960;
-    mInterval('schedule', 'stepsPerInterval', 'c004') = 200;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c000') = 60;
+    mInterval('schedule', 'stepsPerInterval', 'c001') = 6;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c001') = 96;
+    mInterval('schedule', 'stepsPerInterval', 'c002') = 40;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c002') = 336;
+    mInterval('schedule', 'stepsPerInterval', 'c003') = 96;
+    mInterval('schedule', 'lastStepInIntervalBlock', 'c003') = 720;
+    mInterval('schedule', 'stepsPerInterval', 'c004') = 335;
     mInterval('schedule', 'lastStepInIntervalBlock', 'c004') = mSettings('schedule', 't_horizon');
 
 
@@ -152,3 +152,15 @@ if (mType('schedule'),
 
 
 ); // END if(mType)
+
+* Updating cyclic storage boundary constraints
+* H2 already has boundStart and boundStartToEnd
+* EVs and buildings already have boundStart 
+* Batteries do not have boundStart or boundStartToEnd
+gnss_bound(grid, node, s, s_) = no;
+p_gn(gn('H2', node), 'boundStart') = 0;
+gnss_bound(gn('hydro', node), 's000', 's000') = yes;
+gnss_bound(gn('pumped', node), 's000', 's000') = yes;
+gnss_bound(gn('H2', node), 's000', 's000') = yes;
+p_gn(gn('hydro', node), 'boundStartToEnd') = 1;
+p_gn(gn('pumped', node), 'boundStartToEnd') = 1;
