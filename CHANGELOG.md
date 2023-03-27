@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+
+
+## 3.4 - 2022-12-21
+
+### Added
+
 - Add `ts_price` equivalent to Spine datastore template.
 - Option to declare which units use forecast data
 
