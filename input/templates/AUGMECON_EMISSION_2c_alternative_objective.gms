@@ -40,7 +40,7 @@ q_obj ..
 
     =E=
     
-    + v_epsSlack * smallScalar
+    - v_epsSlack * smallScalar
 
     // Sum over all the samples, forecasts, and time steps in the current model
     

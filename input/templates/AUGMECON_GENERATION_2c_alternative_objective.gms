@@ -40,7 +40,7 @@ q_obj ..
 
     =E=
     
-    + smallScalar * v_epsSlack // slack variable for AUGMECON
+    - smallScalar * v_epsSlack // slack variable for AUGMECON
 
     // Sum over all the samples, forecasts, and time steps in the current model
     
