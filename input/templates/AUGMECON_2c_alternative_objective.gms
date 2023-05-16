@@ -42,7 +42,7 @@ q_obj ..
 
     =E=
 
-    + smallScalar
+    - smallScalar
      * ( v_epsSlack1 / 0.05 
      + v_epsSlack2 / 20000.0
        ) // slack variables for AUGMECON
