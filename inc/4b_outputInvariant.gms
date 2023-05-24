@@ -569,7 +569,8 @@ loop(m,
                   ) // end sum(emissiongroup)
               ]
              // gnu specific costs from node emissions are positive (cost) for both input and output
-            + p_stepLengthNoReset(m, f, t)
+            + 1e-6 // Scaling to MEUR
+            * p_stepLengthNoReset(m, f, t)
             * abs(r_gen_gnuft(grid, node, unit, f, t))
             * sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)},
                    + p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
