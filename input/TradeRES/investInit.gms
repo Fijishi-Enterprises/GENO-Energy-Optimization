@@ -211,7 +211,7 @@ if (mType('invest'),
 * 0, 14, 17, 21, 43, 30, 44
 * 0, 1, 2, 3, 5, 4, 6
 gnss_bound(grid, node, s, s_) = no;
-loop(gn(grid,node)${sameas(grid, 'hydro') or sameas(grid, 'pumped') or sameas(grid, 'H2')},
+loop(gn(grid,node)${sameas(grid, 'hydro') or sameas(grid, 'pumped') or sameas(grid, 'H2') or sameas(grid, 'ev')},
     gnss_bound(grid,node,'s000','s001') = yes;
     gnss_bound(grid,node,'s001','s002') = yes;
     gnss_bound(grid,node,'s002','s003') = yes;
