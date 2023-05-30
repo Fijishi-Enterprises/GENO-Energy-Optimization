@@ -100,15 +100,13 @@ if (mType('invest'),
     // The sum of p_msAnnuityWeight should be 1 over the samples belonging to the same year.
     // The p_msAnnuityWeight parameter is used for describing which samples belong to the same year so that the model
     // is able to calculate investment costs and fixed operation and maintenance costs once per year.
-    p_msAnnuityWeight('invest', s) = 0;
-    p_msAnnuityWeight('invest', 's000') = 1/7;
-    p_msAnnuityWeight('invest', 's001') = 1/7;
-    p_msAnnuityWeight('invest', 's002') = 1/7;
-    p_msAnnuityWeight('invest', 's003') = 1/7;
-    p_msAnnuityWeight('invest', 's004') = 1/7;
-    p_msAnnuityWeight('invest', 's005') = 1/7;
-    p_msAnnuityWeight('invest', 's006') = 1/7;
-
+    p_msAnnuityWeight('invest', 's000') = (8760-2*168)/5/8760;
+    p_msAnnuityWeight('invest', 's001') = (8760-2*168)/5/8760;
+    p_msAnnuityWeight('invest', 's002') = (8760-2*168)/5/8760;
+    p_msAnnuityWeight('invest', 's003') = (8760-2*168)/5/8760;
+    p_msAnnuityWeight('invest', 's004') = (8760-2*168)/5/8760;
+    p_msAnnuityWeight('invest', 's005') = 1/8760;
+    p_msAnnuityWeight('invest', 's006') = 1/8760;
 
 * --- Define Time Step Intervals ----------------------------------------------
 
