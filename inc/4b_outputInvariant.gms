@@ -572,7 +572,7 @@ loop(m,
             + 1e-6 // Scaling to MEUR
             * p_stepLengthNoReset(m, f, t)
             * abs(r_gen_gnuft(grid, node, unit, f, t))
-            * sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, unit, group)},
+            * sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)},
                    + p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
                    * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
                        + ts_emissionPrice(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
