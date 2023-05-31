@@ -337,11 +337,11 @@ loop(cc(counter),
 
     // ts_emissionPrice_ calculation to avoid recalculating this for every unit in ts_vomCost_ and ts_startupCost_
     // note: same values for each forecast
-    ts_price_(node, tt_interval(t))
-        ${p_price(node, 'useTimeSeries')
+    ts_emissionPrice_(emission, group, tt_interval(t))
+        ${p_emissionPrice(emission, group, 'useTimeSeries')
           and sum((s, f), sft(s, f, t)) }
         = sum(tt_aggcircular(t, t_),
-                ts_price(node, t_)
+                ts_emissionPrice(emission, group, t_)
              ) // END sum(tt_aggcircular)
              / mInterval(mSolve, 'stepsPerInterval', counter) // dividing the sum by steplength to convert values in aggregated time steps to hourly values
     ;
