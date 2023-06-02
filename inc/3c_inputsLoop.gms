@@ -584,14 +584,28 @@ p_netLoad_real(t_current(t))$[ord(t) > ord(tSolve)]
 // Calculate total horizon expected net load error
 d_totalNetLoad_error(tSolve) =
     sum(t_current(t)$[ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')],
+        p_netLoad_model(t) - p_netLoad_real(t)
+    );
+
+d_totalNetLoad_rerror(tSolve) =
+    sum(t_current(t)$[ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')],
         p_netLoad_model(t)
     ) / sum(t_current(t)$[ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')],
         p_netLoad_real(t)
       ) - 1;
 
-// Calculate forecast period expected net load error
+// Calculate forecast period expected net load relative error
 loop(ms_initial(mSolve, s),
+
     d_totalNetLoad_error_fcast(tSolve) =
+        sum(t_current(t)$[
+          ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')
+          and ord(t) < msEnd(mSolve, s) + tSolveFirst
+        ],
+            p_netLoad_model(t) - p_netLoad_real(t)
+          );
+
+    d_totalNetLoad_rerror_fcast(tSolve) =
         sum(t_current(t)$[
           ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')
           and ord(t) < msEnd(mSolve, s) + tSolveFirst
