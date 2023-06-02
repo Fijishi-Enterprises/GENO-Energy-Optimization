@@ -565,7 +565,9 @@ $iftheni %diag% == 'yes'
 p_netLoad_model(t_current(t))$[ord(t) > ord(tSolve)]
      = sum(msft(mSolve, s, f, t_)$tt_aggregate(t_, t),
         p_msft_probability(mSolve, s, f, t_) * sum(gn(grid, node),
-            -1 * ts_influx_(grid, node, s, f, t_)
+            (-1 * ts_influx_(grid, node, s, f, t_))
+               // exclude nodes with storage
+               $[not p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')]
             - sum((gnu(grid, node, unit), flowUnit(flow, unit)),
                     ts_cf_(flow, node, s, f, t_) * p_gnu(grid, node, unit, 'capacity')
               )
@@ -575,7 +577,9 @@ p_netLoad_model(t_current(t))$[ord(t) > ord(tSolve)]
 // Actual values
 p_netLoad_real(t_current(t))$[ord(t) > ord(tSolve)]
      = sum((mf_realization(mSolve, f), gn(grid, node)),
-        -1 * ts_influx(grid, node, f, t)
+        (-1 * ts_influx(grid, node, f, t))
+          // exclude nodes with storage
+          $[not p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')]
         - sum((gnu(grid, node, unit), flowUnit(flow, unit)),
             ts_cf(flow, node, f, t) * p_gnu(grid, node, unit, 'capacity')
           )
