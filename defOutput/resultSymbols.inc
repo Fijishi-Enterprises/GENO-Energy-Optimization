@@ -207,10 +207,8 @@ d_capacityFactor
 d_nodeState
 d_influx
 d_state
-d_totalNetLoad_error
-d_totalNetLoad_rerror
-d_totalNetLoad_error_fcast
-d_totalNetLoad_rerror_fcast
+d_totalEnergy_error
+d_totalEnergy_rerror
 d_netLoad_error
 $endif.diag
 

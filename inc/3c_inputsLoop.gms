@@ -561,6 +561,7 @@ $endif.autocorr
 * --- Calculate relative error -------------------------------------------------
 $iftheni %diag% == 'yes'
 
+// Net load
 // Forecast/scenario values with time aggregation
 p_netLoad_model(t_current(t))$[ord(t) > ord(tSolve)]
      = sum(msft(mSolve, s, f, t_)$tt_aggregate(t_, t),
@@ -585,42 +586,38 @@ p_netLoad_real(t_current(t))$[ord(t) > ord(tSolve)]
           )
     );
 
-// Calculate total horizon expected net load error
-d_totalNetLoad_error(tSolve) =
-    sum(t_current(t)$[ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')],
-        p_netLoad_model(t) - p_netLoad_real(t)
+// Total energy
+// Forecast/scenario values with time aggregation
+p_totalEnergy_model(tSolve)
+     = sum(msft(mSolve, s, f, t)$[ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')],
+        p_msft_probability(mSolve, s, f, t) *
+        p_stepLength(mSolve, f, t) * sum(gn(grid, node),
+            (-1 * ts_influx_(grid, node, s, f, t))
+            - sum((gnu(grid, node, unit), flowUnit(flow, unit)),
+                    ts_cf_(flow, node, s, f, t) * p_gnu(grid, node, unit, 'capacity')
+              )
+        )
+      );
+
+// Actual values
+p_totalEnergy_real(tSolve)
+     = sum((t_current(t), mf_realization(mSolve, f), gn(grid, node))
+         $[ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')],
+        (-1 * ts_influx(grid, node, f, t))
+        - sum((gnu(grid, node, unit), flowUnit(flow, unit)),
+            ts_cf(flow, node, f, t) * p_gnu(grid, node, unit, 'capacity')
+          )
     );
 
-d_totalNetLoad_rerror(tSolve) =
-    sum(t_current(t)$[ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')],
-        p_netLoad_model(t)
-    ) / sum(t_current(t)$[ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')],
-        p_netLoad_real(t)
-      ) - 1;
+// Calculate total horizon expected net load error
+d_totalEnergy_error(tSolve) =
+        p_totalEnergy_model(tSolve) - p_totalEnergy_real(tSolve);
+
+d_totalEnergy_rerror(tSolve) =
+    d_totalEnergy_error(tSolve) / abs(p_totalEnergy_real(tSolve));
 
 // Calculate forecast period expected net load relative error
 loop(ms_initial(mSolve, s),
-
-    d_totalNetLoad_error_fcast(tSolve) =
-        sum(t_current(t)$[
-          ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')
-          and ord(t) < msEnd(mSolve, s) + tSolveFirst
-        ],
-            p_netLoad_model(t) - p_netLoad_real(t)
-          );
-
-    d_totalNetLoad_rerror_fcast(tSolve) =
-        sum(t_current(t)$[
-          ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')
-          and ord(t) < msEnd(mSolve, s) + tSolveFirst
-        ],
-            p_netLoad_model(t)
-        ) / sum(t_current(t)$[
-            ord(t) > ord(tSolve) + mSettings(mSolve, 't_jump')
-            and ord(t) < msEnd(mSolve, s) + tSolveFirst
-        ],
-            p_netLoad_real(t)
-          ) - 1;
 
     loop((counter, t_current(t))$[
         counter.off >= mSettings(mSolve, 't_jump') + 1

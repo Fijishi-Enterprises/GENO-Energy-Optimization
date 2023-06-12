@@ -243,10 +243,8 @@ Parameters
     d_influx(grid, node, s, f, t) "Diagnostic influx forecasts (accounting for GAMS plotting error)"
     d_state(grid, node, scenario, f, t) "Diagnostic state results in each scenario"
     d_ts_scenarios(timeseries, *, node, scenario, f, t) "Diagnostic time series values in scenarios"
-    d_totalNetLoad_error(t) "Total horizon expected net load error (MWh)"
-    d_totalNetLoad_rerror(t) "Total horizon expected net load relative error"
-    d_totalNetLoad_error_fcast(t) "Forecast period total expected net load error (MWh)"
-    d_totalNetLoad_rerror_fcast(t) "Forecast period total expected net load relative error"
+    d_totalEnergy_error(t) "Total horizon expected energy error (MWh)"
+    d_totalEnergy_rerror(t) "Total horizon expected energy relative error"
     d_netLoad_error(t, counter) "Error of expected net load during forecast period as function of lead time (MWh)"
 ;
 $endif.diag

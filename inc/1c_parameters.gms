@@ -211,7 +211,9 @@ Parameters
     p_stepLengthNoReset(mType, f, t) "Length of an interval in hours - includes also lengths of previously realized intervals"
     p_s_discountFactor(s) "Discount factor for samples when using a multi-year horizon"
 $iftheni %diag% == 'yes'
-    p_netLoad_real(t) "Total realized net load"
-    p_netLoad_model(t) "Total expected net load seen by the model"
+    p_netLoad_real(t) "Total realized net load (MWh/h)"
+    p_netLoad_model(t) "Total expected net load seen by the model (MWh/h)"
+    p_totalEnergy_real(t) "Total realized energy during the model horizon (MWh)"
+    p_totalEnergy_model(t) "Total expected energy seen by the model during the model horizon (MWh)"
 $endif
 ;
