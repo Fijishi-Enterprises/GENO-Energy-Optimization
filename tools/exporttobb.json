@@ -1726,7 +1726,8 @@
                 },
                 {
                     "map_type": "ParameterValueType",
-                    "position": "hidden"
+                    "position": "hidden",
+                    "filter_re": "single_value"
                 },
                 {
                     "map_type": "ParameterValue",
@@ -3463,13 +3464,13 @@
                 },
                 {
                     "map_type": "RelationshipObject",
-                    "position": 0,
-                    "header": "emission"
+                    "position": 1,
+                    "header": "group"
                 },
                 {
                     "map_type": "RelationshipObject",
-                    "position": 1,
-                    "header": "group"
+                    "position": 0,
+                    "header": "emission"
                 },
                 {
                     "map_type": "Alternative",

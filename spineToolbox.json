@@ -13,9 +13,9 @@
     "description": "Backbone",
     "inputfiles": [
         "input/1_options.gms",
-        "input/timeAndSamples.inc",
         "input/inputData.gdx",
-        "input/modelsInit.gms"
+        "input/modelsInit.gms",
+        "input/timeAndSamples.inc"
     ],
     "inputfiles_opt": [
         "input/*.*"
@@ -25,6 +25,5 @@
         "output/results.gdx"
     ],
     "cmdline_args": [],
-    "execute_in_work": false,
     "includes_main_path": "."
 }

@@ -224,7 +224,7 @@ set metadata(*) /
    'Time' '%system.time%'
    'GAMS version' '%system.gamsrelease%'
    'GAMS system' '%system.gstring%'
-$include 'version'
+*$include 'version'
 /;
 if(execError > 0, metadata('FAILED') = yes);
 

@@ -1,7 +1,6 @@
 {
     "project": {
-        "version": 7,
-        "name": "Backbone_model_example",
+        "version": 10,
         "description": "",
         "specifications": {
             "Tool": [
@@ -66,17 +65,6 @@
                 ]
             },
             {
-                "name": "from BB_config_files to Backbone vara",
-                "from": [
-                    "BB_config_files",
-                    "right"
-                ],
-                "to": [
-                    "Backbone vara",
-                    "left"
-                ]
-            },
-            {
                 "name": "from Convert to BB_data",
                 "from": [
                     "Convert",
@@ -121,28 +109,6 @@
                 ]
             },
             {
-                "name": "from inputData to Backbone vara",
-                "from": [
-                    "inputData",
-                    "right"
-                ],
-                "to": [
-                    "Backbone vara",
-                    "left"
-                ]
-            },
-            {
-                "name": "from BB_config_files_vara to Backbone vara",
-                "from": [
-                    "BB_config_files_vara",
-                    "right"
-                ],
-                "to": [
-                    "Backbone vara",
-                    "bottom"
-                ]
-            },
-            {
                 "name": "from inputData to Convert",
                 "from": [
                     "inputData",
@@ -150,28 +116,6 @@
                 ],
                 "to": [
                     "Convert",
-                    "left"
-                ]
-            },
-            {
-                "name": "from BB_data_template to BB_data merger",
-                "from": [
-                    "BB_data_template",
-                    "right"
-                ],
-                "to": [
-                    "BB_data merger",
-                    "left"
-                ]
-            },
-            {
-                "name": "from BB_data merger to BB_data",
-                "from": [
-                    "BB_data merger",
-                    "right"
-                ],
-                "to": [
-                    "BB_data",
                     "left"
                 ]
             }
@@ -198,77 +142,51 @@
         "inputData": {
             "type": "Data Connection",
             "description": "",
-            "x": -347.8182821765176,
-            "y": 1.577082286244062,
+            "x": -375.56443243919233,
+            "y": -24.907879328127294,
             "file_references": [],
             "db_references": []
         },
         "BB_config_files": {
             "type": "Data Connection",
             "description": "",
-            "x": 224.79620087181706,
-            "y": -18.074508998597892,
-            "file_references": [],
-            "db_references": []
-        },
-        "BB_config_files_vara": {
-            "type": "Data Connection",
-            "description": "",
-            "x": 230.04802646881222,
-            "y": 189.3103885957761,
+            "x": 168.0427116981642,
+            "y": 48.76848936148215,
             "file_references": [],
             "db_references": []
         },
         "Backbone": {
             "type": "Tool",
             "description": "",
-            "x": 370.0293661569585,
-            "y": -122.35328386386612,
+            "x": 293.09685861045125,
+            "y": -127.39803845707969,
             "specification": "Backbone",
             "execute_in_work": true,
-            "cmd_line_args": []
-        },
-        "Backbone vara": {
-            "type": "Tool",
-            "description": "",
-            "x": 363.49524873799595,
-            "y": 111.45642877204835,
-            "specification": "Backbone",
-            "execute_in_work": false,
-            "cmd_line_args": [
-                {
-                    "type": "resource",
-                    "arg": "--t_start=1"
-                },
-                {
-                    "type": "resource",
-                    "arg": "--t_end=6"
-                }
-            ]
+            "cmd_line_args": [],
+            "kill_completed_processes": false
         },
         "Convert": {
             "type": "Importer",
             "description": "",
-            "x": -188.61292613481368,
-            "y": -42.96154166175431,
+            "x": -217.62026504579174,
+            "y": -21.52133464059655,
             "specification": "BB_to_SpineDB",
-            "cancel_on_error": true,
-            "purge_before_writing": false,
+            "cancel_on_error": false,
             "on_conflict": "merge",
             "file_selection": []
         },
         "BB_sets": {
             "type": "Data Transformer",
             "description": "",
-            "x": 74.76735356404271,
-            "y": -131.01422286608698,
+            "x": 18.013864390389827,
+            "y": -129.75303421778358,
             "specification": "ToBackboneSets"
         },
         "Export_to_BB": {
             "type": "Exporter",
             "description": "",
-            "x": 222.91394229770248,
-            "y": -128.7838020219262,
+            "x": 149.76500069610546,
+            "y": -126.26142472531942,
             "output_time_stamps": false,
             "cancel_on_error": true,
             "output_labels": [
@@ -278,30 +196,6 @@
                 }
             ],
             "specification": "ExportToBB"
-        },
-        "BB_data_template": {
-            "type": "Data Store",
-            "description": "",
-            "x": -282.9429702945906,
-            "y": -143.39191254748494,
-            "url": {
-                "dialect": "sqlite",
-                "host": "",
-                "port": "",
-                "database": {
-                    "type": "path",
-                    "relative": true,
-                    "path": ".spinetoolbox/items/bb_data_template/BB_data_template.sqlite"
-                }
-            }
-        },
-        "BB_data merger": {
-            "type": "Merger",
-            "description": "Merges data into BB_data",
-            "x": -195.79803970860326,
-            "y": -136.9091753081933,
-            "cancel_on_error": true,
-            "purge_before_writing": false
         }
     }
 }
