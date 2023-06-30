@@ -30,6 +30,11 @@
                     "type": "path",
                     "relative": true,
                     "path": "tools/import_bacbkone_base_sets_to_spinedb.json"
+                },
+                {
+                    "type": "path",
+                    "relative": true,
+                    "path": ".spinetoolbox/specifications/results_importer.json"
                 }
             ],
             "Data Transformer": [
@@ -62,7 +67,22 @@
                 "to": [
                     "BB_sets",
                     "left"
-                ]
+                ],
+                "filter_settings": {
+                    "known_filters": {
+                        "db_url@BB_data": {
+                            "scenario_filter": {
+                                "batterySelfDischargeLoss": true,
+                                "batteryTransferLoss": true,
+                                "nuclearMustRun": true,
+                                "ocgtMinTimes": true,
+                                "specialFeaturesDisabled": true
+                            },
+                            "tool_filter": {}
+                        }
+                    },
+                    "auto_online": true
+                }
             },
             {
                 "name": "from Convert to BB_data",
@@ -118,6 +138,28 @@
                     "Convert",
                     "left"
                 ]
+            },
+            {
+                "name": "from Backbone to Results Importer",
+                "from": [
+                    "Backbone",
+                    "right"
+                ],
+                "to": [
+                    "Results Importer",
+                    "left"
+                ]
+            },
+            {
+                "name": "from Results Importer to Results",
+                "from": [
+                    "Results Importer",
+                    "right"
+                ],
+                "to": [
+                    "Results",
+                    "left"
+                ]
             }
         ],
         "jumps": []
@@ -142,7 +184,7 @@
         "inputData": {
             "type": "Data Connection",
             "description": "",
-            "x": -375.56443243919233,
+            "x": -376.5840763450772,
             "y": -24.907879328127294,
             "file_references": [],
             "db_references": []
@@ -169,7 +211,7 @@
             "type": "Importer",
             "description": "",
             "x": -217.62026504579174,
-            "y": -21.52133464059655,
+            "y": -22.54097854648154,
             "specification": "BB_to_SpineDB",
             "cancel_on_error": false,
             "on_conflict": "merge",
@@ -178,8 +220,8 @@
         "BB_sets": {
             "type": "Data Transformer",
             "description": "",
-            "x": 18.013864390389827,
-            "y": -129.75303421778358,
+            "x": 18.01386439038983,
+            "y": -130.77267812366858,
             "specification": "ToBackboneSets"
         },
         "Export_to_BB": {
@@ -196,6 +238,41 @@
                 }
             ],
             "specification": "ExportToBB"
+        },
+        "Results Importer": {
+            "type": "Importer",
+            "description": "",
+            "x": 434.9674109825088,
+            "y": -129.04033192481097,
+            "specification": "Results Importer",
+            "cancel_on_error": false,
+            "on_conflict": "merge",
+            "file_selection": [
+                [
+                    "Backbone.lst",
+                    false
+                ],
+                [
+                    "output/results.gdx",
+                    true
+                ]
+            ]
+        },
+        "Results": {
+            "type": "Data Store",
+            "description": "",
+            "x": 578.5066566067366,
+            "y": -123.24076644504416,
+            "url": {
+                "dialect": "sqlite",
+                "host": "",
+                "port": "",
+                "database": {
+                    "type": "path",
+                    "relative": true,
+                    "path": ".spinetoolbox/items/results/Results.sqlite"
+                }
+            }
         }
     }
 }
