@@ -39,7 +39,7 @@ if (mType('invest'),
 * --- Define Samples ----------------------------------------------------------
 
     // Number of samples used by the model
-    mSettings('invest', 'samples') = 7;
+    mSettings('invest', 'samples') = 8;
 
     // Clear Initial and Central samples
     ms_initial('invest', s) = no;
@@ -70,6 +70,8 @@ if (mType('invest'),
     msEnd('invest', 's005') = msStart('invest', 's005') + 168;
     msStart('invest', 's006') = 1 + 44*7*24;
     msEnd('invest', 's006') = msStart('invest', 's006') + 168;
+    msStart('invest', 's007') = 1 + 3*7*24;
+    msEnd('invest', 's007') = msStart('invest', 's007') + 168;
 
     // Define the probability of samples
     // Probabilities are 1 in deterministic model runs.
@@ -83,30 +85,33 @@ if (mType('invest'),
     p_msProbability('invest', 's004') = 1;
     p_msProbability('invest', 's005') = 1;
     p_msProbability('invest', 's006') = 1;
+    p_msProbability('invest', 's007') = 1; 
     // Define the weight of samples
     // Weights describe how many times the samples are repeated in order to get the (typically) annual results.
     // For example, 3 samples with equal weights and with a duration of 1 week should be repeated 17.38 times in order
     // to cover the 52.14 weeks of the year.
     // Weights are used for scaling energy production and consumption results and for estimating node state evolution.
     p_msWeight('invest', s) = 0;
-    p_msWeight('invest', 's000') = (8760-2*168)/168/5;
-    p_msWeight('invest', 's001') = (8760-2*168)/168/5;
-    p_msWeight('invest', 's002') = (8760-2*168)/168/5;
-    p_msWeight('invest', 's003') = (8760-2*168)/168/5;
-    p_msWeight('invest', 's004') = (8760-2*168)/168/5;
+    p_msWeight('invest', 's000') = (8760-3*168)/168/5;
+    p_msWeight('invest', 's001') = (8760-3*168)/168/5;
+    p_msWeight('invest', 's002') = (8760-3*168)/168/5;
+    p_msWeight('invest', 's003') = (8760-3*168)/168/5;
+    p_msWeight('invest', 's004') = (8760-3*168)/168/5;
     p_msWeight('invest', 's005') = 1;
     p_msWeight('invest', 's006') = 1;
+    p_msWeight('invest', 's007') = 1;   
     // Define the weight of samples in the calculation of fixed costs
     // The sum of p_msAnnuityWeight should be 1 over the samples belonging to the same year.
     // The p_msAnnuityWeight parameter is used for describing which samples belong to the same year so that the model
     // is able to calculate investment costs and fixed operation and maintenance costs once per year.
-    p_msAnnuityWeight('invest', 's000') = (8760-2*168)/5/8760;
-    p_msAnnuityWeight('invest', 's001') = (8760-2*168)/5/8760;
-    p_msAnnuityWeight('invest', 's002') = (8760-2*168)/5/8760;
-    p_msAnnuityWeight('invest', 's003') = (8760-2*168)/5/8760;
-    p_msAnnuityWeight('invest', 's004') = (8760-2*168)/5/8760;
+    p_msAnnuityWeight('invest', 's000') = (8760-3*168)/5/8760;
+    p_msAnnuityWeight('invest', 's001') = (8760-3*168)/5/8760;
+    p_msAnnuityWeight('invest', 's002') = (8760-3*168)/5/8760;
+    p_msAnnuityWeight('invest', 's003') = (8760-3*168)/5/8760;
+    p_msAnnuityWeight('invest', 's004') = (8760-3*168)/5/8760;
     p_msAnnuityWeight('invest', 's005') = 1/8760;
     p_msAnnuityWeight('invest', 's006') = 1/8760;
+    p_msAnnuityWeight('invest', 's007') = 1/8760;   
 
 * --- Define Time Step Intervals ----------------------------------------------
 
@@ -217,6 +222,7 @@ loop(gn(grid,node)${sameas(grid, 'hydro') or sameas(grid, 'pumped') or sameas(gr
     gnss_bound(grid,node,'s005','s004') = yes;
     gnss_bound(grid,node,'s004','s006') = yes;
     gnss_bound(grid,node,'s006','s000') = yes;
+    gnss_bound(grid,node,'s007','s000') = yes;       
 );
 loop(s$ms_initial('invest', s),
     gnss_bound(gn('battery',node),s,s) = yes;
@@ -224,5 +230,7 @@ loop(s$ms_initial('invest', s),
 );
 sGroup('s005','VRE_limit') = yes;
 sGroup('s006','VRE_limit') = yes;
+sGroup('s007','VRE_limit') = yes;
 p_s_discountFactor('s005') = 1;
 p_s_discountFactor('s006') = 1;
+p_s_discountFactor('s007') = 1;
