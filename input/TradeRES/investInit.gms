@@ -50,6 +50,7 @@ if (mType('invest'),
     ms_initial('invest', 's004') = yes;
     ms_initial('invest', 's005') = yes;
     ms_initial('invest', 's006') = yes;
+    ms_initial('invest', 's007') = yes;   
     ms_central('invest', s) = no;
 
     // Define time span of samples
