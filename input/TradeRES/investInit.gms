@@ -50,29 +50,30 @@ if (mType('invest'),
     ms_initial('invest', 's004') = yes;
     ms_initial('invest', 's005') = yes;
     ms_initial('invest', 's006') = yes;
-    ms_initial('invest', 's007') = yes;   
+*    ms_initial('invest', 's007') = yes;   
     ms_central('invest', s) = no;
 
     // Define time span of samples
     // For selecting the samples, see, for example, https://doi.org/10.1016/j.energy.2020.118585.
+    // currently used: k-medoids-emthod by https://github.com/FZJ-IEK3-VSA/tsam
     // The duration of the samples can be, for example, 1 day or 1 week (24 h or 168 h).
     // The samples can have different durations.
-    msStart('invest', 's000') = 1 + 7*24;
+    msStart('invest', 's000') = 1 + 473;         //extreme period
     msEnd('invest', 's000') = msStart('invest', 's000') + 168;
-    msStart('invest', 's001') = 1 + 14*7*24;
+    msStart('invest', 's001') = 673;
     msEnd('invest', 's001') = msStart('invest', 's001') + 168;
-    msStart('invest', 's002') = 1 + 17*7*24;
+    msStart('invest', 's002') = 2353;
     msEnd('invest', 's002') = msStart('invest', 's002') + 168;
-    msStart('invest', 's003') = 1 + 21*7*24;
+    msStart('invest', 's003') = 3697;
     msEnd('invest', 's003') = msStart('invest', 's003') + 168;
-    msStart('invest', 's004') = 1 + 43*7*24;
+    msStart('invest', 's004') = 5713;
     msEnd('invest', 's004') = msStart('invest', 's004') + 168;
-    msStart('invest', 's005') = 1 + 30*7*24;//12*7*24;
+    msStart('invest', 's005') = 1 + 30*7*24;  //extreme period
     msEnd('invest', 's005') = msStart('invest', 's005') + 168;
-    msStart('invest', 's006') = 1 + 44*7*24;
-    msEnd('invest', 's006') = msStart('invest', 's006') + 168;
-    msStart('invest', 's007') = 1 + 3*7*24;
-    msEnd('invest', 's007') = msStart('invest', 's007') + 168;
+    msStart('invest', 's006') = 7393 ;
+    msEnd('invest', 's006') = msStart('invest', 's006') + 168;  // was also extreme period before
+  // msStart('invest', 's007') = 7393
+  //  msEnd('invest', 's007') = msStart('invest', 's007') + 2*168;
 
     // Define the probability of samples
     // Probabilities are 1 in deterministic model runs.
@@ -86,33 +87,34 @@ if (mType('invest'),
     p_msProbability('invest', 's004') = 1;
     p_msProbability('invest', 's005') = 1;
     p_msProbability('invest', 's006') = 1;
-    p_msProbability('invest', 's007') = 1; 
+//    p_msProbability('invest', 's007') = 1; 
     // Define the weight of samples
     // Weights describe how many times the samples are repeated in order to get the (typically) annual results.
     // For example, 3 samples with equal weights and with a duration of 1 week should be repeated 17.38 times in order
     // to cover the 52.14 weeks of the year.
     // Weights are used for scaling energy production and consumption results and for estimating node state evolution.
     p_msWeight('invest', s) = 0;
-    p_msWeight('invest', 's000') = (8760-3*168)/168/5;
-    p_msWeight('invest', 's001') = (8760-3*168)/168/5;
-    p_msWeight('invest', 's002') = (8760-3*168)/168/5;
-    p_msWeight('invest', 's003') = (8760-3*168)/168/5;
-    p_msWeight('invest', 's004') = (8760-3*168)/168/5;
+    p_msWeight('invest', 's000') = 1;
+    p_msWeight('invest', 's001') = (8760-2*168)/168/5;
+    p_msWeight('invest', 's002') = (8760-2*168)/168/5;
+    p_msWeight('invest', 's003') = (8760-2*168)/168/5;
+    p_msWeight('invest', 's004') = (8760-2*168)/168/5;
     p_msWeight('invest', 's005') = 1;
-    p_msWeight('invest', 's006') = 1;
-    p_msWeight('invest', 's007') = 1;   
+    p_msWeight('invest', 's006') = (8760-2*168)/168/5;
+ //   p_msWeight('invest', 's007') = 1;  
     // Define the weight of samples in the calculation of fixed costs
     // The sum of p_msAnnuityWeight should be 1 over the samples belonging to the same year.
     // The p_msAnnuityWeight parameter is used for describing which samples belong to the same year so that the model
     // is able to calculate investment costs and fixed operation and maintenance costs once per year.
-    p_msAnnuityWeight('invest', 's000') = (8760-3*168)/5/8760;
-    p_msAnnuityWeight('invest', 's001') = (8760-3*168)/5/8760;
-    p_msAnnuityWeight('invest', 's002') = (8760-3*168)/5/8760;
-    p_msAnnuityWeight('invest', 's003') = (8760-3*168)/5/8760;
-    p_msAnnuityWeight('invest', 's004') = (8760-3*168)/5/8760;
-    p_msAnnuityWeight('invest', 's005') = 1/8760;
-    p_msAnnuityWeight('invest', 's006') = 1/8760;
-    p_msAnnuityWeight('invest', 's007') = 1/8760;   
+    p_msAnnuityWeight('invest', s) = 0;
+    p_msAnnuityWeight('invest', 's000') = 168/8760;
+    p_msAnnuityWeight('invest', 's001') = (8760-2*168)/5/8760;
+    p_msAnnuityWeight('invest', 's002') = (8760-2*168)/5/8760;
+    p_msAnnuityWeight('invest', 's003') = (8760-2*168)/5/8760;
+    p_msAnnuityWeight('invest', 's004') = (8760-2*168)/5/8760;
+    p_msAnnuityWeight('invest', 's005') = 168/8760;
+    p_msAnnuityWeight('invest', 's006') = (8760-2*168)/5/8760;
+ //   p_msAnnuityWeight('invest', 's007') = /8760;
 
 * --- Define Time Step Intervals ----------------------------------------------
 
@@ -219,11 +221,12 @@ loop(gn(grid,node)${sameas(grid, 'hydro') or sameas(grid, 'pumped') or sameas(gr
     gnss_bound(grid,node,'s000','s001') = yes;
     gnss_bound(grid,node,'s001','s002') = yes;
     gnss_bound(grid,node,'s002','s003') = yes;
-    gnss_bound(grid,node,'s003','s005') = yes;
-    gnss_bound(grid,node,'s005','s004') = yes;
-    gnss_bound(grid,node,'s004','s006') = yes;
+    gnss_bound(grid,node,'s003','s004') = yes;
+    gnss_bound(grid,node,'s004','s005') = yes;
+    gnss_bound(grid,node,'s005','s006') = yes;
     gnss_bound(grid,node,'s006','s000') = yes;
-    gnss_bound(grid,node,'s007','s000') = yes;       
+*    gnss_bound(grid,node,'s006','s007') = yes;
+*    gnss_bound(grid,node,'s007','s000') = yes; 
 );
 loop(s$ms_initial('invest', s),
     gnss_bound(gn('battery',node),s,s) = yes;
@@ -231,7 +234,7 @@ loop(s$ms_initial('invest', s),
 );
 sGroup('s005','VRE_limit') = yes;
 sGroup('s006','VRE_limit') = yes;
-sGroup('s007','VRE_limit') = yes;
+*sGroup('s007','VRE_limit') = yes;
 p_s_discountFactor('s005') = 1;
 p_s_discountFactor('s006') = 1;
-p_s_discountFactor('s007') = 1;
+*p_s_discountFactor('s007') = 1;
