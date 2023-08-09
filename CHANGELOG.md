@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 ### Changed
+- edits to temp_4d_postProcess_invest2schedule.gms
 
 ### Fixed
 
