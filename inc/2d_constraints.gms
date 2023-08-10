@@ -284,6 +284,9 @@ q_resDemandLargestInfeedUnit(restypeDirectionGroup(restype, 'up', group), unit_f
 ;
 
 * --- ROCOF Limit -- Units ----------------------------------------------------
+// NOTE! Currently, this equation does not work well with clustered unit
+// commitment as the demand for rotational energy depends on the total
+// generation of the failing unit cluster.
 
 q_rateOfChangeOfFrequencyUnit(group, unit_fail(unit_), sft(s, f, t))
     ${  p_groupPolicy(group, 'defaultFrequency')

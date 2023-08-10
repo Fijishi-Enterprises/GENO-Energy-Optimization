@@ -113,6 +113,50 @@ loop(s_realized(s),
     ); // END loop(restypeDirectionGroup, sft)
 ); // END loop(s_realized(s)
 
+* --- Stability results -------------------------------------------------------
+
+loop(s_realized(s),
+    // RoCoF due to a unit failure
+    // RoCoF = DefaultFreq * MW_LostUnit / 2 / (sumINERTIA - INERTIA_LostUnit)
+    r_stability_rocof_unit_ft(group, f, t_startp(t))
+        ${sft_realized(s, f, t)
+          and p_groupPolicy(group, 'defaultFrequency')
+          and p_groupPolicy(group, 'ROCOF')
+          and p_groupPolicy(group, 'dynamicInertia')}
+
+        = smax(unit_fail(unit_)
+            ${  sum(gnGroup(grid, node, group), gnu_output(grid, node, unit_))
+                and usft(unit_, s, f, t)
+                },
+            p_groupPolicy(group, 'defaultFrequency')
+            * sum(gnu_output(grid, node, unit_)${gnGroup(grid, node, group)},
+                + v_gen.l(grid, node, unit_ , s, f, t)
+                ) // END sum(gnu_output)
+            / 2
+            / [
+                + sum(gnu_output(grid, node, unit)${   ord(unit) ne ord(unit_)
+                                                       and gnGroup(grid, node, group)
+                                                       and usft(unit, s, f, t)
+                                                       },
+                    + p_gnu(grid, node, unit, 'inertia')
+                        * p_gnu(grid ,node, unit, 'unitSizeMVA')
+                        * [
+                            + v_online_LP.l(unit, s, f+df_central(f,t), t)
+                                ${usft_onlineLP(unit, s, f, t)}
+                            + v_online_MIP.l(unit, s, f+df_central(f,t), t)
+                                ${usft_onlineMIP(unit, s, f, t)}
+                            + (v_gen.l(grid, node, unit, s, f, t)
+                                / p_gnu(grid, node, unit, 'unitSize'))
+                                ${  p_gnu(grid, node, unit, 'unitSize')
+                                    and not usft_online(unit, s, f, t)
+                                    }
+                            ] // * p_gnu
+                    ) // END sum(gnu_output)
+                ] // END / p_groupPolicy
+            ) // END smax
+    ;
+);
+
 * --- Interesting results -----------------------------------------------------
 
 loop(s_realized(s),
