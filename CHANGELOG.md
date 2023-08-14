@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## unversioned
 
 ### Added
+- Adding an abort + warning if there are zero active samples in the init file
 
 ### Changed
 - edits to temp_4d_postProcess_invest2schedule.gms

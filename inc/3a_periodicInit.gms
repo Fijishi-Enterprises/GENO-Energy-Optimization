@@ -876,6 +876,13 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         ); // END if
     ); // END loop(unit_investMIP)
 
+* --- Check that at least one sample is active --------------------------------
+
+    if(card(s_active) = 0,
+            put log '!!! Abort: Number of active samples is zero' /;
+            abort "A working backbone model needs at least one active sample. See input/scheduleInit.gms or input/investInit.gms!"
+    );
+
 * --- sample discount factors -------------------------------------------
 
     loop(s_active(s),
