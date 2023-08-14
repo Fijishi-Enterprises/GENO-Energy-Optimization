@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - edits to temp_4d_postProcess_invest2schedule.gms
+- increasing default penalty to 10e6 for improved default behavior in investment cases
 
 ### Fixed
 
