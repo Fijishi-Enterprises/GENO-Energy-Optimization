@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 - increasing default penalty to 10e6 for improved default behavior in investment cases
 
 ### Fixed
-
+- Fixing model sets defining the last t in investment model runs
 
 
 ## 3.4 - 2022-12-21
