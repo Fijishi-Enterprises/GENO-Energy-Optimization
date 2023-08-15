@@ -53,7 +53,7 @@ if (mType('invest'),
     // The duration of the samples can be, for example, 1 day or 1 week (24 h or 168 h).
     // The samples can have different durations.
     msStart('invest', 's000') = 1;
-    msEnd('invest', 's000') = msStart('invest', 's000') + 168;
+    msEnd('invest', 's000') = msStart('invest', 's000') + 168; // t000168 is 169th timestep as t000000 is included for initial states and calculations
     msStart('invest', 's001') = 1 + 18*168;
     msEnd('invest', 's001') = msStart('invest', 's001') + 168;
     msStart('invest', 's002') = 1 + 35*168;
