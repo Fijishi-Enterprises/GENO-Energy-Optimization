@@ -5,18 +5,16 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Adding an abort + warning if there are zero active samples in the init file
+- explanations and clarifications to vomCost calculations in the code
 
 ### Changed
 - edits to temp_4d_postProcess_invest2schedule.gms
 - increasing default penalty to 10e6 for improved default behavior in investment cases
 
 ### Fixed
-<<<<<<< CHANGELOG.md
-
 - Fixing a bug with data recycling with constant hourly time resolution.
 - Fixing model sets defining the last t in investment model runs
-- Fixed curtailment results in case unitSize is different than 1
->>>>>>> CHANGELOG.md
+- Fixed curtailment results in case unitSize is different to 1
 
 
 ## 3.4 - 2022-12-21

@@ -347,47 +347,46 @@ loop(cc(counter),
     ;
 
     // vomCost calculations when one or more price time series
+    // Total = gnu vom costs
+    //         + gnu emission costs
+    //         + gn vom costs
+    //         + gn emission costs
     ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
         ${p_vomCost(grid, node, unit, 'useTimeseries')
           and sum((s, f), sft(s, f, t)) }
-        = // gnu specific cost. Always a cost (positive) if input or output.
-          // vomCosts
-          + p_gnu(grid, node, unit, 'vomCosts')
+        = // gnu specific cost (EUR/MWh). Always a cost (positive) for all inputs or outputs.
 
-            // gn specific emission cost (e.g. CO2 allowance price from fuel emissions). Cost when input but income when output.
-            + sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)},
-                 + p_nEmission(node, emission)  // t/MWh
-                    * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
-                   + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
-                    )
-            ) // end sum(emissiongroup)
+            // gnu specific vomCosts
+            + p_gnu(grid, node, unit, 'vomCosts')     // EUR/MWh
 
-            // gnu specific emission cost (e.g. process related LCA emission). Always a cost if input or output.
-            + sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)},
-                + p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
-                    * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
-                   + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
-                    )
-             ) // end sum(emissiongroup)
+            // gnu specific emission cost (e.g. process related LCA emission). Always a cost regardless if from input or output.
+            + sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)}, // EUR/MWh
+                + p_gnuEmission(grid, node, unit, emission, 'vomEmissions')                                         // tCO2/MWh
+                    * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant') // EUR/tCO2, constant
+                        + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')   // EUR/tCO2, timeseries
+                        )
+                ) // end sum(emissiongroup)
+            // END * gnu specific costs
 
-          // gn specific costs. Cost when input but income when output.
+        // gn specific costs (EUR/MWh). Cost (positive) when input but income (negative) when output.
+
           // converting gn specific costs negative if output -> income
           + (+1$gnu_input(grid, node, unit)
              -1$gnu_output(grid, node, unit)
-             )
+             ) // END changing sings for input/output
 
-          * ( // gn specific node cost, e.g. fuel price
-              + p_price(node, 'price')${p_price(node, 'useConstant')}
-              + ts_price_(node, t)${p_price(node, 'useTimeSeries')}
+          * ( // gn specific node cost, e.g. fuel price (EUR/MWh). Cost when input but income when output.
+              + p_price(node, 'price')${p_price(node, 'useConstant')}  // EUR/MWh, constant
+              + ts_price_(node, t)${p_price(node, 'useTimeSeries')}    // EUR/MWh, timeseries
 
-              // gn specific emission cost, e.g. CO2 allowance price from fuel emissions.
-              + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
-                  + p_nEmission(node, emission)  // t/MWh
-                  * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
-                      + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+              // gn specific emission cost, e.g. CO2 allowance price from fuel emissions. Cost when from input but income when from output.
+              + sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)},   // EUR/MWh
+                  + p_nEmission(node, emission)  // t/MWh                                                          // tCO2/MWh
+                  * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')  // EUR/tCO2, constant
+                      + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')    // EUR/tCO2, timeseries
                      )
                   ) // end sum(emissiongroup)
-             ) // END * gnu_input/output
+            ) // END * gn specific costs
     ;
 
     // Startup cost calculations
