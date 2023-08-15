@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Fixing model sets defining the last t in investment model runs
+- Fixed curtailment results in case unitSize is different than 1
 
 
 ## 3.4 - 2022-12-21

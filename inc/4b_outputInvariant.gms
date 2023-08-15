@@ -105,6 +105,7 @@ loop(m,
             // + (capacity + investments) * ts_cf   for generating units only
             + [p_gnu(grid, node, unit, 'capacity')$gnu_output(grid, node, unit)
                + r_invest_unitCount_u(unit)$gnu_output(grid, node, unit)
+               * p_gnu(grid, node, unit, 'unitSize')
               ]
             * ts_cf(flow, node, f ,t)
 
