@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Fixing model sets defining the last t in investment model runs
 - Fixed curtailment results in case unitSize is different to 1
 - Checking the GAMS version earlier in the code to avoid crash in certain cases
+- sum of capacity dependent emissions in emission cap equation
 
 
 ## 3.4 - 2022-12-21

@@ -3373,11 +3373,17 @@ q_emissioncapNodeGroup(group, emission)
                   ]
               ) // sum(usft_online)
 
+          ] // END * p_msft_Probability
+      ) // END sum(msft)
 
+
+
+    + sum(ms(m, s)${sGroup(s, group)},
+        + p_msProbability(m,s)
+        * [
             // capacity emissions: fixed o&M emissions (tEmission)
             + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, emission, 'fomEmissions')
-                                         and gnGroup(grid, node, group)
-                                         and usft(unit, s, f, t) },
+                                         and gnGroup(grid, node, group) },
                 + p_gnuEmission(grid, node, unit, emission, 'fomEmissions')       // (tEmissions/MW)
                     * p_gnu(grid, node, unit, 'unitSize')   // (MW/unit)
                     * [
@@ -3388,13 +3394,12 @@ q_emissioncapNodeGroup(group, emission)
                         + v_invest_LP(unit)${unit_investLP(unit)}        // (number of invested units)
                         + v_invest_MIP(unit)${unit_investMIP(unit)}      // (number of invested units)
                       ] // END * p_gnuEmssion
-            ) // END sum(gnu)
+                ) // END sum(gnu)
 
             // capacity emissions: investment emissions (tEmission)
             + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, emission, 'invEmissions')
                                          and (unit_investLP(unit) or unit_investMIP(unit))
-                                         and gnGroup(grid, node, group)
-                                         and usft(unit, s, f, t) },
+                                         and gnGroup(grid, node, group) },
                 // Capacity restriction
                 + p_gnuEmission(grid, node, unit, emission, 'invEmissions')    // (tEmission/MW)
                     * p_gnuEmission(grid, node, unit, emission, 'invEmissionsFactor')    // factor dividing emissions to N years
@@ -3404,9 +3409,10 @@ q_emissioncapNodeGroup(group, emission)
                         + v_invest_LP(unit)${unit_investLP(unit)}         // (number of invested units)
                         + v_invest_MIP(unit)${unit_investMIP(unit)}       // (number of invested units)
                       ] // END * p_gnuEmssion
-            ) // END sum(gnu)
-          ] // END * p_sft_Probability
-      ) // END sum(msft)
+                ) // END sum(gnu)
+          ] // END * p_msProbability
+      ) // END sum(ms)
+
 
     =L=
 
