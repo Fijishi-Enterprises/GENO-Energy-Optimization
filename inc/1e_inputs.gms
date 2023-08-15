@@ -702,6 +702,14 @@ loop(node,
 
 * --- Check the integrity of efficiency approximation related data ------------
 
+// check if flow units have effLevelGroupUnit defined
+loop(unit_flow(unit) ,
+    if(sum(effLevelGroupUnit(effLevel, effSelector, unit), 1) > 0,
+         put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has effLevels defined. Removing effLevelGroup data from ', unit.tl:0 /;
+        effLevelGroupUnit(effLevel, effSelector, unit) = no;
+        );
+);
+
 Option clear = tmp;
 // Find the largest effLevel used in the data
 tmp = smax(effLevelGroupUnit(effLevel, effSelector, unit), ord(effLevel));
