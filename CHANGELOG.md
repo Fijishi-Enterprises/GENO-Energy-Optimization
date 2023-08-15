@@ -11,8 +11,12 @@ All notable changes to this project will be documented in this file.
 - increasing default penalty to 10e6 for improved default behavior in investment cases
 
 ### Fixed
+<<<<<<< CHANGELOG.md
+
+- Fixing a bug with data recycling with constant hourly time resolution.
 - Fixing model sets defining the last t in investment model runs
 - Fixed curtailment results in case unitSize is different than 1
+>>>>>>> CHANGELOG.md
 
 
 ## 3.4 - 2022-12-21
@@ -79,8 +83,7 @@ All notable changes to this project will be documented in this file.
 
 ## 3.0 - 2022-12-01
 
-### Added
-- option to use availabilityCapacityMargin for input units
+### Added- option to use availabilityCapacityMargin for input units
 - emission factors for invested capacity, fixed o&m, and variable o&m for units
 - time series for emission costs
 - option to bound storage states at the beginning and/or end of samples

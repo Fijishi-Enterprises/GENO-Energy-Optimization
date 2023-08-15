@@ -562,7 +562,7 @@ loop(m,
                 - p_price(node, 'price')$p_price(node, 'useConstant')
                 - ts_price(node, t)$p_price(node, 'useTimeSeries')
                 // gn specific costs from node emissions
-                - sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+                - sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)},
                    + p_nEmission(node, emission)  // t/MWh
                    * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
                        + ts_emissionPrice(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
@@ -570,9 +570,10 @@ loop(m,
                   ) // end sum(emissiongroup)
               ]
              // gnu specific costs from node emissions are positive (cost) for both input and output
-            + p_stepLengthNoReset(m, f, t)
+            + 1e-6 // Scaling to MEUR
+            * p_stepLengthNoReset(m, f, t)
             * abs(r_gen_gnuft(grid, node, unit, f, t))
-            * sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission, 'vomEmissions'),
+            * sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)},
                    + p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
                    * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
                        + ts_emissionPrice(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
@@ -636,7 +637,8 @@ loop(m,
 
     // Total gnu fixed O&M costs over the simulation, existing and invested units (MEUR)
     r_cost_unitFOMCost_gnu(gnu(grid, node, unit))
-        ${ sum(msft(m, s, f, t), usft(unit, s, f, t)) }
+        ${ sum(msft(m, s, f, t), usft(unit, s, f, t)) 
+        and p_gnu(grid, node, unit, 'capacity')<10000000}
         = 1e-6 // Scaling to MEUR
             * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t), 1) }, // consider ms only if it has active msft_realizedNoReset
                 + [

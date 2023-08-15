@@ -671,8 +671,8 @@ loop(emissionGroup(emission_priceChangeData(emission), group)$p_emissionPrice(em
 // looping gnu to decide if using static or time series pricing
 loop(gnu(grid, node, unit),
     p_vomCost(grid, node, unit, 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
-    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
-    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission, 'vomEmissions'), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
     p_vomCost(grid, node, unit, 'useConstant')${not p_vomCost(grid, node, unit, 'useTimeSeries')} = -1;
 ); // end loop(gnu)
 
@@ -682,7 +682,7 @@ p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConsta
       = + p_gnu(grid, node, unit, 'vomCosts')
 
         // gnu specific emission cost (e.g. process related LCA emission). Always a cost if input or output.
-        + sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission, 'vomEmissions'),
+        + sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)},
              + p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
              * p_emissionPrice(emission, group, 'price')
              ) // end sum(emissiongroup)
@@ -691,7 +691,7 @@ p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConsta
         + (p_price(node, 'price')
 
             // gn specific emission cost (e.g. CO2 allowance price from fuel emissions). Cost when input but income when output.
-            + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+            + sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)},
                  + p_nEmission(node, emission)  // t/MWh
                  * p_emissionPrice(emission, group, 'price')
                  ) // end sum(emissiongroup)
