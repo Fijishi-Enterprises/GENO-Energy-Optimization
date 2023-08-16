@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - edits to temp_4d_postProcess_invest2schedule.gms
 - increasing default penalty to 10e6 for improved default behavior in investment cases
+- changed command line option dummy to onlyPresolve
 
 ### Fixed
 - Fixing a bug with data recycling with constant hourly time resolution.
@@ -18,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Fixed curtailment results in case unitSize is different to 1
 - Checking the GAMS version earlier in the code to avoid crash in certain cases
 - sum of capacity dependent emissions in emission cap equation
+- fixed dummy command line option
 
 
 ## 3.4 - 2022-12-21
