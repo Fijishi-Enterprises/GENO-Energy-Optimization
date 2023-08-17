@@ -228,8 +228,8 @@ unit_tsConstrained(unit)${sum((constraint, node, f, tt(t))$ts_unitConstraintNode
 * --- Unit Related Parameters -------------------------------------------------
 
 // Assume values for critical unit related parameters, if not provided by input data
-// If the unit does not have efficiency set, it is 1
-p_unit(unit, 'eff00')${ not p_unit(unit, 'eff00') and not p_unit(unit, 'eff01') and not p_unit(unit, 'eff02')}
+// If the unit does not have efficiency set, it is 1. Except flow units.
+p_unit(unit, 'eff00')${ not unit_flow(unit) and not p_unit(unit, 'eff00') and not p_unit(unit, 'eff01') and not p_unit(unit, 'eff02')}
     = 1;
 
 // In case number of units has not been defined it is 1 except for units with investments allowed.
@@ -702,13 +702,25 @@ loop(node,
 
 * --- Check the integrity of efficiency approximation related data ------------
 
-// check if flow units have effLevelGroupUnit defined
+// few checks on flow unit input data
 loop(unit_flow(unit) ,
+    // Warn user and remove effLevelGroupUnit if flow unit has any
     if(sum(effLevelGroupUnit(effLevel, effSelector, unit), 1) > 0,
-         put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has effLevels defined. Removing effLevelGroup data from ', unit.tl:0 /;
+         put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has effLevels defined. Removing effLevelGroup data.' /;
         effLevelGroupUnit(effLevel, effSelector, unit) = no;
         );
-);
+
+    // Warn user and remove if flow unit has effXX or opXX parameters defined
+    if(sum(op, p_unit(unit, op)) > 0,
+         put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has opXX parameters defined. Removing op data.' /;
+        p_unit(unit, op) = 0;
+        );
+    if(sum(eff, p_unit(unit, eff)) > 0,
+         put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has effXX parameters defined. Removing eff data.' /;
+        p_unit(unit, eff) = 0;
+        );
+
+); // END loop(unit_flow)
 
 Option clear = tmp;
 // Find the largest effLevel used in the data
