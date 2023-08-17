@@ -563,9 +563,9 @@ $iftheni %diag% == 'yes'
 
 // Net load
 // Forecast/scenario values with time aggregation
-p_netLoad_model(t_current(t))$[ord(t) > ord(tSolve)]
+p_netLoad_model(ft(f, t))$[ord(t) > ord(tSolve)]
      = sum(msft(mSolve, s, f, t_)$tt_aggregate(t_, t),
-        p_msft_probability(mSolve, s, f, t_) * sum(gn(grid, node),
+        sum(gn(grid, node),
             (-1 * ts_influx_(grid, node, s, f, t_))
                // exclude nodes with storage
                $[not p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')]
@@ -588,9 +588,12 @@ p_netLoad_real(t_current(t))$[ord(t) > ord(tSolve)]
 
 // Total energy
 // Forecast/scenario values with time aggregation
-p_totalEnergy_model
-     = sum(msft(mSolve, s, f, t)$[ord(t) >= ord(tSolve) + mSettings(mSolve, 't_jump')],
-        p_msft_probability(mSolve, s, f, t) *
+p_totalEnergy_model(scenario)
+     = sum(msft(mSolve, s, f, t)$[
+         ord(t) >= ord(tSolve) + mSettings(mSolve, 't_jump')
+         and s_scenario(s, scenario)
+         and mf_central(mSolve, f)
+       ],
         p_stepLength(mSolve, f, t) * sum(gn(grid, node),
             ts_influx_(grid, node, s, f, t)
             + sum((gnu(grid, node, unit), flowUnit(flow, unit)),
@@ -609,16 +612,21 @@ p_totalEnergy_real
           )
     );
 
-// Calculate total horizon expected net load error
+// Calculate total horizon energy balance RMSE
 d_totalEnergy_error(tSolve) =
-        p_totalEnergy_model - p_totalEnergy_real;
+    sqrt(
+        sum((s_scenario(s, scenario), msft(mSolve, s, f, t))
+             $mft_lastSteps(mSolve, f, t),
+            p_msft_probability(mSolve, s, f, t)
+              * power(p_totalEnergy_model(scenario) - p_totalEnergy_real, 2)
+        )
+    );
 
 d_totalEnergy_rerror(tSolve) =
     d_totalEnergy_error(tSolve) / abs(p_totalEnergy_real);
 
-// Calculate forecast period expected net load relative error
+// Calculate forecast period net load RMSE
 loop(ms_initial(mSolve, s),
-
     loop((counter, t_current(t))$[
         counter.off >= mSettings(mSolve, 't_jump') + 1
         and counter.off < msEnd(mSolve, s)
@@ -627,7 +635,12 @@ loop(ms_initial(mSolve, s),
         and ord(tSolve) + counter.off <= mSettings(mSolve, 't_end')
     ],
         d_netLoad_error(tSolve, counter)
-            = p_netLoad_model(t) - p_netLoad_real(t);
+         = sqrt(
+             sum(f_solve(f)$(not mf_realization(mSolve, f)),
+                 p_mfProbability(mSolve, f)
+                 * power(p_netLoad_model(f, t) - p_netLoad_real(t), 2)
+             )
+        );
     );
 );
 $endif

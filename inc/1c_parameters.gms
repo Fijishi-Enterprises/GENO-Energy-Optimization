@@ -212,8 +212,8 @@ Parameters
     p_s_discountFactor(s) "Discount factor for samples when using a multi-year horizon"
 $iftheni %diag% == 'yes'
     p_netLoad_real(t) "Total realized net load (MWh/h)"
-    p_netLoad_model(t) "Total expected net load seen by the model (MWh/h)"
+    p_netLoad_model(f, t) "Total net load seen by the model (MWh/h)"
     p_totalEnergy_real "Total realized energy balance during the model horizon (MWh)"
-    p_totalEnergy_model "Total expected energy balance seen by the model during the model horizon (MWh)"
+    p_totalEnergy_model(scenario) "Total energy balance seen by the model during the model horizon (MWh)"
 $endif
 ;
