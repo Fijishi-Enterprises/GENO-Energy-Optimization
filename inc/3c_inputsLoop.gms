@@ -592,7 +592,7 @@ p_totalEnergy_model(scenario)
      = sum(msft(mSolve, s, f, t)$[
          ord(t) >= ord(tSolve) + mSettings(mSolve, 't_jump')
          and s_scenario(s, scenario)
-         and mf_central(mSolve, f)
+         and (mf_realization(mSolve, f) or mf_central(mSolve, f))
        ],
         p_stepLength(mSolve, f, t) * sum(gn(grid, node),
             ts_influx_(grid, node, s, f, t)
