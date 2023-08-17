@@ -740,6 +740,16 @@ loop( unit,
         count = p_unit(unit, op);
     ); // END loop(op)
     // Check that efficiency approximations have sufficient data
+
+    // Check that directOnLP and directOnMIP units have least one opXX or hrXX defined
+    loop(effLevelGroupUnit(effLevel, effDirectOn(effSelector), unit),
+       if(sum(op, p_unit(unit, op)) + sum(hr, p_unit(unit, hr))= 0,
+             put log '!!! Warning: unit ', unit.tl:0, ' does not have any opXX or hrXX parameters defined' /;
+             abort "Units with online variable, e.g. DirectOnLP and DirectOnMIP, require efficiency definitions, check opXX (or hrXX) parameters";
+          );
+    );
+
+    // Check that if directOnLP and directOnMIP units are defined with op parameters (hr parameters alternative), those have sufficient values
     loop( effLevelGroupUnit(effLevel, effSelector, unit),
         loop( op__${p_unit(unit, op__) = smax(op, p_unit(unit, op))}, // Loop over the 'op's to find the last defined data point.
             loop( op_${p_unit(unit, op_) = smin(op${p_unit(unit, op)}, p_unit(unit, op))}, // Loop over the 'op's to find the first nonzero 'op' data point.
@@ -752,12 +762,13 @@ loop( unit,
         ); // END loop(op__)
     ); // END loop(effLevelGroupUnit)
 
+    // give a warning if directOff unit has startcost defined
     if( {effLevelGroupUnit('level1', 'directOff', unit)
          and sum(gnu(grid, node, unit), sum(input_output, p_gnu_io(grid, node, unit, input_output, 'startCostCold'))) },
              put log '!!! Warning: unit (', unit.tl:0, ' has start costs, but is a directOff unit that disables start cost calculations' /;
     );
 
-);
+); //loop(unit)
 
 * --- Check startupfuel fraction related data ----------------------------------------
 
