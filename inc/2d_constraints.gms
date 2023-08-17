@@ -3377,9 +3377,8 @@ q_emissioncapNodeGroup(group, emission)
       ) // END sum(msft)
 
 
-
-    + sum(ms(m, s)${sGroup(s, group)},
-        + p_msProbability(m,s)
+    + sum(ms(m, s)${ sum(msft(m, s, f, t), 1) and sGroup(s, group) }, // consider ms only if it has active msft and belongs to group
+        + p_msAnnuityWeight(m, s) // Sample weighting to calculate annual emissions
         * [
             // capacity emissions: fixed o&M emissions (tEmission)
             + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, emission, 'fomEmissions')
