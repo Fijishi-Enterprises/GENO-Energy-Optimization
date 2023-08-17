@@ -786,7 +786,7 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
        > max(mSettings(m, 't_forecastLengthUnchanging'),
              mSettings(m, 't_forecastLengthDecreasesFrom')),
         put log "!!! Error in model ", m.tl:0 /;
-        put log "!!! Error: t_perfectForesight > max(t_forecastLengthUnchanging, t_forecastLengthDecreasesFrom)"/;
+        put log "!!! Abort: t_perfectForesight > max(t_forecastLengthUnchanging, t_forecastLengthDecreasesFrom)"/;
         abort "Period of perfect foresight cannot be longer than forecast horizon";
     );
 
@@ -879,6 +879,7 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
 * --- Check that at least one sample is active --------------------------------
 
     if(card(s_active) = 0,
+            put log '!!! Error occurred scheduleInit' /;
             put log '!!! Abort: Number of active samples is zero' /;
             abort "A working backbone model needs at least one active sample. See input/scheduleInit.gms or input/investInit.gms!"
     );

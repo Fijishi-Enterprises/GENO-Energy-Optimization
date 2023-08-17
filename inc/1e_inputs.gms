@@ -660,11 +660,13 @@ loop(gn2n(grid, node, node_),
     if(p_gnn(grid, node, node_, 'rampLimit'),
         // Check for conflicting ramp limits
         if(   [p_gnn(grid, node, node_, 'rampLimit')>0] and [p_gnn(grid, node_, node, 'rampLimit')=0],
-            put log '!!! Warning: ' node.tl:0 '->' node_.tl:0 ' has rampLimit, but ' node_.tl:0 '->' node.tl:0 ' does not' /;
+            put log '!!! Error occurred on gn2n link ' node.tl:0 '-' node_.tl:0 /;
+            put log '!!! Abort: ' node.tl:0 '->' node_.tl:0 ' has rampLimit, but ' node_.tl:0 '->' node.tl:0 ' does not' /;
             abort "Conflicting transfer 'rampLimit' definitions!"
         );
         if(   [p_gnn(grid, node_, node, 'rampLimit')>0] and [p_gnn(grid, node, node_, 'rampLimit')=0],
-            put log '!!! Warning: ' node_.tl:0 '->' node.tl:0 ' has rampLimit, but ' node.tl:0 '->' node_.tl:0 ' does not' /;
+            put log '!!! Error occurred on gn2n link ' node.tl:0 '-' node_.tl:0 /;
+            put log '!!! Abort: ' node_.tl:0 '->' node.tl:0 ' has rampLimit, but ' node.tl:0 '->' node_.tl:0 ' does not' /;
             abort "Conflicting transfer 'rampLimit' definitions!"
         );
     );
@@ -695,6 +697,7 @@ loop(node,
     ); // END if
     // Abort of input data for prices are given both ts_price and ts_priceChange
     if({node_priceData(node) and node_priceChangeData(node)},
+        put log '!!! Error occurred on ', node.tl:0 /;
         put log '!!! Abort: Node ', node.tl:0, ' has both ts_price and ts_priceChange' /;
         abort "Only ts_price or ts_priceChange can be given to a node"
     ); // END if
@@ -756,7 +759,8 @@ loop( unit,
     // Check that directOnLP and directOnMIP units have least one opXX or hrXX defined
     loop(effLevelGroupUnit(effLevel, effDirectOn(effSelector), unit),
        if(sum(op, p_unit(unit, op)) + sum(hr, p_unit(unit, hr))= 0,
-             put log '!!! Warning: unit ', unit.tl:0, ' does not have any opXX or hrXX parameters defined' /;
+             put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+             put log '!!! Abort: Units with online variable, e.g. DirectOnLP and DirectOnMIP, require efficiency definitions, check opXX (or hrXX) parameters' /;
              abort "Units with online variable, e.g. DirectOnLP and DirectOnMIP, require efficiency definitions, check opXX (or hrXX) parameters";
           );
     );
@@ -778,7 +782,8 @@ loop( unit,
     loop(effLevelGroupUnit(effLevel, effSelector, unit),
        loop(op $ p_unit(unit, op),
           if(sum(eff, p_unit(unit, eff)${ord(eff) = ord(op)}) = 0,
-             put log '!!! Warning: unit ', unit.tl:0, ' has ', op.tl:0, ' defined, but empty mathcing eff parameter'  /;
+             put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+             put log '!!! Abort: unit ', unit.tl:0, ' has ', op.tl:0, ' defined, but empty mathcing eff parameter'  /;
              abort "Each opXX requires mathcing effXX";
              );
        );
@@ -839,6 +844,7 @@ loop( unitStarttype(unit, starttypeConstrained),
 loop(emissionGroup(emission, group),
     // Abort if input data for prices are given both ts_emissionPrice and ts_emissionPriceChange
     if({emission_priceData(emission) and emission_priceChangeData(emission)},
+        put log '!!! Error occurred on emissionGroup ', group.tl:0, ', with emission ', emission.tl:0 /;
         put log '!!! Abort: EmissionGroup (', group.tl:0, ', ', emission.tl:0, ') has both ts_emissionPrice and ts_emissionPriceChange' /;
         abort "Only ts_emissionPrice or ts_emissionPriceChange can be given to an emissionGroup"
     ); // END if
