@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - explanations and clarifications to vomCost calculations in the code
 - A warning if flow unit has efficiency levels defined and automatically removing these
 - A warning and abort if unit with online variable does not have any op (or hr) parameters defined
+- A warning and abort if unit has op parameters defined, but no matching eff values
 
 ### Changed
 - edits to temp_4d_postProcess_invest2schedule.gms

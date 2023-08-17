@@ -229,7 +229,7 @@ unit_tsConstrained(unit)${sum((constraint, node, f, tt(t))$ts_unitConstraintNode
 
 // Assume values for critical unit related parameters, if not provided by input data
 // If the unit does not have efficiency set, it is 1
-p_unit(unit, 'eff00')${ not p_unit(unit, 'eff00') }
+p_unit(unit, 'eff00')${ not p_unit(unit, 'eff00') and not p_unit(unit, 'eff01') and not p_unit(unit, 'eff02')}
     = 1;
 
 // In case number of units has not been defined it is 1 except for units with investments allowed.
@@ -761,6 +761,16 @@ loop( unit,
             ); // END loop(op_)
         ); // END loop(op__)
     ); // END loop(effLevelGroupUnit)
+
+    // Check that if unit has opXX defined, there is matching effXX defined
+    loop(effLevelGroupUnit(effLevel, effSelector, unit),
+       loop(op $ p_unit(unit, op),
+          if(sum(eff, p_unit(unit, eff)${ord(eff) = ord(op)}) = 0,
+             put log '!!! Warning: unit ', unit.tl:0, ' has ', op.tl:0, ' defined, but empty mathcing eff parameter'  /;
+             abort "Each opXX requires mathcing effXX";
+             );
+       );
+    );
 
     // give a warning if directOff unit has startcost defined
     if( {effLevelGroupUnit('level1', 'directOff', unit)
