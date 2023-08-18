@@ -562,19 +562,6 @@ $endif.autocorr
 $iftheni %diag% == 'yes'
 
 // Net load
-// Forecast/scenario values with time aggregation
-p_netLoad_model(ft(f, t))$[ord(t) > ord(tSolve)]
-     = sum(msft(mSolve, s, f, t_)$tt_aggregate(t_, t),
-        sum(gn(grid, node),
-            (-1 * ts_influx_(grid, node, s, f, t_))
-               // exclude nodes with storage
-               $[not p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')]
-            - sum((gnu(grid, node, unit), flowUnit(flow, unit)),
-                    ts_cf_(flow, node, s, f, t_) * p_gnu(grid, node, unit, 'capacity')
-              )
-        )
-      );
-
 // Actual values
 p_netLoad_real(t_current(t))$[ord(t) > ord(tSolve)]
      = sum((mf_realization(mSolve, f), gn(grid, node)),
@@ -601,6 +588,11 @@ p_totalEnergy_model(scenario)
               )
         )
       );
+p_totalEnergy_mean =
+    sum((s_scenario(s, scenario), msft(mSolve, s, f, t))
+        $mft_lastSteps(mSolve, f, t),
+        p_msft_probability(mSolve, s, f, t) * p_totalEnergy_model(scenario)
+    );
 
 // Actual values
 p_totalEnergy_real
@@ -612,8 +604,19 @@ p_totalEnergy_real
           )
     );
 
-// Calculate total horizon energy balance RMSE
-d_totalEnergy_error(tSolve) =
+// Calculate total horizon energy balance errors
+d_totalEnergy_error(tSolve) =  p_totalEnergy_mean - p_totalEnergy_real;
+d_totalEnergy_rerror(tSolve) =
+    d_totalEnergy_error(tSolve) / abs(p_totalEnergy_real);
+
+d_totalEnergy_var(tSolve) =
+        sum((s_scenario(s, scenario), msft(mSolve, s, f, t))
+             $mft_lastSteps(mSolve, f, t),
+            p_msft_probability(mSolve, s, f, t)
+              * power(p_totalEnergy_model(scenario) - p_totalEnergy_mean, 2)
+        );
+
+d_totalEnergy_RMSE(tSolve) =
     sqrt(
         sum((s_scenario(s, scenario), msft(mSolve, s, f, t))
              $mft_lastSteps(mSolve, f, t),
@@ -622,11 +625,29 @@ d_totalEnergy_error(tSolve) =
         )
     );
 
-d_totalEnergy_rerror(tSolve) =
-    d_totalEnergy_error(tSolve) / abs(p_totalEnergy_real);
+d_totalEnergy_rRMSE(tSolve) =
+    d_totalEnergy_RMSE(tSolve) / abs(p_totalEnergy_real);
 
 // Calculate forecast period net load RMSE
 loop(ms_initial(mSolve, s),
+    // Forecast net load with time aggregation
+    p_netLoad_model(f_solve(f), t_current(t))$[ord(t) > ord(tSolve)]
+     = sum(msft(mSolve, s, f, t_)$tt_aggregate(t_, t),
+        sum(gn(grid, node),
+            (-1 * ts_influx_(grid, node, s, f, t_))
+               // exclude nodes with storage
+               $[not p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')]
+            - sum((gnu(grid, node, unit), flowUnit(flow, unit)),
+                    ts_cf_(flow, node, s, f, t_) * p_gnu(grid, node, unit, 'capacity')
+              )
+        )
+      );
+    // Expected net load
+    p_netLoad_mean(t_current(t)) =
+         sum(msft(mSolve, s, f, t_)$tt_aggregate(t_, t),
+              p_msft_probability(mSolve, s, f, t_) * p_netLoad_model(f, t)
+          );
+
     loop((counter, t_current(t))$[
         counter.off >= mSettings(mSolve, 't_jump') + 1
         and counter.off < msEnd(mSolve, s)
@@ -634,10 +655,19 @@ loop(ms_initial(mSolve, s),
         // prevent lead times beyond the model horizon
         and ord(tSolve) + counter.off <= mSettings(mSolve, 't_end')
     ],
-        d_netLoad_error(tSolve, counter)
-         = sqrt(
-             sum(f_solve(f)$(not mf_realization(mSolve, f)),
-                 p_mfProbability(mSolve, f)
+        d_netLoad_error(tSolve, counter) =
+            p_netLoad_mean(tSolve) - p_netLoad_real(t);
+
+        d_netLoad_var(tSolve, counter) =
+             sum(msft(mSolve, s, f, t),
+                 p_msft_probability(mSolve, s, f, t)
+                 * power(p_netLoad_model(f, t) - p_netLoad_mean(t), 2)
+             );
+
+        d_netLoad_RMSE(tSolve, counter) =
+          sqrt(
+             sum(msft(mSolve, s, f, t),
+                 p_msft_probability(mSolve, s, f, t)
                  * power(p_netLoad_model(f, t) - p_netLoad_real(t), 2)
              )
         );

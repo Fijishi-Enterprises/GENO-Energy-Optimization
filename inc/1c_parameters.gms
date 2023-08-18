@@ -213,7 +213,9 @@ Parameters
 $iftheni %diag% == 'yes'
     p_netLoad_real(t) "Total realized net load (MWh/h)"
     p_netLoad_model(f, t) "Total net load seen by the model (MWh/h)"
+    p_netLoad_mean(t) "Expected total net load seen by the model (MWh/h)"
     p_totalEnergy_real "Total realized energy balance during the model horizon (MWh)"
     p_totalEnergy_model(scenario) "Total energy balance seen by the model during the model horizon (MWh)"
+    p_totalEnergy_mean "Excpected total energy balance seen by the model during the model horizon (MWh)"
 $endif
 ;

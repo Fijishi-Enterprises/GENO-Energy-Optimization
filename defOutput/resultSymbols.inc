@@ -209,7 +209,12 @@ d_influx
 d_state
 d_totalEnergy_error
 d_totalEnergy_rerror
+d_totalEnergy_var
+d_totalEnergy_RMSE
+d_totalEnergy_rRMSE
 d_netLoad_error
+d_netLoad_RMSE
+d_netLoad_var
 $endif.diag
 
 // Metadata and settings
