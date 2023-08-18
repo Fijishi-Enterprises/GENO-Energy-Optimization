@@ -37,12 +37,14 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
     =E=
 
     // The right side of the equation contains all the changes converted to energy terms
+
+    // Self discharge out of the model boundaries
+    - v_state(grid, node, s, f+df_central(f,t), t) ${ gn_state(grid, node) } // The current state of the node
+       * (1-((1-p_gn(grid, node, 'selfDischargeLoss'))**(p_stepLength(m, f, t)))) // exponential stacking of selfDischargeLoss with aggregated time steps
+
+    // Diffusion, transfer, units, spill, dummy
     + p_stepLength(m, f, t) // Multiply with the length of the timestep to convert power into energy
         * (
-            // Self discharge out of the model boundaries
-            - p_gn(grid, node, 'selfDischargeLoss')${ gn_state(grid, node) }
-                * v_state(grid, node, s, f+df_central(f,t), t) // The current state of the node
-
             // Energy diffusion from this node to neighbouring nodes
             - sum(gnn_state(grid, node, to_node),
                 + p_gnn(grid, node, to_node, 'diffCoeff')
@@ -2541,10 +2543,14 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
         * [
             // Conversion to energy
             + p_gn(grid, node, 'energyStoredPerUnitOfState')
+
             // Accounting for losses from the node
+            // self discharge loss
+            + (1-((1-p_gn(grid, node, 'selfDischargeLoss'))**(p_stepLength(m, f, t))))
+
+            // diffusion from node
             + p_stepLength(m, f, t)
                 * [
-                    + p_gn(grid, node, 'selfDischargeLoss')
                     + sum(gnn_state(grid, node, to_node),
                         + p_gnn(grid, node, to_node, 'diffCoeff')
                         ) // END sum(to_node)
@@ -2617,10 +2623,14 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
         * [
             // Conversion to energy
             + p_gn(grid, node, 'energyStoredPerUnitOfState')
+
             // Accounting for losses from the node
+            // self discharge loss
+            + (1-((1-p_gn(grid, node, 'selfDischargeLoss'))**(p_stepLength(m, f, t))))
+
+            // diffusion from node
             + p_stepLength(m, f, t)
                 * [
-                    + p_gn(grid, node, 'selfDischargeLoss')
                     + sum(gnn_state(grid, node, to_node),
                         + p_gnn(grid, node, to_node, 'diffCoeff')
                         ) // END sum(to_node)
