@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - Checking the GAMS version earlier in the code to avoid crash in certain cases
 - sum of capacity dependent emissions in emission cap equation
 - fixed dummy command line option
+- updating debug symbols
 
 
 ## 3.4 - 2022-12-21

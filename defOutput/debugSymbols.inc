@@ -16,20 +16,88 @@ along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
 * sets
-ft
-sft
-ft_realized
-sft_realized
-t_active
-t_current
+m
+s_active
+s_prev
+ss
+f_solve
+t_start
 t_full
+t_datalength
+t_current
+t_active
 t_invest
-uft
-uft_online
-uft_onlineLP
-uft_onlineMIP
-uft_onlineLP_withPrevious
-uft_onlineMIP_withPrevious
+t_realized
+t_latestForecast
+tt
+tt_block
+tt_interval
+tt_forecast
+tt_aggregate
+
+mf
+mf_realization
+mf_central
+ms
+ms_initial
+ms_central
+ft
+ft_realized
+ft_realizedNoReset
+ft_reservesFixed
+mft
+mft_start
+mft_lastSteps
+msf
+mst
+mst_start
+mst_end
+sft
+sft_realized
+sft_realizedNoReset
+msft
+msft_realizedNoReset
+
+modelSolves
+gnss_bound
+uss_bound
+
+usft
+usft_online
+usft_onlineLP
+usft_onlineMIP
+usft_onlineLP_withPrevious
+usft_onlineMIP_withPrevious
+usft_startupTrajectory
+usft_shutdownTrajectory
+usft_aggregator_first
+gnusft
+gnusft_ramp
+gnusft_rampCost
+
+eff_usft
+effGroup
+effGroupSelector
+effLevelGroupUnit
+effGroupSelectorUnit
+
+mSettingsReservesInUse
+unitCounter
+runUpCounter
+shutdownCounter
+utAvailabilityLimits
+
+gn2nsft_directional_rampConstrained
+
+uGroup
+gnuGroup
+gn2nGroup
+gnGroup
+sGroup
+emissionGroup
+
+mTimeseries_loop_read
+
 
 * Parameters
 tSolveFirst
@@ -112,9 +180,9 @@ v_help_inc
     q_reserveProvisionOnline
     q_startshut
     q_startuptype
-    q_onlineLimit
     q_onlineOnStartUp
     q_offlineAfterShutDown
+    q_onlineLimit
     q_onlineMinUptime
     q_onlineCyclic
     q_genRamp
@@ -138,6 +206,9 @@ v_help_inc
     q_transfer
     q_transferRightwardLimit
     q_transferLeftwardLimit
+    q_transferRamp
+    q_transferRampLimit1
+    q_transferRampLimit2
     q_resTransferLimitRightward
     q_resTransferLimitLeftward
     q_reserveProvisionRightward
@@ -152,20 +223,29 @@ v_help_inc
     q_boundStateMaxDiff
     q_boundCyclic
 
+    // superpositioned state variables
+    q_superposSampleBegin
+    q_superposBoundEnd
+    q_superposInter
+    q_superposStateMax
+    q_superposStateMin
+    q_superposStateUpwardLimit
+    q_superposStateDownwardLimit
+
     // Policy
     q_inertiaMin
     q_instantaneousShareMax
     q_constrainedOnlineMultiUnit
     q_capacityMargin
     q_constrainedCapMultiUnit
-    q_emissioncap
+    q_emissioncapNodeGroup
     q_energyLimit
     q_energyShareLimit
     q_ReserveShareMax
 
 * Dummy variables
+v_stateSlack
 vq_gen
 vq_resDemand
 vq_resMissing
-v_stateSlack
 vq_capacity
