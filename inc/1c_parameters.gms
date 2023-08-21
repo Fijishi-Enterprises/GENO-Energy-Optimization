@@ -210,5 +210,6 @@ Parameters
     p_stepLength(mType, f, t) "Length of an interval in hours"
     p_stepLengthNoReset(mType, f, t) "Length of an interval in hours - includes also lengths of previously realized intervals"
     p_s_discountFactor(s) "Discount factor for samples for objective function. Allows multiyear modelling." / /
+    p_msLengthInHours(mType, s) "Sample length in hours"
 ;
 $offempty

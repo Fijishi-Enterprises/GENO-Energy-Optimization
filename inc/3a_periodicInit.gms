@@ -80,13 +80,14 @@ $offtext
         ms(m, s)$(ord(s) <= mSettings(m, 'samples')) = yes;
     );
 
-    // Set active and previous samples
+    // Set active samples, previous samples if continuous, and sample length in hours
     loop(ms(m, s),
         s_active(s) = yes;
         loop(s_ $ms(m, s_),
             // Set previous samples for samples
             ss(s, s_)$(msStart(m, s) = msEnd(m, s_)) = yes;
         );
+        p_msLengthInHours(m, s) = (msEnd(m, s) - msStart(m, s))* mSettings(m, 'stepLengthInHours');
     );
 
     // Select forecasts in use for the models

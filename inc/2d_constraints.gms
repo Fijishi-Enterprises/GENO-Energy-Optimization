@@ -2802,24 +2802,34 @@ q_boundCyclic(gnss_bound(gn_state(grid, node), s_, s), m)
             + v_state(grid, node, s_, f+df(f,t+dt(t)), t+dt(t))
             ) // END sum(ft)
         ) // END sum(mst_start)
-    // Change in the state value over the sample s_, multiplied by sample s_ temporal weight
-    + p_msWeight(m, s_)
-        * [
-            // State of the node at the end of the sample s_
-            + sum(mst_end(m, s_, t),
-                + sum(sft(s_, f, t),
-                    + v_state(grid, node, s_, f, t)
-                    ) // END sum(ft)
-                ) // END sum(mst_end)
-            // State of the node at the end of the sample s_
-            - sum(mst_start(m, s_, t),
-                + sum(sft(s_, f, t),
-                    + v_state(grid, node, s_, f+df(f,t+dt(t)), t+dt(t))
-                    ) // END sum(ft)
-                ) // END sum(mst_start)
-            ] // END * p_msWeight(m, s_)
-;
+    // Change in the state value over the sample s_, multiplied by sample s_ temporal weight, multiplied by selfDischargeLoss
+    + [
+        // State of the node at the end of the sample s_
+        + sum(mst_end(m, s_, t),
+            + sum(sft(s_, f, t),
+                + v_state(grid, node, s_, f, t)
+                ) // END sum(ft)
+            ) // END sum(mst_end)
+        // State of the node at the end of the sample s_
+        - sum(mst_start(m, s_, t),
+            + sum(sft(s_, f, t),
+                + v_state(grid, node, s_, f+df(f,t+dt(t)), t+dt(t))
+                ) // END sum(ft)
+            ) // END sum(mst_start)
+        ] // END * p_msWeight(m, s_)
+    // temporal weight of sample s_ if no selfDischargeLoss
+    // selfDischargeLoss as exponential function sum over the repeats of sample s_
+    // sum_i=1...N (r ^(b*(i-1))) = (r^bN - 1)/(r^b - 1)
+    // where r = 1-selfDischargeLoss, b = sample length in hours, and N = number of times the sample is repeated = sample weigth
+    // this contains the sampleWeight parameter
+    * [ p_msWeight(m, s_) $ {p_gn(grid, node, 'selfDischargeLoss') = 0}
+        + (
+              ( (1-p_gn(grid, node, 'selfDischargeLoss')) ** ( p_msLengthInHours(m, s_) * p_msWeight(m, s_) ) - 1 )
+             /( (1-p_gn(grid, node, 'selfDischargeLoss')) ** p_msLengthInHours(m, s_) - 1)
 
+          ) $ {p_gn(grid, node, 'selfDischargeLoss') > 0}
+        ] // selfDischargeLoss factor
+;
 
 * =============================================================================
 * --- Equations for superposed states -------------------------------------
