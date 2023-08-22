@@ -104,6 +104,15 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
             ) // END sum(unitStarttype)
         ) // END sum(usft)
 
+    // Unit investment energy cost (MWh). Consumes energy from input/output node by invested unitCount * unitSize * invEnergyCost
+    + sum(usft(unit, s, f, t_invest(t))$ {p_gnu(grid, node, unit, 'invEnergyCost')},
+        + p_gnu(grid, node, unit, 'invEnergyCost')     // MWh/MW
+            * p_gnu(grid, node, unit, 'unitSize')      // MW/unit
+            * [
+                + v_invest_LP(unit)${unit_investLP(unit)}    // number of units, LP
+                + v_invest_MIP(unit)${unit_investMIP(unit)}  // number of units, MIP
+                ]
+        ) // END sum(usft)
 ;
 
 * --- Reserve Demand ----------------------------------------------------------
