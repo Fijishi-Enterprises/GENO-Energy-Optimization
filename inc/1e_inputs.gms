@@ -713,6 +713,12 @@ loop(unit_flow(unit) ,
         effLevelGroupUnit(effLevel, effSelector, unit) = no;
         );
 
+    // Warn user and remove if flow unit has conversionCoeff parameter defined
+    if(sum((gn(grid, node), input_output), p_gnu_io(grid, node, unit, input_output, 'conversionCoeff')) > 0,
+        put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has conversionCoeff parameter defined. Removing data.' /;
+        p_gnu_io(grid, node, unit, input_output, 'conversionCoeff') = 0;
+        );
+
     // Warn user and remove if flow unit has effXX or opXX parameters defined
     if(sum(op, p_unit(unit, op)) > 0,
          put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has opXX parameters defined. Removing op data.' /;
