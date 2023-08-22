@@ -18,9 +18,9 @@ $offtext
 * sets
 m
 s_active
-s_prev
-ss
+s_realized
 f_solve
+
 t_start
 t_full
 t_datalength
@@ -28,12 +28,12 @@ t_current
 t_active
 t_invest
 t_realized
-t_latestForecast
 tt
 tt_block
 tt_interval
 tt_forecast
 tt_aggregate
+tt_agg_circular
 
 mf
 mf_realization
@@ -55,6 +55,7 @@ mst_end
 sft
 sft_realized
 sft_realizedNoReset
+sft_resdgn
 msft
 msft_realizedNoReset
 

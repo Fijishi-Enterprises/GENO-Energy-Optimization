@@ -113,22 +113,24 @@ Sets
     $$include '%input_dir%/timeAndSamples.inc'
     m(mType) "model(s) in use"
     s_active(s) "Samples with non-zero probability in the current model solve"
-    s_prev(s) "Temporary set for previous sample"
+    s_realized(s) "All s among realized sft (redundant if always equivalent to s)"
     f_solve(f) "forecasts in the model to be solved next"
+
     t_start(t) "start t"
+    t_startp(t) "Temporary subset for time steps"
     t_full(t) "Full set of time steps in the current model"
     t_datalength(t) "Full set of time steps withing the datalength"
     t_current(t) "Set of time steps within the current solve horizon"
     t_active(t) "Set of active t:s within the current solve horizon, including necessary history"
     t_invest(t) "Time steps when investments can be made" / /
     t_realized(t) "Set of realized time steps in the simulation"
-    t_latestForecast(t) "t for the latest forecast that is available"
     tt(t) "Temporary subset for time steps used for calculations"
     tt_(t) "Another temporary subset for time steps used for calculations"
     tt_block(counter, t) "Temporary time step subset for storing the time interval blocks"
     tt_interval(t) "Temporary time steps when forming the ft structure, current sample"
     tt_forecast(t) "Temporary subset for time steps used for forecast updating during solve loop"
     tt_aggregate(t, t) "Time steps included in each active time step for time series aggregation"
+    tt_agg_circular(t, t, t) "Alternative aggregation ordering with embedded circulars"
 
     mf(mType, f) "Forecasts present in the models"
     mf_realization(mType, f) "Realization of the forecasts"
@@ -150,6 +152,7 @@ Sets
     sft(s, f, t) "Combination of samples, forecasts and t's in the current model solve"
     sft_realized(s, f, t) "Realized sft"
     sft_realizedNoReset(s, f, t) "Full set of realized sft, facilitates calculation of results"
+    sft_resdgn(restype, up_down, grid, node, s,f,t) "Temporary tuplet for reserves by restypeDirectionGridNode"         
     msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
     msft_realizedNoReset(mType, s, f, t) "Combination of realized samples, forecasts and t:s in the current model solve and previously realized t:s"
 
@@ -201,15 +204,6 @@ Sets
     mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"
 ;
 $offempty
-
-
-
-sets
-    tt_agg_circular(t, t, t) "Alternative aggregation ordering with embedded circulars"
-    t_startp(t) "Temporary subset for time steps"
-    s_realized(s) "All s among realized sft (redundant if always equivalent to s)"
-    sft_resdgn(restype, up_down, grid, node, s,f,t) "Temporary tuplet for reserves by restypeDirectionGridNode"
-;
 
 * --- Set for metadata --------------------------------------------------------
 

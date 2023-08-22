@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - changed command line option dummy to onlyPresolve
 - unifying Abort messages to follow similar structure
 - cleaning code: removing internal variables ss, ds, ds_state
+- cleaning code: removing unused sets
 
 ### Fixed
 - Fixing a bug with data recycling with constant hourly time resolution.
