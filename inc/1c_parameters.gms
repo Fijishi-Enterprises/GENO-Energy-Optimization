@@ -136,10 +136,6 @@ Parameters
     df_reservesGroup(group, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
     df_realization(f, t) "Displacement needed to reach the realized forecast on the current time step when no forecast is available"
 
-    // Sample displacement arrays
-    ds(s, t) "Displacement needed to reach the sample of previous time step"
-    ds_state(grid, node, s, t) "Displacement needed to reach the sample of previous time step at this node"
-
     // Temporary displacement arrays
     ddt(t) "Temporary time displacement array"
     ddf(f) "Temporary forecast displacement array"

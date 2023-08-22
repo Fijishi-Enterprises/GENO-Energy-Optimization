@@ -114,7 +114,6 @@ Sets
     m(mType) "model(s) in use"
     s_active(s) "Samples with non-zero probability in the current model solve"
     s_prev(s) "Temporary set for previous sample"
-    ss(s, s) "Previous sample of sample"
     f_solve(f) "forecasts in the model to be solved next"
     t_start(t) "start t"
     t_full(t) "Full set of time steps in the current model"

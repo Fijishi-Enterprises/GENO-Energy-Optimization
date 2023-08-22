@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - increasing default penalty to 10e6 for improved default behavior in investment cases
 - changed command line option dummy to onlyPresolve
 - unifying Abort messages to follow similar structure
+- cleaning code: removing internal variables ss, ds, ds_state
 
 ### Fixed
 - Fixing a bug with data recycling with constant hourly time resolution.

@@ -459,17 +459,8 @@ p_msft_probability(msft(mSolve, s, f, t))
         / sum(f_$ft(f_, t),
               p_mfProbability(mSolve, f_)
           ) * p_msProbability(mSolve, s)
-            * p_msWeight(mSolve, s);
-
-
-* --- Calculate sample displacements ------------------------------------------
-Options clear = ds, clear = ds_state;
-loop((mst_start(mSolve, s, t), ss(s, s_)),
-    ds(s, t) = -(ord(s) - ord(s_));
-    ds_state(gn_state(grid, node), s, t)
-      ${not sum(s__, gnss_bound(grid, node, s__, s))
-        and not sum(s__, gnss_bound(grid, node, s, s__))} = ds(s, t);
-);
+            * p_msWeight(mSolve, s)
+;
 
 
 

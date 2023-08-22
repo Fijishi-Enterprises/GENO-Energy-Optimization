@@ -31,7 +31,7 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
     + p_gn(grid, node, 'energyStoredPerUnitOfState')${gn_state(grid, node)} // Unit conversion between v_state of a particular node and energy variables (defaults to 1, but can have node based values if e.g. v_state is in Kelvins and each node has a different heat storage capacity)
         * [
             + v_state(grid, node, s, f+df_central(f,t), t)                   // The difference between current
-            - v_state(grid, node, s+ds_state(grid,node,s,t), f+df(f,t+dt(t)), t+dt(t))       // ... and previous state of the node
+            - v_state(grid, node, s, f+df(f,t+dt(t)), t+dt(t))               // ... and previous state of the node
             ]
 
     =E=
@@ -924,9 +924,9 @@ q_startshut(usft_online(unit, s, f, t))
 
     // Units previously online
     // The same units
-    - v_online_LP (unit, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))${ usft_onlineLP_withPrevious(unit, s, f+df(f,t+dt(t)), t+dt(t))
+    - v_online_LP (unit, s, f+df(f,t+dt(t)), t+dt(t))${ usft_onlineLP_withPrevious(unit, s, f+df(f,t+dt(t)), t+dt(t))
                                                              and not usft_aggregator_first(unit, s, f, t) } // This reaches to tFirstSolve when dt = -1   // t_solveFirst?
-    - v_online_MIP(unit, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))${ usft_onlineMIP_withPrevious(unit, s, f+df(f,t+dt(t)), t+dt(t))
+    - v_online_MIP(unit, s, f+df(f,t+dt(t)), t+dt(t))${ usft_onlineMIP_withPrevious(unit, s, f+df(f,t+dt(t)), t+dt(t))
                                                              and not usft_aggregator_first(unit, s, f, t) }
 
     // Aggregated units just before they are turned into aggregator units
@@ -1164,10 +1164,10 @@ q_genRamp(gnusft_ramp(grid, node, unit, s, f, t))
     + v_gen(grid, node, unit, s, f, t)
 
     // Unit generation at t-1 (except aggregator units right before the aggregation threshold, see next term)
-    - v_gen(grid, node, unit, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))${not usft_aggregator_first(unit, s, f, t)}
+    - v_gen(grid, node, unit, s, f+df(f,t+dt(t)), t+dt(t))${not usft_aggregator_first(unit, s, f, t)}
     // Unit generation at t-1, aggregator units right before the aggregation threshold
     + sum(unit_${unitAggregator_unit(unit, unit_)},
-        - v_gen(grid, node, unit_, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))
+        - v_gen(grid, node, unit_, s, f+df(f,t+dt(t)), t+dt(t))
       )${usft_aggregator_first(unit, s, f, t)}
 ;
 
@@ -2260,7 +2260,7 @@ q_transferRamp(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
 
     // Change in transfers over the interval: v_transfer(t) - v_transfer(t-1)
     + v_transfer(grid, node, node_, s, f, t)
-    - v_transfer(grid, node, node_, s+ds(s,t), f+df(f,t+dt(t)), t+dt(t))
+    - v_transfer(grid, node, node_, s, f+df(f,t+dt(t)), t+dt(t))
 ;
 
 * --- Ramp limits for transfer links with investment variable -------------------------------------------------
