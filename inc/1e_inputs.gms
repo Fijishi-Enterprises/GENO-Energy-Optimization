@@ -140,7 +140,7 @@ unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
 
 // few checks on flow unit input data
-loop(unit_flow(unit) ,
+loop(unit_flow(unit),
     // Warn user and remove effLevelGroupUnit if flow unit has any
     if(sum(effLevelGroupUnit(effLevel, effSelector, unit), 1) > 0,
          put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has effLevels defined. Removing effLevelGroup data.' /;
@@ -667,6 +667,16 @@ loop(node,
         abort "Nodes cannot be assigned to multiple grids!"
     ); // END if(sum(gn))
 ); // END loop(node)
+
+* --- Check that flow units have only one input or output ---------------------
+
+loop(unit_flow(unit),
+    if(sum(gnu(grid, node, unit), 1) > 1,
+        put log '!!! Error occurred on unit ' unit.tl:0 /;
+        put log '!!! Abort: Flow units cannot be assigned to multiple grids or nodes!' /;
+        abort "Flow units cannot be assigned to multiple grids or nodes!"
+    ); // END if(sum(gnu))
+); // END loop(unit_flow)
 
 * --- Check the integrity of node connection related data ---------------------
 

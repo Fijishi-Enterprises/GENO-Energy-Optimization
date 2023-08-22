@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - A warning and abort if unit with online variable does not have any op (or hr) parameters defined
 - A warning and abort if unit has op parameters defined, but no matching eff values
 - A warning if flow unit has op, eff, or conversionCoeff parameters defined, and automatically removing these
+- A warning and abort if flow unit is assigned to multiple grids or nodes
 
 ### Changed
 - edits to temp_4d_postProcess_invest2schedule.gms
