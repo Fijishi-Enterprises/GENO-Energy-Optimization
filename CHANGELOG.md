@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - unifying Abort messages to follow similar structure
 - cleaning code: removing internal variables ss, ds, ds_state
 - cleaning code: removing unused sets
+- cleaning code: removing unused parameters
 
 ### Fixed
 - Fixing a bug with data recycling with constant hourly time resolution.
