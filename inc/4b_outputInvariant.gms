@@ -638,7 +638,7 @@ loop(m,
     // Total gnu fixed O&M costs over the simulation, existing and invested units (MEUR)
     r_cost_unitFOMCost_gnu(gnu(grid, node, unit))
         ${ sum(msft(m, s, f, t), usft(unit, s, f, t)) 
-        and p_gnu(grid, node, unit, 'capacity')<10000000}
+        and p_gnu(grid, node, unit, 'capacity')<10000000}  // excluding cases if capacity input data is given as inf instead of empty
         = 1e-6 // Scaling to MEUR
             * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t), 1) }, // consider ms only if it has active msft_realizedNoReset
                 + [
