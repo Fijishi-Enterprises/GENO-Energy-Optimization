@@ -214,7 +214,7 @@ loop(cc(counter),
 
     // Abort if stepsPerInterval is less than one
     if(mInterval(mSolve, 'stepsPerInterval', counter) < 1,
-        put log '!!! Error occurred scheduleInit' /;
+        put log '!!! Error occurred in modelsInit' /;
         put log '!!! Abort: stepsPerInterval < 1 is not defined!' /;
         abort "stepsPerInterval < 1 is not defined!";
     );  // END IF stepsPerInterval

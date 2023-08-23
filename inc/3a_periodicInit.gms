@@ -876,7 +876,7 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
 * --- Check that at least one sample is active --------------------------------
 
     if(card(s_active) = 0,
-            put log '!!! Error occurred scheduleInit' /;
+            put log '!!! Error occurred in modelsInit' /;
             put log '!!! Abort: Number of active samples is zero' /;
             abort "A working backbone model needs at least one active sample. See input/scheduleInit.gms or input/investInit.gms!"
     );
