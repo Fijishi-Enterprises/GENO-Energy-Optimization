@@ -101,29 +101,37 @@ mTimeseries_loop_read
 
 
 * Parameters
-tSolveFirst
-tSolveLast
+// temporal structure
+t_solveFirst
+t_solveLast
 p_stepLength
-p_unit
-*ts_cf
-*ts_unit
-*ts_effUnit
-*ts_effGroupUnit
+// groups
+p_groupPolicy
+p_groupPolicyEmission
+p_groupPolicyUnit
+p_groupReserves
+// nodes and connections
 p_gn
 p_gnBoundaryPropertiesForStates
-p_gnn
-p_gnu
-p_groupReserves
-p_gnuReserves
-p_groupPolicy
-p_groupPolicyUnit
-p_groupPolicyEmission
 p_nEmission
-p_unitEmissionCost
+p_gnn
+*ts_cf_
+*ts_price_
+*ts_emissionPrice_
+// units
+p_unit
+p_gnu
+p_gnuReserves
+p_vomCost
 p_effUnit
 p_effGroupUnit
 p_uNonoperational
 p_uStartupfuel
+*ts_unit_
+*ts_vomCost_
+*ts_effUnit
+*ts_effGroupUnit
+// trajectories
 p_u_maxOutputInLastRunUpInterval
 p_u_runUpTimeIntervals
 dt_toStartup
@@ -134,6 +142,7 @@ p_u_shutdownTimeIntervals
 dt_toShutdown
 p_uCounter_shutdownMin
 p_uCounter_shutdownMax
+
 
 * Variables
 v_obj
