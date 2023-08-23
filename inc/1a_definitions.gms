@@ -192,7 +192,7 @@ Sets
 param_gn  "Possible parameters for grid, node" /
     nodeBalance      "A flag to decide whether node balance constraint is to be used and price option disabled (empty or 1)"
     usePrice         "A flag to decide if node has prices activated and balance deactivated (empty or 1). Must choose either balance or price."
-    selfDischargeLoss "Self discharge rate of the node (p.u./h)"
+    selfDischargeLoss "Self discharge rate of the node (MW/[v_state])" // p.u./h if if [v_state] = MWh
     energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh (MWh/[v_state])"
     boundStart       "A flag to bound the first t in the run using reference constant or time series (empty or 1)"
     boundStartOfSamples  "A flag to bound the first t of each sample using reference constant or time series (empty or 1)"
