@@ -3412,6 +3412,7 @@ q_emissioncapNodeGroup(group, emission)
         * [
             // capacity emissions: fixed o&M emissions (tEmission)
             + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, emission, 'fomEmissions')
+                                         and sum(msft(m, s, f, t), usft(unit, s, f, t)) // consider unit only if it is active in the sample
                                          and gnGroup(grid, node, group) },
                 + p_gnuEmission(grid, node, unit, emission, 'fomEmissions')       // (tEmissions/MW)
                     * p_gnu(grid, node, unit, 'unitSize')   // (MW/unit)
@@ -3428,6 +3429,7 @@ q_emissioncapNodeGroup(group, emission)
             // capacity emissions: investment emissions (tEmission)
             + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, emission, 'invEmissions')
                                          and (unit_investLP(unit) or unit_investMIP(unit))
+                                         and sum(msft(m, s, f, t), usft(unit, s, f, t)) // consider unit only if it is active in the sample
                                          and gnGroup(grid, node, group) },
                 // Capacity restriction
                 + p_gnuEmission(grid, node, unit, emission, 'invEmissions')    // (tEmission/MW)
