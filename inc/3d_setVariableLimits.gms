@@ -85,22 +85,20 @@ loop(node$(not node_superpos(node)),
                     * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
     ;
 
-    // Bounding the time step t-1 for of each sample to reference value if boundStartofSamples and constant values are enabled.
+    // Bounding the time step t-1 for of each sample to reference value if boundStartofSamples is enabled.
     // Constant values.
-    v_state.fx(gn_state(grid, node), s_active(s), f, t_active(t))${ p_gn(grid, node, 'boundStartOfSamples')
-                                                     and (sum(m, msStart(m, s)) > 1)       // checking that sample does not start t000000
-                                                     and (ord(t) = sum(m, msStart(m, s)) )
+    v_state.fx(gn_state(grid, node), s_active(s), f+df(f,t+dt(t)), t+dt(t))${ p_gn(grid, node, 'boundStartOfSamples')
+                                                     and mst_start(mSolve, s, t)
                                                      and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')  }
             = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
                * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
     ;
     // Time series
-    v_state.fx(gn_state(grid, node), s_active(s), f, t_active(t))${ p_gn(grid, node, 'boundStartOfSamples')
-                                                     and (sum(m, msStart(m, s)) > 1)       // checking that sample does not start t000000
-                                                     and (ord(t) = sum(m, msStart(m, s)) )
+    v_state.fx(gn_state(grid, node), s_active(s),  f+df(f,t+dt(t)), t+dt(t))${ p_gn(grid, node, 'boundStartOfSamples')
+                                                     and mst_start(mSolve, s, t)
                                                      and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')  }
             // calculating value as an average of included time steps in an aggregated timestep
-            = ts_node_(grid, node, 'reference', s, f, t)
+            = ts_node_(grid, node, 'reference', s,  f+df(f,t+dt(t)), t+dt(t))
                * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
     ;
 
@@ -178,7 +176,7 @@ loop(node$(not node_superpos(node)),
         // Lower bound
         v_state.lo(gn_state(grid, node), s, f_solve, t+dt(t))${ p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
                                                                 and not df_central(f_solve,t)
-                                                                and not p_gn(grid, node, 'boundStartOfSamples')  
+                                                                and not p_gn(grid, node, 'boundStartOfSamples')
                                                                 }
             = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
                 * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
