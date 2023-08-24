@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 ## unversioned
 
 ### Added
+
+### Changed
+
+### Fixed
+
+
+## 3.5 - 2023-08-24
+
+### Added
 - Investment energy cost parameter
 - Adding an abort + warning if there are zero active samples in the init file
 - explanations and clarifications to vomCost calculations in the code
