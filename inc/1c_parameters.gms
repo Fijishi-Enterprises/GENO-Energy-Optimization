@@ -78,12 +78,15 @@ Parameters
     p_effGroupUnit(effSelector, unit, param_eff) "Unit data specific to a efficiency group (e.g. left border of the unit)"
     p_uNonoperational(unit, starttype, min_max) "Non-operational time after being shut down before start up"
     p_uStartup(unit, starttype, cost_consumption) "Startup cost and fuel consumption"
+    // unused: remove for 4.x
     p_u_maxOutputInLastRunUpInterval(unit) "Maximum output in the last interval for the run-up to min. load (p.u.)"
+    // unused: remove for 4.x
     p_u_maxRampSpeedInLastRunUpInterval(unit) "Maximum ramp speed in the last interval for the run-up to min. load (p.u.)"
     p_u_runUpTimeIntervals(unit)       "Time steps required for the run-up phase"
     p_u_runUpTimeIntervalsCeil(unit)   "Ceiling of time steps required for the run-up phase"
     p_uCounter_runUpMin(unit, counter) "Minimum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
     p_uCounter_runUpMax(unit, counter) "Maximum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
+    // unused: remove for 4.x
     p_u_maxOutputInFirstShutdownInterval(unit) "Maximum output in the first interval for the shutdown from min. load (p.u.)"
     p_uShutdown(unit, cost_consumption) "Shutdown cost per unit"
     p_u_shutdownTimeIntervals(unit)     "Time steps required for the shutdown phase"
@@ -107,7 +110,7 @@ $offempty
 Parameters
     p_msWeight(mType, s) "Temporal weight of sample: number of similar periods represented by sample s (0-1)"
     p_msAnnuityWeight(mType, s) "Temporal weight of sample: used when calculating annuities (0-1)"
-    p_msProbability(mType, s) "Probability to reach sample conditioned on ancestor samples (0-1)"
+    p_msProbability(mType, s) "Probability of samples (0-1)"
     p_mfProbability(mType, f) "Probability of forecast (0-1)"
     p_msft_probability(mType, s, f, t) "Probability of forecast (0-1)"
     p_sProbability(s) "Probability of sample (0-1)"
@@ -135,10 +138,6 @@ Parameters
     df_reserves(grid, node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
     df_reservesGroup(group, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
     df_realization(f, t) "Displacement needed to reach the realized forecast on the current time step when no forecast is available"
-
-    // Sample displacement arrays
-    ds(s, t) "Displacement needed to reach the sample of previous time step"
-    ds_state(grid, node, s, t) "Displacement needed to reach the sample of previous time step at this node"
 
     // Temporary displacement arrays
     ddt(t) "Temporary time displacement array"
@@ -197,11 +196,6 @@ Parameters
     ts_reserveDemand_update(restype, up_down, group, f, t)
     ts_node_update(grid, node, param_gnBoundaryTypes, f, t)
     ts_gnn_update(grid, node, node, param_gnn, f, t)
-
-    // Help parameters for calculating smoothening of time series
-    ts_influx_std(grid, node, t)  "Standard deviation of ts_influx over samples"
-    ts_cf_std(flow, node, t) "Standard deviation of ts_cf over samples (p.u.)"
-
 ;
 
 * --- Other time dependent parameters -----------------------------------------
@@ -210,5 +204,6 @@ Parameters
     p_stepLength(mType, f, t) "Length of an interval in hours"
     p_stepLengthNoReset(mType, f, t) "Length of an interval in hours - includes also lengths of previously realized intervals"
     p_s_discountFactor(s) "Discount factor for samples for objective function. Allows multiyear modelling." / /
+    p_msLengthInHours(mType, s) "Sample length in hours"
 ;
 $offempty

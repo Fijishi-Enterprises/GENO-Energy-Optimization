@@ -214,6 +214,8 @@ loop(cc(counter),
 
     // Abort if stepsPerInterval is less than one
     if(mInterval(mSolve, 'stepsPerInterval', counter) < 1,
+        put log '!!! Error occurred in modelsInit' /;
+        put log '!!! Abort: stepsPerInterval < 1 is not defined!' /;
         abort "stepsPerInterval < 1 is not defined!";
     );  // END IF stepsPerInterval
 
@@ -336,8 +338,8 @@ option clear = dt_next;
 
 tmp = smax(mft, p_stepLength(mft));
 if(tmp = 1,
-    dt(t_active(t)) = -1;
-    dt_next(t_active(t)) = 1;
+    dt(t_active(t)) $ (ord(t)>1) = -1;
+    dt_next(t_active(t)) $(ord(t)<card(t_active)) = 1;
 else
     tmp = max(t_solveFirst + tmp_dt, 1); // The ord(t) of the first time step in t_active, cannot decrease below 1 to avoid referencing time steps before t000000
     loop(t_active(t),

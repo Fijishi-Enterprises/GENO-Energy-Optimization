@@ -130,6 +130,42 @@ $endif
 
 
 
+
+* =============================================================================
+* --- Preliminary adjustments to data before any processing -------------------
+* =============================================================================
+
+// Units with flows/commodities
+unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
+    = yes;
+
+// few checks on flow unit input data
+loop(unit_flow(unit),
+    // Warn user and remove effLevelGroupUnit if flow unit has any
+    if(sum(effLevelGroupUnit(effLevel, effSelector, unit), 1) > 0,
+         put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has effLevels defined. Removing effLevelGroup data.' /;
+        effLevelGroupUnit(effLevel, effSelector, unit) = no;
+        );
+
+    // Warn user and remove if flow unit has conversionCoeff parameter defined
+    if(sum((grid, node, input_output), p_gnu_io(grid, node, unit, input_output, 'conversionCoeff')) > 0,
+        put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has conversionCoeff parameter defined. Removing data.' /;
+        p_gnu_io(grid, node, unit, input_output, 'conversionCoeff') = 0;
+        );
+
+    // Warn user and remove if flow unit has effXX or opXX parameters defined
+    if(sum(op, p_unit(unit, op)) > 0,
+         put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has opXX parameters defined. Removing op data.' /;
+        p_unit(unit, op) = 0;
+        );
+    if(sum(eff, p_unit(unit, eff)) > 0,
+         put log '!!! Warning: Unit ', unit.tl:0, ' is flow unit, but has effXX parameters defined. Removing eff data.' /;
+        p_unit(unit, eff) = 0;
+        );
+
+); // END loop(unit_flow)
+
+
 * =============================================================================
 * --- Initialize Unit Related Sets & Parameters Based on Input Data -----------
 * =============================================================================
@@ -173,10 +209,6 @@ unit_minLoad(unit)${    p_unit(unit, 'op00') > 0 // If the first defined operati
                         // and if unit has online variable, then unit is considered to have minload
                         and sum(effLevel, sum(effOnline, effLevelGroupUnit(effLevel, effOnline, unit)))
                         }
-    = yes;
-
-// Units with flows/commodities
-unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
     = yes;
 
 // Units with investment variables
@@ -228,8 +260,8 @@ unit_tsConstrained(unit)${sum((constraint, node, f, tt(t))$ts_unitConstraintNode
 * --- Unit Related Parameters -------------------------------------------------
 
 // Assume values for critical unit related parameters, if not provided by input data
-// If the unit does not have efficiency set, it is 1
-p_unit(unit, 'eff00')${ not p_unit(unit, 'eff00') }
+// If the unit does not have efficiency set, it is 1. Except flow units.
+p_unit(unit, 'eff00')${ not unit_flow(unit) and not p_unit(unit, 'eff00') and not p_unit(unit, 'eff01') and not p_unit(unit, 'eff02')}
     = 1;
 
 // In case number of units has not been defined it is 1 except for units with investments allowed.
@@ -636,6 +668,16 @@ loop(node,
     ); // END if(sum(gn))
 ); // END loop(node)
 
+* --- Check that flow units have only one input or output ---------------------
+
+loop(unit_flow(unit),
+    if(sum(gnu(grid, node, unit), 1) > 1,
+        put log '!!! Error occurred on unit ' unit.tl:0 /;
+        put log '!!! Abort: Flow units cannot be assigned to multiple grids or nodes!' /;
+        abort "Flow units cannot be assigned to multiple grids or nodes!"
+    ); // END if(sum(gnu))
+); // END loop(unit_flow)
+
 * --- Check the integrity of node connection related data ---------------------
 
 Option clear = count;
@@ -660,11 +702,13 @@ loop(gn2n(grid, node, node_),
     if(p_gnn(grid, node, node_, 'rampLimit'),
         // Check for conflicting ramp limits
         if(   [p_gnn(grid, node, node_, 'rampLimit')>0] and [p_gnn(grid, node_, node, 'rampLimit')=0],
-            put log '!!! Warning: ' node.tl:0 '->' node_.tl:0 ' has rampLimit, but ' node_.tl:0 '->' node.tl:0 ' does not' /;
+            put log '!!! Error occurred on gn2n link ' node.tl:0 '-' node_.tl:0 /;
+            put log '!!! Abort: ' node.tl:0 '->' node_.tl:0 ' has rampLimit, but ' node_.tl:0 '->' node.tl:0 ' does not' /;
             abort "Conflicting transfer 'rampLimit' definitions!"
         );
         if(   [p_gnn(grid, node_, node, 'rampLimit')>0] and [p_gnn(grid, node, node_, 'rampLimit')=0],
-            put log '!!! Warning: ' node_.tl:0 '->' node.tl:0 ' has rampLimit, but ' node.tl:0 '->' node_.tl:0 ' does not' /;
+            put log '!!! Error occurred on gn2n link ' node.tl:0 '-' node_.tl:0 /;
+            put log '!!! Abort: ' node_.tl:0 '->' node.tl:0 ' has rampLimit, but ' node.tl:0 '->' node_.tl:0 ' does not' /;
             abort "Conflicting transfer 'rampLimit' definitions!"
         );
     );
@@ -695,6 +739,7 @@ loop(node,
     ); // END if
     // Abort of input data for prices are given both ts_price and ts_priceChange
     if({node_priceData(node) and node_priceChangeData(node)},
+        put log '!!! Error occurred on ', node.tl:0 /;
         put log '!!! Abort: Node ', node.tl:0, ' has both ts_price and ts_priceChange' /;
         abort "Only ts_price or ts_priceChange can be given to a node"
     ); // END if
@@ -732,6 +777,17 @@ loop( unit,
         count = p_unit(unit, op);
     ); // END loop(op)
     // Check that efficiency approximations have sufficient data
+
+    // Check that directOnLP and directOnMIP units have least one opXX or hrXX defined
+    loop(effLevelGroupUnit(effLevel, effDirectOn(effSelector), unit),
+       if(sum(op, p_unit(unit, op)) + sum(hr, p_unit(unit, hr))= 0,
+             put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+             put log '!!! Abort: Units with online variable, e.g. DirectOnLP and DirectOnMIP, require efficiency definitions, check opXX (or hrXX) parameters' /;
+             abort "Units with online variable, e.g. DirectOnLP and DirectOnMIP, require efficiency definitions, check opXX (or hrXX) parameters";
+          );
+    );
+
+    // Check that if directOnLP and directOnMIP units are defined with op parameters (hr parameters alternative), those have sufficient values
     loop( effLevelGroupUnit(effLevel, effSelector, unit),
         loop( op__${p_unit(unit, op__) = smax(op, p_unit(unit, op))}, // Loop over the 'op's to find the last defined data point.
             loop( op_${p_unit(unit, op_) = smin(op${p_unit(unit, op)}, p_unit(unit, op))}, // Loop over the 'op's to find the first nonzero 'op' data point.
@@ -744,12 +800,24 @@ loop( unit,
         ); // END loop(op__)
     ); // END loop(effLevelGroupUnit)
 
+    // Check that if unit has opXX defined, there is matching effXX defined
+    loop(effLevelGroupUnit(effLevel, effSelector, unit),
+       loop(op $ p_unit(unit, op),
+          if(sum(eff, p_unit(unit, eff)${ord(eff) = ord(op)}) = 0,
+             put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+             put log '!!! Abort: unit ', unit.tl:0, ' has ', op.tl:0, ' defined, but empty mathcing eff parameter'  /;
+             abort "Each opXX requires mathcing effXX";
+             );
+       );
+    );
+
+    // give a warning if directOff unit has startcost defined
     if( {effLevelGroupUnit('level1', 'directOff', unit)
          and sum(gnu(grid, node, unit), sum(input_output, p_gnu_io(grid, node, unit, input_output, 'startCostCold'))) },
              put log '!!! Warning: unit (', unit.tl:0, ' has start costs, but is a directOff unit that disables start cost calculations' /;
     );
 
-);
+); //loop(unit)
 
 * --- Check startupfuel fraction related data ----------------------------------------
 
@@ -798,6 +866,7 @@ loop( unitStarttype(unit, starttypeConstrained),
 loop(emissionGroup(emission, group),
     // Abort if input data for prices are given both ts_emissionPrice and ts_emissionPriceChange
     if({emission_priceData(emission) and emission_priceChangeData(emission)},
+        put log '!!! Error occurred on emissionGroup ', group.tl:0, ', with emission ', emission.tl:0 /;
         put log '!!! Abort: EmissionGroup (', group.tl:0, ', ', emission.tl:0, ') has both ts_emissionPrice and ts_emissionPriceChange' /;
         abort "Only ts_emissionPrice or ts_emissionPriceChange can be given to an emissionGroup"
     ); // END if

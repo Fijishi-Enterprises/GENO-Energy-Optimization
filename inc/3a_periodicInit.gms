@@ -80,13 +80,10 @@ $offtext
         ms(m, s)$(ord(s) <= mSettings(m, 'samples')) = yes;
     );
 
-    // Set active and previous samples
+    // Set active samples and sample length in hours
     loop(ms(m, s),
         s_active(s) = yes;
-        loop(s_ $ms(m, s_),
-            // Set previous samples for samples
-            ss(s, s_)$(msStart(m, s) = msEnd(m, s_)) = yes;
-        );
+        p_msLengthInHours(m, s) = (msEnd(m, s) - msStart(m, s))* mSettings(m, 'stepLengthInHours');
     );
 
     // Select forecasts in use for the models
@@ -671,8 +668,8 @@ loop(emissionGroup(emission_priceChangeData(emission), group)$p_emissionPrice(em
 // looping gnu to decide if using static or time series pricing
 loop(gnu(grid, node, unit),
     p_vomCost(grid, node, unit, 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
-    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_nEmission(node, emission), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
-    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission, 'vomEmissions'), p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
     p_vomCost(grid, node, unit, 'useConstant')${not p_vomCost(grid, node, unit, 'useTimeSeries')} = -1;
 ); // end loop(gnu)
 
@@ -682,7 +679,7 @@ p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConsta
       = + p_gnu(grid, node, unit, 'vomCosts')
 
         // gnu specific emission cost (e.g. process related LCA emission). Always a cost if input or output.
-        + sum(emissionGroup(emission, group)$p_gnuEmission(grid, node, unit, emission, 'vomEmissions'),
+        + sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)},
              + p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
              * p_emissionPrice(emission, group, 'price')
              ) // end sum(emissiongroup)
@@ -691,7 +688,7 @@ p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConsta
         + (p_price(node, 'price')
 
             // gn specific emission cost (e.g. CO2 allowance price from fuel emissions). Cost when input but income when output.
-            + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
+            + sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)},
                  + p_nEmission(node, emission)  // t/MWh
                  * p_emissionPrice(emission, group, 'price')
                  ) // end sum(emissiongroup)
@@ -786,7 +783,7 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
        > max(mSettings(m, 't_forecastLengthUnchanging'),
              mSettings(m, 't_forecastLengthDecreasesFrom')),
         put log "!!! Error in model ", m.tl:0 /;
-        put log "!!! Error: t_perfectForesight > max(t_forecastLengthUnchanging, t_forecastLengthDecreasesFrom)"/;
+        put log "!!! Abort: t_perfectForesight > max(t_forecastLengthUnchanging, t_forecastLengthDecreasesFrom)"/;
         abort "Period of perfect foresight cannot be longer than forecast horizon";
     );
 
@@ -875,6 +872,14 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
             abort "The 'utAvailabilityLimits(unit, t, 'becomeAvailable')' should correspond to a timestep in the model without the initial timestep!"
         ); // END if
     ); // END loop(unit_investMIP)
+
+* --- Check that at least one sample is active --------------------------------
+
+    if(card(s_active) = 0,
+            put log '!!! Error occurred in modelsInit' /;
+            put log '!!! Abort: Number of active samples is zero' /;
+            abort "A working backbone model needs at least one active sample. See input/scheduleInit.gms or input/investInit.gms!"
+    );
 
 * --- sample discount factors -------------------------------------------
 

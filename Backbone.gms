@@ -47,12 +47,13 @@ GAMS command line arguments
     Switch on/off diagnostics. Writes some additional diagnostic results in
     'results.gdx' about data updates and efficiency approximations.
 
---dummy=[yes|no]
-    Do not solve the model, just do preliminary calculations.
+--onlyPresolve=[yes|no]
+    Do not solve the model, just do preliminary input data processing.
     For testing purposes.
+    Not compatible with resultsVer2x option
 
 --penalty=<value>
-    Changes the value of the penalty cost. Default penalty value is 1e4
+    Changes the value of the penalty cost. Default penalty value is 10e6
     if not provided.
 
 --input_dir=<path>
@@ -102,6 +103,9 @@ $offtext
 
 * Check current GAMS version
 $ife %system.gamsversion%<240 $abort GAMS distribution 24.0 or later required!
+
+$echon "'version' " > 'version'
+$call 'git describe --dirty=+ --always >> version'
 
 * Set default debugging level
 $if not set debug $setglobal debug 0
@@ -178,6 +182,7 @@ $macro checkSolveStatus(mdl) \
         execError = execError + 1 \
     )
 
+// Setting up the simulation
 $include 'inc/3a_periodicInit.gms'  // Initialize modelling loop
 loop(modelSolves(mSolve, t_solve)$(execError = 0),
     solveCount = solveCount + 1;
@@ -185,11 +190,15 @@ loop(modelSolves(mSolve, t_solve)$(execError = 0),
     $$include 'inc/3c_inputsLoop.gms'           // Read input data that is updated within the loop
     $$include 'inc/3d_setVariableLimits.gms'    // Set new variable limits (.lo and .up)
     // 3d reads additional file '%input_dir%/changes_loop.inc' if exists
-$iftheni.dummy not %dummy% == 'yes'
+
+// Running the simulation and printing primary result tables, except when --onlyPresolve=yes
+$iftheni.onlyPresolve not %onlyPresolve% == 'yes'
     $$include 'inc/3e_solve.gms'                // Solve model(s)
     $$include 'inc/3f_afterSolve.gms'           // Post-processing variables after the solve
     $$include 'inc/4a_outputVariant.gms'        // Store results from the loop
-$endif.dummy
+$endif.onlyPresolve
+
+// if --debug=2, debug file is written for each solve
 $ifthene.debug %debug%>1
         putclose gdx;
         put_utility 'gdxout' / '%output_dir%/' mSolve.tl:0 '-' t_solve.tl:0 '.gdx';
@@ -202,12 +211,13 @@ $endif.debug
 $if exist '%input_dir%/3z_modelsClose.gms' $include '%input_dir%/3z_modelsClose.gms';
 
 * === Output ==================================================================
-$echon "'version' " > 'version'
-$call 'git describe --dirty=+ --always >> version'
-$ifi not %dummy% == 'yes'
 
-* calculating remaining result tables
-$include 'inc/4b_outputInvariant.gms'
+
+$iftheni.onlyPresolve not %onlyPresolve% == 'yes'
+    // calculating remaining result tables
+    $$include 'inc/4b_outputInvariant.gms'
+$endif.onlyPresolve
+
 * converting results to 2.x format if user given option is '2x'
 $if set resultsVer2x $include 'inc/4b_outputInvariant_convertTo2x.gms'
 * selecting correct set of result symbols

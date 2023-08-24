@@ -9,7 +9,39 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+
+## 3.5 - 2023-08-24
+
+### Added
+- Investment energy cost parameter
+- Adding an abort + warning if there are zero active samples in the init file
+- explanations and clarifications to vomCost calculations in the code
+- A warning if flow unit has efficiency levels defined and automatically removing these
+- A warning and abort if unit with online variable does not have any op (or hr) parameters defined
+- A warning and abort if unit has op parameters defined, but no matching eff values
+- A warning if flow unit has op, eff, or conversionCoeff parameters defined, and automatically removing these
+- A warning and abort if flow unit is assigned to multiple grids or nodes
+
+### Changed
+- edits to temp_4d_postProcess_invest2schedule.gms
+- increasing default penalty to 10e6 for improved default behavior in investment cases
+- changed command line option dummy to onlyPresolve
+- unifying Abort messages to follow similar structure
+- cleaning code: removing internal variables ss, ds, ds_state
+- cleaning code: removing unused sets
+- cleaning code: removing unused parameters
+
+### Fixed
 - Fixing a bug with data recycling with constant hourly time resolution.
+- Fixing model sets defining the last t in investment model runs
+- Fixed curtailment results in case unitSize is different to 1
+- Checking the GAMS version earlier in the code to avoid crash in certain cases
+- sum of capacity dependent emissions in emission cap equation
+- fixed dummy command line option
+- updating debug symbols
+- improved storage selfDischargeLoss behavior over aggregated time steps
+- improved storage state calculation between samples when using cyclic bounds and selfDischargeLosses
+- boundStartOfSamples now fixes the time step one before the start of the sample similarly to other storage logic
 
 
 ## 3.4 - 2022-12-21
