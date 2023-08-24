@@ -37,22 +37,14 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
     =E=
 
     // The right side of the equation contains all the changes converted to energy terms
-
-    // Self discharge out of the model boundaries
-    - v_state(grid, node, s, f+df_central(f,t), t) ${ gn_state(grid, node) } // The current state of the node
-       * (1-((1-p_gn(grid, node, 'selfDischargeLoss'))**(p_stepLength(m, f, t)))) // exponential stacking of selfDischargeLoss with aggregated time steps
-
-    // Diffusion, transfer, units, spill, dummy
     + p_stepLength(m, f, t) // Multiply with the length of the timestep to convert power into energy
         * (
-            // Energy diffusion from this node to neighbouring nodes
-            - sum(gnn_state(grid, node, to_node),
-                + p_gnn(grid, node, to_node, 'diffCoeff')
-                    * v_state(grid, node, s, f+df_central(f,t), t)
-                ) // END sum(to_node)
+            // Self discharge out of the model boundaries
+            - p_gn(grid, node, 'selfDischargeLoss')${ gn_state(grid, node) }
+                * v_state(grid, node, s, f+df_central(f,t), t) // The current state of the node
 
-            // Energy diffusion from neighbouring nodes to this node
-            + sum(gnn_state(grid, from_node, node),
+            // Energy diffusion from this node to neighbouring nodes
+           + sum(gnn_state(grid, from_node, node),
                 + p_gnn(grid, from_node, node, 'diffCoeff')
                     * v_state(grid, from_node, s, f+df_central(f,t), t) // Incoming diffusion based on the state of the neighbouring node
                 ) // END sum(from_node)
