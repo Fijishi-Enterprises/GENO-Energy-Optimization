@@ -39,7 +39,6 @@ All notable changes to this project will be documented in this file.
 - sum of capacity dependent emissions in emission cap equation
 - fixed dummy command line option
 - updating debug symbols
-- improved storage selfDischargeLoss behavior over aggregated time steps
 - improved storage state calculation between samples when using cyclic bounds and selfDischargeLosses
 - boundStartOfSamples now fixes the time step one before the start of the sample similarly to other storage logic
 
