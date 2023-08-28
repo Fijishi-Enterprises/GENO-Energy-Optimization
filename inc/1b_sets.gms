@@ -152,7 +152,7 @@ Sets
     sft(s, f, t) "Combination of samples, forecasts and t's in the current model solve"
     sft_realized(s, f, t) "Realized sft"
     sft_realizedNoReset(s, f, t) "Full set of realized sft, facilitates calculation of results"
-    sft_resdgn(restype, up_down, grid, node, s,f,t) "Temporary tuplet for reserves by restypeDirectionGridNode"         
+    sft_resdgn(restype, up_down, grid, node, s,f,t) "Temporary tuplet for reserves by restypeDirectionGridNode"
     msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
     msft_realizedNoReset(mType, s, f, t) "Combination of realized samples, forecasts and t:s in the current model solve and previously realized t:s"
 
@@ -203,6 +203,14 @@ Sets
 * --- Set of timeseries that will be read from files between solves -----------
     mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"
 ;
+
+// Only include these if '--initiateVariables=yes' given as a command line argument
+$iftheni.initiateVariables '%initiateVariables%' == yes
+Sets
+    t_nextSolve(t) "Temporary set for t in previous solve"
+;
+$endif.initiateVariables
+
 $offempty
 
 * --- Set for metadata --------------------------------------------------------

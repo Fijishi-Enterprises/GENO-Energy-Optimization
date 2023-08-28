@@ -88,6 +88,9 @@ GAMS command line arguments
 --resultsVer2x=TRUE
     Flag to use backbone 2.x result tables. Default value ''
 
+--initiateVariables=yes|no
+    Flag to give initial guesses of variable values based on results of the previous run. Default value 'no'
+
 
 References
 ----------
@@ -119,6 +122,7 @@ $if not set output_file $setglobal output_file 'results.gdx'
 $if not set input_file_gdx $setglobal input_file_gdx 'inputData.gdx'
 $if not set input_excel_index $setglobal input_excel_index 'INDEX'
 $if not set input_excel_checkdate $setglobal input_excel_checkdate ''
+$if not set initiateVariables $setglobal initiateVariables 'no'
 
 * Make sure output dir exists
 $if not dexist '%output_dir%' $call 'mkdir %output_dir%'

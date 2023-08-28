@@ -80,7 +80,7 @@ r_genByUnittype_gnft
 r_genByUnittype_gn
 r_genByGnuGroup_gn
 
-// Energy consumption during startups 
+// Energy consumption during startups
 r_gen_unitStartupConsumption_nu
 
 
@@ -201,13 +201,15 @@ r_cost_realizedNetCost_gn
 r_cost_realizedNetCost_g
 r_cost_realizedNetCost
 
-* --- Info and Diagnostic Result Symbols ----------------------------
+* --- Info Result Symbols -----------------------------------------------------
 
 // Info results
 r_info_solveStatus
 r_info_metadata
 r_info_mSettings
 r_info_t_realized
+
+* --- Diagnostic Result Symbols -----------------------------------------------
 
 // Diagnostics
 $iftheni.diag '%diag%' == yes
@@ -217,6 +219,28 @@ d_capacityFactor
 d_nodeState
 d_influx
 $endif.diag
+
+* --- Temporary Result Symbols to give initial values for variables -----------
+
+// temporary result tables to give initial values for variables in subsequent runs
+$iftheni.initiateVariables '%initiateVariables%' == yes
+
+r_state_gnsft_temp
+
+r_transfer_gnnsft_temp
+r_transferRightward_gnnsft_temp
+r_transferLeftward_gnnsft_temp
+
+r_gen_gnusft_temp
+
+r_online_LP_usft_temp
+r_online_MIP_usft_temp
+r_shutdown_LP_usft_temp
+r_shutdown_MIP_usft_temp
+r_startup_LP_usft_temp
+r_startup_MIP_usft_temp
+
+$endif.initiateVariables
 
 
 // OLD RESULTS, mostly here for inspiration

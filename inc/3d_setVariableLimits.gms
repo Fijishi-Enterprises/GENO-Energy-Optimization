@@ -365,10 +365,6 @@ v_shutdown_MIP.up(usft_onlineMIP(unit, s, f, t))
         and not unit_investMIP(unit)}
     = p_unit(unit, 'unitCount');
 
-//These might speed up, but they should be applied only to the new part of the horizon (should be explored)
-*v_startup.l(unitStarttype(unit, starttype), f, t)${usft_online(unit, s, f, t) and  not unit_investLP(unit) } = 0;
-*v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and usft_online(unit, s, f, t) and  not unit_investLP(unit) } = 0;
-
 *----------------------------------------------------------------------IC RAMP-------------------------------------------------------------------------------------------------------------------------------------
 v_transferRamp.up(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
   $ {not p_gnn(grid, node, node_, 'transferCapInvLimit')
@@ -720,6 +716,47 @@ v_investTransfer_MIP.fx(gn2n_directional(grid, node, node_), t_invest(t))${   p_
 ;
 
 
+* =============================================================================
+* --- Give initial values for selected variables in schedule runs -------------
+* =============================================================================
+
+// Only include these if '--initiateVariables=yes' given as a command line argument
+$iftheni.initiateVariables %initiateVariables% == 'yes'
+
+// node state variables
+v_state.l(grid, node, s, f, t) $ { (solveCount > 1) }
+    = r_state_gnsft_temp(grid, node, s, f, t);
+
+// transfer variables
+v_transfer.l(grid, from_node, to_node, s, f, t) $ { (solveCount > 1) }
+    = r_transfer_gnnsft_temp(grid, from_node, to_node, s, f, t);
+v_transferRightward.l(grid, from_node, to_node, s, f, t) $ { (solveCount > 1) }
+    = r_transferRightward_gnnsft_temp(grid, from_node, to_node, s, f, t);
+v_transferLeftward.l(grid, to_node, from_node, s, f, t) $ { (solveCount > 1) }
+    = r_transferLeftward_gnnsft_temp(grid, to_node, from_node, s, f, t);
+
+// generation variables
+v_gen.l(grid, node, unit, s, f, t) $ { (solveCount > 1) }
+    = r_gen_gnusft_temp(grid, node, unit, s, f, t);
+
+// online variables
+v_online_LP.l(unit, s, f, t) $ { (solveCount > 1) }
+    = r_online_LP_usft_temp(unit, s, f, t);
+v_online_MIP.l(unit, s, f, t) $ { (solveCount > 1) }
+    = r_online_MIP_usft_temp(unit, s, f, t);
+// startup variables
+v_startup_LP.l(starttype, unit, s, f, t) $ { (solveCount > 1) }
+    = r_startup_LP_usft_temp(starttype, unit, s, f, t);
+v_startup_MIP.l(starttype, unit, s, f, t) $ { (solveCount > 1) }
+    = r_startup_MIP_usft_temp(starttype, unit, s, f, t);
+// shutdown variables
+v_shutdown_LP.l(unit, s, f, t) $ { (solveCount > 1) }
+    = r_shutdown_LP_usft_temp(unit, s, f, t);
+v_shutdown_MIP.l(unit, s, f, t) $ { (solveCount > 1) }
+    = r_shutdown_MIP_usft_temp(unit, s, f, t);
+
+
+$endif.initiateVariables
 
 * =============================================================================
 * --- Read additional user given changes in loop phase ------------------------

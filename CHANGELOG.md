@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## unversioned
 
 ### Added
+- command line option --initiateVariables=yes to give initial values for variables based on previous runs in schedule loop 
 
 ### Changed
 

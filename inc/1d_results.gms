@@ -202,7 +202,7 @@ Parameters
 
 
 
-* --- Info, and Diagnostic Result Symbols -------------------------------------
+* --- Info result tables ------------------------------------------------------
 
     // Info Results
     r_info_solveStatus(t, solve_info) "Information about status of solves"
@@ -214,17 +214,6 @@ Parameters
 Sets
     r_info_t_realized(t) "result table of realized t"
 ;
-
-// Only include these if '--diag=yes' given as a command line argument
-$iftheni.diag '%diag%' == yes
-Parameters
-    d_cop(unit, f, t) "Coefficients of performance of conversion units"
-    d_eff(unit, f, t) "Efficiency of generation units using fuel"
-    d_capacityFactor(flow, node, s, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
-    d_nodeState(grid, node, param_gnBoundaryTypes, s, f, t) "Diagnostic temperature forecasts (accounting for GAMS plotting error)"
-    d_influx(grid, node, s, f, t) "Diagnostic influx forecasts (accounting for GAMS plotting error)"
-;
-$endif.diag
 
 * --- Initialize a few of the results arrays, required by model structure -----
 
@@ -242,6 +231,65 @@ Option clear = r_reserveTransferRightward_gnnft;
 Option clear = r_reserveTransferLeftward_gnnft;
 Option clear = r_reserveDemand_largestInfeedUnit_ft;
 Option clear = r_qReserveDemand_ft;
+
+
+* --- Setting up additional result tables for model diagnostics ---------------
+
+// Only include these if '--diag=yes' given as a command line argument
+$iftheni.diag '%diag%' == yes
+Parameters
+    d_cop(unit, f, t) "Coefficients of performance of conversion units"
+    d_eff(unit, f, t) "Efficiency of generation units using fuel"
+    d_capacityFactor(flow, node, s, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"
+    d_nodeState(grid, node, param_gnBoundaryTypes, s, f, t) "Diagnostic temperature forecasts (accounting for GAMS plotting error)"
+    d_influx(grid, node, s, f, t) "Diagnostic influx forecasts (accounting for GAMS plotting error)"
+;
+$endif.diag
+
+
+* --- Setting up additional result tables to give initial variable values -----
+
+// temporary result tables to give initial values for variables in subsequent runs
+// Only include these if '--initiateVariables=yes' given as a command line argument
+$iftheni.initiateVariables '%initiateVariables%' == yes
+
+Parameters
+    r_state_gnsft_temp (grid, node, s, f, t) "Temporary result table of node state at time step t (MWh). Used to give initial values for variables."
+
+    r_transfer_gnnsft_temp(grid, node, node, s, f, t) "Total amount of energy transferred between gnn over the simulation (MWh). Used to give initial values for variables."
+    r_transferRightward_gnnsft_temp(grid, node, node, s, f, t) "Average electricity transmission level from the first node to the second node during an interval (MW). Used to give initial values for variables."
+    r_transferLeftward_gnnsft_temp(grid, node, node, s, f, t) "Average electricity transmission level from the second node to the first node during an interval (MW). Used to give initial values for variables."
+
+    r_gen_gnusft_temp (grid, node, unit, s, f, t) "Temporary result table of energy generation for a unit (MW). Used to give initial values for variables."
+
+    r_online_LP_usft_temp(unit, s, f, t) "Number of sub-units online for 'units' with unit commitment restrictions (p.u.), LP variant. Used to give initial values for variables."
+    r_online_MIP_usft_temp(unit, s, f, t) "Number of sub-units online for units with unit commitment restrictions, MIP variant. Used to give initial values for variables."
+    r_startup_LP_usft_temp(starttype, unit, s, f, t) "Sub-units started up after/during an interval (p.u.), LP variant. Used to give initial values for variables."
+    r_startup_MIP_usft_temp(starttype, unit, s, f, t) "Number of sub-units started up after/during an interval, MIP variant. Used to give initial values for variables."
+    r_shutdown_LP_usft_temp(unit, s, f, t) "Sub-units shut down after/during an interval (p.u.), LP variant. Used to give initial values for variables."
+    r_shutdown_MIP_usft_temp(unit, s, f, t) "Number of sub-units shut down after/during an interval, MIP variant. Used to give initial values for variables."
+;
+
+// clearing new result tables to initialize them, as 3d calls them during the first solve before 4a sets any values.
+Option clear = r_state_gnsft_temp;
+
+Option clear = r_transfer_gnnsft_temp;
+Option clear = r_transferRightward_gnnsft_temp;
+Option clear = r_transferLeftward_gnnsft_temp;
+
+Option clear = r_gen_gnusft_temp;
+
+Option clear = r_online_LP_usft_temp;
+Option clear = r_online_MIP_usft_temp;
+Option clear = r_shutdown_LP_usft_temp;
+Option clear = r_shutdown_MIP_usft_temp;
+Option clear = r_startup_LP_usft_temp;
+Option clear = r_startup_MIP_usft_temp;
+
+$endif.initiateVariables
+
+
+
 
 
 

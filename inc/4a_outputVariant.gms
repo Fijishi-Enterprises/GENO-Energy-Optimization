@@ -224,6 +224,86 @@ d_influx(gn(grid, node), sft(s, f_solve(f), t_current(t)))
 ;
 $endif.diag
 
+
+* =============================================================================
+* --- Temporary results for giving initial values for variables ---------------
+* =============================================================================
+
+// Only include these if '--initiateVariables=yes' given as a command line argument
+$iftheni.initiateVariables %initiateVariables% == 'yes'
+
+Option clear = r_state_gnsft_temp;
+
+Option clear = r_transfer_gnnsft_temp;
+Option clear = r_transferRightward_gnnsft_temp;
+Option clear = r_transferLeftward_gnnsft_temp;
+
+Option clear = r_gen_gnusft_temp;
+
+Option clear = r_online_LP_usft_temp;
+Option clear = r_online_MIP_usft_temp;
+Option clear = r_shutdown_LP_usft_temp;
+Option clear = r_shutdown_MIP_usft_temp;
+Option clear = r_startup_LP_usft_temp;
+Option clear = r_startup_MIP_usft_temp;
+
+
+t_nextSolve(t + sum(m, mSettings(mSolve, 't_jump')) )
+   ${ (ord(t) >= (t_SolveFirst +1))
+      and t_active(t)
+      } = yes ;
+
+loop(s_realized(s),
+    // temporary result table for storing results in horizon
+
+    // node states on modelled upcoming time steps
+    r_state_gnsft_temp(gn_state(grid, node), s, f, t_nextSolve(t))
+        = sum(tt_aggcircular(t_, t), v_state.l(grid, node, s, f, t_))
+    ;
+
+    // transfers on modelled upcoming time steps
+    r_transfer_gnnsft_temp(gn2n(grid, from_node, to_node), s, f, t_nextSolve(t))
+        = sum(tt_aggcircular(t_, t), v_transfer.l(grid, from_node, to_node, s, f, t_))
+    ;
+    // Transfer of energy from first node to second node
+    r_transferRightward_gnnsft_temp(gn2n_directional(grid, from_node, to_node), s, f, t_nextSolve(t))
+        = sum(tt_aggcircular(t_, t), v_transferRightward.l(grid, from_node, to_node, s, f, t_))
+    ;
+    // Transfer of energy from second node to first node
+    r_transferLeftward_gnnsft_temp(gn2n_directional(grid, to_node, from_node), s, f, t_nextSolve(t))
+        = sum(tt_aggcircular(t_, t), v_transferLeftward.l(grid, to_node, from_node, s, f, t_))
+    ;
+
+    // unit generation on modelled upcoming time steps
+    r_gen_gnusft_temp(gnu(grid, node, unit), s, f, t_nextSolve(t))
+        = sum(tt_aggcircular(t_, t), v_gen.l(grid, node, unit, s, f, t_))
+    ;
+
+    // unit online status on modelled upcoming time steps
+    r_online_LP_usft_temp(unit_online(unit), s, f, t_nextSolve(t))$usft_onlineLP(unit, s, f, t)
+        = sum(tt_aggcircular(t_, t), v_online_LP.l(unit, s, f, t_))
+    ;
+    r_online_MIP_usft_temp(unit_online(unit), s, f, t_nextSolve(t))$usft_onlineMIP(unit, s, f, t)
+        = sum(tt_aggcircular(t_, t), v_online_MIP.l(unit, s, f, t_))
+    ;
+    // Unit startup and shutdown status on modelled upcoming time steps
+    r_startup_LP_usft_temp(starttype, unit_online(unit), s, f, t_nextSolve(t))$usft_onlineLP(unit, s, f, t)
+        = sum(tt_aggcircular(t_, t), v_startup_LP.l(starttype, unit, s, f, t_))
+    ;
+    r_startup_MIP_usft_temp(starttype, unit_online(unit), s, f, t_nextSolve(t))$usft_onlineMIP(unit, s, f, t)
+        = sum(tt_aggcircular(t_, t), v_startup_MIP.l(starttype, unit, s, f, t_))
+    ;
+    r_shutdown_LP_usft_temp(unit_online(unit), s, f, t_nextSolve(t))$usft_onlineLP(unit, s, f, t)
+        = sum(tt_aggcircular(t_, t), v_shutdown_LP.l(unit, s, f, t_))
+    ;
+    r_shutdown_MIP_usft_temp(unit_online(unit), s, f, t_nextSolve(t))$usft_onlineMIP(unit, s, f, t)
+        = sum(tt_aggcircular(t_, t), v_shutdown_MIP.l(unit, s, f, t_))
+    ;
+
+);
+
+$endif.initiateVariables
+
 * --- Model Solve & Status ----------------------------------------------------
 
 // Model/solve status
