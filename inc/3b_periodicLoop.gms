@@ -460,8 +460,6 @@ tt_aggregate(t_current(t+dt_active(t)), tt(t))
 option clear=tt_agg_circular;
 tt_agg_circular(t, t_+dt_circular(t_), t_) $= tt_aggregate(t, t_);
 
-$macro tt_aggcircular(t, t_)  tt_agg_circular(t, t_, t__)
-
 
 * =============================================================================
 * --- Defining unit aggregations and ramps ------------------------------------

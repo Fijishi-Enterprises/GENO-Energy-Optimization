@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 ### Changed
+- cleaning code: replacing remaining tt_aggcircular with the new version
 
 ### Fixed
 - rounding MIP startup and shutdown values when fixing initial steps of a new solve 
