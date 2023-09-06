@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - cleaning code: replacing remaining tt_aggcircular with the new version
+- reading default model definition files after modelsInit
+
 
 ### Fixed
 - rounding MIP startup and shutdown values when fixing initial steps of a new solve 
