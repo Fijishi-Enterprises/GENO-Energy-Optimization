@@ -131,6 +131,11 @@ $ifthen exist '%input_dir%/changes.inc'
 $endif
 
 
+* --- Checking if there is necessary input data to proceed --------------------
+
+$if not defined p_unit $abort 'Mandatory input data missing (p_unit), check inputData.gdx or alternative sources of input data'
+$if not defined p_gn $abort 'Mandatory input data missing (p_gn), check inputData.gdx or alternative sources of input data'
+$if not defined p_gnu_io $abort 'Mandatory input data missing (p_gnu_io), check inputData.gdx or alternative sources of input data'
 
 
 * =============================================================================
