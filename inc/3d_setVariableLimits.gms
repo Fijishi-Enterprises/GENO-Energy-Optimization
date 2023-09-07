@@ -25,8 +25,8 @@ $offtext
 * =============================================================================
 
 
-// state limits for normal (not superposed) nodes
-loop(node$(not node_superpos(node)),
+// state limits for nodes that have state variable and are not superposed nodes
+loop(node${sum(grid, gn_state(grid, node)) and not node_superpos(node)},
 
     // When using constant values and to supplement time series with constant values (time series will override when data available)
     // Upper bound
@@ -574,8 +574,8 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
     // If this is the very first solve, set various initial bounds
     if(t_solveFirst = mSettings(mSolve, 't_start'),
 
-        // state limits for normal (not superposed) nodes
-        loop(node$(not node_superpos(node)),
+        // state limits for nodes that have state variable and are not superposed nodes
+        loop(node${sum(grid, gn_state(grid, node)) and not node_superpos(node)},
 
             // Upper bound
             v_state.up(gn_state(grid, node), s, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')

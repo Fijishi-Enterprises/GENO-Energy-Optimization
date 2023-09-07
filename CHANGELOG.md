@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
 - updated changes_loop template to use new tt_agg_circular
 - reading default model definition files after modelsInit
 - giving different default penalty values for schedule (10e4) and invest (10e6)
-
+- stricter node loopings for minor speed improvement
 
 ### Fixed
 - rounding MIP startup and shutdown values when fixing initial steps of a new solve 
