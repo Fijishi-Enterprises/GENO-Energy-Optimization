@@ -28,6 +28,8 @@ $ifthen exist '%input_dir%/%input_file_excel%'
     $$call 'gdxxrw Input="%input_dir%/%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
 $elseif exist '%input_file_excel%'
     $$call 'gdxxrw Input="%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
+$elseif set input_file_excel
+    $$abort 'Did not find input data excel from the given location, check path and spelling!'
 $endif
 $ife %system.errorlevel%>0 $abort gdxxrw failed! Check that your input Excel is valid and that your file path and file name are correct.
 

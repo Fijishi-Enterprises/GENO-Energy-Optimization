@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## unversioned
 
 ### Added
+- an error message and abort if input data excel is not found from given location
 
 ### Changed
 - cleaning code: replacing remaining tt_aggcircular with the new version
