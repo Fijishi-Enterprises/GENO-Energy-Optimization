@@ -601,7 +601,7 @@ loop(m,
     tmp_dt = -mInterval(m, 'stepsPerInterval', 'c000');
 ); // END loop(m)
 // Estimate the maximum amount of history required for the model (very rough estimate atm, just sums all possible delays together)
-loop(unit,
+loop(unit_online(unit),
     tmp_dt = min(   tmp_dt, // dt operators have negative values, thus use min instead of max
                     smin((starttype, unitCounter(unit, counter)), dt_starttypeUnitCounter(starttype, unit, counter))
                     + smin(unitCounter(unit, counter), dt_downtimeUnitCounter(unit, counter))

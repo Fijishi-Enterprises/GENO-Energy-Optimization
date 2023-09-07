@@ -772,7 +772,7 @@ loop(effLevel${ord(effLevel)<=tmp},
     );
 );
 
-loop( unit,
+loop( unit$ {not unit_flow(unit)},
     // Check that 'op' is defined correctly
     Option clear = count; // Initialize the previous op to zero
     loop( op,
