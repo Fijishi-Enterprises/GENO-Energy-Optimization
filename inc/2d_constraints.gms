@@ -2546,12 +2546,9 @@ q_stateUpwardLimit(gn_state(grid, node), msft(m, s, f, t))
             + p_gn(grid, node, 'energyStoredPerUnitOfState')
 
             // Accounting for losses from the node
-            // self discharge loss
-            + (1-((1-p_gn(grid, node, 'selfDischargeLoss'))**(p_stepLength(m, f, t))))
-
-            // diffusion from node
             + p_stepLength(m, f, t)
                 * [
+                    + p_gn(grid, node, 'selfDischargeLoss')
                     + sum(gnn_state(grid, node, to_node),
                         + p_gnn(grid, node, to_node, 'diffCoeff')
                         ) // END sum(to_node)
@@ -2626,12 +2623,9 @@ q_stateDownwardLimit(gn_state(grid, node), msft(m, s, f, t))
             + p_gn(grid, node, 'energyStoredPerUnitOfState')
 
             // Accounting for losses from the node
-            // self discharge loss
-            + (1-((1-p_gn(grid, node, 'selfDischargeLoss'))**(p_stepLength(m, f, t))))
-
-            // diffusion from node
             + p_stepLength(m, f, t)
                 * [
+                    + p_gn(grid, node, 'selfDischargeLoss')
                     + sum(gnn_state(grid, node, to_node),
                         + p_gnn(grid, node, to_node, 'diffCoeff')
                         ) // END sum(to_node)

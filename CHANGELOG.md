@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - rounding MIP startup and shutdown values when fixing initial steps of a new solve 
+- reverting remaining selfDischargeLoss updates from previous patch
 
 
 ## 3.5 - 2023-08-24
