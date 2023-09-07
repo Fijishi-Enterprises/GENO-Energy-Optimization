@@ -564,7 +564,7 @@ loop(m,
 
 loop(m,
     // Loop over units with online approximations in the model
-    loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit)${mSettingsEff(m, effLevel)},
+    loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit_online(unit))${mSettingsEff(m, effLevel)},
         // Loop over the constrained start types
         loop(starttypeConstrained(starttype),
             // Find the time step displacements needed to define the start-up time frame
