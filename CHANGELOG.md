@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - cleaning code: replacing remaining tt_aggcircular with the new version
 - updated changes_loop template to use new tt_agg_circular
 - reading default model definition files after modelsInit
+- giving different default penalty values for schedule (10e4) and invest (10e6)
 
 
 ### Fixed

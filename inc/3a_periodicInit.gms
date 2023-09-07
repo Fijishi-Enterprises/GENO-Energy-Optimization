@@ -16,6 +16,29 @@ along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
 * =============================================================================
+* --- Penalty Values ----------------------------------------------------------
+* =============================================================================
+
+$If set penalty PENALTY=%penalty%;
+$If not set penalty PENALTY=1e4;
+
+if (mSolve('invest'),
+    PENALTY = PENALTY * 100;
+);
+
+BIG_M = PENALTY * 10;
+
+PENALTY_BALANCE(grid, node) = p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'constant')
+                              + PENALTY${not p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useConstant')};
+
+PENALTY_RES(restype, up_down) = 0.9*PENALTY;
+PENALTY_RES_MISSING(restype, up_down) = 0.7*PENALTY;
+PENALTY_CAPACITY(grid, node) = 0.8*PENALTY;
+
+
+
+
+* =============================================================================
 * --- Generate model rules from basic patterns defined in the model definition files
 * =============================================================================
 // NOTE! Correctly defining multiple models still needs to be implemented!
