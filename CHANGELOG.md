@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - cleaning code: replacing remaining tt_aggcircular with the new version
+- updated changes_loop template to use new tt_agg_circular
 - reading default model definition files after modelsInit
 
 
