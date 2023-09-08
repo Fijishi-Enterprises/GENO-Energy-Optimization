@@ -270,7 +270,9 @@ v_gen.up(gnusft(gnu_input(grid, node, unit), s, f, t)) = 0;
 v_gen.lo(gnusft(gnu_output(grid, node, unit), s, f, t)) = 0;
 
 // Constant max. consumption capacity if investments disabled
-v_gen.lo(gnusft(gnu_input(grid, node, unit), s, f, t))${ not (unit_investLP(unit) or unit_investMIP(unit))}
+v_gen.lo(gnusft(gnu_input(grid, node, unit), s, f, t))${ not unit_flow(unit)
+                                                         and not (unit_investLP(unit) or unit_investMIP(unit))
+                                                         and p_gnu(grid, node, unit, 'capacity') }
     = - p_gnu(grid, node, unit, 'capacity')
         * [
             + p_unit(unit, 'availability')${not p_unit(unit, 'useTimeseriesAvailability')}
@@ -278,7 +280,8 @@ v_gen.lo(gnusft(gnu_input(grid, node, unit), s, f, t))${ not (unit_investLP(unit
             ]
 ;
 
-v_gen.lo(gnusft(gnu_input(grid, node, unit), s, f, t))${ not (unit_investLP(unit) or unit_investMIP(unit))
+v_gen.lo(gnusft(gnu_input(grid, node, unit), s, f, t))${ not unit_flow(unit)
+                                                         and not (unit_investLP(unit) or unit_investMIP(unit))
                                                          and not p_gnu(grid, node, unit, 'capacity')}
     = - inf
 ;
