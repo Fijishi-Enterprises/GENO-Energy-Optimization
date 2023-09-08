@@ -152,6 +152,7 @@ $offtext
                       or p_unit(unit, 'rampSpeedFromMinLoad')
                       or p_unit(unit, 'minShutdownHours')
                       or p_unit(unit, 'minOperationHours')
+                      or p_unit(unit, 'startColdAfterXhours')
                      )
                },
         tmp = max(tmp,  p_unit(unit, 'minOperationHours'));
@@ -159,6 +160,7 @@ $offtext
                         + ceil([p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours') ) $ p_unit(unit, 'rampSpeedToMinLoad')  // NOTE! Check this
                         + ceil([p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedFromMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours') ) $ p_unit(unit, 'rampSpeedFromMinLoad')// NOTE! Check this
                     );
+        tmp = max(tmp,  p_unit(unit, 'startColdAfterXhours'));
     );
 
 
