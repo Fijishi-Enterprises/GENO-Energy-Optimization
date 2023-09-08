@@ -20,15 +20,14 @@ $offtext
 *
 * =============================================================================
 
+
 * =============================================================================
 * --- Node State Boundaries ---------------------------------------------------
 * =============================================================================
 
-
 // state limits for nodes that have state variable and are not superposed nodes
 loop(gn_state(grid, node) ${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier')
                             and not node_superpos(node)},
-
     // When using constant values and to supplement time series with constant values (time series will override when data available)
     // Upper bound, constant
     v_state.up(grid, node, sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
@@ -37,8 +36,7 @@ loop(gn_state(grid, node) ${p_gnBoundaryPropertiesForStates(grid, node,   'upwar
                                                     }
             = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant')
                     * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier')
-        ;
-
+    ;
     // Upper Bound, time series
     v_state.up(grid, node, sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
                                                     and not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))
@@ -47,23 +45,20 @@ loop(gn_state(grid, node) ${p_gnBoundaryPropertiesForStates(grid, node,   'upwar
             = ts_node_(grid, node, 'upwardLimit', s, f, t)
                     * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier')
     ;
-
     // Bound also the intervals just before the start of each sample
     // - currently just 'upwardLimit'&'useConstant'
     // this is performed only for the first solve!
     loop(mst_start(mSolve, s, t)$(t_solveFirst = mSettings(mSolve, 't_start')),
-
-        // Upper bound
         v_state.up(grid, node, s, f_solve, t+dt(t))${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
                                                                 and not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))
                                                                 and not df_central(f_solve,t)
                                                                 and not p_gn(grid, node, 'boundStartOfSamples')
                                                                 }
             = p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
-                * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier');
+                * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier')
+        ;
     ); // END loop(mst_start)
-
-);
+); //END loop gn_state(grid, node) $ upwardLimit
 
 loop(gn_state(grid, node) ${p_gnBoundaryPropertiesForStates(grid, node,   'downwardLimit', 'multiplier')
                             and not node_superpos(node) },
@@ -81,26 +76,23 @@ loop(gn_state(grid, node) ${p_gnBoundaryPropertiesForStates(grid, node,   'downw
                                                     }
             = ts_node_(grid, node, 'downwardLimit', s, f, t)
                     * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier')
-
+    ;
     // Bound also the intervals just before the start of each sample
     // - currently just 'downwardLimit'&'useConstant'
     // this is performed only for the first solve!
     loop(mst_start(mSolve, s, t)$(t_solveFirst = mSettings(mSolve, 't_start')),
-
-        // Lower bound
         v_state.lo(grid, node, s, f_solve, t+dt(t))${ p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
                                                                 and not df_central(f_solve,t)
                                                                 and not p_gn(grid, node, 'boundStartOfSamples')
                                                                 }
             = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
-                * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
+                * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier')
+        ;
     ); // END loop(mst_start)
-
-);
+); //END loop gn_state(grid, node) $ downwardLimit
 
 loop(gn_state(grid, node) ${p_gn(grid, node, 'boundAll')
                             and not node_superpos(node) },
-
     // Fixed value, constant
     v_state.fx(grid, node, sft(s, f, t))${ p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
                                            and not df_central(f,t)
@@ -108,7 +100,6 @@ loop(gn_state(grid, node) ${p_gn(grid, node, 'boundAll')
     = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
                     * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
     ;
-
     // Fixed value, timeseries
     v_state.fx(grid, node, sft(s, f, t))${ p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
                                            and not df_central(f,t)
@@ -116,32 +107,28 @@ loop(gn_state(grid, node) ${p_gn(grid, node, 'boundAll')
             = ts_node_(grid, node, 'reference', s, f, t)
                     * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
     ;
-
-);
+); //END loop gn_state(grid, node) $ boundAll
 
 loop(gn_state(grid, node) ${p_gn(grid, node, 'boundEnd')
                             and not node_superpos(node) },
-
     // BoundEnd to a constant value
     v_state.fx(grid, node, sft(s, f,t))${   mft_lastSteps(mSolve, f, t)
                                                       and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
                                                     }
             = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
-                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
     ;
-
     // BoundEnd to a timeseries value
     v_state.fx(grid, node, sft(s, f,t))${mft_lastSteps(mSolve, f, t)
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
                                                     }
             = ts_node_(grid, node, 'reference', s, f, t)
-                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
-
-);
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
+); //END loop gn_state(grid, node) $ boundEnd
 
 loop(gn_state(grid, node) ${ p_gn(grid, node, 'boundStartOfSamples')
                              and not node_superpos(node) },
-
     // Bounding the time step t-1 for of each sample to reference value if boundStartofSamples is enabled.
     // Constant values.
     v_state.fx(grid, node, s_active(s), f+df(f,t+dt(t)), t+dt(t))${ mst_start(mSolve, s, t)
@@ -158,13 +145,10 @@ loop(gn_state(grid, node) ${ p_gn(grid, node, 'boundStartOfSamples')
             = ts_node_(grid, node, 'reference', s,  f+df(f,t+dt(t)), t+dt(t))
                * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
     ;
-
-);
-
+); //END loop gn_state(grid, node) $ boundStartOfSamples
 
 loop(gn_state(grid, node) ${ p_gn(grid, node, 'boundEndOfSamples')
                              and not node_superpos(node) },
-
     // Bounding the end time step of each sample to reference value if boundEndofSamples and constant reference values are enabled
     v_state.fx(grid, node, sft(s, f, t))${ sum(tt_agg_circular(t, t_, t__),  sum(m, mst_end(m, s, t_)))
                                            and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
@@ -180,21 +164,18 @@ loop(gn_state(grid, node) ${ p_gn(grid, node, 'boundEndOfSamples')
             = ts_node_(grid, node, 'reference', s, f, t)
                * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
     ;
-
-);
-
+); //END loop gn_state(grid, node) $ boundEndOfSamples
 
 loop(gn_state(grid, node) ${ p_gn(grid, node, 'boundStartToEnd')
                              and not node_superpos(node) },
-
     // BoundStartToEnd: bound the last interval in the horizon to the value just before the horizon if not the first solve
     v_state.fx(grid, node, sft(s, f, t))${mft_lastSteps(mSolve, f, t)
                                                     and (solveCount > 1)
                                                     }
             = sum(mf_realization(mSolve, f_),
                     + r_state_gnft(grid, node, f_, t_solve)
-              ); // END sum(mf_realization)
-
+              ) // END sum(mf_realization)
+    ;
     // BoundStartToEnd: bound the last interval in the horizon to the reference value if first solve and constant reference
     v_state.fx(grid, node, sft(s, f, t))${mft_lastSteps(mSolve, f, t)
                                                     and (solveCount = 1)
@@ -202,8 +183,8 @@ loop(gn_state(grid, node) ${ p_gn(grid, node, 'boundStartToEnd')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
                                                     }
             = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
-                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
-
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
     // BoundStartToEnd: bound the last interval in the horizon to the reference value if first solve and timeseries reference
     v_state.fx(grid, node, sft(s, f, t))${mft_lastSteps(mSolve, f, t)
                                                     and (solveCount = 1)
@@ -211,10 +192,9 @@ loop(gn_state(grid, node) ${ p_gn(grid, node, 'boundStartToEnd')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') // !!! NOTE !!! The check fails if value is zero
                                                         }
                 = ts_node(grid, node, 'reference', f, t) // NOTE!!! ts_node_ doesn't contain initial values so using raw data instead.
-                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
-
-); //END loop gn_state(grid, node)
-
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
+); //END loop gn_state(grid, node) $ boundStartToEnd
 
 // Next deal with bounds for the superposed node states
 //
