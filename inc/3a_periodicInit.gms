@@ -141,15 +141,44 @@ $offtext
         );
     );
 
+
+
+* --- Counters needed by the model --------------------------------------------
+
+    tmp = 0;
+
+    loop(unit${ p_unit(unit,'op00')
+                and ( p_unit(unit, 'rampSpeedToMinLoad')
+                      or p_unit(unit, 'rampSpeedFromMinLoad')
+                      or p_unit(unit, 'minShutdownHours')
+                      or p_unit(unit, 'minOperationHours')
+                     )
+               },
+        tmp = max(tmp,  p_unit(unit, 'minOperationHours'));
+        tmp = max(tmp,  ceil(p_unit(unit, 'minShutdownHours') / mSettings(m, 'stepLengthInHours'))
+                        + ceil([p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours') ) $ p_unit(unit, 'rampSpeedToMinLoad')  // NOTE! Check this
+                        + ceil([p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedFromMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours') ) $ p_unit(unit, 'rampSpeedFromMinLoad')// NOTE! Check this
+                    );
+    );
+
+
+*    counter(counter_large) = yes;
+
+    counter(counter_large) $ { sum(mSolve, mInterval(mSolve, 'lastStepInIntervalBlock', counter_large))
+                               or (ord(counter_large) <= tmp)
+                             }
+    = yes;
+
+
 * --- Intervals and Time Series -----------------------------------------------
 
     // Check whether the defined intervals are feasible
     continueLoop = 1;
-    loop(counter${ continueLoop },
-        if(not mInterval(m, 'lastStepInIntervalBlock', counter),
+    loop(counter(counter_large)${ continueLoop },
+        if(not mInterval(m, 'lastStepInIntervalBlock', counter_large),
             continueLoop = 0;
-        elseif mod(mInterval(m, 'lastStepInIntervalBlock', counter) - mInterval(m, 'lastStepInIntervalBlock', counter-1), mInterval(m, 'stepsPerInterval', counter)),
-            put log "!!! Error occurred on interval block ", counter.tl:0 /;
+        elseif mod(mInterval(m, 'lastStepInIntervalBlock', counter_large) - mInterval(m, 'lastStepInIntervalBlock', counter_large-1), mInterval(m, 'stepsPerInterval', counter_large)),
+            put log "!!! Error occurred on interval block ", counter_large.tl:0 /;
             put log "!!! Abort: stepsPerInterval is not evenly divisible within the interval"
             abort "stepsPerInterval is not evenly divisible within the interval", m, continueLoop;
         else
@@ -478,31 +507,31 @@ loop(m,
         tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedToMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours');
         p_u_runUpTimeIntervals(unit) = tmp;
         p_u_runUpTimeIntervalsCeil(unit) = ceil(p_u_runUpTimeIntervals(unit));
-        runUpCounter(unit, counter) // Store the required number of run-up intervals for each unit
-            ${ ord(counter) <= p_u_runUpTimeIntervalsCeil(unit) }
+        runUpCounter(unit, counter(counter_large)) // Store the required number of run-up intervals for each unit
+            ${ ord(counter_large) <= p_u_runUpTimeIntervalsCeil(unit) }
             = yes;
-        dt_trajectory(counter)
-            ${ runUpCounter(unit, counter) }
-            = - ord(counter) + 1; // Runup starts immediately at v_startup
+        dt_trajectory(counter(counter_large))
+            ${ runUpCounter(unit, counter_large) }
+            = - ord(counter_large) + 1; // Runup starts immediately at v_startup
 
         // Calculate minimum output during the run-up phase; partial intervals calculated using weighted averaging with min load
-        p_uCounter_runUpMin(runUpCounter(unit, counter))
+        p_uCounter_runUpMin(runUpCounter(unit, counter(counter_large)))
             = + p_unit(unit, 'rampSpeedToMinLoad')
-                * ( + min(ord(counter), p_u_runUpTimeIntervals(unit)) // Location on ramp
-                    - 0.5 * min(p_u_runUpTimeIntervals(unit) - ord(counter) + 1, 1) // Average ramp section
+                * ( + min(ord(counter_large), p_u_runUpTimeIntervals(unit)) // Location on ramp
+                    - 0.5 * min(p_u_runUpTimeIntervals(unit) - ord(counter_large) + 1, 1) // Average ramp section
                     )
-                * min(p_u_runUpTimeIntervals(unit) - ord(counter) + 1, 1) // Portion of time interval spent ramping
+                * min(p_u_runUpTimeIntervals(unit) - ord(counter_large) + 1, 1) // Portion of time interval spent ramping
                 * mSettings(m, 'stepLengthInHours') // Ramp length in hours
                 * 60 // unit conversion from [p.u./min] to [p.u./h]
-              + p_unit(unit, 'op00')${ not runUpCounter(unit, counter+1) } // Time potentially spent at min load during the last run-up interval
+              + p_unit(unit, 'op00')${ not runUpCounter(unit, counter_large+1) } // Time potentially spent at min load during the last run-up interval
                 * ( p_u_runUpTimeIntervalsCeil(unit) - p_u_runUpTimeIntervals(unit) );
 
         // Maximum output on the last run-up interval can be higher, otherwise the same as minimum.
-        p_uCounter_runUpMax(runUpCounter(unit, counter))
-            = p_uCounter_runUpMin(unit, counter);
-        p_uCounter_runUpMax(runUpCounter(unit, counter))${ not runUpCounter(unit, counter+1) }
-            = p_uCounter_runUpMax(unit, counter)
-                + ( 1 - p_uCounter_runUpMax(unit, counter) )
+        p_uCounter_runUpMax(runUpCounter(unit, counter(counter_large)))
+            = p_uCounter_runUpMin(unit, counter_large);
+        p_uCounter_runUpMax(runUpCounter(unit, counter_large))${ not runUpCounter(unit, counter_large+1) }
+            = p_uCounter_runUpMax(unit, counter_large)
+                + ( 1 - p_uCounter_runUpMax(unit, counter_large) )
                     * ( p_u_runUpTimeIntervalsCeil(unit) - p_u_runUpTimeIntervals(unit) );
 
         // Minimum ramp speed in the last interval for the run-up to min. load (p.u./min)
@@ -523,31 +552,31 @@ loop(m,
         tmp = [ p_unit(unit,'op00') / (p_unit(unit, 'rampSpeedFromMinLoad') * 60) ] / mSettings(m, 'stepLengthInHours');
         p_u_shutdownTimeIntervals(unit) = tmp;
         p_u_shutdownTimeIntervalsCeil(unit) = ceil(p_u_shutdownTimeIntervals(unit));
-        shutdownCounter(unit, counter) // Store the required number of shutdown intervals for each unit
-            ${ ord(counter) <= p_u_shutDownTimeIntervalsCeil(unit)}
+        shutdownCounter(unit, counter(counter_large)) // Store the required number of shutdown intervals for each unit
+            ${ ord(counter_large) <= p_u_shutDownTimeIntervalsCeil(unit)}
             = yes;
-        dt_trajectory(counter)
-            ${ shutdownCounter(unit, counter) }
-            = - ord(counter) + 1; // Shutdown starts immediately at v_shutdown
+        dt_trajectory(counter(counter_large))
+            ${ shutdownCounter(unit, counter_large) }
+            = - ord(counter_large) + 1; // Shutdown starts immediately at v_shutdown
 
         // Calculate minimum output during the shutdown phase; partial intervals calculated using weighted average with zero load
-        p_uCounter_shutdownMin(shutdownCounter(unit, counter))
+        p_uCounter_shutdownMin(shutdownCounter(unit, counter(counter_large)))
             = + p_unit(unit, 'rampSpeedFromMinLoad')
-                * ( min(p_u_shutdownTimeIntervalsCeil(unit) - ord(counter) + 1, p_u_shutdownTimeIntervals(unit)) // Location on ramp
-                    - 0.5 * min(p_u_shutdownTimeIntervals(unit) - p_u_shutdownTimeIntervalsCeil(unit) + ord(counter), 1) // Average ramp section
+                * ( min(p_u_shutdownTimeIntervalsCeil(unit) - ord(counter_large) + 1, p_u_shutdownTimeIntervals(unit)) // Location on ramp
+                    - 0.5 * min(p_u_shutdownTimeIntervals(unit) - p_u_shutdownTimeIntervalsCeil(unit) + ord(counter_large), 1) // Average ramp section
                     )
-                * min(p_u_shutdownTimeIntervals(unit) - p_u_shutdownTimeIntervalsCeil(unit) + ord(counter), 1) // Portion of time interval spent ramping
+                * min(p_u_shutdownTimeIntervals(unit) - p_u_shutdownTimeIntervalsCeil(unit) + ord(counter_large), 1) // Portion of time interval spent ramping
                 * mSettings(m, 'stepLengthInHours') // Ramp length in hours
                 * 60 // unit conversion from [p.u./min] to [p.u./h]
-              + p_unit(unit, 'op00')${ not shutdownCounter(unit, counter-1) } // Time potentially spent at min load on the first shutdown interval
+              + p_unit(unit, 'op00')${ not shutdownCounter(unit, counter_large-1) } // Time potentially spent at min load on the first shutdown interval
                 * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) );
 
         // Maximum output on the first shutdown interval can be higher, otherwise the same as minimum.
-        p_uCounter_shutdownMax(shutdownCounter(unit, counter))
-            = p_uCounter_shutdownMin(unit, counter);
-        p_uCounter_shutdownMax(shutdownCounter(unit, counter))${ not shutdownCounter(unit, counter-1) }
-            = p_uCounter_shutdownMax(unit, counter)
-                + ( 1 - p_uCounter_shutdownMax(unit, counter) )
+        p_uCounter_shutdownMax(shutdownCounter(unit, counter(counter_large)))
+            = p_uCounter_shutdownMin(unit, counter_large);
+        p_uCounter_shutdownMax(shutdownCounter(unit, counter(counter_large)))${ not shutdownCounter(unit, counter_large-1) }
+            = p_uCounter_shutdownMax(unit, counter_large)
+                + ( 1 - p_uCounter_shutdownMax(unit, counter_large) )
                     * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) );
 
         // Minimum ramp speed in the first interval for the shutdown from min. load (p.u./min)
@@ -569,30 +598,30 @@ loop(m,
         loop(starttypeConstrained(starttype),
             // Find the time step displacements needed to define the start-up time frame
             Option clear = cc;
-            cc(counter)${   ord(counter) <= p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'stepLengthInHours')
-                            and ord(counter) > p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'stepLengthInHours')
+            cc(counter(counter_large))${   ord(counter_large) <= p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'stepLengthInHours')
+                            and ord(counter_large) > p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'stepLengthInHours')
                             }
                 = yes;
             unitCounter(unit, cc(counter)) = yes;
-            dt_starttypeUnitCounter(starttype, unit, cc(counter)) = - ord(counter);
+            dt_starttypeUnitCounter(starttype, unit, cc(counter_large)) = - ord(counter_large);
         ); // END loop(starttypeConstrained)
 
         // Find the time step displacements needed to define the downtime requirements (include run-up phase and shutdown phase)
         Option clear = cc;
-        cc(counter)${   ord(counter) <= ceil(p_unit(unit, 'minShutdownHours') / mSettings(m, 'stepLengthInHours'))
-                                        + ceil(p_u_runUpTimeIntervals(unit)) // NOTE! Check this
-                                        + ceil(p_u_shutdownTimeIntervals(unit)) // NOTE! Check this
+        cc(counter_large)${   ord(counter_large) <= ceil(p_unit(unit, 'minShutdownHours') / mSettings(m, 'stepLengthInHours'))
+                                                    + ceil(p_u_runUpTimeIntervals(unit)) // NOTE! Check this
+                                                    + ceil(p_u_shutdownTimeIntervals(unit)) // NOTE! Check this
                         }
             = yes;
-        unitCounter(unit, cc(counter)) = yes;
-        dt_downtimeUnitCounter(unit, cc(counter)) = - ord(counter);
+        unitCounter(unit, cc(counter_large)) = yes;
+        dt_downtimeUnitCounter(unit, cc(counter_large)) = - ord(counter_large);
 
         // Find the time step displacements needed to define the uptime requirements
         Option clear = cc;
-        cc(counter)${ ord(counter) <= ceil(p_unit(unit, 'minOperationHours') / mSettings(m, 'stepLengthInHours'))}
+        cc(counter_large)${ ord(counter_large) <= ceil(p_unit(unit, 'minOperationHours') / mSettings(m, 'stepLengthInHours'))}
             = yes;
-        unitCounter(unit, cc(counter)) = yes;
-        dt_uptimeUnitCounter(unit, cc(counter)) = - ord(counter);
+        unitCounter(unit, cc(counter_large)) = yes;
+        dt_uptimeUnitCounter(unit, cc(counter_large)) = - ord(counter_large);
     ); // END loop(effLevelGroupUnit)
 ); // END loop(m)
 

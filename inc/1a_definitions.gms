@@ -101,10 +101,8 @@ Sets
 * --- General and Directional Sets --------------------------------------------
 
     // General Counter
-    counter "General counter set"
+    counter_large "General counter set"
         /c000*c999/
-    cc(counter) "Temporary subset of counter used for calculations"
-
     // Directional Sets
     input_output "Designating nodes as either inputs or outputs"
         / input, output /
@@ -167,7 +165,7 @@ Parameter
     mSettings(mType, mSetting) "Model settings array"
     mSettingsEff(mtype, effLevel) "Model efficiency approximation array"
     mSettingsEff_start(mtype, effLevel) "The first time step of the efficiency level - mSettingsEff is the last"
-    mInterval(mType, mSetting, counter) "Model interval array"
+    mInterval(mType, mSetting, counter_large) "Model interval array"
     t_skip_counter "Numerical counter for solve time steps"
 ;
 
