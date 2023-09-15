@@ -1,13 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## unversioned
-### Added
-
+## 2.3 - 2023-09-15
 ### Changed
 - Shutdown costs, start costs and start fuel consumptions to p_gnu_io
 
+### Removed
+- Writing of git version to the output
+
 ### Fixed
+- Also calculate scenario reduction metric for the root node
+- Spine Toolbox compatibility
 
 
 ## 2.2 - 2022-03-24
