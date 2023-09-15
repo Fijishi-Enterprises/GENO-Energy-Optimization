@@ -27,7 +27,7 @@ Scalars
 ;
 
 $If set penalty PENALTY=%penalty%;
-$If not set penalty PENALTY=1e9;
+$If not set penalty PENALTY=1e4;
 BIG_M = 1e5;
 
 Parameters
@@ -41,8 +41,8 @@ PENALTY_BALANCE(grid, node) = p_gnBoundaryPropertiesForStates(grid, node, 'balan
                               + PENALTY${not p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useConstant')};
 
 PENALTY_RES(restype, up_down) = 0.9*PENALTY;
-PENALTY_RES_MISSING(restype, up_down) = 0.1*PENALTY;
-PENALTY_CAPACITY(grid, node) = 0.5*PENALTY;
+PENALTY_RES_MISSING(restype, up_down) = 0.7*PENALTY;
+PENALTY_CAPACITY(grid, node) = 0.8*PENALTY;
 
 
 * =============================================================================
@@ -63,6 +63,7 @@ equations
     q_maxDownwardOfflineReserve(grid, node, unit, mType, s, f, t) "Downward commitments (v_gen and all v_reserve) will not undercut zero production (+) or maximum consumption capacity (-)"
     q_maxUpward(grid, node, unit, mType, s, f, t) "Upward commitments (v_gen and online v_reserve) will not exceed maximum (online) production capacity (+) or minimum (online) consumption capacity (-)"
     q_maxUpwardOfflineReserve(grid, node, unit, mType, s, f, t) "Upward commitments (v_gen and all v_reserve) will not exceed maximum production capacity (+) or zero consumption (-)"
+    q_fixedFlow(grid, node, unit, mType, s, f, t) "V_gen is fixed to flow-based value, multiplied by availability and capacity"
     q_reserveProvision(restype, up_down, grid, node, unit, s, f, t) "Reserve provision limited for units with investment possibility"
     q_reserveProvisionOnline(restype, up_down, grid, node, unit, s, f, t) "Reserve provision limited for units that are not capable of providing offline reserve"
     q_startshut(mType, s, unit, f, t) "Online capacity now minus online capacity in the previous interval is equal to started up minus shut down capacity"

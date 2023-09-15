@@ -88,6 +88,7 @@ put /;
 put "* Do not allow unit investments in the subsequent models"/;
 loop(unit,
     put "p_unit('", unit.tl, "', 'maxUnitCount') = 0;"/;
+    put "p_unit('", unit.tl, "', 'minUnitCount') = 0;"/;
 );
 
 // Transfer links

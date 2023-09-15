@@ -480,9 +480,9 @@ $offtext
 // Always constant 'lb', 'rb', and 'section', so need only to define 'slope'.
 loop(effGroupSelectorUnit(effDirectOff, unit_timeseries(unit), effDirectOff_),
     ts_effUnit(effDirectOff, unit, effDirectOff_, 'slope', ft(f, t))
-        ${ sum(eff, ts_unit(unit, eff, f, t)) } // NOTE!!! Averages the slope over all available data.
-        = sum(eff${ts_unit(unit, eff, f, t)}, 1 / ts_unit(unit, eff, f, t))
-            / sum(eff${ts_unit(unit, eff, f, t)}, 1);
+        ${ sum(eff, ts_unit_(unit, eff, f, t)) } // NOTE!!! Averages the slope over all available data.
+        = sum(eff${ts_unit_(unit, eff, f, t)}, 1 / ts_unit_(unit, eff, f, t))
+            / sum(eff${ts_unit_(unit, eff, f, t)}, 1);
 ); // END loop(effGroupSelectorUnit)
 
 // NOTE! Using the same methodology for the directOn and lambda approximations in time series form might require looping over ft(f,t) to find the min and max 'eff' and 'rb'

@@ -50,7 +50,7 @@ GAMS command line arguments
     For testing purposes.
 
 --penalty=<value>
-    Changes the value of the penalty cost. Default penalty value is 1e9
+    Changes the value of the penalty cost. Default penalty value is 1e4
     if not provided.
 
 --input_dir=<path>
@@ -187,7 +187,7 @@ $if exist '%input_dir%/3z_modelsClose.gms' $include '%input_dir%/3z_modelsClose.
 
 * === Output ==================================================================
 $echon "'version' " > 'version'
-$call 'git describe --dirty=+ --always >> version'
+*$call 'git describe --dirty=+ --always >> version'
 $ifi not %dummy% == 'yes'
 $include 'inc/4b_outputInvariant.gms'
 $include 'inc/4c_outputQuickFile.gms'
@@ -197,9 +197,16 @@ $if exist '%input_dir%/4d_postProcess.gms' $include '%input_dir%/4d_postProcess.
 
 $if not set output_file $setglobal output_file 'results.gdx'
 
-execute_unload '%output_dir%/%output_file%',
-    $$include 'defOutput/resultSymbols.inc'
-;
+$ifthen exist '%input_dir%/additionalResultSymbols.inc'
+   execute_unload '%output_dir%/%output_file%',
+     $$include 'defOutput/resultSymbols.inc'//,
+     $$include '%input_dir%/additionalResultSymbols.inc'
+   ;
+$else
+   execute_unload '%output_dir%/%output_file%',
+     $$include 'defOutput/resultSymbols.inc'//,
+   ;
+$endif
 
 $ife %debug%>0
 execute_unload '%output_dir%/debug.gdx';

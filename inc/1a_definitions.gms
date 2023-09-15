@@ -71,6 +71,7 @@ Sets
         modelStat
         solveStat
         totalTime
+        solverTime
         iterations
         nodes
         numEqu
@@ -86,16 +87,17 @@ Sets
     solve_info "Containers for solve information" /
         modelStat "Status of the model after solve"
         solveStat "Status of the solve"
-        totalTime "Total solve time"
+        totalTime "Total time of solve"
+        solverTime "Solver time of solve"
         iterations "Number of iteration"
         nodes "Number of nodes in the solve"
-        numEqu "Number of equations in the problem"
-        numDVar "Number of D variables in the problem"
-        numVar "Number of variables in the problem"
-        numNZ "Number of non-zeros in the problem"
+        numEqu "Number of equations in the solve"
+        numDVar "Number of discrete variables in the solve"
+        numVar "Number of variables in the solve"
+        numNZ "Number of non-zero entries in the solve matrix"
         sumInfes "Sum of infeasibilities"
         objEst "Estimate for the best possible objective value"
-        objVal "Objectiv value"
+        objVal "Objective value"
         /
 
 * --- Efficiency Approximation Related Sets -----------------------------------
@@ -325,10 +327,12 @@ param_unit "Set of possible data parameters for units" /
     hrop00 * hrop12   "Right border of the incremental heat rates"
     section       "Possibility to define a no load fuel use for units with zero minimum output"
     hrsection     "no load fuel use to be defined when using incremental heat rates"
-    useTimeseries "A flag to use time series form input for unit parameters whenever possible"
+    useTimeseries                       "A flag to use efficiency time series form input for unit parameters whenever possible"
+    useTimeseriesAvailability           "A flag to use availability time series form input for unit parameters whenever possible"
     investMIP     "A flag to make integer investment instead of continous investment"
     maxUnitCount  "Maximum number of units when making integer investments"
     minUnitCount  "Minimum number of units when making integer investments"
+    fixedFlow     "A flag to fix the production or consumption of the unit based on availability, flow, and capacity"
     // Calculated based on other input data
     lastStepNotAggregated "Last time step when the unit is not yet aggregated - calculated in inputsLoop.gms for units that have aggregation"
     becomeAvailable       "The relative position of the time step when the unit becomes available (calculated from ut(unit, t, start_end))"

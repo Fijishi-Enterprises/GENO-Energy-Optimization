@@ -74,6 +74,7 @@ Option clear = q_maxDownward;
 Option clear = q_maxDownwardOfflineReserve;
 Option clear = q_maxUpward;
 Option clear = q_maxUpwardOfflineReserve;
+Option clear = q_fixedFlow;
 Option clear = q_reserveProvision;
 Option clear = q_reserveProvisionOnline;
 Option clear = q_startshut;
@@ -554,21 +555,9 @@ $macro tt_aggcircular(t, t_)  tt_agg_circular(t, t_, t__)
 * --- Defining unit aggregations and ramps ------------------------------------
 * =============================================================================
 
-// Units active on each ft
+// Units with capacities or investment option active on each ft
 Option clear = uft;
-uft(unit, ft(f, t))${   (   [
-                                ord(t) <= tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
-                                and (unit_aggregated(unit) or unit_noAggregate(unit)) // Aggregated and non-aggregate units
-                            ]
-                            or
-                            [
-                                ord(t) > tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
-                                and (unit_aggregator(unit) or unit_noAggregate(unit)) // Aggregator and non-aggregate units
-                            ]
-                        )
-                        and not sameas(unit, 'empty')
-                     }
-// only units with capacities or investment option
+uft(unit, ft(f, t))${  not sameas(unit, 'empty')  }
     = yes;
 
 // Units are not active before or after their lifetime
@@ -588,6 +577,21 @@ uft(unit, ft(f, t))${ [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeU
                       and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
                     }
     = yes;
+
+
+// Deactivating aggregated after lastStepNotAggregated and aggregators before
+uft(unit, ft(f, t))${  (   [
+                                ord(t) > tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
+                                and unit_aggregated(unit) // Aggregated units
+                           ]
+                            or
+                           [
+                                ord(t) <= tSolveFirst + p_unit(unit, 'lastStepNotAggregated')
+                                and unit_aggregator(unit) // Aggregator units
+                           ]
+                        )
+                    }
+    = no;
 
 // First ft:s for each aggregator unit
 Option clear = uft_aggregator_first;

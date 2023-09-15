@@ -2032,55 +2032,6 @@
                     }
                 }
             ],
-            "gnGroup": [
-                {
-                    "Mapping 1": {
-                        "mapping": [
-                            {
-                                "map_type": "RelationshipClass",
-                                "position": "hidden",
-                                "value": "grid__node__group"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "grid"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "node"
-                            },
-                            {
-                                "map_type": "RelationshipClassObjectClass",
-                                "position": "hidden",
-                                "value": "group"
-                            },
-                            {
-                                "map_type": "Relationship",
-                                "position": "hidden",
-                                "value": "relationship"
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 0
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 1
-                            },
-                            {
-                                "map_type": "RelationshipObject",
-                                "position": 2
-                            },
-                            {
-                                "map_type": "RelationshipMetadata",
-                                "position": "hidden"
-                            }
-                        ]
-                    }
-                }
-            ],
             "p_groupPolicy": [
                 {
                     "Mapping 1": {
@@ -2496,8 +2447,7 @@
                             },
                             {
                                 "map_type": "ExpandedValue",
-                                "position": "hidden",
-                                "value": "true"
+                                "position": 3
                             }
                         ]
                     }
@@ -2576,59 +2526,6 @@
                             {
                                 "map_type": "ExpandedValue",
                                 "position": 4
-                            }
-                        ]
-                    }
-                }
-            ],
-            "sGroup": [
-                {
-                    "Mapping 1": {
-                        "mapping": [
-                            {
-                                "map_type": "ObjectClass",
-                                "position": "hidden",
-                                "value": "group"
-                            },
-                            {
-                                "map_type": "Object",
-                                "position": 1
-                            },
-                            {
-                                "map_type": "ObjectMetadata",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterDefinition",
-                                "position": "hidden",
-                                "value": "samples"
-                            },
-                            {
-                                "map_type": "Alternative",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueMetadata",
-                                "position": "hidden",
-                                "value": ""
-                            },
-                            {
-                                "map_type": "ParameterValueType",
-                                "position": "hidden",
-                                "value": "map"
-                            },
-                            {
-                                "map_type": "IndexName",
-                                "position": "hidden"
-                            },
-                            {
-                                "map_type": "ParameterValueIndex",
-                                "position": 0
-                            },
-                            {
-                                "map_type": "ExpandedValue",
-                                "position": "hidden",
-                                "value": "true"
                             }
                         ]
                     }
@@ -3154,6 +3051,96 @@
                         ]
                     }
                 }
+            ],
+            "commodity": [
+                {
+                    "Mapping 1": {
+                        "mapping": [
+                            {
+                                "map_type": "ObjectClass",
+                                "position": "hidden",
+                                "value": "commodity"
+                            },
+                            {
+                                "map_type": "Object",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "ObjectMetadata",
+                                "position": "hidden"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "gngroup": [
+                {
+                    "Mapping 1": {
+                        "mapping": [
+                            {
+                                "map_type": "RelationshipClass",
+                                "position": "hidden",
+                                "value": "grid__node__group"
+                            },
+                            {
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "grid"
+                            },
+                            {
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "node"
+                            },
+                            {
+                                "map_type": "RelationshipClassObjectClass",
+                                "position": "hidden",
+                                "value": "group"
+                            },
+                            {
+                                "map_type": "Relationship",
+                                "position": "hidden",
+                                "value": "relationship"
+                            },
+                            {
+                                "map_type": "RelationshipObject",
+                                "position": 0
+                            },
+                            {
+                                "map_type": "RelationshipObject",
+                                "position": 1
+                            },
+                            {
+                                "map_type": "RelationshipObject",
+                                "position": 2
+                            },
+                            {
+                                "map_type": "RelationshipMetadata",
+                                "position": "hidden"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "sgroup": [
+                {
+                    "Mapping 1": {
+                        "mapping": [
+                            {
+                                "map_type": "ObjectClass",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "Object",
+                                "position": "hidden"
+                            },
+                            {
+                                "map_type": "ObjectMetadata",
+                                "position": "hidden"
+                            }
+                        ]
+                    }
+                }
             ]
         },
         "selected_tables": [
@@ -3190,7 +3177,6 @@
             "ts_influx",
             "ts_node",
             "t_invest",
-            "gnGroup",
             "p_groupPolicy",
             "gnss_bound",
             "uss_bound",
@@ -3201,7 +3187,6 @@
             "p_s_discountFactor",
             "utAvailabilityLimits",
             "ts_storageValue",
-            "sGroup",
             "p_storageValue",
             "p_groupPolicyEmission",
             "p_uStartupFuel",
@@ -3210,7 +3195,8 @@
             "ugroup",
             "gnugroup",
             "gn2ngroup",
-            "p_groupPolicyUnit"
+            "p_groupPolicyUnit",
+            "gngroup"
         ],
         "table_options": {
             "grid": {},
@@ -3261,19 +3247,180 @@
             "ugroup": {},
             "gnugroup": {},
             "gn2ngroup": {},
-            "gnGroup": {},
-            "sGroup": {},
             "p_groupPolicy": {},
             "p_groupPolicyUnit": {},
             "gnss_bound": {},
-            "uss_bound": {}
+            "uss_bound": {},
+            "commodity": {},
+            "gngroup": {},
+            "sgroup": {}
         },
         "table_types": {
             "p_groupReserves": {
+                "2": "float"
+            },
+            "grid": {
+                "0": "string"
+            },
+            "node": {
+                "0": "string"
+            },
+            "flow": {
+                "0": "string"
+            },
+            "unittype": {
+                "0": "string"
+            },
+            "unit": {
+                "0": "string"
+            },
+            "unitUnittype": {
+                "0": "string",
+                "1": "string"
+            },
+            "commodity": {
+                "0": "string"
+            },
+            "effLevelGroupUnit": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
+            },
+            "group": {
+                "0": "string"
+            },
+            "p_gn": {
                 "0": "string",
                 "1": "string",
                 "2": "string",
-                "3": "string"
+                "3": "float"
+            },
+            "p_gnn": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "float"
+            },
+            "ts_gnn": {
+                "2": "float"
+            },
+            "p_gnu_io": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "string",
+                "5": "float"
+            },
+            "p_gnuBoundaryProperties": {
+                "5": "float"
+            },
+            "p_unit": {
+                "0": "string",
+                "1": "string",
+                "2": "float"
+            },
+            "p_unitConstraint": {
+                "1": "string"
+            },
+            "ts_unit": {
+                "2": "float"
+            },
+            "restype": {
+                "0": "string"
+            },
+            "p_groupReserves3D": {
+                "2": "float"
+            },
+            "p_groupReserves4D": {
+                "2": "float"
+            },
+            "p_gnuReserves": {
+                "2": "float"
+            },
+            "p_gnnReserves": {
+                "2": "float"
+            },
+            "p_gnuRes2Res": {
+                "2": "float"
+            },
+            "ts_reserveDemand": {
+                "2": "float"
+            },
+            "p_gnBoundaryPropertiesForStates": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "float"
+            },
+            "p_uStartupFuel": {
+                "3": "float"
+            },
+            "flowUnit": {
+                "0": "string",
+                "1": "string"
+            },
+            "emission": {
+                "0": "string"
+            },
+            "p_nEmission": {
+                "0": "string",
+                "1": "string",
+                "2": "float"
+            },
+            "ts_cf": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "float"
+            },
+            "ts_PriceChange": {
+                "0": "string",
+                "1": "string",
+                "2": "float"
+            },
+            "ts_influx": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "string",
+                "4": "float"
+            },
+            "ts_node": {
+                "4": "float"
+            },
+            "t_invest": {
+                "0": "string"
+            },
+            "utAvailabilityLimits": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "float"
+            },
+            "p_storageValue": {
+                "3": "float"
+            },
+            "ts_storageValue": {
+                "3": "float"
+            },
+            "gngroup": {
+                "0": "string",
+                "1": "string",
+                "2": "string"
+            },
+            "p_groupPolicyEmission": {
+                "0": "string",
+                "1": "string",
+                "2": "string",
+                "3": "float"
+            },
+            "p_s_discountFactor": {
+                "0": "string",
+                "1": "float"
             }
         },
         "table_row_types": {},
