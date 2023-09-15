@@ -23,7 +23,7 @@ $endif.debug3
     // Calculate data for scenario reduction
     Option clear = ts_energy_;
     ts_energy_(s)
-        = sum(sft(s, f, t)$mf_central(mSolve, f),
+        = sum(sft(s, f, t)$(mf_realization(mSolve, f) or mf_central(mSolve, f)),
               sum(gn(grid, node),
                   ts_influx_(grid, node, s, f, t)
                    + sum((flowNode(flow, node), flowUnit(flow, unit))
