@@ -568,7 +568,8 @@ p_netLoad_real(t_current(t))$[ord(t) > ord(tSolve)]
         (-1 * ts_influx(grid, node, f, t))
           // exclude nodes with storage
           $[not p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')]
-        - sum((gnu(grid, node, unit), flowUnit(flow, unit)),
+        - sum((flowNode(flow, node), flowUnit(flow, unit))
+               $gnu_output(grid, node, unit),
             ts_cf(flow, node, f, t) * p_gnu(grid, node, unit, 'capacity')
           )
     );
@@ -583,8 +584,10 @@ p_totalEnergy_model(scenario)
        ],
         p_stepLength(mSolve, f, t) * sum(gn(grid, node),
             ts_influx_(grid, node, s, f, t)
-            + sum((gnu(grid, node, unit), flowUnit(flow, unit)),
-                    ts_cf_(flow, node, s, f, t) * p_gnu(grid, node, unit, 'capacity')
+            + sum((flowNode(flow, node), flowUnit(flow, unit))
+                   $gnu_output(grid, node, unit),
+                  ts_cf_(flow, node, s, f, t)
+                   * p_gnu(grid, node, unit, 'capacity')
               )
         )
       );
@@ -637,7 +640,8 @@ loop(ms_initial(mSolve, s),
             (-1 * ts_influx_(grid, node, s, f, t_))
                // exclude nodes with storage
                $[not p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')]
-            - sum((gnu(grid, node, unit), flowUnit(flow, unit)),
+            - sum((flowNode(flow, node), flowUnit(flow, unit))
+                   $gnu_output(grid, node, unit),
                     ts_cf_(flow, node, s, f, t_) * p_gnu(grid, node, unit, 'capacity')
               )
         )
