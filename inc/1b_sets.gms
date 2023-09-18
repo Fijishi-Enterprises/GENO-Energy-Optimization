@@ -110,7 +110,13 @@ Sets
     groupRestype(group, restype) "Groups with reserve requirements"
 
 * --- Sets to define time, forecasts and samples ------------------------------
+$ifthen exist '%input_dir%/timeAndSamples.inc'
     $$include '%input_dir%/timeAndSamples.inc'
+$else
+    $$abort 'Did not find timeAndSamples.inc from the input folder, check path and spelling!'
+$endif
+$ife %system.errorlevel%>0 $abort importing timeAndSamples.inc failed! Check that your file is valid and that your file path and file name are correct.
+
     m(mType) "model(s) in use"
     s_active(s) "Samples with non-zero probability in the current model solve"
     s_realized(s) "All s among realized sft (redundant if always equivalent to s)"

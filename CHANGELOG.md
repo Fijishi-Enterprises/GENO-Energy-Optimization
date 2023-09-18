@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - an error message and abort if input data excel is not found from given location
 - an error message and abort if no input data is not found
+- an error message and abort timeAndSamples.inc not found
 
 ### Changed
 - cleaning code: replacing remaining tt_aggcircular with the new version
