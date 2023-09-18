@@ -169,7 +169,6 @@ Parameters   // optional parameter tables initiated as empty tables
     ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tEmission)" / /
     ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tEmission)" / /
     ts_groupPolicy(group, param_policy, t) "Two-dimensional time-dependent policy data for groups" / /
-    ts_groupPolicy_(group, param_policy, t) "Two-dimensional time-dependent policy data for groups processed for looping including time step aggregation if required"
 ;
 $offempty
 Parameters
@@ -187,6 +186,9 @@ Parameters
     ts_storageValue_(grid, node, s, f, t) "ts_storageValue values processed for looping including time step aggregation if required (EUR/<v_state_unit>)"
     ts_price_(node, t) "Commodity price (EUR/MWh) for aggregated time steps"
     ts_emissionPrice_(emission, group, t) "Emission group price time series  for aggregated time steps (EUR/tEmission)"
+    ts_groupPolicy_(group, param_policy, t) "Two-dimensional time-dependent policy data for groups processed for looping including time step aggregation if required"
+
+    // unit specific cost timeseries calculated based on other time series
     ts_vomCost_(grid, node, unit, t) "Calculated time dependent O&M cost that includes O&M cost, fuel cost and emission cost (EUR/MWh)"
     ts_startupCost_(unit, starttype, t) "Calculated time dependent startup cost that includes startup cost, fuel cost and emission cost (EUR/MW)"
 

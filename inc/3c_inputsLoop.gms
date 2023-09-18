@@ -268,8 +268,9 @@ loop(cc(counter),
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
     ts_groupPolicy_(group, param_policy, tt_interval(t))
-        ${ sum((s, f), sft(s, f, t)) }
-        = sum(tt_aggcircular(t, t_),
+        ${ groupPolicyTimeseries(group, param_policy)
+           and sum((s, f), sft(s, f, t)) }
+        = sum(tt_agg_circular(t, t_, t__),
             ts_groupPolicy(group, param_policy, t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);

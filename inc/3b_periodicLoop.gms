@@ -147,6 +147,7 @@ Option clear = ts_reserveDemand_;
 Option clear = ts_node_;
 Option clear = ts_price_;
 Option clear = ts_emissionPrice_;
+Option clear = ts_groupPolicy_;
 Option clear = ts_vomCost_;
 Option clear = ts_startupCost_;
 
