@@ -688,7 +688,7 @@ if( t_solveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes o
     v_startup_MIP.fx(starttype, unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
         ${ (ord(t) <= t_solveFirst) // Only fix previously realized time steps
            and unitStarttype(unit, starttype) }
-        = round(r_startup_uft(starttype, unit, f, t));
+        = r_startup_uft(starttype, unit, f, t);
 
     v_shutdown_LP.fx(unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
         ${  ord(t) <= t_solveFirst } // Only fix previously realized time steps
@@ -696,7 +696,7 @@ if( t_solveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes o
 
     v_shutdown_MIP.fx(unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
         ${  ord(t) <= t_solveFirst } // Only fix previously realized time steps
-        = round(r_shutdown_uft(unit, f, t));
+        = r_shutdown_uft(unit, f, t);
 
     v_online_LP.fx(unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
         ${  ord(t) <= t_solveFirst // Only fix previously realized time steps
@@ -706,7 +706,7 @@ if( t_solveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes o
     v_online_MIP.fx(unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
         ${  ord(t) <= t_solveFirst // Only fix previously realized time steps
             }
-        = round(r_online_uft(unit, f, t));
+        = r_online_uft(unit, f, t);
 ); // END if
 
 

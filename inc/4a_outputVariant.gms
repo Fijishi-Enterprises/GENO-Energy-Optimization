@@ -52,16 +52,16 @@ loop(ms(mSolve, s_realized(s)),
     // Realized unit online history
     r_online_uft(unit_online(unit), f, t_startp(t))$sft_realized(s, f, t)
         = v_online_LP.l(unit, s, f, t)$usft_onlineLP(unit, s, f, t)
-            + v_online_MIP.l(unit, s, f, t)$usft_onlineMIP(unit, s, f, t)
+            + round(v_online_MIP.l(unit, s, f, t))$usft_onlineMIP(unit, s, f, t)
     ;
     // Unit startup and shutdown history
     r_startup_uft(starttype, unit_online(unit), f, t_startp(t))$sft_realized(s, f, t)
         = v_startup_LP.l(starttype, unit, s, f, t)$usft_onlineLP(unit, s, f, t)
-            + v_startup_MIP.l(starttype, unit, s, f, t)$usft_onlineMIP(unit, s, f, t)
+            + round(v_startup_MIP.l(starttype, unit, s, f, t))$usft_onlineMIP(unit, s, f, t)
     ;
     r_shutdown_uft(unit_online(unit), f, t_startp(t))$sft_realized(s, f, t)
         = v_shutdown_LP.l(unit, s, f, t)$usft_onlineLP(unit, s, f, t)
-            + v_shutdown_MIP.l(unit, s, f, t)$usft_onlineMIP(unit, s, f, t)
+            + round(v_shutdown_MIP.l(unit, s, f, t))$usft_onlineMIP(unit, s, f, t)
     ;
 );
 
