@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 ## unversioned
 
 ### Added
+- input data sheet ts_groupPolicy for time series constraint
+- time series based maximum online status
 - an error message and abort if input data excel is not found from given location
 - an error message and abort if no input data is not found
 - an error message and abort timeAndSamples.inc not found
