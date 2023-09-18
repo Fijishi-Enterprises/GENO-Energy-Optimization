@@ -26,23 +26,12 @@ Scalars
     BIG_M "A large number used together with with binary variables in some equations"
 ;
 
-$If set penalty PENALTY=%penalty%;
-$If not set penalty PENALTY=1e4;
-BIG_M = 1e5;
-
 Parameters
     PENALTY_BALANCE(grid, node) "Penalty on violating energy balance eq. (EUR/MWh)"
     PENALTY_RES(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
     PENALTY_RES_MISSING(restype, up_down) "Penalty on violating a reserve (EUR/MW)"
     PENALTY_CAPACITY(grid, node) "Penalty on violating capacity margin eq. (EUR/MW/h)"
 ;
-
-PENALTY_BALANCE(grid, node) = p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'constant')
-                              + PENALTY${not p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useConstant')};
-
-PENALTY_RES(restype, up_down) = 0.9*PENALTY;
-PENALTY_RES_MISSING(restype, up_down) = 0.7*PENALTY;
-PENALTY_CAPACITY(grid, node) = 0.8*PENALTY;
 
 
 * =============================================================================

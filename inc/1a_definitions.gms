@@ -101,10 +101,8 @@ Sets
 * --- General and Directional Sets --------------------------------------------
 
     // General Counter
-    counter "General counter set"
+    counter_large "General counter set"
         /c000*c999/
-    cc(counter) "Temporary subset of counter used for calculations"
-
     // Directional Sets
     input_output "Designating nodes as either inputs or outputs"
         / input, output /
@@ -167,7 +165,7 @@ Parameter
     mSettings(mType, mSetting) "Model settings array"
     mSettingsEff(mtype, effLevel) "Model efficiency approximation array"
     mSettingsEff_start(mtype, effLevel) "The first time step of the efficiency level - mSettingsEff is the last"
-    mInterval(mType, mSetting, counter) "Model interval array"
+    mInterval(mType, mSetting, counter_large) "Model interval array"
     t_skip_counter "Numerical counter for solve time steps"
 ;
 
@@ -192,12 +190,12 @@ Sets
 param_gn  "Possible parameters for grid, node" /
     nodeBalance      "A flag to decide whether node balance constraint is to be used and price option disabled (empty or 1)"
     usePrice         "A flag to decide if node has prices activated and balance deactivated (empty or 1). Must choose either balance or price."
-    selfDischargeLoss "Self discharge rate of the node (p.u./h)"
+    selfDischargeLoss "Self discharge rate of the node (MW/[v_state])" // p.u./h if if [v_state] = MWh
     energyStoredPerUnitOfState "A possible unit conversion if v_state uses something else than MWh (MWh/[v_state])"
     boundStart       "A flag to bound the first t in the run using reference constant or time series (empty or 1)"
     boundStartOfSamples  "A flag to bound the first t of each sample using reference constant or time series (empty or 1)"
     boundStartAndEnd "A flag that both start and end are bound using reference constant or time series (empty or 1)"
-    boundStartToEnd  "A flag to force the last states of solve to equal the first state (empty or 1)"
+    boundStartToEnd  "A flag to force the last states of solve to equal the first state (empty or 1). Works only when solveCount > 1, e.g. in schedule run."
     boundEnd         "A flag to bound last t in each solve based on the reference constant or time series (empty or 1)"
     boundEndOfSamples  "A flag to bound the last t of each sample using reference constant or time series (empty or 1)"
     boundAll         "A flag to bound the state to the reference in all time steps (empty or 1)"
@@ -256,6 +254,7 @@ param_gnu "Set of possible data parameters for grid, node, unit" /
     unitSize      "Input/Output capacity of one subunit for integer investments (MW)"
     invCosts      "Investment costs (EUR/MW)"
     annuityFactor "Investment annuityFactor used to multiply investment cost for annualization of costs (0-1)"
+    invEnergyCost "Investment energy cost (MWh/MW). Consumes energy from input/output node."
     fomCosts      "Fixed operation and maintenance costs (EUR/MW/a)"
     vomCosts      "Variable operation and maintenance costs (EUR/MWh)"
     inertia       "Inertia of the unit (s)"

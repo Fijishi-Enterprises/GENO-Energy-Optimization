@@ -78,18 +78,21 @@ Parameters
     p_effGroupUnit(effSelector, unit, param_eff) "Unit data specific to a efficiency group (e.g. left border of the unit)"
     p_uNonoperational(unit, starttype, min_max) "Non-operational time after being shut down before start up"
     p_uStartup(unit, starttype, cost_consumption) "Startup cost and fuel consumption"
+    // unused: remove for 4.x
     p_u_maxOutputInLastRunUpInterval(unit) "Maximum output in the last interval for the run-up to min. load (p.u.)"
+    // unused: remove for 4.x
     p_u_maxRampSpeedInLastRunUpInterval(unit) "Maximum ramp speed in the last interval for the run-up to min. load (p.u.)"
     p_u_runUpTimeIntervals(unit)       "Time steps required for the run-up phase"
     p_u_runUpTimeIntervalsCeil(unit)   "Ceiling of time steps required for the run-up phase"
-    p_uCounter_runUpMin(unit, counter) "Minimum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
-    p_uCounter_runUpMax(unit, counter) "Maximum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
+    p_uCounter_runUpMin(unit, counter_large) "Minimum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
+    p_uCounter_runUpMax(unit, counter_large) "Maximum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
+    // unused: remove for 4.x
     p_u_maxOutputInFirstShutdownInterval(unit) "Maximum output in the first interval for the shutdown from min. load (p.u.)"
     p_uShutdown(unit, cost_consumption) "Shutdown cost per unit"
     p_u_shutdownTimeIntervals(unit)     "Time steps required for the shutdown phase"
     p_u_shutdownTimeIntervalsCeil(unit) "Floor of time steps required for the shutdown phase"
-    p_uCounter_shutdownMin(unit, counter) "Minimum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
-    p_uCounter_shutdownMax(unit, counter) "Maximum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
+    p_uCounter_shutdownMin(unit, counter_large) "Minimum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
+    p_uCounter_shutdownMax(unit, counter_large) "Maximum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
     p_u_minRampSpeedInLastRunUpInterval(unit) "Minimum ramp speed in the last interval for the run-up to min. load (p.u./min)"
     p_u_minRampSpeedInFirstShutdownInterval(unit) "Minimum ramp speed in the fist interval for the shutdown from min. load (p.u./min)"
 // Time dependent unit & commodity parameters
@@ -107,7 +110,7 @@ $offempty
 Parameters
     p_msWeight(mType, s) "Temporal weight of sample: number of similar periods represented by sample s (0-1)"
     p_msAnnuityWeight(mType, s) "Temporal weight of sample: used when calculating annuities (0-1)"
-    p_msProbability(mType, s) "Probability to reach sample conditioned on ancestor samples (0-1)"
+    p_msProbability(mType, s) "Probability of samples (0-1)"
     p_mfProbability(mType, f) "Probability of forecast (0-1)"
     p_msft_probability(mType, s, f, t) "Probability of forecast (0-1)"
     p_sProbability(s) "Probability of sample (0-1)"
@@ -124,10 +127,10 @@ Parameters
     dt_active(t) "Displacement needed to reach the corresponding active time interval from any time interval (in time steps)"
     dt_toStartup(unit, t) "Displacement from the current time interval to the time interval where the unit was started up in case online variable changes from 0 to 1 (in time steps)"
     dt_toShutdown(unit, t) "Displacement from the current time interval to the time interval where the shutdown phase began in case generation becomes 0 (in time steps)"
-    dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints (in time steps)"
-    dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints (in time steps)"
-    dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints (in time steps)"
-    dt_trajectory(counter) "Run-up/shutdown trajectory time index displacement"
+    dt_starttypeUnitCounter(starttype, unit, counter_large) "Displacement needed to account for starttype constraints (in time steps)"
+    dt_downtimeUnitCounter(unit, counter_large) "Displacement needed to account for downtime constraints (in time steps)"
+    dt_uptimeUnitCounter(unit, counter_large) "Displacement needed to account for uptime constraints (in time steps)"
+    dt_trajectory(counter_large) "Run-up/shutdown trajectory time index displacement"
 
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
@@ -135,10 +138,6 @@ Parameters
     df_reserves(grid, node, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
     df_reservesGroup(group, restype, f, t) "Forecast index displacement needed to reach the realized forecast when committing reserves"
     df_realization(f, t) "Displacement needed to reach the realized forecast on the current time step when no forecast is available"
-
-    // Sample displacement arrays
-    ds(s, t) "Displacement needed to reach the sample of previous time step"
-    ds_state(grid, node, s, t) "Displacement needed to reach the sample of previous time step at this node"
 
     // Temporary displacement arrays
     ddt(t) "Temporary time displacement array"
@@ -201,11 +200,6 @@ Parameters
     ts_reserveDemand_update(restype, up_down, group, f, t)
     ts_node_update(grid, node, param_gnBoundaryTypes, f, t)
     ts_gnn_update(grid, node, node, param_gnn, f, t)
-
-    // Help parameters for calculating smoothening of time series
-    ts_influx_std(grid, node, t)  "Standard deviation of ts_influx over samples"
-    ts_cf_std(flow, node, t) "Standard deviation of ts_cf over samples (p.u.)"
-
 ;
 
 * --- Other time dependent parameters -----------------------------------------
@@ -214,5 +208,6 @@ Parameters
     p_stepLength(mType, f, t) "Length of an interval in hours"
     p_stepLengthNoReset(mType, f, t) "Length of an interval in hours - includes also lengths of previously realized intervals"
     p_s_discountFactor(s) "Discount factor for samples for objective function. Allows multiyear modelling." / /
+    p_msLengthInHours(mType, s) "Sample length in hours"
 ;
 $offempty

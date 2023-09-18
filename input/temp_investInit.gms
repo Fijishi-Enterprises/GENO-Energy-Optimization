@@ -52,6 +52,8 @@ if (mType('invest'),
     // For selecting the samples, see, for example, https://doi.org/10.1016/j.energy.2020.118585.
     // The duration of the samples can be, for example, 1 day or 1 week (24 h or 168 h).
     // The samples can have different durations.
+    // msStart=1 means that t000001 is the first active time step in the sample
+    // msEnd=169 means that t000168 is the last active time step in the sample 
     msStart('invest', 's000') = 1;
     msEnd('invest', 's000') = msStart('invest', 's000') + 168;
     msStart('invest', 's001') = 1 + 18*168;

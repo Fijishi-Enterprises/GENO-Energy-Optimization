@@ -262,7 +262,7 @@ loop(cc(counter),
     // ts_unit_ for active t in solve including aggregated time steps
     ts_unit_(unit_timeseries(unit), param_unit, ft(f, tt_interval(t)))
         ${ sum(s, sft(s, f, t)) }
-        = sum(tt_aggcircular(t, t_),
+        = sum(tt_agg_circular(t, t_, t__),
             ts_unit(unit, param_unit, f +(df_realization(f, t)$(not unit_forecasts(unit, 'ts_unit'))), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
@@ -277,20 +277,20 @@ loop(cc(counter),
 
     // ts_unitConstraintNode_ for active t in solve including aggregated time steps
     ts_unitConstraintNode_(unit, constraint, node, sft(s, f, tt_interval(t)))${unit_tsConstrained(unit)}
-        = sum(tt_aggcircular(t, t_),
+        = sum(tt_agg_circular(t, t_, t__),
             ts_unitConstraintNode(unit, constraint, node, f +(df_realization(f, t)$(not unit_forecasts(unit, 'ts_unitConstraintNode'))), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
     // ts_influx_ for active t in solve including aggregated time steps
     ts_influx_(gn_influx(grid, node), sft(s, f, tt_interval(t)))
-        = sum(tt_aggcircular(t, t_),
+        = sum(tt_agg_circular(t, t_, t__),
             ts_influx(grid, node, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_influx'))), t_)
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
 
     // ts_cf_ for active t in solve including aggregated time steps
     ts_cf_(flowNode(flow, node), sft(s, f, tt_interval(t)))
-        = sum(tt_aggcircular(t, t_),
+        = sum(tt_agg_circular(t, t_, t__),
             ts_cf(flow, node, f +(df_realization(f, t)$(not gn_forecasts(flow, node, 'ts_cf'))), t_)
             ) / mInterval(mSolve, 'stepsPerInterval', counter);
 
@@ -298,7 +298,7 @@ loop(cc(counter),
     ts_reserveDemand_(restypeDirectionGroup(restype, up_down, group), ft(f, tt_interval(t)))
       ${ord(t) <= t_solveFirst + p_groupReserves(group, restype, 'reserve_length')
         and sum(s, sft(s, f, t)) }
-        = sum(tt_aggcircular(t, t_),
+        = sum(tt_agg_circular(t, t_, t__),
             ts_reserveDemand(restype, up_down, group,
                              f +(df_realization(f, t)${not sum(gnGroup(grid, node, group), gn_forecasts(restype, node, 'ts_reserveDemand'))}), t_)
             )
@@ -307,19 +307,19 @@ loop(cc(counter),
     // ts_node_ for active t in solve including aggregated time steps
     ts_node_(gn_BoundaryType_ts(grid, node, param_gnBoundaryTypes), sft(s, f, tt_interval(t)))
            // Take average if not a limit type
-        = (sum(tt_aggcircular(t, t_),
+        = (sum(tt_agg_circular(t, t_, t__),
                 ts_node(grid, node, param_gnBoundaryTypes, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter))$( not (sameas(param_gnBoundaryTypes, 'upwardLimit')
                                                                 or sameas(param_gnBoundaryTypes, 'downwardLimit')
                                                                 or slack(param_gnBoundaryTypes)))
           // Maximum lower limit
-          + smax(tt_aggcircular(t, t_),
+          + smax(tt_agg_circular(t, t_, t__),
                 ts_node(grid, node, param_gnBoundaryTypes, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))), t_)
                 )
                 $(sameas(param_gnBoundaryTypes, 'downwardLimit') or downwardSlack(param_gnBoundaryTypes))
           // Minimum upper limit
-          + smin(tt_aggcircular(t, t_),
+          + smin(tt_agg_circular(t, t_, t__),
                 ts_node(grid, node, param_gnBoundaryTypes, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_node'))), t_)
                 )
                 $(sameas(param_gnBoundaryTypes, 'upwardLimit') or upwardSlack(param_gnBoundaryTypes));
@@ -327,8 +327,8 @@ loop(cc(counter),
     // processing ts_gnn values for active ft including time step aggregation
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
         ${ sum(s, sft(s, f, t)) }
-        = sum(tt_aggcircular(t, t_), ts_gnn(grid, node, node_, param_gnn, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_gnn'))), t_)
-             ) // END sum(tt_aggcircular)
+        = sum(tt_agg_circular(t, t_, t__), ts_gnn(grid, node, node_, param_gnn, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_gnn'))), t_)
+             ) // END sum(tt_agg_circular)
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
 
@@ -337,57 +337,64 @@ loop(cc(counter),
     ts_price_(node, tt_interval(t))
         ${p_price(node, 'useTimeSeries')
           and sum((s, f), sft(s, f, t)) }
-        = sum(tt_aggcircular(t, t_),
+        = sum(tt_agg_circular(t, t_, t__),
                 ts_price(node, t_)
-             ) // END sum(tt_aggcircular)
+             ) // END sum(tt_agg_circular)
              / mInterval(mSolve, 'stepsPerInterval', counter) // dividing the sum by steplength to convert values in aggregated time steps to hourly values
     ;
 
     // ts_emissionPrice_ calculation to avoid recalculating this for every unit in ts_vomCost_ and ts_startupCost_
     // note: same values for each forecast
-    ts_price_(node, tt_interval(t))
-        ${p_price(node, 'useTimeSeries')
+    ts_emissionPrice_(emission, group, tt_interval(t))
+        ${p_emissionPrice(emission, group, 'useTimeSeries')
           and sum((s, f), sft(s, f, t)) }
-        = sum(tt_aggcircular(t, t_),
-                ts_price(node, t_)
-             ) // END sum(tt_aggcircular)
+        = sum(tt_agg_circular(t, t_, t__),
+                ts_emissionPrice(emission, group, t_)
+             ) // END sum(tt_agg_circular)
              / mInterval(mSolve, 'stepsPerInterval', counter) // dividing the sum by steplength to convert values in aggregated time steps to hourly values
     ;
 
     // vomCost calculations when one or more price time series
+    // Total = gnu vom costs
+    //         + gnu emission costs
+    //         + gn vom costs
+    //         + gn emission costs
     ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
         ${p_vomCost(grid, node, unit, 'useTimeseries')
           and sum((s, f), sft(s, f, t)) }
-        = // gnu specific cost. Always a cost (positive) if input or output.
-          // vomCosts
-          + p_gnu(grid, node, unit, 'vomCosts')
+        = // gnu specific cost (EUR/MWh). Always a cost (positive) for all inputs or outputs.
 
-          // gnu specific emission cost (e.g. process related LCA emission). Always a cost if input or output.
-          + sum(emissionGroup(emission, group)$ p_nEmission(node, emission),
-               + p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
-               * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
-                   + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
-                 )
-               ) // end sum(emissiongroup)
+            // gnu specific vomCosts
+            + p_gnu(grid, node, unit, 'vomCosts')     // EUR/MWh
 
-          // gn specific costs. Cost when input but income when output.
+            // gnu specific emission cost (e.g. process related LCA emission). Always a cost regardless if from input or output.
+            + sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)}, // EUR/MWh
+                + p_gnuEmission(grid, node, unit, emission, 'vomEmissions')                                         // tCO2/MWh
+                    * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant') // EUR/tCO2, constant
+                        + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')   // EUR/tCO2, timeseries
+                        )
+                ) // end sum(emissiongroup)
+            // END * gnu specific costs
+
+        // gn specific costs (EUR/MWh). Cost (positive) when input but income (negative) when output.
+
           // converting gn specific costs negative if output -> income
           + (+1$gnu_input(grid, node, unit)
              -1$gnu_output(grid, node, unit)
-             )
+             ) // END changing sings for input/output
 
-          * ( // gn specific node cost, e.g. fuel price
-              + p_price(node, 'price')${p_price(node, 'useConstant')}
-              + ts_price_(node, t)${p_price(node, 'useTimeSeries')}
+          * ( // gn specific node cost, e.g. fuel price (EUR/MWh). Cost when input but income when output.
+              + p_price(node, 'price')${p_price(node, 'useConstant')}  // EUR/MWh, constant
+              + ts_price_(node, t)${p_price(node, 'useTimeSeries')}    // EUR/MWh, timeseries
 
-              // gn specific emission cost, e.g. CO2 allowance price from fuel emissions.
-              + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
-                  + p_nEmission(node, emission)  // t/MWh
-                  * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
-                      + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+              // gn specific emission cost, e.g. CO2 allowance price from fuel emissions. Cost when from input but income when from output.
+              + sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)},   // EUR/MWh
+                  + p_nEmission(node, emission)  // t/MWh                                                          // tCO2/MWh
+                  * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')  // EUR/tCO2, constant
+                      + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')    // EUR/tCO2, timeseries
                      )
                   ) // end sum(emissiongroup)
-             ) // END * gnu_input/output
+            ) // END * gn specific costs
     ;
 
     // Startup cost calculations
@@ -416,9 +423,9 @@ loop(cc(counter),
 
     // `storageValue`
     ts_storageValue_(gn_state(grid, node), sft(s, f, tt_interval(t)))${ p_gn(grid, node, 'storageValueUseTimeSeries') }
-        = sum(tt_aggcircular(t, t_),
+        = sum(tt_agg_circular(t, t_, t__),
             ts_storageValue(grid, node, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_storageValue'))), t_)
-            )
+            ) // END sum(tt_agg_circular)
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
 ); // END loop(counter)
@@ -460,17 +467,8 @@ p_msft_probability(msft(mSolve, s, f, t))
         / sum(f_$ft(f_, t),
               p_mfProbability(mSolve, f_)
           ) * p_msProbability(mSolve, s)
-            * p_msWeight(mSolve, s);
-
-
-* --- Calculate sample displacements ------------------------------------------
-Options clear = ds, clear = ds_state;
-loop((mst_start(mSolve, s, t), ss(s, s_)),
-    ds(s, t) = -(ord(s) - ord(s_));
-    ds_state(gn_state(grid, node), s, t)
-      ${not sum(s__, gnss_bound(grid, node, s__, s))
-        and not sum(s__, gnss_bound(grid, node, s, s__))} = ds(s, t);
-);
+            * p_msWeight(mSolve, s)
+;
 
 
 
