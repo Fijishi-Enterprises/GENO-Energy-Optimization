@@ -267,6 +267,14 @@ loop(cc(counter),
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
+    ts_groupPolicy_(group, param_policy, tt_interval(t))
+        ${ groupPolicyTimeseries(group, param_policy)
+           and sum((s, f), sft(s, f, t)) }
+        = sum(tt_agg_circular(t, t_, t__),
+            ts_groupPolicy(group, param_policy, t_)
+            )
+            / mInterval(mSolve, 'stepsPerInterval', counter);
+
     // ts_unitConstraintNode_ for active t in solve including aggregated time steps
     ts_unitConstraintNode_(unit, constraint, node, sft(s, f, tt_interval(t)))${unit_tsConstrained(unit)}
         = sum(tt_agg_circular(t, t_, t__),

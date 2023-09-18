@@ -209,6 +209,7 @@ $ife %system.errorlevel%>0 $abort importing timeAndSamples.inc failed! Check tha
     gnGroup(grid, node, group) "Combination of grids and nodes in particular groups" / /
     sGroup(s, group) "Samples in particular groups" / /
     emissionGroup(emission, group) "combinations of emissions and groups"
+    groupPolicyTimeseries(group, param_policy) "Combination of groups and policies that have time series" / /
 
 * --- Set of timeseries that will be read from files between solves -----------
     mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"

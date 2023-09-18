@@ -3154,6 +3154,7 @@ $offtext
 
 q_constrainedOnlineMultiUnit(group, sft(s, f, t))
     ${  p_groupPolicy(group, 'constrainedOnlineTotalMax')
+        or groupPolicyTimeseries (group, 'constrainedOnlineTotalMax')
         or sum(unit$uGroup(unit, group), abs(p_groupPolicyUnit(group, 'constrainedOnlineMultiplier', unit)))
         } ..
 
@@ -3170,8 +3171,11 @@ q_constrainedOnlineMultiUnit(group, sft(s, f, t))
 
     =L=
 
-    // Total maximum of multiplied online units
-    + p_groupPolicy(group, 'constrainedOnlineTotalMax')
+    // Total maximum of multiplied online units, constant
+    + p_groupPolicy(group, 'constrainedOnlineTotalMax') $ {not groupPolicyTimeseries (group, 'constrainedOnlineTotalMax')}
+
+    // Total maximum of multiplied online units, timeseries
+    + ts_groupPolicy_(group, 'constrainedOnlineTotalMax', t) $ {groupPolicyTimeseries (group, 'constrainedOnlineTotalMax')}  
 ;
 
 *--- Required Capacity Margin -------------------------------------------------
