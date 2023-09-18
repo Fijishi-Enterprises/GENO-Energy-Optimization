@@ -1249,16 +1249,16 @@ q_rampUpLimit(gnusft_ramp(grid, node, unit, s, f, t))
     // Units in the run-up phase need to keep up with the run-up rate
     + p_gnu(grid, node, unit, 'unitSize')
         * sum(unitStarttype(unit, starttype)${usft_startupTrajectory(unit, s, f, t)},
-            sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
+            sum(runUpCounter(unit, counter(counter_large))${t_active(t+dt_trajectory(counter_large))}, // Sum over the run-up intervals
                 + [
-                    + v_startup_LP(starttype, unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
-                    + v_startup_MIP(starttype, unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    + v_startup_LP(starttype, unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large)) }
+                    + v_startup_MIP(starttype, unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large)) }
                     ]
                     * [
                         + p_unit(unit, 'rampSpeedToMinLoad')
-                        + ( p_gnu(grid, node, unit, 'maxRampUp') - p_unit(unit, 'rampSpeedToMinLoad') )${ not runUpCounter(unit, counter+1) } // Ramp speed adjusted for the last run-up interval
+                        + ( p_gnu(grid, node, unit, 'maxRampUp') - p_unit(unit, 'rampSpeedToMinLoad') )${ not runUpCounter(unit, counter_large+1) } // Ramp speed adjusted for the last run-up interval
                             * ( p_u_runUpTimeIntervalsCeil(unit) - p_u_runUpTimeIntervals(unit) )
                         ]
                     * 60 // Unit conversion from [p.u./min] into [p.u./h]
@@ -1395,17 +1395,17 @@ q_rampDownLimit(gnusft_ramp(grid, node, unit, s, f, t))
     // Units in shutdown phase need to keep up with the shutdown ramp rate
     - p_gnu(grid, node, unit, 'unitSize')$gnu_output(grid, node, unit)
         * [
-            + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and usft_shutdownTrajectory(unit, s, f, t)}, // Sum over the shutdown intervals
+            + sum(shutdownCounter(unit, counter(counter_large))${t_active(t+dt_trajectory(counter_large)) and usft_shutdownTrajectory(unit, s, f, t)}, // Sum over the shutdown intervals
                 + [
-                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
-                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large)) }
+                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large)) }
                     ]
                     * [
-                        + p_gnu(grid, node, unit, 'maxRampDown')${ not shutdownCounter(unit, counter-1) } // Normal maxRampDown limit applies to the time interval when v_shutdown happens, i.e. over the change from online to offline (symmetrical to v_startup)
-                        + p_unit(unit, 'rampSpeedFromMinLoad')${ shutdownCounter(unit, counter-1) } // Normal trajectory ramping
-                        + ( p_gnu(grid, node, unit, 'maxRampDown') - p_unit(unit, 'rampSpeedFromMinLoad') )${ shutdownCounter(unit, counter-1) and not shutdownCounter(unit, counter-2) } // Ramp speed adjusted for the first shutdown interval
+                        + p_gnu(grid, node, unit, 'maxRampDown')${ not shutdownCounter(unit, counter_large-1) } // Normal maxRampDown limit applies to the time interval when v_shutdown happens, i.e. over the change from online to offline (symmetrical to v_startup)
+                        + p_unit(unit, 'rampSpeedFromMinLoad')${ shutdownCounter(unit, counter_large-1) } // Normal trajectory ramping
+                        + ( p_gnu(grid, node, unit, 'maxRampDown') - p_unit(unit, 'rampSpeedFromMinLoad') )${ shutdownCounter(unit, counter_large-1) and not shutdownCounter(unit, counter_large-2) } // Ramp speed adjusted for the first shutdown interval
                             * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) )
                         ]
                 ) // END sum(shutdownCounter)
@@ -1419,7 +1419,7 @@ q_rampDownLimit(gnusft_ramp(grid, node, unit, s, f, t))
                 ${usft_shutdownTrajectory(unit, s, f, t)}
                 * [
                     + p_unit(unit, 'rampSpeedFromMinload')
-                    + ( p_gnu(grid, node, unit, 'maxRampDown') - p_unit(unit, 'rampSpeedFromMinLoad') )${ sum(shutdownCounter(unit, counter), 1) = 1 } // Ramp speed adjusted if the unit has only one shutdown interval
+                    + ( p_gnu(grid, node, unit, 'maxRampDown') - p_unit(unit, 'rampSpeedFromMinLoad') )${ sum(shutdownCounter(unit, counter_large), 1) = 1 } // Ramp speed adjusted if the unit has only one shutdown interval
                         * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) )
                     ]
             ]
@@ -1494,19 +1494,19 @@ q_rampUpDown(gnusft_ramp(grid, node, unit, s, f, t))
     // Generation units in the run-up phase need to keep up with the run-up rate (not counted in the ramping costs)
     + p_gnu(grid, node, unit, 'unitSize')$gnu_output(grid, node, unit)
         * sum(unitStarttype(unit, starttype)${usft_startupTrajectory(unit, s, f, t)},
-            sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
+            sum(runUpCounter(unit, counter(counter_large))${t_active(t+dt_trajectory(counter_large))}, // Sum over the run-up intervals
                 + [
-                    + v_startup_LP(starttype, unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))}
-                    + v_startup_MIP(starttype, unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))}
+                    + v_startup_LP(starttype, unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))}
+                    + v_startup_MIP(starttype, unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))}
                     ]
                     * [
-                        + p_uCounter_runUpMin(unit, counter)${ not runUpCounter(unit, counter-1) } // Ramp speed adjusted for the first run-up interval
+                        + p_uCounter_runUpMin(unit, counter_large)${ not runUpCounter(unit, counter_large-1) } // Ramp speed adjusted for the first run-up interval
                             / sum(m, p_stepLength(m, f, t)) // Ramp is the change of v_gen divided by interval length
-                        + p_unit(unit, 'rampSpeedToMinLoad')${ runUpCounter(unit, counter-1) and runUpCounter(unit, counter+1) } // Normal trajectory ramping in the middle of the trajectory
+                        + p_unit(unit, 'rampSpeedToMinLoad')${ runUpCounter(unit, counter_large-1) and runUpCounter(unit, counter_large+1) } // Normal trajectory ramping in the middle of the trajectory
                             * 60 // Unit conversion from [p.u./min] into [p.u./h]
-                        + p_u_minRampSpeedInLastRunUpInterval(unit)${ runUpCounter(unit, counter-1) and not runUpCounter(unit, counter+1) } // Ramp speed adjusted for the last run-up interval
+                        + p_u_minRampSpeedInLastRunUpInterval(unit)${ runUpCounter(unit, counter_large-1) and not runUpCounter(unit, counter_large+1) } // Ramp speed adjusted for the last run-up interval
                             * 60 // Unit conversion from [p.u./min] into [p.u./h]
                         ]
                 ) // END sum(runUpCounter)
@@ -1547,18 +1547,18 @@ q_rampUpDown(gnusft_ramp(grid, node, unit, s, f, t))
     // Generation units in shutdown phase need to keep up with the shutdown ramp rate (not counted in the ramping costs)
     - p_gnu(grid, node, unit, 'unitSize')$gnu_output(grid, node, unit)
         * [
-            + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and usft_shutdownTrajectory(unit, s, f, t)}, // Sum over the shutdown intervals
+            + sum(shutdownCounter(unit, counter(counter_large))${t_active(t+dt_trajectory(counter_large)) and usft_shutdownTrajectory(unit, s, f, t)}, // Sum over the shutdown intervals
                 + [
-                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))}
-                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))}
+                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))}
+                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))}
                     ]
                     * [
                         // Note that ramping happening during shutdown trajectory when ord(counter) = 1 is considered 'normal ramping' and causes ramping costs
-                        + p_u_minRampSpeedInFirstShutdownInterval(unit)${ not shutdownCounter(unit, counter-2) and shutdownCounter(unit, counter-1) } // Ramp speed adjusted for the first shutdown interval
+                        + p_u_minRampSpeedInFirstShutdownInterval(unit)${ not shutdownCounter(unit, counter_large-2) and shutdownCounter(unit, counter_large-1) } // Ramp speed adjusted for the first shutdown interval
                             * 60 // Unit conversion from [p.u./min] into [p.u./h]
-                        + p_unit(unit, 'rampSpeedFromMinLoad')${ shutdownCounter(unit, counter-2) } // Normal trajectory ramping in the middle of the trajectory
+                        + p_unit(unit, 'rampSpeedFromMinLoad')${ shutdownCounter(unit, counter_large-2) } // Normal trajectory ramping in the middle of the trajectory
                             * 60 // Unit conversion from [p.u./min] into [p.u./h]
                         ]
                 ) // END sum(shutdownCounter)
@@ -1569,7 +1569,7 @@ q_rampUpDown(gnusft_ramp(grid, node, unit, s, f, t))
                 + v_shutdown_MIP(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))
                     ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_toShutdown(unit, t)), t+dt_toShutdown(unit, t))}
                 ]
-                * sum(shutdownCounter(unit, counter)${not shutdownCounter(unit, counter+1)}, p_uCounter_shutdownMin(unit, counter)) // Minimum generation level at the last shutdown interval
+                * sum(shutdownCounter(unit, counter_large)${not shutdownCounter(unit, counter_large+1)}, p_uCounter_shutdownMin(unit, counter_large)) // Minimum generation level at the last shutdown interval
                 / sum(m, p_stepLength(m, f, t)) // Ramp is the change of v_gen divided by interval length
             ]
 
@@ -1639,15 +1639,15 @@ q_rampSlack(gnusft_rampCost(slack, grid, node, unit, s, f, t))
     // Generation units in the last step of their run-up phase
     + p_gnu(grid, node, unit, 'unitSize')$gnu_output(grid, node, unit)
         * sum(unitStarttype(unit, starttype)${usft_startupTrajectory(unit, s, f, t)},
-            sum(runUpCounter(unit, counter)${t_active(t+dt_trajectory(counter))}, // Sum over the run-up intervals
+            sum(runUpCounter(unit, counter(counter_large))${t_active(t+dt_trajectory(counter_large))}, // Sum over the run-up intervals
                 + [
-                    + v_startup_LP(starttype, unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
-                    + v_startup_MIP(starttype, unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    + v_startup_LP(starttype, unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large)) }
+                    + v_startup_MIP(starttype, unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large)) }
                     ]
                     * [
-                        + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ not runUpCounter(unit, counter+1) } // Ramp speed adjusted for the last run-up interval
+                        + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ not runUpCounter(unit, counter_large+1) } // Ramp speed adjusted for the last run-up interval
                             * ( p_u_runUpTimeIntervalsCeil(unit) - p_u_runUpTimeIntervals(unit) )
                         ]
                     * 60 // Unit conversion from [p.u./min] into [p.u./h]
@@ -1657,16 +1657,16 @@ q_rampSlack(gnusft_rampCost(slack, grid, node, unit, s, f, t))
     // Generation units in the first step of their shutdown phase and ramping from online to offline state
     + p_gnu(grid, node, unit, 'unitSize')$gnu_output(grid, node, unit)
         * [
-            + sum(shutdownCounter(unit, counter)${t_active(t+dt_trajectory(counter)) and usft_shutdownTrajectory(unit, s, f, t)}, // Sum over the shutdown intervals
+            + sum(shutdownCounter(unit, counter(counter_large))${t_active(t+dt_trajectory(counter_large)) and usft_shutdownTrajectory(unit, s, f, t)}, // Sum over the shutdown intervals
                 + [
-                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
-                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter))
-                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter)), t+dt_trajectory(counter)) }
+                    + v_shutdown_LP(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineLP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large)) }
+                    + v_shutdown_MIP(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large))
+                        ${ usft_onlineMIP_withPrevious(unit, s, f+df(f, t+dt_trajectory(counter_large)), t+dt_trajectory(counter_large)) }
                     ]
                     * [
-                        //+ p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ not shutdownCounter(unit, counter-1) } // Note that ramping happening during shutdown trajectory when ord(counter) = 1 is considered 'normal ramping' and causes ramping costs (calculated above in the other v_shutdown term)
-                        + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ shutdownCounter(unit, counter-1) and not shutdownCounter(unit, counter-2) } // Ramp speed adjusted for the first shutdown interval
+                        //+ p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ not shutdownCounter(unit, counter_large-1) } // Note that ramping happening during shutdown trajectory when ord(counter) = 1 is considered 'normal ramping' and causes ramping costs (calculated above in the other v_shutdown term)
+                        + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampLimit')${ shutdownCounter(unit, counter_large-1) and not shutdownCounter(unit, counter_large-2) } // Ramp speed adjusted for the first shutdown interval
                             * ( p_u_shutdownTimeIntervalsCeil(unit) - p_u_shutdownTimeIntervals(unit) )
                         ]
                 ) // END sum(shutdownCounter)
