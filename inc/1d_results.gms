@@ -142,6 +142,11 @@ Parameters
     r_reserveTransferRightward_gnn(restype, up_down, grid, node, node) "Total electricity transmission capacity from the first node to the second node reserved for providing reserves (MW*h)"
     r_reserveTransferLeftward_gnn(restype, up_down, grid, node, node) "Total electricity transmission capacity from the second node to the first node reserved for providing reserves (MW*h)"
 
+* --- Stability Results -------------------------------------------------------
+
+    // RoCoF
+    r_stability_rocof_unit_ft(group, f, t) "Largest rate of change of frequency due to a unit failure"
+
 * --- Dummy Result Symbols ----------------------------------------------------
 
     // Results regarding solution feasibility
