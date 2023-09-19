@@ -6,9 +6,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - input data sheet ts_groupPolicy for time series constraint
 - time series based maximum online status
-- an error message and abort if input data excel is not found from given location
-- an error message and abort if no input data is not found
-- an error message and abort timeAndSamples.inc not found
+- result table on Rate Of Change Of Frequency (ROCOF)
+- an error message and abort if input data excel, input data gdx, or timeAndSamples.inc not found
 
 ### Changed
 - cleaning code: replacing remaining tt_aggcircular with the new version
@@ -19,7 +18,7 @@ All notable changes to this project will be documented in this file.
 - Automatically reducing the number of internal counters based on input data
 
 ### Fixed
-- rounding MIP startup and shutdown values when fixing initial steps of a new solve 
+- rounding MIP onloine, startup, and shutdown values in result tables
 - reverting remaining selfDischargeLoss updates from previous patch
 
 
