@@ -147,6 +147,7 @@ Option clear = ts_reserveDemand_;
 Option clear = ts_node_;
 Option clear = ts_price_;
 Option clear = ts_emissionPrice_;
+Option clear = ts_groupPolicy_;
 Option clear = ts_vomCost_;
 Option clear = ts_startupCost_;
 
@@ -459,8 +460,6 @@ tt_aggregate(t_current(t+dt_active(t)), tt(t))
 // Make alternative aggregation ordering
 option clear=tt_agg_circular;
 tt_agg_circular(t, t_+dt_circular(t_), t_) $= tt_aggregate(t, t_);
-
-$macro tt_aggcircular(t, t_)  tt_agg_circular(t, t_, t__)
 
 
 * =============================================================================

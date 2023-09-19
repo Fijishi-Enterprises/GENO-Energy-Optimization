@@ -16,7 +16,7 @@
 * t_ = 't008760'
 
 
-v_state.fx('hydro', 'country_hydro', sft(s, f, t)) $ { tt_aggregate(t, 't008760') }
+v_state.fx('hydro', 'country_hydro', sft(s, f, t)) $ { tt_agg_circular(t, 't008760', t__) }
      = 2e6 ;
 
 * NOTE: Adding this constaint to P2Xdemo model resulted to an error "LP status(5): optimal with unscaled infeasibilities".

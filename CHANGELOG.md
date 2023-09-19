@@ -10,6 +10,28 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 
+## 3.6 - 2023-08-24
+
+### Added
+- input data sheet ts_groupPolicy for time series constraint
+- time series based maximum online status
+- result table on Rate Of Change Of Frequency (ROCOF)
+- an error message and abort if input data excel, input data gdx, or timeAndSamples.inc not found
+
+### Changed
+- giving different default penalty values for schedule (10e4) and invest (10e6)
+- rounding MIP online, startup, and shutdown values in result tables
+- improved the example of reading additional input files
+- updated changes_loop template to use new tt_agg_circular
+- cleaning code: replacing remaining tt_aggcircular with the new version
+- reading default model definition files after modelsInit
+- stricter node and unit loopings for minor speed improvement and clarifying the code
+- Automatically reducing the number of internal counters based on input data
+
+### Fixed
+- reverting remaining selfDischargeLoss updates from previous patch
+- a crash related to non-rounded MIP startup or MIP shutdown values
+
 ## 3.5 - 2023-08-24
 
 ### Added

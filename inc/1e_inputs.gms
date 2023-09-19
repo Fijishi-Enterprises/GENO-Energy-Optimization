@@ -28,6 +28,8 @@ $ifthen exist '%input_dir%/%input_file_excel%'
     $$call 'gdxxrw Input="%input_dir%/%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
 $elseif exist '%input_file_excel%'
     $$call 'gdxxrw Input="%input_file_excel%" Output="%input_dir%/%input_file_gdx%" Index=%input_excel_index%! %input_excel_checkdate%'
+$elseif set input_file_excel
+    $$abort 'Did not find input data excel from the given location, check path and spelling!'
 $endif
 $ife %system.errorlevel%>0 $abort gdxxrw failed! Check that your input Excel is valid and that your file path and file name are correct.
 
@@ -129,6 +131,11 @@ $ifthen exist '%input_dir%/changes.inc'
 $endif
 
 
+* --- Checking if there is necessary input data to proceed --------------------
+
+$if not defined p_unit $abort 'Mandatory input data missing (p_unit), check inputData.gdx or alternative sources of input data'
+$if not defined p_gn $abort 'Mandatory input data missing (p_gn), check inputData.gdx or alternative sources of input data'
+$if not defined p_gnu_io $abort 'Mandatory input data missing (p_gnu_io), check inputData.gdx or alternative sources of input data'
 
 
 * =============================================================================
@@ -652,6 +659,16 @@ p_gnuReserves(gnu(grid, node, unit), restype, up_down)
 );
 
 * =============================================================================
+* --- Policy related Sets & Parameters ----------------------------------------
+* =============================================================================
+
+// Filling a set of (group, param_policy) if there is series data
+option groupPolicyTimeseries < ts_groupPolicy;
+
+
+
+
+* =============================================================================
 * --- Data Integrity Checks ---------------------------------------------------
 * =============================================================================
 
@@ -765,7 +782,7 @@ loop(effLevel${ord(effLevel)<=tmp},
     );
 );
 
-loop( unit,
+loop( unit$ {not unit_flow(unit)},
     // Check that 'op' is defined correctly
     Option clear = count; // Initialize the previous op to zero
     loop( op,

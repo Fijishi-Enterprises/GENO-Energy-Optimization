@@ -84,15 +84,15 @@ Parameters
     p_u_maxRampSpeedInLastRunUpInterval(unit) "Maximum ramp speed in the last interval for the run-up to min. load (p.u.)"
     p_u_runUpTimeIntervals(unit)       "Time steps required for the run-up phase"
     p_u_runUpTimeIntervalsCeil(unit)   "Ceiling of time steps required for the run-up phase"
-    p_uCounter_runUpMin(unit, counter) "Minimum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
-    p_uCounter_runUpMax(unit, counter) "Maximum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
+    p_uCounter_runUpMin(unit, counter_large) "Minimum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
+    p_uCounter_runUpMax(unit, counter_large) "Maximum output for the time steps where the unit is being started up to the minimum load (minimum output in the last interval) (p.u.)"
     // unused: remove for 4.x
     p_u_maxOutputInFirstShutdownInterval(unit) "Maximum output in the first interval for the shutdown from min. load (p.u.)"
     p_uShutdown(unit, cost_consumption) "Shutdown cost per unit"
     p_u_shutdownTimeIntervals(unit)     "Time steps required for the shutdown phase"
     p_u_shutdownTimeIntervalsCeil(unit) "Floor of time steps required for the shutdown phase"
-    p_uCounter_shutdownMin(unit, counter) "Minimum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
-    p_uCounter_shutdownMax(unit, counter) "Maximum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
+    p_uCounter_shutdownMin(unit, counter_large) "Minimum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
+    p_uCounter_shutdownMax(unit, counter_large) "Maximum output for the time steps where the unit is being shut down from the minimum load (minimum output in the first interval) (p.u.)"
     p_u_minRampSpeedInLastRunUpInterval(unit) "Minimum ramp speed in the last interval for the run-up to min. load (p.u./min)"
     p_u_minRampSpeedInFirstShutdownInterval(unit) "Minimum ramp speed in the fist interval for the shutdown from min. load (p.u./min)"
 // Time dependent unit & commodity parameters
@@ -127,10 +127,10 @@ Parameters
     dt_active(t) "Displacement needed to reach the corresponding active time interval from any time interval (in time steps)"
     dt_toStartup(unit, t) "Displacement from the current time interval to the time interval where the unit was started up in case online variable changes from 0 to 1 (in time steps)"
     dt_toShutdown(unit, t) "Displacement from the current time interval to the time interval where the shutdown phase began in case generation becomes 0 (in time steps)"
-    dt_starttypeUnitCounter(starttype, unit, counter) "Displacement needed to account for starttype constraints (in time steps)"
-    dt_downtimeUnitCounter(unit, counter) "Displacement needed to account for downtime constraints (in time steps)"
-    dt_uptimeUnitCounter(unit, counter) "Displacement needed to account for uptime constraints (in time steps)"
-    dt_trajectory(counter) "Run-up/shutdown trajectory time index displacement"
+    dt_starttypeUnitCounter(starttype, unit, counter_large) "Displacement needed to account for starttype constraints (in time steps)"
+    dt_downtimeUnitCounter(unit, counter_large) "Displacement needed to account for downtime constraints (in time steps)"
+    dt_uptimeUnitCounter(unit, counter_large) "Displacement needed to account for uptime constraints (in time steps)"
+    dt_trajectory(counter_large) "Run-up/shutdown trajectory time index displacement"
 
     // Forecast displacement arrays
     df(f, t) "Displacement needed to reach the realized forecast on the current time step"
@@ -167,6 +167,7 @@ Parameters   // optional parameter tables initiated as empty tables
     ts_priceChange(node, t) "Initial commodity price and consequent changes in commodity price (EUR/MWh)" / /
     ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tEmission)" / /
     ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tEmission)" / /
+    ts_groupPolicy(group, param_policy, t) "Two-dimensional time-dependent policy data for groups" / /
 ;
 $offempty
 Parameters
@@ -184,6 +185,9 @@ Parameters
     ts_storageValue_(grid, node, s, f, t) "ts_storageValue values processed for looping including time step aggregation if required (EUR/<v_state_unit>)"
     ts_price_(node, t) "Commodity price (EUR/MWh) for aggregated time steps"
     ts_emissionPrice_(emission, group, t) "Emission group price time series  for aggregated time steps (EUR/tEmission)"
+    ts_groupPolicy_(group, param_policy, t) "Two-dimensional time-dependent policy data for groups processed for looping including time step aggregation if required"
+
+    // unit specific cost timeseries calculated based on other time series
     ts_vomCost_(grid, node, unit, t) "Calculated time dependent O&M cost that includes O&M cost, fuel cost and emission cost (EUR/MWh)"
     ts_startupCost_(unit, starttype, t) "Calculated time dependent startup cost that includes startup cost, fuel cost and emission cost (EUR/MW)"
 

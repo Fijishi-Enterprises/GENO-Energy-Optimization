@@ -166,13 +166,16 @@ $endif
 
 
 * === Model definition files ==================================================
+// Load model input parameters
+// ModelsInit normally calls another init file, e.g. '%input_dir%/scheduleInit.gms' or '%input_dir%/investInit.gms'
+// In addition, it allows making adjustments after variables and constraints are created.
+$include '%input_dir%/modelsInit.gms'
+
+// load default model definitions and possible additional definitions from %input_dir%/[schedule/buildings/invest]_additional_constraints.gms'
 $include 'defModels/schedule.gms'
 $include 'defModels/building.gms'
 $include 'defModels/invest.gms'
 
-// Load model input parameters
-$include '%input_dir%/modelsInit.gms'
-* Normally calls corresponding init file, e.g. '%input_dir%/scheduleInit.gms' or '%input_dir%/investInit.gms'
 
 
 * === Simulation ==============================================================

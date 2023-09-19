@@ -110,7 +110,13 @@ Sets
     groupRestype(group, restype) "Groups with reserve requirements"
 
 * --- Sets to define time, forecasts and samples ------------------------------
+$ifthen exist '%input_dir%/timeAndSamples.inc'
     $$include '%input_dir%/timeAndSamples.inc'
+$else
+    $$abort 'Did not find %input_dir%/timeAndSamples.inc. Check path and spelling!'
+$endif
+$ife %system.errorlevel%>0 $abort importing timeAndSamples.inc failed! Check that your file is valid and that your file path and file name are correct.
+
     m(mType) "model(s) in use"
     s_active(s) "Samples with non-zero probability in the current model solve"
     s_realized(s) "All s among realized sft (redundant if always equivalent to s)"
@@ -126,7 +132,7 @@ Sets
     t_realized(t) "Set of realized time steps in the simulation"
     tt(t) "Temporary subset for time steps used for calculations"
     tt_(t) "Another temporary subset for time steps used for calculations"
-    tt_block(counter, t) "Temporary time step subset for storing the time interval blocks"
+    tt_block(counter_large, t) "Temporary time step subset for storing the time interval blocks"
     tt_interval(t) "Temporary time steps when forming the ft structure, current sample"
     tt_forecast(t) "Temporary subset for time steps used for forecast updating during solve loop"
     tt_aggregate(t, t) "Time steps included in each active time step for time series aggregation"
@@ -152,7 +158,7 @@ Sets
     sft(s, f, t) "Combination of samples, forecasts and t's in the current model solve"
     sft_realized(s, f, t) "Realized sft"
     sft_realizedNoReset(s, f, t) "Full set of realized sft, facilitates calculation of results"
-    sft_resdgn(restype, up_down, grid, node, s,f,t) "Temporary tuplet for reserves by restypeDirectionGridNode"         
+    sft_resdgn(restype, up_down, grid, node, s,f,t) "Temporary tuplet for reserves by restypeDirectionGridNode"
     msft(mType, s, f, t) "Combination of models, samples, forecasts and t's"
     msft_realizedNoReset(mType, s, f, t) "Combination of realized samples, forecasts and t:s in the current model solve and previously realized t:s"
 
@@ -162,6 +168,10 @@ Sets
 
     mz(mType, z) "z periods in the models"
     zs(z, s) "relationship between the z-periods and samples"
+
+* --- counter sets used in several loops, time intervals, and trajectories
+    counter(counter_large) "Counter set limited to needed amount of counters"
+    cc(counter_large) "Temporary subset of counter used for calculations"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations as well as unit lifetimes
     usft(unit, s, f, t) "set of active units and aggregated sft"
@@ -184,9 +194,9 @@ Sets
     effGroupSelectorUnit(effSelector, unit, effSelector) "Group name for efficiency selector set, e.g. Lambda02 contains Lambda01 and Lambda02"
 
     mSettingsReservesInUse(mType, restype, up_down) "Reserves that are used in each model type"
-    unitCounter(unit, counter) "Counter used for restricting excessive looping over the counter set when defining unit startup/shutdown/online time restrictions"
-    runUpCounter(unit, counter) "Counter used for unit run-up intervals"
-    shutdownCounter(unit, counter) "Counter used for unit shutdown intervals"
+    unitCounter(unit, counter_large) "Counter used for restricting excessive looping over the counter set when defining unit startup/shutdown/online time restrictions"
+    runUpCounter(unit, counter_large) "Counter used for unit run-up intervals"
+    shutdownCounter(unit, counter_large) "Counter used for unit shutdown intervals"
     utAvailabilityLimits(unit, t, availabilityLimits) "Time step when the unit becomes available/unavailable, e.g. because of technical lifetime" / /
 
 * --- Sets used for the changing transfer link aggregation and efficiency approximations as well as lifetimes
@@ -199,6 +209,7 @@ Sets
     gnGroup(grid, node, group) "Combination of grids and nodes in particular groups" / /
     sGroup(s, group) "Samples in particular groups" / /
     emissionGroup(emission, group) "combinations of emissions and groups"
+    groupPolicyTimeseries(group, param_policy) "Combination of groups and policies that have time series" / /
 
 * --- Set of timeseries that will be read from files between solves -----------
     mTimeseries_loop_read(mType, timeseries) "Those time series that will be read between solves"

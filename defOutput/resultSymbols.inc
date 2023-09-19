@@ -80,7 +80,7 @@ r_genByUnittype_gnft
 r_genByUnittype_gn
 r_genByGnuGroup_gn
 
-// Energy consumption during startups 
+// Energy consumption during startups
 r_gen_unitStartupConsumption_nu
 
 
@@ -141,6 +141,11 @@ r_reserve_marginalValue_average
 r_reserveDemand_largestInfeedUnit_ft
 r_reserveTransferRightward_gnn
 r_reserveTransferLeftward_gnn
+
+* --- Stability Result Symbols ------------------------------------------------
+
+// RoCoF results
+r_stability_rocof_unit_ft
 
 * --- Dummy Result Symbols ----------------------------
 
