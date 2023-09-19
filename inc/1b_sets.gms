@@ -113,7 +113,7 @@ Sets
 $ifthen exist '%input_dir%/timeAndSamples.inc'
     $$include '%input_dir%/timeAndSamples.inc'
 $else
-    $$abort 'Did not find timeAndSamples.inc from the input folder, check path and spelling!'
+    $$abort 'Did not find %input_dir%/timeAndSamples.inc. Check path and spelling!'
 $endif
 $ife %system.errorlevel%>0 $abort importing timeAndSamples.inc failed! Check that your file is valid and that your file path and file name are correct.
 
