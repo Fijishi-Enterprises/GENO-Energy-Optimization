@@ -16,9 +16,10 @@ All notable changes to this project will be documented in this file.
 - giving different default penalty values for schedule (10e4) and invest (10e6)
 - stricter node and unit loopings for minor speed improvement and clarifying the code
 - Automatically reducing the number of internal counters based on input data
+- improved the example of reading additional input files
 
 ### Fixed
-- rounding MIP onloine, startup, and shutdown values in result tables
+- rounding MIP online, startup, and shutdown values in result tables
 - reverting remaining selfDischargeLoss updates from previous patch
 
 
