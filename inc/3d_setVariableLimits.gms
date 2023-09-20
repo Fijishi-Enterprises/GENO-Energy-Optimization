@@ -118,7 +118,13 @@ loop(node$(not node_superpos(node)),
                                                         }
                 = ts_node(grid, node, 'reference', f, t) // NOTE!!! ts_node_ doesn't contain initial values so using raw data instead.
                     * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
-
+    // BoundSumOverInterval: bound the interval to the (sum of) reference value if value exists and timeseries reference
+    v_state.fx(gn_state(grid, node), sft(s, f, t))${p_gn(grid, node, 'boundSumOverInterval')
+	                                                and sum(tt_aggregate(t, t_), ts_node(grid, node, 'reference', f, t_))
+                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') // !!! NOTE !!! The check fails if value is zero
+                                                        }
+                = sum(tt_aggregate(t, t_), ts_node(grid, node, 'reference', f, t_)) // NOTE!!! ts_node_ averages values so using raw data instead.
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
 
     // Bound also the intervals just before the start of each sample
