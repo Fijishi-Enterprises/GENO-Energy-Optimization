@@ -160,9 +160,9 @@ if (mType('schedule'),
 gnss_bound(grid, node, s, s_) = no;
 *p_gn(gn('H2', node), 'boundStart') = 0;
 p_gn(gn('ev', node), 'boundStart') = 0;
-gnss_bound(gn('hydro', node), 's000', 's000') = yes;
-gnss_bound(gn('pumped', node), 's000', 's000') = yes;
-gnss_bound(gn('H2', node), 's000', 's000') = yes;
-p_gn(gn('hydro', node), 'boundStartToEnd') = 1;
-p_gn(gn('pumped', node), 'boundStartToEnd') = 1;
-p_gn(gn('H2', node), 'boundStartToEnd') = 1;
+*gnss_bound(gn('hydro', node), 's000', 's000') = yes;
+*gnss_bound(gn('pumped', node), 's000', 's000') = yes;
+*gnss_bound(gn('H2', node), 's000', 's000') = yes;
+*p_gn(gn('hydro', node), 'boundStartToEnd') = 1;
+*p_gn(gn('pumped', node), 'boundStartToEnd') = 1;
+*p_gn(gn('H2', node), 'boundStartToEnd') = 1;
