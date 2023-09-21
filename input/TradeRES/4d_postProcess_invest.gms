@@ -60,16 +60,27 @@ loop(gnu(grid, node, unit)
     put "    =  p_gnBoundaryPropertiesForStates('",
         grid.tl, "', '", node.tl, "', 'upwardLimit', 'constant') + ", tmp, ";"/;
 );
-put "* Update storage (pumped storage and batteries) reference level for the subsequent models"/;
-loop(gnu(grid, node, unit)
-    ${r_invest(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio') and (grid('pumped') or grid('battery'))},
-    // subunits rounded to the nearest integer
-    tmp = p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
-        * round(r_invest(unit), 0) * p_gnu(grid, node, unit, 'unitSize') * 0.5;
+put "* Update storage (pumped storage, hydro, H2) reference level for the subsequent models"/;
+loop(gn(grid, node)
+    ${(p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
+    or sum(unit, (r_invest(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))))
+	and (sameas(grid, 'pumped') or sameas(grid, 'H2') or sameas(grid, 'hydro'))},
+    put "p_gn('", grid.tl, "', '", node.tl,
+        "', 'boundStart') = 1;"/;
+    put "p_gn('", grid.tl, "', '", node.tl,
+        "', 'boundSumOverInterval') = 1;"/;
     put "p_gnBoundaryPropertiesForStates('", grid.tl, "', '", node.tl,
-        "', 'reference', 'constant')"/;
-    put "    =  p_gnBoundaryPropertiesForStates('",
-        grid.tl, "', '", node.tl, "', 'reference', 'constant') + ", tmp, ";"/;
+        "', 'reference', 'useConstant') = 0;"/;
+    put "p_gnBoundaryPropertiesForStates('", grid.tl, "', '", node.tl,
+        "', 'reference', 'useTimeseries') = 1;"/;
+    put "ts_node('", grid.tl, "', '", node.tl,
+        "', 'reference', 'f00', 't000000')"/;
+    put "    =  0.5 * p_gnBoundaryPropertiesForStates('", grid.tl, "', '", node.tl,
+        "', 'upwardLimit', 'constant');"/;
+    put "ts_node('", grid.tl, "', '", node.tl,
+        "', 'reference', 'f00', 't008760')"/;
+    put "    =  0.5 * p_gnBoundaryPropertiesForStates('", grid.tl, "', '", node.tl,
+        "', 'upwardLimit', 'constant');"/;
 );
 
 // Transfer capacity
