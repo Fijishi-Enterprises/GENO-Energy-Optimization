@@ -222,7 +222,7 @@ loop(gn(grid,node)${sameas(grid, 'hydro') or sameas(grid, 'pumped') or sameas(gr
 );
 loop(s$ms_initial('invest', s),
     gnss_bound(gn('battery',node),s,s) = yes;
-*        gnss_bound(gn('ev',node),s,s) = yes;
+    gnss_bound(gn('ev',node),s,s) = yes;
 );
 sGroup('s000','VRE_limit') = yes;
 sGroup('s001','VRE_limit') = yes;
