@@ -8,7 +8,8 @@
         "defModels/*.gms",
         "defOutput/debugSymbols.inc",
         "defOutput/resultSymbols.inc",
-        "cplex.opt"
+        "cplex.opt",
+        "defOutput/resultSymbols_2x.inc"
     ],
     "description": "Backbone",
     "inputfiles": [

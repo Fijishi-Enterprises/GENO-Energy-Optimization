@@ -11,7 +11,7 @@ copy .\input\TradeRES\changes-invest.inc .\input\TradeRES\changes.inc
 copy .\input\TradeRES\cplex_invest.opt .\cplex.opt
 
 :: running backbone in invest mode
-for /F "tokens=3" %%A in ('reg query "HKEY_CURRENT_USER\gams.location"') DO (%%A\gams.exe Backbone.gms --input_dir=./input/TradeRES --init_file=investInit.gms --debug=1 -lo=2 --penalty=4000)
+for /F "tokens=3" %%A in ('reg query "HKEY_CURRENT_USER\gams.location"') DO (%%A\gams.exe Backbone.gms --input_dir=./input/TradeRES --init_file=investInit.gms --debug=1 -lo=2 --penalty=4000 --resultsVer2x=True)
 
 
 :: copying summary of invest results to TradeRES folder
@@ -32,7 +32,7 @@ copy .\input\TradeRES\cplex_schedule.opt .\cplex.opt
 
 
 :: running backbone in schedule mode
-for /F "tokens=3" %%A in ('reg query "HKEY_CURRENT_USER\gams.location"') DO (%%A\gams.exe Backbone.gms --input_dir=./input/TradeRES --init_file=scheduleInit.gms --debug=1 -lo=2 --penalty=4000)
+for /F "tokens=3" %%A in ('reg query "HKEY_CURRENT_USER\gams.location"') DO (%%A\gams.exe Backbone.gms --input_dir=./input/TradeRES --init_file=scheduleInit.gms --debug=1 -lo=2 --penalty=4000 --resultsVer2x=True)
 
 :: copying result files to demo1 folder
 ::copy .\output\results.gdx .\output\results-investAndSchedule.gdx
