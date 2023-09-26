@@ -31,7 +31,7 @@ $elseif exist '%input_file_excel%'
 $elseif set input_file_excel
     $$abort 'Did not find input data excel from the given location, check path and spelling!'
 $endif
-$ife %system.errorlevel%>0 $abort gdxxrw failed! Check that your input Excel is valid and that your file path and file name are correct.
+*$ife %system.errorlevel%>0 $abort gdxxrw failed! Check that your input Excel is valid and that your file path and file name are correct.
 
 * --- locating input data gdx ------------------------------------------------
 
