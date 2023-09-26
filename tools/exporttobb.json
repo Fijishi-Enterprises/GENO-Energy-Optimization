@@ -3482,12 +3482,12 @@
                 },
                 {
                     "map_type": "RelationshipObject",
-                    "position": 0,
+                    "position": 1,
                     "header": "emission"
                 },
                 {
                     "map_type": "RelationshipObject",
-                    "position": 1,
+                    "position": 0,
                     "header": "group"
                 },
                 {
