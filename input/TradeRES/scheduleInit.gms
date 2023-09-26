@@ -110,7 +110,6 @@ if (mType('schedule'),
 
 * --- Activate specific model features ----------------------------------------
 
-    active('schedule', 'checkUnavailability') = no;
     active('schedule', 'storageValue') = yes;
 
 * --- Define Reserve Properties -----------------------------------------------
