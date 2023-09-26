@@ -20,104 +20,181 @@ $offtext
 *
 * =============================================================================
 
+
 * =============================================================================
 * --- Node State Boundaries ---------------------------------------------------
 * =============================================================================
 
-
-// state limits for normal (not superposed) nodes
-loop(node$(not node_superpos(node)),
-
+// state limits for nodes that have state variable and are not superposed nodes
+loop(gn_state(grid, node) ${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier')
+                            and not node_superpos(node)},
     // When using constant values and to supplement time series with constant values (time series will override when data available)
-    // Upper bound
-    v_state.up(gn_state(grid, node), sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
+    // Upper bound, constant
+    v_state.up(grid, node, sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useConstant')
+                                                    and not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))
                                                     and not df_central(f,t)
                                                     }
             = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant')
                     * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier')
+    ;
+    // Upper Bound, time series
+    v_state.up(grid, node, sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
+                                                    and not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))
+                                                    and not df_central(f,t)
+                                                    }
+            = ts_node_(grid, node, 'upwardLimit', s, f, t)
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier')
+    ;
+    // Bound also the intervals just before the start of each sample
+    // - currently just 'upwardLimit'&'useConstant'
+    // this is performed only for the first solve!
+    loop(mst_start(mSolve, s, t)$(t_solveFirst = mSettings(mSolve, 't_start')),
+        v_state.up(grid, node, s, f_solve, t+dt(t))${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
+                                                                and not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))
+                                                                and not df_central(f_solve,t)
+                                                                and not p_gn(grid, node, 'boundStartOfSamples')
+                                                                }
+            = p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
+                * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier')
         ;
-    // Lower bound
-    v_state.lo(gn_state(grid, node), sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+    ); // END loop(mst_start)
+); //END loop gn_state(grid, node) $ upwardLimit
+
+loop(gn_state(grid, node) ${p_gnBoundaryPropertiesForStates(grid, node,   'downwardLimit', 'multiplier')
+                            and not node_superpos(node) },
+    // Lower bound, constant
+    v_state.lo(grid, node, sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
                                                     and not df_central(f,t)
                                                     }
             = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
                     * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier')
     ;
-    // Fixed value
-    v_state.fx(gn_state(grid, node), sft(s, f, t))${p_gn(grid, node, 'boundAll')
-                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
-                                                    and not df_central(f,t)
-                                                    }
-    = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
-                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
-    ;
-    // BoundEnd to a constant value
-    v_state.fx(gn_state(grid, node), sft(s, f,t))${   mft_lastSteps(mSolve, f, t)
-                                                      and p_gn(grid, node, 'boundEnd')
-                                                      and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
-                                                    }
-            = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
-                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
 
-    // When using time series
-    // Upper Bound
-    v_state.up(gn_state(grid, node), sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'useTimeSeries')
-                                                    and not df_central(f,t)
-                                                    }
-            = ts_node_(grid, node,   'upwardLimit', s, f, t)
-                    * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier')
-    ;
-    // Lower bound
-    v_state.lo(gn_state(grid, node), sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
+    // Lower bound, timeseries
+    v_state.lo(grid, node, sft(s, f, t))${p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useTimeSeries')
                                                     and not df_central(f,t)
                                                     }
             = ts_node_(grid, node, 'downwardLimit', s, f, t)
                     * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier')
     ;
-    // Fixed value
-    v_state.fx(gn_state(grid, node), sft(s, f, t))${p_gn(grid, node, 'boundAll')
+    // Bound also the intervals just before the start of each sample
+    // - currently just 'downwardLimit'&'useConstant'
+    // this is performed only for the first solve!
+    loop(mst_start(mSolve, s, t)$(t_solveFirst = mSettings(mSolve, 't_start')),
+        v_state.lo(grid, node, s, f_solve, t+dt(t))${ p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
+                                                                and not df_central(f_solve,t)
+                                                                and not p_gn(grid, node, 'boundStartOfSamples')
+                                                                }
+            = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
+                * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier')
+        ;
+    ); // END loop(mst_start)
+); //END loop gn_state(grid, node) $ downwardLimit
+
+loop(gn_state(grid, node) ${p_gn(grid, node, 'boundAll')
+                            and not node_superpos(node) },
+    // Fixed value, constant
+    v_state.fx(grid, node, sft(s, f, t))${ p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                           and not df_central(f,t)
+                                           }
+    = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
+    // Fixed value, timeseries
+    v_state.fx(grid, node, sft(s, f, t))${ p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
+                                           and not df_central(f,t)
+                                           }
+            = ts_node_(grid, node, 'reference', s, f, t)
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
+); //END loop gn_state(grid, node) $ boundAll
+
+loop(gn_state(grid, node) ${p_gn(grid, node, 'boundEnd')
+                            and not node_superpos(node) },
+    // BoundEnd to a constant value
+    v_state.fx(grid, node, sft(s, f,t))${   mft_lastSteps(mSolve, f, t)
+                                                      and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                                    }
+            = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
+    // BoundEnd to a timeseries value
+    v_state.fx(grid, node, sft(s, f,t))${mft_lastSteps(mSolve, f, t)
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
-                                                    and not df_central(f,t)
                                                     }
             = ts_node_(grid, node, 'reference', s, f, t)
                     * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
     ;
-    // BoundEnd to a timeseries value
-    v_state.fx(gn_state(grid, node), sft(s, f,t))${mft_lastSteps(mSolve, f, t)
-                                                    and p_gn(grid, node, 'boundEnd')
-                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
-                                                    }
-            = ts_node_(grid, node, 'reference', s, f, t)
-                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+); //END loop gn_state(grid, node) $ boundEnd
 
+loop(gn_state(grid, node) ${ p_gn(grid, node, 'boundStartOfSamples')
+                             and not node_superpos(node) },
+    // Bounding the time step t-1 for of each sample to reference value if boundStartofSamples is enabled.
+    // Constant values.
+    v_state.fx(grid, node, s_active(s), f+df(f,t+dt(t)), t+dt(t))${ mst_start(mSolve, s, t)
+                                                                    and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                                                    }
+            = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
+               * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
+    // Time series
+    v_state.fx(grid, node, s_active(s),  f+df(f,t+dt(t)), t+dt(t))${ mst_start(mSolve, s, t)
+                                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
+                                                                     }
+            // calculating value as an average of included time steps in an aggregated timestep
+            = ts_node_(grid, node, 'reference', s,  f+df(f,t+dt(t)), t+dt(t))
+               * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
+); //END loop gn_state(grid, node) $ boundStartOfSamples
+
+loop(gn_state(grid, node) ${ p_gn(grid, node, 'boundEndOfSamples')
+                             and not node_superpos(node) },
+    // Bounding the end time step of each sample to reference value if boundEndofSamples and constant reference values are enabled
+    v_state.fx(grid, node, sft(s, f, t))${ sum(tt_agg_circular(t, t_, t__),  sum(m, mst_end(m, s, t_)))
+                                           and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
+                                           }
+            = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
+               * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
+    // Bounding the end time step of each sample to reference value if boundEndofSamples and constant reference values are enabled
+    v_state.fx(grid, node, sft(s, f, t))${ sum(tt_agg_circular(t, t_, t__),  sum(m, mst_end(m, s, t_)))
+                                           and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries')
+                                           }
+            // calculating value as an average of included time steps in an aggregated timestep
+            = ts_node_(grid, node, 'reference', s, f, t)
+               * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
+); //END loop gn_state(grid, node) $ boundEndOfSamples
+
+loop(gn_state(grid, node) ${ p_gn(grid, node, 'boundStartToEnd')
+                             and not node_superpos(node) },
     // BoundStartToEnd: bound the last interval in the horizon to the value just before the horizon if not the first solve
-    v_state.fx(gn_state(grid, node), sft(s, f, t))${mft_lastSteps(mSolve, f, t)
-                                                    and p_gn(grid, node, 'boundStartToEnd')
+    v_state.fx(grid, node, sft(s, f, t))${mft_lastSteps(mSolve, f, t)
                                                     and (solveCount > 1)
                                                     }
             = sum(mf_realization(mSolve, f_),
-                    + r_state(grid, node, f_, tSolve)
-              ); // END sum(mf_realization)
-
+                    + r_state_gnft(grid, node, f_, t_solve)
+              ) // END sum(mf_realization)
+    ;
     // BoundStartToEnd: bound the last interval in the horizon to the reference value if first solve and constant reference
-    v_state.fx(gn_state(grid, node), sft(s, f, t))${mft_lastSteps(mSolve, f, t)
-                                                    and p_gn(grid, node, 'boundStartToEnd')
+    v_state.fx(grid, node, sft(s, f, t))${mft_lastSteps(mSolve, f, t)
                                                     and (solveCount = 1)
                                                     and p_gn(grid, node, 'boundStart')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useConstant')
                                                     }
             = p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'constant')
-                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
-
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
     // BoundStartToEnd: bound the last interval in the horizon to the reference value if first solve and timeseries reference
-    v_state.fx(gn_state(grid, node), sft(s, f, t))${mft_lastSteps(mSolve, f, t)
-                                                    and p_gn(grid, node, 'boundStartToEnd')
+    v_state.fx(grid, node, sft(s, f, t))${mft_lastSteps(mSolve, f, t)
                                                     and (solveCount = 1)
                                                     and p_gn(grid, node, 'boundStart')
                                                     and p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'useTimeSeries') // !!! NOTE !!! The check fails if value is zero
                                                         }
                 = ts_node(grid, node, 'reference', f, t) // NOTE!!! ts_node_ doesn't contain initial values so using raw data instead.
-                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
+                    * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier')
+    ;
+); //END loop gn_state(grid, node) $ boundStartToEnd
     // BoundSumOverInterval: bound the interval to the (sum of) reference value if value exists and timeseries reference
     v_state.fx(gn_state(grid, node), sft(s, f, t))${p_gn(grid, node, 'boundSumOverInterval')
 	                                                and sum(tt_aggregate(t, t_), ts_node(grid, node, 'reference', f, t_))
@@ -125,30 +202,6 @@ loop(node$(not node_superpos(node)),
                                                         }
                 = sum(tt_aggregate(t, t_), ts_node(grid, node, 'reference', f, t_)) // NOTE!!! ts_node_ averages values so using raw data instead.
                     * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
-
-
-    // Bound also the intervals just before the start of each sample
-    // - currently just 'upwardLimit'&'useConstant' and 'downwardLimit'&'useConstant'
-    // this is performed only for the first solve!
-    loop(mst_start(mSolve, s, t)$(tSolveFirst = mSettings(mSolve, 't_start')),
-
-        // Upper bound
-        v_state.up(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
-                                                                and not df_central(f_solve,t)
-                                                                }
-            = p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
-                * p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'multiplier');
-
-        // Lower bound
-        v_state.lo(gn_state(grid, node), s, f_solve, t+dt(t))${    p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'useConstant')
-                                                                and not df_central(f_solve,t)
-                                                                }
-            = p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'constant')
-                * p_gnBoundaryPropertiesForStates(grid, node, 'downwardLimit', 'multiplier');
-    ); // END loop(mst_start)
-
-
-); //END loop node
 
 // Next deal with bounds for the superposed node states
 //
@@ -193,11 +246,10 @@ v_spill.up(gn(grid, node_spill), sft(s, f, t))${    p_gnBoundaryPropertiesForSta
 
 
 // Max. energy generation if investments disabled
-v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
-                                          and not unit_flow(unit)
-                                          and not (unit_investLP(unit) or unit_investMIP(unit))
-                                          and p_gnu(grid, node, unit, 'capacity')
-                                    }
+v_gen.up(gnusft(gnu_output(grid, node, unit), s, f, t))${not unit_flow(unit)
+                                                       and not (unit_investLP(unit) or unit_investMIP(unit))
+                                                       and p_gnu(grid, node, unit, 'capacity')
+                                                     }
     = p_gnu(grid, node, unit, 'capacity')
         * [
             + p_unit(unit, 'availability')${not p_unit(unit, 'useTimeseriesAvailability')}
@@ -205,8 +257,7 @@ v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f,
             ]
 ;
 // Time series capacity factor based max. energy generation if investments disabled
-v_gen.up(gnu_output(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, unit_flow, f, t)
-                                                           and not (unit_investLP(unit_flow) or unit_investMIP(unit_flow)) }
+v_gen.up(gnusft(gnu_output(grid, node, unit_flow), s, f, t))${ not (unit_investLP(unit_flow) or unit_investMIP(unit_flow)) }
     = sum(flow${    flowUnit(flow, unit_flow)
                     and nu(node, unit_flow)
                     },
@@ -220,14 +271,15 @@ v_gen.up(gnu_output(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, uni
 ;
 
 // Maximum generation to zero for input nodes
-v_gen.up(gnu_input(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)} = 0;
+v_gen.up(gnusft(gnu_input(grid, node, unit), s, f, t)) = 0;
 
 // Min. generation to zero for output nodes
-v_gen.lo(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)} = 0;
+v_gen.lo(gnusft(gnu_output(grid, node, unit), s, f, t)) = 0;
 
 // Constant max. consumption capacity if investments disabled
-v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
-                                          and not (unit_investLP(unit) or unit_investMIP(unit))}
+v_gen.lo(gnusft(gnu_input(grid, node, unit), s, f, t))${ not unit_flow(unit)
+                                                         and not (unit_investLP(unit) or unit_investMIP(unit))
+                                                         and p_gnu(grid, node, unit, 'capacity') }
     = - p_gnu(grid, node, unit, 'capacity')
         * [
             + p_unit(unit, 'availability')${not p_unit(unit, 'useTimeseriesAvailability')}
@@ -235,15 +287,14 @@ v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, 
             ]
 ;
 
-v_gen.lo(gnu_input(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
-                                          and not (unit_investLP(unit) or unit_investMIP(unit))
-                                          and not p_gnu(grid, node, unit, 'capacity')}
+v_gen.lo(gnusft(gnu_input(grid, node, unit), s, f, t))${ not unit_flow(unit)
+                                                         and not (unit_investLP(unit) or unit_investMIP(unit))
+                                                         and not p_gnu(grid, node, unit, 'capacity')}
     = - inf
 ;
 
 // Time series capacity factor based max. consumption if investments disabled
-v_gen.lo(gnu_input(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, unit_flow, f, t)
-                                          and not (unit_investLP(unit_flow) or unit_investMIP(unit_flow))}
+v_gen.lo(gnusft(gnu_input(grid, node, unit_flow), s, f, t))${not (unit_investLP(unit_flow) or unit_investMIP(unit_flow))}
     = - sum(flow${  flowUnit(flow, unit_flow)
                     and nu(node, unit_flow)
                     },
@@ -256,134 +307,118 @@ v_gen.lo(gnu_input(grid, node, unit_flow), sft(s, f, t))${gnuft(grid, node, unit
       ) // END sum(flow)
 ;
 // In the case of negative generation (currently only used for cooling equipment)
-v_gen.lo(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
-                                          and p_gnu(grid, node, unit, 'conversionCoeff') < 0   }
+v_gen.lo(gnusft(gnu_output(grid, node, unit), s, f, t))${p_gnu(grid, node, unit, 'conversionCoeff') < 0   }
     = -p_gnu(grid, node, unit, 'capacity')
 ;
-v_gen.up(gnu_output(grid, node, unit), sft(s, f, t))${gnuft(grid, node, unit, f, t)
-                                          and p_gnu(grid, node, unit, 'conversionCoeff') < 0}
+v_gen.up(gnusft(gnu_output(grid, node, unit), s, f, t))${p_gnu(grid, node, unit, 'conversionCoeff') < 0}
     = 0
 ;
 // Ramping capability of units not part of investment set
 // NOTE: Apply the corresponding equations only to units with investment possibility,
 // online variable, or reserve provision
-v_genRamp.up(gnu(grid, node, unit), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
-                                                    and gnuft_ramp(grid, node, unit, f, t)
-                                                    and p_gnu(grid, node, unit, 'maxRampUp')
-                                                    and not uft_online(unit, f, t)
-                                                    and not unit_investLP(unit)
-                                                    and not unit_investMIP(unit)
-                                                    and not uft_startupTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedToMinLoad'
-                                                    }
+v_genRamp.up(gnusft_ramp(grid, node, unit, s, f, t))${ ord(t) > msStart(mSolve, s) + 1
+                                                       and p_gnu(grid, node, unit, 'maxRampUp')
+                                                       and not usft_online(unit, s, f, t)
+                                                       and not unit_investLP(unit)
+                                                       and not unit_investMIP(unit)
+                                                       and not usft_startupTrajectory(unit, s, f, t) // Trajectories require occasional combinations with 'rampSpeedToMinLoad'
+                                                       }
+ // Unit conversion from [p.u./min] to [MW/h]
  = p_gnu(grid, node, unit, 'capacity')
         * p_gnu(grid, node, unit, 'maxRampUp')
-        * 60;  // Unit conversion from [p.u./min] to [p.u./h]
-v_genRamp.lo(gnu(grid, node, unit), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
-                                                    and gnuft_ramp(grid, node, unit, f, t)
-                                                    and p_gnu(grid, node, unit, 'maxRampDown')
-                                                    and not uft_online(unit, f, t)
-                                                    and not unit_investLP(unit)
-                                                    and not unit_investMIP(unit)
-                                                    and not uft_shutdownTrajectory(unit, f, t) // Trajectories require occasional combinations with 'rampSpeedFromMinLoad'
-                                                    }
+        * 60;
+v_genRamp.lo(gnusft_ramp(grid, node, unit, s, f, t))${ ord(t) > msStart(mSolve, s) + 1
+                                                       and p_gnu(grid, node, unit, 'maxRampDown')
+                                                       and not usft_online(unit, s, f, t)
+                                                       and not unit_investLP(unit)
+                                                       and not unit_investMIP(unit)
+                                                       and not usft_shutdownTrajectory(unit, s, f, t) // Trajectories require occasional combinations with 'rampSpeedFromMinLoad'
+                                                       }
+ // Unit conversion from [p.u./min] to [MW/h]
  = -p_gnu(grid, node, unit, 'capacity')
         * p_gnu(grid, node, unit, 'maxRampDown')
-        * 60;  // Unit conversion from [p.u./min] to [p.u./h]
+        * 60;
 
 // v_online cannot exceed unit count if investments disabled
 // LP variant
-v_online_LP.up(unit, sft(s, f, t))${uft_onlineLP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
+v_online_LP.up(usft_onlineLP(unit, s, f, t))${not (unit_investLP(unit) or unit_investMIP(unit))}
     = p_unit(unit, 'unitCount')
-     * [1${not active(mSolve, 'checkUnavailability')}
-       + (1 - ts_unit_(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
-      ]
 ;
 // MIP variant
-v_online_MIP.up(unit, sft(s, f, t))${uft_onlineMIP(unit, f, t) and not (unit_investLP(unit) or unit_investMIP(unit))}
+v_online_MIP.up(usft_onlineMIP(unit, s, f, t))${not (unit_investLP(unit) or unit_investMIP(unit))}
     = p_unit(unit, 'unitCount')
-     * [1${not active(mSolve, 'checkUnavailability')}
-       + (1 - ts_unit_(unit, 'unavailability', f, t))${active(mSolve, 'checkUnavailability')}
-      ]
 ;
 
 $ontext
 // NOTE! These are unnecessary?
 // Free the upper bound of start-up and shutdown variables (if previously bounded)
-v_startup_LP.up(unitStarttype(unit, starttype), sft(s, f, t))
-    ${ uft_onlineLP(unit, f, t) }
+v_startup_LP.up(starttype, usft_onlineLP(unit, s, f, t))
+    ${ unitStarttype(unit, starttype) }
     = inf;
-v_startup_MIP.up(unitStarttype(unit, starttype), sft(s, f, t))
-    ${ uft_onlineMIP(unit, f, t) }
+v_startup_MIP.up(starttype, usft_onlineMIP(unit, s, f, t))
+    ${ unitStarttype(unit, starttype) }
     = inf;
-v_shutdown.up(unit, sft(s, f, t))$uft(unit, f, t) = inf;
+v_shutdown.up(usft(unit, s, f, t)) = inf;
 $offtext
 
 // v_startup cannot exceed unitCount
-v_startup_LP.up(unitStarttype(unit, starttype), sft(s, f, t))
-    ${  uft_onlineLP(unit, f, t)
+v_startup_LP.up(starttype, usft_onlineLP(unit, s, f, t))
+    ${  unitStarttype(unit, starttype)
         and not unit_investLP(unit)
         and not unit_investMIP(unit)
         }
     = p_unit(unit, 'unitCount');
-v_startup_MIP.up(unitStarttype(unit, starttype), sft(s, f, t))
-    ${  uft_onlineMIP(unit, f, t)
+v_startup_MIP.up(starttype, usft_onlineMIP(unit, s, f, t))
+    ${  unitStarttype(unit, starttype)
         and not unit_investLP(unit)
         and not unit_investMIP(unit)
         }
     = p_unit(unit, 'unitCount');
 
 // v_shutdown cannot exceed unitCount
-v_shutdown_LP.up(unit, sft(s, f, t))
-    ${  uft_onlineLP(unit, f, t)
-        and not unit_investLP(unit)
+v_shutdown_LP.up(usft_onlineLP(unit, s, f, t))
+    ${  not unit_investLP(unit)
         and not unit_investMIP(unit)}
     = p_unit(unit, 'unitCount');
 // v_shutdown cannot exceed unitCount
-v_shutdown_MIP.up(unit, sft(s, f, t))
-    ${  uft_onlineMIP(unit, f, t)
-        and not unit_investLP(unit)
+v_shutdown_MIP.up(usft_onlineMIP(unit, s, f, t))
+    ${  not unit_investLP(unit)
         and not unit_investMIP(unit)}
     = p_unit(unit, 'unitCount');
-
-// !!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// The following limits are extremely slow, and shouldn't strictly be required.
-// Commenting them out for now at least.
-$ontext
-// Cannot start a unit if the time when the unit would become online is outside
-// the horizon when the unit has an online variable
-v_startup.up(unitStarttype(unit, starttype), sft(s, f, t))${    uft_online(unit, f, t)
-                                                            and p_u_runUpTimeIntervals(unit)
-                                                            and not sum(t_active(t_)${ord(t) = ord(t_) + dt_toStartup(unit,t_)}, uft_online(unit, f, t_))
-                                                            }
-    = 0;
-// Cannot shut down a unit if the time when the generation of the unit would become
-// zero is outside the horizon when the unit has an online variable
-v_shutdown.up(unit, sft(s, f, t))${uft_online(unit, f, t)
-                                   and p_u_shutdownTimeIntervals(unit)
-                                   and not sum(t_active(t_)${ord(t) = ord(t_) + dt_toShutdown(unit,t_)}, uft_online(unit, f, t_))
-                                  }
-    = 0;
-$offtext
 
 //These might speed up, but they should be applied only to the new part of the horizon (should be explored)
-*v_startup.l(unitStarttype(unit, starttype), f, t)${uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
-*v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and uft_online(unit, f, t) and  not unit_investLP(unit) } = 0;
+*v_startup.l(unitStarttype(unit, starttype), f, t)${usft_online(unit, s, f, t) and  not unit_investLP(unit) } = 0;
+*v_shutdown.l(unit, f, t)${sum(starttype, unitStarttype(unit, starttype)) and usft_online(unit, s, f, t) and  not unit_investLP(unit) } = 0;
 
 *----------------------------------------------------------------------IC RAMP-------------------------------------------------------------------------------------------------------------------------------------
-v_ICramp.up(gn2n_directional(grid, node, node_), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
-                                                                 and p_gnn(grid, node, node_, 'ICrampUp')
-                                                                 and not p_gnn(grid, node, node_, 'transferCapInvLimit')
-                                                                 }
- = p_gnn(grid, node, node_, 'transferCap')
-       * p_gnn(grid, node, node_, 'ICrampUp')
-       * 60;    // Unit conversion from [p.u./min] to [p.u./h]
-v_ICramp.lo(gn2n_directional(grid, node, node_), sft(s, f, t))${ ord(t) > msStart(mSolve, s) + 1
-                                                                 and p_gnn(grid, node, node_, 'ICrampDown')
-                                                                 and not p_gnn(grid, node, node_, 'transferCapInvLimit')
-                                                                 }
- = -(p_gnn(grid, node, node_, 'transferCap'))
-       * p_gnn(grid, node, node_, 'ICrampDown')
-       * 60;    // Unit conversion from [p.u./min] to [p.u./h]
+v_transferRamp.up(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
+  $ {not p_gnn(grid, node, node_, 'transferCapInvLimit')
+     and not p_gnn(grid, node_, node, 'transferCapInvLimit')
+     and ord(t) > msStart(mSolve, s) + 1 }
+
+// Unit conversion from [p.u./min] to [MW/h]
+ = +p_gnn(grid, node, node_, 'transferCap')
+       * p_gnn(grid, node, node_, 'rampLimit')
+       * [
+           + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+           + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+         ]
+       * 60;
+
+
+v_transferRamp.lo(gn2nsft_directional_rampConstrained(grid, node, node_, s, f, t))
+  $ {not p_gnn(grid, node, node_, 'transferCapInvLimit')
+     and not p_gnn(grid, node_, node, 'transferCapInvLimit')
+     and ord(t) > msStart(mSolve, s) + 1  }
+
+// Unit conversion from [p.u./min] to [MW/h]
+ = -p_gnn(grid, node, node_, 'transferCap')
+       * p_gnn(grid, node, node_, 'rampLimit')
+       * [
+           + p_gnn(grid, node, node_, 'availability')${not gn2n_timeseries(grid, node, node_, 'availability')}
+           + ts_gnn_(grid, node, node_, 'availability', f, t)${gn2n_timeseries(grid, node, node_, 'availability')}
+         ]
+       * 60;
 
 *------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -425,11 +460,11 @@ v_transferLeftward.up(gn2n_directional(grid, node, node_), sft(s, f, t))${  not 
 * --- Reserve Provision Boundaries --------------------------------------------
 
 // Loop over the forecasts to minimize confusion regarding the df_reserves forecast displacement
-loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ ord(t) <= tSolveFirst + p_gnReserves(grid, node, restype, 'reserve_length') },
+loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ ord(t) <= t_solveFirst + p_gnReserves(grid, node, restype, 'reserve_length') },
     // Reserve provision limits without investments
     // Reserve provision limits based on resXX_range (or possibly available generation in case of unit_flow)
     v_reserve.up(gnuRescapable(restype, up_down, grid, node, unit), s, f+df_reserves(grid, node, restype, f, t), t)
-        ${  gnuft(grid, node, unit, f, t) // gnuft is not displaced by df_reserves, as the unit exists on normal ft.
+        ${  gnusft(grid, node, unit, s, f, t) // gnusft is not displaced by df_reserves, as the unit exists on normal ft.
             and not (unit_investLP(unit) or unit_investMIP(unit))
             and not sum(restypeDirectionGridNodeGroup(restype, up_down, grid, node, group),
                         ft_reservesFixed(group, restype, f+df_reserves(grid, node, restype, f, t), t)
@@ -486,7 +521,7 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
                 )  // This set contains the combination of reserve types and time intervals that should be fixed based on previous solves
             and not unit_flow(unit) // NOTE! Units using flows can change their reserve (they might not have as much available in real time as they had bid)
             }
-      = r_reserve(restype, up_down, grid, node, unit, f+df_reserves(grid, node, restype, f, t), t);
+      = r_reserve_gnuft(restype, up_down, grid, node, unit, f+df_reserves(grid, node, restype, f, t), t);
 
     // Fix transfer of reserves at the gate closure of reserves, LOWER BOUND ONLY!
     v_resTransferRightward.fx(restype, up_down, grid, node, node_, s, f+df_reserves(grid, node, restype, f, t), t)
@@ -499,7 +534,7 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
                            ) // Commit reserve transfer as long as either end commits.
                     ]
           }
-      = r_resTransferRightward(restype, up_down, grid, node, node_, f+df_reserves(grid, node, restype, f, t), t);
+      = r_reserveTransferRightward_gnnft(restype, up_down, grid, node, node_, f+df_reserves(grid, node, restype, f, t), t);
 
     v_resTransferLeftward.fx(restype, up_down, grid, node, node_, s, f+df_reserves(grid, node, restype, f, t), t)
         $ { gn2n_directional(grid, node, node_)
@@ -511,12 +546,12 @@ loop((restypeDirectionGridNode(restype, up_down, grid, node), sft(s, f, t))${ or
                            ) // Commit reserve transfer as long as either end commits.
                     ]
           }
-      = r_resTransferLeftward(restype, up_down, grid, node, node_, f+df_reserves(grid, node, restype, f, t), t);
+      = r_reserveTransferLeftward_gnnft(restype, up_down, grid, node, node_, f+df_reserves(grid, node, restype, f, t), t);
 
     // Fix slack variable for reserves that is used before the reserves need to be locked (vq_resMissing is used after this)
     vq_resDemand.fx(restype, up_down, group, s, f+df_reserves(grid, node, restype, f, t), t)
         $ { ft_reservesFixed(group, restype, f+df_reservesGroup(group, restype, f, t), t) }  // This set contains the combination of reserve types and time intervals that should be fixed
-      = r_qResDemand(restype, up_down, group, f+df_reservesGroup(group, restype, f, t), t);
+      = r_qReserveDemand_ft(restype, up_down, group, f+df_reservesGroup(group, restype, f, t), t);
 
 ); // END loop(restypeDirectionGridNode, ft)
 
@@ -558,14 +593,15 @@ v_investTransfer_MIP.up(gn2n_directional(grid, from_node, to_node), t_invest)${ 
 loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
 
     // If this is the very first solve, set various initial bounds
-    if(tSolveFirst = mSettings(mSolve, 't_start'),
+    if(t_solveFirst = mSettings(mSolve, 't_start'),
 
-        // state limits for normal (not superposed) nodes
-        loop(node$(not node_superpos(node)),
+        // state limits for nodes that have state variable and are not superposed nodes
+        loop(node${sum(grid, gn_state(grid, node)) and not node_superpos(node)},
 
             // Upper bound
-            v_state.up(gn_state(grid, node), s, f, t)${    p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
+            v_state.up(gn_state(grid, node), s, f, t)${ p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'useConstant')
                                                         and not df_central(f,t)
+                                                        and not sum(gnu(grid, node, unit), p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))
                                                         }
                 = p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'constant')
                     * p_gnBoundaryPropertiesForStates(grid, node,   'upwardLimit', 'multiplier');
@@ -592,10 +628,9 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
 
 
         // Initial online status for units
-        v_online_MIP.fx(unit, s, f, t)${p_unit(unit, 'useInitialOnlineStatus') and uft_onlineMIP(unit, f, t+1)}   //sets online status for one time step before the first solve
+        v_online_LP.fx(unit, s, f, t)${p_unit(unit, 'useInitialOnlineStatus') and usft_onlineLP(unit, s, f, t+1)}  //sets online status for one time step before the first solve
             = p_unit(unit, 'initialOnlineStatus');
-
-        v_online_LP.fx(unit, s, f, t)${p_unit(unit, 'useInitialOnlineStatus') and uft_onlineLP(unit, f, t+1)}
+        v_online_MIP.fx(unit, s, f, t)${p_unit(unit, 'useInitialOnlineStatus') and usft_onlineMIP(unit, s, f, t+1)}
             = p_unit(unit, 'initialOnlineStatus');
 
         // Initial generation for units
@@ -603,10 +638,10 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
             = p_gnu(grid, node, unit, 'initialGeneration');
 
         // Startup and shutdown variables are not applicable at the first time step
-        v_startup_LP.fx(unitStarttype(unit_online_LP, starttype), s, f, t) = 0;
-        v_startup_MIP.fx(unitStarttype(unit_online_MIP, starttype), s, f, t) = 0;
+        v_startup_LP.fx(starttype, usft_onlineLP(unit, s, f, t))$unitStarttype(unit, starttype) = 0;
+        v_startup_MIP.fx(starttype, usft_onlineMIP(unit, s, f, t))$unitStarttype(unit, starttype) = 0;
         v_shutdown_LP.fx(unit_online_LP, s, f, t) = 0;
-        v_shutdown_MIP.fx(unit_online_LP, s, f, t) = 0;
+        v_shutdown_MIP.fx(unit_online_MIP, s, f, t) = 0;
 
     else // For all other solves than first one, fix the initial state values based on previous results.
 
@@ -614,18 +649,23 @@ loop((mft_start(mSolve, f, t), ms_initial(mSolve, s)),
 
         // State and online variable initial values for the subsequent solves
         v_state.fx(gn_state(grid, node), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
-            = r_state(grid, node, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
+            = r_state_gnft(grid, node, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
 
         // Generation initial value (needed at least for ramp constraints)
         v_gen.fx(gnu(grid, node, unit), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
-            = r_gen(grid, node, unit, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
+            = r_gen_gnuft(grid, node, unit, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
 
-    ); // END if(tSolveFirst)
+        // Transfer initial value (needed at least for ramp constraints)
+        v_transfer.fx(gn2n(grid, from_node, to_node), s, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')))
+            = r_transfer_gnnft(grid, from_node, to_node, f, t + (1 - mInterval(mSolve, 'stepsPerInterval', 'c000')));
+
+
+    ); // END if(t_solveFirst)
 ) // END loop(mft_start)
 ;
 
 // If this is the very first solve, set various initial bounds for the superposed node states
-if(tSolveFirst = mSettings(mSolve, 't_start'),
+if(t_solveFirst = mSettings(mSolve, 't_start'),
     // state limits for normal (not superposed) nodes
     loop(node_superpos(node),
         loop(mz(mSolve, z)$(ord(z) eq 1),
@@ -637,41 +677,43 @@ if(tSolveFirst = mSettings(mSolve, 't_start'),
                         * p_gnBoundaryPropertiesForStates(grid, node, 'reference', 'multiplier');
             ) //END loop mz
         ) //END loop node_superpos
-); //END if(tSolveFirst)
+); //END if(t_solveFirst)
 
 * =============================================================================
 * --- Fix previously realized start-ups, shutdowns, and online states ---------
 * =============================================================================
 
 // Needed for modelling hot and warm start-ups, minimum uptimes and downtimes, and run-up and shutdown phases.
-if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on the first solve handled above
-    v_startup_LP.fx(unitStarttype(unit_online_LP(unit), starttype), sft_realizedNoReset(s, f, t_active(t)))
-        ${ ord(t) <= tSolveFirst } // Only fix previously realized time steps
-        = r_startup(unit, starttype, f, t);
+if( t_solveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on the first solve handled above
+    // Units that have a LP online variable on the first effLevel. Applies also following v_startup and v_online.
+    v_startup_LP.fx(starttype, unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
+        ${ (ord(t) <= t_solveFirst) // Only fix previously realized time steps
+           and unitStarttype(unit, starttype) }
+        = r_startup_uft(starttype, unit, f, t);
 
-    v_startup_MIP.fx(unitStarttype(unit_online_MIP(unit), starttype), sft_realizedNoReset(s, f, t_active(t)))
-        ${ ord(t) <= tSolveFirst } // Only fix previously realized time steps
-        = r_startup(unit, starttype, f, t);
+    // Units that have a MIP online variable on the first effLevel. Applies also following v_startup and v_online.
+    v_startup_MIP.fx(starttype, unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
+        ${ (ord(t) <= t_solveFirst) // Only fix previously realized time steps
+           and unitStarttype(unit, starttype) }
+        = r_startup_uft(starttype, unit, f, t);
 
     v_shutdown_LP.fx(unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
-        ${  ord(t) <= tSolveFirst } // Only fix previously realized time steps
-        = r_shutdown(unit, f, t);
+        ${  ord(t) <= t_solveFirst } // Only fix previously realized time steps
+        = r_shutdown_uft(unit, f, t);
 
     v_shutdown_MIP.fx(unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
-        ${  ord(t) <= tSolveFirst } // Only fix previously realized time steps
-        = r_shutdown(unit, f, t);
+        ${  ord(t) <= t_solveFirst } // Only fix previously realized time steps
+        = r_shutdown_uft(unit, f, t);
 
-    v_online_MIP.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
-        ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
-            and unit_online_MIP(unit) // Check if the unit has a MIP online variable on the first effLevel
+    v_online_LP.fx(unit_online_LP(unit), sft_realizedNoReset(s, f, t_active(t)))
+        ${  ord(t) <= t_solveFirst // Only fix previously realized time steps
             }
-        = round(r_online(unit, f, t));
+        = r_online_uft(unit, f, t);
 
-    v_online_LP.fx(unit, sft_realizedNoReset(s, f, t_active(t)))
-        ${  ord(t) <= tSolveFirst // Only fix previously realized time steps
-            and unit_online_LP(unit) // Check if the unit has a LP online variable on the first effLevel
+    v_online_MIP.fx(unit_online_MIP(unit), sft_realizedNoReset(s, f, t_active(t)))
+        ${  ord(t) <= t_solveFirst // Only fix previously realized time steps
             }
-        = r_online(unit, f, t);
+        = r_online_uft(unit, f, t);
 ); // END if
 
 
@@ -679,21 +721,32 @@ if( tSolveFirst <> mSettings(mSolve, 't_start'), // Avoid rewriting the fixes on
 * --- Fix previously realized investment results ------------------------------
 * =============================================================================
 
-v_invest_LP.fx(unit_investLP(unit))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
-    = r_invest(unit)
+v_invest_LP.fx(unit_investLP(unit))${ p_unit(unit, 'becomeAvailable') <= t_solveFirst }
+    = r_invest_unitCount_u(unit)
 ;
-v_invest_MIP.fx(unit_investMIP(unit))${ p_unit(unit, 'becomeAvailable') <= tSolveFirst }
-    = r_invest(unit)
+v_invest_MIP.fx(unit_investMIP(unit))${ p_unit(unit, 'becomeAvailable') <= t_solveFirst }
+    = r_invest_unitCount_u(unit)
 ;
 v_investTransfer_LP.fx(gn2n_directional(grid, node, node_), t_invest(t))${    not p_gnn(grid, node, node_, 'investMIP')
                                                                               and p_gnn(grid, node, node_, 'transferCapInvLimit')
-                                                                              and ord(t) <= tSolveFirst
+                                                                              and ord(t) <= t_solveFirst
                                                                               }
-    = r_investTransfer(grid, node, node_, t)
+    = r_invest_transferCapacity_gnn(grid, node, node_, t)
 ;
 v_investTransfer_MIP.fx(gn2n_directional(grid, node, node_), t_invest(t))${   p_gnn(grid, node, node_, 'investMIP')
                                                                               and p_gnn(grid, node, node_, 'transferCapInvLimit')
-                                                                              and ord(t) <= tSolveFirst
+                                                                              and ord(t) <= t_solveFirst
                                                                               }
-    = r_investTransfer(grid, node, node_, t) / p_gnn(grid, node, node_, 'unitSize')
+    = r_invest_transferCapacity_gnn(grid, node, node_, t) / p_gnn(grid, node, node_, 'unitSize')
 ;
+
+
+
+* =============================================================================
+* --- Read additional user given changes in loop phase ------------------------
+* =============================================================================
+
+
+$ifthen exist '%input_dir%/changes_loop.inc'
+    $$include '%input_dir%/changes_loop.inc'  // reading changes to looping phase if file exists
+$endif

@@ -15,24 +15,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-* Get current username
-$ifthen %system.filesys% == 'MSNT'
-$set username %sysenv.USERNAME%
-$else
-$set username %sysenv.USER%
-$endif
-
-* Create metadata
-set metadata(*) /
-   'User' '%username%'
-   'Date' '%system.date%'
-   'Time' '%system.time%'
-   'GAMS version' '%system.gamsrelease%'
-   'GAMS system' '%system.gstring%'
-*$include 'version'
-/;
-if(execError > 0, metadata('FAILED') = yes);
-
 put f_info
 put "¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤"/;
 put "¤ MODEL RUN DETAILS                                                   ¤"/;

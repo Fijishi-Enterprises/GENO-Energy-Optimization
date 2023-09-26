@@ -35,22 +35,40 @@ q_obj ..
                 // Time step length dependent costs
                 + p_stepLength(m, f, t)
                     * [
-                        // Variable O&M costs for inputs
-                        - sum(gnuft(grid, node, unit, f, t)$gnu_input(grid, node, unit),
+                        // O&M costs (gnu), fuel prices (gn), LCA emission costs (gnuEmissions, vomEmissions), fuel emission costs (gnEmission)
+                        // see 3c_inputsloop for details
+                        + sum(gnusft(grid, node, unit, s, f, t)${ p_vomCost(grid, node, unit, 'useConstant') or p_vomCost(grid, node, unit, 'useTimeSeries') },
                             + v_gen(grid, node, unit, s, f, t)
-                                * ts_vomCost_(grid, node, unit, t)
-                            ) // END sum(gnuft)
+                                * (+p_vomCost(grid, node, unit, 'price')$p_vomCost(grid, node, unit, 'useConstant')
+                                   +ts_vomCost_(grid, node, unit, t)$p_vomCost(grid, node, unit, 'useTimeSeries')
+                                  )
+                                // negative sign for input, because v_gen is negative for input
+                                * (-1$gnu_input(grid, node, unit)
+                                   +1$gnu_output(grid, node, unit)
+                                  )
+                            ) // END sum(gnusft)
 
-                        // Variable O&M costs
-                        + sum(gnuft(grid, node, unit, f, t)$gnu_output(grid, node, unit),
-                            + v_gen(grid, node, unit, s, f, t)
-                                * ts_vomCost_(grid, node, unit, t)
-                            ) // END sum(gnuft)
+                        // Ramping costs (eur/MW) * ramp (MW/h) * stepLength (h) = ramp cost (eur)
+                        + sum(gnusft_rampCost(slack, grid, node, unit, s, f, t)$p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost'),
+                            + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
+                                * v_genRampUpDown(slack, grid, node, unit, s, f, t)
+                          ) // END sum(gnusft_rampCost)
+
+                        // Variable Transfer cost
+                        + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node, node_, 'variableTransCost'),
+                              + p_gnn(grid, node, node_, 'variableTransCost')
+                              * v_transferLeftward(grid, node_, node, s, f, t)
+                          ) // END sum(gn2n_directional(grid, node_, node))
+
+                        + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node_, node, 'variableTransCost'),
+                              + p_gnn(grid, node_, node, 'variableTransCost')
+                              * v_transferRightward(grid, node_, node, s, f, t)
+                          ) // END sum(gn2n_directional(grid, node_, node))
 
                         // Node state slack variable costs
                         + sum(gn_stateSlack(grid, node),
                             + sum(slack${p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')},
-                                + v_stateSlack(grid, node, slack, s, f, t)
+                                + v_stateSlack(slack, grid, node, s, f, t)
                                     * p_gnBoundaryPropertiesForStates(grid, node, slack, 'slackCost')
                                 ) // END sum(slack)
                             ) // END sum(gn_stateSlack)
@@ -58,7 +76,7 @@ q_obj ..
                         // Dummy variable penalties
                         // Energy balance feasibility dummy varible penalties
                         + sum(inc_dec,
-                            + sum(gn(grid, node),
+                            + sum(gn(grid, node)${p_gn(grid, node, 'nodeBalance')},
                                 + vq_gen(inc_dec, grid, node, s, f, t)
                                     *( PENALTY_BALANCE(grid, node)${not p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
                                     + ts_node_(grid, node, 'balancePenalty', s, f, t)${p_gnBoundaryPropertiesForStates(grid, node, 'balancePenalty', 'useTimeSeries')}
@@ -82,46 +100,31 @@ q_obj ..
                         ] // END * p_stepLength
 
                 // Start-up costs, initial startup free as units could have been online before model started
-                + sum(uft_online(unit, f, t),
-                    + sum(unitStarttype(unit, starttype)$ts_startupCost_(unit, starttype, t),
+                + sum(usft_online(unit_startCost(unit), s, f, t),
+                    + sum(unitStarttype(unit, starttype)
+                        ${p_startupCost(unit, starttype, 'useConstant')
+                          or ts_startupCost_(unit, starttype, t)
+                          },
                         + [ // Unit startup variables
-                            + v_startup_LP(unit, starttype, s, f, t)${ uft_onlineLP(unit, f, t) }
-                            + v_startup_MIP(unit, starttype, s, f, t)${ uft_onlineMIP(unit, f, t) }
+                            + v_startup_LP(starttype, unit, s, f, t)${ usft_onlineLP(unit, s, f, t) }
+                            + v_startup_MIP(starttype, unit, s, f, t)${ usft_onlineMIP(unit, s, f, t) }
                           ]
-                          * ts_startupCost_(unit, starttype, t)
+                          * (+p_startupCost(unit, starttype, 'price')${ p_startupCost(unit, starttype, 'useConstant') }
+                             +ts_startupCost_(unit, starttype, t)${ p_startupCost(unit, starttype, 'useTimeSeries') }
+                            )
                       ) // END sum(starttype)
-                  ) // END sum(uft_online)
+                  ) // END sum(usft_online)
 
                 // Shut-down costs, initial shutdown free?
-                + sum(uft_online(unit, f, t)$p_uShutdown(unit, 'cost'),
+                + sum(usft_online(unit, s, f, t)$p_uShutdown(unit, 'cost'),
                     + p_uShutdown(unit, 'cost')
                       * [
-                            + v_shutdown_LP(unit, s, f, t)
-                                ${ uft_onlineLP(unit, f, t) }
-                            + v_shutdown_MIP(unit, s, f, t)
-                                ${ uft_onlineMIP(unit, f, t) }
+                            + v_shutdown_LP(unit, s, f, t)${ usft_onlineLP(unit, s, f, t) }
+                            + v_shutdown_MIP(unit, s, f, t)${ usft_onlineMIP(unit, s, f, t) }
                         ]
-                  ) // END sum(uft_online)
+                  ) // END sum(usft_online)
 
-                // Ramping costs
-                + sum(gnuft_rampCost(grid, node, unit, slack, f, t)$p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost'),
-                    + p_gnuBoundaryProperties(grid, node, unit, slack, 'rampCost')
-                        * v_genRampUpDown(grid, node, unit, slack, s, f, t)
-                  ) // END sum(gnuft_rampCost)
-
-                ]  // END * p_sft_probability(s,f,t)
-
-                // Variable Transfer
-                + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node, node_, 'variableTransCost'),
-                    + p_gnn(grid, node, node_, 'variableTransCost')
-                    * v_transferLeftward(grid, node_, node, s, f, t)
-                  ) // END sum(gn2n_directional(grid, node_, node))
-
-                + sum(gn2n_directional(grid, node_, node)$p_gnn(grid, node_, node, 'variableTransCost'),
-                    + p_gnn(grid, node_, node, 'variableTransCost')
-                    * v_transferRightward(grid, node_, node, s, f, t)
-                  ) // END sum(gn2n_directional(grid, node_, node))
-
+              ]  // END * p_msft_probability(m, s, f, t)
         ) // END sum over msft(m, s, f, t)
 
     // Cost of energy storage change (note: not discounted)
@@ -148,25 +151,81 @@ q_obj ..
             ) // END sum(mftLastSteps)
         ) // END sum(gn_state)
 
-    // Investment Costs
+    // Fixed maintenance costs of existing units and investment costs of new units and transfer links.
+    // Direct costs and emission costs.
     + sum(ms(m, s)${ sum(msft(m, s, f, t), 1) }, // consider ms only if it has active msft
         + p_msAnnuityWeight(m, s) // Sample weighting to calculate annual costs
             * p_s_discountFactor(s) // Discount costs
             * [
-                // Unit investment costs (including fixed operation and maintenance costs)
-                + sum(gnu(grid, node, unit),
-                    + v_invest_LP(unit)${ unit_investLP(unit) and sum(msft(m, s, f, t_), uft(unit, f, t_))} // consider unit only if it is active in the sample
-                        * p_gnu(grid, node, unit, 'unitSize')
+                // unit fixed o&m and investment costs (EUR)
+                + sum(gnu(grid, node, unit)${sum(msft(m, s, f, t_), usft(unit, s, f, t_))   // consider unit only if it is active in the sample
+                                             and (p_gnu(grid, node, unit, 'fomCosts')   // and it has fomCost or invCost parameter defined
+                                                  or p_gnu(grid, node, unit, 'invCosts'))
+                                            },
+                    // Fixed operation and maintenance costs of existing units (EUR)
+                    // includes existing capacity even if unit has v_invest variable
+                    + p_gnu(grid, node, unit, 'unitSize')   // (MW/unit)
+                        * p_unit(unit, 'unitCount')         // number of units
+                        * p_gnu(grid, node, unit, 'fomCosts')    // (EUR/MW/a)
+                    // Unit investment costs and fixed operation and maintenance costs of new units (EUR)
+                    + v_invest_LP(unit)${ unit_investLP(unit) } // number of units
+                        * p_gnu(grid, node, unit, 'unitSize')   // (MW/unit)
                         * [
-                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
-                            + p_gnu(grid, node, unit, 'fomCosts')
+                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuityFactor')  // (EUR/MW) * annualizationFactor
+                            + p_gnu(grid, node, unit, 'fomCosts')  // (EUR/MW)
                           ]
-                    + v_invest_MIP(unit)${ unit_investMIP(unit) and sum(msft(m, s, f, t_), uft(unit, f, t_))} // consider unit only if it is active in the sample
-                        * p_gnu(grid, node, unit, 'unitSize')
+                    + v_invest_MIP(unit)${ unit_investMIP(unit) }  // number of units
+                        * p_gnu(grid, node, unit, 'unitSize')      // (MW/unit)
                         * [
-                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuity')
-                            + p_gnu(grid, node, unit, 'fomCosts')
+                            + p_gnu(grid, node, unit, 'invCosts') * p_gnu(grid, node, unit, 'annuityFactor')  // (EUR/MW) * annualizationFactor
+                            + p_gnu(grid, node, unit, 'fomCosts')  // (EUR/MW)
                           ]
+                    ) // END sum(gnu)
+
+                // capacity emission costs: fixed o&M emissions and investment emissions (EUR)
+                // note: calculated from p_emissionPrice if exists or from the average of ts_emissionPrice
+                + sum((gnu(grid, node, unit),emissionGroup(emission, group))
+                       ${p_gnuEmission(grid, node, unit, emission, 'fomEmissions')
+                         and gnGroup(grid, node, group)
+                         and sum(msft(m, s, f, t_), usft(unit, s, f, t_))
+                         and (p_emissionPrice(emission, group, 'useConstant') or p_emissionPrice(emission, group, 'useTimeseries'))
+                         },
+                    + p_gnuEmission(grid, node, unit, emission, 'fomEmissions')       // (tEmissions/MW)
+                        * p_gnu(grid, node, unit, 'unitSize')   // (MW/unit)
+                        * [
+                            // Existing capacity
+                            + p_unit(unit, 'unitCount')         // (number of existing units)
+
+                            // Investments to new capacity
+                            + v_invest_LP(unit)${unit_investLP(unit)}        // (number of invested units)
+                            + v_invest_MIP(unit)${unit_investMIP(unit)}      // (number of invested units)
+                          ]
+                        * [ + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                            + (sum(t_realized(t), ts_emissionPrice(emission, group, t))/card(t_realized))$p_emissionPrice(emission, group, 'useTimeSeries')
+                          ]// END * p_gnuEmssion
+                    ) // END sum(gnu)
+
+                // capacity emissions cost: investment emissions (EUR)
+                // note: calculated from p_emissionPrice if exists or from the average of ts_emissionPrice
+                + sum((gnu(grid, node, unit),emissionGroup(emission, group))
+                       ${p_gnuEmission(grid, node, unit, emission, 'invEmissions')
+                         and (unit_investLP(unit) or unit_investMIP(unit))
+                         and gnGroup(grid, node, group)
+                         and sum(msft(m, s, f, t_), usft(unit, s, f, t_))
+                         and (p_emissionPrice(emission, group, 'useConstant') or p_emissionPrice(emission, group, 'useTimeseries'))
+                         },
+                    // Capacity restriction
+                    + p_gnuEmission(grid, node, unit, emission, 'invEmissions')    // (tEmission/MW)
+                        * p_gnuEmission(grid, node, unit, emission, 'invEmissionsFactor')    // factor dividing emissions to N years
+                        * p_gnu(grid, node, unit, 'unitSize')     // (MW/unit)
+                        * [
+                            // Investments to new capacity
+                            + v_invest_LP(unit)${unit_investLP(unit)}         // (number of invested units)
+                            + v_invest_MIP(unit)${unit_investMIP(unit)}       // (number of invested units)
+                          ]
+                        * [ + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
+                            + (sum(t_realized(t), ts_emissionPrice(emission, group, t))/card(t_realized))$p_emissionPrice(emission, group, 'useTimeSeries')
+                          ]// END * p_gnuEmssion
                     ) // END sum(gnu)
 
                 + sum(t_invest(t)${ord(t) <= msEnd(m, s)},
@@ -175,18 +234,18 @@ q_obj ..
                         + v_investTransfer_LP(grid, from_node, to_node, t)${ gn2n_directional_investLP(grid, from_node, to_node) }
                             * [
                                 + p_gnn(grid, from_node, to_node, 'invCost')
-                                    * p_gnn(grid, from_node, to_node, 'annuity')
+                                    * p_gnn(grid, from_node, to_node, 'annuityFactor')
                                 + p_gnn(grid, to_node, from_node, 'invCost')
-                                    * p_gnn(grid, to_node, from_node, 'annuity')
+                                    * p_gnn(grid, to_node, from_node, 'annuityFactor')
                                 ] // END * v_investTransfer_LP
                         + v_investTransfer_MIP(grid, from_node, to_node, t)${ gn2n_directional_investMIP(grid, from_node, to_node) }
                             * [
                                 + p_gnn(grid, from_node, to_node, 'unitSize')
                                     * p_gnn(grid, from_node, to_node, 'invCost')
-                                    * p_gnn(grid, from_node, to_node, 'annuity')
+                                    * p_gnn(grid, from_node, to_node, 'annuityFactor')
                                 + p_gnn(grid, to_node, from_node, 'unitSize')
                                     * p_gnn(grid, to_node, from_node, 'invCost')
-                                    * p_gnn(grid, to_node, from_node, 'annuity')
+                                    * p_gnn(grid, to_node, from_node, 'annuityFactor')
                                 ] // END * v_investTransfer_MIP
                         ) // END sum(gn2n_directional)
                     ) // END sum(t_invest)

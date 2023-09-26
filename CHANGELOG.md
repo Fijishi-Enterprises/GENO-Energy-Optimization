@@ -2,12 +2,217 @@
 All notable changes to this project will be documented in this file.
 
 ## unversioned
+
 ### Added
 
 ### Changed
-- Shutdown costs, start costs and start fuel consumptions to p_gnu_io
 
 ### Fixed
+
+
+## 3.6 - 2023-08-24
+
+### Added
+- input data sheet ts_groupPolicy for time series constraint
+- time series based maximum online status
+- result table on Rate Of Change Of Frequency (ROCOF)
+- an error message and abort if input data excel, input data gdx, or timeAndSamples.inc not found
+
+### Changed
+- giving different default penalty values for schedule (10e4) and invest (10e6)
+- rounding MIP online, startup, and shutdown values in result tables
+- improved the example of reading additional input files
+- updated changes_loop template to use new tt_agg_circular
+- cleaning code: replacing remaining tt_aggcircular with the new version
+- reading default model definition files after modelsInit
+- stricter node and unit loopings for minor speed improvement and clarifying the code
+- Automatically reducing the number of internal counters based on input data
+
+### Fixed
+- reverting remaining selfDischargeLoss updates from previous patch
+- a crash related to non-rounded MIP startup or MIP shutdown values
+
+## 3.5 - 2023-08-24
+
+### Added
+- Investment energy cost parameter
+- Adding an abort + warning if there are zero active samples in the init file
+- explanations and clarifications to vomCost calculations in the code
+- A warning if flow unit has efficiency levels defined and automatically removing these
+- A warning and abort if unit with online variable does not have any op (or hr) parameters defined
+- A warning and abort if unit has op parameters defined, but no matching eff values
+- A warning if flow unit has op, eff, or conversionCoeff parameters defined, and automatically removing these
+- A warning and abort if flow unit is assigned to multiple grids or nodes
+
+### Changed
+- edits to temp_4d_postProcess_invest2schedule.gms
+- increasing default penalty to 10e6 for improved default behavior in investment cases
+- changed command line option dummy to onlyPresolve
+- unifying Abort messages to follow similar structure
+- cleaning code: removing internal variables ss, ds, ds_state
+- cleaning code: removing unused sets
+- cleaning code: removing unused parameters
+
+### Fixed
+- Fixing a bug with data recycling with constant hourly time resolution.
+- Fixing model sets defining the last t in investment model runs
+- Fixed curtailment results in case unitSize is different to 1
+- Checking the GAMS version earlier in the code to avoid crash in certain cases
+- sum of capacity dependent emissions in emission cap equation
+- fixed dummy command line option
+- updating debug symbols
+- improved storage state calculation between samples when using cyclic bounds and selfDischargeLosses
+- boundStartOfSamples now fixes the time step one before the start of the sample similarly to other storage logic
+
+
+## 3.4 - 2022-12-21
+
+### Added
+
+- Add `ts_price` equivalent to Spine datastore template.
+- Option to declare which units use forecast data
+
+### Changed
+
+- updated scheduleInit template with 3 forecasts
+
+### Fixed
+
+- Fixing a bug with data recycling with constant hourly time resolution.
+- Minor tweaks to Spine exporter settings to avoid erronous data export.
+- removed old unused sections of code from 3c_inputsLoop
+- Aligning the behaviour of 3.x with 2.x in case of 3 or more forecasts
+
+
+## 3.3 - 2022-12-15
+
+### Added
+- new user input file changes_loop.inc that is read at the end of each loop compile phase
+- file `input/temp_changes_loop.inc` demonstrating the use
+
+### Changed
+- updating temp_4d_postProcess_invest2schedule.gms
+
+### Fixed
+- capacity margin equation in case of flow unit inputs
+- bound start and end of samples in certain cases with aggregated time steps
+
+
+## 3.2 - 2022-12-13
+
+### Added
+- template file temp_changes_readSecondInputFile.inc
+- adding a mod folder for mods delivered with the main backbone model
+
+### Changed
+- renaming tSolve t_solve
+- defining t_startp only over t_full instead of t
+- improved efficiency of ts_vomCost_ and ts_startupCost_ by avoiding repeated sums
+
+### Fixed
+- updated result table naming in an example of new result table
+
+
+## 3.1 - 2022-12-07
+
+### Added
+
+### Changed
+- improving looping and if conditions to avoid unnecessary calculations in investment runs
+- replacing uft sets with usft sets for faster investment runs
+- renaming startp set to t_startp
+- renaming 3.x result tables. New names: r_gen_utilizationRate_gnu, r_gen_unitStartupConsumption_nu
+- aligned unitConstraint (e.g. CHP units with constraint heat/elec ratio) behaviour with 2.x
+
+### Fixed
+
+
+## 3.0 - 2022-12-01
+
+### Added- option to use availabilityCapacityMargin for input units
+- emission factors for invested capacity, fixed o&m, and variable o&m for units
+- time series for emission costs
+- option to bound storage states at the beginning and/or end of samples
+- template to activate barrier algorithm in cplex.opt (cplex_templateBarrier.opt)
+- template to remove scaling in cplex.opt (cplex_templateNoScaling.opt)
+- timeseries based unit node constraints
+- option to add user defined parameters and sets in additionalSetsAndParameters.inc
+
+### Removed - possibly requiring changes in input or result processing - see conversion guide from 2.x to 3.x 
+- removed scenarios set including related equations and parameters
+- removed unavailability parameter. Availability timeseries covers those functions from now on.
+- removed unfinished features of reading new data during loop for ts_effUnit, ts_effGroupUnit, ts_priceChange, ts_price 
+- removing option to read params.inc for additional parameters. New file additionalSetsAndParameters.inc replaces.
+- removing consumption result tables as those are part of generation tables. 
+
+### Changed - requiring input data changes - see conversion guide from 2.x to 3.x 
+- Shutdown costs, start costs and start fuel consumptions to p_gnu_io
+- converting input data emission factor from kg/MWh to t/MWh
+- replaced emissionTax parameter with ts_emissionPrice and ts_emissionPriceChange 
+- changed parameter name annuity to annuityFactor for clarification
+- adding transfer rampLimit equations, removing old unfinished ICramp equations
+- if input data gdx contains additional sets and parameters, those have to be defined in additionalSetsAndParameters.inc
+
+### Changed - not requiring input data changes
+- emissions bound to outputs (e.g. P2X) are included in equations as negative emissions
+- combined result tables for emissions from input and emissions from outputs
+- emissions bound to outputs (e.g. P2X) are included in result tables as negative emissions
+- moving metadata to 1b_sets to allow expanding it with user given metadata
+- update `tools/bb_data_template.json` for 3.x input data.
+
+### Changed - Quality of Life improvements
+- making most of the input data tables optional. Listing mandatory ones in 1e_inputs
+- updated result table names with an improved logic
+- added an option to use old 2.x result tables instead
+- adding example how to add new result tables (temp_4d_postProcess_newResultsTable.gms and temp_additionalResultSymbols.inc)
+- adding explanations and clarifications to paramater, set, and variable descriptions
+- adding if checks and absolute path option for input data excel
+- assuming default discount factor of 1 if not given in input data
+- added option to use ts_price and/or ts_priceChange
+- added option to use ts_emissionPrice and/or ts_emissionPriceChange
+- added a warning that directOff deactivates startCosts
+- New results tables: invested capacity, total emissions of emission groups, total diffusion between nodes, hourly curtailments, total curtailments
+- adding number of completed and remaining solves between loops
+- renamed suft(effSelector, unit, f, t)  to eff_uft to avoid confusions with samples 
+- Automatic formatting and of `tools/bb_data_template.json` data structure.
+- clearing Eps values from result table r_state
+- moving example files, e.g. 1_options_temp.gms, to their default folders
+- adding example file temp_additionalSetsAndParameters.inc
+- adding example file temp_changes.inc
+- stricter domains for `tools/exporttobb.json` .gdx exporter.
+
+
+### Changed - efficiency improvements
+- improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves
+- improved memory size and speed of timeseries looping (ts_vomCost_, ts_startupCost_)
+- improved the speed of ts_price calculation
+- separated units with constant and variable startupCost to improve efficiency
+- improved efficiency of ts_node looping
+- deactivating minimum online and offline equations when timestep is longer than required minimum time 
+- not applying unit ramp rates if allowed ramp up/down is more than 1 in time step.
+- not applying transfer ramp rates if allowed ramp is more than 2 in time step.
+- separated gnu with constant and variable vomCost to improve efficiency
+- replacing gnuft with gnusft to reduce model size
+- not applying energy balance dummy if node does not have energy balance
+- improving ts_node looping efficiency
+- improving ts_storageValue looping efficiency
+- reducing result table calculation duration
+
+### Fixed
+- fixing div by zero in twoWayTransfer limits with 0 availability
+- `scheduleInit.gms` is no longer required by `spineToolbox.json`.
+- `tools/bb_data_template.json` and `tools/exporttobb.json` updated to match new input data requirements.
+- correcting sample weights in objective function for transfer vomCosts
+- fixing crash with diag option
+- investments to existing storage units is now possible
+- fixing div by 0 error in r_gnuUtilizationRate if unit has no unit size
+- fixed shutdown variable at the beginning of solve for MIP units
+- fixed multiplying unit ramping costs and transfer variable cost by stepLength in objective function
+- fixing a case where ts_node was not looped for all included values
+- Existing unit fixed operation and maintenance costs (fomCosts) are now included in the objective function
+- Adding flow units to all generation by fuel result tables
+- fixing calculation of share result tables
+- finished partially completed shutdown cost result tables
 
 
 ## 2.2 - 2022-03-24
@@ -29,6 +234,7 @@ All notable changes to this project will be documented in this file.
 ## 2.1 - 2022-01-24
 ### Added
 - two new result tables (gnGen, groupReserves) for easier graph drawing and debugging
+- fixed flow units to model must-run production or consumption units
 
 ### Changed
 - result table r_gen_gnUnittype renamed to r_gnuTotalGen_unittype. Original was not actively used in master branch.

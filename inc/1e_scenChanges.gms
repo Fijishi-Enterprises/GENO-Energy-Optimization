@@ -230,6 +230,18 @@ $ifthen exist '%input_dir%/p_unitConstraintNode3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/ts_unitConstraintNode2.gdx'
+    $$gdxin '%input_dir%/ts_unitConstraintNode2.gdx'
+    $$loaddcm ts_unitConstraintNode
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/ts_unitConstraintNode3.gdx'
+    $$gdxin '%input_dir%/ts_unitConstraintNode3.gdx'
+    $$loaddcm ts_unitConstraintNode
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/restype2.gdx'
     $$gdxin '%input_dir%/restype2.gdx'
     $$loaddcm restype
@@ -422,6 +434,18 @@ $ifthen exist '%input_dir%/p_nEmission3.gdx'
     $$gdxin
 $endif
 
+$ifthen exist '%input_dir%/p_gnuEmission2.gdx'
+    $$gdxin '%input_dir%/p_gnuEmission2.gdx'
+    $$loaddcm p_nEmission
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/p_gnuEmission3.gdx'
+    $$gdxin '%input_dir%/p_gnuEmission3.gdx'
+    $$loaddcm p_nEmission
+    $$gdxin
+$endif
+
 $ifthen exist '%input_dir%/ts_cf2.gdx'
     $$gdxin '%input_dir%/ts_cf2.gdx'
     $$loaddcm ts_cf
@@ -443,6 +467,18 @@ $endif
 $ifthen exist '%input_dir%/ts_priceChange3.gdx'
     $$gdxin '%input_dir%/ts_priceChange3.gdx'
     $$loaddcm ts_priceChange
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/ts_price2.gdx'
+    $$gdxin '%input_dir%/ts_price2.gdx'
+    $$loaddcm ts_price
+    $$gdxin
+$endif
+
+$ifthen exist '%input_dir%/ts_price3.gdx'
+    $$gdxin '%input_dir%/ts_price3.gdx'
+    $$loaddcm ts_price
     $$gdxin
 $endif
 

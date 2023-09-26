@@ -64,6 +64,9 @@ Model invest /
     q_transfer
     q_transferRightwardLimit
     q_transferLeftwardLimit
+    q_transferRamp
+    q_transferRampLimit1
+    q_transferRampLimit2
     q_resTransferLimitRightward
     q_resTransferLimitLeftward
     q_reserveProvisionRightward
@@ -92,7 +95,7 @@ Model invest /
     q_constrainedOnlineMultiUnit
     q_capacityMargin
     q_constrainedCapMultiUnit
-    q_emissioncap
+    q_emissioncapNodeGroup
     q_energyLimit
     q_energyShareLimit
     q_ReserveShareMax

@@ -47,7 +47,6 @@
             "s": "s",
             "sample__group": "sGroup",
             "sample_discountFactor": "sample_discountFactor",
-            "scenario": "scenario",
             "slack": "slack",
             "t_availability": "t_availability",
             "t_invest": "t_invest",

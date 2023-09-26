@@ -45,27 +45,6 @@
                     }
                 }
             ],
-            "scenario": [
-                {
-                    "Mapping 0": {
-                        "mapping": [
-                            {
-                                "map_type": "ObjectClass",
-                                "position": "hidden",
-                                "value": "scenario"
-                            },
-                            {
-                                "map_type": "Object",
-                                "position": 0
-                            },
-                            {
-                                "map_type": "ObjectMetadata",
-                                "position": "hidden"
-                            }
-                        ]
-                    }
-                }
-            ],
             "input_output": [
                 {
                     "Mapping 0": {
@@ -154,7 +133,6 @@
         "table_options": {
             "s": {},
             "f": {},
-            "scenario": {},
             "up_down": {},
             "input_output": {},
             "effLevel": {},
@@ -165,9 +143,6 @@
                 "0": "string"
             },
             "f": {
-                "0": "string"
-            },
-            "scenario": {
                 "0": "string"
             },
             "up_down": {
@@ -185,7 +160,6 @@
         },
         "table_row_types": {},
         "selected_tables": [
-            "scenario",
             "up_down",
             "input_output",
             "effLevel",

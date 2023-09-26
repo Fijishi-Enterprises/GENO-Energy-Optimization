@@ -15,12 +15,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Backbone.  If not, see <http://www.gnu.org/licenses/>.
 $offtext
 
-parameter ts_influx_building_subtract(grid, node, f, t);
-
-$gdxin  '%input_dir%/%input_file_gdx%'
-$loaddc ts_influx_building_subtract
-$gdxin
-
 ts_influx(gn(grid, node), f, t) = ts_influx(grid, node, f, t) + ts_influx_building_subtract(grid, node, f, t);
 
 * =============================================================================

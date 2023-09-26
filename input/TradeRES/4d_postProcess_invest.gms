@@ -12,9 +12,9 @@ put f_changes
 
 // Number of subunits
 put "* Update the number of subunits in the subsequent models"/;
-loop(unit${r_invest(unit)},
+loop(unit${r_invest_unitCount_u(unit)},
     // subunits rounded to the nearest integer
-    tmp = round(r_invest(unit), 0)
+    tmp = round(r_invest_unitCount_u(unit), 0)
     put "p_unit('", unit.tl, "', 'unitCount') = p_unit('", unit.tl,
         "', 'unitCount') + ", tmp, ";"/;
 );
@@ -25,7 +25,7 @@ put "* Update unit capacities in the subsequent models"/;
 put "* Set 'becomeUnavailable' if no existing capacity and no investments" /;
 loop(gnu(grid, node, unit)${unit_investLP(unit) or unit_investMIP(unit)},
     // subunits rounded to the nearest integer
-    tmp = Eps + p_gnu(grid, node, unit, 'unitSize') * round(r_invest(unit), 0);
+    tmp = Eps + p_gnu(grid, node, unit, 'unitSize') * round(r_invest_unitCount_u(unit), 0);
     if(tmp > 0,
         if(gnu_output(grid, node, unit),
             put "p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
@@ -51,10 +51,10 @@ loop(gnu(grid, node, unit)${unit_investLP(unit) or unit_investMIP(unit)},
 put /;
 put "* Update storage upper bounds for the subsequent models"/;
 loop(gnu(grid, node, unit)
-    ${r_invest(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio')},
+    ${r_invest_unitCount_u(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio')},
     // subunits rounded to the nearest integer
     tmp = p_gnu(grid, node, unit, 'upperLimitCapacityRatio')
-        * round(r_invest(unit), 0) * p_gnu(grid, node, unit, 'unitSize');
+        * round(r_invest_unitCount_u(unit), 0) * p_gnu(grid, node, unit, 'unitSize');
     put "p_gnBoundaryPropertiesForStates('", grid.tl, "', '", node.tl,
         "', 'upwardLimit', 'constant')"/;
     put "    =  p_gnBoundaryPropertiesForStates('",
@@ -63,7 +63,7 @@ loop(gnu(grid, node, unit)
 put "* Update storage (pumped storage, hydro, H2) reference level for the subsequent models"/;
 loop(gn(grid, node)
     ${(p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
-    or sum(unit, (r_invest(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))))
+    or sum(unit, (r_invest_unitCount_u(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))))
 	and (sameas(grid, 'pumped') or sameas(grid, 'H2') or sameas(grid, 'hydro'))},
     put "p_gn('", grid.tl, "', '", node.tl,
         "', 'boundStart') = 1;"/;
@@ -86,14 +86,14 @@ loop(gn(grid, node)
 // Transfer capacity
 put "* Update transfer capacities in the subsequent models"/;
 loop(gn2n_directional(grid, node, node_)
-    ${sum(t_invest, r_investTransfer(grid, node, node_, t_invest))},
+    ${sum(t_invest, r_invest_transferCapacity_gnn(grid, node, node_, t_invest))},
     tmp = 0;
     tmp_ = 0;
     loop(t_invest(t),
         tmp = p_gnn(grid, node, node_, 'transferCap') + tmp
-            + r_investTransfer(grid, node, node_, t);
+            + r_invest_transferCapacity_gnn(grid, node, node_, t);
         tmp_ = p_gnn(grid, node_, node, 'transferCap') + tmp_
-            + r_investTransfer(grid, node, node_, t);
+            + r_invest_transferCapacity_gnn(grid, node, node_, t);
         put "p_gnn('", grid.tl, "', '", node.tl, "', '", node_.tl,
             "', 'transferCap')"/;
         put "        = ", tmp, ";"/;

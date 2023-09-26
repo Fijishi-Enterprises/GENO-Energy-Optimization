@@ -39,14 +39,6 @@ if (mType('schedule'),
 * --- Model Time Structure ----------------------------------------------------
 * =============================================================================
 
-* --- Long-term scenarios -----------------------------------------------------
-
-    // Number of long-term scenarios to use (zero if none)
-    mSettings('schedule', 'scenarios') = 0;
-
-    // Length of single scenario (in time steps)
-    mSettings('schedule', 'scenarioLength') = 8760;
-
 * --- Define Samples ----------------------------------------------------------
 
     // Number of samples used by the model
@@ -59,7 +51,7 @@ if (mType('schedule'),
 
     // Define time span of samples
     msStart('schedule', 's000') = 1;
-    msEnd('schedule', 's000') = msStart('schedule', 's000') + mSettings('schedule', 't_end') + mSettings('schedule', 't_horizon'); // May not work if using scenarios
+    msEnd('schedule', 's000') = msStart('schedule', 's000') + mSettings('schedule', 't_end') + mSettings('schedule', 't_horizon');
 
     // Define the probability (weight) of samples
     p_msProbability('schedule', s) = 0;
@@ -69,20 +61,6 @@ if (mType('schedule'),
     p_msAnnuityWeight('schedule', s) = 0;
     p_msAnnuityWeight('schedule', 's000') = 1;
 
-    // If using long-term samples, uncomment
-    //ms_central('schedule', 's001') = yes;
-    //
-    //msEnd('schedule', 's000') = msStart('schedule', 's000') + 168;
-
-    //msStart('schedule', 's001') = msEnd('schedule', 's000');
-    //msEnd('schedule', 's001') = msStart('schedule', 's000')
-    //                       + mSettings('schedule', 't_horizon');
-    //
-    //p_msProbability('schedule', 's001') = 1;
-    //);
-
-    // Define which nodes use long-term samples
-    //gn_scenarios('hydro', 'XXX', 'ts_influx') = yes;
 
 * --- Define Time Step Intervals ----------------------------------------------
 
@@ -122,8 +100,13 @@ if (mType('schedule'),
     mSettings('schedule', 'forecasts') = 3;
 
     // Define which nodes and timeseries use forecasts
-    //Option clear = gn_forecasts;  // By default includes everything, so clear first
-    //gn_forecasts('wind', 'XXX', 'ts_cf') = yes;
+    Option clear = gn_forecasts;  // By default includes everything, so clear first
+    //gn_forecasts('wind', 'XXX', 'ts_cf') = yes;  // declare a time serie that has forecasts. Syntax: (*, node, timeseries) where * = grid, flow, or restype
+    //gn_forecasts('hydro', 'XXX', 'ts_influx') = yes;  // declare a time serie that has forecasts. Syntax: (*, node, timeseries) where * = grid, flow, or restype
+
+    // Define which units and timeseries use forecasts
+    Option clear = unit_forecasts;  // By default includes everything, so clear first
+    //unit_forecasts('XXX', 'ts_unit') = yes;  // declare a time serie that has forecasts. Syntax: (unit, timeseries)
 
     // Define forecast properties and features
     mSettings('schedule', 't_forecastStart') = 1;                  // At which time step the first forecast is available ( 1 = t000001 )
@@ -136,26 +119,19 @@ if (mType('schedule'),
     // Define how forecast data is read
     mSettings(mSolve, 'onlyExistingForecasts') = no; // yes = Read only existing data; zeroes need to be EPS to be recognized as data.
 
-    // Define what forecast data is read
+    // Define what forecast data is read during the loop phase
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
     mTimeseries_loop_read('schedule', 'ts_unit') = no;
-*    mTimeseries_loop_read('schedule', 'ts_effUnit') = no; // THESE ARE CURRENTLY DISABLED, ENABLE AT OWN RISK
-*    mTimeseries_loop_read('schedule', 'ts_effGroupUnit') = no; // THESE ARE CURRENTLY DISABLED, ENABLE AT OWN RISK
     mTimeseries_loop_read('schedule', 'ts_influx') = no;
     mTimeseries_loop_read('schedule', 'ts_cf') = no;
     mTimeseries_loop_read('schedule', 'ts_reserveDemand') = no;
     mTimeseries_loop_read('schedule', 'ts_node') = no;
-    mTimeseries_loop_read('schedule', 'ts_priceChange') = no;
-    mTimeseries_loop_read('schedule', 'ts_unavailability') = no;
 
     // Define Realized and Central forecasts
     mf_realization('schedule', f) = no;
     mf_realization('schedule', 'f00') = yes;
     mf_central('schedule', f) = no;
     mf_central('schedule', 'f02') = yes;
-
-    // Define special forecast label that holds scenario data
-    //mf_scenario('schedule', 'scen') = yes;
 
     // Define forecast probabilities (weights)
     p_mfProbability('schedule', f) = 0;
@@ -171,10 +147,7 @@ if (mType('schedule'),
 
     // Define active model features
     active('schedule', 'storageValue') = yes;
-    active('schedule', 'scenRed') = no;
 
-    mSettings('schedule', 'red_num_leaves') = 10;  // Desired number of long-term scenarios
-    mSettings('schedule', 'red_percentage') = 0;   // Scenario reduction percentage
 
 * --- Define Reserve Properties -----------------------------------------------
 
@@ -198,7 +171,7 @@ if (mType('schedule'),
 * --- Define output settings for results --------------------------------------
 
     // Define the length of the initialization period. Results outputting starts after the period. Uses ord(t) > t_start + t_initializationPeriod in the code.
-    mSettings('schedule', 't_initializationPeriod') = 0;  // r_state and r_online are stored also for the last step in the initialization period, i.e. ord(t) = t_start + t_initializationPeriod
+    mSettings('schedule', 't_initializationPeriod') = 0;  // r_state_gnft and r_online_uft are stored also for the last step in the initialization period, i.e. ord(t) = t_start + t_initializationPeriod
 
 * --- Define the use of additional constraints for units with incremental heat rates
 
