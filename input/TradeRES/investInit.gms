@@ -39,7 +39,7 @@ if (mType('invest'),
 * --- Define Samples ----------------------------------------------------------
 
     // Number of samples used by the model
-    mSettings('invest', 'samples') = 5;
+    mSettings('invest', 'samples') = 7;
 
     // Clear Initial and Central samples
     ms_initial('invest', s) = no;
@@ -48,8 +48,8 @@ if (mType('invest'),
     ms_initial('invest', 's002') = yes;
     ms_initial('invest', 's003') = yes;
     ms_initial('invest', 's004') = yes;
-*    ms_initial('invest', 's005') = yes;
-*    ms_initial('invest', 's006') = yes;
+    ms_initial('invest', 's005') = yes;
+    ms_initial('invest', 's006') = yes;
 *    ms_initial('invest', 's007') = yes;   
     ms_central('invest', s) = no;
 
@@ -58,17 +58,20 @@ if (mType('invest'),
     // currently used: k-medoids-emthod by https://github.com/FZJ-IEK3-VSA/tsam
     // The duration of the samples can be, for example, 1 day or 1 week (24 h or 168 h).
     // The samples can have different durations.
-    msStart('invest', 's000') = 1009;
+    msStart('invest', 's000') = 523;                                  // extreme period and EU peak load
     msEnd('invest', 's000') = msStart('invest', 's000') + 168;
-    msStart('invest', 's001') = 2521;
+    msStart('invest', 's001') = 1009;
     msEnd('invest', 's001') = msStart('invest', 's001') + 168;
-    msStart('invest', 's002') = 3865;
+    msStart('invest', 's002') = 2521;
     msEnd('invest', 's002') = msStart('invest', 's002') + 168;
-    msStart('invest', 's003') = 5713;
+    msStart('invest', 's003') = 3865;
     msEnd('invest', 's003') = msStart('invest', 's003') + 168;
-    msStart('invest', 's004') = 7729;
+    msStart('invest', 's004') = 4899;                               //extreme
     msEnd('invest', 's004') = msStart('invest', 's004') + 168;
-
+    msStart('invest', 's005') = 5713;
+    msEnd('invest', 's005') = msStart('invest', 's005') + 168;
+    msStart('invest', 's006') = 7729;
+    msEnd('invest', 's006') = msStart('invest', 's006') + 168;
     // Define the probability of samples
     // Probabilities are 1 in deterministic model runs.
     // It is also possible to include, for example, 3 samples from a cold year with a probability of 1/10
@@ -79,8 +82,8 @@ if (mType('invest'),
     p_msProbability('invest', 's002') = 1;
     p_msProbability('invest', 's003') = 1;
     p_msProbability('invest', 's004') = 1;
-*    p_msProbability('invest', 's005') = 1;
-*    p_msProbability('invest', 's006') = 1;
+    p_msProbability('invest', 's005') = 1;
+    p_msProbability('invest', 's006') = 1;
 //    p_msProbability('invest', 's007') = 1; 
     // Define the weight of samples
     // Weights describe how many times the samples are repeated in order to get the (typically) annual results.
@@ -88,24 +91,25 @@ if (mType('invest'),
     // to cover the 52.14 weeks of the year.
     // Weights are used for scaling energy production and consumption results and for estimating node state evolution.
     p_msWeight('invest', s) = 0;
-    p_msWeight('invest', 's000') = 11.14;
-    p_msWeight('invest', 's001') = 9;
-    p_msWeight('invest', 's002') = 6;
-    p_msWeight('invest', 's003') = 16;
-    p_msWeight('invest', 's004') = 10;
- //   p_msWeight('invest', 's007') = 1;  
+    p_msWeight('invest', 's000') = 1;
+    p_msWeight('invest', 's001') = 11.14;
+    p_msWeight('invest', 's002') = 8.5;
+    p_msWeight('invest', 's003') = 5.5;
+    p_msWeight('invest', 's004') = 1;
+    p_msWeight('invest', 's005') = 15.5;
+    p_msWeight('invest', 's006') = 9.5;
     // Define the weight of samples in the calculation of fixed costs
     // The sum of p_msAnnuityWeight should be 1 over the samples belonging to the same year.
     // The p_msAnnuityWeight parameter is used for describing which samples belong to the same year so that the model
     // is able to calculate investment costs and fixed operation and maintenance costs once per year.
     p_msAnnuityWeight('invest', s) = 0;
-    p_msAnnuityWeight('invest', 's000') = 1/5;
-    p_msAnnuityWeight('invest', 's001') = 1/5;
-    p_msAnnuityWeight('invest', 's002') = 1/5;
-    p_msAnnuityWeight('invest', 's003') = 1/5;
-    p_msAnnuityWeight('invest', 's004') = 1/5;
-*    p_msAnnuityWeight('invest', 's005') = 168/8760;
-*    p_msAnnuityWeight('invest', 's006') = (8760-2*168)/5/8760;
+    p_msAnnuityWeight('invest', 's000') = 1/7;
+    p_msAnnuityWeight('invest', 's001') = 1/7;
+    p_msAnnuityWeight('invest', 's002') = 1/7;
+    p_msAnnuityWeight('invest', 's003') = 1/7;
+    p_msAnnuityWeight('invest', 's004') = 1/7;
+    p_msAnnuityWeight('invest', 's005') = 1/7;
+    p_msAnnuityWeight('invest', 's006') = 1/7;
  //   p_msAnnuityWeight('invest', 's007') = /8760;
 
 * --- Define Time Step Intervals ----------------------------------------------
@@ -214,9 +218,10 @@ loop(gn(grid,node)${sameas(grid, 'hydro') or sameas(grid, 'pumped') or sameas(gr
     gnss_bound(grid,node,'s001','s002') = yes;
     gnss_bound(grid,node,'s002','s003') = yes;
     gnss_bound(grid,node,'s003','s004') = yes;
-    gnss_bound(grid,node,'s004','s000') = yes;
-*    gnss_bound(grid,node,'s005','s006') = yes;
-*    gnss_bound(grid,node,'s006','s000') = yes;
+    gnss_bound(grid,node,'s004','s005') = yes;
+    gnss_bound(grid,node,'s005','s006') = yes;
+    gnss_bound(grid,node,'s006','s000') = yes;
+
 *    gnss_bound(grid,node,'s006','s007') = yes;
 *    gnss_bound(grid,node,'s007','s000') = yes;
 );
@@ -229,8 +234,8 @@ sGroup('s001','VRE_limit') = yes;
 sGroup('s002','VRE_limit') = yes;
 sGroup('s003','VRE_limit') = yes;
 sGroup('s004','VRE_limit') = yes;
-*sGroup('s005','VRE_limit') = yes;
-*sGroup('s006','VRE_limit') = yes;
+sGroup('s005','VRE_limit') = yes;
+sGroup('s006','VRE_limit') = yes;
 *sGroup('s007','VRE_limit') = yes;
 
 p_s_discountFactor('s000') = 1;
@@ -238,5 +243,5 @@ p_s_discountFactor('s001') = 1;
 p_s_discountFactor('s002') = 1;
 p_s_discountFactor('s003') = 1;
 p_s_discountFactor('s004') = 1;
-*p_s_discountFactor('s005') = 1;
-*p_s_discountFactor('s006') = 1;
+p_s_discountFactor('s005') = 1;
+p_s_discountFactor('s006') = 1;
