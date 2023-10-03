@@ -115,7 +115,6 @@ $ifthen exist '%input_dir%/timeAndSamples.inc'
 $else
     $$abort 'Did not find %input_dir%/timeAndSamples.inc. Check path and spelling!'
 $endif
-*$ife %system.errorlevel%>0 $abort importing timeAndSamples.inc failed! Check that your file is valid and that your file path and file name are correct.
 
     m(mType) "model(s) in use"
     s_active(s) "Samples with non-zero probability in the current model solve"
