@@ -105,7 +105,7 @@ $offtext
 $ife %system.gamsversion%<240 $abort GAMS distribution 24.0 or later required!
 
 $echon "'version' " > 'version'
-$call 'git describe --dirty=+ --always >> version'
+*$call 'git describe --dirty=+ --always >> version'
 
 * Set default debugging level
 $if not set debug $setglobal debug 0
