@@ -39,12 +39,24 @@ loop(gnu(grid, node, unit)${unit_investLP(unit) or unit_investMIP(unit)},
             put "    = p_gnu_io('", grid.tl, "', '", node.tl, "', '", unit.tl,
                 "', 'input', 'capacity') + ", tmp, ";"/;
         );
-    elseif (p_gnu(grid, node, unit, 'capacity') = 0),
-        put "utAvailabilityLimits('",  unit.tl,    "', t, 'becomeAvailable') = no;" /;
-        put "utAvailabilityLimits('",  unit.tl,    "', t, 'becomeUnavailable') = no;" /;
-        put "utAvailabilityLimits('",  unit.tl,    "', 't000001', 'becomeUnavailable') = yes;" /;
     );
 
+);
+
+// Unit availabilities
+put /;
+put "* Set 'becomeUnavailable' if no existing capacity and no investments"/;
+loop(unit${unit_invest(unit)},
+    // subunits rounded to the nearest integer
+    tmp = p_unit(unit, 'unitCount') + round(r_invest_unitCount_u(unit), 0);
+    if(tmp = 0,
+        put "utAvailabilityLimits('", unit.tl,
+            "', t, 'becomeAvailable') = no;" /;
+        put "utAvailabilityLimits('", unit.tl,
+            "', t, 'becomeUnavailable') = no;" /;
+        put "utAvailabilityLimits('", unit.tl,
+            "', 't000001', 'becomeUnavailable') = yes;" /;
+    );
 );
 
 // Storage limits
@@ -64,7 +76,7 @@ put "* Update storage (pumped storage, hydro, H2) reference level for the subseq
 loop(gn(grid, node)
     ${(p_gnBoundaryPropertiesForStates(grid, node, 'upwardLimit', 'constant')
     or sum(unit, (r_invest_unitCount_u(unit) and p_gnu(grid, node, unit, 'upperLimitCapacityRatio'))))
-	and (sameas(grid, 'pumped') or sameas(grid, 'H2') or sameas(grid, 'hydro'))},
+        and (sameas(grid, 'pumped') or sameas(grid, 'H2') or sameas(grid, 'hydro'))},
     put "p_gn('", grid.tl, "', '", node.tl,
         "', 'boundStart') = 1;"/;
     put "p_gn('", grid.tl, "', '", node.tl,
