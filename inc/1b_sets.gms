@@ -231,7 +231,11 @@ set metadata(*) /
    'Time' '%system.time%'
    'GAMS version' '%system.gamsrelease%'
    'GAMS system' '%system.gstring%'
-$include 'version'
+$ifthen exist 'version_git'
+    $$include 'version_git';
+$else
+    $$include 'version';
+$endif
 /;
 if(execError > 0, metadata('FAILED') = yes);
 

@@ -15,7 +15,7 @@ EnsemblesAndYears.xlsx
 Backbone.dat
 diffile.gdx
 EfficiencyPiecewise.xlsx
-/version
+version_git
 
 # Data files
 *.gdx
