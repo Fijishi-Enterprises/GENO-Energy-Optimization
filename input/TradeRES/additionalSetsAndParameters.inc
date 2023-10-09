@@ -4,5 +4,5 @@
 
 * Creating new parameters for additional data table in input data
 Parameters
-	ts_influx_building_subtract(grid, node, f, t) "building consumption to be added to electricity ts_influx"   
+	ts_influx_building_subtract(grid, node, f, t) "building consumption to be added to electricity ts_influx" / /  
 ;
