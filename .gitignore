@@ -10,14 +10,10 @@
 *.gchf
 
 # Backbone
-Backbone.txt
-EnsemblesAndYears.xlsx
-Backbone.dat
-diffile.gdx
-EfficiencyPiecewise.xlsx
 version_git
 
 # Data files
+*.dat
 *.gdx
 *.xlsx
 
@@ -26,6 +22,7 @@ version_git
 *.docx
 *.pdf
 *.par
+*.txt
 to_UCD/
 *.zip
 sandbox/
