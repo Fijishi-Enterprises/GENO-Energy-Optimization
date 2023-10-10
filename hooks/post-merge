@@ -5,7 +5,5 @@
 # To enable this hook, copy this file to ".git/hooks/".
 #
 
-git describe --dirty=+ --always > version_git
-set /p commit= < version_git
-del version_git 
-echo 'version' %commit% > version_git
+echo -n "'version' " > version_git
+git describe --dirty=+ --always >> version_git
