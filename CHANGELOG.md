@@ -4,8 +4,10 @@ All notable changes to this project will be documented in this file.
 ## unversioned
 
 ### Added
+- git hooks for version control of git commits, creates version_git file
 
 ### Changed
+- version file now manually generated when publishing a new major version
 - cleaned unused scalars from model code
 
 ### Fixed
