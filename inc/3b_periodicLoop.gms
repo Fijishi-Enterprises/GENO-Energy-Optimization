@@ -479,19 +479,21 @@ usft(unit_tmp(unit), sft(s, f, t))${   [ ord(t) < p_unit(unit, 'becomeAvailable'
                                     or [ ord(t) >= p_unit(unit, 'becomeUnavailable') and p_unit(unit, 'becomeUnavailable') ]
                                     }
     = no;
+
+// temporary unit set for checking maintenance break for units affected by becomeAvailable and becomeUnavailable
+option clear = unit_tmp;
+unit_tmp(unit)${p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')} = yes;
+
 // Unless before becomeUnavailable if becomeUnavailable < becomeAvailable (maintenance break case)
-usft(unit_tmp(unit), sft(s, f, t))${    [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
-                                    and [ord(t) < p_unit(unit, 'becomeUnavailable')]
+usft(unit_tmp(unit), sft(s, f, t))${[ord(t) < p_unit(unit, 'becomeUnavailable')]
                                     and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
                                     }
     = yes;
 // Unless after becomeAvailable if becomeUnavailable < becomeAvailable (maintenance break case)
-usft(unit_tmp(unit), sft(s, f, t))${    [p_unit(unit, 'becomeAvailable') and p_unit(unit, 'becomeUnavailable')]
-                                    and [ord(t) >= p_unit(unit, 'becomeAvailable')]
+usft(unit_tmp(unit), sft(s, f, t))${[ord(t) >= p_unit(unit, 'becomeAvailable')]
                                     and [p_unit(unit, 'becomeUnavailable') < p_unit(unit, 'becomeAvailable')]
                                     }
     = yes;
-
 
 // Deactivating aggregated after lastStepNotAggregated and aggregators before
 usft(unit, sft(s, f, t))${  (   [
