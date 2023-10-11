@@ -21,15 +21,9 @@ Scalars
     t_solveFirst "counter (ord) for the first t in the solve"
     t_solveLast "counter for the last t in the solve"
     tCounter "counter for t" /0/
-    lastCounter "last member in use of the general counter"
     continueLoop "Helper to stop the looping early"
     currentForecastLength "Length of the forecast in the curren solve, minimum of unchanging and decreasing forecast lengths"
     count "General counter"
-    count_lambda
-    count_lambda2 "Counter for lambdas"
-    count_sample "Counter for samples"
-    cum_slope "Cumulative for slope"
-    cum_lambda "Cumulative for lambda"
     heat_rate "Heat rate temporary parameter"
     tmp "General temporary parameter"
     tmp_ "General temporary parameter"
@@ -38,7 +32,6 @@ Scalars
     tmp_dist "Temporary parameter for calculating the distance between operating points"
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
-    tmp_offset "Offset of sample in time steps"
     tRealizedLast "counter (ord) for the last realized t in the solve"
     firstResultsOutputSolve /1/;
 ;

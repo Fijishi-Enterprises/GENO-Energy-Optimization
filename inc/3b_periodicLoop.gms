@@ -182,7 +182,6 @@ Option clear = dt_active;
 Option clear = tt_block;
 Option clear = cc;
 tCounter = 1;
-count_sample = 1;
 
 // Determine the set of active interval counters (or blocks of intervals)
 cc(counter)${ mInterval(mSolve, 'stepsPerInterval', counter) }
