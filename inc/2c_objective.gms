@@ -40,7 +40,7 @@ q_obj ..
                         + sum(gnusft(grid, node, unit, s, f, t)${ p_vomCost(grid, node, unit, 'useConstant') or p_vomCost(grid, node, unit, 'useTimeSeries') },
                             + v_gen(grid, node, unit, s, f, t)
                                 * (+p_vomCost(grid, node, unit, 'price')$p_vomCost(grid, node, unit, 'useConstant')
-                                   +ts_vomCost_(grid, node, unit, s, f, t)$p_vomCost(grid, node, unit, 'useTimeSeries')
+                                   +ts_vomCost_(grid, node, unit, t)$p_vomCost(grid, node, unit, 'useTimeSeries')
                                   )
                                 // negative sign for input, because v_gen is negative for input
                                 * (-1$gnu_input(grid, node, unit)
@@ -103,14 +103,14 @@ q_obj ..
                 + sum(usft_online(unit_startCost(unit), s, f, t),
                     + sum(unitStarttype(unit, starttype)
                         ${p_startupCost(unit, starttype, 'useConstant')
-                          or ts_startupCost_(unit, starttype, s, f, t)
+                          or ts_startupCost_(unit, starttype, t)
                           },
                         + [ // Unit startup variables
                             + v_startup_LP(starttype, unit, s, f, t)${ usft_onlineLP(unit, s, f, t) }
                             + v_startup_MIP(starttype, unit, s, f, t)${ usft_onlineMIP(unit, s, f, t) }
                           ]
                           * (+p_startupCost(unit, starttype, 'price')${ p_startupCost(unit, starttype, 'useConstant') }
-                             +ts_startupCost_(unit, starttype, s, f, t)${ p_startupCost(unit, starttype, 'useTimeSeries') }
+                             +ts_startupCost_(unit, starttype, t)${ p_startupCost(unit, starttype, 'useTimeSeries') }
                             )
                       ) // END sum(starttype)
                   ) // END sum(usft_online)
