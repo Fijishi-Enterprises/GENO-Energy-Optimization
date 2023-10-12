@@ -11,7 +11,8 @@ All notable changes to this project will be documented in this file.
 - cleaned unused scalars from model code
 
 ### Fixed
-- minor speed improvements when generating internal set usft
+- minor speed improvements with internal sets and parameters: usft, ts_vomCost
+- minor speed improvements by splitting and compacting long loops
 
 
 ## 3.6 - 2023-08-24
