@@ -495,23 +495,18 @@ usft(unit_tmp(unit), sft(s, f, t))${[ord(t) >= p_unit(unit, 'becomeAvailable')]
                                     }
     = yes;
 
-// Deactivating aggregated after lastStepNotAggregated and aggregators before
-usft(unit, sft(s, f, t))${  (   [
-                                ord(t) > t_solveFirst + p_unit(unit, 'lastStepNotAggregated')
-                                and unit_aggregated(unit) // Aggregated units
-                           ]
-                            or
-                           [
-                                ord(t) <= t_solveFirst + p_unit(unit, 'lastStepNotAggregated')
-                                and unit_aggregator(unit) // Aggregator units
-                           ]
-                        )
-                    }
+// Deactivating aggregated after lastStepNotAggregated
+usft(unit_aggregated(unit), sft(s, f, t))${ ord(t) > t_solveFirst + p_unit(unit, 'lastStepNotAggregated')
+                                            }
+    = no;
+// Deactivating aggregators before lastStepNotAggregated
+usft(unit_aggregator(unit), sft(s, f, t))${ ord(t) <= t_solveFirst + p_unit(unit, 'lastStepNotAggregated')
+                                            }
     = no;
 
 // First ft:s for each aggregator unit
 Option clear = usft_aggregator_first;
-loop(unit${unit_aggregator(unit)},
+loop(unit_aggregator(unit),
     tmp = card(t);
     loop(usft(unit, s, f, t),
         if(ord(t) < tmp,

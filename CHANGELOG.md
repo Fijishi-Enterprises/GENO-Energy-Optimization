@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - cleaned unused scalars from model code
 
 ### Fixed
+- minor speed improvements when generating internal set usft
 
 
 ## 3.6 - 2023-08-24
