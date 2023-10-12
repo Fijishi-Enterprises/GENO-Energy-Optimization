@@ -334,9 +334,9 @@ loop(cc(counter),
 
     // ts_price_ calculation to avoid recalculating this for every unit in ts_vomCost_ and ts_startupCost_
     // note: same values for each forecast
-    ts_price_(node, tt_interval(t))
+    ts_price_(node, sft(s, f, tt_interval(t)))
         ${p_price(node, 'useTimeSeries')
-          and sum((s, f), sft(s, f, t)) }
+          }
         = sum(tt_agg_circular(t, t_, t__),
                 ts_price(node, t_)
              ) // END sum(tt_agg_circular)
@@ -345,9 +345,9 @@ loop(cc(counter),
 
     // ts_emissionPrice_ calculation to avoid recalculating this for every unit in ts_vomCost_ and ts_startupCost_
     // note: same values for each forecast
-    ts_emissionPrice_(emission, group, tt_interval(t))
+    ts_emissionPrice_(emission, group, sft(s, f, tt_interval(t)) )
         ${p_emissionPrice(emission, group, 'useTimeSeries')
-          and sum((s, f), sft(s, f, t)) }
+          }
         = sum(tt_agg_circular(t, t_, t__),
                 ts_emissionPrice(emission, group, t_)
              ) // END sum(tt_agg_circular)
@@ -359,9 +359,9 @@ loop(cc(counter),
     //         + gnu emission costs
     //         + gn vom costs
     //         + gn emission costs
-    ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
+    ts_vomCost_(gnu(grid, node, unit), sft(s, f, tt_interval(t)))
         ${p_vomCost(grid, node, unit, 'useTimeseries')
-          and sum((s, f), sft(s, f, t)) }
+          }
         = // gnu specific cost (EUR/MWh). Always a cost (positive) for all inputs or outputs.
 
             // gnu specific vomCosts
@@ -371,7 +371,7 @@ loop(cc(counter),
             + sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)}, // EUR/MWh
                 + p_gnuEmission(grid, node, unit, emission, 'vomEmissions')                                         // tCO2/MWh
                     * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant') // EUR/tCO2, constant
-                        + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')   // EUR/tCO2, timeseries
+                        + ts_emissionPrice_(emission, group, s, f, t)$p_emissionPrice(emission, group, 'useTimeSeries')   // EUR/tCO2, timeseries
                         )
                 ) // end sum(emissiongroup)
             // END * gnu specific costs
@@ -385,22 +385,22 @@ loop(cc(counter),
 
           * ( // gn specific node cost, e.g. fuel price (EUR/MWh). Cost when input but income when output.
               + p_price(node, 'price')${p_price(node, 'useConstant')}  // EUR/MWh, constant
-              + ts_price_(node, t)${p_price(node, 'useTimeSeries')}    // EUR/MWh, timeseries
+              + ts_price_(node, s, f, t)${p_price(node, 'useTimeSeries')}    // EUR/MWh, timeseries
 
               // gn specific emission cost, e.g. CO2 allowance price from fuel emissions. Cost when from input but income when from output.
               + sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)},   // EUR/MWh
                   + p_nEmission(node, emission)  // t/MWh                                                          // tCO2/MWh
                   * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')  // EUR/tCO2, constant
-                      + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')    // EUR/tCO2, timeseries
+                      + ts_emissionPrice_(emission, group, s, f, t)$p_emissionPrice(emission, group, 'useTimeSeries')    // EUR/tCO2, timeseries
                      )
                   ) // end sum(emissiongroup)
             ) // END * gn specific costs
     ;
 
     // Startup cost calculations
-    ts_startupCost_(unit, starttype, tt_interval(t))
+    ts_startupCost_(unit, starttype, sft(s, f, tt_interval(t)) )
         ${p_startupCost(unit, starttype, 'useTimeSeries')
-          and sum((s, f), sft(s, f, t)) }
+          }
       = + p_uStartup(unit, starttype, 'cost') // CUR/start-up
         // Start-up fuel and emission costs
         + sum(nu_startup(node, unit),
@@ -408,13 +408,13 @@ loop(cc(counter),
               * [
                   // Fuel costs
                   + p_price(node, 'price')$p_price(node, 'useConstant') // CUR/MWh
-                  + ts_price_(node, t)$p_price(node, 'useTimeseries')// CUR/MWh
+                  + ts_price_(node, s, f, t)$p_price(node, 'useTimeseries')// CUR/MWh
                   // Emission costs
                   // node specific emission prices
                   + sum(emissionGroup(emission, group)$p_nEmission(node, emission),
                      + p_nEmission(node, emission) // t/MWh
                      * ( + p_emissionPrice(emission, group, 'price')$p_emissionPrice(emission, group, 'useConstant')
-                         + ts_emissionPrice_(emission, group, t)$p_emissionPrice(emission, group, 'useTimeSeries')
+                         + ts_emissionPrice_(emission, group, s, f, t)$p_emissionPrice(emission, group, 'useTimeSeries')
                        )
                     ) // end sum(emissionGroup)
                 ] // END * p_unStartup
