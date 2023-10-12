@@ -345,7 +345,16 @@ loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effL
 
 * --- Loop over effGroupSelectorUnit to generate efficiency approximation parameters for units
 
-loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
+// Parameters for direct conversion units without online variables
+loop(effGroupSelectorUnit(effDirectOff(effSelector), unit, effSelector_),
+    p_effUnit(effSelector, unit, effSelector, 'lb') = 0; // No min load for the DirectOff approximation
+    p_effUnit(effSelector, unit, effSelector, 'op') = smax(op, p_unit(unit, op)); // Maximum operating point
+    p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
+    p_effUnit(effSelector, unit, effSelector, 'section') = 0; // No section for the DirectOff approximation
+); // END loop(effGroupSelectorUnit)
+
+// Parameters for direct conversion units with online variables
+loop(effGroupSelectorUnit(effDirectOn(effSelector), unit, effSelector_),
 
     // Determine the last operating point in use for the unit
     Option clear = tmp_count_op;
@@ -353,139 +362,136 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
         tmp_count_op = ord(op);
     ); // END loop(op)
 
-    // Parameters for direct conversion units without online variables
-    if(effDirectOff(effSelector),
-        p_effUnit(effSelector, unit, effSelector, 'lb') = 0; // No min load for the DirectOff approximation
-        p_effUnit(effSelector, unit, effSelector, 'op') = smax(op, p_unit(unit, op)); // Maximum operating point
-        p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
-        p_effUnit(effSelector, unit, effSelector, 'section') = 0; // No section for the DirectOff approximation
-    ); // END if(effDirectOff)
+    p_effUnit(effSelector, unit, effSelector_, 'lb') = p_unit(unit, 'op00'); // op00 contains the minimum load of the unit
+    p_effUnit(effSelector, unit, effSelector_, 'op') = smax(op, p_unit(unit, op)); // Maximum load determined by the largest 'op' parameter found in data
+    loop(op__$(ord(op__) = tmp_count_op), // Find the maximum defined 'op'.
+        loop(eff__${ord(eff__) = ord(op__)}, // ...  and the corresponding 'eff'.
 
-    // Parameters for direct conversion units with online variables
-    if(effDirectOn(effSelector),
-        p_effUnit(effSelector, unit, effSelector_, 'lb') = p_unit(unit, 'op00'); // op00 contains the minimum load of the unit
-        p_effUnit(effSelector, unit, effSelector_, 'op') = smax(op, p_unit(unit, op)); // Maximum load determined by the largest 'op' parameter found in data
-        loop(op__$(ord(op__) = tmp_count_op), // Find the maximum defined 'op'.
-            loop(eff__${ord(eff__) = ord(op__)}, // ...  and the corresponding 'eff'.
+            // If the minimum operating point is at zero, then the section and slope are calculated with the assumption that the efficiency curve crosses at opFirstCross
+            if(p_unit(unit, 'op00') = 0,
 
-                // If the minimum operating point is at zero, then the section and slope are calculated with the assumption that the efficiency curve crosses at opFirstCross
-                if(p_unit(unit, 'op00') = 0,
+                // Heat rate at the cross between real efficiency curve and approximated efficiency curve
+                // !!! NOTE !!! It is advised not to define opFirstCross as any of the op points to avoid accidental division by zero!
+                heat_rate = 1 / [
+                                + p_unit(unit, 'eff00')
+                                    * [ p_unit(unit, op__) - p_unit(unit, 'opFirstCross') ]
+                                    / [ p_unit(unit, op__) - p_unit(unit, 'op00') ]
+                                + p_unit(unit, eff__)
+                                    * [ p_unit(unit, 'opFirstCross') - p_unit(unit, 'op00') ]
+                                    / [ p_unit(unit, op__) - p_unit(unit, 'op00') ]
+                                ];
 
-                    // Heat rate at the cross between real efficiency curve and approximated efficiency curve
-                    // !!! NOTE !!! It is advised not to define opFirstCross as any of the op points to avoid accidental division by zero!
-                    heat_rate = 1 / [
-                                    + p_unit(unit, 'eff00')
-                                        * [ p_unit(unit, op__) - p_unit(unit, 'opFirstCross') ]
-                                        / [ p_unit(unit, op__) - p_unit(unit, 'op00') ]
-                                    + p_unit(unit, eff__)
-                                        * [ p_unit(unit, 'opFirstCross') - p_unit(unit, 'op00') ]
-                                        / [ p_unit(unit, op__) - p_unit(unit, 'op00') ]
-                                    ];
-
-                    // Unless section has been defined, it is calculated based on the opFirstCross
-                    p_effGroupUnit(effSelector, unit, 'section') = p_unit(unit, 'section');
-                    p_effGroupUnit(effSelector, unit, 'section')${ not p_effGroupUnit(effSelector, unit, 'section') }
-                        = p_unit(unit, 'opFirstCross')
-                            * ( heat_rate - 1 / p_unit(unit, eff__) )
-                            / ( p_unit(unit, op__) - p_unit(unit, 'op00') );
-                    p_effUnit(effSelector, unit, effSelector_, 'slope')
-                        = 1 / p_unit(unit, eff__)
-                            - p_effGroupUnit(effSelector, unit, 'section') / p_unit(unit, op__);
-
-                // If the minimum operating point is above zero, then the approximate efficiency curve crosses the real efficiency curve at minimum and maximum.
-                else
-                    // Calculating the slope based on the first nonzero and the last defined data points.
-                    p_effUnit(effSelector, unit, effSelector_, 'slope')
-                        = (p_unit(unit, op__) / p_unit(unit, eff__) - p_unit(unit, 'op00') / p_unit(unit, 'eff00'))
-                            / (p_unit(unit, op__) - p_unit(unit, 'op00'));
-
-                    // Calculating the section based on the slope and the last defined point.
-                    p_effGroupUnit(effSelector, unit, 'section')
-                        = ( 1 / p_unit(unit, eff__) - p_effUnit(effSelector, unit, effSelector_, 'slope') )
-                            * p_unit(unit, op__);
-                ); // END if(p_unit)
-            ); // END loop(eff__)
-        ); // END loop(op__)
-    ); // END if(effDirectOn)
-
-    // Calculate lambdas
-    if(effLambda(effSelector),
-        p_effUnit(effSelector, unit, effSelector_, 'lb') = p_unit(unit, 'op00'); // op00 contains the min load of the unit
-
-        // Calculate the relative location of the operating point in the lambdas
-        tmp_op = p_unit(unit, 'op00')
-                    + (ord(effSelector_)-1) / (ord(effSelector) - 1)
-                        * (smax(op, p_unit(unit, op)) - p_unit(unit, 'op00'));
-        p_effUnit(effSelector, unit, effSelector_, 'op') = tmp_op; // Copy the operating point to the p_effUnit
-
-        // tmp_op falls between two p_unit defined operating points or then it is equal to one of them
-        loop((op_, op__)${  (   [tmp_op > p_unit(unit, op_) and tmp_op < p_unit(unit, op__) and ord(op_) = ord(op__) - 1]
-                                or [p_unit(unit, op_) = tmp_op and ord(op_) = ord(op__)]
-                                )
-                            and ord(op__) <= tmp_count_op
-                            },
-            // Find the corresponding efficiencies
-            loop((eff_, eff__)${    ord(op_) = ord(eff_)
-                                    and ord(op__) = ord(eff__)
-                                    },
-                // Calculate the distance between the operating points (zero if the points are the same)
-                tmp_dist = p_unit(unit, op__) - p_unit(unit, op_);
-
-                // If the operating points are not the same
-                if (tmp_dist,
-                    // Heat rate is a weighted average of the heat rates at the p_unit operating points
-                    heat_rate = 1 / [
-                                    + p_unit(unit, eff_) * [ p_unit(unit, op__) - tmp_op ] / tmp_dist
-                                    + p_unit(unit, eff__) * [ tmp_op - p_unit(unit, op_) ] / tmp_dist
-                                    ];
-
-                // If the operating point is the same, the the heat rate can be used directly
-                else
-                    heat_rate = 1 / p_unit(unit, eff_);
-                ); // END if(tmp_dist)
-
-                // Special considerations for the first lambda
-                if (ord(effSelector_) = 1,
-                    // If the min. load of the unit is not zero or the section has been pre-defined, then section is copied directly from the unit properties
-                    if(p_unit(unit, 'op00') or p_unit(unit, 'section'),
-                        p_effGroupUnit(effSelector, unit, 'section') = p_unit(unit, 'section');
-
-                    // Calculate section based on the opFirstCross, which has been calculated into p_effUnit(effLambda, unit, effLambda_, 'op')
-                    else
-                        p_effGroupUnit(effSelector, unit, 'section')
-                            = p_unit(unit, 'opFirstCross')
-                                * ( heat_rate - 1 / p_unit(unit, 'eff01') )
-                                / ( p_unit(unit, 'op01') - tmp_op );
-                    ); // END if(p_unit)
-                ); // END if(ord(effSelector))
-
-                // Calculate the slope
+                // Unless section has been defined, it is calculated based on the opFirstCross
+                p_effGroupUnit(effSelector, unit, 'section') = p_unit(unit, 'section');
+                p_effGroupUnit(effSelector, unit, 'section')${ not p_effGroupUnit(effSelector, unit, 'section') }
+                    = p_unit(unit, 'opFirstCross')
+                        * ( heat_rate - 1 / p_unit(unit, eff__) )
+                        / ( p_unit(unit, op__) - p_unit(unit, 'op00') );
                 p_effUnit(effSelector, unit, effSelector_, 'slope')
-                    = heat_rate - p_effGroupUnit(effSelector, unit, 'section') / [tmp_op + 1${not tmp_op}];
-            ); // END loop(eff_,eff__)
-        ); // END loop(op_,op__)
-    ); // END if(effLambda)
+                    = 1 / p_unit(unit, eff__)
+                        - p_effGroupUnit(effSelector, unit, 'section') / p_unit(unit, op__);
+
+            // If the minimum operating point is above zero, then the approximate efficiency curve crosses the real efficiency curve at minimum and maximum.
+            else
+                // Calculating the slope based on the first nonzero and the last defined data points.
+                p_effUnit(effSelector, unit, effSelector_, 'slope')
+                    = (p_unit(unit, op__) / p_unit(unit, eff__) - p_unit(unit, 'op00') / p_unit(unit, 'eff00'))
+                        / (p_unit(unit, op__) - p_unit(unit, 'op00'));
+
+                // Calculating the section based on the slope and the last defined point.
+                p_effGroupUnit(effSelector, unit, 'section')
+                    = ( 1 / p_unit(unit, eff__) - p_effUnit(effSelector, unit, effSelector_, 'slope') )
+                        * p_unit(unit, op__);
+            ); // END if(p_unit)
+        ); // END loop(eff__)
+    ); // END loop(op__)
+); // END loop(effGroupSelectorUnit)
+
+// Calculate lambdas
+loop(effGroupSelectorUnit(effLambda(effSelector), unit, effSelector_),
+
+    // Determine the last operating point in use for the unit
+    Option clear = tmp_count_op;
+    loop(op${   p_unit(unit, op)    },
+        tmp_count_op = ord(op);
+    ); // END loop(op)
+
+    p_effUnit(effSelector, unit, effSelector_, 'lb') = p_unit(unit, 'op00'); // op00 contains the min load of the unit
+
+    // Calculate the relative location of the operating point in the lambdas
+    tmp_op = p_unit(unit, 'op00')
+                + (ord(effSelector_)-1) / (ord(effSelector) - 1)
+                    * (smax(op, p_unit(unit, op)) - p_unit(unit, 'op00'));
+    p_effUnit(effSelector, unit, effSelector_, 'op') = tmp_op; // Copy the operating point to the p_effUnit
+
+    // tmp_op falls between two p_unit defined operating points or then it is equal to one of them
+    loop((op_, op__)${  (   [tmp_op > p_unit(unit, op_) and tmp_op < p_unit(unit, op__) and ord(op_) = ord(op__) - 1]
+                            or [p_unit(unit, op_) = tmp_op and ord(op_) = ord(op__)]
+                            )
+                        and ord(op__) <= tmp_count_op
+                        },
+        // Find the corresponding efficiencies
+        loop((eff_, eff__)${    ord(op_) = ord(eff_)
+                                and ord(op__) = ord(eff__)
+                                },
+            // Calculate the distance between the operating points (zero if the points are the same)
+            tmp_dist = p_unit(unit, op__) - p_unit(unit, op_);
+
+            // If the operating points are not the same
+            if (tmp_dist,
+                // Heat rate is a weighted average of the heat rates at the p_unit operating points
+                heat_rate = 1 / [
+                                + p_unit(unit, eff_) * [ p_unit(unit, op__) - tmp_op ] / tmp_dist
+                                + p_unit(unit, eff__) * [ tmp_op - p_unit(unit, op_) ] / tmp_dist
+                                ];
+
+            // If the operating point is the same, the the heat rate can be used directly
+            else
+                heat_rate = 1 / p_unit(unit, eff_);
+            ); // END if(tmp_dist)
+
+            // Special considerations for the first lambda
+            if (ord(effSelector_) = 1,
+                // If the min. load of the unit is not zero or the section has been pre-defined, then section is copied directly from the unit properties
+                if(p_unit(unit, 'op00') or p_unit(unit, 'section'),
+                    p_effGroupUnit(effSelector, unit, 'section') = p_unit(unit, 'section');
+
+                // Calculate section based on the opFirstCross, which has been calculated into p_effUnit(effLambda, unit, effLambda_, 'op')
+                else
+                    p_effGroupUnit(effSelector, unit, 'section')
+                        = p_unit(unit, 'opFirstCross')
+                            * ( heat_rate - 1 / p_unit(unit, 'eff01') )
+                            / ( p_unit(unit, 'op01') - tmp_op );
+                ); // END if(p_unit)
+            ); // END if(ord(effSelector))
+
+            // Calculate the slope
+            p_effUnit(effSelector, unit, effSelector_, 'slope')
+                = heat_rate - p_effGroupUnit(effSelector, unit, 'section') / [tmp_op + 1${not tmp_op}];
+        ); // END loop(eff_,eff__)
+    ); // END loop(op_,op__)
+); // END loop(effGroupSelectorUnit)
 
 // Parameters for incremental heat rates
-    if(effIncHR(effSelector),
-        p_effUnit(effSelector, unit, effSelector, 'lb') = p_unit(unit, 'hrop00'); // hrop00 contains the minimum load of the unit
-        p_effUnit(effSelector, unit, effSelector, 'op') = smax(hrop, p_unit(unit, hrop)); // Maximum operating point
-        p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
-        p_effUnit(effSelector, unit, effSelector, 'section') = p_unit(unit, 'hrsection'); // pre-defined
+loop(effGroupSelectorUnit(effIncHR(effSelector), unit, effSelector_),
 
-        // Whether to use q_conversionIncHR_help1 and q_conversionIncHR_help2 or not
-        loop(m,
-            loop(hr${p_unit(unit, hr)},
-                if (mSettings(m, 'incHRAdditionalConstraints') = 0,
-                    if (p_unit(unit, hr) < p_unit(unit, hr-1),
-                        unit_incHRAdditionalConstraints(unit) = yes;
-                    ); // END if(hr)
-                else
+    p_effUnit(effSelector, unit, effSelector, 'lb') = p_unit(unit, 'hrop00'); // hrop00 contains the minimum load of the unit
+    p_effUnit(effSelector, unit, effSelector, 'op') = smax(hrop, p_unit(unit, hrop)); // Maximum operating point
+    p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
+    p_effUnit(effSelector, unit, effSelector, 'section') = p_unit(unit, 'hrsection'); // pre-defined
+
+    // Whether to use q_conversionIncHR_help1 and q_conversionIncHR_help2 or not
+    loop(m,
+        loop(hr${p_unit(unit, hr)},
+            if (mSettings(m, 'incHRAdditionalConstraints') = 0,
+                if (p_unit(unit, hr) < p_unit(unit, hr-1),
                     unit_incHRAdditionalConstraints(unit) = yes;
-                ); // END if(incHRAdditionalConstraints)
-            ); // END loop(hr)
-        ); // END loop(m)
-    ); // END if(effIncHR)
+                ); // END if(hr)
+            else
+                unit_incHRAdditionalConstraints(unit) = yes;
+            ); // END if(incHRAdditionalConstraints)
+        ); // END loop(hr)
+    ); // END loop(m)
 ); // END loop(effGroupSelectorUnit)
 
 // Calculate unit wide parameters for each efficiency group
