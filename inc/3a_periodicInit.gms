@@ -317,31 +317,31 @@ loop(m,
 
 * --- Parse through effLevelGroupUnit and convert selected effSelectors into sets representing those selections
 
-// Loop over effLevelGroupUnit
-loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effLevel))},
-
-    // effSelector using DirectOff
-    effGroup(effDirectOff(effSelector)) = yes;
-    effGroupSelector(effDirectOff(effSelector), effSelector) = yes;
+// Loop over effLevelGroupUnit(DirectOff)
+loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effLevel)) and effDirectOff(effSelector)},
     effGroupSelectorUnit(effDirectOff(effSelector), unit, effSelector) = yes;
+); // END loop(effLevelGroupUnit)
 
-    // effSelector using DirectOn
-    effGroup(effDirectOn(effSelector)) = yes;
-    effGroupSelector(effDirectOn(effSelector), effSelector) = yes;
+// Loop over effLevelGroupUnit(DirectOn)
+loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effLevel)) and effDirectOn(effSelector)},
     effGroupSelectorUnit(effDirectOn(effSelector), unit, effSelector) = yes;
+); // END loop(effLevelGroupUnit)
 
-    // effSelector using IncHR
-    effGroup(effIncHR(effSelector)) = yes;
-    effGroupSelector(effIncHR(effSelector), effSelector) = yes;
+// Loop over effLevelGroupUnit(IncHR)
+loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effLevel)) and effIncHR(effSelector)},
     effGroupSelectorUnit(effIncHR(effSelector), unit, effSelector) = yes;
+); // END loop(effLevelGroupUnit)
 
-    // effSelector using Lambda
-    effGroup(effLambda(effSelector)) = yes;
+// Loop over effLevelGroupUnit(Lambda)
+loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effLevel)) and effLambda(effSelector)},
     loop(effLambda_${ord(effLambda_) <= ord(effSelector)},
-        effGroupSelector(effLambda(effSelector), effLambda_) = yes;
         effGroupSelectorUnit(effLambda(effSelector), unit, effLambda_) = yes;
         ); // END loop(effLambda_)
-    ); // END loop(effLevelGroupUnit)
+); // END loop(effLevelGroupUnit)
+
+// populating effGroup and effGroupSelector based on previous loops
+option effGroup<effGroupSelectorUnit;
+option effGroupSelector<effGroupSelectorUnit;
 
 * --- Loop over effGroupSelectorUnit to generate efficiency approximation parameters for units
 
