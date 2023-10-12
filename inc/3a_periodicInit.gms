@@ -725,13 +725,13 @@ loop(emissionGroup(emission_priceChangeData(emission), group)$p_emissionPrice(em
 * --- checking when to use static unit costs and calculating those ------------
 
 // vomCost calculations
-// looping gnu to decide if using static or time series pricing
-loop(gnu(grid, node, unit),
-    p_vomCost(grid, node, unit, 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
-    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
-    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
-    p_vomCost(grid, node, unit, 'useConstant')${not p_vomCost(grid, node, unit, 'useTimeSeries')} = -1;
-); // end loop(gnu)
+
+// Decide between static or time series pricing
+p_vomCost(gnu(grid, node, unit), 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
+p_vomCost(gnu(grid, node, unit), 'useTimeSeries')$sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+p_vomCost(gnu(grid, node, unit), 'useTimeSeries')$sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+p_vomCost(gnu(grid, node, unit), 'useConstant')${not p_vomCost(grid, node, unit, 'useTimeSeries')} = -1;
+
 
 // vomcosts when constant prices. Includes O&M cost, fuel cost and emission cost (EUR/MWh)
 p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConstant')
@@ -760,11 +760,8 @@ p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConsta
 ;
 
 // clearing flag to use p_vomCost if cost is zero
-loop(gnu$p_vomCost(gnu, 'useConstant'),
-    if(p_vomCost(gnu, 'price')= 0,
-        p_vomCost(gnu, 'useConstant')=0;
-    );
-);
+p_vomCost(gnu, 'useConstant') $ { p_vomCost(gnu, 'useConstant') and (p_vomCost(gnu, 'price')= 0) }
+     =0;
 
 
 // Startup cost calculations
