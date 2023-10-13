@@ -599,39 +599,53 @@ loop(m,
 
 * --- Unit Starttype, Uptime and Downtime Counters ----------------------------
 
-loop(m,
-    // Loop over units with online approximations in the model
-    loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit_online(unit))${mSettingsEff(m, effLevel)},
-        // Loop over the constrained start types
-        loop(starttypeConstrained(starttype),
-            // Find the time step displacements needed to define the start-up time frame
-            Option clear = cc;
-            cc(counter(counter_large))${   ord(counter_large) <= p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'stepLengthInHours')
-                            and ord(counter_large) > p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'stepLengthInHours')
-                            }
-                = yes;
-            unitCounter(unit, cc(counter)) = yes;
-            dt_starttypeUnitCounter(starttype, unit, cc(counter_large)) = - ord(counter_large);
-        ); // END loop(starttypeConstrained)
+// filtering units in that have time delays for specific start type. This clears the set before.
+option unit_tmp < p_uNonoperational;
 
-        // Find the time step displacements needed to define the downtime requirements (include run-up phase and shutdown phase)
+// Loop over filterd units in the model
+loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit_tmp(unit))${sum(m, mSettingsEff(m, effLevel))},
+    // Loop over the constrained start types
+    loop(starttypeConstrained(starttype),
+        // Find the time step displacements needed to define the start-up time frame
         Option clear = cc;
-        cc(counter_large)${   ord(counter_large) <= ceil(p_unit(unit, 'minShutdownHours') / mSettings(m, 'stepLengthInHours'))
-                                                    + ceil(p_u_runUpTimeIntervals(unit)) // NOTE! Check this
-                                                    + ceil(p_u_shutdownTimeIntervals(unit)) // NOTE! Check this
+        cc(counter(counter_large))${   ord(counter_large) <= p_uNonoperational(unit, starttype, 'max') / sum(m, mSettings(m, 'stepLengthInHours'))
+                        and ord(counter_large) > p_uNonoperational(unit, starttype, 'min') / sum(m, mSettings(m, 'stepLengthInHours'))
                         }
             = yes;
-        unitCounter(unit, cc(counter_large)) = yes;
-        dt_downtimeUnitCounter(unit, cc(counter_large)) = - ord(counter_large);
+        unitCounter(unit, cc(counter)) = yes;
+        dt_starttypeUnitCounter(starttype, unit, cc(counter_large)) = - ord(counter_large);
+    ); // END loop(starttypeConstrained)
+); // END loop(effLevelGroupUnit)
 
-        // Find the time step displacements needed to define the uptime requirements
-        Option clear = cc;
-        cc(counter_large)${ ord(counter_large) <= ceil(p_unit(unit, 'minOperationHours') / mSettings(m, 'stepLengthInHours'))}
-            = yes;
-        unitCounter(unit, cc(counter_large)) = yes;
-        dt_uptimeUnitCounter(unit, cc(counter_large)) = - ord(counter_large);
-    ); // END loop(effLevelGroupUnit)
-); // END loop(m)
+// filtering units with downtime requirements
+option clear=unit_tmp;
+unit_tmp(unit) $ {p_unit(unit, 'minShutdownHours')
+                  or p_u_runUpTimeIntervals(unit)
+                  or p_u_shutdownTimeIntervals(unit) }
+= yes;
+
+// Loop over units with downtime requirements in the model
+loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit_tmp(unit))${sum(m, mSettingsEff(m, effLevel))},
+    // Find the time step displacements needed to define the downtime requirements (include run-up phase and shutdown phase)
+    Option clear = cc;
+    cc(counter_large)${   ord(counter_large) <= ceil(p_unit(unit, 'minShutdownHours') / sum(m, mSettings(m, 'stepLengthInHours')) )
+                                                + ceil(p_u_runUpTimeIntervals(unit)) // NOTE! Check this
+                                                + ceil(p_u_shutdownTimeIntervals(unit)) // NOTE! Check this
+                    }
+        = yes;
+    unitCounter(unit, cc(counter_large)) = yes;
+    dt_downtimeUnitCounter(unit, cc(counter_large)) = - ord(counter_large);
+); // END loop(effLevelGroupUnit)
+
+// Loop over units with uptime requirements in the model
+loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit_online(unit))${sum(m, mSettingsEff(m, effLevel)) and p_unit(unit, 'minOperationHours')},
+    // Find the time step displacements needed to define the uptime requirements
+    Option clear = cc;
+    cc(counter_large)${ ord(counter_large) <= ceil(p_unit(unit, 'minOperationHours') / sum(m, mSettings(m, 'stepLengthInHours')) )}
+        = yes;
+    unitCounter(unit, cc(counter_large)) = yes;
+    dt_uptimeUnitCounter(unit, cc(counter_large)) = - ord(counter_large);
+); // END loop(effLevelGroupUnit)
 
 // Initialize tmp_dt based on the first model interval
 loop(m,
