@@ -324,13 +324,11 @@ sft_realizedNoReset(sft_realized(s, f, t)) = yes;
 msft_realizedNoReset(msft(mSolve, s, ft_realized(f, t))) = yes;
 
 // Include the necessary amount of historical timesteps to the active time step set of the current solve
-loop(ft_realizedNoReset(f, t),
-    t_active(t)
-        ${  ord(t) <= t_solveFirst
-            and ord(t) > t_solveFirst + tmp_dt // Strict inequality accounts for t_solvefirst being one step before the first ft step.
-            }
-        = yes;
-); // END loop(ft_realizedNoReset
+t_active(t) ${ sum(f, ft_realizedNoReset(f, t))
+               and ord(t) <= t_solveFirst
+               and ord(t) > t_solveFirst + tmp_dt // Strict inequality accounts for t_solvefirst being one step before the first ft step.
+              }
+    = yes;
 
 // Time step displacement to reach previous time step
 option clear = dt;
