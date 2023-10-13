@@ -24,5 +24,6 @@ $offtext
 *  q_TotalCost
 *  q_epsGenCap
 *  q_epsEmissionCap
+*  q_epsEmissioncapNodeGroup
     
 
