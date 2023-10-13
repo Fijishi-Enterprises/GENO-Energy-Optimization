@@ -220,13 +220,14 @@ r_invest_transferCapacity_gnn(grid, node, node_, t_invest(t))${ p_gnn(grid, node
 ;
 
 * --- Feasibility results -----------------------------------------------------
-loop(sft_realized(s, f, t),
+
+loop(s_realized(s),
 // Dummy generation & consumption
-r_qGen_gnft(inc_dec, gn, f, t_startp(t))
+r_qGen_gnft(inc_dec, gn, f, t_startp(t))$sft_realized(s, f, t)
     = vq_gen.l(inc_dec, gn, s, f, t)
 ;
 // Dummy capacity
-r_qCapacity_ft(gn, f, t_startp(t))
+r_qCapacity_ft(gn, f, t_startp(t))$sft_realized(s, f, t)
     = vq_capacity.l(gn, s, f, t)
 ;
 );
