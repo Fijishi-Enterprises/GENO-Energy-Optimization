@@ -261,7 +261,6 @@ loop(cc(counter),
 
     // ts_unit_ for active t in solve including aggregated time steps
     ts_unit_(unit_timeseries(unit), param_unit, ft(f, tt_interval(t)))
-        ${ sum(s, sft(s, f, t)) }
         = sum(tt_agg_circular(t, t_, t__),
             ts_unit(unit, param_unit, f +(df_realization(f, t)$(not unit_forecasts(unit, 'ts_unit'))), t_)
             )
@@ -325,7 +324,6 @@ loop(cc(counter),
 
     // processing ts_gnn values for active ft including time step aggregation
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
-        ${ sum(s, sft(s, f, t)) }
         = sum(tt_agg_circular(t, t_, t__), ts_gnn(grid, node, node_, param_gnn, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_gnn'))), t_)
              ) // END sum(tt_agg_circular)
             / mInterval(mSolve, 'stepsPerInterval', counter);
