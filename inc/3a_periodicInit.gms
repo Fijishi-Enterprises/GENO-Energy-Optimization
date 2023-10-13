@@ -793,12 +793,9 @@ p_startupCost(unit, starttype, 'price')$p_startupCost(unit, starttype, 'useConst
          ) // END sum(nu_startup)
 ;
 
-// clearing flag to use p_startupCost if cost is zero
-loop(unitStarttype(unit, starttype)$p_startupCost(unit, starttype, 'useConstant'),
-    if(p_startupCost(unit, starttype, 'price') = 0,
-        p_startupCost(unit, starttype, 'useConstant') = 0;
-    );
-);
+p_startupCost(unit, starttype, 'useConstant') $ {p_startupCost(unit, starttype, 'useConstant')
+                                                 and (p_startupCost(unit, starttype, 'price') = 0) }
+= 0;
 
 // mapping units that have startup costs, either constant or time series
 Option unit_startCost < p_startupCost;
