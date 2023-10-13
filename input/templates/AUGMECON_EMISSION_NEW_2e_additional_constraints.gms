@@ -20,7 +20,7 @@ equations
 ;
 
 
-q_emissioncapNodeGroup(group, emission)
+q_epsEmissioncapNodeGroup(group, emission)
     ${  p_groupPolicyEmission(group, 'emissionCap', emission)
         } ..
 
