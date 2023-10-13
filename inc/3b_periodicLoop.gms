@@ -558,13 +558,18 @@ gn2nsft_directional_rampConstrained(gn2n_directional_rampConstrained(grid, node,
 // Initializing
 Option clear = eff_usft;
 
-// Loop over the defined efficiency groups for units
-loop(effLevelGroupUnit(effLevel, effGroup, unit)${ mSettingsEff(mSolve, effLevel) },
-    // Determine the used effGroup for each uft
-    eff_usft(effGroup, usft(unit, s, f, t))${   ord(t) >= t_solveFirst + mSettingsEff_start(mSolve, effLevel)
-                                        and ord(t) <= t_solveFirst + mSettingsEff(mSolve, effLevel) }
+// Loop over the defined efficiency levels
+loop(effLevel $ {mSettingsEff(mSolve, effLevel)},
+    // create temporary tt for t in level
+    option clear = tt;
+    tt(t) ${   ord(t) >= t_solveFirst + mSettingsEff_start(mSolve, effLevel)
+               and ord(t) <= t_solveFirst + mSettingsEff(mSolve, effLevel) }
         = yes;
-); // END loop(effLevelGroupUnit)
+
+    // Determine the used effGroup for each usft
+    eff_usft(effGroup, usft(unit, s, f, tt(t) )) $ { effLevelGroupUnit(effLevel, effGroup, unit) }
+        = yes;
+); // END loop(mSettingsEff)
 
 // Units with online variables on each ft
 Option clear = usft_online;
