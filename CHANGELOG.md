@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - git hooks for version control of git commits, creates version_git file
+- option to give vertical influx and cf data in excel (ts_influx_vert and ts_cf_vert)
 
 ### Changed
 - version file now manually generated when publishing a new major version

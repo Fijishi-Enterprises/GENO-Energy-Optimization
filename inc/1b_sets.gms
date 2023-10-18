@@ -32,6 +32,7 @@ Sets
     node_superpos(node) "Nodes whose state is monitored in the z dimension using superpositioning of state"
     flowNode(flow, node) "Nodes with flows"
     node_tmp(node) "temporary set for summing nodes"
+    node_tmp_(node) "another temporary set for summing nodes"
 
 * --- Emission classifications ------------------------------------------------
     emission_priceData(emission) "Emissions that have input data in ts_emissionPrice table"

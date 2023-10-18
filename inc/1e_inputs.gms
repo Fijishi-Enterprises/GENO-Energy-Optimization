@@ -139,8 +139,52 @@ $if not defined p_gnu_io $abort 'Mandatory input data missing (p_gnu_io), check 
 
 
 * =============================================================================
-* --- Preliminary adjustments to data before any processing -------------------
+* --- Preliminary adjustments and checks to data ------------------------------
 * =============================================================================
+
+* --- summing vertical ts input to default ones -------------------------------
+
+// ts_influx_vert
+$ifthen defined ts_influx_vert
+// temporary node set of nodes in ts_influx_vert and ts_influx
+option node_tmp < ts_influx_vert;
+option node_tmp_ < ts_influx;
+
+// checking that only one source of influx data for each node
+loop(node_tmp(node),
+    if(sum(node_tmp_(node), 1),
+        put log '!!! Error on node ' node.tl:0 /;
+        put log '!!! Abort: ts_inlux and ts_influx_vert defined for the same node!' /;
+        abort "ts_inlux and ts_influx_vert defined for the same node!"
+    );
+);
+
+// Adding vertical ts data to default
+ts_influx(grid, node_tmp(node), f, t) = ts_influx(grid, node, f, t) + ts_influx_vert(t, grid, node, f);
+$endif
+
+
+// ts_cf_vert
+$ifthen defined ts_cf_vert
+// temporary node set of nodes in ts_cf_vert
+option node_tmp < ts_cf_vert;
+option node_tmp_ < ts_cf;
+
+// checking that only one source of cf data each node
+loop(node_tmp(node),
+    if(sum(node_tmp_(node), 1),
+        put log '!!! Error on node ' node.tl:0 /;
+        put log '!!! Abort: ts_cf and ts_cf_vert defined for the same node!' /;
+        abort "ts_cf and ts_cf_vert defined for the same node!"
+    );
+);
+
+// Adding vertical ts data to default
+ts_cf(flow, node_temp(node), f, t) = ts_cf(flow, node, f, t) + ts_cf_vert(t, flow, node, f);
+$endif
+
+
+* --- prechecking flow unit data ----------------------------------------------
 
 // Units with flows/commodities
 unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }

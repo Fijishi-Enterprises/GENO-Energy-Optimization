@@ -161,6 +161,9 @@ Parameters   // optional parameter tables initiated as empty tables
     ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tEmission)" / /
     ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tEmission)" / /
     ts_groupPolicy(group, param_policy, t) "Two-dimensional time-dependent policy data for groups" / /
+    // alternatives for giving timeseries data vertically via gdxxrw. Not declared by default.
+    ts_influx_vert(t, grid, node, f) "Vertical input variant of ts_influx (MWh/h)"
+    ts_cf_vert(t, flow, node, f) "Vertical input variant of ts_cf (p.u.)"
 ;
 $offempty
 Parameters
