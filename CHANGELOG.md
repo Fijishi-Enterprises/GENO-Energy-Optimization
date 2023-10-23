@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - git hooks for version control of git commits, creates version_git file
 - option to give vertical influx and cf data in excel (ts_influx_vert and ts_cf_vert)
 - new results table r_genByUnittype_g, r_emission_g, r_reserve_g
+- note that genByFuel results ignore consumption from the node
 
 ### Changed
 - version file now manually generated when publishing a new major version
@@ -16,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - minor speed improvements with internal sets and parameters: usft, ts_vomCost
 - minor speed improvements by splitting and compacting long loops
 - result table genByFuel in case of multifuel units
+- result table genByFuel_gnShare
 
 
 ## 3.6 - 2023-08-24

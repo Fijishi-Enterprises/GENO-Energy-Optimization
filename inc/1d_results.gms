@@ -72,11 +72,11 @@ Parameters
     r_gen_utilizationRate_gnu(grid, node, unit) "Approximate utilization rates of gnus over the simulation (p.u.)"
 
     // Energy generation results based on input, unittype, or group
-    r_genByFuel_gnft(grid, node, *, f, t) "Energy generation to a node based on inputs from another node or flows (MW)"
-    r_genByFuel_gn(grid, node, *) "Total energy generation in gn per input type over the simulation (MWh)"
-    r_genByFuel_g(grid, *) "Total energy generation in g per input type over the simulation (MWh)"
-    r_genByFuel_fuel(*) "Total overall energy generation per input type over the simulation (MWh)"
-    r_genByFuel_gnShare(grid, node, *) "Total energy generation in gn per input type as a share of total energy generation in gn"
+    r_genByFuel_gnft(grid, node, *, f, t) "Energy generation to a node based on inputs from another node or flows (MW). Excludes consumption from node."
+    r_genByFuel_gn(grid, node, *) "Total energy generation in gn per input type over the simulation (MWh). Excludes consumption from node."
+    r_genByFuel_g(grid, *) "Total energy generation in g per input type over the simulation (MWh). Excludes consumption from node."
+    r_genByFuel_fuel(*) "Total overall energy generation per input type over the simulation (MWh). Excludes consumption from node."
+    r_genByFuel_gnShare(grid, node, *) "Total energy generation in gn per input type as a share of total energy generation in gn. Excludes consumption from node."
     r_genByUnittype_gnft(grid, node, unittype, f, t) "Energy generation and consumption for each unittype (MW)"
     r_genByUnittype_gn(grid, node, unittype) "Energy generation and consumption for each unittype in each node (MWh)"
     r_genByUnittype_g(grid, unittype) "Energy generation and consumption for each unittype in each grid (MWh)"

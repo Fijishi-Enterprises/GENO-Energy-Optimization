@@ -189,6 +189,7 @@ loop(m,
 * --- Energy generation results based on input, unittype, or group -------------------------------------------------------
 
     // Energy output to a node based on inputs from another node or flows
+    // Note: thes ignore consumption from the node
 
     // temporary set for units with multiple inputs
     option clear = unit_tmp;
@@ -258,13 +259,13 @@ loop(m,
     r_genByFuel_fuel(flow)
         = sum(gn(grid, node), r_genByFuel_gn(grid, node, flow));
 
-    // Total energy generation in gn per input type as a share of total energy generation in gn across all input types
-    r_genByFuel_gnShare(gn(grid, node), node_)${ r_gen_gn(grid, node) }
+    // Total energy generation in gn per input type as a share of total included energy generation in gn across all input types
+    r_genByFuel_gnShare(gn(grid, node), node_)${ r_genByFuel_gn(grid, node, node_) }
         = r_genByFuel_gn(grid, node, node_)
-            / r_gen_gn(grid, node);
-    r_genByFuel_gnShare(gn(grid, node), flow)${ r_gen_gn(grid, node) }
+            / sum(node__, r_genByFuel_gn(grid, node, node__));
+    r_genByFuel_gnShare(gn(grid, node), flow)${ r_genByFuel_gn(grid, node, flow) }
         = r_genByFuel_gn(grid, node, flow)
-            / r_gen_gn(grid, node);
+            / sum(node__, r_genByFuel_gn(grid, node, node__));
 
     // Energy generation for each unittype
     r_genByUnittype_gnft(gn(grid, node), unittype, ft_realizedNoReset(f,t_startp(t)))
