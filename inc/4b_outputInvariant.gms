@@ -228,7 +228,7 @@ loop(m,
     ); // END if(unit_tmp)
 
     // flow units
-    r_genByFuel_gnft(gn(grid, node), flow, ft_realizedNoReset(f, t))$flowNode(flow, node)
+    r_genByFuel_gnft(gn(grid, node), flow, ft_realizedNoReset(f, t_startp(t)))$flowNode(flow, node)
         = sum(gnu_output(grid, node, unit)$flowUnit(flow, unit),
             + r_gen_gnuft(grid, node, unit, f, t));
 
