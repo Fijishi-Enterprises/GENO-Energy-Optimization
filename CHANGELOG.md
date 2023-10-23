@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - minor speed improvements with internal sets and parameters: usft, ts_vomCost
 - minor speed improvements by splitting and compacting long loops
+- result table genByFuel in case of multifuel units
 
 
 ## 3.6 - 2023-08-24

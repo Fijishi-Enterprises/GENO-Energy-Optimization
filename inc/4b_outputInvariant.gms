@@ -186,23 +186,51 @@ loop(m,
                     * mSettings(m, 'stepLengthInHours')
                 ]; // END division
 
-* --- Energy generation results based on input unittype, or group -------------------------------------------------------
+* --- Energy generation results based on input, unittype, or group -------------------------------------------------------
 
-    // Calculates wrong with storages when there is a loop, e.g. elecGrid -> elecStorage -> elecGrid
     // Energy output to a node based on inputs from another node or flows
-    r_genByFuel_gnft(gn(grid, node), node_, ft_realizedNoReset(f, t_startp(t)))
-        ${sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit),r_gen_gnuft(grid_, node_, unit, f, t)) }
-        = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, node_, unit), 1),
-            + r_gen_gnuft(grid, node, unit, f, t)
-          );
-// The calculation with multiple inputs needs to be fixed below (right share for different commodities - now units with multiple input commodities will get the same amount allocated which will then be too big
-//          * sum((grid_, unit)$gnu_output(grid, node, unit),
-//                r_gen_gnuft(grid_, commodity, unit, f, t))
-//                  / sum(gnu_input(grid__, node_, unit), r_gen_gnuft(grid__, node_, unit, f, t));
 
+    // temporary set for units with multiple inputs
+    option clear = unit_tmp;
+    unit_tmp(unit)$ {sum(gn(grid, node)$gnu_input(grid, node, unit), 1) > 1} = yes;
+
+    // units with a single input
+    r_genByFuel_gnft(gn(grid, node), node_, ft_realizedNoReset(f, t_startp(t)))
+        ${sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit), r_gen_gnu(grid_, node_, unit)) // checking node -> node_ mapping to reduce calculation time
+          and not sum(unit_tmp(unit), gnu_output(grid, node, unit))  }              // checking that unit does not have multiple inputs
+        = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, node_, unit), 1),   // summing if node_ -> node applies for this unit
+            + r_gen_gnuft(grid, node, unit, f, t)                                   // generation to node
+          ); // END sum(gnu_output)
+
+    // units with multiple inputs
+    if(card(unit_tmp)>0,
+        // temporary uft telling when units are using multiple inputs
+        // needs to be this complicated as it is possible to define 2 input unit that can operate with 1 input or 2 inputs based on optimization
+        option gnuft_tmp < r_gen_gnuft;
+        uft_tmp(unit_tmp(unit), ft_realizedNoReset(f, t_startp(t))) $ { sum(gnuft_tmp(grid, node, unit, f, t)$gnu_input(grid, node, unit), 1) > 1}
+        = yes;
+
+        r_genByFuel_gnft(gn(grid, node), node_, ft_realizedNoReset(f, t_startp(t)))
+            ${sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit), r_gen_gnu(grid_, node_, unit)) //checking node -> node_ mapping to reduce calculation time
+              and sum(unit_tmp(unit), gnu_output(grid, node, unit))  }                     // checking that unit has multiple inputs
+            = sum(gnu_output(grid, node, unit)${sum(gnu_input(grid_, node_, unit), 1) },   // summing if node_ -> node applies for this unit
+                + r_gen_gnuft(grid, node, unit, f, t)    // generation to node
+                  * [+1 ${not uft_tmp(unit, f, t)}       // multiplied by 1 if using only 1 input in t
+                     + sum(gnu_input(grid_, node_, unit)$uft_tmp(unit, f, t),    // multiplied by fuel use in node_
+                      r_gen_gnuft(grid_, node_, unit, f, t))  // END sum(gnu_input)
+                    ]
+                  / [+1 ${not uft_tmp(unit, f, t)}       // divided by 1 if using only 1 input in t
+                     + sum(gnu_input(grid__, node__, unit)$uft_tmp(unit, f, t),  // divided by total fuel use of the unit
+                      r_gen_gnuft(grid__, node__, unit, f, t))  // END sum(gnu_input)
+                    ]
+              ); // END sum(gnu_output)
+    ); // END if(unit_tmp)
+
+    // flow units
     r_genByFuel_gnft(gn(grid, node), flow, ft_realizedNoReset(f, t))$flowNode(flow, node)
         = sum(gnu_output(grid, node, unit)$flowUnit(flow, unit),
             + r_gen_gnuft(grid, node, unit, f, t));
+
 
     // Total energy generation in gn per input type over the simulation
     r_genByFuel_gn(gn(grid, node), node_)

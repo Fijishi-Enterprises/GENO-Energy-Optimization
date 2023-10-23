@@ -187,6 +187,9 @@ $endif
     gnusft_ramp(grid, node, unit, s, f, t) "Units with ramp requirements or costs"
     gnusft_rampCost(slack, grid, node, unit, s, f, t) "Units with ramp costs"
 
+    gnuft_tmp(grid, node, unit, f, t) "temporary gnuft set"
+    uft_tmp(unit, f, t) "temporary uft set"
+
     eff_usft(effSelector, unit, s, f, t) "Selecting conversion efficiency equations"
     effGroup(effSelector) "Group name for efficiency selector set, e.g. DirectOff and Lambda02"
     effGroupSelector(effSelector, effSelector) "Efficiency selectors included in efficiency groups, e.g. Lambda02 contains Lambda01 and Lambda02."
@@ -253,9 +256,9 @@ alias(m, mSolve);
 alias(t, t_, t__, t_solve);
 alias(f, f_, f__);
 alias(s, s_, s__);
-alias(grid, grid_, grid_output);
+alias(grid, grid_, grid__, grid_output);
 alias(unit, unit_);
-alias(node, from_node, to_node, node_, node_input, node_output, node_fail, node_left, node_right);
+alias(node, from_node, to_node, node_, node__, node_input, node_output, node_fail, node_left, node_right);
 alias(effSelector, effSelector_);
 alias(effDirect, effDirect_);
 alias(effDirectOff, effDirectOff_);
