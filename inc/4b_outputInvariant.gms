@@ -250,6 +250,12 @@ loop(m,
              + r_gen_gnu(grid, node, unit)
             );
 
+    // Total energy generation in gnu by unit type
+    r_genByUnittype_g(grid, unittype)
+      = sum(gn(grid,node),
+             + r_genByUnittype_gn(grid, node, unittype)
+            );
+
     // gnTotalgen in units that belong to gnuGroups over the simulation
     r_genByGnuGroup_gn(grid, node, group)
         = sum(unit $ {gnuGroup(grid, node, unit, group)},
@@ -426,6 +432,10 @@ loop(m,
         = sum(unit, r_emission_nu(node, unit, emission))
     ;
 
+    r_emission_g(grid, emission)
+        = sum(gn(grid, node), r_emission_n(node, emission))
+    ;
+
     r_emission_u(unit, emission)
         = sum(node, r_emission_nu(node, unit, emission))
     ;
@@ -451,6 +461,11 @@ loop(m,
     // Total reserve provisions over the simulation
     r_reserve_gn(restype, up_down, grid, node)
         =  sum(unit, r_reserve_gnu(restype, up_down, grid, node, unit))
+    ;
+
+    // Total reserve provisions over the simulation
+    r_reserve_g(restype, up_down, grid)
+        =  sum(gn(grid, node), r_reserve_gn(restype, up_down, grid, node) )
     ;
 
     // Group sum of reserves of specific types (MW)

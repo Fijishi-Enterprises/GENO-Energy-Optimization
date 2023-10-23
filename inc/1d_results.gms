@@ -79,6 +79,7 @@ Parameters
     r_genByFuel_gnShare(grid, node, *) "Total energy generation in gn per input type as a share of total energy generation in gn"
     r_genByUnittype_gnft(grid, node, unittype, f, t) "Energy generation and consumption for each unittype (MW)"
     r_genByUnittype_gn(grid, node, unittype) "Energy generation and consumption for each unittype in each node (MWh)"
+    r_genByUnittype_g(grid, unittype) "Energy generation and consumption for each unittype in each grid (MWh)"
     r_genByGnuGroup_gn(grid, node, group) "Total energy generation and consumption in units that belong to gnuGroup (MWh)"
 
     // Energy consumption during startups
@@ -116,6 +117,7 @@ Parameters
     // Emission sums
     r_emissionByNodeGroup(emission, group) "Group total emissions (tEmission)"
     r_emission_nu(node, unit, emission) "node unit total emissions (tEmission)"
+    r_emission_g(grid, emission) "grid total emissions (tEmission)"
     r_emission_n(node, emission) "node total emissions (tEmission)"
     r_emission_u(unit, emission) "unit total emissions (tEmission)"
     r_emission(emission) "Total emissions (tEmission)"
@@ -130,6 +132,7 @@ Parameters
     // Unit level reserve results
     r_reserve_gnu(restype, up_down, grid, node, unit) "Total gnu reserve provision over the simulation (MW*h)"
     r_reserve_gn(restype, up_down, grid, node) "Total gn reserve provision over the simulation (MW*h)"
+    r_reserve_g(restype, up_down, grid) "Total grid reserve provision over the simulation (MW*h)"      
     r_reserveByGroup_ft(restype, up_down, group, f, t) "Group sum of reserves of specific types (MW)"
     r_reserveByGroup(restype, up_down, group) "Total reserve provisions in groups over the simulation (MW*h)"
     r_reserve_gnuShare(restype, up_down, grid, node, unit) "Total gnu/group reserve provision share over the simulation"

@@ -78,6 +78,7 @@ r_genByFuel_fuel
 r_genByFuel_gnShare
 r_genByUnittype_gnft
 r_genByUnittype_gn
+r_genByUnittype_g
 r_genByGnuGroup_gn
 
 // Energy consumption during startups
@@ -116,6 +117,7 @@ r_emission_capacityEmissions_nu
 // Emission sum results
 r_emissionByNodeGroup
 r_emission_nu
+r_emission_g
 r_emission_n
 r_emission_u
 r_emission
@@ -130,6 +132,7 @@ r_reserveTransferLeftward_gnnft
 // Unit level reserve results
 r_reserve_gnu
 r_reserve_gn
+r_reserve_g
 r_reserveByGroup_ft
 r_reserveByGroup
 r_reserve_gnuShare
