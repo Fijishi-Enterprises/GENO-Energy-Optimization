@@ -504,15 +504,9 @@ usft(unit_aggregator(unit), sft(s, f, t))${ ord(t) <= t_solveFirst + p_unit(unit
 
 // First ft:s for each aggregator unit
 Option clear = usft_aggregator_first;
-loop(unit_aggregator(unit),
-    tmp = card(t);
-    loop(usft(unit, s, f, t),
-        if(ord(t) < tmp,
-            tmp = ord(t)
-        );
-    );
-    usft_aggregator_first(usft(unit, s, f, t))${ord(t) = tmp} = yes;
-);
+usft_aggregator_first(usft(unit_aggregator(unit), s, f, t))${ord(t) <= t_solveFirst + p_unit(unit, 'lastStepNotAggregated') +1
+                                                }
+= yes;
 
 // Active (grid, node, unit) on each sft
 Option clear = gnusft;
