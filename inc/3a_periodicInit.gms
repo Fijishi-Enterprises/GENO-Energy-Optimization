@@ -343,6 +343,29 @@ loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effL
 option effGroup<effGroupSelectorUnit;
 option effGroupSelector<effGroupSelectorUnit;
 
+
+* --- Check that onlin unit efficiency approximations have sufficient data ----
+
+loop(unit_online(unit),
+    // Check that directOnLP and directOnMIP units have least one opXX or hrXX defined
+    if(sum(op, p_unit(unit, op)) + sum(hr, p_unit(unit, hr))= 0,
+          put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+          put log '!!! Abort: Units with online variable, e.g. DirectOnLP and DirectOnMIP, require efficiency definitions, check opXX (or hrXX) parameters' /;
+          abort "Units with online variable, e.g. DirectOnLP and DirectOnMIP, require efficiency definitions, check opXX (or hrXX) parameters";
+       ); // END sum(op + hr)
+
+    // Check that if directOnLP and directOnMIP units are defined with op parameters (hr parameters alternative), those have sufficient values
+    loop(op__${p_unit(unit, op__) = smax(op, p_unit(unit, op))}, // Loop over the 'op's to find the last defined data point.
+         loop( op_${p_unit(unit, op_) = smin(op${p_unit(unit, op)}, p_unit(unit, op))}, // Loop over the 'op's to find the first nonzero 'op' data point.
+             if(ord(op__) = ord(op_) AND not p_unit(unit, 'section') AND not p_unit(unit, 'opFirstCross'),
+                 put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+                 put log '!!! Abort: directOn requires two efficiency data points with nonzero op or section or opFirstCross!' /;
+                 abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!";
+             ); // END if(effDirectOn)
+         ); // END loop(op_)
+    ); // END loop(op__)
+); // END loop(unit_online)
+
 * --- Loop over effGroupSelectorUnit to generate efficiency approximation parameters for units
 
 // Parameters for direct conversion units without online variables
