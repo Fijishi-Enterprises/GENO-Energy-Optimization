@@ -707,9 +707,14 @@ loop(m,
 // converting price change ts data to price ts data
 // calculated here instead 1e_inputs because t_datalength is initiated in 3a_periodicInit
 
+// selecting smaller from data length and amount of t
 tmp_ = smin(t_datalength(t),ord(t));
 
-loop(node_priceChangeData(node)$p_price(node, 'useTimeSeries'),
+// clearing temporary node set and filtering nodes with priceChange data
+option clear = node_tmp;
+option node_tmp < ts_priceChange;
+
+loop(node_tmp(node)$p_price(node, 'useTimeSeries'),
     // Determine the time steps where the prices change
     Option clear = tt;
     tt(t)$ts_priceChange(node,t) = yes;

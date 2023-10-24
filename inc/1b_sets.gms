@@ -27,8 +27,6 @@ Sets
 
 * --- Node classifications ----------------------------------------------------
     node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
-    node_priceData(node) "Nodes that have input data in ts_price table"
-    node_priceChangeData(node) "Nodes that have input data in ts_priceChange table"
     node_superpos(node) "Nodes whose state is monitored in the z dimension using superpositioning of state"
     flowNode(flow, node) "Nodes with flows"
     node_tmp(node) "temporary set for summing nodes"

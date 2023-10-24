@@ -503,16 +503,18 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
                         }
     = yes;
 
-// checking nodes that have price data in two optional input data tables
-Option node_priceData < ts_price;
-Option node_priceChangeData < ts_priceChange;
-
 * =============================================================================
 * --- Initialize Price Related Sets & Parameters Based on Input Data -------
 * =============================================================================
 
+// checking nodes that have price data in two optional input data tables
+option clear = node_tmp;
+option node_tmp < ts_price;
+option clear = node_tmp_;
+option node_tmp_ < ts_priceChange;
+
 // Process node prices depending on 'ts_price' if usePrice flag activated
-loop(node$ {node_priceData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
+loop(node_tmp(node) $ { sum(grid, p_gn(grid, node, 'usePrice'))},
 
     // Find the steps with changing node prices
     option clear = tt;
@@ -530,7 +532,7 @@ loop(node$ {node_priceData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
 ); // END loop(node)
 
 // Process node prices depending on 'ts_priceChange' if usePrice flag activated
-loop(node$ {node_priceChangeData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
+loop(node_tmp_(node)$ { sum(grid, p_gn(grid, node, 'usePrice'))},
 
     // Find the steps with changing node prices
     option clear = tt;
@@ -547,7 +549,14 @@ loop(node$ {node_priceChangeData(node) and sum(grid, p_gn(grid, node, 'usePrice'
       ); // END if(sum(tt_))
 ); // END loop(node)
 
-
+loop(node_tmp(node),
+    // Abort of input data for prices are given both ts_price and ts_priceChange
+    if({node_tmp_(node)},
+        put log '!!! Error occurred on ', node.tl:0 /;
+        put log '!!! Abort: Node ', node.tl:0, ' has both ts_price and ts_priceChange' /;
+        abort "Only ts_price or ts_priceChange can be given to a node"
+    ); // END if
+);
 
 * =============================================================================
 * --- Emission related Sets & Parameters --------------------------------------
@@ -797,12 +806,6 @@ loop(node,
     if(sum(grid, p_gn(grid, node, 'usePrice'))
        and not [p_price(node, 'price') or p_price(node, 'useTimeSeries')],
         put log '!!! Warning: Node ', node.tl:0, ' has usePrice activated in p_gn but there is no price data' /;
-    ); // END if
-    // Abort of input data for prices are given both ts_price and ts_priceChange
-    if({node_priceData(node) and node_priceChangeData(node)},
-        put log '!!! Error occurred on ', node.tl:0 /;
-        put log '!!! Abort: Node ', node.tl:0, ' has both ts_price and ts_priceChange' /;
-        abort "Only ts_price or ts_priceChange can be given to a node"
     ); // END if
 ); // END loop(node)
 
