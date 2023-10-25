@@ -362,12 +362,17 @@ loop(m,
                + abs(r_gen_gnuft(grid, node, unit, f, t)) * p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
               ); // END *p_stepLengthNoReset
 
-    // Emission sums from normal operation input
-    r_emission_operationEmissions_nu(nu(node, unit), emission)
+    // Emission sums from normal operation, gnu sum (tEmission)
+    r_emission_operationEmissions_gnu(gnu(grid, node, unit), emission)
         = sum(ft_realizedNoReset(f, t_startp(t)),
-            + sum(gn(grid, node), r_emission_operationEmissions_gnuft(grid, node, emission, unit, f, t))
-                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
-            ); // END sum(ft_realizedNoReset)
+              + r_emission_operationEmissions_gnuft(grid, node, emission, unit, f, t)
+              * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+          ); // END sum(ft_realizedNoReset)
+
+    // Emission sums from normal operation, nu sum tEmission)
+    r_emission_operationEmissions_nu(nu(node, unit), emission)
+        = sum(gn(grid, node), r_emission_operationEmissions_gnu(grid, node, unit, emission)
+          ); // END sum(gn)
 
     // Emissions from unit start-ups (tEmission)
     r_emission_startupEmissions_nuft(node, emission, unit, ft_realizedNoReset(f,t_startp(t)))
@@ -380,7 +385,7 @@ loop(m,
                 * p_nEmission(node, emission) // tEmission/MWh_fuel
             ); // END sum(starttype)
 
-    // Emission sums from start-ups
+    // Emission sums from start-ups, nu sum (tEmission)
     r_emission_StartupEmissions_nu(nu_startup(node, unit), emission)
         = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_emission_startupEmissions_nuft(node, emission, unit, f, t)
@@ -407,70 +412,41 @@ loop(m,
 
     // Emission in gnGroup
     r_emissionByNodeGroup(emission, group)
-        = sum(ft_realizedNoReset(f, t_startp(t)),
-            // Emissions from operation: consumption and production of fuels - gn related emissions (tEmission)
-            + sum(gnu(grid, node, unit)${gnGroup(grid, node, group) and p_nEmission(node, emission)},
-                 // multiply by -1 because consumption in r_gen is negative and production positive
-                 - p_stepLengthNoReset(m, f, t)
-                 * r_gen_gnuft(grid, node, unit, f, t)
-                 * p_nEmission(node, emission)
-                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
-              ) // END sum(gnu)
-            // Emissions from operation: gnu related vomEmissions (tEmission)
-            + sum(gnu(grid, node, unit)${gnGroup(grid, node, group) and p_gnuEmission(grid, node, unit, emission, 'vomEmissions')},
-                 // absolute values as all gnu specific emission factors are considered emissions
-                 + p_stepLengthNoReset(m, f, t)
-                 * abs(r_gen_gnuft(grid, node, unit, f, t))
-                 * p_gnuEmission(grid, node, unit, emission, 'vomEmissions')
-                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
-              ) // END sum(gnu)
-            // Emissions from operation: Start-up emissions (tEmission)
-            + sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
-                 r_emission_startupEmissions_nuft(node, emission, unit, f, t)
-                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+        // Emissions from operation: consumption and production of fuels - gn related emissions (tEmission)
+        = + sum(gnu(grid, node, unit)${gnGroup(grid, node, group)},
+                + r_emission_operationEmissions_gnu(grid, node, unit, emission)
+                ) // END sum(gnu)
+        // Emissions from operation: Start-up emissions (tEmission)
+        + sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
+              r_emission_startupEmissions_nu(node, unit, emission)
               ) // END sum(nu_startup)
-          ) // END sum(ft_realizedNoReset)
-
-          // Emissions from capacity: fixed o&m emissions and investment emissions (tEmission)
-          + sum(gnu(gn, unit)${ p_gnuEmission(gn, unit, emission, 'fomEmissions') and gnGroup(gn, group) },
-               p_gnuEmission(gn, unit, emission, 'fomEmissions')
-               * (p_gnu(gn, unit, 'capacity')
-                  + r_invest_unitCapacity_gnu(gn, unit))
-               * sum(ms(m, s), p_msProbability(m, s) * p_msWeight(m, s))
-            ) // END sum(gnu)
-          + sum(gnu(grid, node, unit)${ p_gnuEmission(grid, node, unit, emission, 'invEmissions') and gnGroup(grid, node, group) },
-               p_gnuEmission(grid, node, unit, emission, 'invEmissions')
-               * r_invest_unitCapacity_gnu(grid, node, unit)
-               * p_gnuEmission(grid, node, unit, emission, 'invEmissionsFactor')
-               * sum(ms(m, s), p_msProbability(m, s) * p_msWeight(m, s))
-            ) // END sum(gnu)
+        // Emissions from capacity: fixed o&m emissions and investment emissions (tEmission)
+        + sum(gnu(grid, node, unit)${ gnGroup(grid, node, group) },
+              r_emission_capacityEmissions_nu(node, unit, emission)
+              ) // END sum(gnu)
     ;
-
-    // Emission sums
+    // Total emissions by node and unit
     r_emission_nu(nu(node, unit), emission)
         = r_emission_operationEmissions_nu(node, unit, emission)
             + r_emission_StartupEmissions_nu(node, unit, emission)
             + r_emission_capacityEmissions_nu(node, unit, emission)
     ;
-
+    // Total emissions by node
     r_emission_n(node, emission)
         = sum(unit, r_emission_nu(node, unit, emission))
     ;
-
+    // Total emissions by grid
     r_emission_g(grid, emission)
         = sum(gn(grid, node), r_emission_n(node, emission))
     ;
-
+    // Total emissions by unit
     r_emission_u(unit, emission)
         = sum(node, r_emission_nu(node, unit, emission))
     ;
-
+    // Total emissions
     r_emission(emission)
         = sum(node, r_emission_n(node, emission))
     ;
-
-
-
 
 * --- Reserve Result Symbols ---------------------------------------
 * --- Unit level reserve Results ---------------------------------------------

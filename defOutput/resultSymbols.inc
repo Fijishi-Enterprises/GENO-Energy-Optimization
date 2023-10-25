@@ -109,6 +109,7 @@ r_invest_transferCapacity_gnn
 
 // emissions by activity type
 r_emission_operationEmissions_gnuft
+*r_emission_operationEmissions_gnu
 r_emission_operationEmissions_nu
 r_emission_startupEmissions_nuft
 r_emission_StartupEmissions_nu

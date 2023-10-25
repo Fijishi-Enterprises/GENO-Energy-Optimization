@@ -109,6 +109,7 @@ Parameters
 
     // emissions by activity type
     r_emission_operationEmissions_gnuft(grid, node, emission, unit, f, t) "Emissions during normal operation (tEmission)"
+    r_emission_operationEmissions_gnu(grid, node, unit, emission) "gnu emissions during normal operation (tEmission)"
     r_emission_operationEmissions_nu(node, unit, emission) "node unit total emissions in normal operation (tEmission)"
     r_emission_startupEmissions_nuft(node, emission, unit, f, t) "Emissions from units during start-ups (tEmission)"
     r_emission_StartupEmissions_nu(node, unit, emission) "node unit total emissions in start-ups (tEmission)"
@@ -132,7 +133,7 @@ Parameters
     // Unit level reserve results
     r_reserve_gnu(restype, up_down, grid, node, unit) "Total gnu reserve provision over the simulation (MW*h)"
     r_reserve_gn(restype, up_down, grid, node) "Total gn reserve provision over the simulation (MW*h)"
-    r_reserve_g(restype, up_down, grid) "Total grid reserve provision over the simulation (MW*h)"      
+    r_reserve_g(restype, up_down, grid) "Total grid reserve provision over the simulation (MW*h)"
     r_reserveByGroup_ft(restype, up_down, group, f, t) "Group sum of reserves of specific types (MW)"
     r_reserveByGroup(restype, up_down, group) "Total reserve provisions in groups over the simulation (MW*h)"
     r_reserve_gnuShare(restype, up_down, grid, node, unit) "Total gnu/group reserve provision share over the simulation"
