@@ -172,20 +172,26 @@ $offtext
     = yes;
 
 
+    // Determine the set of active interval counters (or blocks of intervals)
+    counter_intervals(counter)${ mInterval(m, 'stepsPerInterval', counter) }
+        = yes;
+
 * --- Intervals and Time Series -----------------------------------------------
 
     // Check whether the defined intervals are feasible
-    continueLoop = 1;
-    loop(counter(counter_large)${ continueLoop },
-        if(not mInterval(m, 'lastStepInIntervalBlock', counter_large),
-            continueLoop = 0;
-        elseif mod(mInterval(m, 'lastStepInIntervalBlock', counter_large) - mInterval(m, 'lastStepInIntervalBlock', counter_large-1), mInterval(m, 'stepsPerInterval', counter_large)),
+    loop(counter_intervals(counter_large),
+        // check if interval length is divisible by step per interval
+        if (mod(mInterval(m, 'lastStepInIntervalBlock', counter_large) - mInterval(m, 'lastStepInIntervalBlock', counter_large-1), mInterval(m, 'stepsPerInterval', counter_large)),
             put log "!!! Error occurred on interval block ", counter_large.tl:0 /;
             put log "!!! Abort: stepsPerInterval is not evenly divisible within the interval"
-            abort "stepsPerInterval is not evenly divisible within the interval", m, continueLoop;
-        else
-            continueLoop = continueLoop + 1;
+            abort "stepsPerInterval is not evenly divisible within the interval";
         );
+        // Abort if stepsPerInterval is less than one
+        if(mInterval(m, 'stepsPerInterval', counter_large) < 1,
+            put log '!!! Error occurred in modelsInit' /;
+            put log '!!! Abort: stepsPerInterval < 1 is not defined!' /;
+            abort "stepsPerInterval < 1 is not defined!";
+        );  // END IF stepsPerInterval
     );
 
     // Determine maximum data length, if not provided in the model definition file.

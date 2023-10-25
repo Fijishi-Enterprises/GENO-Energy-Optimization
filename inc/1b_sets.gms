@@ -169,6 +169,7 @@ $endif
 
 * --- counter sets used in several loops, time intervals, and trajectories
     counter(counter_large) "Counter set limited to needed amount of counters"
+    counter_intervals(counter_large) "Counter set for intervals"
     cc(counter_large) "Temporary subset of counter used for calculations"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations as well as unit lifetimes

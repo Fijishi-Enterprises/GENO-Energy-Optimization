@@ -180,12 +180,7 @@ Option clear = mst_start, clear = mst_end;
 Option clear = t_active;
 Option clear = dt_active;
 Option clear = tt_block;
-Option clear = cc;
 tCounter = 1;
-
-// Determine the set of active interval counters (or blocks of intervals)
-cc(counter)${ mInterval(mSolve, 'stepsPerInterval', counter) }
-    = yes;
 
 // Update tForecastNext
 tForecastNext(mSolve)
@@ -210,15 +205,7 @@ t_current(t_full(t))
     = yes;
 
 // Loop over the defined blocks of intervals
-loop(cc(counter),
-
-    // Abort if stepsPerInterval is less than one
-    if(mInterval(mSolve, 'stepsPerInterval', counter) < 1,
-        put log '!!! Error occurred in modelsInit' /;
-        put log '!!! Abort: stepsPerInterval < 1 is not defined!' /;
-        abort "stepsPerInterval < 1 is not defined!";
-    );  // END IF stepsPerInterval
-
+loop(counter_intervals(counter),
     // Time steps within the current block
     option clear = tt;
     tt(t_current(t))
