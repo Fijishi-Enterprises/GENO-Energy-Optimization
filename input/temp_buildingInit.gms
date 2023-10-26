@@ -29,8 +29,8 @@ if (mType('building'),
     mSettings('building', 't_end') = 8760; // Last time step to be included in the solve (may solve and output more time steps in case t_jump does not match)
 
     // Define simulation horizon and moving horizon optimization "speed"
-    mSettings('building', 't_horizon') = 336;  // How many active time steps the solve contains (aggregation of time steps does not impact this, unless the aggregation does not match)
-    mSettings('building', 't_jump') = 168;     // How many time steps the model rolls forward between each solve
+    mSettings('building', 't_horizon') = 292;  // How many active time steps the solve contains (aggregation of time steps does not impact this, unless the aggregation does not match)
+    mSettings('building', 't_jump') = 146;     // How many time steps the model rolls forward between each solve
 
 * =============================================================================
 * --- Model Time Structure ----------------------------------------------------
@@ -66,7 +66,7 @@ if (mType('building'),
 
     // Define the time step intervals in time-steps
     mInterval('building', 'stepsPerInterval', 'c000') = 1;
-    mInterval('building', 'lastStepInIntervalBlock', 'c000') = 336;
+    mInterval('building', 'lastStepInIntervalBlock', 'c000') = mSettings('building', 't_horizon');
 
 * --- z-structure for superpositioned nodes ----------------------------------
 
@@ -114,12 +114,7 @@ if (mType('building'),
 * --- Define Reserve Properties -----------------------------------------------
 
     // Define whether reserves are used in the model
-    mSettingsReservesInUse('building', 'primary', 'up') = no;
-    mSettingsReservesInUse('building', 'primary', 'down') = no;
-    mSettingsReservesInUse('building', 'secondary', 'up') = no;
-    mSettingsReservesInUse('building', 'secondary', 'down') = no;
-    mSettingsReservesInUse('building', 'tertiary', 'up') = no;
-    mSettingsReservesInUse('building', 'tertiary', 'down') = no;
+    mSettingsReservesInUse('building', restype, up_down) = no;
 
 * --- Define Unit Approximations ----------------------------------------------
 
@@ -127,7 +122,7 @@ if (mType('building'),
     mSettingsEff('building', 'level1') = inf;
 
     // Define the horizon when start-up and shutdown trajectories are considered
-    mSettings('building', 't_trajectoryHorizon') = 8760;
+    mSettings('building', 't_trajectoryHorizon') = mSettings('building', 't_horizon');
 
 * --- Define output settings for results --------------------------------------
 
@@ -144,7 +139,7 @@ if (mType('building'),
 * --- Control the solver ------------------------------------------------------
 
     // Control the use of advanced basis
-    mSettings('building', 'loadPoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
-    mSettings('building', 'savePoint') = 2;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
+    mSettings('building', 'loadPoint') = 0;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
+    mSettings('building', 'savePoint') = 0;  // 0 = no basis, 1 = latest solve, 2 = all solves, 3 = first solve
 
 ); // END if(mType)
