@@ -26,7 +26,7 @@ q_obj ..
 
     =E=
 
-    + sum(msft(m, s, f, t)${sGroup(s, group)},
+    + sum(msft(m, s, f, t)${sGroup(s, 'emissionObjectiveGroup')},
         + p_msft_Probability(m,s,f,t)
         * [
             // Time step length dependent emissions
@@ -34,28 +34,28 @@ q_obj ..
             // Emissions from operation: consumption and production of fuels - gn related emissions (tEmission)
             // if consumption -> emissions, if production -> emission reductions due to emissions bound to product
             + p_stepLength(m, f, t)
-                * sum(gnu(grid, node, unit)${gnGroup(grid, node, group)
-                                             and p_nEmission(node, emission)
+                * sum(gnu(grid, node, unit)${gnGroup(grid, node, 'emissionObjectiveGroup')
+                                             and p_nEmission(node, 'CO2')
                                              and usft(unit, s, f, t) },
                     - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative and production positive
-                        * p_nEmission(node, emission) // tEmission/MWh
+                        * p_nEmission(node, 'CO2') // tEmission/MWh
                   ) // END sum(gnu_input)
 
             // Emissions from operation: gnu related vomEmissions (tEmission)
             // emissions from input and output are both calculated as emissions
             + p_stepLength(m, f, t)
-                * sum(gnu_input(grid, node, unit)${gnGroup(grid, node, group)
-                                                   and p_gnuEmission(grid, node, unit, emission, 'vomEmissions')
+                * sum(gnu_input(grid, node, unit)${gnGroup(grid, node, 'emissionObjectiveGroup')
+                                                   and p_gnuEmission(grid, node, unit, 'CO2', 'vomEmissions')
                                                    and usft(unit, s, f, t) },
                     - v_gen(grid, node, unit, s, f, t) // multiply by -1 because consumption is negative
-                        * p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // tEmission/MWh
+                        * p_gnuEmission(grid, node, unit, 'CO2', 'vomEmissions') // tEmission/MWh
                   ) // END sum(gnu_input)
             + p_stepLength(m, f, t)
-                * sum(gnu_output(grid, node, unit)${gnGroup(grid, node, group)
-                                                    and p_gnuEmission(grid, node, unit, emission, 'vomEmissions')
+                * sum(gnu_output(grid, node, unit)${gnGroup(grid, node, 'emissionObjectiveGroup')
+                                                    and p_gnuEmission(grid, node, unit, 'CO2', 'vomEmissions')
                                                     and usft(unit, s, f, t) },
                     + v_gen(grid, node, unit, s, f, t)
-                        * p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // tEmission/MWh
+                        * p_gnuEmission(grid, node, unit, 'CO2', 'vomEmissions') // tEmission/MWh
                   ) // END sum(gnu_input)
 
             // Emissions from operation: Start-up emissions (tEmission)
@@ -68,10 +68,10 @@ q_obj ..
                   ]
                 * [
                    // node specific emissions
-                   +sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
+                   +sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, 'emissionObjectiveGroup')) and p_nEmission(node, 'CO2')},
                       + p_unStartup(unit, node, starttype) // MWh/start-up
-                          * p_nEmission(node, emission) // t/MWh
-                    ) // END sum(nu, emission)
+                          * p_nEmission(node, 'CO2') // t/MWh
+                    ) // END sum(nu, 'CO2')
                   ]
               ) // sum(usft_online)
 
@@ -79,14 +79,14 @@ q_obj ..
       ) // END sum(msft)
 
 
-    + sum(ms(m, s)${ sum(msft(m, s, f, t), 1) and sGroup(s, group) }, // consider ms only if it has active msft and belongs to group
+    + sum(ms(m, s)${ sum(msft(m, s, f, t), 1) and sGroup(s, 'emissionObjectiveGroup') }, // consider ms only if it has active msft and belongs to group
         + p_msAnnuityWeight(m, s) // Sample weighting to calculate annual emissions
         * [
             // capacity emissions: fixed o&M emissions (tEmission)
-            + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, emission, 'fomEmissions')
+            + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, 'CO2', 'fomEmissions')
                                          and sum(msft(m, s, f, t), usft(unit, s, f, t)) // consider unit only if it is active in the sample
-                                         and gnGroup(grid, node, group) },
-                + p_gnuEmission(grid, node, unit, emission, 'fomEmissions')       // (tEmissions/MW)
+                                         and gnGroup(grid, node, 'emissionObjectiveGroup') },
+                + p_gnuEmission(grid, node, unit, 'CO2', 'fomEmissions')       // (tEmissions/MW)
                     * p_gnu(grid, node, unit, 'unitSize')   // (MW/unit)
                     * [
                         // Existing capacity
@@ -99,13 +99,13 @@ q_obj ..
                 ) // END sum(gnu)
 
             // capacity emissions: investment emissions (tEmission)
-            + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, emission, 'invEmissions')
+            + sum(gnu(grid, node, unit)${p_gnuEmission(grid, node, unit, 'CO2', 'invEmissions')
                                          and (unit_investLP(unit) or unit_investMIP(unit))
                                          and sum(msft(m, s, f, t), usft(unit, s, f, t)) // consider unit only if it is active in the sample
-                                         and gnGroup(grid, node, group) },
+                                         and gnGroup(grid, node, 'emissionObjectiveGroup') },
                 // Capacity restriction
-                + p_gnuEmission(grid, node, unit, emission, 'invEmissions')    // (tEmission/MW)
-                    * p_gnuEmission(grid, node, unit, emission, 'invEmissionsFactor')    // factor dividing emissions to N years
+                + p_gnuEmission(grid, node, unit, 'CO2', 'invEmissions')    // (tEmission/MW)
+                    * p_gnuEmission(grid, node, unit, 'CO2', 'invEmissionsFactor')    // factor dividing emissions to N years
                     * p_gnu(grid, node, unit, 'unitSize')     // (MW/unit)
                     * [
                         // Investments to new capacity
