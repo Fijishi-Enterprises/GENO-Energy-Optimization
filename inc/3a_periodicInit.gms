@@ -676,19 +676,18 @@ loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit_online(unit))${sum(m,
     dt_uptimeUnitCounter(unit, cc(counter_large)) = - ord(counter_large);
 ); // END loop(effLevelGroupUnit)
 
-// Initialize tmp_dt based on the first model interval
-loop(m,
-    tmp_dt = -mInterval(m, 'stepsPerInterval', 'c000');
-); // END loop(m)
+// Initialize dt_historicalSteps based on the first model interval
+dt_historicalSteps = sum(m, -mInterval(m, 'stepsPerInterval', 'c000'));
+
 // Estimate the maximum amount of history required for the model (very rough estimate atm, just sums all possible delays together)
 loop(unit_online(unit),
-    tmp_dt = min(   tmp_dt, // dt operators have negative values, thus use min instead of max
-                    smin((starttype, unitCounter(unit, counter)), dt_starttypeUnitCounter(starttype, unit, counter))
-                    + smin(unitCounter(unit, counter), dt_downtimeUnitCounter(unit, counter))
-                    + smin(unitCounter(unit, counter), dt_uptimeUnitCounter(unit, counter))
-                    - p_u_runUpTimeIntervalsCeil(unit) // NOTE! p_u_runUpTimeIntervalsCeil is positive, whereas all dt operators are negative
-                    - p_u_shutdownTimeIntervalsCeil(unit) // NOTE! p_u_shutdownTimeIntervalsCeil is positive, whereas all dt operators are negative
-                    );
+    dt_historicalSteps = min( dt_historicalSteps, // dt operators have negative values, thus use min instead of max
+                              smin((starttype, unitCounter(unit, counter)), dt_starttypeUnitCounter(starttype, unit, counter))
+                              + smin(unitCounter(unit, counter), dt_downtimeUnitCounter(unit, counter))
+                              + smin(unitCounter(unit, counter), dt_uptimeUnitCounter(unit, counter))
+                              - p_u_runUpTimeIntervalsCeil(unit) // NOTE! p_u_runUpTimeIntervalsCeil is positive, whereas all dt operators are negative
+                              - p_u_shutdownTimeIntervalsCeil(unit) // NOTE! p_u_shutdownTimeIntervalsCeil is positive, whereas all dt operators are negative
+                              );
 ); // END loop(starttype, unitCounter)
 
 * =============================================================================

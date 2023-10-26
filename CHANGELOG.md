@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - version file now manually generated when publishing a new major version
 - cleaned unused scalars from model code
+- clarifying code: replacing tmp_dt parameter with dt_historicalSteps
 
 ### Fixed
 - minor speed improvements with internal sets and parameters: usft, ts_vomCost

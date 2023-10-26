@@ -21,6 +21,7 @@ Scalars
     t_solveFirst "counter (ord) for the first t in the solve"
     t_solveLast "counter for the last t in the solve"
     tCounter "counter for t" /0/
+    dt_historicalSteps "Necessary amount of historical timesteps for each solve"
     continueLoop "Helper to stop the looping early"
     currentForecastLength "Length of the forecast in the curren solve, minimum of unchanging and decreasing forecast lengths"
     count "General counter"
@@ -28,7 +29,6 @@ Scalars
     tmp "General temporary parameter"
     tmp_ "General temporary parameter"
     tmp__ "General temporary parameter"
-    tmp_dt "Temporary parameter for evaluating the necessary amount of historical timesteps"
     tmp_dist "Temporary parameter for calculating the distance between operating points"
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"

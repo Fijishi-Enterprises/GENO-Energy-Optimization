@@ -313,7 +313,7 @@ msft_realizedNoReset(msft(mSolve, s, ft_realized(f, t))) = yes;
 // Include the necessary amount of historical timesteps to the active time step set of the current solve
 t_active(t) ${ sum(f, ft_realizedNoReset(f, t))
                and ord(t) <= t_solveFirst
-               and ord(t) > t_solveFirst + tmp_dt // Strict inequality accounts for t_solvefirst being one step before the first ft step.
+               and ord(t) > t_solveFirst + dt_historicalSteps // Strict inequality accounts for t_solvefirst being one step before the first ft step.
               }
     = yes;
 
@@ -326,7 +326,7 @@ if(tmp = 1,
     dt(t_active(t)) $ (ord(t)>1) = -1;
     dt_next(t_active(t)) $(ord(t)<card(t_active)) = 1;
 else
-    tmp = max(t_solveFirst + tmp_dt, 1); // The ord(t) of the first time step in t_active, cannot decrease below 1 to avoid referencing time steps before t000000
+    tmp = max(t_solveFirst + dt_historicalSteps, 1); // The ord(t) of the first time step in t_active, cannot decrease below 1 to avoid referencing time steps before t000000
     loop(t_active(t),
         dt(t) = tmp - ord(t);
         dt_next(t+dt(t)) = -dt(t);
