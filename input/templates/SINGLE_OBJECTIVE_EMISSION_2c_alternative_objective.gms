@@ -26,7 +26,7 @@ q_obj ..
 
     =E=
 
-+ sum(msft(m, s, f, t)${sGroup(s, group)},
+    + sum(msft(m, s, f, t)${sGroup(s, group)},
         + p_msft_Probability(m,s,f,t)
         * [
             // Time step length dependent emissions
