@@ -227,6 +227,11 @@ Sets
 // Only include these if '--diag=yes' given as a command line argument
 $iftheni.diag '%diag%' == yes
 Parameters
+    // model temporary structure diagnostics
+    d_ttAmount(counter_large, t) "number of 'tt's by counter in each solve"
+    d_ttIntervalAmount(counter_large, t) "number of 'tt_interval's by counter in each solve"
+
+    // unit performance and timeseries diagnostics
     d_cop(unit, f, t) "Coefficients of performance of conversion units"
     d_eff(unit, f, t) "Efficiency of generation units using fuel"
     d_capacityFactor(flow, node, s, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"

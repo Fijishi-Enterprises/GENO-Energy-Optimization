@@ -276,6 +276,13 @@ loop(counter_intervals(counter),
     // Update tCounter for the next block of intervals
     tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter) + 1;
 
+// store temporary values within the loop to diagnostic result tables
+$iftheni.diag '%diag%' == yes
+    d_ttAmount(counter, t)${ ord(t) = t_solveFirst} = card(tt);
+    d_ttIntervalAmount(counter, t)${ ord(t) = t_solveFirst} = card(tt_interval);
+$endif.diag
+
+
 ); // END loop(counter)
 
 
