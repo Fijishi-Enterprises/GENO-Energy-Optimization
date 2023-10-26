@@ -253,7 +253,7 @@ if(mSettings(mSolve, 't_improveForecast'),
 * =============================================================================
 
 // Loop over the defined blocks of intervals
-loop(cc(counter),
+loop(counter_intervals(counter),
 
     // Retrieve interval block time steps
     option clear = tt_interval;
