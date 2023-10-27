@@ -302,6 +302,20 @@ if (mSolve('invest'),
     r_info_solveStatus(t_solve,'objEst')=invest.objEst;
     r_info_solveStatus(t_solve,'objVal')=invest.objVal;
 );
-
+if (mSolve('building'),
+    r_info_solveStatus(t_solve,'modelStat')=building.modelStat;
+    r_info_solveStatus(t_solve,'solveStat')=building.solveStat;
+    r_info_solveStatus(t_solve,'totalTime')=building.etSolve;
+    r_info_solveStatus(t_solve,'solverTime')=building.etSolver;
+    r_info_solveStatus(t_solve,'iterations')=building.iterUsd;
+    r_info_solveStatus(t_solve,'nodes')=building.nodUsd;
+    r_info_solveStatus(t_solve,'numEqu')=building.numEqu;
+    r_info_solveStatus(t_solve,'numDVar')=building.numDVar;
+    r_info_solveStatus(t_solve,'numVar')=building.numVar;
+    r_info_solveStatus(t_solve,'numNZ')=building.numNZ;
+    r_info_solveStatus(t_solve,'sumInfes')=building.sumInfes;
+    r_info_solveStatus(t_solve,'objEst')=building.objEst;
+    r_info_solveStatus(t_solve,'objVal')=building.objVal;
+);
 
 
