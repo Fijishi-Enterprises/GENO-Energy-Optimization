@@ -258,6 +258,7 @@ alias(s, s_, s__);
 alias(grid, grid_, grid__, grid_output);
 alias(unit, unit_);
 alias(node, from_node, to_node, node_, node__, node_input, node_output, node_fail, node_left, node_right);
+alias(flow, flow_);
 alias(effSelector, effSelector_);
 alias(effDirect, effDirect_);
 alias(effDirectOff, effDirectOff_);
