@@ -20,6 +20,7 @@ Scalars
     solveCount /0/
     t_solveFirst "counter (ord) for the first t in the solve"
     t_solveLast "counter for the last t in the solve"
+    t_solveLastActive "counter for the last active t in the solve"
     tCounter "counter for t" /0/
     dt_historicalSteps "Necessary amount of historical timesteps for each solve"
     continueLoop "Helper to stop the looping early"

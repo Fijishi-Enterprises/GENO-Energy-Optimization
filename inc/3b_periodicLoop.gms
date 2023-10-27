@@ -178,6 +178,8 @@ Option clear = mst_start, clear = mst_end;
 
 // Initialize the set of active t:s, counters and interval time steps
 Option clear = t_active;
+Option clear = dt;
+Option clear = dt_next;
 Option clear = dt_active;
 Option clear = tt_block;
 tCounter = 1;
@@ -197,6 +199,8 @@ currentForecastLength
 // If not, add a check for currentForecastLength <= mSettings(mSolve, 't_horizon')
 // and change the line below to 't_solveLast = ord(t_solve) + mSettings(mSolve, 't_horizon');'
 t_solveLast = ord(t_solve) + mSettings(mSolve, 't_horizon');  // t_solveLast: the end of the current solve
+
+// create a subset t_current that covers only t needed in this solve
 Option clear = t_current;
 t_current(t_full(t))
     ${  ord(t) >= t_solveFirst
@@ -242,6 +246,16 @@ loop(counter_intervals(counter),
       = mInterval(mSolve, 'stepsPerInterval', counter) * mSettings(mSolve, 'stepLengthInHours');
     p_stepLengthNoReset(mf(mSolve, f_solve), tt_interval(t)) = p_stepLength(mSolve, f_solve, t);
 
+    // store the amount of interval steps to timestep displacement set
+    dt_next(tt_interval(t)) = mInterval(mSolve, 'stepsPerInterval', counter);
+
+    // Update tActive
+    t_active(tt_interval) = yes;
+
+    // Update the last active t. +1 because t000000 is the first index.
+    t_solveLastActive = t_solveLast - mInterval(mSolve, 'stepsPerInterval', counter) + 1;
+
+
     // Determine the combinations of forecasts and intervals
     // Include the t_jump for the realization
     ft(f_solve, tt_interval(t))
@@ -270,9 +284,6 @@ loop(counter_intervals(counter),
         and ord(t) <= t_solveFirst + currentForecastLength
        } = yes;
 
-    // Update tActive
-    t_active(tt_interval) = yes;
-
     // Update tCounter for the next block of intervals
     tCounter = mInterval(mSolve, 'lastStepInIntervalBlock', counter) + 1;
 
@@ -281,7 +292,6 @@ $iftheni.diag '%diag%' == yes
     d_ttAmount(counter, t)${ ord(t) = t_solveFirst} = card(tt);
     d_ttIntervalAmount(counter, t)${ ord(t) = t_solveFirst} = card(tt_interval);
 $endif.diag
-
 
 ); // END loop(counter)
 
@@ -324,22 +334,21 @@ t_active(t) ${ sum(f, ft_realizedNoReset(f, t))
               }
     = yes;
 
-// Time step displacement to reach previous time step
-option clear = dt;
-option clear = dt_next;
+// Include the necessary amount of historical timesteps to the displacement timesteps sets
+tmp = sum(t$ { ord(t) = t_solveFirst+1}, dt_next(t));
+dt_next(t) ${ sum(f, ft_realizedNoReset(f, t))
+               and ord(t) <= t_solveFirst
+               and ord(t) >= t_solveFirst + dt_historicalSteps
+              }
+    = tmp;
 
-tmp = smax(mft, p_stepLength(mft));
-if(tmp = 1,
-    dt(t_active(t)) $ (ord(t)>1) = -1;
-    dt_next(t_active(t)) $(ord(t)<card(t_active)) = 1;
-else
-    tmp = max(t_solveFirst + dt_historicalSteps, 1); // The ord(t) of the first time step in t_active, cannot decrease below 1 to avoid referencing time steps before t000000
-    loop(t_active(t),
-        dt(t) = tmp - ord(t);
-        dt_next(t+dt(t)) = -dt(t);
-        tmp = ord(t);
-    ); // END loop(t_active)
-);
+// calculate dt from dt_next
+dt(t + dt_next(t)) = -dt_next(t);
+
+// remove dt_next from the last active t
+dt_next(t)${ ord(t) = t_solveLastActive } = 0;
+
+
 
 // First model ft
 Option clear = mft_start;
