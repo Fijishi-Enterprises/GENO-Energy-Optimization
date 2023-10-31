@@ -4,7 +4,6 @@
 *.lxi
 *.~gm
 *.~*
-225?/
 *.put
 *.log
 *.gchf
@@ -23,6 +22,15 @@ version_git
 *.pdf
 *.par
 *.txt
-to_UCD/
 *.zip
-sandbox/
+
+# All folder except
+*/
+!*/.spinetoolbox/
+!*/defModels/
+!*/defOutput/
+!*/hooks/
+!*/inc/
+!*/input/
+!*/mods/
+!*/tools/
