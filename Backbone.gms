@@ -27,6 +27,7 @@ Created by:
     Ciara O'Dwyer
     Jussi Ikaheimo
     Tomi J. Lindroos
+    Eric Harrison
 
 This is a GAMS implementation of the Backbone energy system modelling framework
 [1]. Features include:
