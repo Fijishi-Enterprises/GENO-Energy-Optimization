@@ -25,11 +25,12 @@ version_git
 *.zip
 
 # All folder except
-*/.spinetoolbox/
-*/defModels/
-*/defOutput/
-*/hooks/
-*/inc/
-*/input/
-*/mods/
-*/tools/
+*/
+!*/.spinetoolbox/
+!*/defModels/
+!*/defOutput/
+!*/hooks/
+!*/inc/
+!*/input/
+!*/mods/
+!*/tools/
