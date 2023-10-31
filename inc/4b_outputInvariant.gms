@@ -186,23 +186,48 @@ loop(m,
                     * mSettings(m, 'stepLengthInHours')
                 ]; // END division
 
-* --- Energy generation results based on input unittype, or group -------------------------------------------------------
+* --- Energy generation results based on input, unittype, or group -------------------------------------------------------
 
-    // Calculates wrong with storages when there is a loop, e.g. elecGrid -> elecStorage -> elecGrid
     // Energy output to a node based on inputs from another node or flows
+    // Note: this ignores consumption from the node
     r_genByFuel_gnft(gn(grid, node), node_, ft_realizedNoReset(f, t_startp(t)))
-        ${sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit),r_gen_gnuft(grid_, node_, unit, f, t)) }
-        = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, node_, unit), 1),
-            + r_gen_gnuft(grid, node, unit, f, t)
-          );
-// The calculation with multiple inputs needs to be fixed below (right share for different commodities - now units with multiple input commodities will get the same amount allocated which will then be too big
-//          * sum((grid_, unit)$gnu_output(grid, node, unit),
-//                r_gen_gnuft(grid_, commodity, unit, f, t))
-//                  / sum(gnu_input(grid__, node_, unit), r_gen_gnuft(grid__, node_, unit, f, t));
+        ${sum(gnu_input(grid_, node_, unit)$gnu_output(grid, node, unit), r_gen_gnuft(grid_, node_, unit, f, t)) } //checking node -> node_ mapping to reduce calculation time
+        = sum(gnu_output(grid, node, unit)$sum(gnu_input(grid_, node_, unit), 1),   // summing if node_ -> node applies for this unit
+            + r_gen_gnuft(grid, node, unit, f, t)    // generation to node
+          ); // END sum(gnu_output)
 
-    r_genByFuel_gnft(gn(grid, node), flow, ft_realizedNoReset(f, t))$flowNode(flow, node)
+    // temporary set for units with more than one input
+    option clear = unit_tmp;
+    unit_tmp(unit)$ {sum(gn(grid, node)$gnu_input(grid, node, unit), 1) > 1}
+                  = yes;
+
+    if(card(unit_tmp)>0,
+        // Temporary uft telling when units are using multiple inputs.
+        // Needs to be this complicated as it is possible to define 3 input unit that can operate with 1-3 inputs based on optimization.
+        option gnuft_tmp < r_gen_gnuft;
+        uft_tmp(unit_tmp(unit), ft_realizedNoReset(f, t_startp(t))) $ { sum(gnuft_tmp(grid, node, unit, f, t)$gnu_input(grid, node, unit), 1) > 1}
+        = yes;
+
+        // Rewriting values for cases with units with multiple inputs
+        r_genByFuel_gnft(gn(grid, node), node_, ft_realizedNoReset(f, t_startp(t)))
+            ${sum(gnu_input(grid_, node_, unit_tmp(unit))$gnu_output(grid, node, unit), r_gen_gnuft(grid_, node_, unit, f, t)) } //checking node -> node_ mapping to reduce calculation time
+            = sum(gnu_output(grid, node, unit)${sum(gnu_input(grid_, node_, unit), 1) },   // summing if node_ -> node applies for this unit
+                + r_gen_gnuft(grid, node, unit, f, t)    // generation to node
+                  * {+1 ${not uft_tmp(unit, f, t)}       // multiplied by 1 if using only 1 input in t
+                     +[sum(gnu_input(grid_, node_, unit),    // multiplied by fuel use in node_
+                      r_gen_gnuft(grid_, node_, unit, f, t))  // END sum(gnu_input)
+                      / sum(gnu_input(grid__, node__, unit),  // divided by total fuel use of the unit
+                      r_gen_gnuft(grid__, node__, unit, f, t))  // END sum(gnu_input)
+                     ]$uft_tmp(unit, f, t)
+                    }
+              ); // END sum(gnu_output)
+    ); // END if(unit_tmp)
+
+    // flow units
+    r_genByFuel_gnft(gn(grid, node), flow, ft_realizedNoReset(f, t_startp(t)))$flowNode(flow, node)
         = sum(gnu_output(grid, node, unit)$flowUnit(flow, unit),
             + r_gen_gnuft(grid, node, unit, f, t));
+
 
     // Total energy generation in gn per input type over the simulation
     r_genByFuel_gn(gn(grid, node), node_)
@@ -230,13 +255,17 @@ loop(m,
     r_genByFuel_fuel(flow)
         = sum(gn(grid, node), r_genByFuel_gn(grid, node, flow));
 
-    // Total energy generation in gn per input type as a share of total energy generation in gn across all input types
-    r_genByFuel_gnShare(gn(grid, node), node_)${ r_gen_gn(grid, node) }
+    // Total energy generation in gn per input type as a share of total included energy generation in gn across all input types
+    r_genByFuel_gnShare(gn(grid, node), node_)${ r_genByFuel_gn(grid, node, node_) }
         = r_genByFuel_gn(grid, node, node_)
-            / r_gen_gn(grid, node);
-    r_genByFuel_gnShare(gn(grid, node), flow)${ r_gen_gn(grid, node) }
+            / (sum(node__, r_genByFuel_gn(grid, node, node__))
+               + sum(flow_, r_genByFuel_gn(grid, node, flow_))
+               );
+    r_genByFuel_gnShare(gn(grid, node), flow)${ r_genByFuel_gn(grid, node, flow) }
         = r_genByFuel_gn(grid, node, flow)
-            / r_gen_gn(grid, node);
+            / (sum(node__, r_genByFuel_gn(grid, node, node__))
+               + sum(flow_, r_genByFuel_gn(grid, node, flow_))
+              );
 
     // Energy generation for each unittype
     r_genByUnittype_gnft(gn(grid, node), unittype, ft_realizedNoReset(f,t_startp(t)))
@@ -248,6 +277,12 @@ loop(m,
     r_genByUnittype_gn(gn(grid, node), unittype)${ sum(unit$unitUnittype(unit, unittype), 1) }
       = sum(gnu(grid,node,unit)$unitUnittype(unit, unittype),
              + r_gen_gnu(grid, node, unit)
+            );
+
+    // Total energy generation in gnu by unit type
+    r_genByUnittype_g(grid, unittype)
+      = sum(gn(grid,node),
+             + r_genByUnittype_gn(grid, node, unittype)
             );
 
     // gnTotalgen in units that belong to gnuGroups over the simulation
@@ -331,12 +366,17 @@ loop(m,
                + abs(r_gen_gnuft(grid, node, unit, f, t)) * p_gnuEmission(grid, node, unit, emission, 'vomEmissions') // t/MWh
               ); // END *p_stepLengthNoReset
 
-    // Emission sums from normal operation input
-    r_emission_operationEmissions_nu(nu(node, unit), emission)
+    // Emission sums from normal operation, gnu sum (tEmission)
+    r_emission_operationEmissions_gnu(gnu(grid, node, unit), emission)
         = sum(ft_realizedNoReset(f, t_startp(t)),
-            + sum(gn(grid, node), r_emission_operationEmissions_gnuft(grid, node, emission, unit, f, t))
-                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
-            ); // END sum(ft_realizedNoReset)
+              + r_emission_operationEmissions_gnuft(grid, node, emission, unit, f, t)
+              * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+          ); // END sum(ft_realizedNoReset)
+
+    // Emission sums from normal operation, nu sum tEmission)
+    r_emission_operationEmissions_nu(nu(node, unit), emission)
+        = sum(gn(grid, node), r_emission_operationEmissions_gnu(grid, node, unit, emission)
+          ); // END sum(gn)
 
     // Emissions from unit start-ups (tEmission)
     r_emission_startupEmissions_nuft(node, emission, unit, ft_realizedNoReset(f,t_startp(t)))
@@ -349,7 +389,7 @@ loop(m,
                 * p_nEmission(node, emission) // tEmission/MWh_fuel
             ); // END sum(starttype)
 
-    // Emission sums from start-ups
+    // Emission sums from start-ups, nu sum (tEmission)
     r_emission_StartupEmissions_nu(nu_startup(node, unit), emission)
         = sum(ft_realizedNoReset(f, t_startp(t)),
             + r_emission_startupEmissions_nuft(node, emission, unit, f, t)
@@ -376,66 +416,41 @@ loop(m,
 
     // Emission in gnGroup
     r_emissionByNodeGroup(emission, group)
-        = sum(ft_realizedNoReset(f, t_startp(t)),
-            // Emissions from operation: consumption and production of fuels - gn related emissions (tEmission)
-            + sum(gnu(grid, node, unit)${gnGroup(grid, node, group) and p_nEmission(node, emission)},
-                 // multiply by -1 because consumption in r_gen is negative and production positive
-                 - p_stepLengthNoReset(m, f, t)
-                 * r_gen_gnuft(grid, node, unit, f, t)
-                 * p_nEmission(node, emission)
-                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
-              ) // END sum(gnu)
-            // Emissions from operation: gnu related vomEmissions (tEmission)
-            + sum(gnu(grid, node, unit)${gnGroup(grid, node, group) and p_gnuEmission(grid, node, unit, emission, 'vomEmissions')},
-                 // absolute values as all gnu specific emission factors are considered emissions
-                 + p_stepLengthNoReset(m, f, t)
-                 * abs(r_gen_gnuft(grid, node, unit, f, t))
-                 * p_gnuEmission(grid, node, unit, emission, 'vomEmissions')
-                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
-              ) // END sum(gnu)
-            // Emissions from operation: Start-up emissions (tEmission)
-            + sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
-                 r_emission_startupEmissions_nuft(node, emission, unit, f, t)
-                 * sum(msft_realizedNoReset(m, s, f, t), p_msProbability(m, s) * p_msWeight(m, s))
+        // Emissions from operation: consumption and production of fuels - gn related emissions (tEmission)
+        = + sum(gnu(grid, node, unit)${gnGroup(grid, node, group)},
+                + r_emission_operationEmissions_gnu(grid, node, unit, emission)
+                ) // END sum(gnu)
+        // Emissions from operation: Start-up emissions (tEmission)
+        + sum(nu_startup(node, unit)${sum(grid, gnGroup(grid, node, group)) and p_nEmission(node, emission)},
+              r_emission_startupEmissions_nu(node, unit, emission)
               ) // END sum(nu_startup)
-          ) // END sum(ft_realizedNoReset)
-
-          // Emissions from capacity: fixed o&m emissions and investment emissions (tEmission)
-          + sum(gnu(gn, unit)${ p_gnuEmission(gn, unit, emission, 'fomEmissions') and gnGroup(gn, group) },
-               p_gnuEmission(gn, unit, emission, 'fomEmissions')
-               * (p_gnu(gn, unit, 'capacity')
-                  + r_invest_unitCapacity_gnu(gn, unit))
-               * sum(ms(m, s), p_msProbability(m, s) * p_msWeight(m, s))
-            ) // END sum(gnu)
-          + sum(gnu(grid, node, unit)${ p_gnuEmission(grid, node, unit, emission, 'invEmissions') and gnGroup(grid, node, group) },
-               p_gnuEmission(grid, node, unit, emission, 'invEmissions')
-               * r_invest_unitCapacity_gnu(grid, node, unit)
-               * p_gnuEmission(grid, node, unit, emission, 'invEmissionsFactor')
-               * sum(ms(m, s), p_msProbability(m, s) * p_msWeight(m, s))
-            ) // END sum(gnu)
+        // Emissions from capacity: fixed o&m emissions and investment emissions (tEmission)
+        + sum(gnu(grid, node, unit)${ gnGroup(grid, node, group) },
+              r_emission_capacityEmissions_nu(node, unit, emission)
+              ) // END sum(gnu)
     ;
-
-    // Emission sums
+    // Total emissions by node and unit
     r_emission_nu(nu(node, unit), emission)
         = r_emission_operationEmissions_nu(node, unit, emission)
             + r_emission_StartupEmissions_nu(node, unit, emission)
             + r_emission_capacityEmissions_nu(node, unit, emission)
     ;
-
+    // Total emissions by node
     r_emission_n(node, emission)
         = sum(unit, r_emission_nu(node, unit, emission))
     ;
-
+    // Total emissions by grid
+    r_emission_g(grid, emission)
+        = sum(gn(grid, node), r_emission_n(node, emission))
+    ;
+    // Total emissions by unit
     r_emission_u(unit, emission)
         = sum(node, r_emission_nu(node, unit, emission))
     ;
-
+    // Total emissions
     r_emission(emission)
         = sum(node, r_emission_n(node, emission))
     ;
-
-
-
 
 * --- Reserve Result Symbols ---------------------------------------
 * --- Unit level reserve Results ---------------------------------------------
@@ -451,6 +466,11 @@ loop(m,
     // Total reserve provisions over the simulation
     r_reserve_gn(restype, up_down, grid, node)
         =  sum(unit, r_reserve_gnu(restype, up_down, grid, node, unit))
+    ;
+
+    // Total reserve provisions over the simulation
+    r_reserve_g(restype, up_down, grid)
+        =  sum(gn(grid, node), r_reserve_gn(restype, up_down, grid, node) )
     ;
 
     // Group sum of reserves of specific types (MW)
@@ -637,7 +657,7 @@ loop(m,
 
     // Total gnu fixed O&M costs over the simulation, existing and invested units (MEUR)
     r_cost_unitFOMCost_gnu(gnu(grid, node, unit))
-        ${ sum(msft(m, s, f, t), usft(unit, s, f, t)) 
+        ${ sum(msft(m, s, f, t), usft(unit, s, f, t))
         and p_gnu(grid, node, unit, 'capacity')<10000000}  // excluding cases if capacity input data is given as inf instead of empty
         = 1e-6 // Scaling to MEUR
             * sum(ms(m, s)${ sum(msft_realizedNoReset(m, s, f, t), 1) }, // consider ms only if it has active msft_realizedNoReset

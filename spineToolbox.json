@@ -8,7 +8,8 @@
         "defModels/*.gms",
         "defOutput/debugSymbols.inc",
         "defOutput/resultSymbols.inc",
-        "cplex.opt"
+        "cplex.opt",
+        "version"
     ],
     "description": "Backbone",
     "inputfiles": [
@@ -18,7 +19,8 @@
         "input/modelsInit.gms"
     ],
     "inputfiles_opt": [
-        "input/*.*"
+        "input/*.*",
+        "version_git"
     ],
     "outputfiles": [
         "Backbone.lst",

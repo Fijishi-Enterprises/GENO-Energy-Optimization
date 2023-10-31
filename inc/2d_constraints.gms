@@ -44,7 +44,13 @@ q_balance(gn(grid, node), msft(m, s, f, t)) // Energy/power balance dynamics sol
                 * v_state(grid, node, s, f+df_central(f,t), t) // The current state of the node
 
             // Energy diffusion from this node to neighbouring nodes
-           + sum(gnn_state(grid, from_node, node),
+            - sum(gnn_state(grid, node, to_node),
+                + p_gnn(grid, node, to_node, 'diffCoeff')
+                    * v_state(grid, node, s, f+df_central(f,t), t)
+                ) // END sum(to_node)
+
+            // Energy diffusion from neighbouring nodes to this node
+            + sum(gnn_state(grid, from_node, node),
                 + p_gnn(grid, from_node, node, 'diffCoeff')
                     * v_state(grid, from_node, s, f+df_central(f,t), t) // Incoming diffusion based on the state of the neighbouring node
                 ) // END sum(from_node)

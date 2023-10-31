@@ -20,25 +20,19 @@ Scalars
     solveCount /0/
     t_solveFirst "counter (ord) for the first t in the solve"
     t_solveLast "counter for the last t in the solve"
+    t_solveLastActive "counter for the last active t in the solve"
     tCounter "counter for t" /0/
-    lastCounter "last member in use of the general counter"
+    dt_historicalSteps "Necessary amount of historical timesteps for each solve"
     continueLoop "Helper to stop the looping early"
     currentForecastLength "Length of the forecast in the curren solve, minimum of unchanging and decreasing forecast lengths"
     count "General counter"
-    count_lambda
-    count_lambda2 "Counter for lambdas"
-    count_sample "Counter for samples"
-    cum_slope "Cumulative for slope"
-    cum_lambda "Cumulative for lambda"
     heat_rate "Heat rate temporary parameter"
     tmp "General temporary parameter"
     tmp_ "General temporary parameter"
     tmp__ "General temporary parameter"
-    tmp_dt "Temporary parameter for evaluating the necessary amount of historical timesteps"
     tmp_dist "Temporary parameter for calculating the distance between operating points"
     tmp_op "Temporary parameter for operating point"
     tmp_count_op "Counting the number of valid operating points in the unit data"
-    tmp_offset "Offset of sample in time steps"
     tRealizedLast "counter (ord) for the last realized t in the solve"
     firstResultsOutputSolve /1/;
 ;
@@ -140,7 +134,6 @@ Parameters
     df_realization(f, t) "Displacement needed to reach the realized forecast on the current time step when no forecast is available"
 
     // Temporary displacement arrays
-    ddt(t) "Temporary time displacement array"
     ddf(f) "Temporary forecast displacement array"
     ddf_(f) "Temporary forecast displacement array"
 
@@ -168,6 +161,9 @@ Parameters   // optional parameter tables initiated as empty tables
     ts_emissionPrice(emission, group, t) "Emission group price time series (EUR/tEmission)" / /
     ts_emissionPriceChange(emission, group, t) "Initial emission group price and consequent changes in price (EUR/tEmission)" / /
     ts_groupPolicy(group, param_policy, t) "Two-dimensional time-dependent policy data for groups" / /
+    // alternatives for giving timeseries data vertically via gdxxrw. Not declared by default.
+    ts_influx_vert(t, grid, node, f) "Vertical input variant of ts_influx (MWh/h)"
+    ts_cf_vert(t, flow, node, f) "Vertical input variant of ts_cf (p.u.)"
 ;
 $offempty
 Parameters

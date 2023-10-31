@@ -139,8 +139,52 @@ $if not defined p_gnu_io $abort 'Mandatory input data missing (p_gnu_io), check 
 
 
 * =============================================================================
-* --- Preliminary adjustments to data before any processing -------------------
+* --- Preliminary adjustments and checks to data ------------------------------
 * =============================================================================
+
+* --- summing vertical ts input to default ones -------------------------------
+
+// ts_influx_vert
+$ifthen defined ts_influx_vert
+// temporary node set of nodes in ts_influx_vert and ts_influx
+option node_tmp < ts_influx_vert;
+option node_tmp_ < ts_influx;
+
+// checking that only one source of influx data for each node
+loop(node_tmp(node),
+    if(sum(node_tmp_(node), 1),
+        put log '!!! Error on node ' node.tl:0 /;
+        put log '!!! Abort: ts_inlux and ts_influx_vert defined for the same node!' /;
+        abort "ts_inlux and ts_influx_vert defined for the same node!"
+    );
+);
+
+// Adding vertical ts data to default
+ts_influx(grid, node_tmp(node), f, t) = ts_influx(grid, node, f, t) + ts_influx_vert(t, grid, node, f);
+$endif
+
+
+// ts_cf_vert
+$ifthen defined ts_cf_vert
+// temporary node set of nodes in ts_cf_vert
+option node_tmp < ts_cf_vert;
+option node_tmp_ < ts_cf;
+
+// checking that only one source of cf data each node
+loop(node_tmp(node),
+    if(sum(node_tmp_(node), 1),
+        put log '!!! Error on node ' node.tl:0 /;
+        put log '!!! Abort: ts_cf and ts_cf_vert defined for the same node!' /;
+        abort "ts_cf and ts_cf_vert defined for the same node!"
+    );
+);
+
+// Adding vertical ts data to default
+ts_cf(flow, node_temp(node), f, t) = ts_cf(flow, node, f, t) + ts_cf_vert(t, flow, node, f);
+$endif
+
+
+* --- prechecking flow unit data ----------------------------------------------
 
 // Units with flows/commodities
 unit_flow(unit)${ sum(flow, flowUnit(flow, unit)) }
@@ -459,16 +503,18 @@ flowNode(flow, node)${  sum((f, t), ts_cf(flow, node, f, t))
                         }
     = yes;
 
-// checking nodes that have price data in two optional input data tables
-Option node_priceData < ts_price;
-Option node_priceChangeData < ts_priceChange;
-
 * =============================================================================
 * --- Initialize Price Related Sets & Parameters Based on Input Data -------
 * =============================================================================
 
+// checking nodes that have price data in two optional input data tables
+option clear = node_tmp;
+option node_tmp < ts_price;
+option clear = node_tmp_;
+option node_tmp_ < ts_priceChange;
+
 // Process node prices depending on 'ts_price' if usePrice flag activated
-loop(node$ {node_priceData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
+loop(node_tmp(node) $ { sum(grid, p_gn(grid, node, 'usePrice'))},
 
     // Find the steps with changing node prices
     option clear = tt;
@@ -486,7 +532,7 @@ loop(node$ {node_priceData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
 ); // END loop(node)
 
 // Process node prices depending on 'ts_priceChange' if usePrice flag activated
-loop(node$ {node_priceChangeData(node) and sum(grid, p_gn(grid, node, 'usePrice'))},
+loop(node_tmp_(node)$ { sum(grid, p_gn(grid, node, 'usePrice'))},
 
     // Find the steps with changing node prices
     option clear = tt;
@@ -503,7 +549,14 @@ loop(node$ {node_priceChangeData(node) and sum(grid, p_gn(grid, node, 'usePrice'
       ); // END if(sum(tt_))
 ); // END loop(node)
 
-
+loop(node_tmp(node),
+    // Abort of input data for prices are given both ts_price and ts_priceChange
+    if({node_tmp_(node)},
+        put log '!!! Error occurred on ', node.tl:0 /;
+        put log '!!! Abort: Node ', node.tl:0, ' has both ts_price and ts_priceChange' /;
+        abort "Only ts_price or ts_priceChange can be given to a node"
+    ); // END if
+);
 
 * =============================================================================
 * --- Emission related Sets & Parameters --------------------------------------
@@ -738,7 +791,7 @@ loop(gn2n(grid, node, node_),
     );
 );
 
-* --- Check node balance and price related data -------------------------------
+* --- Check node balance and node price related data --------------------------
 
 loop(node,
     // Give a warning if both nodeBalance and usePrice are false
@@ -754,13 +807,16 @@ loop(node,
        and not [p_price(node, 'price') or p_price(node, 'useTimeSeries')],
         put log '!!! Warning: Node ', node.tl:0, ' has usePrice activated in p_gn but there is no price data' /;
     ); // END if
-    // Abort of input data for prices are given both ts_price and ts_priceChange
-    if({node_priceData(node) and node_priceChangeData(node)},
-        put log '!!! Error occurred on ', node.tl:0 /;
-        put log '!!! Abort: Node ', node.tl:0, ' has both ts_price and ts_priceChange' /;
-        abort "Only ts_price or ts_priceChange can be given to a node"
-    ); // END if
 ); // END loop(node)
+
+* --- Check unit cost related data --------------------------------------------
+
+// give a warning if directOff unit has startcost defined
+loop( unit$ {effLevelGroupUnit('level1', 'directOff', unit)},
+    if( sum(gnu(grid, node, unit), sum(input_output, p_gnu_io(grid, node, unit, input_output, 'startCostCold'))),
+             put log '!!! Warning: unit (', unit.tl:0, ' has start costs, but is a directOff unit that disables start cost calculations' /;
+    );
+); //loop(unit)
 
 * --- Check the integrity of efficiency approximation related data ------------
 
@@ -783,9 +839,20 @@ loop(effLevel${ord(effLevel)<=tmp},
 );
 
 loop( unit$ {not unit_flow(unit)},
+    // check that 'op's are defined in order
+    count = 1; // reset count
+    loop(op $ p_unit(unit, op),
+        if(count <> ord(op),
+            put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+            put log '!!! Abort: param_unit op must be defined in order starting from op00!' /;
+            abort "param_unit 'op's must be defined in order starting from op00!";
+        ); // END if(count <> op)
+        count= count+1;
+    ); // END loop(op)
+
     // Check that 'op' is defined correctly
     Option clear = count; // Initialize the previous op to zero
-    loop( op,
+    loop(op $ p_unit(unit, op),
         if (p_unit(unit, op) + 1${not p_unit(unit, op)} < count,
             put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
             put log '!!! Abort: param_unit op must be defined as zero or positive and increasing!' /;
@@ -793,48 +860,27 @@ loop( unit$ {not unit_flow(unit)},
         ); // END if(p_unit)
         count = p_unit(unit, op);
     ); // END loop(op)
-    // Check that efficiency approximations have sufficient data
 
-    // Check that directOnLP and directOnMIP units have least one opXX or hrXX defined
-    loop(effLevelGroupUnit(effLevel, effDirectOn(effSelector), unit),
-       if(sum(op, p_unit(unit, op)) + sum(hr, p_unit(unit, hr))= 0,
-             put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
-             put log '!!! Abort: Units with online variable, e.g. DirectOnLP and DirectOnMIP, require efficiency definitions, check opXX (or hrXX) parameters' /;
-             abort "Units with online variable, e.g. DirectOnLP and DirectOnMIP, require efficiency definitions, check opXX (or hrXX) parameters";
-          );
-    );
+    // Check that if unit has opXX defined, there is matching effXX
+    loop(op $ p_unit(unit, op),
+      if(sum(eff, p_unit(unit, eff)${ord(eff) = ord(op)}) = 0,
+         put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+         put log '!!! Abort: unit ', unit.tl:0, ' has ', op.tl:0, ' defined, but empty matching eff parameter'  /;
+         abort "Each opXX requires mathcing effXX";
+         ); // END sum(eff)
+    ); // END loop(op)
 
-    // Check that if directOnLP and directOnMIP units are defined with op parameters (hr parameters alternative), those have sufficient values
-    loop( effLevelGroupUnit(effLevel, effSelector, unit),
-        loop( op__${p_unit(unit, op__) = smax(op, p_unit(unit, op))}, // Loop over the 'op's to find the last defined data point.
-            loop( op_${p_unit(unit, op_) = smin(op${p_unit(unit, op)}, p_unit(unit, op))}, // Loop over the 'op's to find the first nonzero 'op' data point.
-                if(effDirectOn(effSelector) AND ord(op__) = ord(op_) AND not p_unit(unit, 'section') AND not p_unit(unit, 'opFirstCross'),
-                    put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
-                    put log '!!! Abort: directOn requires two efficiency data points with nonzero op or section or opFirstCross!' /;
-                    abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!";
-                ); // END if(effDirectOn)
-            ); // END loop(op_)
-        ); // END loop(op__)
-    ); // END loop(effLevelGroupUnit)
+    // Check that if unit has effXX defined, there is matching opXX
+    loop(eff $ p_unit(unit, eff),
+      if(sum(op, p_unit(unit, op)${ord(eff) = ord(op)}) = 0,
+         put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+         put log '!!! Abort: unit ', unit.tl:0, ' has ', eff.tl:0, ' defined, but empty matching op parameter'  /;
+         abort "Each effpXX requires mathcing opXX";
+         ); // END sum(eff)
+    ); // END loop(op)
 
-    // Check that if unit has opXX defined, there is matching effXX defined
-    loop(effLevelGroupUnit(effLevel, effSelector, unit),
-       loop(op $ p_unit(unit, op),
-          if(sum(eff, p_unit(unit, eff)${ord(eff) = ord(op)}) = 0,
-             put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
-             put log '!!! Abort: unit ', unit.tl:0, ' has ', op.tl:0, ' defined, but empty mathcing eff parameter'  /;
-             abort "Each opXX requires mathcing effXX";
-             );
-       );
-    );
+); // END loop(unit)
 
-    // give a warning if directOff unit has startcost defined
-    if( {effLevelGroupUnit('level1', 'directOff', unit)
-         and sum(gnu(grid, node, unit), sum(input_output, p_gnu_io(grid, node, unit, input_output, 'startCostCold'))) },
-             put log '!!! Warning: unit (', unit.tl:0, ' has start costs, but is a directOff unit that disables start cost calculations' /;
-    );
-
-); //loop(unit)
 
 * --- Check startupfuel fraction related data ----------------------------------------
 

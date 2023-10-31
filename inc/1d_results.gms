@@ -72,13 +72,14 @@ Parameters
     r_gen_utilizationRate_gnu(grid, node, unit) "Approximate utilization rates of gnus over the simulation (p.u.)"
 
     // Energy generation results based on input, unittype, or group
-    r_genByFuel_gnft(grid, node, *, f, t) "Energy generation to a node based on inputs from another node or flows (MW)"
-    r_genByFuel_gn(grid, node, *) "Total energy generation in gn per input type over the simulation (MWh)"
-    r_genByFuel_g(grid, *) "Total energy generation in g per input type over the simulation (MWh)"
-    r_genByFuel_fuel(*) "Total overall energy generation per input type over the simulation (MWh)"
-    r_genByFuel_gnShare(grid, node, *) "Total energy generation in gn per input type as a share of total energy generation in gn"
+    r_genByFuel_gnft(grid, node, *, f, t) "Energy generation to a node based on inputs from another node or flows (MW). Excludes consumption from node."
+    r_genByFuel_gn(grid, node, *) "Total energy generation in gn per input type over the simulation (MWh). Excludes consumption from node."
+    r_genByFuel_g(grid, *) "Total energy generation in g per input type over the simulation (MWh). Excludes consumption from node."
+    r_genByFuel_fuel(*) "Total overall energy generation per input type over the simulation (MWh). Excludes consumption from node."
+    r_genByFuel_gnShare(grid, node, *) "Total energy generation in gn per input type as a share of total energy generation in gn. Excludes consumption from node."
     r_genByUnittype_gnft(grid, node, unittype, f, t) "Energy generation and consumption for each unittype (MW)"
     r_genByUnittype_gn(grid, node, unittype) "Energy generation and consumption for each unittype in each node (MWh)"
+    r_genByUnittype_g(grid, unittype) "Energy generation and consumption for each unittype in each grid (MWh)"
     r_genByGnuGroup_gn(grid, node, group) "Total energy generation and consumption in units that belong to gnuGroup (MWh)"
 
     // Energy consumption during startups
@@ -108,6 +109,7 @@ Parameters
 
     // emissions by activity type
     r_emission_operationEmissions_gnuft(grid, node, emission, unit, f, t) "Emissions during normal operation (tEmission)"
+    r_emission_operationEmissions_gnu(grid, node, unit, emission) "gnu emissions during normal operation (tEmission)"
     r_emission_operationEmissions_nu(node, unit, emission) "node unit total emissions in normal operation (tEmission)"
     r_emission_startupEmissions_nuft(node, emission, unit, f, t) "Emissions from units during start-ups (tEmission)"
     r_emission_StartupEmissions_nu(node, unit, emission) "node unit total emissions in start-ups (tEmission)"
@@ -116,6 +118,7 @@ Parameters
     // Emission sums
     r_emissionByNodeGroup(emission, group) "Group total emissions (tEmission)"
     r_emission_nu(node, unit, emission) "node unit total emissions (tEmission)"
+    r_emission_g(grid, emission) "grid total emissions (tEmission)"
     r_emission_n(node, emission) "node total emissions (tEmission)"
     r_emission_u(unit, emission) "unit total emissions (tEmission)"
     r_emission(emission) "Total emissions (tEmission)"
@@ -130,6 +133,7 @@ Parameters
     // Unit level reserve results
     r_reserve_gnu(restype, up_down, grid, node, unit) "Total gnu reserve provision over the simulation (MW*h)"
     r_reserve_gn(restype, up_down, grid, node) "Total gn reserve provision over the simulation (MW*h)"
+    r_reserve_g(restype, up_down, grid) "Total grid reserve provision over the simulation (MW*h)"
     r_reserveByGroup_ft(restype, up_down, group, f, t) "Group sum of reserves of specific types (MW)"
     r_reserveByGroup(restype, up_down, group) "Total reserve provisions in groups over the simulation (MW*h)"
     r_reserve_gnuShare(restype, up_down, grid, node, unit) "Total gnu/group reserve provision share over the simulation"
@@ -223,6 +227,11 @@ Sets
 // Only include these if '--diag=yes' given as a command line argument
 $iftheni.diag '%diag%' == yes
 Parameters
+    // model temporary structure diagnostics
+    d_ttAmount(counter_large, t) "number of 'tt's by counter in each solve"
+    d_ttIntervalAmount(counter_large, t) "number of 'tt_interval's by counter in each solve"
+
+    // unit performance and timeseries diagnostics
     d_cop(unit, f, t) "Coefficients of performance of conversion units"
     d_eff(unit, f, t) "Efficiency of generation units using fuel"
     d_capacityFactor(flow, node, s, f, t) "Diagnostic capacity factors (accounting for GAMS plotting error)"

@@ -253,23 +253,21 @@ if(mSettings(mSolve, 't_improveForecast'),
 * =============================================================================
 
 // Loop over the defined blocks of intervals
-loop(cc(counter),
+loop(counter_intervals(counter),
 
     // Retrieve interval block time steps
     option clear = tt_interval;
-    tt_interval(t) = tt_block(counter, t);
+    tt_interval(t) = tt_block(counter, t) $ {sum(f, ft(f, t)) };
 
     // ts_unit_ for active t in solve including aggregated time steps
     ts_unit_(unit_timeseries(unit), param_unit, ft(f, tt_interval(t)))
-        ${ sum(s, sft(s, f, t)) }
         = sum(tt_agg_circular(t, t_, t__),
             ts_unit(unit, param_unit, f +(df_realization(f, t)$(not unit_forecasts(unit, 'ts_unit'))), t_)
             )
             / mInterval(mSolve, 'stepsPerInterval', counter);
 
     ts_groupPolicy_(group, param_policy, tt_interval(t))
-        ${ groupPolicyTimeseries(group, param_policy)
-           and sum((s, f), sft(s, f, t)) }
+        ${ groupPolicyTimeseries(group, param_policy) }
         = sum(tt_agg_circular(t, t_, t__),
             ts_groupPolicy(group, param_policy, t_)
             )
@@ -326,7 +324,6 @@ loop(cc(counter),
 
     // processing ts_gnn values for active ft including time step aggregation
     ts_gnn_(gn2n_timeseries(grid, node, node_, param_gnn), ft(f, tt_interval(t)))
-        ${ sum(s, sft(s, f, t)) }
         = sum(tt_agg_circular(t, t_, t__), ts_gnn(grid, node, node_, param_gnn, f +(df_realization(f, t)$(not gn_forecasts(grid, node, 'ts_gnn'))), t_)
              ) // END sum(tt_agg_circular)
             / mInterval(mSolve, 'stepsPerInterval', counter);
@@ -335,8 +332,7 @@ loop(cc(counter),
     // ts_price_ calculation to avoid recalculating this for every unit in ts_vomCost_ and ts_startupCost_
     // note: same values for each forecast
     ts_price_(node, tt_interval(t))
-        ${p_price(node, 'useTimeSeries')
-          and sum((s, f), sft(s, f, t)) }
+        ${p_price(node, 'useTimeSeries') }
         = sum(tt_agg_circular(t, t_, t__),
                 ts_price(node, t_)
              ) // END sum(tt_agg_circular)
@@ -346,8 +342,7 @@ loop(cc(counter),
     // ts_emissionPrice_ calculation to avoid recalculating this for every unit in ts_vomCost_ and ts_startupCost_
     // note: same values for each forecast
     ts_emissionPrice_(emission, group, tt_interval(t))
-        ${p_emissionPrice(emission, group, 'useTimeSeries')
-          and sum((s, f), sft(s, f, t)) }
+        ${p_emissionPrice(emission, group, 'useTimeSeries') }
         = sum(tt_agg_circular(t, t_, t__),
                 ts_emissionPrice(emission, group, t_)
              ) // END sum(tt_agg_circular)
@@ -360,8 +355,7 @@ loop(cc(counter),
     //         + gn vom costs
     //         + gn emission costs
     ts_vomCost_(gnu(grid, node, unit), tt_interval(t))
-        ${p_vomCost(grid, node, unit, 'useTimeseries')
-          and sum((s, f), sft(s, f, t)) }
+        ${p_vomCost(grid, node, unit, 'useTimeseries') }
         = // gnu specific cost (EUR/MWh). Always a cost (positive) for all inputs or outputs.
 
             // gnu specific vomCosts
@@ -399,8 +393,7 @@ loop(cc(counter),
 
     // Startup cost calculations
     ts_startupCost_(unit, starttype, tt_interval(t))
-        ${p_startupCost(unit, starttype, 'useTimeSeries')
-          and sum((s, f), sft(s, f, t)) }
+        ${p_startupCost(unit, starttype, 'useTimeSeries') }
       = + p_uStartup(unit, starttype, 'cost') // CUR/start-up
         // Start-up fuel and emission costs
         + sum(nu_startup(node, unit),

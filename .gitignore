@@ -4,20 +4,15 @@
 *.lxi
 *.~gm
 *.~*
-225?/
 *.put
 *.log
 *.gchf
 
 # Backbone
-Backbone.txt
-EnsemblesAndYears.xlsx
-Backbone.dat
-diffile.gdx
-EfficiencyPiecewise.xlsx
-/version
+version_git
 
 # Data files
+*.dat
 *.gdx
 *.xlsx
 
@@ -26,6 +21,16 @@ EfficiencyPiecewise.xlsx
 *.docx
 *.pdf
 *.par
-to_UCD/
+*.txt
 *.zip
-sandbox/
+
+# All folder except
+*/
+!*/.spinetoolbox/
+!*/defModels/
+!*/defOutput/
+!*/hooks/
+!*/inc/
+!*/input/
+!*/mods/
+!*/tools/

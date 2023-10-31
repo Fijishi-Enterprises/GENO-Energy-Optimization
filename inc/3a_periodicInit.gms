@@ -172,20 +172,26 @@ $offtext
     = yes;
 
 
+    // Determine the set of active interval counters (or blocks of intervals)
+    counter_intervals(counter)${ mInterval(m, 'stepsPerInterval', counter) }
+        = yes;
+
 * --- Intervals and Time Series -----------------------------------------------
 
     // Check whether the defined intervals are feasible
-    continueLoop = 1;
-    loop(counter(counter_large)${ continueLoop },
-        if(not mInterval(m, 'lastStepInIntervalBlock', counter_large),
-            continueLoop = 0;
-        elseif mod(mInterval(m, 'lastStepInIntervalBlock', counter_large) - mInterval(m, 'lastStepInIntervalBlock', counter_large-1), mInterval(m, 'stepsPerInterval', counter_large)),
+    loop(counter_intervals(counter_large),
+        // check if interval length is divisible by step per interval
+        if (mod(mInterval(m, 'lastStepInIntervalBlock', counter_large) - mInterval(m, 'lastStepInIntervalBlock', counter_large-1), mInterval(m, 'stepsPerInterval', counter_large)),
             put log "!!! Error occurred on interval block ", counter_large.tl:0 /;
             put log "!!! Abort: stepsPerInterval is not evenly divisible within the interval"
-            abort "stepsPerInterval is not evenly divisible within the interval", m, continueLoop;
-        else
-            continueLoop = continueLoop + 1;
+            abort "stepsPerInterval is not evenly divisible within the interval";
         );
+        // Abort if stepsPerInterval is less than one
+        if(mInterval(m, 'stepsPerInterval', counter_large) < 1,
+            put log '!!! Error occurred in modelsInit' /;
+            put log '!!! Abort: stepsPerInterval < 1 is not defined!' /;
+            abort "stepsPerInterval < 1 is not defined!";
+        );  // END IF stepsPerInterval
     );
 
     // Determine maximum data length, if not provided in the model definition file.
@@ -317,35 +323,67 @@ loop(m,
 
 * --- Parse through effLevelGroupUnit and convert selected effSelectors into sets representing those selections
 
-// Loop over effLevelGroupUnit
-loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effLevel))},
-
-    // effSelector using DirectOff
-    effGroup(effDirectOff(effSelector)) = yes;
-    effGroupSelector(effDirectOff(effSelector), effSelector) = yes;
+// Loop over effLevelGroupUnit(DirectOff)
+loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effLevel)) and effDirectOff(effSelector)},
     effGroupSelectorUnit(effDirectOff(effSelector), unit, effSelector) = yes;
+); // END loop(effLevelGroupUnit)
 
-    // effSelector using DirectOn
-    effGroup(effDirectOn(effSelector)) = yes;
-    effGroupSelector(effDirectOn(effSelector), effSelector) = yes;
+// Loop over effLevelGroupUnit(DirectOn)
+loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effLevel)) and effDirectOn(effSelector)},
     effGroupSelectorUnit(effDirectOn(effSelector), unit, effSelector) = yes;
+); // END loop(effLevelGroupUnit)
 
-    // effSelector using IncHR
-    effGroup(effIncHR(effSelector)) = yes;
-    effGroupSelector(effIncHR(effSelector), effSelector) = yes;
+// Loop over effLevelGroupUnit(IncHR)
+loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effLevel)) and effIncHR(effSelector)},
     effGroupSelectorUnit(effIncHR(effSelector), unit, effSelector) = yes;
+); // END loop(effLevelGroupUnit)
 
-    // effSelector using Lambda
-    effGroup(effLambda(effSelector)) = yes;
+// Loop over effLevelGroupUnit(Lambda)
+loop(effLevelGroupUnit(effLevel, effSelector, unit)${sum(m, mSettingsEff(m, effLevel)) and effLambda(effSelector)},
     loop(effLambda_${ord(effLambda_) <= ord(effSelector)},
-        effGroupSelector(effLambda(effSelector), effLambda_) = yes;
         effGroupSelectorUnit(effLambda(effSelector), unit, effLambda_) = yes;
         ); // END loop(effLambda_)
-    ); // END loop(effLevelGroupUnit)
+); // END loop(effLevelGroupUnit)
+
+// populating effGroup and effGroupSelector based on previous loops
+option effGroup<effGroupSelectorUnit;
+option effGroupSelector<effGroupSelectorUnit;
+
+
+* --- Check that onlin unit efficiency approximations have sufficient data ----
+
+loop(unit_online(unit),
+    // Check that directOnLP and directOnMIP units have least one opXX or hrXX defined
+    if(sum(op, p_unit(unit, op)) + sum(hr, p_unit(unit, hr))= 0,
+          put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+          put log '!!! Abort: Units with online variable, e.g. DirectOnLP and DirectOnMIP, require efficiency definitions, check opXX (or hrXX) parameters' /;
+          abort "Units with online variable, e.g. DirectOnLP and DirectOnMIP, require efficiency definitions, check opXX (or hrXX) parameters";
+       ); // END sum(op + hr)
+
+    // Check that if directOnLP and directOnMIP units are defined with op parameters (hr parameters alternative), those have sufficient values
+    loop(op__${p_unit(unit, op__) = smax(op, p_unit(unit, op))}, // Loop over the 'op's to find the last defined data point.
+         loop( op_${p_unit(unit, op_) = smin(op${p_unit(unit, op)}, p_unit(unit, op))}, // Loop over the 'op's to find the first nonzero 'op' data point.
+             if(ord(op__) = ord(op_) AND not p_unit(unit, 'section') AND not p_unit(unit, 'opFirstCross'),
+                 put log '!!! Error occurred on unit ' unit.tl:0 /; // Display unit that causes error
+                 put log '!!! Abort: directOn requires two efficiency data points with nonzero op or section or opFirstCross!' /;
+                 abort "directOn requires two efficiency data points with nonzero 'op' or 'section' or 'opFirstCross'!";
+             ); // END if(effDirectOn)
+         ); // END loop(op_)
+    ); // END loop(op__)
+); // END loop(unit_online)
 
 * --- Loop over effGroupSelectorUnit to generate efficiency approximation parameters for units
 
-loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
+// Parameters for direct conversion units without online variables
+loop(effGroupSelectorUnit(effDirectOff(effSelector), unit, effSelector_),
+    p_effUnit(effSelector, unit, effSelector, 'lb') = 0; // No min load for the DirectOff approximation
+    p_effUnit(effSelector, unit, effSelector, 'op') = smax(op, p_unit(unit, op)); // Maximum operating point
+    p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
+    p_effUnit(effSelector, unit, effSelector, 'section') = 0; // No section for the DirectOff approximation
+); // END loop(effGroupSelectorUnit)
+
+// Parameters for direct conversion units with online variables
+loop(effGroupSelectorUnit(effDirectOn(effSelector), unit, effSelector_),
 
     // Determine the last operating point in use for the unit
     Option clear = tmp_count_op;
@@ -353,139 +391,136 @@ loop(effGroupSelectorUnit(effSelector, unit, effSelector_),
         tmp_count_op = ord(op);
     ); // END loop(op)
 
-    // Parameters for direct conversion units without online variables
-    if(effDirectOff(effSelector),
-        p_effUnit(effSelector, unit, effSelector, 'lb') = 0; // No min load for the DirectOff approximation
-        p_effUnit(effSelector, unit, effSelector, 'op') = smax(op, p_unit(unit, op)); // Maximum operating point
-        p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
-        p_effUnit(effSelector, unit, effSelector, 'section') = 0; // No section for the DirectOff approximation
-    ); // END if(effDirectOff)
+    p_effUnit(effSelector, unit, effSelector_, 'lb') = p_unit(unit, 'op00'); // op00 contains the minimum load of the unit
+    p_effUnit(effSelector, unit, effSelector_, 'op') = smax(op, p_unit(unit, op)); // Maximum load determined by the largest 'op' parameter found in data
+    loop(op__$(ord(op__) = tmp_count_op), // Find the maximum defined 'op'.
+        loop(eff__${ord(eff__) = ord(op__)}, // ...  and the corresponding 'eff'.
 
-    // Parameters for direct conversion units with online variables
-    if(effDirectOn(effSelector),
-        p_effUnit(effSelector, unit, effSelector_, 'lb') = p_unit(unit, 'op00'); // op00 contains the minimum load of the unit
-        p_effUnit(effSelector, unit, effSelector_, 'op') = smax(op, p_unit(unit, op)); // Maximum load determined by the largest 'op' parameter found in data
-        loop(op__$(ord(op__) = tmp_count_op), // Find the maximum defined 'op'.
-            loop(eff__${ord(eff__) = ord(op__)}, // ...  and the corresponding 'eff'.
+            // If the minimum operating point is at zero, then the section and slope are calculated with the assumption that the efficiency curve crosses at opFirstCross
+            if(p_unit(unit, 'op00') = 0,
 
-                // If the minimum operating point is at zero, then the section and slope are calculated with the assumption that the efficiency curve crosses at opFirstCross
-                if(p_unit(unit, 'op00') = 0,
+                // Heat rate at the cross between real efficiency curve and approximated efficiency curve
+                // !!! NOTE !!! It is advised not to define opFirstCross as any of the op points to avoid accidental division by zero!
+                heat_rate = 1 / [
+                                + p_unit(unit, 'eff00')
+                                    * [ p_unit(unit, op__) - p_unit(unit, 'opFirstCross') ]
+                                    / [ p_unit(unit, op__) - p_unit(unit, 'op00') ]
+                                + p_unit(unit, eff__)
+                                    * [ p_unit(unit, 'opFirstCross') - p_unit(unit, 'op00') ]
+                                    / [ p_unit(unit, op__) - p_unit(unit, 'op00') ]
+                                ];
 
-                    // Heat rate at the cross between real efficiency curve and approximated efficiency curve
-                    // !!! NOTE !!! It is advised not to define opFirstCross as any of the op points to avoid accidental division by zero!
-                    heat_rate = 1 / [
-                                    + p_unit(unit, 'eff00')
-                                        * [ p_unit(unit, op__) - p_unit(unit, 'opFirstCross') ]
-                                        / [ p_unit(unit, op__) - p_unit(unit, 'op00') ]
-                                    + p_unit(unit, eff__)
-                                        * [ p_unit(unit, 'opFirstCross') - p_unit(unit, 'op00') ]
-                                        / [ p_unit(unit, op__) - p_unit(unit, 'op00') ]
-                                    ];
-
-                    // Unless section has been defined, it is calculated based on the opFirstCross
-                    p_effGroupUnit(effSelector, unit, 'section') = p_unit(unit, 'section');
-                    p_effGroupUnit(effSelector, unit, 'section')${ not p_effGroupUnit(effSelector, unit, 'section') }
-                        = p_unit(unit, 'opFirstCross')
-                            * ( heat_rate - 1 / p_unit(unit, eff__) )
-                            / ( p_unit(unit, op__) - p_unit(unit, 'op00') );
-                    p_effUnit(effSelector, unit, effSelector_, 'slope')
-                        = 1 / p_unit(unit, eff__)
-                            - p_effGroupUnit(effSelector, unit, 'section') / p_unit(unit, op__);
-
-                // If the minimum operating point is above zero, then the approximate efficiency curve crosses the real efficiency curve at minimum and maximum.
-                else
-                    // Calculating the slope based on the first nonzero and the last defined data points.
-                    p_effUnit(effSelector, unit, effSelector_, 'slope')
-                        = (p_unit(unit, op__) / p_unit(unit, eff__) - p_unit(unit, 'op00') / p_unit(unit, 'eff00'))
-                            / (p_unit(unit, op__) - p_unit(unit, 'op00'));
-
-                    // Calculating the section based on the slope and the last defined point.
-                    p_effGroupUnit(effSelector, unit, 'section')
-                        = ( 1 / p_unit(unit, eff__) - p_effUnit(effSelector, unit, effSelector_, 'slope') )
-                            * p_unit(unit, op__);
-                ); // END if(p_unit)
-            ); // END loop(eff__)
-        ); // END loop(op__)
-    ); // END if(effDirectOn)
-
-    // Calculate lambdas
-    if(effLambda(effSelector),
-        p_effUnit(effSelector, unit, effSelector_, 'lb') = p_unit(unit, 'op00'); // op00 contains the min load of the unit
-
-        // Calculate the relative location of the operating point in the lambdas
-        tmp_op = p_unit(unit, 'op00')
-                    + (ord(effSelector_)-1) / (ord(effSelector) - 1)
-                        * (smax(op, p_unit(unit, op)) - p_unit(unit, 'op00'));
-        p_effUnit(effSelector, unit, effSelector_, 'op') = tmp_op; // Copy the operating point to the p_effUnit
-
-        // tmp_op falls between two p_unit defined operating points or then it is equal to one of them
-        loop((op_, op__)${  (   [tmp_op > p_unit(unit, op_) and tmp_op < p_unit(unit, op__) and ord(op_) = ord(op__) - 1]
-                                or [p_unit(unit, op_) = tmp_op and ord(op_) = ord(op__)]
-                                )
-                            and ord(op__) <= tmp_count_op
-                            },
-            // Find the corresponding efficiencies
-            loop((eff_, eff__)${    ord(op_) = ord(eff_)
-                                    and ord(op__) = ord(eff__)
-                                    },
-                // Calculate the distance between the operating points (zero if the points are the same)
-                tmp_dist = p_unit(unit, op__) - p_unit(unit, op_);
-
-                // If the operating points are not the same
-                if (tmp_dist,
-                    // Heat rate is a weighted average of the heat rates at the p_unit operating points
-                    heat_rate = 1 / [
-                                    + p_unit(unit, eff_) * [ p_unit(unit, op__) - tmp_op ] / tmp_dist
-                                    + p_unit(unit, eff__) * [ tmp_op - p_unit(unit, op_) ] / tmp_dist
-                                    ];
-
-                // If the operating point is the same, the the heat rate can be used directly
-                else
-                    heat_rate = 1 / p_unit(unit, eff_);
-                ); // END if(tmp_dist)
-
-                // Special considerations for the first lambda
-                if (ord(effSelector_) = 1,
-                    // If the min. load of the unit is not zero or the section has been pre-defined, then section is copied directly from the unit properties
-                    if(p_unit(unit, 'op00') or p_unit(unit, 'section'),
-                        p_effGroupUnit(effSelector, unit, 'section') = p_unit(unit, 'section');
-
-                    // Calculate section based on the opFirstCross, which has been calculated into p_effUnit(effLambda, unit, effLambda_, 'op')
-                    else
-                        p_effGroupUnit(effSelector, unit, 'section')
-                            = p_unit(unit, 'opFirstCross')
-                                * ( heat_rate - 1 / p_unit(unit, 'eff01') )
-                                / ( p_unit(unit, 'op01') - tmp_op );
-                    ); // END if(p_unit)
-                ); // END if(ord(effSelector))
-
-                // Calculate the slope
+                // Unless section has been defined, it is calculated based on the opFirstCross
+                p_effGroupUnit(effSelector, unit, 'section') = p_unit(unit, 'section');
+                p_effGroupUnit(effSelector, unit, 'section')${ not p_effGroupUnit(effSelector, unit, 'section') }
+                    = p_unit(unit, 'opFirstCross')
+                        * ( heat_rate - 1 / p_unit(unit, eff__) )
+                        / ( p_unit(unit, op__) - p_unit(unit, 'op00') );
                 p_effUnit(effSelector, unit, effSelector_, 'slope')
-                    = heat_rate - p_effGroupUnit(effSelector, unit, 'section') / [tmp_op + 1${not tmp_op}];
-            ); // END loop(eff_,eff__)
-        ); // END loop(op_,op__)
-    ); // END if(effLambda)
+                    = 1 / p_unit(unit, eff__)
+                        - p_effGroupUnit(effSelector, unit, 'section') / p_unit(unit, op__);
+
+            // If the minimum operating point is above zero, then the approximate efficiency curve crosses the real efficiency curve at minimum and maximum.
+            else
+                // Calculating the slope based on the first nonzero and the last defined data points.
+                p_effUnit(effSelector, unit, effSelector_, 'slope')
+                    = (p_unit(unit, op__) / p_unit(unit, eff__) - p_unit(unit, 'op00') / p_unit(unit, 'eff00'))
+                        / (p_unit(unit, op__) - p_unit(unit, 'op00'));
+
+                // Calculating the section based on the slope and the last defined point.
+                p_effGroupUnit(effSelector, unit, 'section')
+                    = ( 1 / p_unit(unit, eff__) - p_effUnit(effSelector, unit, effSelector_, 'slope') )
+                        * p_unit(unit, op__);
+            ); // END if(p_unit)
+        ); // END loop(eff__)
+    ); // END loop(op__)
+); // END loop(effGroupSelectorUnit)
+
+// Calculate lambdas
+loop(effGroupSelectorUnit(effLambda(effSelector), unit, effSelector_),
+
+    // Determine the last operating point in use for the unit
+    Option clear = tmp_count_op;
+    loop(op${   p_unit(unit, op)    },
+        tmp_count_op = ord(op);
+    ); // END loop(op)
+
+    p_effUnit(effSelector, unit, effSelector_, 'lb') = p_unit(unit, 'op00'); // op00 contains the min load of the unit
+
+    // Calculate the relative location of the operating point in the lambdas
+    tmp_op = p_unit(unit, 'op00')
+                + (ord(effSelector_)-1) / (ord(effSelector) - 1)
+                    * (smax(op, p_unit(unit, op)) - p_unit(unit, 'op00'));
+    p_effUnit(effSelector, unit, effSelector_, 'op') = tmp_op; // Copy the operating point to the p_effUnit
+
+    // tmp_op falls between two p_unit defined operating points or then it is equal to one of them
+    loop((op_, op__)${  (   [tmp_op > p_unit(unit, op_) and tmp_op < p_unit(unit, op__) and ord(op_) = ord(op__) - 1]
+                            or [p_unit(unit, op_) = tmp_op and ord(op_) = ord(op__)]
+                            )
+                        and ord(op__) <= tmp_count_op
+                        },
+        // Find the corresponding efficiencies
+        loop((eff_, eff__)${    ord(op_) = ord(eff_)
+                                and ord(op__) = ord(eff__)
+                                },
+            // Calculate the distance between the operating points (zero if the points are the same)
+            tmp_dist = p_unit(unit, op__) - p_unit(unit, op_);
+
+            // If the operating points are not the same
+            if (tmp_dist,
+                // Heat rate is a weighted average of the heat rates at the p_unit operating points
+                heat_rate = 1 / [
+                                + p_unit(unit, eff_) * [ p_unit(unit, op__) - tmp_op ] / tmp_dist
+                                + p_unit(unit, eff__) * [ tmp_op - p_unit(unit, op_) ] / tmp_dist
+                                ];
+
+            // If the operating point is the same, the the heat rate can be used directly
+            else
+                heat_rate = 1 / p_unit(unit, eff_);
+            ); // END if(tmp_dist)
+
+            // Special considerations for the first lambda
+            if (ord(effSelector_) = 1,
+                // If the min. load of the unit is not zero or the section has been pre-defined, then section is copied directly from the unit properties
+                if(p_unit(unit, 'op00') or p_unit(unit, 'section'),
+                    p_effGroupUnit(effSelector, unit, 'section') = p_unit(unit, 'section');
+
+                // Calculate section based on the opFirstCross, which has been calculated into p_effUnit(effLambda, unit, effLambda_, 'op')
+                else
+                    p_effGroupUnit(effSelector, unit, 'section')
+                        = p_unit(unit, 'opFirstCross')
+                            * ( heat_rate - 1 / p_unit(unit, 'eff01') )
+                            / ( p_unit(unit, 'op01') - tmp_op );
+                ); // END if(p_unit)
+            ); // END if(ord(effSelector))
+
+            // Calculate the slope
+            p_effUnit(effSelector, unit, effSelector_, 'slope')
+                = heat_rate - p_effGroupUnit(effSelector, unit, 'section') / [tmp_op + 1${not tmp_op}];
+        ); // END loop(eff_,eff__)
+    ); // END loop(op_,op__)
+); // END loop(effGroupSelectorUnit)
 
 // Parameters for incremental heat rates
-    if(effIncHR(effSelector),
-        p_effUnit(effSelector, unit, effSelector, 'lb') = p_unit(unit, 'hrop00'); // hrop00 contains the minimum load of the unit
-        p_effUnit(effSelector, unit, effSelector, 'op') = smax(hrop, p_unit(unit, hrop)); // Maximum operating point
-        p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
-        p_effUnit(effSelector, unit, effSelector, 'section') = p_unit(unit, 'hrsection'); // pre-defined
+loop(effGroupSelectorUnit(effIncHR(effSelector), unit, effSelector_),
 
-        // Whether to use q_conversionIncHR_help1 and q_conversionIncHR_help2 or not
-        loop(m,
-            loop(hr${p_unit(unit, hr)},
-                if (mSettings(m, 'incHRAdditionalConstraints') = 0,
-                    if (p_unit(unit, hr) < p_unit(unit, hr-1),
-                        unit_incHRAdditionalConstraints(unit) = yes;
-                    ); // END if(hr)
-                else
+    p_effUnit(effSelector, unit, effSelector, 'lb') = p_unit(unit, 'hrop00'); // hrop00 contains the minimum load of the unit
+    p_effUnit(effSelector, unit, effSelector, 'op') = smax(hrop, p_unit(unit, hrop)); // Maximum operating point
+    p_effUnit(effSelector, unit, effSelector, 'slope') = 1 / smax(eff${p_unit(unit, eff)}, p_unit(unit, eff)); // Uses maximum found (nonzero) efficiency.
+    p_effUnit(effSelector, unit, effSelector, 'section') = p_unit(unit, 'hrsection'); // pre-defined
+
+    // Whether to use q_conversionIncHR_help1 and q_conversionIncHR_help2 or not
+    loop(m,
+        loop(hr${p_unit(unit, hr)},
+            if (mSettings(m, 'incHRAdditionalConstraints') = 0,
+                if (p_unit(unit, hr) < p_unit(unit, hr-1),
                     unit_incHRAdditionalConstraints(unit) = yes;
-                ); // END if(incHRAdditionalConstraints)
-            ); // END loop(hr)
-        ); // END loop(m)
-    ); // END if(effIncHR)
+                ); // END if(hr)
+            else
+                unit_incHRAdditionalConstraints(unit) = yes;
+            ); // END if(incHRAdditionalConstraints)
+        ); // END loop(hr)
+    ); // END loop(m)
 ); // END loop(effGroupSelectorUnit)
 
 // Calculate unit wide parameters for each efficiency group
@@ -593,53 +628,66 @@ loop(m,
 
 * --- Unit Starttype, Uptime and Downtime Counters ----------------------------
 
-loop(m,
-    // Loop over units with online approximations in the model
-    loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit_online(unit))${mSettingsEff(m, effLevel)},
-        // Loop over the constrained start types
-        loop(starttypeConstrained(starttype),
-            // Find the time step displacements needed to define the start-up time frame
-            Option clear = cc;
-            cc(counter(counter_large))${   ord(counter_large) <= p_uNonoperational(unit, starttype, 'max') / mSettings(m, 'stepLengthInHours')
-                            and ord(counter_large) > p_uNonoperational(unit, starttype, 'min') / mSettings(m, 'stepLengthInHours')
-                            }
-                = yes;
-            unitCounter(unit, cc(counter)) = yes;
-            dt_starttypeUnitCounter(starttype, unit, cc(counter_large)) = - ord(counter_large);
-        ); // END loop(starttypeConstrained)
+// filtering units in that have time delays for specific start type. This clears the set before.
+option unit_tmp < p_uNonoperational;
 
-        // Find the time step displacements needed to define the downtime requirements (include run-up phase and shutdown phase)
+// Loop over filterd units in the model
+loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit_tmp(unit))${sum(m, mSettingsEff(m, effLevel))},
+    // Loop over the constrained start types
+    loop(starttypeConstrained(starttype),
+        // Find the time step displacements needed to define the start-up time frame
         Option clear = cc;
-        cc(counter_large)${   ord(counter_large) <= ceil(p_unit(unit, 'minShutdownHours') / mSettings(m, 'stepLengthInHours'))
-                                                    + ceil(p_u_runUpTimeIntervals(unit)) // NOTE! Check this
-                                                    + ceil(p_u_shutdownTimeIntervals(unit)) // NOTE! Check this
+        cc(counter(counter_large))${   ord(counter_large) <= p_uNonoperational(unit, starttype, 'max') / sum(m, mSettings(m, 'stepLengthInHours'))
+                        and ord(counter_large) > p_uNonoperational(unit, starttype, 'min') / sum(m, mSettings(m, 'stepLengthInHours'))
                         }
             = yes;
-        unitCounter(unit, cc(counter_large)) = yes;
-        dt_downtimeUnitCounter(unit, cc(counter_large)) = - ord(counter_large);
+        unitCounter(unit, cc(counter)) = yes;
+        dt_starttypeUnitCounter(starttype, unit, cc(counter_large)) = - ord(counter_large);
+    ); // END loop(starttypeConstrained)
+); // END loop(effLevelGroupUnit)
 
-        // Find the time step displacements needed to define the uptime requirements
-        Option clear = cc;
-        cc(counter_large)${ ord(counter_large) <= ceil(p_unit(unit, 'minOperationHours') / mSettings(m, 'stepLengthInHours'))}
-            = yes;
-        unitCounter(unit, cc(counter_large)) = yes;
-        dt_uptimeUnitCounter(unit, cc(counter_large)) = - ord(counter_large);
-    ); // END loop(effLevelGroupUnit)
-); // END loop(m)
+// filtering units with downtime requirements
+option clear=unit_tmp;
+unit_tmp(unit) $ {p_unit(unit, 'minShutdownHours')
+                  or p_u_runUpTimeIntervals(unit)
+                  or p_u_shutdownTimeIntervals(unit) }
+= yes;
 
-// Initialize tmp_dt based on the first model interval
-loop(m,
-    tmp_dt = -mInterval(m, 'stepsPerInterval', 'c000');
-); // END loop(m)
+// Loop over units with downtime requirements in the model
+loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit_tmp(unit))${sum(m, mSettingsEff(m, effLevel))},
+    // Find the time step displacements needed to define the downtime requirements (include run-up phase and shutdown phase)
+    Option clear = cc;
+    cc(counter_large)${   ord(counter_large) <= ceil(p_unit(unit, 'minShutdownHours') / sum(m, mSettings(m, 'stepLengthInHours')) )
+                                                + ceil(p_u_runUpTimeIntervals(unit)) // NOTE! Check this
+                                                + ceil(p_u_shutdownTimeIntervals(unit)) // NOTE! Check this
+                    }
+        = yes;
+    unitCounter(unit, cc(counter_large)) = yes;
+    dt_downtimeUnitCounter(unit, cc(counter_large)) = - ord(counter_large);
+); // END loop(effLevelGroupUnit)
+
+// Loop over units with uptime requirements in the model
+loop(effLevelGroupUnit(effLevel, effOnline(effGroup), unit_online(unit))${sum(m, mSettingsEff(m, effLevel)) and p_unit(unit, 'minOperationHours')},
+    // Find the time step displacements needed to define the uptime requirements
+    Option clear = cc;
+    cc(counter_large)${ ord(counter_large) <= ceil(p_unit(unit, 'minOperationHours') / sum(m, mSettings(m, 'stepLengthInHours')) )}
+        = yes;
+    unitCounter(unit, cc(counter_large)) = yes;
+    dt_uptimeUnitCounter(unit, cc(counter_large)) = - ord(counter_large);
+); // END loop(effLevelGroupUnit)
+
+// Initialize dt_historicalSteps based on the first model interval
+dt_historicalSteps = sum(m, -mInterval(m, 'stepsPerInterval', 'c000'));
+
 // Estimate the maximum amount of history required for the model (very rough estimate atm, just sums all possible delays together)
 loop(unit_online(unit),
-    tmp_dt = min(   tmp_dt, // dt operators have negative values, thus use min instead of max
-                    smin((starttype, unitCounter(unit, counter)), dt_starttypeUnitCounter(starttype, unit, counter))
-                    + smin(unitCounter(unit, counter), dt_downtimeUnitCounter(unit, counter))
-                    + smin(unitCounter(unit, counter), dt_uptimeUnitCounter(unit, counter))
-                    - p_u_runUpTimeIntervalsCeil(unit) // NOTE! p_u_runUpTimeIntervalsCeil is positive, whereas all dt operators are negative
-                    - p_u_shutdownTimeIntervalsCeil(unit) // NOTE! p_u_shutdownTimeIntervalsCeil is positive, whereas all dt operators are negative
-                    );
+    dt_historicalSteps = min( dt_historicalSteps, // dt operators have negative values, thus use min instead of max
+                              smin((starttype, unitCounter(unit, counter)), dt_starttypeUnitCounter(starttype, unit, counter))
+                              + smin(unitCounter(unit, counter), dt_downtimeUnitCounter(unit, counter))
+                              + smin(unitCounter(unit, counter), dt_uptimeUnitCounter(unit, counter))
+                              - p_u_runUpTimeIntervalsCeil(unit) // NOTE! p_u_runUpTimeIntervalsCeil is positive, whereas all dt operators are negative
+                              - p_u_shutdownTimeIntervalsCeil(unit) // NOTE! p_u_shutdownTimeIntervalsCeil is positive, whereas all dt operators are negative
+                              );
 ); // END loop(starttype, unitCounter)
 
 * =============================================================================
@@ -687,9 +735,14 @@ loop(m,
 // converting price change ts data to price ts data
 // calculated here instead 1e_inputs because t_datalength is initiated in 3a_periodicInit
 
+// selecting smaller from data length and amount of t
 tmp_ = smin(t_datalength(t),ord(t));
 
-loop(node_priceChangeData(node)$p_price(node, 'useTimeSeries'),
+// clearing temporary node set and filtering nodes with priceChange data
+option clear = node_tmp;
+option node_tmp < ts_priceChange;
+
+loop(node_tmp(node)$p_price(node, 'useTimeSeries'),
     // Determine the time steps where the prices change
     Option clear = tt;
     tt(t)$ts_priceChange(node,t) = yes;
@@ -719,13 +772,13 @@ loop(emissionGroup(emission_priceChangeData(emission), group)$p_emissionPrice(em
 * --- checking when to use static unit costs and calculating those ------------
 
 // vomCost calculations
-// looping gnu to decide if using static or time series pricing
-loop(gnu(grid, node, unit),
-    p_vomCost(grid, node, unit, 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
-    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
-    p_vomCost(grid, node, unit, 'useTimeSeries')$sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
-    p_vomCost(grid, node, unit, 'useConstant')${not p_vomCost(grid, node, unit, 'useTimeSeries')} = -1;
-); // end loop(gnu)
+
+// Decide between static or time series pricing
+p_vomCost(gnu(grid, node, unit), 'useTimeSeries')$p_price(node, 'useTimeSeries')  = -1;
+p_vomCost(gnu(grid, node, unit), 'useTimeSeries')$sum(emissionGroup(emission, group)${p_nEmission(node, emission) and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+p_vomCost(gnu(grid, node, unit), 'useTimeSeries')$sum(emissionGroup(emission, group)${p_gnuEmission(grid, node, unit, emission, 'vomEmissions') and gnGroup(grid, node, group)}, p_emissionPrice(emission, group, 'useTimeSeries')) = -1;
+p_vomCost(gnu(grid, node, unit), 'useConstant')${not p_vomCost(grid, node, unit, 'useTimeSeries')} = -1;
+
 
 // vomcosts when constant prices. Includes O&M cost, fuel cost and emission cost (EUR/MWh)
 p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConstant')
@@ -754,11 +807,8 @@ p_vomCost(gnu(grid, node, unit), 'price')$p_vomCost(grid, node, unit, 'useConsta
 ;
 
 // clearing flag to use p_vomCost if cost is zero
-loop(gnu$p_vomCost(gnu, 'useConstant'),
-    if(p_vomCost(gnu, 'price')= 0,
-        p_vomCost(gnu, 'useConstant')=0;
-    );
-);
+p_vomCost(gnu, 'useConstant') $ { p_vomCost(gnu, 'useConstant') and (p_vomCost(gnu, 'price')= 0) }
+     =0;
 
 
 // Startup cost calculations
@@ -790,12 +840,9 @@ p_startupCost(unit, starttype, 'price')$p_startupCost(unit, starttype, 'useConst
          ) // END sum(nu_startup)
 ;
 
-// clearing flag to use p_startupCost if cost is zero
-loop(unitStarttype(unit, starttype)$p_startupCost(unit, starttype, 'useConstant'),
-    if(p_startupCost(unit, starttype, 'price') = 0,
-        p_startupCost(unit, starttype, 'useConstant') = 0;
-    );
-);
+p_startupCost(unit, starttype, 'useConstant') $ {p_startupCost(unit, starttype, 'useConstant')
+                                                 and (p_startupCost(unit, starttype, 'price') = 0) }
+= 0;
 
 // mapping units that have startup costs, either constant or time series
 Option unit_startCost < p_startupCost;

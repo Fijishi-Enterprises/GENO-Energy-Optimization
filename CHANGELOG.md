@@ -10,6 +10,30 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 
+## 3.7 - 2023-08-24
+
+### Added
+- an abort for empty opXX defined in input data if there is higher opXX or matching effXX
+- python script (plot_generator.py) for automatic result figure drawing 
+- option to give vertical influx and cf data in excel (ts_influx_vert and ts_cf_vert)
+- git hooks for version control of git commits, creates version_git file
+- new results table r_genByUnittype_g, r_emission_g, r_reserve_g
+- note that genByFuel results ignore consumption from the node
+- r_info_solveStatus for building models
+
+### Changed
+- gitignore now contains all folders except the ones in repository
+- version file now manually generated when publishing a new major version
+- cleaned unused scalars from model code
+- clarifying code: replacing tmp_dt parameter with dt_historicalSteps
+
+### Fixed
+- result table genByFuel in case of multifuel units
+- result table genByFuel_gnShare
+- minor speed improvements with internal sets and parameters: usft, ts_vomCost, certain results tables
+- minor speed improvements by splitting and compacting long loops
+
+
 ## 3.6 - 2023-08-24
 
 ### Added
@@ -31,6 +55,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - reverting remaining selfDischargeLoss updates from previous patch
 - a crash related to non-rounded MIP startup or MIP shutdown values
+
 
 ## 3.5 - 2023-08-24
 
@@ -180,7 +205,6 @@ All notable changes to this project will be documented in this file.
 - adding example file temp_additionalSetsAndParameters.inc
 - adding example file temp_changes.inc
 - stricter domains for `tools/exporttobb.json` .gdx exporter.
-
 
 ### Changed - efficiency improvements
 - improving the speed of timeseries looping (ts_cf_, ts_gnn_) in between of solves

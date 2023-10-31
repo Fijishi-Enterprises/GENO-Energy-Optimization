@@ -27,11 +27,10 @@ Sets
 
 * --- Node classifications ----------------------------------------------------
     node_spill(node) "Nodes that can spill; used to remove v_spill variables where not relevant"
-    node_priceData(node) "Nodes that have input data in ts_price table"
-    node_priceChangeData(node) "Nodes that have input data in ts_priceChange table"
     node_superpos(node) "Nodes whose state is monitored in the z dimension using superpositioning of state"
     flowNode(flow, node) "Nodes with flows"
     node_tmp(node) "temporary set for summing nodes"
+    node_tmp_(node) "another temporary set for summing nodes"
 
 * --- Emission classifications ------------------------------------------------
     emission_priceData(emission) "Emissions that have input data in ts_emissionPrice table"
@@ -115,7 +114,6 @@ $ifthen exist '%input_dir%/timeAndSamples.inc'
 $else
     $$abort 'Did not find %input_dir%/timeAndSamples.inc. Check path and spelling!'
 $endif
-$ife %system.errorlevel%>0 $abort importing timeAndSamples.inc failed! Check that your file is valid and that your file path and file name are correct.
 
     m(mType) "model(s) in use"
     s_active(s) "Samples with non-zero probability in the current model solve"
@@ -171,6 +169,7 @@ $ife %system.errorlevel%>0 $abort importing timeAndSamples.inc failed! Check tha
 
 * --- counter sets used in several loops, time intervals, and trajectories
     counter(counter_large) "Counter set limited to needed amount of counters"
+    counter_intervals(counter_large) "Counter set for intervals"
     cc(counter_large) "Temporary subset of counter used for calculations"
 
 * --- Sets used for the changing unit aggregation and efficiency approximations as well as unit lifetimes
@@ -186,6 +185,9 @@ $ife %system.errorlevel%>0 $abort importing timeAndSamples.inc failed! Check tha
     gnusft(grid, node, unit, s, f, t) "set of active gnu and aggregated sft"
     gnusft_ramp(grid, node, unit, s, f, t) "Units with ramp requirements or costs"
     gnusft_rampCost(slack, grid, node, unit, s, f, t) "Units with ramp costs"
+
+    gnuft_tmp(grid, node, unit, f, t) "temporary gnuft set"
+    uft_tmp(unit, f, t) "temporary uft set"
 
     eff_usft(effSelector, unit, s, f, t) "Selecting conversion efficiency equations"
     effGroup(effSelector) "Group name for efficiency selector set, e.g. DirectOff and Lambda02"
@@ -232,7 +234,11 @@ set metadata(*) /
    'Time' '%system.time%'
    'GAMS version' '%system.gamsrelease%'
    'GAMS system' '%system.gstring%'
-$include 'version'
+$ifthen exist 'version_git'
+    $$include 'version_git';
+$else
+    $$include 'version';
+$endif
 /;
 if(execError > 0, metadata('FAILED') = yes);
 
@@ -249,9 +255,10 @@ alias(m, mSolve);
 alias(t, t_, t__, t_solve);
 alias(f, f_, f__);
 alias(s, s_, s__);
-alias(grid, grid_, grid_output);
+alias(grid, grid_, grid__, grid_output);
 alias(unit, unit_);
-alias(node, from_node, to_node, node_, node_input, node_output, node_fail, node_left, node_right);
+alias(node, from_node, to_node, node_, node__, node_input, node_output, node_fail, node_left, node_right);
+alias(flow, flow_);
 alias(effSelector, effSelector_);
 alias(effDirect, effDirect_);
 alias(effDirectOff, effDirectOff_);
