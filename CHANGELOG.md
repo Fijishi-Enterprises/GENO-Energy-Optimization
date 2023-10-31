@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## unversioned
 
 ### Added
+- python script (plot_generator.py) for automatic result figure drawing 
 - git hooks for version control of git commits, creates version_git file
 - option to give vertical influx and cf data in excel (ts_influx_vert and ts_cf_vert)
 - new results table r_genByUnittype_g, r_emission_g, r_reserve_g
