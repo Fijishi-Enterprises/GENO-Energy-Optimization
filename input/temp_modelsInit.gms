@@ -20,7 +20,15 @@ $offtext
 * =============================================================================
 
 // Include desired model definition files here
-$include '%input_dir%/scheduleInit.gms'
+// default values: input_dir = input, init_file = scheduleInit.gms
+// init_file can be replaced with hardcoded value e.g. '%input_dir%/scheduleInit.gms' as 
+// the temp_modelsInit needs to be saved with a new name (modelsInit.gms) in any case.
+
+$include '%input_dir%/%init_file%'
+
+
+
+
 
 * =============================================================================
 * --- Optional Data Manipulation ----------------------------------------------

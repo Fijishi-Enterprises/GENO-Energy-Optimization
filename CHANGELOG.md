@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - improved scripting: %changes_inc%
+- improved scripting: %init_file%
 
 ### Changed
 

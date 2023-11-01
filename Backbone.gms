@@ -118,6 +118,7 @@ $if not set input_file_gdx $setglobal input_file_gdx 'inputData.gdx'
 $if not set input_excel_index $setglobal input_excel_index 'INDEX'
 $if not set input_excel_checkdate $setglobal input_excel_checkdate ''
 $if not set changes_inc $setglobal changes_inc 'changes.inc'
+$if not set init_file $setglobal init_file 'scheduleInit.gms' 
 
 * Make sure output dir exists
 $if not dexist '%output_dir%' $call 'mkdir %output_dir%'
