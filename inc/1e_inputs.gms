@@ -126,8 +126,9 @@ $label no_input_gdx
 $include 'inc/1e_scenChanges.gms'
 
 * Reads changes or additions to the inputdata through changes.inc file.
-$ifthen exist '%input_dir%/changes.inc'
-   $$include '%input_dir%/changes.inc'
+* by default, input_dir = input, changes_inc = changes.inc
+$ifthen exist '%input_dir%/%changes_inc%'
+   $$include '%input_dir%/%changes_inc%'
 $endif
 
 

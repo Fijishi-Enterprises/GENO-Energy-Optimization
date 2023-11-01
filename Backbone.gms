@@ -117,6 +117,7 @@ $if not set output_file $setglobal output_file 'results.gdx'
 $if not set input_file_gdx $setglobal input_file_gdx 'inputData.gdx'
 $if not set input_excel_index $setglobal input_excel_index 'INDEX'
 $if not set input_excel_checkdate $setglobal input_excel_checkdate ''
+$if not set changes_inc $setglobal changes_inc 'changes.inc'
 
 * Make sure output dir exists
 $if not dexist '%output_dir%' $call 'mkdir %output_dir%'
@@ -147,7 +148,7 @@ $include 'inc/1e_inputs.gms'        // Load input data
 * 1e_inputs reads also following files:
 *      - %input_dir%/additionalSetsAndParameters.inc if exist
 *      - inc/1e_scenChanges.gms,
-*      - %input_dir%/changes.inc if exist
+*      - %input_dir%/%changes_inc% if exist
 
 * === Variables and equations =================================================
 $include 'inc/2a_variables.gms'                         // Define variables for the models
