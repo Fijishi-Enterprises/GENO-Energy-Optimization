@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - improved scripting: %init_file%
 
 ### Changed
+- edited plot_generator.py to only warn the user when files will actually be overwritten
 
 ### Fixed
 

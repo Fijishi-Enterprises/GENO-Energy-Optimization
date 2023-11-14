@@ -28,7 +28,7 @@ path_to_output_dir = os.path.normpath('./output/')
 # choose whether you want to automatically plot everything or pick the symbols yourself
     # 'automatic': the script finds and plots every available time series (may take several minutes depending on model)
     # 'manual_bb3': manual choice with results in Backbone 3.x format
-    # 'manual_bb2': like 'manual_bb2' but for results in Backbone 2.x format
+    # 'manual_bb2': like 'manual_bb3' but for results in Backbone 2.x format
 manual_or_automatic = 'automatic' # insert either 'automatic', 'manual_bb3' or 'manual_bb2'
 
 # AUTOMATIC CHOICE: if you chose 'automatic', you are done and can ignore the rest of the file.
@@ -123,22 +123,25 @@ def add_zero_rows(df:pd.DataFrame, first_hour, last_hour):
 def single_plot_to_pdf(df:pd.DataFrame, symbol_name:str, title_name:str, pdf_file):
     fig, ax = plt.subplots()
     ax.plot(df['t'], df['value'])
-    ax.set(xlabel='Date', ylabel=symbol_name,
+    ax.set(xlabel='Time (h)', ylabel=symbol_name,
         title=title_name)
     ax.grid()
     pdf_file.savefig(fig, bbox_inches='tight')
     plt.close()
 
-# creates a directory for the output pdfs, if needed, and confirms that the user wants to continue if an existing directory is not empty
-def check_chosen_output():
+# creates a directory for the output pdfs, if needed
+# also confirms that the user wants to continue if the output directory contains files that would be overwritten
+def check_chosen_output(symbols:list):
     if not os.path.exists(path_to_output_dir):
         os.mkdir(path_to_output_dir)
     else:
-        if len(os.listdir(path_to_output_dir)) > 0:
-            msg = ('\nWARNING: the output directory is not empty. The script may overwrite existing data.\n\n' + 
-                   'Do you want to continue (write "yes" to proceed)?\n')
-            user_answer = str(input(msg))
-            if user_answer != 'yes':
+        to_be_overwritten = set(os.listdir(path_to_output_dir)).intersection(set([s + '.pdf' for s in symbols]))
+        if len(to_be_overwritten) > 0:
+            print(f'\nWARNING: running the script will overwrite the following files in the {path_to_output_dir}\ directory:\n')
+            for file_name in to_be_overwritten:
+                print(file_name)
+            user_answer = input('\nDo you want to continue (write "yes" to proceed)?\n')
+            if user_answer not in ['y', 'yes']:
                 sys.exit('\nScript aborted.')
 
 
@@ -182,11 +185,27 @@ def create_all_plots(all_results:gt.Container(), chosen_data:list):
     print('All done.')
 
 
-# the action starts here
-check_chosen_output()
+if manual_or_automatic not in ['automatic', 'manual_bb3', 'manual_bb2']:
+    print('No plots created. Please set the manual_or_automatic variable as either "automatic", "manual_bb3" or "manual_bb2".')
+    sys.exit('\nScript aborted.')
+
+# check output directory and load results.gdx
+
+if manual_or_automatic in ['manual_bb3', 'manual_bb2']:
+    check_chosen_output(manual_or_automatic)
 
 print('\nLoading gdx data...')
 result_gdx = gt.Container(path_to_result_gdx)
+
+if manual_or_automatic == 'automatic':
+    # get suitable symbol names from result_gdx
+    all_symbols_with_t_and_gnu = []
+    for symbol in result_gdx.data.keys():
+        df = result_gdx.data[symbol].records
+        if df is not None and 't' in df.columns and any(item in ['grid', 'node', 'unit'] for item in df.columns) and len(df) > 1:
+            all_symbols_with_t_and_gnu += [symbol]
+    check_chosen_output(all_symbols_with_t_and_gnu)
+
 
 # picking t_start and t_end from mSettings info result table
 # named r_info_mSettings in BB3.x and mSettings in BB2.x
@@ -204,17 +223,8 @@ except:
 
 # print automatic or selected list of result symbols to pdf
 if manual_or_automatic == 'automatic':
-    all_symbols_with_t_and_gnu = []
-    for symbol in result_gdx.data.keys():
-        df = result_gdx.data[symbol].records
-        if df is not None and 't' in df.columns and any(item in ['grid', 'node', 'unit'] for item in df.columns) and len(df) > 1:
-            all_symbols_with_t_and_gnu += [symbol]
-    
     create_all_plots(result_gdx, all_symbols_with_t_and_gnu)
-
 elif manual_or_automatic == 'manual_bb3':
     create_all_plots(result_gdx, manual_bb3_symbols)
 elif manual_or_automatic == 'manual_bb2':
     create_all_plots(result_gdx, manual_bb2_symbols)
-else:
-    print('No plots created. Please set the manual_or_automatic variable as either "automatic", "manual_bb3" or "manual_bb2".') 
