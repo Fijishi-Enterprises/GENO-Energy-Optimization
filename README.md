@@ -80,6 +80,7 @@ When starting to use Backbone, there is no immediate need to understand every si
 * Ciara O'Dwyer
 * Jussi Ikäheimo
 * Tomi J. Lindroos
+* Eric Harrison
 
 ## License
 
