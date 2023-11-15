@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - improved scripting: %changes_inc%
 - improved scripting: %init_file%
+- checks and warnings if a single sample (e.g. schedule run) does not cover all the modelled hours and horizon
 
 ### Changed
 - edited plot_generator.py to only warn the user when files will actually be overwritten

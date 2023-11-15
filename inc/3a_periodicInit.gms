@@ -888,6 +888,19 @@ loop(m, // Not ideal, but multi-model functionality is not yet implemented
         abort "Period of perfect foresight cannot be longer than forecast horizon";
     );
 
+* --- Necessary time steps included in the ms ---------------------------------
+
+    // in case of one sample, needs to cover from start to start+end+horizon
+    if(card(ms)=1,
+        if(sum(s, msStart(m, s)) > (mSettings(m, 't_start') ),
+            put log '!!! Warning: The start of sample is larger than t_start. Some hours will not be modelled.' /;
+        );
+        if(sum(s, msEnd(m, s)) < (mSettings(m, 't_start') + mSettings(m, 't_end') + mSettings('schedule', 't_horizon') ),
+            put log '!!! Warning: The end of sample is less than t_start + t_end + t_horizon. Some hours will not be modelled.' /;
+        );
+    );
+
+
 * --- Reserve structure checks ------------------------------------------------
 
     loop(restypeDirectionGroup(restype, up_down, group),
