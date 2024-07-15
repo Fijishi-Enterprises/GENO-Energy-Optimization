@@ -4,15 +4,6 @@ Backbone is a generic energy network optimization tool written in [GAMS](https:/
 
 If you use Backbone in a published work, please cite the [following publication](https://doi.org/10.3390/en12173388), which describes the Backbone energy systems modelling framework.
 
-*MDPI and ACS Style*  
-Helistö, N.; Kiviluoma, J.; Ikäheimo, J.; Rasku, T.; Rinne, E.; O’Dwyer, C.; Li, R.; Flynn, D. Backbone—An Adaptable Energy Systems Modelling Framework. Energies 2019, 12, 3388. https://doi.org/10.3390/en12173388
-
-*AMA Style*  
-Helistö N, Kiviluoma J, Ikäheimo J, Rasku T, Rinne E, O’Dwyer C, Li R, Flynn D. Backbone—An Adaptable Energy Systems Modelling Framework. Energies. 2019; 12(17):3388. https://doi.org/10.3390/en12173388
-
-*Chicago/Turabian Style*  
-Helistö, Niina, Juha Kiviluoma, Jussi Ikäheimo, Topi Rasku, Erkka Rinne, Ciara O’Dwyer, Ran Li, and Damian Flynn. 2019. "Backbone—An Adaptable Energy Systems Modelling Framework" Energies 12, no. 17: 3388. https://doi.org/10.3390/en12173388 
-
 ## Getting Started
 
 Check the Backbone wiki pages: [Backbone wiki](https://gitlab.vtt.fi/backbone/backbone/-/wikis/home) 
@@ -68,19 +59,6 @@ When starting to use Backbone, there is no immediate need to understand every si
 * **1e_inputs.gms**: Imports the input data into Backbone, and thus contains a list of the sets and parameters that need to be included in the “InputData.gdx” input file. Also contains rules for generating all sorts of auxiliary sets based on the input data that are used throughout the model files. Contains a few data integrity checks as well, but these could/should be expanded upon in the future.
 * **1b_sets.gms and 1c_parameters.gms**: Understanding of the required dimensions of the input sets and parameters is necessary in order to create working input files. 
 * **Model Initialization Files**: E.g. *scheduleInit_temp.gms* that define the rules for the optimization model.
-
-## Authors
-
-* Juha Kiviluoma
-* Erkka Rinne
-* Topi Rasku
-* Niina Helisto
-* Dana Kirchem
-* Ran Li
-* Ciara O'Dwyer
-* Jussi Ikäheimo
-* Tomi J. Lindroos
-* Eric Harrison
 
 ## License
 
